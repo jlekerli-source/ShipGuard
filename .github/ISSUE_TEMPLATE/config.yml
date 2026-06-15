@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Workflow question
+    url: https://github.com/jlekerli-source/ringly-codex-workflows/discussions
+    about: Ask broader questions or share adapted workflows.

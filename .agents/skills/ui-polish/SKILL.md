@@ -27,6 +27,14 @@ python3 ./scripts/check_localization_coverage.py
 
 8. If visual proof is missing, say so. Screenshots and simulator proof do not replace physical alarm proof.
 
+## Rules
+
+- Match the existing app style before inventing a new visual pattern.
+- Keep text short enough for localization and Dynamic Type.
+- Avoid layout changes that hide important state, actions, or permission truth.
+- Add or update UI tests when the polish changes interaction paths.
+- Validate the exact surface touched, not a broad unrelated lane.
+
 ## Review Checklist
 
 - Text fits at compact widths and Dynamic Type.
@@ -34,3 +42,7 @@ python3 ./scripts/check_localization_coverage.py
 - Pinned headers do not show scrolling content underneath.
 - Locale and RTL behavior are intentional.
 - UI tests target the user-visible behavior, not fragile coordinates.
+
+## Completion Evidence
+
+Return files changed, surface affected, accessibility or localization risk, screenshot or UI-test proof when available, and the remaining manual check if visual proof is not possible locally.

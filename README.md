@@ -1,25 +1,65 @@
-# Swiss Indie Development With Codex
+# Ringly Codex Workflows
 
-I am a Swiss indie developer building Ringly, an iPhone alarm app focused on trustworthy wake-ups, polished daily routines, and calm product details. Ringly is also my working lab for solo development with AI coding agents: every meaningful change has to move through clear instructions, narrow validation, and reproducible proof.
+Public operating rules for using Codex on risk-sensitive solo iOS work.
 
-This public repository shares the reusable workflows I use to collaborate with Codex while building a real mobile app as a solo developer. The goal is not to make AI feel magical. The goal is to make it operational: give the agent enough project context to act safely, make it plan before risky work, constrain it with the right tests, and keep release claims tied to evidence.
+This repository shares the workflow layer I use around Ringly, an iPhone alarm app where reliability, notification truth, StoreKit behavior, and release proof matter. It does not contain private Ringly source code. It contains the reusable process: agent instructions, planning templates, validation routing, skill prompts, release checklists, and evaluation tasks.
+
+The goal is simple: make AI-assisted coding repeatable, reviewable, and useful for real product maintenance.
+
+## Who This Is For
+
+- Solo developers using Codex or similar coding agents on production apps.
+- iOS developers working near alarms, notifications, widgets, subscriptions, or release gates.
+- Maintainers who want agents to plan, test, and hand off work with evidence instead of vague claims.
+
+## Quick Start
+
+1. Copy `AGENTS.md` into your repo root and replace the Ringly-specific paths with your project paths.
+2. Use `PLANS.md` before risky work, release work, or changes that touch persistence, notifications, payments, or app lifecycle code.
+3. Pick the relevant skill under `.agents/skills/` and paste it into your Codex task context.
+4. Run the narrowest validation lane that proves the change.
+5. Record blockers and proof honestly before merging or shipping.
+
+To validate this workflow bundle itself:
+
+```bash
+./scripts/validate_workflow_bundle.sh
+```
 
 ## What Is Inside
 
-- An `AGENTS.md` template for mobile-app development with alarm, notification, StoreKit, and release-proof edge cases.
-- A `PLANS.md` template that forces objective, affected files, risks, tests, and rollback thinking before large changes.
-- Five reusable Codex skills under `.agents/skills`: alarm testing, notification permissions, UI polish, release checklist, and bug triage.
-- Scripts and checklists for bug triage, release handoff, and notification/alarm validation.
-- A subagent workflow for inspector, implementer, tester, and reviewer roles.
-- A mini evaluation suite of realistic Ringly-style issues Codex can solve later.
-- Short LinkedIn/X post drafts explaining the workflow.
+- `AGENTS.md`: a root instruction template for mobile-app maintenance with high-risk feature areas.
+- `PLANS.md`: a planning template that forces objective, scope, risks, tests, and rollback thinking.
+- `SUBAGENTS.md`: inspector, implementer, tester, and reviewer roles for larger Codex tasks.
+- `.agents/skills/`: reusable Codex skills for alarm testing, notification permissions, UI polish, release checklists, and bug triage.
+- `scripts/`: small checklists and prompts for release handoff, bug triage, and alarm/notification validation.
+- `.github/workflows/validate.yml`: a lightweight CI check for required files, skill metadata, shell syntax, and whitespace.
+- `EVALUATION_SUITE.md`: realistic benchmark tasks for future agent runs.
+- `POSTS.md`: short public posts explaining the workflow.
+
+## Workflow Map
+
+```text
+request
+  -> read AGENTS.md
+  -> choose risk lane
+  -> write or update PLANS.md
+  -> make the smallest scoped change
+  -> run the narrowest proof command
+  -> review the diff and evidence
+  -> ship only what is proven
+```
 
 ## Why This Matters
 
-Solo developers have to move fast, but they cannot outsource judgment. Codex is most useful when it is treated like a capable teammate inside a disciplined system: small scopes, explicit constraints, real validation, and honest handoffs when proof is missing.
+AI coding agents are strongest when the project gives them structure. Ringly is my live test bed for that structure: narrow scopes, explicit guardrails, real validation, and clear handoffs when proof is missing.
 
-Ringly is where I test that system. The workflows here are designed for developers who want AI assistance that is repeatable, auditable, and useful in production work, especially when building mobile apps with edge cases that cannot be hand-waved away.
+This repository turns those habits into public templates that other developers can adapt without copying the private app.
 
-## The Principle
+## Current Status
 
-Use AI to increase focus, not chaos. Write down the operating rules. Make the agent show its work. Validate the smallest thing that proves the change. Keep the human accountable for the product.
+This is an early public workflow kit. The next priorities are documented in `ROADMAP.md`, and contribution guidance lives in `CONTRIBUTING.md`.
+
+## License
+
+MIT. See `LICENSE`.

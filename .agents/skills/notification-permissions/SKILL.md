@@ -7,6 +7,17 @@ description: Ringly notification, AlarmKit access, and permission-truth workflow
 
 Use this skill when permission truth or fallback delivery matters.
 
+## Permission States
+
+Check each relevant state:
+
+- Not determined.
+- Full AlarmKit access.
+- Notification fallback only.
+- Notifications denied.
+- Provisional or limited notification behavior.
+- Reopened from notification, alarm, widget, shortcut, or normal launch.
+
 ## Steps
 
 1. Identify the exact access state being changed or tested: AlarmKit full access, normal notification authorization, fallback-only, denied, not determined, unavailable, or simulator override.
@@ -24,6 +35,13 @@ Use this skill when permission truth or fallback delivery matters.
 
 6. For permission-denied or fallback states, verify the app still allows safe free exploration while clearly blocking or warning about armed alarms that cannot be trusted.
 7. For release claims, record whether proof is simulator, TestFlight, physical-device, or blocked-manual.
+
+## Rules
+
+- UI must describe the actual permission state, not the desired state.
+- Fallback behavior must be explicit and testable.
+- Do not remove existing scheduled notifications before replacement succeeds unless the rollback path is proven.
+- If the proof requires a physical device, state that directly.
 
 ## Output
 

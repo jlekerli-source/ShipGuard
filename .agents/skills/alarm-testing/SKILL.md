@@ -21,7 +21,10 @@ Use this skill to keep alarm work narrow, truthful, and evidence-backed.
 5. Check edge cases: selected sound, AlarmKit carrier sound, notification fallback, hardware volume, Focus/mute, Bluetooth route, Dynamic Island, Live Activity cleanup, mission enforcement, Daily Shift, repeat coverage, stale duplicate fire, and disabled-off behavior.
 6. Choose the narrowest validation lane:
 
+## Required Checks To Consider
+
 ```bash
+./scripts/check_alarm_runtime_freeze.sh --print-protected-files
 ./scripts/ci_validate.sh fast
 ./scripts/run_alarm_ui_batches.sh alarm-home-smoke
 ./scripts/run_alarm_ui_batches.sh all
@@ -32,3 +35,7 @@ Use this skill to keep alarm work narrow, truthful, and evidence-backed.
 
 7. For release or trust claims, require real-device proof through the release/device handoff scripts. Simulator proof alone is not alarm-trust proof.
 8. Report exact command status and evidence path. Treat timeouts and infrastructure stalls as blockers, not passes.
+
+## Output
+
+Return the behavior checked, files or lanes touched, command status, evidence path, and any manual device action still required.

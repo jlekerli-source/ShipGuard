@@ -5,7 +5,7 @@ description: Ringly bug-triage workflow. Use when investigating a reported bug, 
 
 # Bug Triage
 
-Use this skill before fixing unclear bugs.
+Use this skill before implementing an unclear bug report.
 
 ## Steps
 
@@ -23,6 +23,25 @@ Use this skill before fixing unclear bugs.
 7. Name likely files and validation commands.
 8. Write a small plan with objective, affected files, risks, tests, and rollback.
 9. Do not implement until the plan is accepted or the user clearly asked for the fix.
+
+## Output Shape
+
+Return:
+
+- Expected behavior.
+- Current observed or inferred failure.
+- Likely owner files.
+- Risk class.
+- Smallest reproduction or source evidence.
+- Smallest validation command.
+- Open questions that block implementation.
+
+## Rules
+
+- Inspect first, then edit.
+- Do not broaden the fix beyond the reported behavior.
+- If alarm, notification, StoreKit, persistence, or release state is involved, call out the risk explicitly.
+- Blocked validation is not a pass.
 
 ## Useful Resource
 

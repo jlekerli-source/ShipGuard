@@ -1,0 +1,33 @@
+name: Workflow gap
+description: Report a Codex workflow failure that should become a rule, skill, checklist, or evaluation task.
+title: "[workflow gap] "
+labels: ["workflow-gap"]
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: Task
+      description: What were you trying to get Codex to do?
+    validations:
+      required: true
+  - type: textarea
+    id: failure
+    attributes:
+      label: Failure
+      description: What did the agent miss, overreach, or claim without evidence?
+    validations:
+      required: true
+  - type: textarea
+    id: prevention
+    attributes:
+      label: Prevention
+      description: What rule, skill, checklist, or validation command would have prevented it?
+    validations:
+      required: true
+  - type: textarea
+    id: proof
+    attributes:
+      label: Proof
+      description: What is the smallest command, screenshot, test, or manual check that would prove the task?
+    validations:
+      required: false
