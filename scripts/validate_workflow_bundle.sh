@@ -8,10 +8,15 @@ required_files=(
   "PLANS.md"
   "SUBAGENTS.md"
   "EVALUATION_SUITE.md"
+  "SCORECARD.md"
   "CONTRIBUTING.md"
   "ROADMAP.md"
   "SECURITY.md"
   "LICENSE"
+  "examples/issue-to-plan-to-validation.md"
+  "examples/prompt-pack.md"
+  "templates/ios/README.md"
+  "templates/ios/AGENTS.md"
   ".agents/skills/alarm-testing/SKILL.md"
   ".agents/skills/bug-triage/SKILL.md"
   ".agents/skills/notification-permissions/SKILL.md"
@@ -27,23 +32,55 @@ for file in "${required_files[@]}"; do
 done
 
 for skill in .agents/skills/*/SKILL.md; do
-  grep -q '^---$' "$skill" || {
-    echo "missing frontmatter delimiter: $skill" >&2
+  delimiter_count=$(grep -c '^---$' "$skill")
+  if [[ "$delimiter_count" -ne 2 ]]; then
+    echo "expected exactly two frontmatter delimiters: $skill" >&2
     exit 1
-  }
-  grep -q '^name: ' "$skill" || {
+  fi
+  if [[ "$(grep -c '^name: ' "$skill")" -ne 1 ]]; then
     echo "missing skill name: $skill" >&2
     exit 1
-  }
-  grep -q '^description: ' "$skill" || {
+  fi
+  if [[ "$(grep -c '^description: ' "$skill")" -ne 1 ]]; then
     echo "missing skill description: $skill" >&2
     exit 1
-  }
+  fi
 done
 
 while IFS= read -r script; do
   bash -n "$script"
+  if head -n 1 "$script" | grep -q '^#!' && [[ ! -x "$script" ]]; then
+    echo "script has shebang but is not executable: $script" >&2
+    exit 1
+  fi
 done < <(find scripts -type f -name '*.sh' | sort)
+
+while IFS=: read -r file target; do
+  [[ -z "$target" ]] && continue
+  [[ "$target" == http://* || "$target" == https://* || "$target" == mailto:* || "$target" == "#"* ]] && continue
+  target="${target%%#*}"
+  [[ -z "$target" ]] && continue
+  candidate="$(dirname "$file")/$target"
+  if [[ ! -e "$candidate" ]]; then
+    echo "broken local markdown link in $file: $target" >&2
+    exit 1
+  fi
+done < <(
+  find . -type f -name '*.md' -not -path './.git/*' -print0 |
+    xargs -0 perl -ne 'while (/\[[^\]]+\]\(([^)]+)\)/g) { print "$ARGV:$1\n" }'
+)
+
+if command -v ruby >/dev/null 2>&1; then
+  yaml_files=()
+  while IFS= read -r file; do
+    yaml_files+=("$file")
+  done < <(find .github -type f \( -name '*.yml' -o -name '*.yaml' \) | sort)
+  if [[ "${#yaml_files[@]}" -gt 0 ]]; then
+    ruby -ryaml -e 'ARGV.each { |file| YAML.load_file(file) }' "${yaml_files[@]}"
+  fi
+else
+  echo "ruby unavailable; skipping yaml parse"
+fi
 
 git diff --check
 

@@ -20,6 +20,8 @@ The goal is simple: make AI-assisted coding repeatable, reviewable, and useful f
 4. Run the narrowest validation lane that proves the change.
 5. Record blockers and proof honestly before merging or shipping.
 
+For a worked example, read `examples/issue-to-plan-to-validation.md`.
+
 To validate this workflow bundle itself:
 
 ```bash
@@ -34,6 +36,10 @@ To validate this workflow bundle itself:
 - `.agents/skills/`: reusable Codex skills for alarm testing, notification permissions, UI polish, release checklists, and bug triage.
 - `scripts/`: small checklists and prompts for release handoff, bug triage, and alarm/notification validation.
 - `.github/workflows/validate.yml`: a lightweight CI check for required files, skill metadata, shell syntax, and whitespace.
+- `examples/issue-to-plan-to-validation.md`: an anonymized sample from messy issue to plan, proof, and handoff.
+- `examples/prompt-pack.md`: copyable prompts for common maintainer tasks.
+- `templates/ios/`: a starter workflow bundle for adapting these rules to another iOS app.
+- `SCORECARD.md`: a lightweight rubric for judging whether a Codex run produced usable maintainer evidence.
 - `EVALUATION_SUITE.md`: realistic benchmark tasks for future agent runs.
 - `POSTS.md`: short public posts explaining the workflow.
 
@@ -59,6 +65,8 @@ This repository turns those habits into public templates that other developers c
 ## Current Status
 
 This is an early public workflow kit. The next priorities are documented in `ROADMAP.md`, and contribution guidance lives in `CONTRIBUTING.md`.
+
+The repository is also configured as a GitHub template, so you can start from it directly and then remove the Ringly-specific examples you do not need.
 
 ## License
 
