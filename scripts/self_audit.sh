@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+tool_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+usage() {
+  cat <<'USAGE'
+codex-maintainer self-audit
+
+Usage:
+  codex-maintainer self-audit [--out <dir>]
+
+Outputs:
+  self-audit.md
+  self-audit.json
+USAGE
+}
+
+fail() {
+  echo "self-audit: $*" >&2
+  exit 1
+}
+
+json_escape() {
+  perl -0pe 's/\\/\\\\/g; s/"/\\"/g; s/\n/\\n/g; s/\r/\\r/g; s/\t/\\t/g'
+}
+
+json_string() {
+  printf '"%s"' "$(printf '%s' "$1" | json_escape)"
+}
+
+out_dir="self-audit"
+
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+    --out)
+      [[ "$#" -ge 2 && -n "${2:-}" ]] || fail "--out requires a value"
+      out_dir="$2"
+      shift 2
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      fail "unknown argument: $1"
+      ;;
+  esac
+done
+
+mkdir -p "$out_dir"
+version="$(sed -n '1p' "$tool_root/VERSION")"
+generated_at="${CODEX_MAINTAINER_GENERATED_AT:-$(date -u '+%Y-%m-%dT%H:%M:%SZ')}"
+
+commands=(
+  "policy show"
+  "autopsy --help"
+  "arena run --help"
+  "review-comment --help"
+  "ci-gate --help"
+  "leaderboard build --help"
+  "self-audit --help"
+)
+
+missing=0
+command_count=0
+for command in "${commands[@]}"; do
+  if "$tool_root/bin/codex-maintainer" $command >/dev/null; then
+    command_count=$((command_count + 1))
+  else
+    missing=1
+  fi
+done
+
+required_artifacts=(
+  "templates/policy/default.conf"
+  "actions/ci-gate/action.yml"
+  "actions/review-comment/action.yml"
+  "examples/demo-reports/leaderboard.json"
+  "examples/demo-reports/arena/results.json"
+)
+
+artifact_count=0
+for artifact in "${required_artifacts[@]}"; do
+  if [[ -f "$tool_root/$artifact" ]]; then
+    artifact_count=$((artifact_count + 1))
+  else
+    missing=1
+  fi
+done
+
+status="pass"
+[[ "$missing" -ne 0 ]] && status="blocked"
+
+{
+  echo "# Codex Maintainer Self-Audit"
+  echo
+  echo "- Generated: $generated_at"
+  echo "- Version: $version"
+  echo "- Status: $status"
+  echo "- Commands checked: $command_count/${#commands[@]}"
+  echo "- Required artifacts checked: $artifact_count/${#required_artifacts[@]}"
+  echo
+  echo "## Commands"
+  echo
+  echo "| Command | Status |"
+  echo "| --- | --- |"
+  for command in "${commands[@]}"; do
+    if "$tool_root/bin/codex-maintainer" $command >/dev/null; then
+      echo "| codex-maintainer $command | pass |"
+    else
+      echo "| codex-maintainer $command | missing |"
+    fi
+  done
+  echo
+  echo "## Required Artifacts"
+  echo
+  echo "| Artifact | Status |"
+  echo "| --- | --- |"
+  for artifact in "${required_artifacts[@]}"; do
+    if [[ -f "$tool_root/$artifact" ]]; then
+      echo "| $artifact | pass |"
+    else
+      echo "| $artifact | missing |"
+    fi
+  done
+} > "$out_dir/self-audit.md"
+
+{
+  echo "{"
+  echo "  \"schema_version\": \"0.1\","
+  echo "  \"tool_version\": $(json_string "$version"),"
+  echo "  \"generated_at\": $(json_string "$generated_at"),"
+  echo "  \"status\": $(json_string "$status"),"
+  echo "  \"commands_checked\": $command_count,"
+  echo "  \"commands_expected\": ${#commands[@]},"
+  echo "  \"artifacts_checked\": $artifact_count,"
+  echo "  \"artifacts_expected\": ${#required_artifacts[@]}"
+  echo "}"
+} > "$out_dir/self-audit.json"
+
+echo "wrote: $out_dir/self-audit.md"
+echo "wrote: $out_dir/self-audit.json"
+echo "status: $status"
+
+[[ "$status" == "pass" ]] || exit 1

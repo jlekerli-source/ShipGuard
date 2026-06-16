@@ -20,6 +20,7 @@ Usage:
   codex-maintainer review-comment --report <report.json> --out <comment.md> [--mode warn|fail]
   codex-maintainer ci-gate --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--policy <policy.conf>] [--out <dir>] [--mode warn|fail]
   codex-maintainer leaderboard build --arena-results <results.json> --out <leaderboard.json>
+  codex-maintainer self-audit [--out <dir>]
   codex-maintainer version
   codex-maintainer help
 
@@ -35,6 +36,7 @@ Commands:
               Generate a PR-ready review comment and badge from an autopsy report.
   ci-gate     Generate autopsy, review, badge, gate JSON, and optional CI failure.
   leaderboard Build a stable leaderboard JSON file from arena results.
+  self-audit  Generate toolkit readiness proof.
   version     Print the toolkit version from VERSION.
 USAGE
 }
@@ -220,6 +222,10 @@ cmd_leaderboard() {
   "$tool_root/scripts/leaderboard_build.sh" "$@"
 }
 
+cmd_self_audit() {
+  "$tool_root/scripts/self_audit.sh" "$@"
+}
+
 cmd_version() {
   local version_file="$tool_root/VERSION"
   [[ -f "$version_file" ]] || fail "VERSION file not found"
@@ -263,6 +269,9 @@ main() {
       ;;
     leaderboard)
       cmd_leaderboard "$@"
+      ;;
+    self-audit)
+      cmd_self_audit "$@"
       ;;
     version)
       cmd_version

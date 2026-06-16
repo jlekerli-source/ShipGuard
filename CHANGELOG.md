@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.0 - Maintainer Reliability OS
+
+- Added `codex-maintainer self-audit` for toolkit readiness proof.
+- Added command matrix, release checklist, and Maintainer Reliability OS docs.
+- Added self-audit tests and package verification.
+
 ## v1.3.0 - Expanded reliability benchmark pack
 
 - Added failing-validation, no-diff implementation, and review-only arena fixtures.

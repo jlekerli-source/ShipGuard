@@ -167,6 +167,23 @@ Build a stable public leaderboard JSON file from arena results:
 
 See `benchmark.md` for the schema and `demo-reports.md` for checked-in generated examples.
 
+## Self-Audit
+
+Generate release-readiness proof for the toolkit itself:
+
+```bash
+./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-self-audit
+```
+
+The command writes:
+
+- `self-audit.md`
+- `self-audit.json`
+
+It checks stable command availability and the core artifacts that make the Maintainer Reliability OS useful: policy config, CI gate action, review-comment action, demo leaderboard, and demo arena results.
+
+See `maintainer-reliability-os.md`, `command-matrix.md`, and `release-checklist.md`.
+
 ## Install From Release Tarball
 
 Download and extract a release package:

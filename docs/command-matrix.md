@@ -1,0 +1,18 @@
+# Command Matrix
+
+`codex-maintainer` is organized around the core maintainer jobs below.
+
+| Job | Command | Output |
+| --- | --- | --- |
+| Install workflow kit | `init ios` | Starter workflow files |
+| Check workflow kit | `validate` | Validation pass/fail |
+| Check target repo setup | `doctor` | Missing file report |
+| Configure project policy | `policy init`, `policy show` | Plain policy file |
+| Audit one AI run | `autopsy` | Markdown and JSON report |
+| Compare fixture runs | `arena run` | Aggregate results and per-case reports |
+| Generate PR comment | `review-comment` | Comment Markdown and badge JSON |
+| Enforce in CI | `ci-gate` | Gate bundle and optional failure |
+| Publish benchmark data | `leaderboard build` | Stable leaderboard JSON |
+| Audit this toolkit | `self-audit` | Self-audit Markdown and JSON |
+
+The commands are dependency-light Bash so release packages remain portable.

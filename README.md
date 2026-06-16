@@ -31,9 +31,12 @@ Read the guided setup first:
 - `docs/autopsy-github-actions.md`: upload autopsy reports as GitHub Actions artifacts.
 - `docs/benchmark.md`: stable public benchmark and leaderboard format.
 - `docs/ci-gate.md`: CI gate command and GitHub Action for policy enforcement.
+- `docs/command-matrix.md`: one-page map from maintainer jobs to CLI commands.
 - `docs/demo-reports.md`: checked-in demo reports generated from public fixtures.
+- `docs/maintainer-reliability-os.md`: the full policy-to-self-audit evidence loop.
 - `docs/policy.md`: configure protected paths, risky claims, and scope limits.
 - `docs/pr-review-bot.md`: generate PR-ready review comments and badge JSON from autopsy reports.
+- `docs/release-checklist.md`: release proof commands and publishing checks.
 - `docs/use-in-your-repo.md`: copy/paste setup for another repository.
 - `docs/workflow-diagram.md`: visual workflow map.
 - `docs/index.md`: GitHub Pages-ready documentation landing page.
@@ -63,6 +66,7 @@ For a worked example, read `examples/issue-to-plan-to-validation.md`.
 For public proof without private app code, read `examples/demo-walkthrough.md`.
 For agent-claim auditing, run `./bin/codex-maintainer autopsy` against `fixtures/autopsy/`.
 For aggregate benchmark proof, run `./bin/codex-maintainer arena run --fixture fixtures/arena --out /tmp/arena`.
+For toolkit release readiness, run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-audit`.
 
 ## What Is Inside
 
@@ -81,9 +85,12 @@ For aggregate benchmark proof, run `./bin/codex-maintainer arena run --fixture f
 - `docs/autopsy-github-actions.md`: minimal workflow for downloadable autopsy evidence.
 - `docs/benchmark.md`: public AI maintainer reliability benchmark format.
 - `docs/ci-gate.md`: generate CI artifacts and optional failure from maintainer evidence.
+- `docs/command-matrix.md`: command surface map for maintainer jobs.
 - `docs/demo-reports.md`: generated reports from the fixture pack.
+- `docs/maintainer-reliability-os.md`: policy, audit, arena, PR, CI, leaderboard, and self-audit loop.
 - `docs/policy.md`: plain policy config for project-specific risk rules.
 - `docs/pr-review-bot.md`: warn/fail PR review comment mode for autopsy reports.
+- `docs/release-checklist.md`: release validation and publishing checklist.
 - `docs/github-action.md`: usage guide for the reusable action.
 - `docs/adoption-guide.md`: practical onboarding path for new maintainers.
 - `docs/use-in-your-repo.md`: copyable setup instructions for another repo.

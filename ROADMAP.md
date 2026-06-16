@@ -12,6 +12,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep leaderboard schema `1.0` stable for public benchmark consumers.
 - Keep policy config plain, auditable, and non-executable.
 - Keep CI gate outputs stable for artifact and PR workflows.
+- Keep self-audit output stable enough to prove release readiness from source and extracted packages.
 - Keep release packaging and installer scripts reproducible.
 - Keep the reusable GitHub Action aligned with the CLI validator.
 - Maintain the public examples, scorecard, autopsy fixtures, and iOS starter template as the workflow evolves.
@@ -19,10 +20,9 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 
 ## Next
 
+- Add a deterministic next-goal generator for maintainers who want a repeatable improvement loop.
 - Add more anonymized transcripts from real maintenance work.
 - Expand Maintainer Arena with more task types and external fixture packs.
-- Add repository-level autopsy configuration for protected paths and custom risky-claim terms.
-- Add optional pull request comments from `report.json`.
 - Add SARIF or check-run output for CI consumers.
 - Add template variants for non-iOS apps, including a web-app workflow kit.
 - Consider npm or Homebrew distribution after the release tarball path stays stable.

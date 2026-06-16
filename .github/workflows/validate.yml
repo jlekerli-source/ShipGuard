@@ -43,6 +43,9 @@ jobs:
       - name: Run leaderboard tests
         run: ./tests/leaderboard_test.sh
 
+      - name: Run self audit tests
+        run: ./tests/self_audit_test.sh
+
       - name: Run release package tests
         run: ./tests/package_release_test.sh
 
