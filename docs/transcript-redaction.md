@@ -50,3 +50,5 @@ The command writes:
 - `badge.json`
 
 It exits non-zero with `status: blocked` when the transcript still contains obvious risky patterns or when the optional redaction report is not passing.
+
+For GitHub Actions, use `actions/transcript-verify` to run the same check and upload the verification bundle as an artifact.

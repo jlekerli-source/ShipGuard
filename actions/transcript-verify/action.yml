@@ -1,0 +1,116 @@
+name: Verify Codex maintainer transcript
+description: Verify a redacted maintainer transcript, publish verification reports, and optionally fail on remaining risky content.
+
+inputs:
+  transcript:
+    description: Path to the redacted transcript Markdown file.
+    required: true
+  report:
+    description: Optional path to the redaction-report.json file created by transcript redact.
+    required: false
+    default: ""
+  out:
+    description: Directory for transcript verification output.
+    required: false
+    default: artifacts/codex-maintainer-transcript-verify
+  upload-artifact:
+    description: Set false to skip transcript verification artifact upload.
+    required: false
+    default: "true"
+  artifact-name:
+    description: Uploaded transcript verification artifact name.
+    required: false
+    default: codex-maintainer-transcript-verify
+  mode:
+    description: Use fail to fail the job on blocked transcript verification, or warn to emit warnings only.
+    required: false
+    default: fail
+
+outputs:
+  status:
+    description: pass, blocked, or failed.
+    value: ${{ steps.transcript-verify.outputs.status }}
+  report-json:
+    description: Path to transcript-verify.json.
+    value: ${{ steps.transcript-verify.outputs.report-json }}
+  report-md:
+    description: Path to transcript-verify.md.
+    value: ${{ steps.transcript-verify.outputs.report-md }}
+  badge:
+    description: Path to Shields-compatible badge JSON.
+    value: ${{ steps.transcript-verify.outputs.badge }}
+
+runs:
+  using: composite
+  steps:
+    - name: Verify transcript
+      id: transcript-verify
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        root="${{ github.action_path }}/../.."
+        transcript="${{ inputs.transcript }}"
+        report="${{ inputs.report }}"
+        out="${{ inputs.out }}"
+        mode="${{ inputs.mode }}"
+
+        if [[ -z "$transcript" ]]; then
+          echo "::error::transcript is required"
+          exit 2
+        fi
+
+        if [[ "$mode" != "fail" && "$mode" != "warn" ]]; then
+          echo "::error::mode must be fail or warn"
+          exit 2
+        fi
+
+        args=(transcript verify --in "$transcript" --out "$out")
+        if [[ -n "$report" ]]; then
+          args+=(--report "$report")
+        fi
+
+        verify_exit=0
+        set +e
+        "$root/bin/codex-maintainer" "${args[@]}"
+        verify_exit="$?"
+        set -e
+
+        status="failed"
+        if [[ -f "$out/transcript-verify.json" ]]; then
+          parsed_status="$(perl -0ne 'print $1 if /"status"\s*:\s*"([^"]+)"/' "$out/transcript-verify.json")"
+          if [[ -n "$parsed_status" ]]; then
+            status="$parsed_status"
+          fi
+        fi
+
+        if [[ "$verify_exit" -ne 0 && "$status" == "pass" ]]; then
+          status="failed"
+        fi
+
+        {
+          echo "status=$status"
+          echo "report-json=$out/transcript-verify.json"
+          echo "report-md=$out/transcript-verify.md"
+          echo "badge=$out/badge.json"
+        } >> "$GITHUB_OUTPUT"
+
+        if [[ "$status" == "blocked" || "$status" == "failed" ]]; then
+          message="transcript verification status is $status"
+          if [[ "$mode" == "warn" ]]; then
+            echo "::warning::$message"
+          else
+            echo "::error::$message"
+            exit_code="$verify_exit"
+            [[ "$exit_code" -eq 0 ]] && exit_code=1
+            exit "$exit_code"
+          fi
+        fi
+
+    - name: Upload transcript verification
+      if: ${{ inputs.upload-artifact == 'true' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.out }}
+        if-no-files-found: error

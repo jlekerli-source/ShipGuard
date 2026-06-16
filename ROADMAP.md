@@ -11,6 +11,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep Maintainer Arena comparison output stable for benchmark regression reviews.
 - Keep Maintainer Arena comparison action output aligned with the CLI compare command.
 - Keep transcript redaction and verification output stable enough for safe public examples and benchmark notes.
+- Keep transcript verification action output aligned with the CLI verifier.
 - Keep frontend, backend, and CLI arena cases in the public benchmark fixture pack.
 - Keep PR review-comment output stable for warn/fail adoption.
 - Keep leaderboard schema `1.0` stable for public benchmark consumers.

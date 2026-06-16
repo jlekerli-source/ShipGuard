@@ -73,6 +73,9 @@ jobs:
       - name: Run transcript verify tests
         run: ./tests/transcript_verify_test.sh
 
+      - name: Run transcript verify action tests
+        run: ./tests/transcript_verify_action_test.sh
+
       - name: Run leaderboard tests
         run: ./tests/leaderboard_test.sh
 

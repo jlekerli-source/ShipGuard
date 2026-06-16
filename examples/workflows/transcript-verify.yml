@@ -1,0 +1,31 @@
+name: Verify maintainer transcript
+
+on:
+  workflow_dispatch:
+    inputs:
+      transcript:
+        description: Redacted transcript path
+        required: true
+        default: examples/redacted-transcript.md
+      report:
+        description: Optional redaction report path
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  transcript-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Verify redacted transcript
+        uses: jlekerli-source/ringly-codex-workflows/actions/transcript-verify@v3.32.0
+        with:
+          transcript: ${{ inputs.transcript }}
+          report: ${{ inputs.report }}
+          mode: fail
+          artifact-name: codex-maintainer-transcript-verify

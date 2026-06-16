@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.32.0 - Transcript Verification GitHub Action
+
+- Added `actions/transcript-verify` to run `codex-maintainer transcript verify` in GitHub Actions and upload verification artifacts.
+- Added a copyable transcript verification workflow plus action docs for warn/fail publication checks.
+- Extended CI, self-audit, next-goal, source validation, and extracted-package proof coverage for the new action.
+
 ## v3.31.0 - Transcript Verification
 
 - Added `codex-maintainer transcript verify` for checking redacted transcript Markdown and optional redaction reports before public sharing.
