@@ -76,6 +76,7 @@ commands=(
   "release-consume verify --help"
   "release-diff compare --help"
   "release-evidence site --help"
+  "release-evidence index --help"
   "self-audit --help"
   "next-goal --help"
 )
@@ -109,6 +110,7 @@ required_artifacts=(
   "docs/release-consume.md"
   "docs/release-diff-action.md"
   "docs/release-diff.md"
+  "docs/release-evidence-index.md"
   "docs/release-evidence-site.md"
   "docs/release-proof.md"
   "docs/release-proof-consumption.md"

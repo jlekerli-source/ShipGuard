@@ -9,6 +9,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 cd "$repo_root"
 
 ./bin/codex-maintainer release-evidence site --help >/dev/null
+./bin/codex-maintainer release-evidence index --help >/dev/null
 
 version="$(sed -n '1p' VERSION)"
 bundle="$tmp_dir/release-proof-bundle"
@@ -84,6 +85,35 @@ CODEX_MAINTAINER_GENERATED_AT="2026-06-16T00:00:00Z" \
 
 test -f "$tmp_dir/site-no-diff/index.html"
 grep -q '"present" : false' "$tmp_dir/site-no-diff/evidence.json"
+
+CODEX_MAINTAINER_GENERATED_AT="2026-06-16T00:00:00Z" \
+  ./bin/codex-maintainer release-evidence index \
+    --site "$tmp_dir/site" \
+    --site "$tmp_dir/site-no-diff" \
+    --out "$tmp_dir/evidence-index" \
+    --title "Release Evidence History" >/dev/null
+
+test -f "$tmp_dir/evidence-index/index.html"
+test -f "$tmp_dir/evidence-index/evidence-index.json"
+test -f "$tmp_dir/evidence-index/README.md"
+grep -q '<!doctype html>' "$tmp_dir/evidence-index/index.html"
+grep -q 'Release Evidence History' "$tmp_dir/evidence-index/index.html"
+grep -q 'Machine-readable index' "$tmp_dir/evidence-index/index.html"
+grep -q "codex-maintainer-v$version.tar.gz" "$tmp_dir/evidence-index/index.html"
+grep -q '"status" : "pass"' "$tmp_dir/evidence-index/evidence-index.json"
+grep -q '"site_count" : 2' "$tmp_dir/evidence-index/evidence-index.json"
+grep -q '"blocked_count" : 0' "$tmp_dir/evidence-index/evidence-index.json"
+grep -q '"site" : "sites/v'"$version"'/index.html"' "$tmp_dir/evidence-index/evidence-index.json"
+test -f "$tmp_dir/evidence-index/sites/v$version/index.html"
+test -f "$tmp_dir/evidence-index/sites/v$version/evidence.json"
+test -f "$tmp_dir/evidence-index/sites/v$version-2/index.html"
+
+if ./bin/codex-maintainer release-evidence index \
+  --site "$tmp_dir/missing-site" \
+  --out "$tmp_dir/should-not-exist-index" >/dev/null 2>&1; then
+  echo "expected missing evidence site directory to fail" >&2
+  exit 1
+fi
 
 if ./bin/codex-maintainer release-evidence site \
   --consume "$tmp_dir/missing" \

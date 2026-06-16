@@ -5,7 +5,7 @@
 ```bash
 ./bin/codex-maintainer release-index build \
   --manifest dist/release-proof-v3.6.0/release-manifest.json \
-  --manifest dist/release-proof-v3.16.0/release-manifest.json \
+  --manifest dist/release-proof-v3.17.0/release-manifest.json \
   --out /tmp/codex-maintainer-release-index
 ```
 

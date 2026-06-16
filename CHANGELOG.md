@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.17.0 - Release Evidence Index
+
+- Added `codex-maintainer release-evidence index` for collecting multiple evidence site exports into one static release history.
+- The index writes `index.html`, `evidence-index.json`, `README.md`, and copied evidence sites under `sites/<release>/`.
+- Added docs, tests, package verification, self-audit coverage, and release-train metadata.
+
 ## v3.16.0 - Release Evidence Site Export
 
 - Added `codex-maintainer release-evidence site` for exporting release-consume and release-diff reports as a static evidence page.
