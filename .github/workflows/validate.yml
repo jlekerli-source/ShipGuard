@@ -88,6 +88,9 @@ jobs:
       - name: Run release proof action tests
         run: ./tests/release_proof_action_test.sh
 
+      - name: Run release proof consumption tests
+        run: ./tests/release_proof_consumption_test.sh
+
       - name: Run release proof workflow tests
         run: ./tests/release_proof_workflow_test.sh
 

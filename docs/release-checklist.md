@@ -27,6 +27,8 @@ Use this checklist for every release after `v2.0.0`.
 ./tests/release_manifest_test.sh
 ./tests/release_replay_test.sh
 ./tests/release_proof_action_test.sh
+./tests/release_proof_consumption_test.sh
+./tests/release_proof_workflow_test.sh
 ./tests/package_release_test.sh
 ```
 
@@ -43,6 +45,14 @@ shasum -a 256 dist/codex-maintainer-vX.Y.Z.tar.gz
 ./bin/codex-maintainer release-proof build --out /tmp/codex-maintainer-release-proof-bundle --release-url https://github.com/owner/repo/releases/tag/vX.Y.Z
 ```
 
+After publishing, consume the uploaded assets from a clean directory:
+
+```bash
+gh release download vX.Y.Z --repo owner/repo --dir /tmp/codex-maintainer-vX.Y.Z
+./bin/codex-maintainer release-replay verify --manifest /tmp/codex-maintainer-vX.Y.Z/release-manifest.json --tarball /tmp/codex-maintainer-vX.Y.Z/codex-maintainer-vX.Y.Z.tar.gz --index /tmp/codex-maintainer-vX.Y.Z/release-index.json --ledger /tmp/codex-maintainer-vX.Y.Z/proof-ledger.md --out /tmp/codex-maintainer-vX.Y.Z/consumer-replay
+./bin/codex-maintainer release-attest build --manifest /tmp/codex-maintainer-vX.Y.Z/release-manifest.json --replay /tmp/codex-maintainer-vX.Y.Z/consumer-replay/replay-report.json --out /tmp/codex-maintainer-vX.Y.Z/consumer-attestation
+```
+
 Before publishing, confirm:
 
 - CI is green on `main`.
@@ -50,3 +60,8 @@ Before publishing, confirm:
 - Demo reports contain no local paths or secret-looking strings.
 - Tracking issue is closed by the release commit.
 - `git status -sb` is clean.
+
+After publishing, confirm:
+
+- Downloaded asset replay passes with zero blocked checks.
+- Rebuilt attestation badge says `pass vX.Y.Z`.

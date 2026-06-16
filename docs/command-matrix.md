@@ -21,6 +21,7 @@
 | Record release proof | `release-manifest`, `release-manifest verify`, `release-index build`, `release-replay verify`, `release-attest build`, `release-proof build` | Release manifest JSON, proof ledger Markdown, artifact verification, proof catalog, replay report, attestation badge, and full proof bundle |
 | Build release proof artifact | `actions/release-proof` | Uploaded tarball, manifest, replay, and attestation bundle |
 | Adopt release proof workflows | `examples/workflows/release-proof-on-tag.yml`, `examples/workflows/release-proof-manual.yml` | Copyable GitHub Actions workflow examples |
+| Consume release proof | `release-replay verify`, `release-attest build` | Local replay and attestation from downloaded release assets |
 | Audit this toolkit | `self-audit` | Self-audit Markdown and JSON |
 | Continue the release loop | `next-goal` | Slash-goal Markdown plan |
 

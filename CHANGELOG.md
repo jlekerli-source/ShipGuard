@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.9.0 - Release Proof Consumption Guide
+
+- Added `docs/release-proof-consumption.md` for downstream release reviewers who want to verify downloaded proof assets.
+- Added a copyable release proof consumption checklist for tarball digest, replay, attestation, badge, and blocked-check review.
+- Added executable consumption tests, CI coverage, self-audit coverage, next-goal proof, and package verification.
+
 ## v3.8.0 - Release Proof Bundle CLI
 
 - Added `codex-maintainer release-proof build` for generating the full release proof bundle in one command.

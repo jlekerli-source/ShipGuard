@@ -4,9 +4,9 @@
 
 ```bash
 ./bin/codex-maintainer release-attest build \
-  --manifest /tmp/codex-maintainer-v3.8.0/release-manifest.json \
-  --replay /tmp/codex-maintainer-v3.8.0/replay-report.json \
-  --out /tmp/codex-maintainer-v3.8.0/attestation
+  --manifest /tmp/codex-maintainer-v3.9.0/release-manifest.json \
+  --replay /tmp/codex-maintainer-v3.9.0/replay-report.json \
+  --out /tmp/codex-maintainer-v3.9.0/attestation
 ```
 
 Outputs:
@@ -24,4 +24,4 @@ The command verifies:
 - artifact SHA-256 and byte count match between manifest and replay
 - manifest includes public release and CI proof URLs
 
-The attestation is not a cryptographic signature. It is a deterministic release-proof summary that is easy to attach to GitHub releases, display as a badge, and inspect during audits.
+The attestation is not a cryptographic signature. It is a deterministic release-proof summary that is easy to attach to GitHub releases, display as a badge, and inspect during audits. See `release-proof-consumption.md` for the downstream verification flow.

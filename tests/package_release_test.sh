@@ -41,6 +41,7 @@ grep -q "^$package_name/docs/pr-review-bot.md$" "$tar_list"
 grep -q "^$package_name/docs/release-checklist.md$" "$tar_list"
 grep -q "^$package_name/docs/release-attest.md$" "$tar_list"
 grep -q "^$package_name/docs/release-proof.md$" "$tar_list"
+grep -q "^$package_name/docs/release-proof-consumption.md$" "$tar_list"
 grep -q "^$package_name/docs/release-index.md$" "$tar_list"
 grep -q "^$package_name/docs/release-manifest.md$" "$tar_list"
 grep -q "^$package_name/docs/release-proof-action.md$" "$tar_list"
@@ -87,6 +88,7 @@ grep -q "^$package_name/tests/release_proof_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_index_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_manifest_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_proof_action_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/release_proof_consumption_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_proof_workflow_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_replay_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/review_comment_test.sh$" "$tar_list"
@@ -113,6 +115,7 @@ grep -q "^$package_name/fixtures/external-arena-pack/imported-clean/run.md$" "$t
 grep -q "^$package_name/fixtures/external-arena-pack/imported-risky/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/autopsy/good-run/run.md$" "$tar_list"
 grep -q "^$package_name/examples/demo-reports/leaderboard.json$" "$tar_list"
+grep -q "^$package_name/examples/release-proof-consumption-checklist.md$" "$tar_list"
 grep -q "^$package_name/examples/workflows/release-proof-on-tag.yml$" "$tar_list"
 grep -q "^$package_name/examples/workflows/release-proof-manual.yml$" "$tar_list"
 grep -q "^$package_name/.agents/skills/alarm-testing/SKILL.md$" "$tar_list"
@@ -266,6 +269,7 @@ test -f "$tmp_dir/package-release-proof-bundle/codex-maintainer-v$version.tar.gz
 grep -q '"status": "pass"' "$tmp_dir/package-release-proof-bundle/replay/replay-report.json"
 grep -q '"status" : "pass"' "$tmp_dir/package-release-proof-bundle/attestation/attestation.json"
 grep -q '"message" : "pass v'"$version"'"' "$tmp_dir/package-release-proof-bundle/attestation/attestation-badge.json"
+"$package_root/tests/release_proof_consumption_test.sh" >/dev/null
 "$package_root/bin/codex-maintainer" self-audit \
   --out "$tmp_dir/package-self-audit" >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/package-self-audit/self-audit.json"
@@ -278,10 +282,12 @@ grep -q '| codex-maintainer release-manifest verify --help | pass |' "$tmp_dir/p
 grep -q '| codex-maintainer release-replay verify --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| actions/release-proof/action.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/release-proof.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| docs/release-proof-consumption.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/release-proof-action.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/release-proof-workflows.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| examples/workflows/release-proof-on-tag.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| examples/workflows/release-proof-manual.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| examples/release-proof-consumption-checklist.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 "$package_root/bin/codex-maintainer" sarif \
   --report "$tmp_dir/package-autopsy/report.json" \
   --out "$tmp_dir/package-sarif/results.sarif" >/dev/null
@@ -303,6 +309,7 @@ grep -q './tests/release_proof_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_index_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_manifest_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_proof_action_test.sh' "$tmp_dir/package-next-goal.md"
+grep -q './tests/release_proof_consumption_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_proof_workflow_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_replay_test.sh' "$tmp_dir/package-next-goal.md"
 

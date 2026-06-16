@@ -5,7 +5,7 @@
 ```bash
 ./bin/codex-maintainer release-proof build \
   --out /tmp/codex-maintainer-release-proof-bundle \
-  --release-url https://github.com/owner/repo/releases/tag/v3.8.0 \
+  --release-url https://github.com/owner/repo/releases/tag/v3.9.0 \
   --issue-url https://github.com/owner/repo/issues/123
 ```
 
@@ -29,3 +29,5 @@ package_release.sh -> release-manifest -> release-index -> release-replay -> rel
 ```
 
 It requires `--release-url` so the proof bundle is anchored to a public release tag URL. The URL must end with `/releases/tag/vX.Y.Z`.
+
+After publishing, use `release-proof-consumption.md` to replay the uploaded assets from a clean download directory.
