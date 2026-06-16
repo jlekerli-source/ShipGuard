@@ -1,0 +1,2 @@
+PASS ./scripts/run_onboarding_validation.sh
+0 failed, 1 passed

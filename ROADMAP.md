@@ -7,6 +7,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep the CLI stable for `init`, `validate`, `doctor`, and `score`.
 - Keep Agent Autopsy stable for Markdown and JSON reports from run summaries, diffs, tasks, and test logs.
 - Keep autopsy artifact generation available through GitHub Actions.
+- Keep Maintainer Arena fixture aggregation stable for public benchmark examples.
 - Keep release packaging and installer scripts reproducible.
 - Keep the reusable GitHub Action aligned with the CLI validator.
 - Maintain the public examples, scorecard, autopsy fixtures, and iOS starter template as the workflow evolves.
@@ -15,6 +16,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 ## Next
 
 - Add more anonymized transcripts from real maintenance work.
+- Expand Maintainer Arena with more task types and external fixture packs.
 - Add repository-level autopsy configuration for protected paths and custom risky-claim terms.
 - Add optional pull request comments from `report.json`.
 - Add SARIF or check-run output for CI consumers.

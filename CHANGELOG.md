@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.7.0 - Maintainer Arena
+
+- Added `codex-maintainer arena run` for fixture-pack benchmark execution.
+- Added public good, weak, and dangerous Maintainer Arena fixtures.
+- Added aggregate `results.json` and `index.md` output.
+- Added arena docs, example output, CI tests, and package verification.
+
 ## v0.6.1 - Autopsy artifact bridge
 
 - Added a manual GitHub Actions workflow that generates autopsy reports and uploads them as artifacts.

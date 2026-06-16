@@ -14,6 +14,7 @@ Usage:
   codex-maintainer doctor [path]
   codex-maintainer score <run.md>
   codex-maintainer autopsy --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--out <dir>]
+  codex-maintainer arena run --fixture <fixture-dir> [--out <dir>]
   codex-maintainer version
   codex-maintainer help
 
@@ -23,6 +24,7 @@ Commands:
   doctor      Check whether a target repo has the starter workflow files.
   score       Score a Codex run markdown file using SCORECARD.md categories.
   autopsy     Generate Markdown and JSON evidence reports for an AI coding run.
+  arena       Run multiple autopsy fixtures and aggregate benchmark results.
   version     Print the toolkit version from VERSION.
 USAGE
 }
@@ -182,6 +184,13 @@ cmd_autopsy() {
   "$tool_root/scripts/autopsy_report.sh" "$@"
 }
 
+cmd_arena() {
+  local subcommand="${1:-}"
+  [[ "$subcommand" == "run" ]] || fail "arena requires subcommand: run"
+  shift || true
+  "$tool_root/scripts/arena_run.sh" "$@"
+}
+
 cmd_version() {
   local version_file="$tool_root/VERSION"
   [[ -f "$version_file" ]] || fail "VERSION file not found"
@@ -210,6 +219,9 @@ main() {
       ;;
     autopsy)
       cmd_autopsy "$@"
+      ;;
+    arena)
+      cmd_arena "$@"
       ;;
     version)
       cmd_version

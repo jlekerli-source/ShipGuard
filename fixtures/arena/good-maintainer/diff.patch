@@ -1,0 +1,8 @@
+diff --git a/App/OnboardingEmptyState.swift b/App/OnboardingEmptyState.swift
+index 1111111..2222222 100644
+--- a/App/OnboardingEmptyState.swift
++++ b/App/OnboardingEmptyState.swift
+@@ -10,7 +10,7 @@ struct OnboardingEmptyState: View {
+-    Text("Turn on notifications to continue.")
++    Text("Notifications help reminders arrive on time.")
+ }

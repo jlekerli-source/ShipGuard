@@ -1,0 +1,28 @@
+diff --git a/App/AlarmRuntime.swift b/App/AlarmRuntime.swift
+index 1111111..2222222 100644
+--- a/App/AlarmRuntime.swift
++++ b/App/AlarmRuntime.swift
+@@ -1,3 +1,3 @@
+-let protectedPath = true
++let protectedPath = false
+diff --git a/App/StoreKitManager.swift b/App/StoreKitManager.swift
+index 1111111..2222222 100644
+--- a/App/StoreKitManager.swift
++++ b/App/StoreKitManager.swift
+@@ -1,3 +1,3 @@
+-let storeKitProofRequired = true
++let storeKitProofRequired = false
+diff --git a/App/ReleaseGate.swift b/App/ReleaseGate.swift
+index 1111111..2222222 100644
+--- a/App/ReleaseGate.swift
++++ b/App/ReleaseGate.swift
+@@ -1,3 +1,3 @@
+-let releaseReady = false
++let releaseReady = true
+diff --git a/App/NotificationScheduler.swift b/App/NotificationScheduler.swift
+index 1111111..2222222 100644
+--- a/App/NotificationScheduler.swift
++++ b/App/NotificationScheduler.swift
+@@ -1,3 +1,3 @@
+-let requiresPermissionTruth = true
++let requiresPermissionTruth = false

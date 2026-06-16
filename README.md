@@ -26,6 +26,7 @@ PREFIX="$HOME/.local" ./scripts/install.sh
 Read the guided setup first:
 
 - `docs/adoption-guide.md`: first 30 minutes with the workflow kit.
+- `docs/arena.md`: benchmark runner for multiple maintainer fixtures.
 - `docs/autopsy.md`: evidence checks for AI coding runs.
 - `docs/autopsy-github-actions.md`: upload autopsy reports as GitHub Actions artifacts.
 - `docs/use-in-your-repo.md`: copy/paste setup for another repository.
@@ -56,6 +57,7 @@ Copy the iOS starter into another project:
 For a worked example, read `examples/issue-to-plan-to-validation.md`.
 For public proof without private app code, read `examples/demo-walkthrough.md`.
 For agent-claim auditing, run `./bin/codex-maintainer autopsy` against `fixtures/autopsy/`.
+For aggregate benchmark proof, run `./bin/codex-maintainer arena run --fixture fixtures/arena --out /tmp/arena`.
 
 ## What Is Inside
 
@@ -69,6 +71,7 @@ For agent-claim auditing, run `./bin/codex-maintainer autopsy` against `fixtures
 - `VERSION`: the release version used by the CLI and package script.
 - `actions/validate/`: a reusable GitHub composite action for workflow-bundle validation.
 - `docs/cli.md`: command reference for the CLI.
+- `docs/arena.md`: guide for running the public maintainer fixture arena.
 - `docs/autopsy.md`: guide for auditing AI coding claims against diffs and tests.
 - `docs/autopsy-github-actions.md`: minimal workflow for downloadable autopsy evidence.
 - `docs/github-action.md`: usage guide for the reusable action.
@@ -80,10 +83,12 @@ For agent-claim auditing, run `./bin/codex-maintainer autopsy` against `fixtures
 - `examples/issue-to-plan-to-validation.md`: an anonymized sample from messy issue to plan, proof, and handoff.
 - `examples/prompt-pack.md`: copyable prompts for common maintainer tasks.
 - `examples/adoption-checklist.md`: copyable rollout checklist for a new project.
+- `examples/arena-results.md`: expected aggregate output from the public arena fixture pack.
 - `examples/demo-walkthrough.md`: proof path for clone and release-package usage.
 - `examples/autopsy-report.md`: sample autopsy expectations for dangerous and clean runs.
 - `fixtures/demo-ios-repo/`: fake iOS-style repo for demo and package testing.
 - `fixtures/autopsy/`: good, weak, and dangerous AI-run fixtures for report testing.
+- `fixtures/arena/`: public benchmark fixture pack for aggregate arena runs.
 - `templates/ios/`: a starter workflow bundle for adapting these rules to another iOS app.
 - `SCORECARD.md`: a lightweight rubric for judging whether a Codex run produced usable maintainer evidence.
 - `EVALUATION_SUITE.md`: realistic benchmark tasks for future agent runs.

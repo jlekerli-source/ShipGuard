@@ -99,6 +99,20 @@ It checks the run score, validation claims, test evidence, diff size, high-assur
 
 See `autopsy.md` for the full guide.
 
+## Arena
+
+Run a fixture pack through Autopsy and aggregate the results:
+
+```bash
+./bin/codex-maintainer arena run \
+  --fixture fixtures/arena \
+  --out /tmp/arena
+```
+
+The command writes aggregate `results.json`, a readable `index.md`, and per-case autopsy reports under `runs/<case-id>/`.
+
+See `arena.md` for the fixture format and metrics.
+
 ## Install From Release Tarball
 
 Download and extract a release package:
