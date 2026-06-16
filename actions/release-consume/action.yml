@@ -3,7 +3,7 @@ description: Download and verify Codex maintainer release proof assets with cons
 
 inputs:
   release-tag:
-    description: Release tag to verify, such as v3.26.0.
+    description: Release tag to verify, such as v3.27.0.
     required: true
   repo:
     description: GitHub repository containing the release assets.

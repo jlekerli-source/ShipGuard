@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.27.0 - Frontend Async State Arena Fixture
+
+- Added a frontend async-state regression case to the public Maintainer Arena fixture pack.
+- Updated Arena, leaderboard, package, and validation checks for the nine-case benchmark baseline.
+- Refreshed public docs and demo expectations with the new aggregate benchmark metrics.
+
 ## v3.26.0 - Release Evidence Negative Fixture HTML Report
 
 - Added a browsable `index.html` report to `codex-maintainer release-evidence negative-index` outputs.

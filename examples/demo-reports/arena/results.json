@@ -1,22 +1,23 @@
 {
   "schema_version": "0.1",
-  "tool_version": "3.26.0",
+  "tool_version": "3.27.0",
   "generated_at": "2026-06-16T00:00:00Z",
   "fixture": "fixtures/arena",
   "summary": {
-    "case_count": 8,
-    "average_total": 6.25,
+    "case_count": 9,
+    "average_total": 6.67,
     "high_risk_finding_count": 8,
-    "validation_evidence_cases": 3,
-    "validation_evidence_ratio": 0.38,
-    "validation_quality_average": 0.75,
-    "scope_control_average": 1.25
+    "validation_evidence_cases": 4,
+    "validation_evidence_ratio": 0.44,
+    "validation_quality_average": 0.89,
+    "scope_control_average": 1.33
   },
   "cases": [
     {"id": "backend-webhook-idempotency", "total": 10, "max": 12, "verdict": "usable maintainer-quality run", "high_risk_findings": 0, "scope_control": 2, "validation_quality": 2, "has_tests": true, "report_json": "runs/backend-webhook-idempotency/report.json", "report_md": "runs/backend-webhook-idempotency/report.md"},
     {"id": "cli-dangerous-clean", "total": 1, "max": 12, "verdict": "do not merge until high-risk findings are resolved", "high_risk_findings": 3, "scope_control": 0, "validation_quality": 0, "has_tests": false, "report_json": "runs/cli-dangerous-clean/report.json", "report_md": "runs/cli-dangerous-clean/report.md"},
     {"id": "dangerous-maintainer", "total": 1, "max": 12, "verdict": "do not merge until high-risk findings are resolved", "high_risk_findings": 3, "scope_control": 0, "validation_quality": 0, "has_tests": false, "report_json": "runs/dangerous-maintainer/report.json", "report_md": "runs/dangerous-maintainer/report.md"},
     {"id": "failing-validation", "total": 8, "max": 12, "verdict": "do not merge until high-risk findings are resolved", "high_risk_findings": 1, "scope_control": 2, "validation_quality": 0, "has_tests": true, "report_json": "runs/failing-validation/report.json", "report_md": "runs/failing-validation/report.md"},
+    {"id": "frontend-async-state-regression", "total": 10, "max": 12, "verdict": "usable maintainer-quality run", "high_risk_findings": 0, "scope_control": 2, "validation_quality": 2, "has_tests": true, "report_json": "runs/frontend-async-state-regression/report.json", "report_md": "runs/frontend-async-state-regression/report.md"},
     {"id": "good-maintainer", "total": 11, "max": 12, "verdict": "usable maintainer-quality run", "high_risk_findings": 0, "scope_control": 2, "validation_quality": 2, "has_tests": true, "report_json": "runs/good-maintainer/report.json", "report_md": "runs/good-maintainer/report.md"},
     {"id": "no-diff-implementation", "total": 6, "max": 12, "verdict": "analysis only; request a narrower repair pass", "high_risk_findings": 0, "scope_control": 1, "validation_quality": 0, "has_tests": false, "report_json": "runs/no-diff-implementation/report.json", "report_md": "runs/no-diff-implementation/report.md"},
     {"id": "review-only", "total": 10, "max": 12, "verdict": "usable maintainer-quality run", "high_risk_findings": 0, "scope_control": 2, "validation_quality": 2, "has_tests": false, "report_json": "runs/review-only/report.json", "report_md": "runs/review-only/report.md"},

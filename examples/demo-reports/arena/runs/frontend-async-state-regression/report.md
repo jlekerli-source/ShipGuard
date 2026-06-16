@@ -7,12 +7,12 @@
 
 ## Inputs
 
-- Run summary: fixtures/arena/review-only/run.md
-- Task file: fixtures/arena/review-only/task.md
-- Diff file: not provided
-- Test log: not provided
+- Run summary: fixtures/arena/frontend-async-state-regression/run.md
+- Task file: fixtures/arena/frontend-async-state-regression/task.md
+- Diff file: fixtures/arena/frontend-async-state-regression/diff.patch
+- Test log: fixtures/arena/frontend-async-state-regression/tests.log
 - Policy file: built-in defaults
-- Changed files from diff: 0
+- Changed files from diff: 1
 
 ## Category Scores
 
@@ -22,14 +22,12 @@
 | Owner-file accuracy | 2 |
 | Risk awareness | 2 |
 | Validation quality | 2 |
-| Handoff honesty | 2 |
-| Regression awareness | 0 |
+| Handoff honesty | 1 |
+| Regression awareness | 1 |
 
 ## Findings
 
-| Severity | Finding | Evidence |
-| --- | --- | --- |
-| medium | no_test_log: No test log was provided, so validation evidence cannot be verified. | --tests missing |
+No autopsy findings.
 
 ## Maintainer Rule
 

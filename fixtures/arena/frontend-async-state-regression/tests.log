@@ -1,0 +1,6 @@
+PASS src/features/search/search-results-race.test.ts
+  useSearchResults
+    pass keeps the latest query result when an older request resolves later
+
+Test Suites: 1 passed, 1 total
+Tests: 1 passed, 1 total

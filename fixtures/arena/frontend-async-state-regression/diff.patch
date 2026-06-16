@@ -1,0 +1,30 @@
+diff --git a/src/features/search/useSearchResults.ts b/src/features/search/useSearchResults.ts
+index 1111111..2222222 100644
+--- a/src/features/search/useSearchResults.ts
++++ b/src/features/search/useSearchResults.ts
+@@ -1,5 +1,6 @@
+ import {useCallback, useState} from "react"
++import {useRef} from "react"
+ 
+ export function useSearchResults(client: SearchClient) {
+   const [items, setItems] = useState<SearchResult[]>([])
+@@ -7,12 +8,20 @@ export function useSearchResults(client: SearchClient) {
+   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle")
+   const [error, setError] = useState<Error | null>(null)
++  const requestIdRef = useRef(0)
+ 
+   const search = useCallback(async (query: string) => {
++    const requestId = requestIdRef.current + 1
++    requestIdRef.current = requestId
+     setStatus("loading")
+     setError(null)
+     try {
+       const response = await client.search(query)
++      if (requestId !== requestIdRef.current) return
+       setItems(response.items)
+       setStatus("ready")
+     } catch (err) {
++      if (requestId !== requestIdRef.current) return
+       setError(err as Error)
+       setStatus("error")
+     }
