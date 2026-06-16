@@ -1,0 +1,10 @@
+diff --git a/services/billingWebhook.ts b/services/billingWebhook.ts
+index 1111111..2222222 100644
+--- a/services/billingWebhook.ts
++++ b/services/billingWebhook.ts
+@@ -8,6 +8,7 @@ export async function handleBillingWebhook(event: BillingEvent) {
+   const existing = await webhookEvents.find(event.id)
++  if (existing?.processedAt) return {status: "duplicate"}
+   await applyEntitlementChange(event)
+   await webhookEvents.markProcessed(event.id)
+ }

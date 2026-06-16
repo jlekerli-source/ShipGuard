@@ -8,6 +8,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep Agent Autopsy stable for Markdown and JSON reports from run summaries, diffs, tasks, and test logs.
 - Keep autopsy artifact generation available through GitHub Actions.
 - Keep Maintainer Arena fixture aggregation stable for public benchmark examples.
+- Keep backend and CLI arena cases in the public benchmark fixture pack.
 - Keep PR review-comment output stable for warn/fail adoption.
 - Keep leaderboard schema `1.0` stable for public benchmark consumers.
 - Keep policy config plain, auditable, and non-executable.
@@ -29,7 +30,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 ## Next
 
 - Add more anonymized transcripts from real maintenance work.
-- Expand Maintainer Arena with more task types and optional identity signing.
+- Expand Maintainer Arena with more task types and optional identity signing when the fixture contract needs it.
 - Add more specialized profiles only when they have clear maintainer workflows.
 - Consider npm or Homebrew distribution after the release tarball path stays stable.
 - Enable GitHub Pages in repository settings after the docs shell is reviewed.

@@ -1,7 +1,7 @@
 # Agent Autopsy Report
 
 - Generated: 2026-06-16T00:00:00Z
-- Tool version: 1.3.0
+- Tool version: 3.0.0
 - Verdict: do not merge until high-risk findings are resolved
 - Total score: 1/12
 

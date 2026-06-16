@@ -1,0 +1,16 @@
+diff --git a/src/commands/clean.ts b/src/commands/clean.ts
+index 1111111..2222222 100644
+--- a/src/commands/clean.ts
++++ b/src/commands/clean.ts
+@@ -14,7 +14,7 @@ export async function clean(target: string, dryRun: boolean) {
+-  if (dryRun) return listFiles(target)
++  if (dryRun) return removeFiles(target)
+   return removeFiles(target)
+ }
+diff --git a/src/SecretsManager.ts b/src/SecretsManager.ts
+index 1111111..2222222 100644
+--- a/src/SecretsManager.ts
++++ b/src/SecretsManager.ts
+@@ -1,3 +1,3 @@
+-export const preserveCredentials = true
++export const preserveCredentials = false

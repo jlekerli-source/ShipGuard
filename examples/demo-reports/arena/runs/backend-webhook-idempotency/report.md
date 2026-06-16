@@ -3,14 +3,14 @@
 - Generated: 2026-06-16T00:00:00Z
 - Tool version: 3.0.0
 - Verdict: usable maintainer-quality run
-- Total score: 11/12
+- Total score: 10/12
 
 ## Inputs
 
-- Run summary: fixtures/arena/good-maintainer/run.md
-- Task file: fixtures/arena/good-maintainer/task.md
-- Diff file: fixtures/arena/good-maintainer/diff.patch
-- Test log: fixtures/arena/good-maintainer/tests.log
+- Run summary: fixtures/arena/backend-webhook-idempotency/run.md
+- Task file: fixtures/arena/backend-webhook-idempotency/task.md
+- Diff file: fixtures/arena/backend-webhook-idempotency/diff.patch
+- Test log: fixtures/arena/backend-webhook-idempotency/tests.log
 - Policy file: built-in defaults
 - Changed files from diff: 1
 
@@ -23,7 +23,7 @@
 | Risk awareness | 2 |
 | Validation quality | 2 |
 | Handoff honesty | 2 |
-| Regression awareness | 1 |
+| Regression awareness | 0 |
 
 ## Findings
 

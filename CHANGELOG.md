@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.0.0 - Expanded Backend And CLI Arena Pack
+
+- Added backend webhook idempotency and dangerous CLI cleanup arena cases.
+- Expanded the public fixture pack from six to eight maintainer tasks.
+- Regenerated demo arena reports and leaderboard output for the expanded pack.
+- Updated benchmark docs, tests, package verification, CI coverage, and release proof.
+
 ## v2.9.0 - Backend And CLI Template Profiles
 
 - Added `codex-maintainer init backend` and `codex-maintainer doctor backend`.
