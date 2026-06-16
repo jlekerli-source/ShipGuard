@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.37.0 - Arena Signer Metadata
+
+- Added optional `--signer` and `--signer-url` metadata to `codex-maintainer arena sign` manifests.
+- Added `identity_digest` verification so Arena manifests fail when signer metadata is tampered or unsafe.
+- Extended Arena signing docs, source tests, package proof, and release docs for signer metadata without claiming private-key identity signing.
+
 ## v3.36.0 - Transcript Corpus Demo Proof
 
 - Added a `release-evidence-consumption` redacted transcript fixture with a checked redaction report.

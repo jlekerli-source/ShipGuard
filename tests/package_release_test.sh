@@ -276,8 +276,12 @@ grep -q '"case_count": 2' "$tmp_dir/package-imported-results/results.json"
 "$package_root/bin/codex-maintainer" arena sign \
   --fixture "$tmp_dir/package-imported-arena" \
   --out "$tmp_dir/package-imported-arena/PACK.json" \
-  --pack-name "package-imported" >/dev/null
+  --pack-name "package-imported" \
+  --signer "Package Fixture Maintainer" \
+  --signer-url "https://github.com/jlekerli-source/ringly-codex-workflows" >/dev/null
 grep -q '"signature_type" : "sha256-content-digest"' "$tmp_dir/package-imported-arena/PACK.json"
+grep -q '"signer" : "Package Fixture Maintainer"' "$tmp_dir/package-imported-arena/PACK.json"
+grep -q '"identity_digest" : "[a-f0-9]\{64\}"' "$tmp_dir/package-imported-arena/PACK.json"
 "$package_root/bin/codex-maintainer" arena verify \
   --fixture "$tmp_dir/package-imported-arena" \
   --manifest "$tmp_dir/package-imported-arena/PACK.json" >/dev/null

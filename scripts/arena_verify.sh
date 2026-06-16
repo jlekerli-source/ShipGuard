@@ -10,7 +10,7 @@ Usage:
   codex-maintainer arena verify --fixture <fixture-dir> --manifest <manifest.json>
 
 Verifies:
-  case files, SHA-256 digests, file sizes, and pack digest.
+  case files, SHA-256 digests, file sizes, pack digest, and optional signer metadata digest.
 USAGE
 }
 
@@ -76,6 +76,38 @@ sub safe_case_id {
   return $case_id =~ /\A[A-Za-z0-9._-]+\z/;
 }
 
+sub validate_identity_text {
+  my ($field, $value) = @_;
+  fail("$field cannot contain newlines or tabs") if $value =~ /[\r\n\t]/;
+  fail("$field contains an email address") if $value =~ /[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/;
+  fail("$field contains a secret-looking token") if $value =~ /\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|Bearer\s+(?!\[redacted-secret\])[A-Za-z0-9._~+\/=-]{16,})\b/;
+  fail("$field contains a secret-looking assignment") if $value =~ /\b[A-Za-z_][A-Za-z0-9_]*(?:TOKEN|SECRET|KEY|PASSWORD)[A-Za-z0-9_]*=(?!\[redacted-secret\])\S+/i;
+  fail("$field contains a local home path") if $value =~ m{/(?:Users|home)/(?!\[redacted-user\])[A-Za-z0-9._-]+};
+}
+
+sub verify_identity {
+  my ($manifest, $pack_name) = @_;
+  my $identity = $manifest->{identity};
+  return unless defined $identity;
+  fail("identity must be an object") unless ref($identity) eq 'HASH';
+  my $signer = $identity->{signer} || '';
+  my $signer_url = $identity->{signer_url} || '';
+  my $identity_digest = $identity->{identity_digest} || '';
+  fail("identity signer is required") unless length $signer;
+  validate_identity_text('identity signer', $signer);
+  if (length $signer_url) {
+    validate_identity_text('identity signer_url', $signer_url);
+    fail("identity signer_url must be an https URL") unless $signer_url =~ m{\Ahttps://[A-Za-z0-9][A-Za-z0-9._~:/?#\[\]\@!\$&'()*+,;=%-]*\z};
+  }
+  my $canonical = join("\n",
+    "schema_version=1.0",
+    "pack_name=$pack_name",
+    "signer=$signer",
+    "signer_url=$signer_url",
+  ) . "\n";
+  fail("identity digest mismatch") unless $identity_digest eq sha256_hex($canonical);
+}
+
 sub validate_case_contents {
   my ($case_dir, $case_id) = @_;
   opendir my $dh, $case_dir or fail("cannot open case directory: $case_dir: $!");
@@ -130,6 +162,7 @@ close $in;
 fail("unsupported manifest schema") unless ($manifest->{schema_version} || '') eq '1.0';
 fail("unsupported signature type") unless ($manifest->{signature_type} || '') eq 'sha256-content-digest';
 my $pack_name = $manifest->{pack_name} || fail("manifest missing pack_name");
+verify_identity($manifest, $pack_name);
 my ($actual_files, $actual_case_count, $actual_digest) = build_actual($ENV{FIXTURE_DIR}, $pack_name);
 
 fail("case_count mismatch") unless ($manifest->{case_count} || 0) == $actual_case_count;

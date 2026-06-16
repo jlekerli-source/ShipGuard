@@ -28,7 +28,7 @@ grep -q 'exit_code="$corpus_exit"' "$action"
 grep -q 'actions/upload-artifact@v4' "$action"
 grep -q 'codex-maintainer-transcript-corpus' "$action"
 
-grep -q 'jlekerli-source/ringly-codex-workflows/actions/transcript-corpus@v3.36.0' "$workflow"
+grep -q 'jlekerli-source/ringly-codex-workflows/actions/transcript-corpus@v3.37.0' "$workflow"
 grep -q 'contents: read' "$workflow"
 grep -q 'require-report: true' "$workflow"
 grep -q 'mode: fail' "$workflow"

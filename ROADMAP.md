@@ -24,7 +24,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep optional GitHub Check Run posting explicit, token-scoped, and disabled by default.
 - Keep SARIF export stable for Autopsy findings and CI gate artifacts.
 - Keep external arena fixture import strict about supported files and obvious secret leakage.
-- Keep fixture-pack integrity metadata deterministic and verifiable.
+- Keep fixture-pack integrity and optional signer metadata deterministic and verifiable.
 - Keep self-audit output stable enough to prove release readiness from source and extracted packages.
 - Keep next-goal output deterministic enough to restart the improvement loop after each release.
 - Keep iOS, web, backend, and CLI starter profiles stable for external repository adoption.
@@ -60,7 +60,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 ## Next
 
 - Add more anonymized transcript cases only when they can be fully redacted and verified through the corpus gate.
-- Expand Maintainer Arena with more task types and optional identity signing when the fixture contract needs it.
+- Expand Maintainer Arena with more task types and stronger fixture provenance only when the fixture contract needs it.
 - Add more specialized profiles only when they have clear maintainer workflows.
 - Consider npm or Homebrew distribution after the release tarball path stays stable.
 - Enable GitHub Pages in repository settings after the docs shell is reviewed.

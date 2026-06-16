@@ -61,7 +61,9 @@ After importing a pack, write deterministic integrity metadata:
 ./bin/codex-maintainer arena sign \
   --fixture /tmp/imported-arena-pack \
   --out /tmp/imported-arena-pack/PACK.json \
-  --pack-name "external-pack"
+  --pack-name "external-pack" \
+  --signer "Example Maintainers" \
+  --signer-url "https://github.com/example/repo"
 ```
 
 Verify a pack before running it:
@@ -72,7 +74,9 @@ Verify a pack before running it:
   --manifest /tmp/imported-arena-pack/PACK.json
 ```
 
-`PACK.json` includes case IDs, supported file paths, byte counts, file SHA-256 values, and a pack-level SHA-256 content digest. This is integrity metadata for reproducibility; it is not identity signing with a private key.
+`PACK.json` includes case IDs, supported file paths, byte counts, file SHA-256 values, and a pack-level SHA-256 content digest. When `--signer` is provided, it also includes signer metadata plus an `identity_digest` that fails verification if the signer fields are edited later.
+
+The signer fields are provenance metadata for public review. They are intentionally not private-key signing; use them to identify the fixture publisher while keeping the pack digest reproducible.
 
 ## Aggregate Metrics
 

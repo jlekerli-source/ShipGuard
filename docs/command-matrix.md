@@ -14,7 +14,7 @@
 | Compare fixture runs | `arena compare` | Benchmark delta JSON and Markdown |
 | Compare fixture runs in CI | `actions/arena-compare` | Uploaded benchmark comparison artifact |
 | Import fixture packs | `arena import` | Validated local fixture pack |
-| Sign fixture packs | `arena sign`, `arena verify` | SHA-256 pack metadata |
+| Sign fixture packs | `arena sign`, `arena verify` | SHA-256 pack metadata with optional signer provenance |
 | Redact, verify, or index maintainer transcripts | `transcript redact`, `transcript verify`, `transcript corpus` | Redacted Markdown, leak-audit JSON, verification Markdown, corpus index, and badge JSON |
 | Verify transcripts in CI | `actions/transcript-verify` | Uploaded transcript verification artifact |
 | Verify transcript corpora in CI | `actions/transcript-corpus` | Uploaded corpus index, badge, and per-case verification artifact |

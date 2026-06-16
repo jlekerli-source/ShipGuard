@@ -6,7 +6,7 @@ Use it when redacted maintainer transcripts, benchmark notes, or public examples
 
 ```yaml
 - name: Verify redacted transcript
-  uses: jlekerli-source/ringly-codex-workflows/actions/transcript-verify@v3.36.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/transcript-verify@v3.37.0
   with:
     transcript: docs/public-transcript.md
     report: artifacts/redaction-report.json

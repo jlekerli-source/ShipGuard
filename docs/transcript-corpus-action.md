@@ -6,7 +6,7 @@ Use it when public transcript examples should be verified on every PR or before 
 
 ```yaml
 - name: Verify transcript corpus
-  uses: jlekerli-source/ringly-codex-workflows/actions/transcript-corpus@v3.36.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/transcript-corpus@v3.37.0
   with:
     source: fixtures/transcripts
     require-report: true

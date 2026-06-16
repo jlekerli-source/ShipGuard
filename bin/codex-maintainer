@@ -21,7 +21,7 @@ Usage:
   codex-maintainer autopsy --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--policy <policy.conf>] [--out <dir>]
   codex-maintainer arena run --fixture <fixture-dir> [--out <dir>]
   codex-maintainer arena import --source <fixture-dir> --out <fixture-dir> [--pack-name <name>] [--force]
-  codex-maintainer arena sign --fixture <fixture-dir> --out <manifest.json> [--pack-name <name>]
+  codex-maintainer arena sign --fixture <fixture-dir> --out <manifest.json> [--pack-name <name>] [--signer <name>] [--signer-url <url>]
   codex-maintainer arena verify --fixture <fixture-dir> --manifest <manifest.json>
   codex-maintainer arena compare --left <results.json> --right <results.json> --out <dir>
   codex-maintainer transcript redact --in <transcript.md> --out <redacted.md> [--report <report.json>] [--private-term <text> ...]
