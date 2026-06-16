@@ -1,0 +1,55 @@
+name: Run Codex maintainer CI gate
+description: Run autopsy, review-comment, badge generation, and artifact upload from a Codex maintainer run summary.
+
+inputs:
+  run:
+    description: Path to run.md.
+    required: true
+  diff:
+    description: Optional diff path.
+    required: false
+    default: ""
+  tests:
+    description: Optional test log path.
+    required: false
+    default: ""
+  task:
+    description: Optional task contract path.
+    required: false
+    default: ""
+  policy:
+    description: Optional policy config path.
+    required: false
+    default: ""
+  out:
+    description: Output artifact directory.
+    required: false
+    default: artifacts/codex-maintainer-gate
+  mode:
+    description: warn exits zero; fail exits non-zero on blocked reports.
+    required: false
+    default: warn
+  artifact-name:
+    description: Uploaded artifact name.
+    required: false
+    default: codex-maintainer-gate
+
+runs:
+  using: composite
+  steps:
+    - name: Run CI gate
+      shell: bash
+      run: |
+        args=(--run "${{ inputs.run }}" --out "${{ inputs.out }}" --mode "${{ inputs.mode }}")
+        if [[ -n "${{ inputs.diff }}" ]]; then args+=(--diff "${{ inputs.diff }}"); fi
+        if [[ -n "${{ inputs.tests }}" ]]; then args+=(--tests "${{ inputs.tests }}"); fi
+        if [[ -n "${{ inputs.task }}" ]]; then args+=(--task "${{ inputs.task }}"); fi
+        if [[ -n "${{ inputs.policy }}" ]]; then args+=(--policy "${{ inputs.policy }}"); fi
+        "${{ github.action_path }}/../../bin/codex-maintainer" ci-gate "${args[@]}"
+
+    - name: Upload CI gate artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.out }}
+        if-no-files-found: error

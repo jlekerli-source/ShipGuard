@@ -1,0 +1,41 @@
+# CI Gate Mode
+
+CI Gate Mode runs Autopsy, generates a review comment, creates badge JSON, writes `gate.json`, and uploads the whole bundle when used through the composite action.
+
+## Command
+
+```bash
+./bin/codex-maintainer ci-gate \
+  --run fixtures/autopsy/good-run/run.md \
+  --task fixtures/autopsy/good-run/task.md \
+  --diff fixtures/autopsy/good-run/diff.patch \
+  --tests fixtures/autopsy/good-run/tests.log \
+  --policy templates/policy/default.conf \
+  --out /tmp/codex-gate \
+  --mode warn
+```
+
+Outputs:
+
+- `autopsy/report.md`
+- `autopsy/report.json`
+- `review/comment.md`
+- `review/badge.json`
+- `gate.json`
+
+`--mode warn` exits zero. `--mode fail` exits non-zero when the gate status is `blocked`.
+
+## GitHub Action
+
+```yaml
+- name: Run Codex maintainer CI gate
+  uses: jlekerli-source/ringly-codex-workflows/actions/ci-gate@v1.2.0
+  with:
+    run: run.md
+    diff: change.patch
+    tests: test.log
+    policy: .codex-maintainer/policy.conf
+    mode: warn
+```
+
+The action uploads the configured output directory as an artifact.

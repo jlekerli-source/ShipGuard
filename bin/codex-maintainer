@@ -18,6 +18,7 @@ Usage:
   codex-maintainer autopsy --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--policy <policy.conf>] [--out <dir>]
   codex-maintainer arena run --fixture <fixture-dir> [--out <dir>]
   codex-maintainer review-comment --report <report.json> --out <comment.md> [--mode warn|fail]
+  codex-maintainer ci-gate --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--policy <policy.conf>] [--out <dir>] [--mode warn|fail]
   codex-maintainer leaderboard build --arena-results <results.json> --out <leaderboard.json>
   codex-maintainer version
   codex-maintainer help
@@ -32,6 +33,7 @@ Commands:
   arena       Run multiple autopsy fixtures and aggregate benchmark results.
   review-comment
               Generate a PR-ready review comment and badge from an autopsy report.
+  ci-gate     Generate autopsy, review, badge, gate JSON, and optional CI failure.
   leaderboard Build a stable leaderboard JSON file from arena results.
   version     Print the toolkit version from VERSION.
 USAGE
@@ -207,6 +209,10 @@ cmd_review_comment() {
   "$tool_root/scripts/review_comment.sh" "$@"
 }
 
+cmd_ci_gate() {
+  "$tool_root/scripts/ci_gate.sh" "$@"
+}
+
 cmd_leaderboard() {
   local subcommand="${1:-}"
   [[ "$subcommand" == "build" ]] || fail "leaderboard requires subcommand: build"
@@ -251,6 +257,9 @@ main() {
       ;;
     review-comment)
       cmd_review_comment "$@"
+      ;;
+    ci-gate)
+      cmd_ci_gate "$@"
       ;;
     leaderboard)
       cmd_leaderboard "$@"

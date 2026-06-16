@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.2.0 - CI gate mode
+
+- Added `codex-maintainer ci-gate` for Autopsy, review comments, badges, and gate JSON in one command.
+- Added fail/warn CI behavior with policy threshold support.
+- Added `actions/ci-gate` with artifact upload.
+- Added CI gate docs, examples, tests, and package verification.
+
 ## v1.1.0 - Policy configuration
 
 - Added plain `key=value` policy files for protected patterns, risky claims, validation claims, scope limits, and thresholds.

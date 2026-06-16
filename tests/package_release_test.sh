@@ -22,11 +22,13 @@ tar -tzf "$tarball" > "$tar_list"
 grep -q "^$package_name/bin/codex-maintainer$" "$tar_list"
 grep -q "^$package_name/AGENTS.md$" "$tar_list"
 grep -q "^$package_name/.github/workflows/autopsy-artifact.yml$" "$tar_list"
+grep -q "^$package_name/actions/ci-gate/action.yml$" "$tar_list"
 grep -q "^$package_name/actions/review-comment/action.yml$" "$tar_list"
 grep -q "^$package_name/actions/validate/action.yml$" "$tar_list"
 grep -q "^$package_name/docs/arena.md$" "$tar_list"
 grep -q "^$package_name/docs/autopsy-github-actions.md$" "$tar_list"
 grep -q "^$package_name/docs/benchmark.md$" "$tar_list"
+grep -q "^$package_name/docs/ci-gate.md$" "$tar_list"
 grep -q "^$package_name/docs/demo-reports.md$" "$tar_list"
 grep -q "^$package_name/docs/policy.md$" "$tar_list"
 grep -q "^$package_name/docs/pr-review-bot.md$" "$tar_list"
@@ -34,6 +36,7 @@ grep -q "^$package_name/scripts/install.sh$" "$tar_list"
 grep -q "^$package_name/scripts/arena_run.sh$" "$tar_list"
 grep -q "^$package_name/scripts/autopsy_report.sh$" "$tar_list"
 grep -q "^$package_name/scripts/build_demo_reports.sh$" "$tar_list"
+grep -q "^$package_name/scripts/ci_gate.sh$" "$tar_list"
 grep -q "^$package_name/scripts/leaderboard_build.sh$" "$tar_list"
 grep -q "^$package_name/scripts/policy.sh$" "$tar_list"
 grep -q "^$package_name/scripts/review_comment.sh$" "$tar_list"
@@ -41,6 +44,7 @@ grep -q "^$package_name/tests/package_release_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/action_artifact_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/arena_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/autopsy_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/ci_gate_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/leaderboard_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/policy_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/review_comment_test.sh$" "$tar_list"
@@ -91,6 +95,14 @@ grep -q '"high_risk_finding_count": 4' "$tmp_dir/package-arena/results.json"
   --artifact-dir "$tmp_dir/package-review" >/dev/null
 grep -q '| Status | pass |' "$tmp_dir/package-review/comment.md"
 grep -q '"message": "pass 11/12"' "$tmp_dir/package-review/badge.json"
+"$package_root/bin/codex-maintainer" ci-gate \
+  --run "$package_root/fixtures/autopsy/good-run/run.md" \
+  --task "$package_root/fixtures/autopsy/good-run/task.md" \
+  --diff "$package_root/fixtures/autopsy/good-run/diff.patch" \
+  --tests "$package_root/fixtures/autopsy/good-run/tests.log" \
+  --policy "$package_root/templates/policy/default.conf" \
+  --out "$tmp_dir/package-gate" >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/package-gate/gate.json"
 "$package_root/bin/codex-maintainer" leaderboard build \
   --arena-results "$tmp_dir/package-arena/results.json" \
   --out "$tmp_dir/package-leaderboard.json" >/dev/null

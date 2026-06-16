@@ -12,6 +12,7 @@ Start here:
 - [Agent Autopsy](autopsy.md)
 - [Autopsy in GitHub Actions](autopsy-github-actions.md)
 - [Benchmark Format](benchmark.md)
+- [CI Gate Mode](ci-gate.md)
 - [Demo Reports](demo-reports.md)
 - [Policy Configuration](policy.md)
 - [PR Review Bot Mode](pr-review-bot.md)

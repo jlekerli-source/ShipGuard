@@ -139,6 +139,22 @@ Generate a PR-ready comment and Shields-compatible badge from an autopsy report:
 
 Use `--mode fail` to exit non-zero when the report is blocked. See `pr-review-bot.md` for the GitHub Actions workflow shape.
 
+## CI Gate
+
+Run Autopsy, review-comment, badge generation, and gate JSON in one command:
+
+```bash
+./bin/codex-maintainer ci-gate \
+  --run run.md \
+  --diff change.patch \
+  --tests test.log \
+  --policy .codex-maintainer/policy.conf \
+  --out artifacts/codex-maintainer-gate \
+  --mode warn
+```
+
+Use `--mode fail` when blocked gates should fail CI. See `ci-gate.md`.
+
 ## Leaderboard
 
 Build a stable public leaderboard JSON file from arena results:
