@@ -26,6 +26,8 @@ Compare benchmark runs before publishing a changed fixture pack:
   --out /tmp/arena-compare
 ```
 
+Use `actions/arena-compare` to publish the same comparison as a GitHub Actions artifact and optionally fail CI when the comparison status is `regressed`.
+
 ## Leaderboard Format
 
 `leaderboard.json` uses schema version `1.0` and includes:

@@ -1,0 +1,114 @@
+name: Compare Codex maintainer Arena results
+description: Compare two Maintainer Arena results files, classify benchmark movement, and upload the comparison report.
+
+inputs:
+  left-results:
+    description: Path to the older Arena results.json file.
+    required: true
+  right-results:
+    description: Path to the newer Arena results.json file.
+    required: true
+  out:
+    description: Directory for Arena comparison output.
+    required: false
+    default: artifacts/codex-maintainer-arena-compare
+  title:
+    description: Title for the generated comparison report.
+    required: false
+    default: Codex Maintainer Arena Compare
+  upload-artifact:
+    description: Set false to skip comparison artifact upload.
+    required: false
+    default: "true"
+  artifact-name:
+    description: Uploaded artifact name.
+    required: false
+    default: codex-maintainer-arena-compare
+  mode:
+    description: Use fail to fail the job on regressed comparison output, or warn to emit warnings only.
+    required: false
+    default: warn
+
+outputs:
+  status:
+    description: improved, unchanged, regressed, or failed.
+    value: ${{ steps.arena-compare.outputs.status }}
+  arena-compare:
+    description: Path to arena-compare.json.
+    value: ${{ steps.arena-compare.outputs.arena-compare }}
+  arena-compare-md:
+    description: Path to arena-compare.md.
+    value: ${{ steps.arena-compare.outputs.arena-compare-md }}
+
+runs:
+  using: composite
+  steps:
+    - name: Compare Arena results
+      id: arena-compare
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        root="${{ github.action_path }}/../.."
+        left_results="${{ inputs.left-results }}"
+        right_results="${{ inputs.right-results }}"
+        out="${{ inputs.out }}"
+        title="${{ inputs.title }}"
+        mode="${{ inputs.mode }}"
+
+        if [[ -z "$left_results" || -z "$right_results" ]]; then
+          echo "::error::left-results and right-results are required"
+          exit 2
+        fi
+
+        if [[ "$mode" != "fail" && "$mode" != "warn" ]]; then
+          echo "::error::mode must be fail or warn"
+          exit 2
+        fi
+
+        mkdir -p "$out"
+
+        compare_exit=0
+        set +e
+        "$root/bin/codex-maintainer" arena compare \
+          --left "$left_results" \
+          --right "$right_results" \
+          --out "$out" \
+          --title "$title"
+        compare_exit="$?"
+        set -e
+
+        status="failed"
+        if [[ "$compare_exit" -eq 0 ]]; then
+          status="$(perl -0ne 'print $1 if /"status"\s*:\s*"([^"]+)"/' "$out/arena-compare.json")"
+          if [[ -z "$status" ]]; then
+            status="failed"
+            compare_exit=1
+          fi
+        fi
+
+        {
+          echo "status=$status"
+          echo "arena-compare=$out/arena-compare.json"
+          echo "arena-compare-md=$out/arena-compare.md"
+        } >> "$GITHUB_OUTPUT"
+
+        if [[ "$status" == "regressed" || "$status" == "failed" ]]; then
+          message="Arena comparison status is $status"
+          if [[ "$mode" == "warn" ]]; then
+            echo "::warning::$message"
+          else
+            echo "::error::$message"
+            exit_code="$compare_exit"
+            [[ "$exit_code" -eq 0 ]] && exit_code=1
+            exit "$exit_code"
+          fi
+        fi
+
+    - name: Upload Arena comparison
+      if: ${{ inputs.upload-artifact == 'true' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.out }}
+        if-no-files-found: error

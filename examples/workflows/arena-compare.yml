@@ -1,0 +1,31 @@
+name: Compare Arena results
+
+on:
+  workflow_dispatch:
+    inputs:
+      left-results:
+        description: Path to the older Arena results.json file.
+        required: true
+        default: artifacts/arena-old/results.json
+      right-results:
+        description: Path to the newer Arena results.json file.
+        required: true
+        default: artifacts/arena-current/results.json
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out toolkit
+        uses: actions/checkout@v5
+
+      - name: Compare Arena results
+        uses: jlekerli-source/ringly-codex-workflows/actions/arena-compare@v3.29.0
+        with:
+          left-results: ${{ inputs.left-results }}
+          right-results: ${{ inputs.right-results }}
+          mode: fail
+          artifact-name: codex-maintainer-arena-compare

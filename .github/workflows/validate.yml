@@ -43,6 +43,9 @@ jobs:
       - name: Run arena compare tests
         run: ./tests/arena_compare_test.sh
 
+      - name: Run arena compare action tests
+        run: ./tests/arena_compare_action_test.sh
+
       - name: Run review comment tests
         run: ./tests/review_comment_test.sh
 

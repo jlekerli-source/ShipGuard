@@ -1,6 +1,6 @@
 # GitHub Action
 
-This repo exposes reusable composite actions for validating a workflow-bundle checkout, building release proof artifacts, consuming published release proof assets, comparing release proof, exporting release evidence, verifying downloaded evidence artifacts, and auditing the release evidence negative fixture corpus.
+This repo exposes reusable composite actions for validating a workflow-bundle checkout, comparing Arena benchmark results, building release proof artifacts, consuming published release proof assets, comparing release proof, exporting release evidence, verifying downloaded evidence artifacts, and auditing the release evidence negative fixture corpus.
 
 ## Usage
 
@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate Codex workflow bundle
-        uses: jlekerli-source/ringly-codex-workflows/actions/validate@v3.28.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/validate@v3.29.0
 ```
 
 ## Inputs
@@ -30,13 +30,26 @@ jobs:
 | --- | --- | --- |
 | `path` | `.` | Path to validate. |
 
+## Arena Compare Action
+
+```yaml
+- name: Compare Arena results
+  uses: jlekerli-source/ringly-codex-workflows/actions/arena-compare@v3.29.0
+  with:
+    left-results: artifacts/arena-old/results.json
+    right-results: artifacts/arena-current/results.json
+    mode: fail
+```
+
+The action runs `codex-maintainer arena compare`, uploads `arena-compare.json` and `arena-compare.md`, and exposes the comparison status. See `arena-compare-action.md`.
+
 ## Release Proof Action
 
 ```yaml
 - name: Build release proof
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.28.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.29.0
   with:
-    release-url: https://github.com/owner/repo/releases/tag/v3.28.0
+    release-url: https://github.com/owner/repo/releases/tag/v3.29.0
     issue-url: https://github.com/owner/repo/issues/123
 ```
 
@@ -46,10 +59,10 @@ The action builds the release tarball, manifest, release index, replay report, a
 
 ```yaml
 - name: Verify published proof assets
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.28.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.29.0
   with:
     repo: jlekerli-source/ringly-codex-workflows
-    release-tag: v3.28.0
+    release-tag: v3.29.0
     mode: fail
 ```
 
@@ -59,11 +72,11 @@ The action downloads release assets with `gh release download`, runs `codex-main
 
 ```yaml
 - name: Compare published proof assets
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.28.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.29.0
   with:
     repo: jlekerli-source/ringly-codex-workflows
     left-tag: v0.0.0
-    right-tag: v3.28.0
+    right-tag: v3.29.0
     mode: fail
 ```
 
@@ -73,7 +86,7 @@ The action downloads both releases, runs `codex-maintainer release-diff compare`
 
 ```yaml
 - name: Export release evidence
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.28.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.29.0
   with:
     title: Codex Maintainer Release Evidence
     include-diff: auto
@@ -87,11 +100,11 @@ The action runs `codex-maintainer release-evidence site`, optionally runs `codex
 
 ```yaml
 - name: Build release evidence bundle
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.28.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.29.0
   with:
     run: bundle
     repo: jlekerli-source/ringly-codex-workflows
-    release-tag: v3.28.0
+    release-tag: v3.29.0
     previous-tag: v3.19.0
     download-assets: true
     mode: fail
@@ -103,7 +116,7 @@ Bundle mode downloads release assets, runs `codex-maintainer release-evidence bu
 
 ```yaml
 - name: Verify release evidence artifact
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.28.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.29.0
   with:
     download-artifact: true
     source-artifact-name: codex-maintainer-release-evidence
@@ -119,7 +132,7 @@ Use this in a downstream job to prove an evidence artifact produced by `actions/
 
 ```yaml
 - name: Audit release evidence negative fixtures
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-negative-index@v3.28.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-negative-index@v3.29.0
   with:
     mode: fail
 ```

@@ -99,3 +99,5 @@ Compare two Arena result files when the fixture pack, scoring policy, or agent r
 ```
 
 The comparison writes `arena-compare.json` and `arena-compare.md` with case-count, average-score, high-risk-finding, added-case, removed-case, changed-case, and unchanged-case deltas. The summary status is `regressed` when score, high-risk findings, or removed cases move in the wrong direction.
+
+Use `actions/arena-compare` when the same comparison should run in GitHub Actions and upload `arena-compare.json` plus `arena-compare.md` as a workflow artifact.

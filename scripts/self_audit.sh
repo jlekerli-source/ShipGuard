@@ -97,6 +97,7 @@ done
 
 required_artifacts=(
   "templates/policy/default.conf"
+  "actions/arena-compare/action.yml"
   "actions/ci-gate/action.yml"
   "actions/release-consume/action.yml"
   "actions/release-diff/action.yml"
@@ -108,6 +109,7 @@ required_artifacts=(
   "examples/demo-reports/leaderboard.json"
   "examples/demo-reports/arena/results.json"
   "docs/next-goal.md"
+  "docs/arena-compare-action.md"
   "docs/sarif.md"
   "docs/ci-summary.md"
   "docs/check-run.md"
@@ -131,6 +133,7 @@ required_artifacts=(
   "docs/release-proof-workflows.md"
   "docs/release-replay.md"
   "examples/workflows/release-proof-on-tag.yml"
+  "examples/workflows/arena-compare.yml"
   "examples/workflows/release-proof-manual.yml"
   "examples/workflows/release-consume-verify.yml"
   "examples/workflows/release-diff-compare.yml"

@@ -14,7 +14,7 @@ That loop gives maintainers a way to:
 - import external fixture packs with basic safety checks
 - sign and verify fixture-pack integrity metadata
 - benchmark public fixture packs
-- compare Arena result deltas before publishing benchmark changes
+- compare Arena result deltas locally or in GitHub Actions before publishing benchmark changes
 - turn reports into PR comments and badge JSON
 - fail CI only when the project opts in
 - make workflow-run evidence readable through GitHub step summaries

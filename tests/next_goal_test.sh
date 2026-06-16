@@ -24,6 +24,7 @@ grep -q '/goal Implement v2.6.0 External Fixture Pack Import' "$tmp_dir/NEXT_GOA
 grep -q './tests/template_profiles_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/arena_import_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/arena_compare_test.sh' "$tmp_dir/NEXT_GOAL.md"
+grep -q './tests/arena_compare_action_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/arena_sign_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/check_run_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/check_run_post_test.sh' "$tmp_dir/NEXT_GOAL.md"

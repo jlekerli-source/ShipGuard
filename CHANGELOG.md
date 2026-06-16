@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.29.0 - Arena Compare GitHub Action
+
+- Added `actions/arena-compare` to run `codex-maintainer arena compare` in GitHub Actions and upload comparison artifacts.
+- Added a copyable Arena compare workflow plus action docs for warn/fail benchmark regression checks.
+- Extended CI, self-audit, next-goal, source validation, and package proof coverage for the new action.
+
 ## v3.28.0 - Arena Regression Compare
 
 - Added `codex-maintainer arena compare` for JSON and Markdown diffs between Arena `results.json` files.

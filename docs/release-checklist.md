@@ -10,6 +10,8 @@ Use this checklist for every release after `v2.0.0`.
 ./tests/action_artifact_test.sh
 ./tests/arena_test.sh
 ./tests/arena_import_test.sh
+./tests/arena_compare_test.sh
+./tests/arena_compare_action_test.sh
 ./tests/arena_sign_test.sh
 ./tests/review_comment_test.sh
 ./tests/policy_test.sh
@@ -26,6 +28,14 @@ Use this checklist for every release after `v2.0.0`.
 ./tests/release_index_test.sh
 ./tests/release_manifest_test.sh
 ./tests/release_consume_test.sh
+./tests/release_consume_action_test.sh
+./tests/release_diff_test.sh
+./tests/release_diff_action_test.sh
+./tests/release_evidence_test.sh
+./tests/release_evidence_action_test.sh
+./tests/release_evidence_verify_test.sh
+./tests/release_evidence_verify_action_test.sh
+./tests/release_evidence_negative_index_action_test.sh
 ./tests/release_replay_test.sh
 ./tests/release_proof_action_test.sh
 ./tests/release_proof_consumption_test.sh

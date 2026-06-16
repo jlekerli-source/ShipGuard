@@ -12,6 +12,7 @@
 | Export CI evidence | `sarif` | SARIF 2.1.0 results |
 | Run fixture packs | `arena run` | Aggregate results and per-case reports |
 | Compare fixture runs | `arena compare` | Benchmark delta JSON and Markdown |
+| Compare fixture runs in CI | `actions/arena-compare` | Uploaded benchmark comparison artifact |
 | Import fixture packs | `arena import` | Validated local fixture pack |
 | Sign fixture packs | `arena sign`, `arena verify` | SHA-256 pack metadata |
 | Generate PR comment | `review-comment` | Comment Markdown and badge JSON |
