@@ -8,6 +8,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep Agent Autopsy stable for Markdown and JSON reports from run summaries, diffs, tasks, and test logs.
 - Keep autopsy artifact generation available through GitHub Actions.
 - Keep Maintainer Arena fixture aggregation stable for public benchmark examples.
+- Keep PR review-comment output stable for warn/fail adoption.
 - Keep release packaging and installer scripts reproducible.
 - Keep the reusable GitHub Action aligned with the CLI validator.
 - Maintain the public examples, scorecard, autopsy fixtures, and iOS starter template as the workflow evolves.

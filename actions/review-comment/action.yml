@@ -1,0 +1,46 @@
+name: Generate Codex maintainer review comment
+description: Generate a PR-ready Codex maintainer review comment, badge JSON, and artifact bundle from an autopsy report.
+
+inputs:
+  report:
+    description: Path to an autopsy report.json file.
+    required: true
+  out:
+    description: Path to write the Markdown review comment.
+    required: false
+    default: artifacts/codex-maintainer-review/comment.md
+  badge:
+    description: Path to write Shields-compatible badge JSON.
+    required: false
+    default: artifacts/codex-maintainer-review/badge.json
+  artifact-dir:
+    description: Directory for report.json, report.md, comment.md, and badge.json.
+    required: false
+    default: artifacts/codex-maintainer-review
+  mode:
+    description: warn exits zero; fail exits non-zero on blocked reports.
+    required: false
+    default: warn
+  warn-below:
+    description: Score below this value is review status unless blocked.
+    required: false
+    default: "10"
+  fail-below:
+    description: Score below this value is blocked.
+    required: false
+    default: "7"
+
+runs:
+  using: composite
+  steps:
+    - name: Generate review comment
+      shell: bash
+      run: |
+        "${{ github.action_path }}/../../bin/codex-maintainer" review-comment \
+          --report "${{ inputs.report }}" \
+          --out "${{ inputs.out }}" \
+          --badge "${{ inputs.badge }}" \
+          --artifact-dir "${{ inputs.artifact-dir }}" \
+          --mode "${{ inputs.mode }}" \
+          --warn-below "${{ inputs.warn-below }}" \
+          --fail-below "${{ inputs.fail-below }}"

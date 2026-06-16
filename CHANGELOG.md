@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.8.0 - PR Review Bot Mode
+
+- Added `codex-maintainer review-comment` for PR-ready Markdown comments and Shields-compatible badge JSON.
+- Added warn/fail thresholds with safe default `mode=warn`.
+- Added an artifact bundle containing report JSON, report Markdown, comment Markdown, and badge JSON.
+- Added a reusable `actions/review-comment` composite action.
+- Added PR review bot docs, examples, CI tests, and package verification.
+
 ## v0.7.0 - Maintainer Arena
 
 - Added `codex-maintainer arena run` for fixture-pack benchmark execution.

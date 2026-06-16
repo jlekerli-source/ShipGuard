@@ -113,6 +113,21 @@ The command writes aggregate `results.json`, a readable `index.md`, and per-case
 
 See `arena.md` for the fixture format and metrics.
 
+## Review Comment
+
+Generate a PR-ready comment and Shields-compatible badge from an autopsy report:
+
+```bash
+./bin/codex-maintainer review-comment \
+  --report /tmp/autopsy/report.json \
+  --out /tmp/review/comment.md \
+  --badge /tmp/review/badge.json \
+  --artifact-dir /tmp/review \
+  --mode warn
+```
+
+Use `--mode fail` to exit non-zero when the report is blocked. See `pr-review-bot.md` for the GitHub Actions workflow shape.
+
 ## Install From Release Tarball
 
 Download and extract a release package:

@@ -22,16 +22,20 @@ tar -tzf "$tarball" > "$tar_list"
 grep -q "^$package_name/bin/codex-maintainer$" "$tar_list"
 grep -q "^$package_name/AGENTS.md$" "$tar_list"
 grep -q "^$package_name/.github/workflows/autopsy-artifact.yml$" "$tar_list"
+grep -q "^$package_name/actions/review-comment/action.yml$" "$tar_list"
 grep -q "^$package_name/actions/validate/action.yml$" "$tar_list"
 grep -q "^$package_name/docs/arena.md$" "$tar_list"
 grep -q "^$package_name/docs/autopsy-github-actions.md$" "$tar_list"
+grep -q "^$package_name/docs/pr-review-bot.md$" "$tar_list"
 grep -q "^$package_name/scripts/install.sh$" "$tar_list"
 grep -q "^$package_name/scripts/arena_run.sh$" "$tar_list"
 grep -q "^$package_name/scripts/autopsy_report.sh$" "$tar_list"
+grep -q "^$package_name/scripts/review_comment.sh$" "$tar_list"
 grep -q "^$package_name/tests/package_release_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/action_artifact_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/arena_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/autopsy_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/review_comment_test.sh$" "$tar_list"
 grep -q "^$package_name/templates/ios/AGENTS.md$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/good-maintainer/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/autopsy/good-run/run.md$" "$tar_list"
@@ -68,6 +72,13 @@ grep -q '"verdict": "usable maintainer-quality run"' "$tmp_dir/package-autopsy/r
   --out "$tmp_dir/package-arena" >/dev/null
 grep -q '"average_total": 5.00' "$tmp_dir/package-arena/results.json"
 grep -q '"high_risk_finding_count": 4' "$tmp_dir/package-arena/results.json"
+"$package_root/bin/codex-maintainer" review-comment \
+  --report "$tmp_dir/package-autopsy/report.json" \
+  --out "$tmp_dir/package-review/comment.md" \
+  --badge "$tmp_dir/package-review/badge.json" \
+  --artifact-dir "$tmp_dir/package-review" >/dev/null
+grep -q '| Status | pass |' "$tmp_dir/package-review/comment.md"
+grep -q '"message": "pass 11/12"' "$tmp_dir/package-review/badge.json"
 
 install_prefix="$tmp_dir/install"
 PREFIX="$install_prefix" "$package_root/scripts/install.sh" >/dev/null

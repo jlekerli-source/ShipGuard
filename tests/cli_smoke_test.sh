@@ -12,6 +12,7 @@ cd "$repo_root"
 test "$(./bin/codex-maintainer version)" = "$(sed -n '1p' VERSION)"
 ./bin/codex-maintainer autopsy --help >/dev/null
 ./bin/codex-maintainer arena run --help >/dev/null
+./bin/codex-maintainer review-comment --help >/dev/null
 if ./bin/codex-maintainer autopsy --run >/dev/null 2>&1; then
   echo "expected autopsy --run without a value to fail" >&2
   exit 1

@@ -15,6 +15,7 @@ Usage:
   codex-maintainer score <run.md>
   codex-maintainer autopsy --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--out <dir>]
   codex-maintainer arena run --fixture <fixture-dir> [--out <dir>]
+  codex-maintainer review-comment --report <report.json> --out <comment.md> [--mode warn|fail]
   codex-maintainer version
   codex-maintainer help
 
@@ -25,6 +26,8 @@ Commands:
   score       Score a Codex run markdown file using SCORECARD.md categories.
   autopsy     Generate Markdown and JSON evidence reports for an AI coding run.
   arena       Run multiple autopsy fixtures and aggregate benchmark results.
+  review-comment
+              Generate a PR-ready review comment and badge from an autopsy report.
   version     Print the toolkit version from VERSION.
 USAGE
 }
@@ -191,6 +194,10 @@ cmd_arena() {
   "$tool_root/scripts/arena_run.sh" "$@"
 }
 
+cmd_review_comment() {
+  "$tool_root/scripts/review_comment.sh" "$@"
+}
+
 cmd_version() {
   local version_file="$tool_root/VERSION"
   [[ -f "$version_file" ]] || fail "VERSION file not found"
@@ -222,6 +229,9 @@ main() {
       ;;
     arena)
       cmd_arena "$@"
+      ;;
+    review-comment)
+      cmd_review_comment "$@"
       ;;
     version)
       cmd_version

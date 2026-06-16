@@ -31,6 +31,9 @@ jobs:
       - name: Run arena tests
         run: ./tests/arena_test.sh
 
+      - name: Run review comment tests
+        run: ./tests/review_comment_test.sh
+
       - name: Run release package tests
         run: ./tests/package_release_test.sh
 

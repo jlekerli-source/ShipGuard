@@ -11,6 +11,7 @@ Start here:
 - [CLI reference](cli.md)
 - [Agent Autopsy](autopsy.md)
 - [Autopsy in GitHub Actions](autopsy-github-actions.md)
+- [PR Review Bot Mode](pr-review-bot.md)
 - [GitHub Action](github-action.md)
 - [Changelog](../CHANGELOG.md)
 
@@ -20,7 +21,7 @@ Start here:
 - Planning and subagent templates.
 - Reusable skills for alarm testing, notification permissions, release work, bug triage, and UI polish.
 - A small CLI for validation, starter initialization, doctor checks, run scoring, agent autopsy reports, and fixture arena runs.
-- A reusable validation GitHub Action.
+- Reusable GitHub Actions for validation and review-comment generation.
 - Examples and a scorecard for judging agent output quality.
 
 ## First 30 Minutes
