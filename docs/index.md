@@ -9,6 +9,7 @@ Start here:
 - [Workflow diagram](workflow-diagram.md)
 - [CLI reference](cli.md)
 - [Agent Autopsy](autopsy.md)
+- [Autopsy in GitHub Actions](autopsy-github-actions.md)
 - [GitHub Action](github-action.md)
 - [Changelog](../CHANGELOG.md)
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.6.1 - Autopsy artifact bridge
+
+- Added a manual GitHub Actions workflow that generates autopsy reports and uploads them as artifacts.
+- Added documentation for using autopsy in GitHub Actions.
+- Added artifact workflow tests and package verification.
+
 ## v0.6.0 - Agent Autopsy Foundation
 
 - Added `codex-maintainer autopsy` for Markdown and JSON evidence reports.

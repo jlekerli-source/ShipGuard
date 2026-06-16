@@ -6,6 +6,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 
 - Keep the CLI stable for `init`, `validate`, `doctor`, and `score`.
 - Keep Agent Autopsy stable for Markdown and JSON reports from run summaries, diffs, tasks, and test logs.
+- Keep autopsy artifact generation available through GitHub Actions.
 - Keep release packaging and installer scripts reproducible.
 - Keep the reusable GitHub Action aligned with the CLI validator.
 - Maintain the public examples, scorecard, autopsy fixtures, and iOS starter template as the workflow evolves.

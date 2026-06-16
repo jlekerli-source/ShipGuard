@@ -1,0 +1,38 @@
+name: Generate autopsy artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      fixture:
+        description: Autopsy fixture directory under fixtures/autopsy.
+        required: false
+        default: good-run
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  autopsy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Generate autopsy report
+        run: |
+          fixture="fixtures/autopsy/${{ inputs.fixture }}"
+          args=(--run "$fixture/run.md" --task "$fixture/task.md" --out "artifacts/autopsy-${{ inputs.fixture }}")
+          if [[ -f "$fixture/diff.patch" ]]; then
+            args+=(--diff "$fixture/diff.patch")
+          fi
+          if [[ -f "$fixture/tests.log" ]]; then
+            args+=(--tests "$fixture/tests.log")
+          fi
+          ./bin/codex-maintainer autopsy "${args[@]}"
+
+      - name: Upload autopsy report
+        uses: actions/upload-artifact@v4
+        with:
+          name: autopsy-${{ inputs.fixture }}
+          path: artifacts/autopsy-${{ inputs.fixture }}
+          if-no-files-found: error

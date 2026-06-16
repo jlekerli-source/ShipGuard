@@ -27,6 +27,7 @@ Read the guided setup first:
 
 - `docs/adoption-guide.md`: first 30 minutes with the workflow kit.
 - `docs/autopsy.md`: evidence checks for AI coding runs.
+- `docs/autopsy-github-actions.md`: upload autopsy reports as GitHub Actions artifacts.
 - `docs/use-in-your-repo.md`: copy/paste setup for another repository.
 - `docs/workflow-diagram.md`: visual workflow map.
 - `docs/index.md`: GitHub Pages-ready documentation landing page.
@@ -69,6 +70,7 @@ For agent-claim auditing, run `./bin/codex-maintainer autopsy` against `fixtures
 - `actions/validate/`: a reusable GitHub composite action for workflow-bundle validation.
 - `docs/cli.md`: command reference for the CLI.
 - `docs/autopsy.md`: guide for auditing AI coding claims against diffs and tests.
+- `docs/autopsy-github-actions.md`: minimal workflow for downloadable autopsy evidence.
 - `docs/github-action.md`: usage guide for the reusable action.
 - `docs/adoption-guide.md`: practical onboarding path for new maintainers.
 - `docs/use-in-your-repo.md`: copyable setup instructions for another repo.

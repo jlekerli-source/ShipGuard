@@ -68,6 +68,8 @@ Run all fixture checks:
 ./tests/autopsy_test.sh
 ```
 
+For downloadable CI artifacts, see `autopsy-github-actions.md`.
+
 ## Maintainer Rule
 
 Autopsy is not a replacement for review. It is a forcing function: do not merge from the run summary alone. Merge only when the score, findings, diff, and validation evidence support the claimed result.

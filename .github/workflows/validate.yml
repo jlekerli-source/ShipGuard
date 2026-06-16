@@ -25,6 +25,9 @@ jobs:
       - name: Run autopsy tests
         run: ./tests/autopsy_test.sh
 
+      - name: Run action artifact tests
+        run: ./tests/action_artifact_test.sh
+
       - name: Run release package tests
         run: ./tests/package_release_test.sh
 
