@@ -34,6 +34,7 @@ Usage:
   codex-maintainer release-manifest verify --manifest <release-manifest.json> --tarball <release.tar.gz> [--version <version>] [--tag <tag>]
   codex-maintainer release-index build --manifest <release-manifest.json> [--manifest <release-manifest.json> ...] --out <dir> [--title <title>]
   codex-maintainer release-replay verify --manifest <release-manifest.json> --tarball <release.tar.gz> --out <dir> [--index <release-index.json>] [--ledger <proof-ledger.md>]
+  codex-maintainer release-attest build --manifest <release-manifest.json> --replay <replay-report.json> --out <dir> [--title <title>]
   codex-maintainer self-audit [--out <dir>]
   codex-maintainer next-goal [--out <file>] [--release <version>] [--title <title>]
   codex-maintainer version
@@ -60,6 +61,8 @@ Commands:
               Build a release proof catalog from release manifests.
   release-replay
               Verify downloaded release assets against manifest, index, and ledger proof.
+  release-attest
+              Build release attestation JSON, Markdown, and badge proof.
   self-audit  Generate toolkit readiness proof.
   next-goal   Generate a slash-goal release objective for the next improvement loop.
   version     Print the toolkit version from VERSION.
@@ -319,6 +322,10 @@ cmd_release_replay() {
   "$tool_root/scripts/release_replay.sh" "$@"
 }
 
+cmd_release_attest() {
+  "$tool_root/scripts/release_attest.sh" "$@"
+}
+
 cmd_self_audit() {
   "$tool_root/scripts/self_audit.sh" "$@"
 }
@@ -388,6 +395,9 @@ main() {
       ;;
     release-replay)
       cmd_release_replay "$@"
+      ;;
+    release-attest)
+      cmd_release_attest "$@"
       ;;
     self-audit)
       cmd_self_audit "$@"

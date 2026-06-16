@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.5.0 - Release Attestation Bundle
+
+- Added `codex-maintainer release-attest build` for generating release attestation bundles from manifest and replay proof.
+- Added `attestation.json`, `attestation.md`, and Shields-compatible `attestation-badge.json` outputs.
+- Added validation that manifest and replay proof agree on version, tag, commit, artifact bytes, and artifact SHA-256.
+- Added release-attest docs, tests, self-audit coverage, CI coverage, next-goal proof, and package verification.
+
 ## v3.4.0 - Release Forensics And Asset Replay
 
 - Added `codex-maintainer release-replay verify` for replay-verifying downloaded release assets.
