@@ -77,13 +77,35 @@ The score file must include these categories:
 
 Each category should include a value from `0` to `2`.
 
+## Autopsy
+
+Generate Markdown and JSON evidence reports for an AI coding run:
+
+```bash
+./bin/codex-maintainer autopsy \
+  --run fixtures/autopsy/good-run/run.md \
+  --task fixtures/autopsy/good-run/task.md \
+  --diff fixtures/autopsy/good-run/diff.patch \
+  --tests fixtures/autopsy/good-run/tests.log \
+  --out /tmp/autopsy-good
+```
+
+The command writes:
+
+- `report.md`
+- `report.json`
+
+It checks the run score, validation claims, test evidence, diff size, high-assurance claims, and protected-area touches. High-severity findings produce a `do not merge until high-risk findings are resolved` verdict.
+
+See `autopsy.md` for the full guide.
+
 ## Install From Release Tarball
 
 Download and extract a release package:
 
 ```bash
-tar -xzf codex-maintainer-v0.5.0.tar.gz
-cd codex-maintainer-v0.5.0
+tar -xzf codex-maintainer-v0.6.0.tar.gz
+cd codex-maintainer-v0.6.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 ```
 

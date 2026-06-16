@@ -17,8 +17,8 @@ The goal is simple: make AI-assisted coding repeatable, reviewable, and useful f
 Install from a release tarball:
 
 ```bash
-tar -xzf codex-maintainer-v0.5.0.tar.gz
-cd codex-maintainer-v0.5.0
+tar -xzf codex-maintainer-v0.6.0.tar.gz
+cd codex-maintainer-v0.6.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/codex-maintainer" version
 ```
@@ -26,6 +26,7 @@ PREFIX="$HOME/.local" ./scripts/install.sh
 Read the guided setup first:
 
 - `docs/adoption-guide.md`: first 30 minutes with the workflow kit.
+- `docs/autopsy.md`: evidence checks for AI coding runs.
 - `docs/use-in-your-repo.md`: copy/paste setup for another repository.
 - `docs/workflow-diagram.md`: visual workflow map.
 - `docs/index.md`: GitHub Pages-ready documentation landing page.
@@ -53,6 +54,7 @@ Copy the iOS starter into another project:
 
 For a worked example, read `examples/issue-to-plan-to-validation.md`.
 For public proof without private app code, read `examples/demo-walkthrough.md`.
+For agent-claim auditing, run `./bin/codex-maintainer autopsy` against `fixtures/autopsy/`.
 
 ## What Is Inside
 
@@ -61,11 +63,12 @@ For public proof without private app code, read `examples/demo-walkthrough.md`.
 - `PLANS.md`: a planning template that forces objective, scope, risks, tests, and rollback thinking.
 - `SUBAGENTS.md`: inspector, implementer, tester, and reviewer roles for larger Codex tasks.
 - `.agents/skills/`: reusable Codex skills for alarm testing, notification permissions, UI polish, release checklists, and bug triage.
-- `scripts/`: small checklists and prompts for release handoff, bug triage, and alarm/notification validation.
-- `bin/codex-maintainer`: a dependency-light CLI for init, validation, doctor checks, and run scoring.
+- `scripts/`: release handoff, bug triage, alarm validation, packaging, and autopsy report generation.
+- `bin/codex-maintainer`: a dependency-light CLI for init, validation, doctor checks, run scoring, and agent autopsy reports.
 - `VERSION`: the release version used by the CLI and package script.
 - `actions/validate/`: a reusable GitHub composite action for workflow-bundle validation.
 - `docs/cli.md`: command reference for the CLI.
+- `docs/autopsy.md`: guide for auditing AI coding claims against diffs and tests.
 - `docs/github-action.md`: usage guide for the reusable action.
 - `docs/adoption-guide.md`: practical onboarding path for new maintainers.
 - `docs/use-in-your-repo.md`: copyable setup instructions for another repo.
@@ -76,7 +79,9 @@ For public proof without private app code, read `examples/demo-walkthrough.md`.
 - `examples/prompt-pack.md`: copyable prompts for common maintainer tasks.
 - `examples/adoption-checklist.md`: copyable rollout checklist for a new project.
 - `examples/demo-walkthrough.md`: proof path for clone and release-package usage.
+- `examples/autopsy-report.md`: sample autopsy expectations for dangerous and clean runs.
 - `fixtures/demo-ios-repo/`: fake iOS-style repo for demo and package testing.
+- `fixtures/autopsy/`: good, weak, and dangerous AI-run fixtures for report testing.
 - `templates/ios/`: a starter workflow bundle for adapting these rules to another iOS app.
 - `SCORECARD.md`: a lightweight rubric for judging whether a Codex run produced usable maintainer evidence.
 - `EVALUATION_SUITE.md`: realistic benchmark tasks for future agent runs.

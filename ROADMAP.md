@@ -5,14 +5,18 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 ## Now
 
 - Keep the CLI stable for `init`, `validate`, `doctor`, and `score`.
+- Keep Agent Autopsy stable for Markdown and JSON reports from run summaries, diffs, tasks, and test logs.
 - Keep release packaging and installer scripts reproducible.
 - Keep the reusable GitHub Action aligned with the CLI validator.
-- Maintain the public examples, scorecard, and iOS starter template as the workflow evolves.
+- Maintain the public examples, scorecard, autopsy fixtures, and iOS starter template as the workflow evolves.
 - Keep the adoption docs and GitHub Pages shell current with each release.
 
 ## Next
 
 - Add more anonymized transcripts from real maintenance work.
+- Add repository-level autopsy configuration for protected paths and custom risky-claim terms.
+- Add optional pull request comments from `report.json`.
+- Add SARIF or check-run output for CI consumers.
 - Add template variants for non-iOS apps, including a web-app workflow kit.
 - Consider npm or Homebrew distribution after the release tarball path stays stable.
 - Enable GitHub Pages in repository settings after the docs shell is reviewed.

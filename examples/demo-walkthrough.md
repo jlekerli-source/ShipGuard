@@ -9,17 +9,28 @@ This walkthrough proves the toolkit without private Ringly code.
 ./bin/codex-maintainer init ios fixtures/demo-ios-repo --force
 ./bin/codex-maintainer doctor fixtures/demo-ios-repo
 ./bin/codex-maintainer score examples/scored-run.md
+./bin/codex-maintainer autopsy \
+  --run fixtures/autopsy/good-run/run.md \
+  --task fixtures/autopsy/good-run/task.md \
+  --diff fixtures/autopsy/good-run/diff.patch \
+  --tests fixtures/autopsy/good-run/tests.log \
+  --out /tmp/autopsy-good
 ```
 
 ## From A Release Package
 
 ```bash
-tar -xzf codex-maintainer-v0.5.0.tar.gz
-cd codex-maintainer-v0.5.0
+tar -xzf codex-maintainer-v0.6.0.tar.gz
+cd codex-maintainer-v0.6.0
 ./bin/codex-maintainer version
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/codex-maintainer" init ios /tmp/demo-ios-repo
 "$HOME/.local/bin/codex-maintainer" doctor /tmp/demo-ios-repo
+"$HOME/.local/bin/codex-maintainer" autopsy \
+  --run fixtures/autopsy/dangerous-run/run.md \
+  --task fixtures/autopsy/dangerous-run/task.md \
+  --diff fixtures/autopsy/dangerous-run/diff.patch \
+  --out /tmp/autopsy-dangerous
 ```
 
 ## What The Demo Shows
@@ -28,3 +39,4 @@ PREFIX="$HOME/.local" ./scripts/install.sh
 - `init ios` copies starter workflow files into a target repo.
 - `doctor` confirms the copied workflow files exist.
 - `score` turns a run summary into a maintainer-quality verdict.
+- `autopsy` checks whether an agent's claims are backed by task, diff, and test evidence.

@@ -23,8 +23,11 @@ grep -q "^$package_name/bin/codex-maintainer$" "$tar_list"
 grep -q "^$package_name/AGENTS.md$" "$tar_list"
 grep -q "^$package_name/actions/validate/action.yml$" "$tar_list"
 grep -q "^$package_name/scripts/install.sh$" "$tar_list"
+grep -q "^$package_name/scripts/autopsy_report.sh$" "$tar_list"
 grep -q "^$package_name/tests/package_release_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/autopsy_test.sh$" "$tar_list"
 grep -q "^$package_name/templates/ios/AGENTS.md$" "$tar_list"
+grep -q "^$package_name/fixtures/autopsy/good-run/run.md$" "$tar_list"
 grep -q "^$package_name/.agents/skills/alarm-testing/SKILL.md$" "$tar_list"
 
 if grep -Eq '(^|/)(\\.git|dist|DerivedData|\\.cache)(/|$)' "$tar_list"; then
@@ -45,6 +48,14 @@ test "$("$package_root/bin/codex-maintainer" version)" = "$version"
 "$package_root/bin/codex-maintainer" validate "$package_root" >/dev/null
 "$package_root/bin/codex-maintainer" init ios "$tmp_dir/demo-target" --force >/dev/null
 "$package_root/bin/codex-maintainer" doctor "$tmp_dir/demo-target" >/dev/null
+"$package_root/bin/codex-maintainer" autopsy \
+  --run "$package_root/fixtures/autopsy/good-run/run.md" \
+  --task "$package_root/fixtures/autopsy/good-run/task.md" \
+  --diff "$package_root/fixtures/autopsy/good-run/diff.patch" \
+  --tests "$package_root/fixtures/autopsy/good-run/tests.log" \
+  --out "$tmp_dir/package-autopsy" >/dev/null
+grep -q '"total": 11' "$tmp_dir/package-autopsy/report.json"
+grep -q '"verdict": "usable maintainer-quality run"' "$tmp_dir/package-autopsy/report.json"
 
 install_prefix="$tmp_dir/install"
 PREFIX="$install_prefix" "$package_root/scripts/install.sh" >/dev/null

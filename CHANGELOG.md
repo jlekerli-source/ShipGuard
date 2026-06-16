@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.6.0 - Agent Autopsy Foundation
+
+- Added `codex-maintainer autopsy` for Markdown and JSON evidence reports.
+- Added claim-risk detection for validation claims without tests, high-assurance claims, protected-area touches, diff scope creep, and missing evidence.
+- Added good, weak, and dangerous public autopsy fixtures.
+- Added autopsy tests and package-level release verification.
+- Added Agent Autopsy docs and examples.
+
 ## v0.5.0 - Release-installable toolkit and demo fixture
 
 - Added `VERSION` and `codex-maintainer version`.

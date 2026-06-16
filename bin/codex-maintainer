@@ -13,6 +13,7 @@ Usage:
   codex-maintainer validate [path]
   codex-maintainer doctor [path]
   codex-maintainer score <run.md>
+  codex-maintainer autopsy --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--out <dir>]
   codex-maintainer version
   codex-maintainer help
 
@@ -21,6 +22,7 @@ Commands:
   validate    Validate this workflow bundle or another checkout of it.
   doctor      Check whether a target repo has the starter workflow files.
   score       Score a Codex run markdown file using SCORECARD.md categories.
+  autopsy     Generate Markdown and JSON evidence reports for an AI coding run.
   version     Print the toolkit version from VERSION.
 USAGE
 }
@@ -176,6 +178,10 @@ cmd_score() {
   echo "Verdict: $(verdict_for_total "$total")"
 }
 
+cmd_autopsy() {
+  "$tool_root/scripts/autopsy_report.sh" "$@"
+}
+
 cmd_version() {
   local version_file="$tool_root/VERSION"
   [[ -f "$version_file" ]] || fail "VERSION file not found"
@@ -201,6 +207,9 @@ main() {
       ;;
     score)
       cmd_score "$@"
+      ;;
+    autopsy)
+      cmd_autopsy "$@"
       ;;
     version)
       cmd_version

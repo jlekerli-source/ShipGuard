@@ -13,8 +13,8 @@ From a cloned repository:
 From a release tarball:
 
 ```bash
-tar -xzf codex-maintainer-v0.5.0.tar.gz
-cd codex-maintainer-v0.5.0
+tar -xzf codex-maintainer-v0.6.0.tar.gz
+cd codex-maintainer-v0.6.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/codex-maintainer" init ios ../my-ios-app
 ```
@@ -39,6 +39,7 @@ Replace placeholders, then add:
 - protected high-risk files
 - release handoff rules
 - permission, persistence, payment, localization, and lifecycle risks
+- rules for when agent run summaries need `codex-maintainer autopsy`
 
 ## 3. Check Installation
 
@@ -52,7 +53,7 @@ In a repo that contains this workflow bundle, use:
 
 ```yaml
 - name: Validate Codex workflow bundle
-  uses: jlekerli-source/ringly-codex-workflows/actions/validate@v0.4.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/validate@v0.6.0
 ```
 
 For a product repo that only copied starter files, keep using `doctor` from a checkout of this toolkit until that repo has its own validator.
@@ -68,3 +69,9 @@ Return expected behavior, current failure, owner files, risks, validation route,
 ```
 
 Only move to implementation after the inspection output is narrow and testable.
+
+After implementation, ask the agent for a scored run summary and run an autopsy before treating the output as merge evidence:
+
+```bash
+codex-maintainer autopsy --run run.md --diff change.patch --tests test.log --task task.md --out autopsy
+```
