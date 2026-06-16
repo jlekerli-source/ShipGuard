@@ -43,6 +43,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep release-evidence GitHub Action output aligned with the CLI site, index, and bundle exporters.
 - Keep release-evidence artifact verification aligned with downloaded GitHub Actions artifacts.
 - Keep release-evidence verification workflows concise enough to consume uploaded artifacts without custom glue steps.
+- Keep release-evidence negative fixtures current so blocked verification paths stay explicit and reproducible.
 - Keep the reusable GitHub Action aligned with the CLI validator.
 - Maintain the public examples, scorecard, autopsy fixtures, and iOS starter template as the workflow evolves.
 - Keep the adoption docs and GitHub Pages shell current with each release.

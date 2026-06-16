@@ -13,11 +13,11 @@ on:
       release-tag:
         description: Release tag to verify.
         required: true
-        default: v3.22.0
+        default: v3.23.0
       previous-tag:
         description: Previous release tag for diff proof.
         required: true
-        default: v3.21.0
+        default: v3.22.0
 
 permissions:
   contents: read
@@ -27,14 +27,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Verify published proof assets
-        uses: jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.22.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.23.0
         with:
           repo: jlekerli-source/ringly-codex-workflows
           release-tag: ${{ inputs.release-tag }}
           mode: fail
 
       - name: Compare release proof assets
-        uses: jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.22.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.23.0
         with:
           repo: jlekerli-source/ringly-codex-workflows
           left-tag: ${{ inputs.previous-tag }}
@@ -42,7 +42,7 @@ jobs:
           mode: fail
 
       - name: Export release evidence
-        uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.22.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.23.0
         with:
           title: Codex Maintainer Release Evidence
           include-diff: auto
@@ -61,11 +61,11 @@ on:
       release-tag:
         description: Release tag to verify.
         required: true
-        default: v3.22.0
+        default: v3.23.0
       previous-tag:
         description: Previous release tag for diff proof.
         required: true
-        default: v3.21.0
+        default: v3.22.0
 
 permissions:
   contents: read
@@ -75,7 +75,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build release evidence bundle
-        uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.22.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.23.0
         with:
           run: bundle
           repo: jlekerli-source/ringly-codex-workflows
@@ -129,7 +129,7 @@ To prove the uploaded artifact can be consumed outside the producer job, run `ac
 
 ```yaml
 - name: Verify release evidence artifact
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.22.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.23.0
   with:
     download-artifact: true
     source-artifact-name: codex-maintainer-release-evidence

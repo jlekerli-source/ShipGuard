@@ -97,4 +97,32 @@ if ./bin/codex-maintainer release-evidence verify \
   exit 1
 fi
 
+expect_negative_fixture() {
+  local name="$1"
+  local expected_check="$2"
+  local fixture="fixtures/release-evidence/negative/$name"
+  local out="$tmp_dir/negative-$name"
+
+  if CODEX_MAINTAINER_GENERATED_AT="2026-06-16T00:00:00Z" \
+    ./bin/codex-maintainer release-evidence verify \
+      --dir "$fixture" \
+      --out "$out" >/dev/null 2>&1; then
+    echo "expected negative fixture to fail: $name" >&2
+    exit 1
+  fi
+
+  test -f "$out/evidence-verify.json"
+  test -f "$out/evidence-verify.md"
+  test -f "$out/badge.json"
+  grep -q '"status" : "blocked"' "$out/evidence-verify.json"
+  grep -q '"failed" : ' "$out/evidence-verify.json"
+  grep -q "| $expected_check | fail |" "$out/evidence-verify.md"
+  grep -q '"message" : "blocked"' "$out/badge.json"
+}
+
+expect_negative_fixture "missing-source" "asset digests source present"
+expect_negative_fixture "consumer-mismatch" "consumer release matches evidence"
+expect_negative_fixture "digest-summary-mismatch" "asset digest summary matches"
+expect_negative_fixture "bundle-missing-output" "bundle evidence index output"
+
 echo "release evidence verify tests passed"

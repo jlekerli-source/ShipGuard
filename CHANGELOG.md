@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.23.0 - Release Evidence Verification Negative Fixtures
+
+- Added checked-in negative fixtures for `release-evidence verify`, covering missing source reports, consumer/evidence release mismatches, digest summary mismatches, and missing bundle outputs.
+- Extended verifier tests so each negative fixture must exit nonzero while still writing `evidence-verify.json`, `evidence-verify.md`, and `badge.json`.
+- Added source validation, self-audit, docs, and package proof coverage for the negative fixture pack.
+
 ## v3.22.0 - Release Evidence Verify Action Download Mode
 
 - Added optional artifact download mode to `actions/release-evidence-verify` with `download-artifact` and `source-artifact-name` inputs.

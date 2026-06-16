@@ -37,7 +37,7 @@ In GitHub Actions, let `actions/release-evidence-verify` download and verify the
 
 ```yaml
 - name: Verify release evidence artifact
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.22.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.23.0
   with:
     download-artifact: true
     source-artifact-name: codex-maintainer-release-evidence
@@ -48,5 +48,15 @@ In GitHub Actions, let `actions/release-evidence-verify` download and verify the
 ```
 
 If a previous step already downloaded the artifact, leave `download-artifact` as `false` and point `dir` at the downloaded directory.
+
+## Negative Fixtures
+
+The checked-in fixtures under `../fixtures/release-evidence/negative/` intentionally fail verification. They cover missing copied source reports, consumer/evidence release mismatches, digest summary mismatches, and bundle manifests that point at missing outputs.
+
+Each negative fixture should exit nonzero while still writing:
+
+- `evidence-verify.json` with `status` set to `blocked`
+- `evidence-verify.md` with the failed check
+- `badge.json` with `message` set to `blocked`
 
 See `release-evidence-action.md` for producing the artifact and `../examples/workflows/release-evidence-consume.yml` for the full two-job workflow.

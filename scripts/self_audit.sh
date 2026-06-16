@@ -138,6 +138,7 @@ required_artifacts=(
   "templates/backend/AGENTS.md"
   "templates/cli/AGENTS.md"
   "fixtures/external-arena-pack/imported-clean/run.md"
+  "fixtures/release-evidence/negative/README.md"
   "scripts/arena_sign.sh"
   "scripts/arena_verify.sh"
   "scripts/release_attest.sh"

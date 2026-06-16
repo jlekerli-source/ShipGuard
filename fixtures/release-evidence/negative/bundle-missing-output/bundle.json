@@ -1,0 +1,15 @@
+{
+   "diff_included" : false,
+   "generated_at" : "2026-06-16T00:00:00Z",
+   "outputs" : {
+      "consumer_report" : "consumer-proof/consumer-report.json",
+      "evidence_index" : "index/evidence-index.json",
+      "evidence_json" : "site/evidence.json",
+      "evidence_site" : "site/index.html",
+      "release_diff" : null
+   },
+   "schema_version" : "1.0",
+   "status" : "pass",
+   "tool_version" : "3.23.0",
+   "version" : "3.23.0"
+}

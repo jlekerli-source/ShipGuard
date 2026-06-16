@@ -1,0 +1,13 @@
+{
+   "assets" : [
+      {
+         "bytes" : 123,
+         "name" : "codex-maintainer-v3.23.0.tar.gz",
+         "required" : true,
+         "role" : "release tarball",
+         "sha256" : "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+         "status" : "present"
+      }
+   ],
+   "schema_version" : "1.0"
+}
