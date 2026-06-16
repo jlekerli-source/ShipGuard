@@ -89,6 +89,7 @@ done
 required_artifacts=(
   "templates/policy/default.conf"
   "actions/ci-gate/action.yml"
+  "actions/release-proof/action.yml"
   "actions/review-comment/action.yml"
   "examples/demo-reports/leaderboard.json"
   "examples/demo-reports/arena/results.json"
@@ -100,6 +101,7 @@ required_artifacts=(
   "docs/release-attest.md"
   "docs/release-manifest.md"
   "docs/release-index.md"
+  "docs/release-proof-action.md"
   "docs/release-replay.md"
   "templates/web/AGENTS.md"
   "templates/backend/AGENTS.md"

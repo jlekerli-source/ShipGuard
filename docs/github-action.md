@@ -1,6 +1,6 @@
 # GitHub Action
 
-This repo exposes a reusable composite action for validating a workflow-bundle checkout.
+This repo exposes reusable composite actions for validating a workflow-bundle checkout and building release proof artifacts.
 
 ## Usage
 
@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate Codex workflow bundle
-        uses: jlekerli-source/ringly-codex-workflows/actions/validate@v0.4.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/validate@v3.6.0
 ```
 
 ## Inputs
@@ -30,9 +30,21 @@ jobs:
 | --- | --- | --- |
 | `path` | `.` | Path to validate. |
 
+## Release Proof Action
+
+```yaml
+- name: Build release proof
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.6.0
+  with:
+    release-url: https://github.com/owner/repo/releases/tag/v3.6.0
+    issue-url: https://github.com/owner/repo/issues/123
+```
+
+The action builds the release tarball, manifest, release index, replay report, attestation, and attestation badge, then uploads them as an artifact. See `release-proof-action.md`.
+
 ## Local Action Development
 
-This repository uses the action against itself in `.github/workflows/validate.yml`:
+This repository uses the validation action against itself in `.github/workflows/validate.yml`:
 
 ```yaml
 - name: Validate through reusable action

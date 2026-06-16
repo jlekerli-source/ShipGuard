@@ -82,6 +82,9 @@ jobs:
       - name: Run release replay tests
         run: ./tests/release_replay_test.sh
 
+      - name: Run release proof action tests
+        run: ./tests/release_proof_action_test.sh
+
       - name: Run release package tests
         run: ./tests/package_release_test.sh
 

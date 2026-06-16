@@ -25,6 +25,7 @@ Use this checklist for every release after `v2.0.0`.
 ./tests/release_index_test.sh
 ./tests/release_manifest_test.sh
 ./tests/release_replay_test.sh
+./tests/release_proof_action_test.sh
 ./tests/package_release_test.sh
 ```
 

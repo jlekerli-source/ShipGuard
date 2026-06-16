@@ -23,6 +23,7 @@ That loop gives maintainers a way to:
 - catalog release proof manifests across releases
 - replay-verify downloaded release assets against manifests, indexes, and ledgers
 - generate a compact release attestation and badge from passing replay proof
+- build the release proof chain through a reusable GitHub Action
 - audit the toolkit itself before release
 - generate the next slash-goal plan after release verification
 

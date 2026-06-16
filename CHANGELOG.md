@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.6.0 - Release Proof Composite Action
+
+- Added `actions/release-proof` for generating release tarball, manifest, index, replay, and attestation proof in GitHub Actions.
+- Added composite action outputs for tarball, manifest, replay report, attestation, and attestation badge paths.
+- Added release-proof action docs, tests, self-audit coverage, CI coverage, next-goal proof, and package verification.
+
 ## v3.5.0 - Release Attestation Bundle
 
 - Added `codex-maintainer release-attest build` for generating release attestation bundles from manifest and replay proof.

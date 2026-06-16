@@ -108,6 +108,7 @@ cat > "$out_file" <<EOF
 ./tests/release_attest_test.sh
 ./tests/release_index_test.sh
 ./tests/release_manifest_test.sh
+./tests/release_proof_action_test.sh
 ./tests/release_replay_test.sh
 ./tests/package_release_test.sh
 ./scripts/package_release.sh
