@@ -67,6 +67,7 @@ grep -q "^$package_name/docs/release-proof-workflows.md$" "$tar_list"
 grep -q "^$package_name/docs/release-replay.md$" "$tar_list"
 grep -q "^$package_name/docs/sarif.md$" "$tar_list"
 grep -q "^$package_name/docs/template-profiles.md$" "$tar_list"
+grep -q "^$package_name/docs/transcript-corpus.md$" "$tar_list"
 grep -q "^$package_name/docs/transcript-redaction.md$" "$tar_list"
 grep -q "^$package_name/docs/transcript-verify-action.md$" "$tar_list"
 grep -q "^$package_name/scripts/install.sh$" "$tar_list"
@@ -94,6 +95,7 @@ grep -q "^$package_name/scripts/sarif.sh$" "$tar_list"
 grep -q "^$package_name/scripts/self_audit.sh$" "$tar_list"
 grep -q "^$package_name/scripts/transcript_redact.sh$" "$tar_list"
 grep -q "^$package_name/scripts/transcript_verify.sh$" "$tar_list"
+grep -q "^$package_name/scripts/transcript_corpus.sh$" "$tar_list"
 grep -q "^$package_name/tests/package_release_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/action_artifact_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/arena_compare_action_test.sh$" "$tar_list"
@@ -133,6 +135,7 @@ grep -q "^$package_name/tests/template_profiles_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/transcript_redaction_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/transcript_verify_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/transcript_verify_action_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/transcript_corpus_test.sh$" "$tar_list"
 grep -q "^$package_name/templates/backend/AGENTS.md$" "$tar_list"
 grep -q "^$package_name/templates/backend/README.md$" "$tar_list"
 grep -q "^$package_name/templates/cli/AGENTS.md$" "$tar_list"
@@ -156,6 +159,12 @@ grep -q "^$package_name/fixtures/arena/review-only/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/external-arena-pack/imported-clean/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/external-arena-pack/imported-risky/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/autopsy/good-run/run.md$" "$tar_list"
+grep -q "^$package_name/fixtures/transcripts/ios-notification-triage/transcript.md$" "$tar_list"
+grep -q "^$package_name/fixtures/transcripts/ios-notification-triage/redaction-report.json$" "$tar_list"
+grep -q "^$package_name/fixtures/transcripts/release-proof-review/transcript.md$" "$tar_list"
+grep -q "^$package_name/fixtures/transcripts/release-proof-review/redaction-report.json$" "$tar_list"
+grep -q "^$package_name/fixtures/transcripts/web-regression-review/transcript.md$" "$tar_list"
+grep -q "^$package_name/fixtures/transcripts/web-regression-review/redaction-report.json$" "$tar_list"
 grep -q "^$package_name/fixtures/release-evidence/negative/README.md$" "$tar_list"
 grep -q "^$package_name/fixtures/release-evidence/negative/cases.tsv$" "$tar_list"
 grep -q "^$package_name/fixtures/release-evidence/negative/missing-source/site/evidence.json$" "$tar_list"
@@ -461,6 +470,7 @@ grep -q 'actions/upload-artifact@v4' "$package_root/actions/release-consume/acti
 "$package_root/tests/transcript_redaction_test.sh" >/dev/null
 "$package_root/tests/transcript_verify_test.sh" >/dev/null
 "$package_root/tests/transcript_verify_action_test.sh" >/dev/null
+"$package_root/tests/transcript_corpus_test.sh" >/dev/null
 package_raw_transcript="$tmp_dir/package-raw-transcript.md"
 package_home_prefix="/""home"
 package_home_path="$package_home_prefix/runner/AcmePrivateApp"
@@ -489,11 +499,19 @@ grep -q 'API_TOKEN=\[redacted-secret\]' "$tmp_dir/package-redacted-transcript.md
   --out "$tmp_dir/package-transcript-verify" >/dev/null
 grep -q '"status" : "pass"' "$tmp_dir/package-transcript-verify/transcript-verify.json"
 grep -q '"message" : "pass"' "$tmp_dir/package-transcript-verify/badge.json"
+"$package_root/bin/codex-maintainer" transcript corpus \
+  --source "$package_root/fixtures/transcripts" \
+  --out "$tmp_dir/package-transcript-corpus" \
+  --require-report true >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/package-transcript-corpus/corpus.json"
+grep -q '"case_count": 3' "$tmp_dir/package-transcript-corpus/corpus.json"
+grep -q '"message": "pass 3/3"' "$tmp_dir/package-transcript-corpus/badge.json"
 "$package_root/bin/codex-maintainer" self-audit \
   --out "$tmp_dir/package-self-audit" >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/package-self-audit/self-audit.json"
 grep -q '| codex-maintainer transcript redact --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| codex-maintainer transcript verify --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| codex-maintainer transcript corpus --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| codex-maintainer arena compare --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| actions/arena-compare/action.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| codex-maintainer leaderboard build --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -518,6 +536,7 @@ grep -q '| actions/release-evidence-verify/action.yml | pass |' "$tmp_dir/packag
 grep -q '| actions/release-proof/action.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| actions/transcript-verify/action.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/arena-compare-action.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| docs/transcript-corpus.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/transcript-redaction.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/transcript-verify-action.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/release-consume-action.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -548,8 +567,10 @@ grep -q '| fixtures/release-evidence/negative/README.md | pass |' "$tmp_dir/pack
 grep -q '| fixtures/release-evidence/negative/cases.tsv | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| examples/release-proof-consumption-checklist.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| examples/redacted-transcript.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| fixtures/transcripts/ios-notification-triage/transcript.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/transcript_redact.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/transcript_verify.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| scripts/transcript_corpus.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 "$package_root/bin/codex-maintainer" sarif \
   --report "$tmp_dir/package-autopsy/report.json" \
   --out "$tmp_dir/package-sarif/results.sarif" >/dev/null
@@ -571,6 +592,7 @@ grep -q './tests/sarif_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/transcript_redaction_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/transcript_verify_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/transcript_verify_action_test.sh' "$tmp_dir/package-next-goal.md"
+grep -q './tests/transcript_corpus_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_attest_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_proof_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_index_test.sh' "$tmp_dir/package-next-goal.md"

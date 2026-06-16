@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.33.0 - Transcript Corpus Verification
+
+- Added `codex-maintainer transcript corpus` to verify and index public-safe redacted transcript fixtures.
+- Added three checked transcript fixtures with redaction reports plus corpus JSON, Markdown, badge, and per-case verification outputs.
+- Extended CI, source validation, self-audit, next-goal, docs, and extracted-package proof coverage for corpus publication checks.
+
 ## v3.32.0 - Transcript Verification GitHub Action
 
 - Added `actions/transcript-verify` to run `codex-maintainer transcript verify` in GitHub Actions and upload verification artifacts.

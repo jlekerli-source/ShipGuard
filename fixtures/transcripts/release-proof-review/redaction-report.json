@@ -1,0 +1,11 @@
+{
+  "input_name" : "raw-transcript.md",
+  "output_name" : "transcript.md",
+  "private_terms_checked" : 0,
+  "remaining_risk_count" : 0,
+  "remaining_risks" : [],
+  "rules" : [],
+  "schema_version" : "1.0",
+  "status" : "pass",
+  "total_replacements" : 1
+}

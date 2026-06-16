@@ -63,6 +63,7 @@ commands=(
   "arena verify --help"
   "transcript redact --help"
   "transcript verify --help"
+  "transcript corpus --help"
   "review-comment --help"
   "ci-gate --help"
   "ci-summary --help"
@@ -117,6 +118,7 @@ required_artifacts=(
   "docs/ci-summary.md"
   "docs/check-run.md"
   "docs/template-profiles.md"
+  "docs/transcript-corpus.md"
   "docs/transcript-redaction.md"
   "docs/transcript-verify-action.md"
   "docs/release-attest.md"
@@ -149,6 +151,7 @@ required_artifacts=(
   "examples/workflows/release-evidence-negative-index.yml"
   "examples/release-proof-consumption-checklist.md"
   "examples/redacted-transcript.md"
+  "fixtures/transcripts/ios-notification-triage/transcript.md"
   "templates/web/AGENTS.md"
   "templates/backend/AGENTS.md"
   "templates/cli/AGENTS.md"
@@ -168,6 +171,7 @@ required_artifacts=(
   "scripts/release_replay.sh"
   "scripts/transcript_redact.sh"
   "scripts/transcript_verify.sh"
+  "scripts/transcript_corpus.sh"
 )
 
 artifact_count=0

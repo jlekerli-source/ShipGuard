@@ -52,3 +52,16 @@ The command writes:
 It exits non-zero with `status: blocked` when the transcript still contains obvious risky patterns or when the optional redaction report is not passing.
 
 For GitHub Actions, use `actions/transcript-verify` to run the same check and upload the verification bundle as an artifact.
+
+## Corpus
+
+Build a checked corpus of redacted transcripts:
+
+```bash
+./bin/codex-maintainer transcript corpus \
+  --source fixtures/transcripts \
+  --out /tmp/transcript-corpus \
+  --require-report true
+```
+
+See `transcript-corpus.md` for the fixture layout and aggregate outputs.

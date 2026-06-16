@@ -107,6 +107,7 @@ cat > "$out_file" <<EOF
 ./tests/transcript_redaction_test.sh
 ./tests/transcript_verify_test.sh
 ./tests/transcript_verify_action_test.sh
+./tests/transcript_corpus_test.sh
 ./tests/leaderboard_test.sh
 ./tests/self_audit_test.sh
 ./tests/next_goal_test.sh

@@ -27,7 +27,7 @@ grep -q 'exit_code="$verify_exit"' "$action"
 grep -q 'actions/upload-artifact@v4' "$action"
 grep -q 'codex-maintainer-transcript-verify' "$action"
 
-grep -q 'jlekerli-source/ringly-codex-workflows/actions/transcript-verify@v3.32.0' "$workflow"
+grep -q 'jlekerli-source/ringly-codex-workflows/actions/transcript-verify@v3.33.0' "$workflow"
 grep -q 'contents: read' "$workflow"
 grep -q 'mode: fail' "$workflow"
 grep -q 'artifact-name: codex-maintainer-transcript-verify' "$workflow"
