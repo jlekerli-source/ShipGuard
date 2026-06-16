@@ -29,6 +29,7 @@ grep -q './tests/check_run_post_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/ci_summary_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/sarif_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/next_goal_test.sh' "$tmp_dir/NEXT_GOAL.md"
+grep -q './tests/release_index_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/release_manifest_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './bin/codex-maintainer next-goal --out NEXT_GOAL.md' "$tmp_dir/NEXT_GOAL.md"
 

@@ -32,6 +32,7 @@ Usage:
   codex-maintainer leaderboard build --arena-results <results.json> --out <leaderboard.json>
   codex-maintainer release-manifest --tarball <release.tar.gz> --out <dir> [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--release-url <url>] [--issue-url <url>]
   codex-maintainer release-manifest verify --manifest <release-manifest.json> --tarball <release.tar.gz> [--version <version>] [--tag <tag>]
+  codex-maintainer release-index build --manifest <release-manifest.json> [--manifest <release-manifest.json> ...] --out <dir> [--title <title>]
   codex-maintainer self-audit [--out <dir>]
   codex-maintainer next-goal [--out <file>] [--release <version>] [--title <title>]
   codex-maintainer version
@@ -54,6 +55,8 @@ Commands:
   leaderboard Build a stable leaderboard JSON file from arena results.
   release-manifest
               Generate release-manifest JSON and proof-ledger Markdown.
+  release-index
+              Build a release proof catalog from release manifests.
   self-audit  Generate toolkit readiness proof.
   next-goal   Generate a slash-goal release objective for the next improvement loop.
   version     Print the toolkit version from VERSION.
@@ -305,6 +308,10 @@ cmd_release_manifest() {
   "$tool_root/scripts/release_manifest.sh" "$@"
 }
 
+cmd_release_index() {
+  "$tool_root/scripts/release_index.sh" "$@"
+}
+
 cmd_self_audit() {
   "$tool_root/scripts/self_audit.sh" "$@"
 }
@@ -368,6 +375,9 @@ main() {
       ;;
     release-manifest)
       cmd_release_manifest "$@"
+      ;;
+    release-index)
+      cmd_release_index "$@"
       ;;
     self-audit)
       cmd_self_audit "$@"

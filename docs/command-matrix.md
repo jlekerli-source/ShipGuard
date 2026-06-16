@@ -18,7 +18,7 @@
 | Summarize CI gate | `ci-summary` | Step-summary Markdown |
 | Prepare or post Check Run payload | `check-run`, `check-run post` | GitHub Checks API payload and response JSON |
 | Publish benchmark data | `leaderboard build` | Stable leaderboard JSON |
-| Record release proof | `release-manifest`, `release-manifest verify` | Release manifest JSON, proof ledger Markdown, and artifact verification |
+| Record release proof | `release-manifest`, `release-manifest verify`, `release-index build` | Release manifest JSON, proof ledger Markdown, artifact verification, and proof catalog |
 | Audit this toolkit | `self-audit` | Self-audit Markdown and JSON |
 | Continue the release loop | `next-goal` | Slash-goal Markdown plan |
 

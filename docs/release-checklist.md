@@ -21,6 +21,7 @@ Use this checklist for every release after `v2.0.0`.
 ./tests/leaderboard_test.sh
 ./tests/self_audit_test.sh
 ./tests/next_goal_test.sh
+./tests/release_index_test.sh
 ./tests/release_manifest_test.sh
 ./tests/package_release_test.sh
 ```
@@ -32,6 +33,7 @@ Then:
 shasum -a 256 dist/codex-maintainer-vX.Y.Z.tar.gz
 ./bin/codex-maintainer release-manifest --tarball dist/codex-maintainer-vX.Y.Z.tar.gz --out /tmp/codex-maintainer-release-proof
 ./bin/codex-maintainer release-manifest verify --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --tarball dist/codex-maintainer-vX.Y.Z.tar.gz
+./bin/codex-maintainer release-index build --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --out /tmp/codex-maintainer-release-index
 ```
 
 Before publishing, confirm:

@@ -67,6 +67,7 @@ commands=(
   "check-run post --help"
   "sarif --help"
   "leaderboard build --help"
+  "release-index build --help"
   "release-manifest --help"
   "release-manifest verify --help"
   "self-audit --help"
@@ -95,12 +96,14 @@ required_artifacts=(
   "docs/check-run.md"
   "docs/template-profiles.md"
   "docs/release-manifest.md"
+  "docs/release-index.md"
   "templates/web/AGENTS.md"
   "templates/backend/AGENTS.md"
   "templates/cli/AGENTS.md"
   "fixtures/external-arena-pack/imported-clean/run.md"
   "scripts/arena_sign.sh"
   "scripts/arena_verify.sh"
+  "scripts/release_index.sh"
   "scripts/release_manifest.sh"
 )
 

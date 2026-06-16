@@ -38,6 +38,7 @@ grep -q "^$package_name/docs/next-goal.md$" "$tar_list"
 grep -q "^$package_name/docs/policy.md$" "$tar_list"
 grep -q "^$package_name/docs/pr-review-bot.md$" "$tar_list"
 grep -q "^$package_name/docs/release-checklist.md$" "$tar_list"
+grep -q "^$package_name/docs/release-index.md$" "$tar_list"
 grep -q "^$package_name/docs/release-manifest.md$" "$tar_list"
 grep -q "^$package_name/docs/sarif.md$" "$tar_list"
 grep -q "^$package_name/docs/template-profiles.md$" "$tar_list"
@@ -54,6 +55,7 @@ grep -q "^$package_name/scripts/ci_summary.sh$" "$tar_list"
 grep -q "^$package_name/scripts/leaderboard_build.sh$" "$tar_list"
 grep -q "^$package_name/scripts/next_goal.sh$" "$tar_list"
 grep -q "^$package_name/scripts/policy.sh$" "$tar_list"
+grep -q "^$package_name/scripts/release_index.sh$" "$tar_list"
 grep -q "^$package_name/scripts/release_manifest.sh$" "$tar_list"
 grep -q "^$package_name/scripts/review_comment.sh$" "$tar_list"
 grep -q "^$package_name/scripts/sarif.sh$" "$tar_list"
@@ -71,6 +73,7 @@ grep -q "^$package_name/tests/ci_summary_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/leaderboard_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/next_goal_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/policy_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/release_index_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_manifest_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/review_comment_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/sarif_test.sh$" "$tar_list"
@@ -214,10 +217,16 @@ grep -q 'Artifact SHA-256:' "$tmp_dir/package-release-proof/proof-ledger.md"
   --tarball "$tarball" \
   --version "$version" \
   --tag "v$version" >/dev/null
+"$package_root/bin/codex-maintainer" release-index build \
+  --manifest "$tmp_dir/package-release-proof/release-manifest.json" \
+  --out "$tmp_dir/package-release-index" >/dev/null
+grep -q '"release_count" : 1' "$tmp_dir/package-release-index/release-index.json"
+grep -q '| '"$version"' | v'"$version"' | 0123456789ab | codex-maintainer-v'"$version"'.tar.gz |' "$tmp_dir/package-release-index/release-index.md"
 "$package_root/bin/codex-maintainer" self-audit \
   --out "$tmp_dir/package-self-audit" >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/package-self-audit/self-audit.json"
 grep -q '| codex-maintainer leaderboard build --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| codex-maintainer release-index build --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| codex-maintainer release-manifest --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| codex-maintainer release-manifest verify --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 "$package_root/bin/codex-maintainer" sarif \
@@ -236,6 +245,7 @@ grep -q './tests/check_run_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/check_run_post_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/ci_summary_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/sarif_test.sh' "$tmp_dir/package-next-goal.md"
+grep -q './tests/release_index_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_manifest_test.sh' "$tmp_dir/package-next-goal.md"
 
 install_prefix="$tmp_dir/install"

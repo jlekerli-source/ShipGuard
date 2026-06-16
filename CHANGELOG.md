@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.3.0 - Release Index And Proof Catalog
+
+- Added `codex-maintainer release-index build` for cataloging release manifest files.
+- Added `release-index.json` and `release-index.md` outputs with sorted release proof history.
+- Added duplicate-version detection for manifest catalogs.
+- Added release-index docs, tests, self-audit coverage, CI coverage, next-goal proof, and package verification.
+
 ## v3.2.0 - Release Manifest Verification
 
 - Added `codex-maintainer release-manifest verify`.
