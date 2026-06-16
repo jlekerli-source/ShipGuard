@@ -21,11 +21,14 @@ test -f "$tmp_dir/good-gate/autopsy/report.json"
 test -f "$tmp_dir/good-gate/sarif/results.sarif"
 test -f "$tmp_dir/good-gate/review/comment.md"
 test -f "$tmp_dir/good-gate/review/badge.json"
+test -f "$tmp_dir/good-gate/summary.md"
 test -f "$tmp_dir/good-gate/gate.json"
 grep -q '"status": "pass"' "$tmp_dir/good-gate/gate.json"
 grep -q '"score": 11' "$tmp_dir/good-gate/gate.json"
 grep -q '"sarif": "sarif/results.sarif"' "$tmp_dir/good-gate/gate.json"
+grep -q '"summary": "summary.md"' "$tmp_dir/good-gate/gate.json"
 grep -q '"version" : "2.1.0"' "$tmp_dir/good-gate/sarif/results.sarif"
+grep -q '| Status | pass |' "$tmp_dir/good-gate/summary.md"
 
 ./bin/codex-maintainer ci-gate \
   --run fixtures/autopsy/dangerous-run/run.md \
@@ -38,6 +41,7 @@ grep -q '"version" : "2.1.0"' "$tmp_dir/good-gate/sarif/results.sarif"
 grep -q '"status": "blocked"' "$tmp_dir/dangerous-gate/gate.json"
 grep -q '"high_risk_findings": 3' "$tmp_dir/dangerous-gate/gate.json"
 grep -q '| Status | blocked |' "$tmp_dir/dangerous-gate/review/comment.md"
+grep -q '| Status | blocked |' "$tmp_dir/dangerous-gate/summary.md"
 grep -q '"ruleId" : "validation_claim_without_tests"' "$tmp_dir/dangerous-gate/sarif/results.sarif"
 
 if ./bin/codex-maintainer ci-gate \

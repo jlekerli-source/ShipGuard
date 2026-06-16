@@ -29,6 +29,7 @@ grep -q "^$package_name/docs/arena.md$" "$tar_list"
 grep -q "^$package_name/docs/autopsy-github-actions.md$" "$tar_list"
 grep -q "^$package_name/docs/benchmark.md$" "$tar_list"
 grep -q "^$package_name/docs/ci-gate.md$" "$tar_list"
+grep -q "^$package_name/docs/ci-summary.md$" "$tar_list"
 grep -q "^$package_name/docs/command-matrix.md$" "$tar_list"
 grep -q "^$package_name/docs/demo-reports.md$" "$tar_list"
 grep -q "^$package_name/docs/maintainer-reliability-os.md$" "$tar_list"
@@ -42,6 +43,7 @@ grep -q "^$package_name/scripts/arena_run.sh$" "$tar_list"
 grep -q "^$package_name/scripts/autopsy_report.sh$" "$tar_list"
 grep -q "^$package_name/scripts/build_demo_reports.sh$" "$tar_list"
 grep -q "^$package_name/scripts/ci_gate.sh$" "$tar_list"
+grep -q "^$package_name/scripts/ci_summary.sh$" "$tar_list"
 grep -q "^$package_name/scripts/leaderboard_build.sh$" "$tar_list"
 grep -q "^$package_name/scripts/next_goal.sh$" "$tar_list"
 grep -q "^$package_name/scripts/policy.sh$" "$tar_list"
@@ -53,6 +55,7 @@ grep -q "^$package_name/tests/action_artifact_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/arena_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/autopsy_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ci_gate_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/ci_summary_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/leaderboard_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/next_goal_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/policy_test.sh$" "$tar_list"
@@ -118,7 +121,13 @@ grep -q '"message": "pass 11/12"' "$tmp_dir/package-review/badge.json"
   --out "$tmp_dir/package-gate" >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/package-gate/gate.json"
 grep -q '"sarif": "sarif/results.sarif"' "$tmp_dir/package-gate/gate.json"
+grep -q '"summary": "summary.md"' "$tmp_dir/package-gate/gate.json"
 grep -q '"version" : "2.1.0"' "$tmp_dir/package-gate/sarif/results.sarif"
+grep -q '| Status | pass |' "$tmp_dir/package-gate/summary.md"
+"$package_root/bin/codex-maintainer" ci-summary \
+  --gate "$tmp_dir/package-gate/gate.json" \
+  --out "$tmp_dir/package-summary.md" >/dev/null
+grep -q '| Score | 11/12 |' "$tmp_dir/package-summary.md"
 "$package_root/bin/codex-maintainer" leaderboard build \
   --arena-results "$tmp_dir/package-arena/results.json" \
   --out "$tmp_dir/package-leaderboard.json" >/dev/null

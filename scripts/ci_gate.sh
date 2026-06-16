@@ -17,6 +17,7 @@ Outputs:
   sarif/results.sarif
   review/comment.md
   review/badge.json
+  summary.md
   gate.json
 USAGE
 }
@@ -172,9 +173,14 @@ fi
   echo "  \"autopsy_report\": \"autopsy/report.json\","
   echo "  \"sarif\": \"sarif/results.sarif\","
   echo "  \"review_comment\": \"review/comment.md\","
-  echo "  \"badge\": \"review/badge.json\""
+  echo "  \"badge\": \"review/badge.json\","
+  echo "  \"summary\": \"summary.md\""
   echo "}"
 } > "$out_dir/gate.json"
+
+"$tool_root/scripts/ci_summary.sh" \
+  --gate "$out_dir/gate.json" \
+  --out "$out_dir/summary.md" >/dev/null
 
 echo "wrote: $out_dir/gate.json"
 echo "status: $status"

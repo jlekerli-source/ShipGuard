@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.3.0 - CI Step Summary Output
+
+- Added `codex-maintainer ci-summary` for GitHub Actions step-summary Markdown from `gate.json`.
+- Added automatic `summary.md` output to `codex-maintainer ci-gate`.
+- Updated `actions/ci-gate` to append the summary to `$GITHUB_STEP_SUMMARY`.
+- Added CI summary docs, tests, self-audit coverage, CI coverage, and package verification.
+
 ## v2.2.0 - SARIF Evidence Export
 
 - Added `codex-maintainer sarif` for converting Autopsy report JSON into SARIF 2.1.0.

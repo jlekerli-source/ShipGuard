@@ -31,6 +31,7 @@ Read the guided setup first:
 - `docs/autopsy-github-actions.md`: upload autopsy reports as GitHub Actions artifacts.
 - `docs/benchmark.md`: stable public benchmark and leaderboard format.
 - `docs/ci-gate.md`: CI gate command and GitHub Action for policy enforcement.
+- `docs/ci-summary.md`: GitHub Actions step-summary output from gate JSON.
 - `docs/command-matrix.md`: one-page map from maintainer jobs to CLI commands.
 - `docs/demo-reports.md`: checked-in demo reports generated from public fixtures.
 - `docs/maintainer-reliability-os.md`: the full policy-to-self-audit evidence loop.
@@ -71,6 +72,7 @@ For aggregate benchmark proof, run `./bin/codex-maintainer arena run --fixture f
 For toolkit release readiness, run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-audit`.
 For the next improvement loop, run `./bin/codex-maintainer next-goal --out NEXT_GOAL.md`.
 For CI-consumable findings, run `./bin/codex-maintainer sarif --report /tmp/autopsy/report.json --out /tmp/results.sarif`.
+For workflow-run summaries, run `./bin/codex-maintainer ci-summary --gate /tmp/codex-gate/gate.json --out /tmp/codex-gate/summary.md`.
 
 ## What Is Inside
 
@@ -89,6 +91,7 @@ For CI-consumable findings, run `./bin/codex-maintainer sarif --report /tmp/auto
 - `docs/autopsy-github-actions.md`: minimal workflow for downloadable autopsy evidence.
 - `docs/benchmark.md`: public AI maintainer reliability benchmark format.
 - `docs/ci-gate.md`: generate CI artifacts and optional failure from maintainer evidence.
+- `docs/ci-summary.md`: GitHub Actions step-summary Markdown from gate JSON.
 - `docs/command-matrix.md`: command surface map for maintainer jobs.
 - `docs/demo-reports.md`: generated reports from the fixture pack.
 - `docs/maintainer-reliability-os.md`: policy, audit, arena, PR, CI, leaderboard, and self-audit loop.

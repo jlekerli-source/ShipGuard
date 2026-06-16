@@ -1,5 +1,5 @@
 name: Run Codex maintainer CI gate
-description: Run autopsy, SARIF export, review-comment, badge generation, and artifact upload from a Codex maintainer run summary.
+description: Run autopsy, SARIF export, review-comment, badge generation, step-summary output, and artifact upload from a Codex maintainer run summary.
 
 inputs:
   run:
@@ -46,6 +46,14 @@ runs:
         if [[ -n "${{ inputs.task }}" ]]; then args+=(--task "${{ inputs.task }}"); fi
         if [[ -n "${{ inputs.policy }}" ]]; then args+=(--policy "${{ inputs.policy }}"); fi
         "${{ github.action_path }}/../../bin/codex-maintainer" ci-gate "${args[@]}"
+
+    - name: Append CI gate step summary
+      shell: bash
+      run: |
+        summary="${{ inputs.out }}/summary.md"
+        if [[ -n "${GITHUB_STEP_SUMMARY:-}" && -f "$summary" ]]; then
+          cat "$summary" >> "$GITHUB_STEP_SUMMARY"
+        fi
 
     - name: Upload CI gate artifact
       uses: actions/upload-artifact@v4

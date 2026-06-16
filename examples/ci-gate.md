@@ -19,7 +19,8 @@ Expected:
 {
   "status": "pass",
   "score": 11,
-  "sarif": "sarif/results.sarif"
+  "sarif": "sarif/results.sarif",
+  "summary": "summary.md"
 }
 ```
 

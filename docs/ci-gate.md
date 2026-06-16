@@ -1,6 +1,6 @@
 # CI Gate Mode
 
-CI Gate Mode runs Autopsy, generates SARIF, creates a review comment, creates badge JSON, writes `gate.json`, and uploads the whole bundle when used through the composite action.
+CI Gate Mode runs Autopsy, generates SARIF, creates a review comment, creates badge JSON, writes step-summary Markdown, writes `gate.json`, and uploads the whole bundle when used through the composite action.
 
 ## Command
 
@@ -22,6 +22,7 @@ Outputs:
 - `sarif/results.sarif`
 - `review/comment.md`
 - `review/badge.json`
+- `summary.md`
 - `gate.json`
 
 `--mode warn` exits zero. `--mode fail` exits non-zero when the gate status is `blocked`.
@@ -30,7 +31,7 @@ Outputs:
 
 ```yaml
 - name: Run Codex maintainer CI gate
-  uses: jlekerli-source/ringly-codex-workflows/actions/ci-gate@v1.2.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/ci-gate@v2.3.0
   with:
     run: run.md
     diff: change.patch
@@ -39,4 +40,4 @@ Outputs:
     mode: warn
 ```
 
-The action uploads the configured output directory as an artifact.
+The action appends `summary.md` to the GitHub Actions step summary and uploads the configured output directory as an artifact.

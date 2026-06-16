@@ -12,6 +12,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep leaderboard schema `1.0` stable for public benchmark consumers.
 - Keep policy config plain, auditable, and non-executable.
 - Keep CI gate outputs stable for artifact and PR workflows.
+- Keep CI step-summary output readable in GitHub Actions workflow runs.
 - Keep SARIF export stable for Autopsy findings and CI gate artifacts.
 - Keep self-audit output stable enough to prove release readiness from source and extracted packages.
 - Keep next-goal output deterministic enough to restart the improvement loop after each release.

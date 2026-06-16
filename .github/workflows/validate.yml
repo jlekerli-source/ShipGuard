@@ -40,6 +40,9 @@ jobs:
       - name: Run CI gate tests
         run: ./tests/ci_gate_test.sh
 
+      - name: Run CI summary tests
+        run: ./tests/ci_summary_test.sh
+
       - name: Run SARIF tests
         run: ./tests/sarif_test.sh
 

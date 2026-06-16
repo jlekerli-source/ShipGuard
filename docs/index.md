@@ -13,6 +13,7 @@ Start here:
 - [Autopsy in GitHub Actions](autopsy-github-actions.md)
 - [Benchmark Format](benchmark.md)
 - [CI Gate Mode](ci-gate.md)
+- [CI Step Summary](ci-summary.md)
 - [Command Matrix](command-matrix.md)
 - [Demo Reports](demo-reports.md)
 - [Maintainer Reliability OS](maintainer-reliability-os.md)
@@ -29,7 +30,7 @@ Start here:
 - Root instructions for Codex in a risk-sensitive iOS repo.
 - Planning and subagent templates.
 - Reusable skills for alarm testing, notification permissions, release work, bug triage, and UI polish.
-- A small CLI for validation, starter initialization, doctor checks, run scoring, autopsy reports, SARIF export, fixture arena runs, review comments, CI gates, leaderboard JSON, toolkit self-audits, and next-goal generation.
+- A small CLI for validation, starter initialization, doctor checks, run scoring, autopsy reports, SARIF export, fixture arena runs, review comments, CI gates, CI summaries, leaderboard JSON, toolkit self-audits, and next-goal generation.
 - Reusable GitHub Actions for validation and review-comment generation.
 - Examples and a scorecard for judging agent output quality.
 
@@ -42,7 +43,8 @@ Start here:
 5. Run `./bin/codex-maintainer doctor ../my-ios-app`.
 6. Run `./bin/codex-maintainer autopsy --run fixtures/autopsy/good-run/run.md --diff fixtures/autopsy/good-run/diff.patch --tests fixtures/autopsy/good-run/tests.log --out /tmp/autopsy-good`.
 7. Run `./bin/codex-maintainer sarif --report /tmp/autopsy-good/report.json --out /tmp/autopsy-good/results.sarif`.
-8. Run `./bin/codex-maintainer arena run --fixture fixtures/arena --out /tmp/arena`.
-9. Run `./bin/codex-maintainer leaderboard build --arena-results /tmp/arena/results.json --out /tmp/leaderboard.json`.
-10. Run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-self-audit`.
-11. Run `./bin/codex-maintainer next-goal --out /tmp/NEXT_GOAL.md`.
+8. Run `./bin/codex-maintainer ci-summary --gate /tmp/codex-gate/gate.json --out /tmp/codex-gate/summary.md` after a gate run.
+9. Run `./bin/codex-maintainer arena run --fixture fixtures/arena --out /tmp/arena`.
+10. Run `./bin/codex-maintainer leaderboard build --arena-results /tmp/arena/results.json --out /tmp/leaderboard.json`.
+11. Run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-self-audit`.
+12. Run `./bin/codex-maintainer next-goal --out /tmp/NEXT_GOAL.md`.

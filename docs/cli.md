@@ -155,6 +155,18 @@ Run Autopsy, review-comment, badge generation, and gate JSON in one command:
 
 Use `--mode fail` when blocked gates should fail CI. See `ci-gate.md`.
 
+## CI Summary
+
+Generate GitHub Actions step-summary Markdown from `gate.json`:
+
+```bash
+./bin/codex-maintainer ci-summary \
+  --gate /tmp/codex-gate/gate.json \
+  --out /tmp/codex-gate/summary.md
+```
+
+`ci-gate` writes `summary.md` automatically. See `ci-summary.md`.
+
 ## SARIF
 
 Convert an Autopsy report into SARIF 2.1.0:
