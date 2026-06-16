@@ -33,6 +33,7 @@ grep -q './tests/release_attest_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/release_index_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/release_manifest_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/release_proof_action_test.sh' "$tmp_dir/NEXT_GOAL.md"
+grep -q './tests/release_proof_workflow_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/release_replay_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './bin/codex-maintainer next-goal --out NEXT_GOAL.md' "$tmp_dir/NEXT_GOAL.md"
 

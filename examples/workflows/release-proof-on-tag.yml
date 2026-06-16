@@ -1,0 +1,32 @@
+name: Build release proof on tag
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+
+jobs:
+  release-proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Build Codex maintainer release proof
+        id: release-proof
+        uses: jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.7.0
+        with:
+          release-url: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
+          out: artifacts/codex-maintainer-release-proof
+          artifact-name: codex-maintainer-release-proof-${{ github.ref_name }}
+
+      - name: Print proof paths
+        run: |
+          echo "tarball=${{ steps.release-proof.outputs.tarball }}"
+          echo "manifest=${{ steps.release-proof.outputs.manifest }}"
+          echo "replay=${{ steps.release-proof.outputs.replay }}"
+          echo "attestation=${{ steps.release-proof.outputs.attestation }}"
+          echo "attestation-badge=${{ steps.release-proof.outputs.attestation-badge }}"

@@ -28,6 +28,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep release replay reports deterministic for downloaded tarball, manifest, index, and ledger assets.
 - Keep release attestations compact, deterministic, and derived from passing replay proof.
 - Keep release-proof GitHub Action output aligned with the CLI proof chain.
+- Keep release-proof workflow examples copy/paste-safe for tag-triggered and manual release proof runs.
 - Keep the reusable GitHub Action aligned with the CLI validator.
 - Maintain the public examples, scorecard, autopsy fixtures, and iOS starter template as the workflow evolves.
 - Keep the adoption docs and GitHub Pages shell current with each release.

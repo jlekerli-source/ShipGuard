@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.7.0 - Release Proof Workflow Example Pack
+
+- Added tag-triggered and manual-dispatch GitHub Actions workflow examples for `actions/release-proof`.
+- Added `docs/release-proof-workflows.md` to explain when to use each workflow and what proof artifacts they produce.
+- Added workflow example tests, self-audit coverage, CI coverage, next-goal proof, and package verification.
+
 ## v3.6.0 - Release Proof Composite Action
 
 - Added `actions/release-proof` for generating release tarball, manifest, index, replay, and attestation proof in GitHub Actions.

@@ -43,6 +43,7 @@ grep -q "^$package_name/docs/release-attest.md$" "$tar_list"
 grep -q "^$package_name/docs/release-index.md$" "$tar_list"
 grep -q "^$package_name/docs/release-manifest.md$" "$tar_list"
 grep -q "^$package_name/docs/release-proof-action.md$" "$tar_list"
+grep -q "^$package_name/docs/release-proof-workflows.md$" "$tar_list"
 grep -q "^$package_name/docs/release-replay.md$" "$tar_list"
 grep -q "^$package_name/docs/sarif.md$" "$tar_list"
 grep -q "^$package_name/docs/template-profiles.md$" "$tar_list"
@@ -83,6 +84,7 @@ grep -q "^$package_name/tests/release_attest_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_index_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_manifest_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_proof_action_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/release_proof_workflow_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_replay_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/review_comment_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/sarif_test.sh$" "$tar_list"
@@ -108,6 +110,8 @@ grep -q "^$package_name/fixtures/external-arena-pack/imported-clean/run.md$" "$t
 grep -q "^$package_name/fixtures/external-arena-pack/imported-risky/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/autopsy/good-run/run.md$" "$tar_list"
 grep -q "^$package_name/examples/demo-reports/leaderboard.json$" "$tar_list"
+grep -q "^$package_name/examples/workflows/release-proof-on-tag.yml$" "$tar_list"
+grep -q "^$package_name/examples/workflows/release-proof-manual.yml$" "$tar_list"
 grep -q "^$package_name/.agents/skills/alarm-testing/SKILL.md$" "$tar_list"
 
 if grep -Eq '(^|/)(\\.git|dist|DerivedData|\\.cache)(/|$)' "$tar_list"; then
@@ -258,6 +262,9 @@ grep -q '| codex-maintainer release-manifest verify --help | pass |' "$tmp_dir/p
 grep -q '| codex-maintainer release-replay verify --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| actions/release-proof/action.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/release-proof-action.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| docs/release-proof-workflows.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| examples/workflows/release-proof-on-tag.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| examples/workflows/release-proof-manual.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 "$package_root/bin/codex-maintainer" sarif \
   --report "$tmp_dir/package-autopsy/report.json" \
   --out "$tmp_dir/package-sarif/results.sarif" >/dev/null
@@ -278,6 +285,7 @@ grep -q './tests/release_attest_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_index_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_manifest_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_proof_action_test.sh' "$tmp_dir/package-next-goal.md"
+grep -q './tests/release_proof_workflow_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_replay_test.sh' "$tmp_dir/package-next-goal.md"
 
 install_prefix="$tmp_dir/install"

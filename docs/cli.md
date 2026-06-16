@@ -259,7 +259,7 @@ Generate release proof files for a tarball:
 
 ```bash
 ./bin/codex-maintainer release-manifest \
-  --tarball dist/codex-maintainer-v3.6.0.tar.gz \
+  --tarball dist/codex-maintainer-v3.7.0.tar.gz \
   --out /tmp/codex-maintainer-release-proof
 ```
 
@@ -268,7 +268,7 @@ Verify the manifest against the tarball:
 ```bash
 ./bin/codex-maintainer release-manifest verify \
   --manifest /tmp/codex-maintainer-release-proof/release-manifest.json \
-  --tarball dist/codex-maintainer-v3.6.0.tar.gz
+  --tarball dist/codex-maintainer-v3.7.0.tar.gz
 ```
 
 The command writes `release-manifest.json` and `proof-ledger.md`. Add `--ci-run-url`, `--release-url`, and `--issue-url` after publishing to bind the local artifact digest to public release proof. See `release-manifest.md`.
@@ -278,7 +278,7 @@ Build a release proof catalog from manifests:
 ```bash
 ./bin/codex-maintainer release-index build \
   --manifest dist/release-proof-v3.5.0/release-manifest.json \
-  --manifest dist/release-proof-v3.6.0/release-manifest.json \
+  --manifest dist/release-proof-v3.7.0/release-manifest.json \
   --out /tmp/codex-maintainer-release-index
 ```
 
@@ -289,7 +289,7 @@ Replay-verify downloaded release assets:
 ```bash
 ./bin/codex-maintainer release-replay verify \
   --manifest /tmp/codex-maintainer-release-proof/release-manifest.json \
-  --tarball /tmp/codex-maintainer-release-assets/codex-maintainer-v3.6.0.tar.gz \
+  --tarball /tmp/codex-maintainer-release-assets/codex-maintainer-v3.7.0.tar.gz \
   --index /tmp/codex-maintainer-release-index/release-index.json \
   --ledger /tmp/codex-maintainer-release-proof/proof-ledger.md \
   --out /tmp/codex-maintainer-release-replay
@@ -349,8 +349,8 @@ The command writes a Markdown plan with a `/goal` block, release constraints, pr
 Download and extract a release package:
 
 ```bash
-tar -xzf codex-maintainer-v3.6.0.tar.gz
-cd codex-maintainer-v3.6.0
+tar -xzf codex-maintainer-v3.7.0.tar.gz
+cd codex-maintainer-v3.7.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 ```
 
