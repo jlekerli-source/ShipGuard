@@ -28,6 +28,7 @@ grep -q "^$package_name/actions/validate/action.yml$" "$tar_list"
 grep -q "^$package_name/docs/arena.md$" "$tar_list"
 grep -q "^$package_name/docs/autopsy-github-actions.md$" "$tar_list"
 grep -q "^$package_name/docs/benchmark.md$" "$tar_list"
+grep -q "^$package_name/docs/check-run.md$" "$tar_list"
 grep -q "^$package_name/docs/ci-gate.md$" "$tar_list"
 grep -q "^$package_name/docs/ci-summary.md$" "$tar_list"
 grep -q "^$package_name/docs/command-matrix.md$" "$tar_list"
@@ -42,6 +43,7 @@ grep -q "^$package_name/scripts/install.sh$" "$tar_list"
 grep -q "^$package_name/scripts/arena_run.sh$" "$tar_list"
 grep -q "^$package_name/scripts/autopsy_report.sh$" "$tar_list"
 grep -q "^$package_name/scripts/build_demo_reports.sh$" "$tar_list"
+grep -q "^$package_name/scripts/check_run.sh$" "$tar_list"
 grep -q "^$package_name/scripts/ci_gate.sh$" "$tar_list"
 grep -q "^$package_name/scripts/ci_summary.sh$" "$tar_list"
 grep -q "^$package_name/scripts/leaderboard_build.sh$" "$tar_list"
@@ -54,6 +56,7 @@ grep -q "^$package_name/tests/package_release_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/action_artifact_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/arena_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/autopsy_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/check_run_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ci_gate_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ci_summary_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/leaderboard_test.sh$" "$tar_list"
@@ -128,6 +131,12 @@ grep -q '| Status | pass |' "$tmp_dir/package-gate/summary.md"
   --gate "$tmp_dir/package-gate/gate.json" \
   --out "$tmp_dir/package-summary.md" >/dev/null
 grep -q '| Score | 11/12 |' "$tmp_dir/package-summary.md"
+"$package_root/bin/codex-maintainer" check-run \
+  --gate "$tmp_dir/package-gate/gate.json" \
+  --head-sha 0123456789abcdef \
+  --out "$tmp_dir/package-check-run/payload.json" >/dev/null
+grep -q '"conclusion" : "success"' "$tmp_dir/package-check-run/payload.json"
+grep -q '"head_sha" : "0123456789abcdef"' "$tmp_dir/package-check-run/payload.json"
 "$package_root/bin/codex-maintainer" leaderboard build \
   --arena-results "$tmp_dir/package-arena/results.json" \
   --out "$tmp_dir/package-leaderboard.json" >/dev/null

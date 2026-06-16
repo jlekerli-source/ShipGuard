@@ -60,6 +60,7 @@ commands=(
   "review-comment --help"
   "ci-gate --help"
   "ci-summary --help"
+  "check-run --help"
   "sarif --help"
   "leaderboard build --help"
   "self-audit --help"
@@ -85,6 +86,7 @@ required_artifacts=(
   "docs/next-goal.md"
   "docs/sarif.md"
   "docs/ci-summary.md"
+  "docs/check-run.md"
 )
 
 artifact_count=0

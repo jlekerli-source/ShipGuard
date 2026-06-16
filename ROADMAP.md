@@ -13,6 +13,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep policy config plain, auditable, and non-executable.
 - Keep CI gate outputs stable for artifact and PR workflows.
 - Keep CI step-summary output readable in GitHub Actions workflow runs.
+- Keep GitHub Check Run payload export stable and opt-in.
 - Keep SARIF export stable for Autopsy findings and CI gate artifacts.
 - Keep self-audit output stable enough to prove release readiness from source and extracted packages.
 - Keep next-goal output deterministic enough to restart the improvement loop after each release.
@@ -25,7 +26,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 
 - Add more anonymized transcripts from real maintenance work.
 - Expand Maintainer Arena with more task types and external fixture packs.
-- Add check-run output for CI consumers.
+- Add optional posting of generated Check Run payloads for teams that opt in.
 - Add template variants for non-iOS apps, including a web-app workflow kit.
 - Consider npm or Homebrew distribution after the release tarball path stays stable.
 - Enable GitHub Pages in repository settings after the docs shell is reviewed.

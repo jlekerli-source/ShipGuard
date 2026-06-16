@@ -37,6 +37,9 @@ jobs:
       - name: Run policy tests
         run: ./tests/policy_test.sh
 
+      - name: Run check run tests
+        run: ./tests/check_run_test.sh
+
       - name: Run CI gate tests
         run: ./tests/ci_gate_test.sh
 

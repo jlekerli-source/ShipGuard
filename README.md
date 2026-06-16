@@ -30,6 +30,7 @@ Read the guided setup first:
 - `docs/autopsy.md`: evidence checks for AI coding runs.
 - `docs/autopsy-github-actions.md`: upload autopsy reports as GitHub Actions artifacts.
 - `docs/benchmark.md`: stable public benchmark and leaderboard format.
+- `docs/check-run.md`: GitHub Checks API payloads from gate JSON.
 - `docs/ci-gate.md`: CI gate command and GitHub Action for policy enforcement.
 - `docs/ci-summary.md`: GitHub Actions step-summary output from gate JSON.
 - `docs/command-matrix.md`: one-page map from maintainer jobs to CLI commands.
@@ -73,6 +74,7 @@ For toolkit release readiness, run `./bin/codex-maintainer self-audit --out /tmp
 For the next improvement loop, run `./bin/codex-maintainer next-goal --out NEXT_GOAL.md`.
 For CI-consumable findings, run `./bin/codex-maintainer sarif --report /tmp/autopsy/report.json --out /tmp/results.sarif`.
 For workflow-run summaries, run `./bin/codex-maintainer ci-summary --gate /tmp/codex-gate/gate.json --out /tmp/codex-gate/summary.md`.
+For Check Run payloads, run `./bin/codex-maintainer check-run --gate /tmp/codex-gate/gate.json --head-sha "$GITHUB_SHA" --out /tmp/codex-gate/check-run/payload.json`.
 
 ## What Is Inside
 
@@ -90,6 +92,7 @@ For workflow-run summaries, run `./bin/codex-maintainer ci-summary --gate /tmp/c
 - `docs/autopsy.md`: guide for auditing AI coding claims against diffs and tests.
 - `docs/autopsy-github-actions.md`: minimal workflow for downloadable autopsy evidence.
 - `docs/benchmark.md`: public AI maintainer reliability benchmark format.
+- `docs/check-run.md`: GitHub Checks API payload export from gate results.
 - `docs/ci-gate.md`: generate CI artifacts and optional failure from maintainer evidence.
 - `docs/ci-summary.md`: GitHub Actions step-summary Markdown from gate JSON.
 - `docs/command-matrix.md`: command surface map for maintainer jobs.

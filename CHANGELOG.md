@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.4.0 - Check Run Payload Export
+
+- Added `codex-maintainer check-run` for GitHub Checks API payload JSON from `gate.json`.
+- Updated `actions/ci-gate` to generate `check-run/payload.json` in the artifact bundle.
+- Added check-run docs, tests, self-audit coverage, CI coverage, and package verification.
+
 ## v2.3.0 - CI Step Summary Output
 
 - Added `codex-maintainer ci-summary` for GitHub Actions step-summary Markdown from `gate.json`.

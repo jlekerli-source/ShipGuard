@@ -3,7 +3,7 @@
 The toolkit now has a full evidence loop:
 
 ```text
-policy -> autopsy -> sarif -> arena -> review-comment -> ci-gate -> ci-summary -> leaderboard -> self-audit -> next-goal
+policy -> autopsy -> sarif -> arena -> review-comment -> ci-gate -> ci-summary -> check-run -> leaderboard -> self-audit -> next-goal
 ```
 
 That loop gives maintainers a way to:
@@ -15,6 +15,7 @@ That loop gives maintainers a way to:
 - turn reports into PR comments and badge JSON
 - fail CI only when the project opts in
 - make workflow-run evidence readable through GitHub step summaries
+- prepare GitHub Check Run payloads without posting them by default
 - publish stable leaderboard data
 - audit the toolkit itself before release
 - generate the next slash-goal plan after release verification

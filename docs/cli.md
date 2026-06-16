@@ -167,6 +167,19 @@ Generate GitHub Actions step-summary Markdown from `gate.json`:
 
 `ci-gate` writes `summary.md` automatically. See `ci-summary.md`.
 
+## Check Run
+
+Generate a GitHub Checks API payload from `gate.json`:
+
+```bash
+./bin/codex-maintainer check-run \
+  --gate /tmp/codex-gate/gate.json \
+  --head-sha "$GITHUB_SHA" \
+  --out /tmp/codex-gate/check-run/payload.json
+```
+
+The reusable CI gate action writes this payload into the artifact bundle. See `check-run.md`.
+
 ## SARIF
 
 Convert an Autopsy report into SARIF 2.1.0:
