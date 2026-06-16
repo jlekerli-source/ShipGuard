@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.28.0 - Arena Regression Compare
+
+- Added `codex-maintainer arena compare` for JSON and Markdown diffs between Arena `results.json` files.
+- Added regression classification for average-score, high-risk-finding, case-count, added-case, removed-case, and per-case changes.
+- Extended CLI, self-audit, next-goal, CI, package, and docs coverage for benchmark comparison proof.
+
 ## v3.27.0 - Frontend Async State Arena Fixture
 
 - Added a frontend async-state regression case to the public Maintainer Arena fixture pack.

@@ -3,7 +3,7 @@
 The toolkit now has a full evidence loop:
 
 ```text
-policy -> autopsy -> sarif -> arena-import -> arena-sign -> arena -> review-comment -> ci-gate -> ci-summary -> check-run -> check-run-post -> leaderboard -> release-manifest -> release-index -> release-replay -> release-attest -> release-proof -> release-consume -> self-audit -> next-goal
+policy -> autopsy -> sarif -> arena-import -> arena-sign -> arena -> arena-compare -> review-comment -> ci-gate -> ci-summary -> check-run -> check-run-post -> leaderboard -> release-manifest -> release-index -> release-replay -> release-attest -> release-proof -> release-consume -> self-audit -> next-goal
 ```
 
 That loop gives maintainers a way to:
@@ -14,6 +14,7 @@ That loop gives maintainers a way to:
 - import external fixture packs with basic safety checks
 - sign and verify fixture-pack integrity metadata
 - benchmark public fixture packs
+- compare Arena result deltas before publishing benchmark changes
 - turn reports into PR comments and badge JSON
 - fail CI only when the project opts in
 - make workflow-run evidence readable through GitHub step summaries

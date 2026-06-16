@@ -23,6 +23,7 @@ Usage:
   codex-maintainer arena import --source <fixture-dir> --out <fixture-dir> [--pack-name <name>] [--force]
   codex-maintainer arena sign --fixture <fixture-dir> --out <manifest.json> [--pack-name <name>]
   codex-maintainer arena verify --fixture <fixture-dir> --manifest <manifest.json>
+  codex-maintainer arena compare --left <results.json> --right <results.json> --out <dir>
   codex-maintainer review-comment --report <report.json> --out <comment.md> [--mode warn|fail]
   codex-maintainer ci-gate --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--policy <policy.conf>] [--out <dir>] [--mode warn|fail]
   codex-maintainer ci-summary --gate <gate.json> --out <summary.md>
@@ -55,7 +56,7 @@ Commands:
   policy      Initialize or inspect codex-maintainer policy config.
   score       Score a Codex run markdown file using SCORECARD.md categories.
   autopsy     Generate Markdown and JSON evidence reports for an AI coding run.
-  arena       Run or import multiple autopsy fixtures.
+  arena       Run, import, sign, verify, or compare multiple autopsy fixtures.
   review-comment
               Generate a PR-ready review comment and badge from an autopsy report.
   ci-gate     Generate autopsy, review, badge, gate JSON, and optional CI failure.
@@ -281,7 +282,7 @@ cmd_policy() {
 
 cmd_arena() {
   local subcommand="${1:-}"
-  [[ "$subcommand" == "run" || "$subcommand" == "import" || "$subcommand" == "sign" || "$subcommand" == "verify" ]] || fail "arena requires subcommand: run, import, sign, or verify"
+  [[ "$subcommand" == "run" || "$subcommand" == "import" || "$subcommand" == "sign" || "$subcommand" == "verify" || "$subcommand" == "compare" ]] || fail "arena requires subcommand: run, import, sign, verify, or compare"
   shift || true
   case "$subcommand" in
     run)
@@ -295,6 +296,9 @@ cmd_arena() {
       ;;
     verify)
       "$tool_root/scripts/arena_verify.sh" "$@"
+      ;;
+    compare)
+      "$tool_root/scripts/arena_compare.sh" "$@"
       ;;
   esac
 }

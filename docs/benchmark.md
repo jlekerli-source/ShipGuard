@@ -17,6 +17,15 @@ It is intentionally small:
   --out /tmp/leaderboard.json
 ```
 
+Compare benchmark runs before publishing a changed fixture pack:
+
+```bash
+./bin/codex-maintainer arena compare \
+  --left /tmp/arena-previous/results.json \
+  --right /tmp/arena-current/results.json \
+  --out /tmp/arena-compare
+```
+
 ## Leaderboard Format
 
 `leaderboard.json` uses schema version `1.0` and includes:

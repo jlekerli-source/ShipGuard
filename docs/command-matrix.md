@@ -10,7 +10,8 @@
 | Configure project policy | `policy init`, `policy show` | Plain policy file |
 | Audit one AI run | `autopsy` | Markdown and JSON report |
 | Export CI evidence | `sarif` | SARIF 2.1.0 results |
-| Compare fixture runs | `arena run` | Aggregate results and per-case reports |
+| Run fixture packs | `arena run` | Aggregate results and per-case reports |
+| Compare fixture runs | `arena compare` | Benchmark delta JSON and Markdown |
 | Import fixture packs | `arena import` | Validated local fixture pack |
 | Sign fixture packs | `arena sign`, `arena verify` | SHA-256 pack metadata |
 | Generate PR comment | `review-comment` | Comment Markdown and badge JSON |

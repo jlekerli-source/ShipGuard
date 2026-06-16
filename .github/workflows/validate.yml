@@ -40,6 +40,9 @@ jobs:
       - name: Run arena sign tests
         run: ./tests/arena_sign_test.sh
 
+      - name: Run arena compare tests
+        run: ./tests/arena_compare_test.sh
+
       - name: Run review comment tests
         run: ./tests/review_comment_test.sh
 

@@ -86,3 +86,16 @@ Verify a pack before running it:
 - scope control average
 
 The public fixture pack includes clean, weak, dangerous, failing-validation, missing-diff, review-only, backend webhook, frontend async-state, and CLI cleanup maintainer runs so the benchmark shows multiple evidence and failure modes.
+
+## Compare Runs
+
+Compare two Arena result files when the fixture pack, scoring policy, or agent run set changes:
+
+```bash
+./bin/codex-maintainer arena compare \
+  --left /tmp/arena-old/results.json \
+  --right /tmp/arena-new/results.json \
+  --out /tmp/arena-compare
+```
+
+The comparison writes `arena-compare.json` and `arena-compare.md` with case-count, average-score, high-risk-finding, added-case, removed-case, changed-case, and unchanged-case deltas. The summary status is `regressed` when score, high-risk findings, or removed cases move in the wrong direction.

@@ -94,6 +94,7 @@ cat > "$out_file" <<EOF
 ./tests/action_artifact_test.sh
 ./tests/arena_test.sh
 ./tests/arena_import_test.sh
+./tests/arena_compare_test.sh
 ./tests/arena_sign_test.sh
 ./tests/review_comment_test.sh
 ./tests/policy_test.sh

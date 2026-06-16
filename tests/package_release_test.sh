@@ -66,6 +66,7 @@ grep -q "^$package_name/docs/sarif.md$" "$tar_list"
 grep -q "^$package_name/docs/template-profiles.md$" "$tar_list"
 grep -q "^$package_name/scripts/install.sh$" "$tar_list"
 grep -q "^$package_name/scripts/arena_import.sh$" "$tar_list"
+grep -q "^$package_name/scripts/arena_compare.sh$" "$tar_list"
 grep -q "^$package_name/scripts/arena_run.sh$" "$tar_list"
 grep -q "^$package_name/scripts/arena_sign.sh$" "$tar_list"
 grep -q "^$package_name/scripts/arena_verify.sh$" "$tar_list"
@@ -88,6 +89,7 @@ grep -q "^$package_name/scripts/sarif.sh$" "$tar_list"
 grep -q "^$package_name/scripts/self_audit.sh$" "$tar_list"
 grep -q "^$package_name/tests/package_release_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/action_artifact_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/arena_compare_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/arena_import_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/arena_sign_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/arena_test.sh$" "$tar_list"
@@ -202,6 +204,28 @@ grep -q '"verdict": "usable maintainer-quality run"' "$tmp_dir/package-autopsy/r
   --out "$tmp_dir/package-arena" >/dev/null
 grep -q '"average_total": 6.67' "$tmp_dir/package-arena/results.json"
 grep -q '"high_risk_finding_count": 8' "$tmp_dir/package-arena/results.json"
+mkdir -p "$tmp_dir/package-eight-case-fixture"
+for case_id in \
+  backend-webhook-idempotency \
+  cli-dangerous-clean \
+  dangerous-maintainer \
+  failing-validation \
+  good-maintainer \
+  no-diff-implementation \
+  review-only \
+  weak-maintainer; do
+  cp -R "$package_root/fixtures/arena/$case_id" "$tmp_dir/package-eight-case-fixture/$case_id"
+done
+"$package_root/bin/codex-maintainer" arena run \
+  --fixture "$tmp_dir/package-eight-case-fixture" \
+  --out "$tmp_dir/package-old-arena" >/dev/null
+"$package_root/bin/codex-maintainer" arena compare \
+  --left "$tmp_dir/package-old-arena/results.json" \
+  --right "$tmp_dir/package-arena/results.json" \
+  --out "$tmp_dir/package-arena-compare" >/dev/null
+grep -q '"status" : "improved"' "$tmp_dir/package-arena-compare/arena-compare.json"
+grep -q '"average_total_delta" : 0.42' "$tmp_dir/package-arena-compare/arena-compare.json"
+grep -q '"id" : "frontend-async-state-regression"' "$tmp_dir/package-arena-compare/arena-compare.json"
 "$package_root/bin/codex-maintainer" arena import \
   --source "$package_root/fixtures/external-arena-pack" \
   --out "$tmp_dir/package-imported-arena" \
@@ -422,6 +446,7 @@ grep -q 'actions/upload-artifact@v4' "$package_root/actions/release-consume/acti
 "$package_root/bin/codex-maintainer" self-audit \
   --out "$tmp_dir/package-self-audit" >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/package-self-audit/self-audit.json"
+grep -q '| codex-maintainer arena compare --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| codex-maintainer leaderboard build --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| codex-maintainer release-attest build --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| codex-maintainer release-proof build --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -478,6 +503,7 @@ grep -q '"version" : "2.1.0"' "$tmp_dir/package-sarif/results.sarif"
 grep -q '/goal Implement v2.6.0 Package Proof Followup' "$tmp_dir/package-next-goal.md"
 grep -q './tests/template_profiles_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/arena_import_test.sh' "$tmp_dir/package-next-goal.md"
+grep -q './tests/arena_compare_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/arena_sign_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/check_run_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/check_run_post_test.sh' "$tmp_dir/package-next-goal.md"
