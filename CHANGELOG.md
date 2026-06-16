@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.1.0 - Release Manifest And Proof Ledger
+
+- Added `codex-maintainer release-manifest` for release tarball proof files.
+- Added `release-manifest.json` with version, tag, commit, artifact bytes, SHA-256, and proof URLs.
+- Added `proof-ledger.md` for human release audits.
+- Added release-manifest docs, tests, self-audit coverage, CI coverage, next-goal proof, and package verification.
+
 ## v3.0.0 - Expanded Backend And CLI Arena Pack
 
 - Added backend webhook idempotency and dangerous CLI cleanup arena cases.

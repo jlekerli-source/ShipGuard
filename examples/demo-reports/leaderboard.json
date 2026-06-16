@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "tool_version": "3.0.0",
+  "tool_version": "3.1.0",
   "generated_at": "2026-06-16T00:00:00Z",
   "benchmark": "Public AI Maintainer Reliability Benchmark",
   "source": "examples/demo-reports/arena/results.json",

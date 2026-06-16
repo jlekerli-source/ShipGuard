@@ -22,6 +22,7 @@ Start here:
 - [Policy Configuration](policy.md)
 - [PR Review Bot Mode](pr-review-bot.md)
 - [Release Checklist](release-checklist.md)
+- [Release Manifest](release-manifest.md)
 - [SARIF Evidence Export](sarif.md)
 - [Template Profiles](template-profiles.md)
 - [GitHub Action](github-action.md)
@@ -32,7 +33,7 @@ Start here:
 - Root instructions for Codex in a risk-sensitive iOS repo.
 - Planning and subagent templates.
 - Reusable skills for alarm testing, notification permissions, release work, bug triage, and UI polish.
-- A small CLI for validation, starter profile initialization, doctor checks, run scoring, autopsy reports, SARIF export, fixture arena runs, review comments, CI gates, CI summaries, check-run payloads, leaderboard JSON, toolkit self-audits, and next-goal generation.
+- A small CLI for validation, starter profile initialization, doctor checks, run scoring, autopsy reports, SARIF export, fixture arena runs, review comments, CI gates, CI summaries, check-run payloads, leaderboard JSON, release manifests, toolkit self-audits, and next-goal generation.
 - Reusable GitHub Actions for validation and review-comment generation.
 - Examples and a scorecard for judging agent output quality.
 
@@ -55,5 +56,6 @@ Start here:
 15. Run `./bin/codex-maintainer arena sign --fixture /tmp/imported-arena --out /tmp/imported-arena/PACK.json`.
 16. Run `./bin/codex-maintainer arena verify --fixture /tmp/imported-arena --manifest /tmp/imported-arena/PACK.json`.
 17. Run `./bin/codex-maintainer leaderboard build --arena-results /tmp/arena/results.json --out /tmp/leaderboard.json`.
-18. Run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-self-audit`.
-19. Run `./bin/codex-maintainer next-goal --out /tmp/NEXT_GOAL.md`.
+18. Run `./bin/codex-maintainer release-manifest --tarball dist/codex-maintainer-v3.1.0.tar.gz --out /tmp/codex-maintainer-release-proof` after packaging.
+19. Run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-self-audit`.
+20. Run `./bin/codex-maintainer next-goal --out /tmp/NEXT_GOAL.md`.

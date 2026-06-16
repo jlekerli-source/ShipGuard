@@ -1,7 +1,7 @@
 # Agent Autopsy Report
 
 - Generated: 2026-06-16T00:00:00Z
-- Tool version: 3.0.0
+- Tool version: 3.1.0
 - Verdict: usable maintainer-quality run
 - Total score: 11/12
 

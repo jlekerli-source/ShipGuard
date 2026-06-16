@@ -30,6 +30,7 @@ Usage:
   codex-maintainer check-run post --payload <payload.json> --repo <owner/repo> --out <response.json> [--api-url <url>] [--token <token>] [--dry-run]
   codex-maintainer sarif --report <report.json> --out <results.sarif>
   codex-maintainer leaderboard build --arena-results <results.json> --out <leaderboard.json>
+  codex-maintainer release-manifest --tarball <release.tar.gz> --out <dir> [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--release-url <url>] [--issue-url <url>]
   codex-maintainer self-audit [--out <dir>]
   codex-maintainer next-goal [--out <file>] [--release <version>] [--title <title>]
   codex-maintainer version
@@ -50,6 +51,8 @@ Commands:
   check-run   Generate or optionally post GitHub Checks API payloads from gate JSON.
   sarif       Convert an autopsy report JSON file into SARIF 2.1.0.
   leaderboard Build a stable leaderboard JSON file from arena results.
+  release-manifest
+              Generate release-manifest JSON and proof-ledger Markdown.
   self-audit  Generate toolkit readiness proof.
   next-goal   Generate a slash-goal release objective for the next improvement loop.
   version     Print the toolkit version from VERSION.
@@ -297,6 +300,10 @@ cmd_leaderboard() {
   "$tool_root/scripts/leaderboard_build.sh" "$@"
 }
 
+cmd_release_manifest() {
+  "$tool_root/scripts/release_manifest.sh" "$@"
+}
+
 cmd_self_audit() {
   "$tool_root/scripts/self_audit.sh" "$@"
 }
@@ -357,6 +364,9 @@ main() {
       ;;
     leaderboard)
       cmd_leaderboard "$@"
+      ;;
+    release-manifest)
+      cmd_release_manifest "$@"
       ;;
     self-audit)
       cmd_self_audit "$@"

@@ -70,6 +70,9 @@ jobs:
       - name: Run next goal tests
         run: ./tests/next_goal_test.sh
 
+      - name: Run release manifest tests
+        run: ./tests/release_manifest_test.sh
+
       - name: Run release package tests
         run: ./tests/package_release_test.sh
 

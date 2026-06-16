@@ -3,7 +3,7 @@
 The toolkit now has a full evidence loop:
 
 ```text
-policy -> autopsy -> sarif -> arena-import -> arena-sign -> arena -> review-comment -> ci-gate -> ci-summary -> check-run -> check-run-post -> leaderboard -> self-audit -> next-goal
+policy -> autopsy -> sarif -> arena-import -> arena-sign -> arena -> review-comment -> ci-gate -> ci-summary -> check-run -> check-run-post -> leaderboard -> release-manifest -> self-audit -> next-goal
 ```
 
 That loop gives maintainers a way to:
@@ -19,6 +19,7 @@ That loop gives maintainers a way to:
 - make workflow-run evidence readable through GitHub step summaries
 - prepare GitHub Check Run payloads and optionally post them with an explicit token
 - publish stable leaderboard data
+- write release manifests and proof ledgers from release tarballs
 - audit the toolkit itself before release
 - generate the next slash-goal plan after release verification
 

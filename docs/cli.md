@@ -253,6 +253,18 @@ Build a stable public leaderboard JSON file from arena results:
 
 See `benchmark.md` for the schema and `demo-reports.md` for checked-in generated examples.
 
+## Release Manifest
+
+Generate release proof files for a tarball:
+
+```bash
+./bin/codex-maintainer release-manifest \
+  --tarball dist/codex-maintainer-v3.1.0.tar.gz \
+  --out /tmp/codex-maintainer-release-proof
+```
+
+The command writes `release-manifest.json` and `proof-ledger.md`. Add `--ci-run-url`, `--release-url`, and `--issue-url` after publishing to bind the local artifact digest to public release proof. See `release-manifest.md`.
+
 ## Self-Audit
 
 Generate release-readiness proof for the toolkit itself:
@@ -294,8 +306,8 @@ The command writes a Markdown plan with a `/goal` block, release constraints, pr
 Download and extract a release package:
 
 ```bash
-tar -xzf codex-maintainer-v1.0.0.tar.gz
-cd codex-maintainer-v1.0.0
+tar -xzf codex-maintainer-v3.1.0.tar.gz
+cd codex-maintainer-v3.1.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 ```
 
