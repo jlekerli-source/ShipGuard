@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate Codex workflow bundle
-        uses: jlekerli-source/ringly-codex-workflows/actions/validate@v3.11.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/validate@v3.12.0
 ```
 
 ## Inputs
@@ -34,9 +34,9 @@ jobs:
 
 ```yaml
 - name: Build release proof
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.11.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.12.0
   with:
-    release-url: https://github.com/owner/repo/releases/tag/v3.11.0
+    release-url: https://github.com/owner/repo/releases/tag/v3.12.0
     issue-url: https://github.com/owner/repo/issues/123
 ```
 

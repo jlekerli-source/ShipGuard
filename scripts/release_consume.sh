@@ -23,6 +23,8 @@ Inputs in --dir:
 Outputs:
   consumer-report.json
   consumer-report.md
+  asset-digests.json
+  asset-digests.md
   sha256.txt
   replay/replay-report.json
   replay/replay-report.md
@@ -145,6 +147,8 @@ PERL
   local attestation_dir="$out_dir/attestation"
   local report_json="$out_dir/consumer-report.json"
   local report_md="$out_dir/consumer-report.md"
+  local digest_json="$out_dir/asset-digests.json"
+  local digest_md="$out_dir/asset-digests.md"
 
   local actual_sha
   actual_sha="$(shasum -a 256 "$tarball" | awk '{print $1}')"
@@ -153,6 +157,100 @@ PERL
   if [[ "$actual_sha" != "$artifact_sha" ]]; then
     fail "tarball sha256 mismatch: expected $artifact_sha, got $actual_sha"
   fi
+
+  local digest_names=(
+    "$artifact_name"
+    "release-manifest.json"
+    "release-index.json"
+    "proof-ledger.md"
+    "replay-report.json"
+    "replay-report.md"
+    "attestation.json"
+    "attestation.md"
+    "attestation-badge.json"
+  )
+  local digest_roles=(
+    "release tarball"
+    "release manifest"
+    "release index"
+    "proof ledger"
+    "published replay report"
+    "published replay markdown"
+    "published attestation"
+    "published attestation markdown"
+    "published attestation badge"
+  )
+  local digest_required=(
+    "true"
+    "true"
+    "true"
+    "true"
+    "false"
+    "false"
+    "false"
+    "false"
+    "false"
+  )
+
+  {
+    echo "{"
+    echo "  \"schema_version\": \"1.0\","
+    echo "  \"tool_version\": $(json_string "$(sed -n '1p' "$tool_root/VERSION")"),"
+    echo "  \"generated_at\": $(json_string "$generated_at"),"
+    echo "  \"version\": $(json_string "$version"),"
+    echo "  \"tag\": $(json_string "$tag"),"
+    echo "  \"assets\": ["
+    local digest_i
+    for digest_i in "${!digest_names[@]}"; do
+      local digest_name="${digest_names[$digest_i]}"
+      local digest_path="$asset_dir/$digest_name"
+      [[ "$digest_i" -eq 0 ]] || echo "    },"
+      echo "    {"
+      echo "      \"name\": $(json_string "$digest_name"),"
+      echo "      \"role\": $(json_string "${digest_roles[$digest_i]}"),"
+      echo "      \"required\": ${digest_required[$digest_i]},"
+      if [[ -f "$digest_path" ]]; then
+        local digest_bytes digest_sha
+        digest_bytes="$(wc -c < "$digest_path" | tr -d '[:space:]')"
+        digest_sha="$(shasum -a 256 "$digest_path" | awk '{print $1}')"
+        echo "      \"status\": \"present\","
+        echo "      \"bytes\": $digest_bytes,"
+        echo "      \"sha256\": $(json_string "$digest_sha")"
+      else
+        echo "      \"status\": \"missing\","
+        echo "      \"bytes\": null,"
+        echo "      \"sha256\": null"
+      fi
+    done
+    echo "    }"
+    echo "  ]"
+    echo "}"
+  } > "$digest_json"
+
+  {
+    echo "# Release Asset Digest Matrix"
+    echo
+    echo "- Generated: $generated_at"
+    echo "- Version: $version"
+    echo "- Tag: $tag"
+    echo
+    echo "| Asset | Role | Required | Status | Bytes | SHA-256 |"
+    echo "| --- | --- | --- | --- | ---: | --- |"
+    local digest_md_i
+    for digest_md_i in "${!digest_names[@]}"; do
+      local digest_name="${digest_names[$digest_md_i]}"
+      local digest_path="$asset_dir/$digest_name"
+      local digest_status="missing"
+      local digest_bytes="-"
+      local digest_sha="-"
+      if [[ -f "$digest_path" ]]; then
+        digest_status="present"
+        digest_bytes="$(wc -c < "$digest_path" | tr -d '[:space:]')"
+        digest_sha="$(shasum -a 256 "$digest_path" | awk '{print $1}')"
+      fi
+      echo "| $digest_name | ${digest_roles[$digest_md_i]} | ${digest_required[$digest_md_i]} | $digest_status | $digest_bytes | $digest_sha |"
+    done
+  } > "$digest_md"
 
   "$tool_root/bin/codex-maintainer" release-replay verify \
     --manifest "$manifest_file" \
@@ -305,6 +403,7 @@ PERL
     echo "  },"
     echo "  \"outputs\": {"
     echo "    \"sha256\": \"sha256.txt\","
+    echo "    \"asset_digest_matrix\": \"asset-digests.json\","
     echo "    \"replay\": \"replay/replay-report.json\","
     echo "    \"attestation\": \"attestation/attestation.json\","
     echo "    \"attestation_badge\": \"attestation/attestation-badge.json\""
@@ -351,6 +450,7 @@ PERL
     echo "## Outputs"
     echo
     echo "- SHA-256: \`sha256.txt\`"
+    echo "- Asset digest matrix: \`asset-digests.json\`"
     echo "- Replay: \`replay/replay-report.json\`"
     echo "- Attestation: \`attestation/attestation.json\`"
     echo "- Badge: \`attestation/attestation-badge.json\`"

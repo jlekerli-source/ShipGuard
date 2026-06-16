@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.12.0 - Release Asset Digest Matrix
+
+- Added `asset-digests.json` and `asset-digests.md` outputs to `codex-maintainer release-consume verify`.
+- The digest matrix records present or missing release assets, roles, required flags, byte counts, and SHA-256 values.
+- Updated release-consume docs, tests, package verification, demo reports, and release-train metadata.
+
 ## v3.11.0 - Published Proof Crosscheck
 
 - Extended `codex-maintainer release-consume verify` to cross-check downloaded replay, attestation, and badge assets against locally regenerated proof.

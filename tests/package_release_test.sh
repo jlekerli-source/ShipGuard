@@ -288,6 +288,9 @@ grep -q '"status": "pass"' "$tmp_dir/package-release-consume/consumer-report.jso
 grep -q '"replay_blocked": 0' "$tmp_dir/package-release-consume/consumer-report.json"
 grep -q '"replay_report": "pass"' "$tmp_dir/package-release-consume/consumer-report.json"
 grep -q '"attestation_badge": "pass"' "$tmp_dir/package-release-consume/consumer-report.json"
+grep -q '"asset_digest_matrix": "asset-digests.json"' "$tmp_dir/package-release-consume/consumer-report.json"
+grep -q "| codex-maintainer-v$version.tar.gz | release tarball | true | present |" "$tmp_dir/package-release-consume/asset-digests.md"
+grep -q '"name": "attestation-badge.json"' "$tmp_dir/package-release-consume/asset-digests.json"
 "$package_root/tests/release_proof_consumption_test.sh" >/dev/null
 "$package_root/bin/codex-maintainer" self-audit \
   --out "$tmp_dir/package-self-audit" >/dev/null

@@ -5,19 +5,19 @@
 Use it after downloading release assets from GitHub:
 
 ```bash
-mkdir -p /tmp/codex-maintainer-v3.11.0
-gh release download v3.11.0 \
+mkdir -p /tmp/codex-maintainer-v3.12.0
+gh release download v3.12.0 \
   --repo jlekerli-source/ringly-codex-workflows \
-  --pattern 'codex-maintainer-v3.11.0.tar.gz' \
+  --pattern 'codex-maintainer-v3.12.0.tar.gz' \
   --pattern 'release-manifest.json' \
   --pattern 'release-index.json' \
   --pattern 'proof-ledger.md' \
-  --dir /tmp/codex-maintainer-v3.11.0
+  --dir /tmp/codex-maintainer-v3.12.0
 
 ./bin/codex-maintainer release-consume verify \
-  --dir /tmp/codex-maintainer-v3.11.0 \
-  --out /tmp/codex-maintainer-v3.11.0/consumer-proof \
-  --version 3.11.0
+  --dir /tmp/codex-maintainer-v3.12.0 \
+  --out /tmp/codex-maintainer-v3.12.0/consumer-proof \
+  --version 3.12.0
 ```
 
 Inputs expected in `--dir`:
@@ -31,6 +31,8 @@ Outputs:
 
 - `consumer-report.json`
 - `consumer-report.md`
+- `asset-digests.json`
+- `asset-digests.md`
 - `sha256.txt`
 - `replay/replay-report.json`
 - `replay/replay-report.md`
@@ -38,10 +40,12 @@ Outputs:
 - `attestation/attestation.md`
 - `attestation/attestation-badge.json`
 
+The digest matrix records each known release asset, its role, required or optional status, presence, byte count, and SHA-256 digest.
+
 The command wraps:
 
 ```text
-manifest parse -> shasum -a 256 -> release-replay verify -> release-attest build -> consumer report
+manifest parse -> digest matrix -> shasum -a 256 -> release-replay verify -> release-attest build -> consumer report
 ```
 
 It fails when:
