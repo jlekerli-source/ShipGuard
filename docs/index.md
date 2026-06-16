@@ -42,6 +42,7 @@ Start here:
 - [Release Replay](release-replay.md)
 - [SARIF Evidence Export](sarif.md)
 - [Template Profiles](template-profiles.md)
+- [Transcript Redaction](transcript-redaction.md)
 - [GitHub Action](github-action.md)
 - [Changelog](../CHANGELOG.md)
 
@@ -50,7 +51,7 @@ Start here:
 - Root instructions for Codex in a risk-sensitive iOS repo.
 - Planning and subagent templates.
 - Reusable skills for alarm testing, notification permissions, release work, bug triage, and UI polish.
-- A small CLI for validation, starter profile initialization, doctor checks, run scoring, autopsy reports, SARIF export, fixture arena runs, Arena comparisons, review comments, CI gates, CI summaries, check-run payloads, leaderboard JSON, release manifests, release indexes, release replay verification, release attestations, one-command release consumption, release diffs, release evidence site exports, release evidence indexes, release evidence bundles, release evidence verification, toolkit self-audits, and next-goal generation.
+- A small CLI for validation, starter profile initialization, doctor checks, run scoring, autopsy reports, SARIF export, fixture arena runs, Arena comparisons, transcript redaction, review comments, CI gates, CI summaries, check-run payloads, leaderboard JSON, release manifests, release indexes, release replay verification, release attestations, one-command release consumption, release diffs, release evidence site exports, release evidence indexes, release evidence bundles, release evidence verification, toolkit self-audits, and next-goal generation.
 - Reusable GitHub Actions for validation, Arena comparison artifacts, CI gates, review comments, release proof artifacts, release proof consumption, release diff audits, release evidence exports, and release evidence verification.
 - Examples and a scorecard for judging agent output quality.
 
@@ -71,26 +72,26 @@ Start here:
 13. Run `./bin/codex-maintainer arena run --fixture fixtures/arena --out /tmp/arena`.
 14. Run `./bin/codex-maintainer arena import --source fixtures/external-arena-pack --out /tmp/imported-arena`.
 15. Run `./bin/codex-maintainer arena compare --left /tmp/arena-old/results.json --right /tmp/arena/results.json --out /tmp/arena-compare`.
-16. Use `jlekerli-source/ringly-codex-workflows/actions/arena-compare@v3.29.0` when the same comparison should run in GitHub Actions.
+16. Use `jlekerli-source/ringly-codex-workflows/actions/arena-compare@v3.30.0` when the same comparison should run in GitHub Actions.
 17. Run `./bin/codex-maintainer arena sign --fixture /tmp/imported-arena --out /tmp/imported-arena/PACK.json`.
 18. Run `./bin/codex-maintainer arena verify --fixture /tmp/imported-arena --manifest /tmp/imported-arena/PACK.json`.
 19. Run `./bin/codex-maintainer leaderboard build --arena-results /tmp/arena/results.json --out /tmp/leaderboard.json`.
-20. Run `./bin/codex-maintainer release-manifest --tarball dist/codex-maintainer-v3.29.0.tar.gz --out /tmp/codex-maintainer-release-proof` after packaging.
+20. Run `./bin/codex-maintainer release-manifest --tarball dist/codex-maintainer-v3.30.0.tar.gz --out /tmp/codex-maintainer-release-proof` after packaging.
 21. Run `./bin/codex-maintainer release-index build --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --out /tmp/codex-maintainer-release-index`.
-22. Run `./bin/codex-maintainer release-replay verify --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --tarball dist/codex-maintainer-v3.29.0.tar.gz --index /tmp/codex-maintainer-release-index/release-index.json --ledger /tmp/codex-maintainer-release-proof/proof-ledger.md --out /tmp/codex-maintainer-release-replay`.
+22. Run `./bin/codex-maintainer release-replay verify --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --tarball dist/codex-maintainer-v3.30.0.tar.gz --index /tmp/codex-maintainer-release-index/release-index.json --ledger /tmp/codex-maintainer-release-proof/proof-ledger.md --out /tmp/codex-maintainer-release-replay`.
 23. Run `./bin/codex-maintainer release-attest build --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --replay /tmp/codex-maintainer-release-replay/replay-report.json --out /tmp/codex-maintainer-release-attestation`.
-24. Run `./bin/codex-maintainer release-proof build --out /tmp/codex-maintainer-release-proof-bundle --release-url https://github.com/owner/repo/releases/tag/v3.29.0`.
-25. Run `./bin/codex-maintainer release-consume verify --dir /tmp/codex-maintainer-v3.29.0 --out /tmp/codex-maintainer-v3.29.0/consumer-proof --version 3.29.0` after downloading published assets.
-26. Use `jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.29.0` when the same verification should run in GitHub Actions.
-27. Run `./bin/codex-maintainer release-diff compare --left /tmp/codex-maintainer-old --right /tmp/codex-maintainer-v3.29.0 --out /tmp/codex-maintainer-release-diff`.
-28. Use `jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.29.0` when the same diff should run in GitHub Actions.
-29. Run `./bin/codex-maintainer release-evidence site --consume /tmp/codex-maintainer-v3.29.0/consumer-proof --diff /tmp/codex-maintainer-release-diff --out /tmp/codex-maintainer-release-site`.
+24. Run `./bin/codex-maintainer release-proof build --out /tmp/codex-maintainer-release-proof-bundle --release-url https://github.com/owner/repo/releases/tag/v3.30.0`.
+25. Run `./bin/codex-maintainer release-consume verify --dir /tmp/codex-maintainer-v3.30.0 --out /tmp/codex-maintainer-v3.30.0/consumer-proof --version 3.30.0` after downloading published assets.
+26. Use `jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.30.0` when the same verification should run in GitHub Actions.
+27. Run `./bin/codex-maintainer release-diff compare --left /tmp/codex-maintainer-old --right /tmp/codex-maintainer-v3.30.0 --out /tmp/codex-maintainer-release-diff`.
+28. Use `jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.30.0` when the same diff should run in GitHub Actions.
+29. Run `./bin/codex-maintainer release-evidence site --consume /tmp/codex-maintainer-v3.30.0/consumer-proof --diff /tmp/codex-maintainer-release-diff --out /tmp/codex-maintainer-release-site`.
 30. Run `./bin/codex-maintainer release-evidence index --site /tmp/codex-maintainer-release-site --out /tmp/codex-maintainer-release-history`.
-31. Run `./bin/codex-maintainer release-evidence bundle --assets /tmp/codex-maintainer-v3.29.0 --left /tmp/codex-maintainer-old --out /tmp/codex-maintainer-release-evidence-bundle --version 3.29.0`.
-32. Use `jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.29.0` when the same evidence export should run in GitHub Actions.
+31. Run `./bin/codex-maintainer release-evidence bundle --assets /tmp/codex-maintainer-v3.30.0 --left /tmp/codex-maintainer-old --out /tmp/codex-maintainer-release-evidence-bundle --version 3.30.0`.
+32. Use `jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.30.0` when the same evidence export should run in GitHub Actions.
 33. Run `./bin/codex-maintainer release-evidence verify --dir /tmp/codex-maintainer-release-evidence --out /tmp/codex-maintainer-release-evidence-verify --require-diff true --require-index true` after downloading an evidence artifact.
-34. Use `jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.29.0` when the evidence artifact verification should run in GitHub Actions.
+34. Use `jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.30.0` when the evidence artifact verification should run in GitHub Actions.
 35. Run `./bin/codex-maintainer release-evidence negative-index --fixture fixtures/release-evidence/negative --out /tmp/codex-maintainer-negative-evidence`.
-36. Use `jlekerli-source/ringly-codex-workflows/actions/release-evidence-negative-index@v3.29.0` when the same negative fixture index should run in GitHub Actions.
+36. Use `jlekerli-source/ringly-codex-workflows/actions/release-evidence-negative-index@v3.30.0` when the same negative fixture index should run in GitHub Actions.
 37. Run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-self-audit`.
 38. Run `./bin/codex-maintainer next-goal --out /tmp/NEXT_GOAL.md`.

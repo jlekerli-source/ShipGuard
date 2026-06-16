@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "tool_version": "3.29.0",
+  "tool_version": "3.30.0",
   "generated_at": "2026-06-16T00:00:00Z",
   "inputs": {
     "run": "fixtures/arena/weak-maintainer/run.md",

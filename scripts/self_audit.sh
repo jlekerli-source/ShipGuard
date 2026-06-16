@@ -61,6 +61,7 @@ commands=(
   "arena compare --help"
   "arena sign --help"
   "arena verify --help"
+  "transcript redact --help"
   "review-comment --help"
   "ci-gate --help"
   "ci-summary --help"
@@ -114,6 +115,7 @@ required_artifacts=(
   "docs/ci-summary.md"
   "docs/check-run.md"
   "docs/template-profiles.md"
+  "docs/transcript-redaction.md"
   "docs/release-attest.md"
   "docs/release-consume-action.md"
   "docs/release-consume.md"
@@ -142,6 +144,7 @@ required_artifacts=(
   "examples/workflows/release-evidence-export.yml"
   "examples/workflows/release-evidence-negative-index.yml"
   "examples/release-proof-consumption-checklist.md"
+  "examples/redacted-transcript.md"
   "templates/web/AGENTS.md"
   "templates/backend/AGENTS.md"
   "templates/cli/AGENTS.md"
@@ -159,6 +162,7 @@ required_artifacts=(
   "scripts/release_index.sh"
   "scripts/release_manifest.sh"
   "scripts/release_replay.sh"
+  "scripts/transcript_redact.sh"
 )
 
 artifact_count=0

@@ -67,6 +67,9 @@ jobs:
       - name: Run SARIF tests
         run: ./tests/sarif_test.sh
 
+      - name: Run transcript redaction tests
+        run: ./tests/transcript_redaction_test.sh
+
       - name: Run leaderboard tests
         run: ./tests/leaderboard_test.sh
 

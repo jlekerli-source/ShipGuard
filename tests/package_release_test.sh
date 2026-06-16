@@ -66,6 +66,7 @@ grep -q "^$package_name/docs/release-proof-workflows.md$" "$tar_list"
 grep -q "^$package_name/docs/release-replay.md$" "$tar_list"
 grep -q "^$package_name/docs/sarif.md$" "$tar_list"
 grep -q "^$package_name/docs/template-profiles.md$" "$tar_list"
+grep -q "^$package_name/docs/transcript-redaction.md$" "$tar_list"
 grep -q "^$package_name/scripts/install.sh$" "$tar_list"
 grep -q "^$package_name/scripts/arena_import.sh$" "$tar_list"
 grep -q "^$package_name/scripts/arena_compare.sh$" "$tar_list"
@@ -89,6 +90,7 @@ grep -q "^$package_name/scripts/release_replay.sh$" "$tar_list"
 grep -q "^$package_name/scripts/review_comment.sh$" "$tar_list"
 grep -q "^$package_name/scripts/sarif.sh$" "$tar_list"
 grep -q "^$package_name/scripts/self_audit.sh$" "$tar_list"
+grep -q "^$package_name/scripts/transcript_redact.sh$" "$tar_list"
 grep -q "^$package_name/tests/package_release_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/action_artifact_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/arena_compare_action_test.sh$" "$tar_list"
@@ -125,6 +127,7 @@ grep -q "^$package_name/tests/review_comment_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/sarif_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/self_audit_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/template_profiles_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/transcript_redaction_test.sh$" "$tar_list"
 grep -q "^$package_name/templates/backend/AGENTS.md$" "$tar_list"
 grep -q "^$package_name/templates/backend/README.md$" "$tar_list"
 grep -q "^$package_name/templates/cli/AGENTS.md$" "$tar_list"
@@ -156,6 +159,7 @@ grep -q "^$package_name/fixtures/release-evidence/negative/digest-summary-mismat
 grep -q "^$package_name/fixtures/release-evidence/negative/bundle-missing-output/bundle.json$" "$tar_list"
 grep -q "^$package_name/examples/demo-reports/leaderboard.json$" "$tar_list"
 grep -q "^$package_name/examples/release-proof-consumption-checklist.md$" "$tar_list"
+grep -q "^$package_name/examples/redacted-transcript.md$" "$tar_list"
 grep -q "^$package_name/examples/workflows/arena-compare.yml$" "$tar_list"
 grep -q "^$package_name/examples/workflows/release-consume-verify.yml$" "$tar_list"
 grep -q "^$package_name/examples/workflows/release-diff-compare.yml$" "$tar_list"
@@ -448,9 +452,33 @@ grep -q 'actions/upload-artifact@v4' "$package_root/actions/release-consume/acti
 "$package_root/tests/release_evidence_verify_action_test.sh" >/dev/null
 "$package_root/tests/release_proof_consumption_test.sh" >/dev/null
 "$package_root/tests/arena_compare_action_test.sh" >/dev/null
+"$package_root/tests/transcript_redaction_test.sh" >/dev/null
+package_raw_transcript="$tmp_dir/package-raw-transcript.md"
+package_home_prefix="/""home"
+package_home_path="$package_home_prefix/runner/AcmePrivateApp"
+cat > "$package_raw_transcript" <<'RAW'
+# Raw Transcript
+
+Maintainer: AcmePrivateApp lives under __PACKAGE_HOME_PATH__.
+Agent: I will redact maintainer@example.com before sharing.
+Maintainer: Use API_TOKEN=example-secret-value only as a placeholder.
+RAW
+PACKAGE_HOME_PATH="$package_home_path" \
+  perl -pi -e 's#__PACKAGE_HOME_PATH__#$ENV{PACKAGE_HOME_PATH}#g' "$package_raw_transcript"
+"$package_root/bin/codex-maintainer" transcript redact \
+  --in "$package_raw_transcript" \
+  --out "$tmp_dir/package-redacted-transcript.md" \
+  --report "$tmp_dir/package-redaction-report.json" \
+  --private-term "AcmePrivateApp" >/dev/null
+grep -q '"status" : "pass"' "$tmp_dir/package-redaction-report.json"
+grep -q '\[redacted-private-term\]' "$tmp_dir/package-redacted-transcript.md"
+grep -q "$package_home_prefix/\\[redacted-user\\]" "$tmp_dir/package-redacted-transcript.md"
+grep -q '\[redacted-email\]' "$tmp_dir/package-redacted-transcript.md"
+grep -q 'API_TOKEN=\[redacted-secret\]' "$tmp_dir/package-redacted-transcript.md"
 "$package_root/bin/codex-maintainer" self-audit \
   --out "$tmp_dir/package-self-audit" >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/package-self-audit/self-audit.json"
+grep -q '| codex-maintainer transcript redact --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| codex-maintainer arena compare --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| actions/arena-compare/action.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| codex-maintainer leaderboard build --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -474,6 +502,7 @@ grep -q '| actions/release-evidence-negative-index/action.yml | pass |' "$tmp_di
 grep -q '| actions/release-evidence-verify/action.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| actions/release-proof/action.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/arena-compare-action.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| docs/transcript-redaction.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/release-consume-action.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/release-consume.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/release-diff-action.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -500,6 +529,8 @@ grep -q '| examples/workflows/release-evidence-negative-index.yml | pass |' "$tm
 grep -q '| fixtures/release-evidence/negative/README.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/release-evidence/negative/cases.tsv | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| examples/release-proof-consumption-checklist.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| examples/redacted-transcript.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| scripts/transcript_redact.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 "$package_root/bin/codex-maintainer" sarif \
   --report "$tmp_dir/package-autopsy/report.json" \
   --out "$tmp_dir/package-sarif/results.sarif" >/dev/null
@@ -518,6 +549,7 @@ grep -q './tests/check_run_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/check_run_post_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/ci_summary_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/sarif_test.sh' "$tmp_dir/package-next-goal.md"
+grep -q './tests/transcript_redaction_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_attest_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_proof_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_index_test.sh' "$tmp_dir/package-next-goal.md"

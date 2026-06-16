@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.30.0 - Maintainer Transcript Redaction
+
+- Added `codex-maintainer transcript redact` for redacting maintainer transcripts into public-safe Markdown plus JSON leak-audit reports.
+- Added transcript redaction docs, a synthetic redacted transcript example, and focused test coverage for emails, token-like values, secret assignments, local paths, long hex strings, bearer tokens, and custom private terms.
+- Extended CI, self-audit, next-goal, source validation, and extracted-package proof coverage for the new transcript command.
+
 ## v3.29.0 - Arena Compare GitHub Action
 
 - Added `actions/arena-compare` to run `codex-maintainer arena compare` in GitHub Actions and upload comparison artifacts.

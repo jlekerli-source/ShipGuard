@@ -175,6 +175,20 @@ Compare two Arena result files:
 
 The command writes `arena-compare.json` and `arena-compare.md`. It reports score, case-count, high-risk, added-case, removed-case, and per-case deltas so benchmark changes are reviewable instead of implied by a new average.
 
+## Transcript Redaction
+
+Redact a maintainer transcript before publishing it as an example, benchmark note, or public proof:
+
+```bash
+./bin/codex-maintainer transcript redact \
+  --in raw-transcript.md \
+  --out /tmp/redacted-transcript.md \
+  --report /tmp/redaction-report.json \
+  --private-term "InternalProjectName"
+```
+
+The command writes redacted Markdown and a JSON report. It redacts emails, token-like values, secret assignments, local user paths, long hex strings, bearer tokens, and custom private terms. See `transcript-redaction.md`.
+
 ## Review Comment
 
 Generate a PR-ready comment and Shields-compatible badge from an autopsy report:
@@ -270,7 +284,7 @@ Generate release proof files for a tarball:
 
 ```bash
 ./bin/codex-maintainer release-manifest \
-  --tarball dist/codex-maintainer-v3.29.0.tar.gz \
+  --tarball dist/codex-maintainer-v3.30.0.tar.gz \
   --out /tmp/codex-maintainer-release-proof
 ```
 
@@ -279,7 +293,7 @@ Verify the manifest against the tarball:
 ```bash
 ./bin/codex-maintainer release-manifest verify \
   --manifest /tmp/codex-maintainer-release-proof/release-manifest.json \
-  --tarball dist/codex-maintainer-v3.29.0.tar.gz
+  --tarball dist/codex-maintainer-v3.30.0.tar.gz
 ```
 
 The command writes `release-manifest.json` and `proof-ledger.md`. Add `--ci-run-url`, `--release-url`, and `--issue-url` after publishing to bind the local artifact digest to public release proof. See `release-manifest.md`.
@@ -289,7 +303,7 @@ Build a release proof catalog from manifests:
 ```bash
 ./bin/codex-maintainer release-index build \
   --manifest dist/release-proof-v3.5.0/release-manifest.json \
-  --manifest dist/release-proof-v3.29.0/release-manifest.json \
+  --manifest dist/release-proof-v3.30.0/release-manifest.json \
   --out /tmp/codex-maintainer-release-index
 ```
 
@@ -300,7 +314,7 @@ Replay-verify downloaded release assets:
 ```bash
 ./bin/codex-maintainer release-replay verify \
   --manifest /tmp/codex-maintainer-release-proof/release-manifest.json \
-  --tarball /tmp/codex-maintainer-release-assets/codex-maintainer-v3.29.0.tar.gz \
+  --tarball /tmp/codex-maintainer-release-assets/codex-maintainer-v3.30.0.tar.gz \
   --index /tmp/codex-maintainer-release-index/release-index.json \
   --ledger /tmp/codex-maintainer-release-proof/proof-ledger.md \
   --out /tmp/codex-maintainer-release-replay
@@ -324,7 +338,7 @@ Build the full release proof bundle in one command:
 ```bash
 ./bin/codex-maintainer release-proof build \
   --out /tmp/codex-maintainer-release-proof-bundle \
-  --release-url https://github.com/owner/repo/releases/tag/v3.29.0
+  --release-url https://github.com/owner/repo/releases/tag/v3.30.0
 ```
 
 The command writes the release tarball, manifest, release index, replay report, attestation, and attestation badge. See `release-proof.md`.
@@ -335,9 +349,9 @@ Verify a flat directory of downloaded release assets and write a consumer report
 
 ```bash
 ./bin/codex-maintainer release-consume verify \
-  --dir /tmp/codex-maintainer-v3.29.0 \
-  --out /tmp/codex-maintainer-v3.29.0/consumer-proof \
-  --version 3.29.0
+  --dir /tmp/codex-maintainer-v3.30.0 \
+  --out /tmp/codex-maintainer-v3.30.0/consumer-proof \
+  --version 3.30.0
 ```
 
 The command writes `consumer-report.json`, `consumer-report.md`, `asset-digests.json`, `asset-digests.md`, `sha256.txt`, replay outputs, and attestation outputs. It also cross-checks downloaded replay, attestation, and badge assets when they are present. Use `actions/release-consume` when this verification should run in GitHub Actions. See `release-consume.md` and `release-consume-action.md`.
@@ -349,7 +363,7 @@ Compare two release proof asset directories and write JSON/Markdown diff reports
 ```bash
 ./bin/codex-maintainer release-diff compare \
   --left /tmp/codex-maintainer-old \
-  --right /tmp/codex-maintainer-v3.29.0 \
+  --right /tmp/codex-maintainer-v3.30.0 \
   --out /tmp/codex-maintainer-release-diff
 ```
 
@@ -361,7 +375,7 @@ Export release proof reports as a static evidence page:
 
 ```bash
 ./bin/codex-maintainer release-evidence site \
-  --consume /tmp/codex-maintainer-v3.29.0/consumer-proof \
+  --consume /tmp/codex-maintainer-v3.30.0/consumer-proof \
   --diff /tmp/codex-maintainer-release-diff \
   --out /tmp/codex-maintainer-release-site
 ```
@@ -373,7 +387,7 @@ Build a static index from one or more evidence site exports:
 ```bash
 ./bin/codex-maintainer release-evidence index \
   --site /tmp/codex-maintainer-previous-site \
-  --site /tmp/codex-maintainer-v3.29.0-site \
+  --site /tmp/codex-maintainer-v3.30.0-site \
   --out /tmp/codex-maintainer-release-history
 ```
 
@@ -383,11 +397,11 @@ Build the full local evidence path from downloaded release assets:
 
 ```bash
 ./bin/codex-maintainer release-evidence bundle \
-  --assets /tmp/codex-maintainer-v3.29.0 \
+  --assets /tmp/codex-maintainer-v3.30.0 \
   --left /tmp/codex-maintainer-old \
   --out /tmp/codex-maintainer-release-evidence-bundle \
-  --version 3.29.0 \
-  --title "Codex Maintainer v3.29.0 Evidence"
+  --version 3.30.0 \
+  --title "Codex Maintainer v3.30.0 Evidence"
 ```
 
 The command writes consumer proof, optional release-diff proof, `site/index.html`, `index/evidence-index.json`, `bundle.json`, and `README.md`. See `release-evidence-bundle.md`.
@@ -421,28 +435,28 @@ Use `actions/release-evidence-negative-index` when this guardrail index should r
 Download a published release bundle, verify the tarball digest, replay the proof, and rebuild the compact attestation:
 
 ```bash
-gh release download v3.29.0 \
+gh release download v3.30.0 \
   --repo jlekerli-source/ringly-codex-workflows \
-  --pattern 'codex-maintainer-v3.29.0.tar.gz' \
+  --pattern 'codex-maintainer-v3.30.0.tar.gz' \
   --pattern 'release-manifest.json' \
   --pattern 'release-index.json' \
   --pattern 'proof-ledger.md' \
   --pattern 'attestation-badge.json' \
-  --dir /tmp/codex-maintainer-v3.29.0
+  --dir /tmp/codex-maintainer-v3.30.0
 
-shasum -a 256 /tmp/codex-maintainer-v3.29.0/codex-maintainer-v3.29.0.tar.gz
+shasum -a 256 /tmp/codex-maintainer-v3.30.0/codex-maintainer-v3.30.0.tar.gz
 
 ./bin/codex-maintainer release-replay verify \
-  --manifest /tmp/codex-maintainer-v3.29.0/release-manifest.json \
-  --tarball /tmp/codex-maintainer-v3.29.0/codex-maintainer-v3.29.0.tar.gz \
-  --index /tmp/codex-maintainer-v3.29.0/release-index.json \
-  --ledger /tmp/codex-maintainer-v3.29.0/proof-ledger.md \
-  --out /tmp/codex-maintainer-v3.29.0/consumer-replay
+  --manifest /tmp/codex-maintainer-v3.30.0/release-manifest.json \
+  --tarball /tmp/codex-maintainer-v3.30.0/codex-maintainer-v3.30.0.tar.gz \
+  --index /tmp/codex-maintainer-v3.30.0/release-index.json \
+  --ledger /tmp/codex-maintainer-v3.30.0/proof-ledger.md \
+  --out /tmp/codex-maintainer-v3.30.0/consumer-replay
 
 ./bin/codex-maintainer release-attest build \
-  --manifest /tmp/codex-maintainer-v3.29.0/release-manifest.json \
-  --replay /tmp/codex-maintainer-v3.29.0/consumer-replay/replay-report.json \
-  --out /tmp/codex-maintainer-v3.29.0/consumer-attestation
+  --manifest /tmp/codex-maintainer-v3.30.0/release-manifest.json \
+  --replay /tmp/codex-maintainer-v3.30.0/consumer-replay/replay-report.json \
+  --out /tmp/codex-maintainer-v3.30.0/consumer-attestation
 ```
 
 See `release-proof-consumption.md` for the rejection rules and trust model.
@@ -488,8 +502,8 @@ The command writes a Markdown plan with a `/goal` block, release constraints, pr
 Download and extract a release package:
 
 ```bash
-tar -xzf codex-maintainer-v3.29.0.tar.gz
-cd codex-maintainer-v3.29.0
+tar -xzf codex-maintainer-v3.30.0.tar.gz
+cd codex-maintainer-v3.30.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 ```
 
