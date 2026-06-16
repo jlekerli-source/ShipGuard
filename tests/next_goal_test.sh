@@ -14,13 +14,14 @@ current_version="$(sed -n '1p' VERSION)"
 CODEX_MAINTAINER_GENERATED_AT="2026-06-16T00:00:00Z" \
   ./bin/codex-maintainer next-goal \
     --out "$tmp_dir/NEXT_GOAL.md" \
-    --release 2.5.0 \
-    --title "Template Profile Expansion" >/dev/null
+    --release 2.6.0 \
+    --title "External Fixture Pack Import" >/dev/null
 
 test -f "$tmp_dir/NEXT_GOAL.md"
 grep -q "Current toolkit version: $current_version" "$tmp_dir/NEXT_GOAL.md"
-grep -q 'Target release: v2.5.0' "$tmp_dir/NEXT_GOAL.md"
-grep -q '/goal Implement v2.5.0 Template Profile Expansion' "$tmp_dir/NEXT_GOAL.md"
+grep -q 'Target release: v2.6.0' "$tmp_dir/NEXT_GOAL.md"
+grep -q '/goal Implement v2.6.0 External Fixture Pack Import' "$tmp_dir/NEXT_GOAL.md"
+grep -q './tests/template_profiles_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/check_run_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/ci_summary_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/sarif_test.sh' "$tmp_dir/NEXT_GOAL.md"

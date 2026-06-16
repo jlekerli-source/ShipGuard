@@ -87,6 +87,8 @@ required_artifacts=(
   "docs/sarif.md"
   "docs/ci-summary.md"
   "docs/check-run.md"
+  "docs/template-profiles.md"
+  "templates/web/AGENTS.md"
 )
 
 artifact_count=0

@@ -10,8 +10,9 @@ codex-maintainer
 
 Usage:
   codex-maintainer init ios [target] [--force]
+  codex-maintainer init web [target] [--force]
   codex-maintainer validate [path]
-  codex-maintainer doctor [path]
+  codex-maintainer doctor [ios|web] [path]
   codex-maintainer policy init [target] [--force]
   codex-maintainer policy show [policy.conf]
   codex-maintainer score <run.md>
@@ -29,9 +30,9 @@ Usage:
   codex-maintainer help
 
 Commands:
-  init ios     Copy the iOS workflow starter into a target repo.
+  init        Copy a workflow starter profile into a target repo.
   validate    Validate this workflow bundle or another checkout of it.
-  doctor      Check whether a target repo has the starter workflow files.
+  doctor      Check whether a target repo has starter workflow files.
   policy      Initialize or inspect codex-maintainer policy config.
   score       Score a Codex run markdown file using SCORECARD.md categories.
   autopsy     Generate Markdown and JSON evidence reports for an AI coding run.
@@ -80,7 +81,25 @@ copy_dir() {
   done < <(find "$source" -type f | sort)
 }
 
-cmd_init_ios() {
+copy_profile() {
+  local profile="$1"
+  local target="$2"
+  local force="$3"
+
+  [[ -d "$tool_root/templates/$profile" ]] || fail "unknown init profile: $profile"
+  mkdir -p "$target"
+  copy_file "$tool_root/templates/$profile/AGENTS.md" "$target/AGENTS.md" "$force"
+  copy_file "$tool_root/PLANS.md" "$target/PLANS.md" "$force"
+  copy_file "$tool_root/SUBAGENTS.md" "$target/SUBAGENTS.md" "$force"
+  copy_file "$tool_root/SCORECARD.md" "$target/SCORECARD.md" "$force"
+  copy_dir "$tool_root/.agents/skills" "$target/.agents/skills" "$force"
+
+  echo "initialized $profile Codex workflow starter in $target"
+}
+
+cmd_init_profile() {
+  local profile="$1"
+  shift || true
   local target="."
   local force="false"
 
@@ -99,14 +118,7 @@ cmd_init_ios() {
     shift
   done
 
-  mkdir -p "$target"
-  copy_file "$tool_root/templates/ios/AGENTS.md" "$target/AGENTS.md" "$force"
-  copy_file "$tool_root/PLANS.md" "$target/PLANS.md" "$force"
-  copy_file "$tool_root/SUBAGENTS.md" "$target/SUBAGENTS.md" "$force"
-  copy_file "$tool_root/SCORECARD.md" "$target/SCORECARD.md" "$force"
-  copy_dir "$tool_root/.agents/skills" "$target/.agents/skills" "$force"
-
-  echo "initialized iOS Codex workflow starter in $target"
+  copy_profile "$profile" "$target" "$force"
 }
 
 cmd_validate() {
@@ -115,7 +127,29 @@ cmd_validate() {
 }
 
 cmd_doctor() {
-  local target="${1:-.}"
+  local profile="ios"
+  local target="."
+  if [[ "$#" -gt 0 ]]; then
+    case "$1" in
+      ios|web)
+        profile="$1"
+        shift
+        target="${1:-.}"
+        [[ "$#" -gt 0 ]] && shift
+        ;;
+      -*)
+        fail "unknown doctor option: $1"
+        ;;
+      *)
+        if [[ "$#" -gt 1 ]]; then
+          fail "unknown doctor profile: $1"
+        fi
+        target="$1"
+        shift
+        ;;
+    esac
+  fi
+  [[ "$#" -eq 0 ]] || fail "too many doctor arguments"
   local missing=0
   local required=(
     "AGENTS.md"
@@ -129,6 +163,8 @@ cmd_doctor() {
     ".agents/skills/ui-polish/SKILL.md"
   )
 
+  [[ -d "$tool_root/templates/$profile" ]] || fail "unknown doctor profile: $profile"
+
   for file in "${required[@]}"; do
     if [[ -f "$target/$file" ]]; then
       echo "ok: $file"
@@ -139,9 +175,9 @@ cmd_doctor() {
   done
 
   if [[ "$missing" -ne 0 ]]; then
-    fail "doctor found missing workflow files"
+    fail "doctor found missing $profile workflow files"
   fi
-  echo "doctor passed"
+  echo "doctor passed for $profile"
 }
 
 extract_score() {
@@ -263,9 +299,9 @@ main() {
   case "$command" in
     init)
       local kind="${1:-}"
-      [[ "$kind" == "ios" ]] || fail "only init ios is supported"
+      [[ "$kind" == "ios" || "$kind" == "web" ]] || fail "supported init profiles: ios, web"
       shift || true
-      cmd_init_ios "$@"
+      cmd_init_profile "$kind" "$@"
       ;;
     validate)
       cmd_validate "$@"

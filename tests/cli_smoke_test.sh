@@ -30,6 +30,8 @@ fi
 
 ./bin/codex-maintainer init ios "$tmp_dir/app" >/dev/null
 ./bin/codex-maintainer doctor "$tmp_dir/app" >/dev/null
+./bin/codex-maintainer init web "$tmp_dir/web-app" >/dev/null
+./bin/codex-maintainer doctor web "$tmp_dir/web-app" >/dev/null
 
 score_output="$(./bin/codex-maintainer score examples/scored-run.md)"
 printf '%s\n' "$score_output" | grep -q 'Total score: 11/12'

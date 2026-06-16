@@ -17,6 +17,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep SARIF export stable for Autopsy findings and CI gate artifacts.
 - Keep self-audit output stable enough to prove release readiness from source and extracted packages.
 - Keep next-goal output deterministic enough to restart the improvement loop after each release.
+- Keep iOS and web starter profiles stable for external repository adoption.
 - Keep release packaging and installer scripts reproducible.
 - Keep the reusable GitHub Action aligned with the CLI validator.
 - Maintain the public examples, scorecard, autopsy fixtures, and iOS starter template as the workflow evolves.
@@ -27,7 +28,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Add more anonymized transcripts from real maintenance work.
 - Expand Maintainer Arena with more task types and external fixture packs.
 - Add optional posting of generated Check Run payloads for teams that opt in.
-- Add template variants for non-iOS apps, including a web-app workflow kit.
+- Add additional template profiles for backend services and CLI tools.
 - Consider npm or Homebrew distribution after the release tarball path stays stable.
 - Enable GitHub Pages in repository settings after the docs shell is reviewed.
 

@@ -41,10 +41,11 @@ The command reads `VERSION`, which is also used by the release packaging script.
 
 ## Init
 
-Copy the iOS starter workflow into another project:
+Copy a starter workflow profile into another project:
 
 ```bash
 ./bin/codex-maintainer init ios ../my-ios-app
+./bin/codex-maintainer init web ../my-web-app
 ```
 
 The command writes:
@@ -59,7 +60,10 @@ Existing files are skipped. Use `--force` to overwrite generated workflow files:
 
 ```bash
 ./bin/codex-maintainer init ios ../my-ios-app --force
+./bin/codex-maintainer init web ../my-web-app --force
 ```
+
+See `template-profiles.md` for profile details.
 
 ## Doctor
 
@@ -67,7 +71,11 @@ Check whether a target repo has the starter workflow files:
 
 ```bash
 ./bin/codex-maintainer doctor ../my-ios-app
+./bin/codex-maintainer doctor ios ../my-ios-app
+./bin/codex-maintainer doctor web ../my-web-app
 ```
+
+`doctor` without a profile defaults to `ios` for compatibility with older releases.
 
 ## Score
 

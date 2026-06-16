@@ -5,6 +5,7 @@ Use this checklist for every release after `v2.0.0`.
 ```bash
 ./bin/codex-maintainer validate
 ./tests/cli_smoke_test.sh
+./tests/template_profiles_test.sh
 ./tests/autopsy_test.sh
 ./tests/action_artifact_test.sh
 ./tests/arena_test.sh

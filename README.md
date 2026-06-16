@@ -41,6 +41,7 @@ Read the guided setup first:
 - `docs/pr-review-bot.md`: generate PR-ready review comments and badge JSON from autopsy reports.
 - `docs/release-checklist.md`: release proof commands and publishing checks.
 - `docs/sarif.md`: convert Autopsy findings into SARIF for CI consumers.
+- `docs/template-profiles.md`: iOS and web starter profile usage.
 - `docs/use-in-your-repo.md`: copy/paste setup for another repository.
 - `docs/workflow-diagram.md`: visual workflow map.
 - `docs/index.md`: GitHub Pages-ready documentation landing page.
@@ -57,6 +58,12 @@ Copy the iOS starter into another project:
 
 ```bash
 ./bin/codex-maintainer init ios ../my-ios-app
+```
+
+Copy the web starter into another project:
+
+```bash
+./bin/codex-maintainer init web ../my-web-app
 ```
 
 1. Start each non-trivial Codex thread from `CODEX_TASK_TEMPLATE.md`.
@@ -103,6 +110,7 @@ For Check Run payloads, run `./bin/codex-maintainer check-run --gate /tmp/codex-
 - `docs/pr-review-bot.md`: warn/fail PR review comment mode for autopsy reports.
 - `docs/release-checklist.md`: release validation and publishing checklist.
 - `docs/sarif.md`: SARIF export for Autopsy findings and CI gate artifacts.
+- `docs/template-profiles.md`: profile docs for iOS and web workflow starters.
 - `docs/github-action.md`: usage guide for the reusable action.
 - `docs/adoption-guide.md`: practical onboarding path for new maintainers.
 - `docs/use-in-your-repo.md`: copyable setup instructions for another repo.
@@ -121,6 +129,7 @@ For Check Run payloads, run `./bin/codex-maintainer check-run --gate /tmp/codex-
 - `fixtures/autopsy/`: good, weak, and dangerous AI-run fixtures for report testing.
 - `fixtures/arena/`: public benchmark fixture pack for aggregate arena runs.
 - `templates/ios/`: a starter workflow bundle for adapting these rules to another iOS app.
+- `templates/web/`: a starter workflow bundle for adapting these rules to a web app.
 - `SCORECARD.md`: a lightweight rubric for judging whether a Codex run produced usable maintainer evidence.
 - `EVALUATION_SUITE.md`: realistic benchmark tasks for future agent runs.
 - `POSTS.md`: short public posts explaining the workflow.

@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.5.0 - Template Profile Expansion
+
+- Added `codex-maintainer init web` and `codex-maintainer doctor web`.
+- Added a framework-neutral web app workflow starter under `templates/web/`.
+- Added template profile docs, adoption docs, demo walkthrough updates, tests, self-audit coverage, CI coverage, and package verification.
+
 ## v2.4.1 - Next Goal Proof List Patch
 
 - Updated `codex-maintainer next-goal` so generated release plans include check-run, CI summary, and SARIF tests.

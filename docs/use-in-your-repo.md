@@ -8,15 +8,17 @@ From a cloned repository:
 
 ```bash
 ./bin/codex-maintainer init ios ../my-ios-app
+./bin/codex-maintainer init web ../my-web-app
 ```
 
 From a release tarball:
 
 ```bash
-tar -xzf codex-maintainer-v1.0.0.tar.gz
-cd codex-maintainer-v1.0.0
+tar -xzf codex-maintainer-v2.5.0.tar.gz
+cd codex-maintainer-v2.5.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/codex-maintainer" init ios ../my-ios-app
+"$HOME/.local/bin/codex-maintainer" init web ../my-web-app
 ```
 
 This writes:
@@ -31,7 +33,7 @@ Existing files are skipped unless you pass `--force`.
 
 ## 2. Customize
 
-Edit `../my-ios-app/AGENTS.md` first.
+Edit the generated `AGENTS.md` first.
 
 Replace placeholders, then add:
 
@@ -45,6 +47,7 @@ Replace placeholders, then add:
 
 ```bash
 ./bin/codex-maintainer doctor ../my-ios-app
+./bin/codex-maintainer doctor web ../my-web-app
 ```
 
 ## 4. Add CI

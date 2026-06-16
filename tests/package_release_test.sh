@@ -39,6 +39,7 @@ grep -q "^$package_name/docs/policy.md$" "$tar_list"
 grep -q "^$package_name/docs/pr-review-bot.md$" "$tar_list"
 grep -q "^$package_name/docs/release-checklist.md$" "$tar_list"
 grep -q "^$package_name/docs/sarif.md$" "$tar_list"
+grep -q "^$package_name/docs/template-profiles.md$" "$tar_list"
 grep -q "^$package_name/scripts/install.sh$" "$tar_list"
 grep -q "^$package_name/scripts/arena_run.sh$" "$tar_list"
 grep -q "^$package_name/scripts/autopsy_report.sh$" "$tar_list"
@@ -65,7 +66,10 @@ grep -q "^$package_name/tests/policy_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/review_comment_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/sarif_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/self_audit_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/template_profiles_test.sh$" "$tar_list"
 grep -q "^$package_name/templates/ios/AGENTS.md$" "$tar_list"
+grep -q "^$package_name/templates/web/AGENTS.md$" "$tar_list"
+grep -q "^$package_name/templates/web/README.md$" "$tar_list"
 grep -q "^$package_name/templates/policy/default.conf$" "$tar_list"
 grep -q "^$package_name/fixtures/policy/strict.conf$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/good-maintainer/run.md$" "$tar_list"
@@ -95,6 +99,9 @@ test "$("$package_root/bin/codex-maintainer" version)" = "$version"
 "$package_root/bin/codex-maintainer" validate "$package_root" >/dev/null
 "$package_root/bin/codex-maintainer" init ios "$tmp_dir/demo-target" --force >/dev/null
 "$package_root/bin/codex-maintainer" doctor "$tmp_dir/demo-target" >/dev/null
+"$package_root/bin/codex-maintainer" init web "$tmp_dir/web-target" --force >/dev/null
+"$package_root/bin/codex-maintainer" doctor web "$tmp_dir/web-target" >/dev/null
+grep -q 'Web Codex Maintainer Instructions' "$tmp_dir/web-target/AGENTS.md"
 "$package_root/bin/codex-maintainer" autopsy \
   --run "$package_root/fixtures/autopsy/good-run/run.md" \
   --task "$package_root/fixtures/autopsy/good-run/task.md" \
@@ -151,10 +158,11 @@ grep -q '| codex-maintainer leaderboard build --help | pass |' "$tmp_dir/package
   --out "$tmp_dir/package-sarif/results.sarif" >/dev/null
 grep -q '"version" : "2.1.0"' "$tmp_dir/package-sarif/results.sarif"
 "$package_root/bin/codex-maintainer" next-goal \
-  --release 2.5.0 \
+  --release 2.6.0 \
   --title "Package Proof Followup" \
   --out "$tmp_dir/package-next-goal.md" >/dev/null
-grep -q '/goal Implement v2.5.0 Package Proof Followup' "$tmp_dir/package-next-goal.md"
+grep -q '/goal Implement v2.6.0 Package Proof Followup' "$tmp_dir/package-next-goal.md"
+grep -q './tests/template_profiles_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/check_run_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/ci_summary_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/sarif_test.sh' "$tmp_dir/package-next-goal.md"

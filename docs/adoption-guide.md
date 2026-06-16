@@ -11,13 +11,14 @@ Use this guide when you want to bring the workflow kit into another repository w
 ./bin/codex-maintainer validate
 ```
 
-3. Initialize the iOS starter into a test project:
+3. Initialize a starter profile into a test project:
 
 ```bash
 ./bin/codex-maintainer init ios ../my-ios-app
+./bin/codex-maintainer init web ../my-web-app
 ```
 
-4. Open `../my-ios-app/AGENTS.md` and replace:
+4. Open the generated `AGENTS.md` and replace:
 
 - `[APP_NAME]`
 - `[XCODE_PROJECT]`
@@ -29,6 +30,7 @@ Use this guide when you want to bring the workflow kit into another repository w
 
 ```bash
 ./bin/codex-maintainer doctor ../my-ios-app
+./bin/codex-maintainer doctor web ../my-web-app
 ```
 
 6. Copy one prompt from `examples/prompt-pack.md` and test it on a small, low-risk issue.
@@ -44,6 +46,7 @@ Use this guide when you want to bring the workflow kit into another repository w
 ## What Not To Copy Blindly
 
 - Ringly-specific alarm assumptions if your app is not alarm-related.
+- Web-specific auth, payment, migration, or browser-test assumptions if your app does not use them.
 - Commands that do not exist in your repo.
 - Release proof rules that do not match your App Store, TestFlight, or deployment process.
 - Any text that implies stronger reliability than your product can prove.
