@@ -37,6 +37,7 @@ Usage:
   codex-maintainer release-attest build --manifest <release-manifest.json> --replay <replay-report.json> --out <dir> [--title <title>]
   codex-maintainer release-proof build --out <dir> --release-url <url> [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--issue-url <url>] [--notes <text>]
   codex-maintainer release-consume verify --dir <downloaded-assets-dir> --out <dir> [--version <version>]
+  codex-maintainer release-diff compare --left <release-assets-dir> --right <release-assets-dir> --out <dir>
   codex-maintainer self-audit [--out <dir>]
   codex-maintainer next-goal [--out <file>] [--release <version>] [--title <title>]
   codex-maintainer version
@@ -69,6 +70,8 @@ Commands:
               Build the full release proof bundle in one command.
   release-consume
               Verify downloaded release proof assets and rebuild consumer attestation.
+  release-diff
+              Compare two release proof asset directories and report what changed.
   self-audit  Generate toolkit readiness proof.
   next-goal   Generate a slash-goal release objective for the next improvement loop.
   version     Print the toolkit version from VERSION.
@@ -340,6 +343,10 @@ cmd_release_consume() {
   "$tool_root/scripts/release_consume.sh" "$@"
 }
 
+cmd_release_diff() {
+  "$tool_root/scripts/release_diff.sh" "$@"
+}
+
 cmd_self_audit() {
   "$tool_root/scripts/self_audit.sh" "$@"
 }
@@ -418,6 +425,9 @@ main() {
       ;;
     release-consume)
       cmd_release_consume "$@"
+      ;;
+    release-diff)
+      cmd_release_diff "$@"
       ;;
     self-audit)
       cmd_self_audit "$@"

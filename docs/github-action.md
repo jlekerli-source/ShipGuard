@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate Codex workflow bundle
-        uses: jlekerli-source/ringly-codex-workflows/actions/validate@v3.13.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/validate@v3.14.0
 ```
 
 ## Inputs
@@ -34,9 +34,9 @@ jobs:
 
 ```yaml
 - name: Build release proof
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.13.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.14.0
   with:
-    release-url: https://github.com/owner/repo/releases/tag/v3.13.0
+    release-url: https://github.com/owner/repo/releases/tag/v3.14.0
     issue-url: https://github.com/owner/repo/issues/123
 ```
 
@@ -46,10 +46,10 @@ The action builds the release tarball, manifest, release index, replay report, a
 
 ```yaml
 - name: Verify published proof assets
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.13.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.14.0
   with:
     repo: jlekerli-source/ringly-codex-workflows
-    release-tag: v3.13.0
+    release-tag: v3.14.0
     mode: fail
 ```
 

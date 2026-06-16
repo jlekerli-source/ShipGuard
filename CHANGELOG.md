@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.14.0 - Release Diff Audit
+
+- Added `codex-maintainer release-diff compare` for comparing two release proof asset directories.
+- The diff audit writes JSON and Markdown reports for tarball, manifest, index, ledger, replay, attestation, and badge changes.
+- Added docs, tests, CI coverage, self-audit coverage, next-goal proof, and package verification.
+
 ## v3.13.0 - Release Consumption CI Action
 
 - Added `actions/release-consume` for downloading and verifying published release proof assets in GitHub Actions.

@@ -74,6 +74,7 @@ commands=(
   "release-manifest verify --help"
   "release-replay verify --help"
   "release-consume verify --help"
+  "release-diff compare --help"
   "self-audit --help"
   "next-goal --help"
 )
@@ -104,6 +105,7 @@ required_artifacts=(
   "docs/release-attest.md"
   "docs/release-consume-action.md"
   "docs/release-consume.md"
+  "docs/release-diff.md"
   "docs/release-proof.md"
   "docs/release-proof-consumption.md"
   "docs/release-manifest.md"
@@ -123,6 +125,7 @@ required_artifacts=(
   "scripts/arena_verify.sh"
   "scripts/release_attest.sh"
   "scripts/release_consume.sh"
+  "scripts/release_diff.sh"
   "scripts/release_proof.sh"
   "scripts/release_index.sh"
   "scripts/release_manifest.sh"

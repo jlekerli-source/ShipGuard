@@ -88,6 +88,9 @@ jobs:
       - name: Run release consume action tests
         run: ./tests/release_consume_action_test.sh
 
+      - name: Run release diff tests
+        run: ./tests/release_diff_test.sh
+
       - name: Run release replay tests
         run: ./tests/release_replay_test.sh
 
