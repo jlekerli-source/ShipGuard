@@ -9,16 +9,20 @@ From a cloned repository:
 ```bash
 ./bin/codex-maintainer init ios ../my-ios-app
 ./bin/codex-maintainer init web ../my-web-app
+./bin/codex-maintainer init backend ../my-service
+./bin/codex-maintainer init cli ../my-tool
 ```
 
 From a release tarball:
 
 ```bash
-tar -xzf codex-maintainer-v2.5.0.tar.gz
-cd codex-maintainer-v2.5.0
+tar -xzf codex-maintainer-v2.9.0.tar.gz
+cd codex-maintainer-v2.9.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/codex-maintainer" init ios ../my-ios-app
 "$HOME/.local/bin/codex-maintainer" init web ../my-web-app
+"$HOME/.local/bin/codex-maintainer" init backend ../my-service
+"$HOME/.local/bin/codex-maintainer" init cli ../my-tool
 ```
 
 This writes:
@@ -48,6 +52,8 @@ Replace placeholders, then add:
 ```bash
 ./bin/codex-maintainer doctor ../my-ios-app
 ./bin/codex-maintainer doctor web ../my-web-app
+./bin/codex-maintainer doctor backend ../my-service
+./bin/codex-maintainer doctor cli ../my-tool
 ```
 
 ## 4. Add CI

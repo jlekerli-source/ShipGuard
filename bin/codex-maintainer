@@ -11,8 +11,10 @@ codex-maintainer
 Usage:
   codex-maintainer init ios [target] [--force]
   codex-maintainer init web [target] [--force]
+  codex-maintainer init backend [target] [--force]
+  codex-maintainer init cli [target] [--force]
   codex-maintainer validate [path]
-  codex-maintainer doctor [ios|web] [path]
+  codex-maintainer doctor [ios|web|backend|cli] [path]
   codex-maintainer policy init [target] [--force]
   codex-maintainer policy show [policy.conf]
   codex-maintainer score <run.md>
@@ -135,7 +137,7 @@ cmd_doctor() {
   local target="."
   if [[ "$#" -gt 0 ]]; then
     case "$1" in
-      ios|web)
+      ios|web|backend|cli)
         profile="$1"
         shift
         target="${1:-.}"
@@ -316,7 +318,7 @@ main() {
   case "$command" in
     init)
       local kind="${1:-}"
-      [[ "$kind" == "ios" || "$kind" == "web" ]] || fail "supported init profiles: ios, web"
+      [[ "$kind" == "ios" || "$kind" == "web" || "$kind" == "backend" || "$kind" == "cli" ]] || fail "supported init profiles: ios, web, backend, cli"
       shift || true
       cmd_init_profile "$kind" "$@"
       ;;

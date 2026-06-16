@@ -93,6 +93,8 @@ required_artifacts=(
   "docs/check-run.md"
   "docs/template-profiles.md"
   "templates/web/AGENTS.md"
+  "templates/backend/AGENTS.md"
+  "templates/cli/AGENTS.md"
   "fixtures/external-arena-pack/imported-clean/run.md"
   "scripts/arena_sign.sh"
   "scripts/arena_verify.sh"

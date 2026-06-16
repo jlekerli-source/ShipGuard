@@ -46,6 +46,8 @@ Copy a starter workflow profile into another project:
 ```bash
 ./bin/codex-maintainer init ios ../my-ios-app
 ./bin/codex-maintainer init web ../my-web-app
+./bin/codex-maintainer init backend ../my-service
+./bin/codex-maintainer init cli ../my-tool
 ```
 
 The command writes:
@@ -61,6 +63,8 @@ Existing files are skipped. Use `--force` to overwrite generated workflow files:
 ```bash
 ./bin/codex-maintainer init ios ../my-ios-app --force
 ./bin/codex-maintainer init web ../my-web-app --force
+./bin/codex-maintainer init backend ../my-service --force
+./bin/codex-maintainer init cli ../my-tool --force
 ```
 
 See `template-profiles.md` for profile details.
@@ -73,6 +77,8 @@ Check whether a target repo has the starter workflow files:
 ./bin/codex-maintainer doctor ../my-ios-app
 ./bin/codex-maintainer doctor ios ../my-ios-app
 ./bin/codex-maintainer doctor web ../my-web-app
+./bin/codex-maintainer doctor backend ../my-service
+./bin/codex-maintainer doctor cli ../my-tool
 ```
 
 `doctor` without a profile defaults to `ios` for compatibility with older releases.

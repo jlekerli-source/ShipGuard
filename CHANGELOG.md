@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.9.0 - Backend And CLI Template Profiles
+
+- Added `codex-maintainer init backend` and `codex-maintainer doctor backend`.
+- Added `codex-maintainer init cli` and `codex-maintainer doctor cli`.
+- Added backend-service and CLI-tool maintainer instruction templates.
+- Added profile docs, adoption docs, tests, self-audit coverage, CI coverage, and package verification.
+
 ## v2.8.0 - Optional Check Run Posting
 
 - Added `codex-maintainer check-run post` for opt-in GitHub Checks API posting from generated payloads.

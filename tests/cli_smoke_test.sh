@@ -33,6 +33,10 @@ fi
 ./bin/codex-maintainer doctor "$tmp_dir/app" >/dev/null
 ./bin/codex-maintainer init web "$tmp_dir/web-app" >/dev/null
 ./bin/codex-maintainer doctor web "$tmp_dir/web-app" >/dev/null
+./bin/codex-maintainer init backend "$tmp_dir/backend-app" >/dev/null
+./bin/codex-maintainer doctor backend "$tmp_dir/backend-app" >/dev/null
+./bin/codex-maintainer init cli "$tmp_dir/cli-tool" >/dev/null
+./bin/codex-maintainer doctor cli "$tmp_dir/cli-tool" >/dev/null
 
 score_output="$(./bin/codex-maintainer score examples/scored-run.md)"
 printf '%s\n' "$score_output" | grep -q 'Total score: 11/12'

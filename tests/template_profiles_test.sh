@@ -24,12 +24,22 @@ grep -qx 'custom' "$tmp_dir/web-app/AGENTS.md"
 ./bin/codex-maintainer init web "$tmp_dir/web-app" --force >/dev/null
 grep -q 'Web Codex Maintainer Instructions' "$tmp_dir/web-app/AGENTS.md"
 
-if ./bin/codex-maintainer init backend "$tmp_dir/backend-app" >/dev/null 2>&1; then
+./bin/codex-maintainer init backend "$tmp_dir/backend-app" >/dev/null
+./bin/codex-maintainer doctor backend "$tmp_dir/backend-app" >/dev/null
+grep -q 'Backend Service Codex Maintainer Instructions' "$tmp_dir/backend-app/AGENTS.md"
+grep -q 'queues, schedulers, retries' "$tmp_dir/backend-app/AGENTS.md"
+
+./bin/codex-maintainer init cli "$tmp_dir/cli-tool" >/dev/null
+./bin/codex-maintainer doctor cli "$tmp_dir/cli-tool" >/dev/null
+grep -q 'CLI Tool Codex Maintainer Instructions' "$tmp_dir/cli-tool/AGENTS.md"
+grep -q 'stdout, stderr, exit codes' "$tmp_dir/cli-tool/AGENTS.md"
+
+if ./bin/codex-maintainer init desktop "$tmp_dir/desktop-app" >/dev/null 2>&1; then
   echo "expected unknown init profile to fail" >&2
   exit 1
 fi
 
-if ./bin/codex-maintainer doctor backend "$tmp_dir/backend-app" >/dev/null 2>&1; then
+if ./bin/codex-maintainer doctor desktop "$tmp_dir/desktop-app" >/dev/null 2>&1; then
   echo "expected unknown doctor profile to fail" >&2
   exit 1
 fi

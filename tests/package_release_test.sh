@@ -73,6 +73,10 @@ grep -q "^$package_name/tests/review_comment_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/sarif_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/self_audit_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/template_profiles_test.sh$" "$tar_list"
+grep -q "^$package_name/templates/backend/AGENTS.md$" "$tar_list"
+grep -q "^$package_name/templates/backend/README.md$" "$tar_list"
+grep -q "^$package_name/templates/cli/AGENTS.md$" "$tar_list"
+grep -q "^$package_name/templates/cli/README.md$" "$tar_list"
 grep -q "^$package_name/templates/ios/AGENTS.md$" "$tar_list"
 grep -q "^$package_name/templates/web/AGENTS.md$" "$tar_list"
 grep -q "^$package_name/templates/web/README.md$" "$tar_list"
@@ -110,6 +114,12 @@ test "$("$package_root/bin/codex-maintainer" version)" = "$version"
 "$package_root/bin/codex-maintainer" init web "$tmp_dir/web-target" --force >/dev/null
 "$package_root/bin/codex-maintainer" doctor web "$tmp_dir/web-target" >/dev/null
 grep -q 'Web Codex Maintainer Instructions' "$tmp_dir/web-target/AGENTS.md"
+"$package_root/bin/codex-maintainer" init backend "$tmp_dir/backend-target" --force >/dev/null
+"$package_root/bin/codex-maintainer" doctor backend "$tmp_dir/backend-target" >/dev/null
+grep -q 'Backend Service Codex Maintainer Instructions' "$tmp_dir/backend-target/AGENTS.md"
+"$package_root/bin/codex-maintainer" init cli "$tmp_dir/cli-target" --force >/dev/null
+"$package_root/bin/codex-maintainer" doctor cli "$tmp_dir/cli-target" >/dev/null
+grep -q 'CLI Tool Codex Maintainer Instructions' "$tmp_dir/cli-target/AGENTS.md"
 "$package_root/bin/codex-maintainer" autopsy \
   --run "$package_root/fixtures/autopsy/good-run/run.md" \
   --task "$package_root/fixtures/autopsy/good-run/task.md" \
