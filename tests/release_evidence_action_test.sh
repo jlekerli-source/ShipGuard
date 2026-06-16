@@ -10,11 +10,21 @@ cd "$repo_root"
 
 action="actions/release-evidence/action.yml"
 workflow="examples/workflows/release-evidence-export.yml"
+bundle_workflow="examples/workflows/release-evidence-bundle.yml"
 
 test -f "$action"
 test -f "$workflow"
+test -f "$bundle_workflow"
 
 grep -q 'name: Export Codex maintainer release evidence' "$action"
+grep -q 'run:' "$action"
+grep -q 'repo:' "$action"
+grep -q 'release-tag:' "$action"
+grep -q 'previous-tag:' "$action"
+grep -q 'download-assets:' "$action"
+grep -q 'assets-dir:' "$action"
+grep -q 'left-assets-dir:' "$action"
+grep -q 'version:' "$action"
 grep -q 'consume-dir:' "$action"
 grep -q 'diff-dir:' "$action"
 grep -q 'include-diff:' "$action"
@@ -22,27 +32,45 @@ grep -q 'build-index:' "$action"
 grep -q 'extra-index-sites:' "$action"
 grep -q 'release-evidence site' "$action"
 grep -q 'release-evidence index' "$action"
+grep -q 'release-evidence bundle' "$action"
+grep -q 'gh release download "$release_tag"' "$action"
+grep -q 'gh release download "$previous_tag"' "$action"
+grep -q 'left_assets_dir="$out-previous-assets"' "$action"
+grep -q 'run must be reports or bundle' "$action"
+grep -q 'download-assets must be true or false' "$action"
+grep -q 'download-assets is only supported when run is bundle' "$action"
 grep -q 'include-diff must be auto, true, or false' "$action"
 grep -q 'build-index must be true or false' "$action"
 grep -q 'mode must be fail or warn' "$action"
 grep -q 'actions/upload-artifact@v4' "$action"
 grep -q 'evidence-json=' "$action"
 grep -q 'evidence-index-json=' "$action"
+grep -q 'bundle=' "$action"
 
-grep -q 'jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.19.0' "$workflow"
-grep -q 'jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.19.0' "$workflow"
-grep -q 'jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.19.0' "$workflow"
+grep -q 'jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.20.0' "$workflow"
+grep -q 'jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.20.0' "$workflow"
+grep -q 'jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.20.0' "$workflow"
 grep -q 'previous-tag:' "$workflow"
 grep -q 'release-tag:' "$workflow"
-grep -q 'default: v3.18.0' "$workflow"
 grep -q 'default: v3.19.0' "$workflow"
+grep -q 'default: v3.20.0' "$workflow"
 grep -q 'contents: read' "$workflow"
 grep -q 'include-diff: auto' "$workflow"
 grep -q 'build-index: true' "$workflow"
 grep -q 'mode: fail' "$workflow"
 
+grep -q 'jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.20.0' "$bundle_workflow"
+grep -q 'run: bundle' "$bundle_workflow"
+grep -q 'download-assets: true' "$bundle_workflow"
+grep -q 'previous-tag:' "$bundle_workflow"
+grep -q 'release-tag:' "$bundle_workflow"
+grep -q 'default: v3.19.0' "$bundle_workflow"
+grep -q 'default: v3.20.0' "$bundle_workflow"
+grep -q 'contents: read' "$bundle_workflow"
+grep -q 'mode: fail' "$bundle_workflow"
+
 if command -v ruby >/dev/null 2>&1; then
-  ruby -ryaml -e 'ARGV.each { |file| YAML.load_file(file) }' "$action" "$workflow"
+  ruby -ryaml -e 'ARGV.each { |file| YAML.load_file(file) }' "$action" "$workflow" "$bundle_workflow"
 fi
 
 version="$(sed -n '1p' VERSION)"
@@ -109,5 +137,20 @@ grep -q '"release_diff" : {' "$tmp_dir/evidence/site/evidence.json"
 grep -q 'Release Evidence Action Test' "$tmp_dir/evidence/site/index.html"
 grep -q '"site_count" : 1' "$tmp_dir/evidence/index/evidence-index.json"
 grep -q 'Release Evidence Action Index Test' "$tmp_dir/evidence/index/index.html"
+
+CODEX_MAINTAINER_GENERATED_AT="2026-06-16T00:00:00Z" \
+  ./bin/codex-maintainer release-evidence bundle \
+    --assets "$assets" \
+    --left "$bundle" \
+    --out "$tmp_dir/evidence-bundle" \
+    --version "$version" \
+    --title "Release Evidence Action Bundle Test" \
+    --index-title "Release Evidence Action Bundle Index Test" >/dev/null
+
+test -f "$tmp_dir/evidence-bundle/bundle.json"
+test -f "$tmp_dir/evidence-bundle/site/index.html"
+test -f "$tmp_dir/evidence-bundle/index/evidence-index.json"
+grep -q '"diff_included": true' "$tmp_dir/evidence-bundle/bundle.json"
+grep -q 'Release Evidence Action Bundle Test' "$tmp_dir/evidence-bundle/site/index.html"
 
 echo "release evidence action tests passed"

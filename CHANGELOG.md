@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.20.0 - Release Evidence Bundle CI Action Mode
+
+- Added bundle mode to `actions/release-evidence` so CI can download release assets and run the one-command evidence bundle path.
+- Added bundle-mode inputs, `bundle.json` output exposure, and a copyable `release-evidence-bundle.yml` workflow example.
+- Added docs, action tests, package verification, self-audit coverage, and release-train metadata.
+
 ## v3.19.0 - One-Command Release Evidence Bundle
 
 - Added `codex-maintainer release-evidence bundle` to run release consumption, optional release diff, evidence site export, and evidence index generation in one local command.

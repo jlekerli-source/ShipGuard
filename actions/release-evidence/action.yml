@@ -1,7 +1,27 @@
 name: Export Codex maintainer release evidence
-description: Build a static release evidence site and optional evidence index from verified release proof reports.
+description: Build a static release evidence site, optional evidence index, or full evidence bundle from release proof reports.
 
 inputs:
+  run:
+    description: Use reports to export from existing consume/diff reports, or bundle to run the one-command evidence bundle from release asset directories.
+    required: false
+    default: reports
+  repo:
+    description: GitHub repository containing release assets when download-assets is true.
+    required: false
+    default: ""
+  release-tag:
+    description: Release tag to download for run=bundle when download-assets is true.
+    required: false
+    default: ""
+  previous-tag:
+    description: Previous release tag to download for run=bundle diff proof when download-assets is true.
+    required: false
+    default: ""
+  download-assets:
+    description: Set true in run=bundle to download release assets before building the evidence bundle.
+    required: false
+    default: "false"
   consume-dir:
     description: Directory containing consumer-report.json and asset-digests.json.
     required: false
@@ -14,6 +34,18 @@ inputs:
     description: Root directory for generated evidence artifacts.
     required: false
     default: artifacts/codex-maintainer-release-evidence
+  assets-dir:
+    description: Release asset directory for run=bundle.
+    required: false
+    default: artifacts/codex-maintainer-release-assets
+  left-assets-dir:
+    description: Previous release asset directory for run=bundle diff proof.
+    required: false
+    default: ""
+  version:
+    description: Expected release version for run=bundle. Defaults to auto-detection by release-consume.
+    required: false
+    default: ""
   title:
     description: Title for the generated evidence site.
     required: false
@@ -66,6 +98,9 @@ outputs:
   evidence-index-json:
     description: Path to evidence-index.json when build-index is true.
     value: ${{ steps.release-evidence.outputs.evidence-index-json }}
+  bundle:
+    description: Path to bundle.json when run is bundle.
+    value: ${{ steps.release-evidence.outputs.bundle }}
 
 runs:
   using: composite
@@ -73,13 +108,23 @@ runs:
     - name: Export release evidence
       id: release-evidence
       shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
         set -euo pipefail
 
         root="${{ github.action_path }}/../.."
+        run_mode="${{ inputs.run }}"
+        repo="${{ inputs.repo }}"
+        release_tag="${{ inputs.release-tag }}"
+        previous_tag="${{ inputs.previous-tag }}"
+        download_assets="${{ inputs.download-assets }}"
         consume_dir="${{ inputs.consume-dir }}"
         diff_dir="${{ inputs.diff-dir }}"
         out="${{ inputs.out }}"
+        assets_dir="${{ inputs.assets-dir }}"
+        left_assets_dir="${{ inputs.left-assets-dir }}"
+        version="${{ inputs.version }}"
         title="${{ inputs.title }}"
         include_diff="${{ inputs.include-diff }}"
         build_index="${{ inputs.build-index }}"
@@ -89,6 +134,25 @@ runs:
 
         if [[ "$mode" != "fail" && "$mode" != "warn" ]]; then
           echo "::error::mode must be fail or warn"
+          exit 2
+        fi
+
+        if [[ -z "$repo" ]]; then
+          repo="${{ github.repository }}"
+        fi
+
+        if [[ "$run_mode" != "reports" && "$run_mode" != "bundle" ]]; then
+          echo "::error::run must be reports or bundle"
+          exit 2
+        fi
+
+        if [[ "$download_assets" != "true" && "$download_assets" != "false" ]]; then
+          echo "::error::download-assets must be true or false"
+          exit 2
+        fi
+
+        if [[ "$download_assets" == "true" && "$run_mode" != "bundle" ]]; then
+          echo "::error::download-assets is only supported when run is bundle"
           exit 2
         fi
 
@@ -104,49 +168,95 @@ runs:
 
         site_dir="$out/site"
         index_dir="$out/index"
-        rm -rf "$site_dir" "$index_dir"
+        bundle_json="$out/bundle.json"
+        rm -rf "$site_dir" "$index_dir" "$out/consumer-proof" "$out/release-diff" "$bundle_json"
         mkdir -p "$out"
 
-        site_args=(
-          release-evidence site
-          --consume "$consume_dir"
-          --out "$site_dir"
-          --title "$title"
-        )
-
-        if [[ "$include_diff" == "true" ]]; then
-          if [[ ! -f "$diff_dir/release-diff.json" ]]; then
-            echo "::error::include-diff is true but release-diff.json was not found in $diff_dir"
-            exit 2
+        evidence_exit=0
+        if [[ "$run_mode" == "bundle" ]]; then
+          if [[ "$download_assets" == "true" ]]; then
+            if [[ -z "$release_tag" ]]; then
+              echo "::error::release-tag is required when download-assets is true"
+              exit 2
+            fi
+            rm -rf "$assets_dir"
+            mkdir -p "$assets_dir"
+            gh release download "$release_tag" \
+              --repo "$repo" \
+              --dir "$assets_dir" \
+              --clobber
+            if [[ -n "$previous_tag" ]]; then
+              if [[ -z "$left_assets_dir" ]]; then
+                left_assets_dir="$out-previous-assets"
+              fi
+              rm -rf "$left_assets_dir"
+              mkdir -p "$left_assets_dir"
+              gh release download "$previous_tag" \
+                --repo "$repo" \
+                --dir "$left_assets_dir" \
+                --clobber
+            fi
           fi
-          site_args+=(--diff "$diff_dir")
-        elif [[ "$include_diff" == "auto" && -f "$diff_dir/release-diff.json" ]]; then
-          site_args+=(--diff "$diff_dir")
-        fi
 
-        set +e
-        "$root/bin/codex-maintainer" "${site_args[@]}"
-        evidence_exit="$?"
-        set -e
-
-        if [[ "$evidence_exit" -eq 0 && "$build_index" == "true" ]]; then
-          index_args=(
-            release-evidence index
-            --site "$site_dir"
-            --out "$index_dir"
-            --title "$index_title"
+          bundle_args=(
+            release-evidence bundle
+            --assets "$assets_dir"
+            --out "$out"
+            --title "$title"
+            --index-title "$index_title"
           )
-          if [[ -n "$extra_index_sites" ]]; then
-            while IFS= read -r extra_site; do
-              [[ -n "$extra_site" ]] || continue
-              index_args+=(--site "$extra_site")
-            done <<< "$extra_index_sites"
+          if [[ -n "$left_assets_dir" ]]; then
+            bundle_args+=(--left "$left_assets_dir")
+          fi
+          if [[ -n "$version" ]]; then
+            bundle_args+=(--version "$version")
+          fi
+          set +e
+          "$root/bin/codex-maintainer" "${bundle_args[@]}"
+          evidence_exit="$?"
+          set -e
+        else
+          site_args=(
+            release-evidence site
+            --consume "$consume_dir"
+            --out "$site_dir"
+            --title "$title"
+          )
+
+          if [[ "$include_diff" == "true" ]]; then
+            if [[ ! -f "$diff_dir/release-diff.json" ]]; then
+              echo "::error::include-diff is true but release-diff.json was not found in $diff_dir"
+              exit 2
+            fi
+            site_args+=(--diff "$diff_dir")
+          elif [[ "$include_diff" == "auto" && -f "$diff_dir/release-diff.json" ]]; then
+            site_args+=(--diff "$diff_dir")
           fi
 
           set +e
-          "$root/bin/codex-maintainer" "${index_args[@]}"
+          "$root/bin/codex-maintainer" "${site_args[@]}"
           evidence_exit="$?"
           set -e
+
+          if [[ "$evidence_exit" -eq 0 && "$build_index" == "true" ]]; then
+            index_args=(
+              release-evidence index
+              --site "$site_dir"
+              --out "$index_dir"
+              --title "$index_title"
+            )
+            if [[ -n "$extra_index_sites" ]]; then
+              while IFS= read -r extra_site; do
+                [[ -n "$extra_site" ]] || continue
+                index_args+=(--site "$extra_site")
+              done <<< "$extra_index_sites"
+            fi
+
+            set +e
+            "$root/bin/codex-maintainer" "${index_args[@]}"
+            evidence_exit="$?"
+            set -e
+          fi
         fi
 
         status="pass"
@@ -161,10 +271,11 @@ runs:
           echo "site-readme=$site_dir/README.md"
           echo "index=$index_dir"
           echo "evidence-index-json=$index_dir/evidence-index.json"
+          echo "bundle=$bundle_json"
         } >> "$GITHUB_OUTPUT"
 
         if [[ "$status" == "fail" ]]; then
-          message="release evidence export failed for $consume_dir"
+          message="release evidence export failed in $run_mode mode"
           if [[ "$mode" == "warn" ]]; then
             echo "::warning::$message"
           else

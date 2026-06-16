@@ -127,6 +127,7 @@ required_artifacts=(
   "examples/workflows/release-proof-manual.yml"
   "examples/workflows/release-consume-verify.yml"
   "examples/workflows/release-diff-compare.yml"
+  "examples/workflows/release-evidence-bundle.yml"
   "examples/workflows/release-evidence-export.yml"
   "examples/release-proof-consumption-checklist.md"
   "templates/web/AGENTS.md"
