@@ -28,7 +28,7 @@ grep -q 'actions/upload-artifact@v4' "$action"
 grep -q 'artifact-name:' "$action"
 grep -q 'codex-maintainer-release-evidence-negative-index' "$action"
 
-grep -q 'jlekerli-source/ringly-codex-workflows/actions/release-evidence-negative-index@v3.38.0' "$workflow"
+grep -q 'jlekerli-source/ringly-codex-workflows/actions/release-evidence-negative-index@v3.39.0' "$workflow"
 grep -q 'contents: read' "$workflow"
 grep -q 'mode: fail' "$workflow"
 grep -q 'artifact-name: codex-maintainer-release-evidence-negative-index' "$workflow"

@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.39.0 - Docs Check GitHub Action
+
+- Added `actions/docs-check` to run `codex-maintainer docs-check` in GitHub Actions with warn/fail mode and artifact upload.
+- Added a copyable docs-check workflow plus action docs for pull-request and release-prep link audits.
+- Extended CI, self-audit, next-goal, source validation, package proof, README, and GitHub Action docs for docs-check action output.
+
 ## v3.38.0 - Docs Link Audit
 
 - Added `codex-maintainer docs-check` for dependency-free local Markdown link audits.

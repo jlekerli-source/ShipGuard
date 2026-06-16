@@ -40,7 +40,9 @@ paths=(
   "bin"
   "scripts"
   ".agents"
+  "plugins"
   "templates"
+  "evals"
   "docs"
   "examples"
   "fixtures"
@@ -56,6 +58,9 @@ find "$package_root" \
   -prune -exec rm -rf {} +
 
 tarball="$dist_dir/$package_name.tar.gz"
-tar -C "$work_dir" -czf "$tarball" "$package_name"
+tmp_tarball="$dist_dir/.$package_name.tar.gz.$$"
+trap 'rm -rf "$work_dir"; rm -f "$tmp_tarball"' EXIT
+tar -C "$work_dir" -czf "$tmp_tarball" "$package_name"
+mv -f "$tmp_tarball" "$tarball"
 
 echo "$tarball"

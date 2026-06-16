@@ -1,6 +1,8 @@
 # Command Matrix
 
-`codex-maintainer` is organized around the core maintainer jobs below.
+`codex-maintainer` is organized around maintainer evidence. Start with the core loop, then add CI, benchmark, transcript, or release proof commands only when the repository needs them.
+
+## Core First Run
 
 | Job | Command | Output |
 | --- | --- | --- |
@@ -8,22 +10,49 @@
 | Check workflow kit | `validate` | Validation pass/fail |
 | Check target repo setup | `doctor ios`, `doctor web`, `doctor backend`, `doctor cli` | Missing file report |
 | Configure project policy | `policy init`, `policy show` | Plain policy file |
+| Discover iOS app topology | `ios doctor` | Xcode/Swift package topology, schemes, versions, privacy, StoreKit, and proof-readiness report |
+| Inventory iOS permission/runtime surfaces | `ios inventory` | Target risk map plus ask-before-editing gates for permissions, entitlements, StoreKit, privacy, and modernization surfaces |
+| Preview a booted iOS Simulator in Codex | `ios preview` | Local browser preview, simulator screenshot, and click/note event receipts |
+| Expose iOS preview to ChatGPT | `ios devspace` | Bearer-authenticated MCP endpoint, phone widget resource, screenshot proxy, and Codex handoff tools |
+| Prepare a Codex app-server handoff | `ios codex-handoff` | Prompt file, app-server request plan, JSONL message template, optional explicit execution transcript |
+| Continue Shipguard implementation loop | `ios goals init`, `ios goals next`, `ios goals complete` | Evidence-gated `/goal` file and local progress state |
 | Audit one AI run | `autopsy` | Markdown and JSON report |
-| Export CI evidence | `sarif` | SARIF 2.1.0 results |
 | Check docs links | `docs-check` | Broken local Markdown link report |
+
+## CI And PR Evidence
+
+| Job | Command | Output |
+| --- | --- | --- |
+| Enforce in CI | `ci-gate` | Gate bundle and optional failure |
+| Summarize CI gate | `ci-summary` | Step-summary Markdown |
+| Generate PR comment | `review-comment` | Comment Markdown and badge JSON |
+| Export CI evidence | `sarif` | SARIF 2.1.0 results |
+| Prepare or post Check Run payload | `check-run`, `check-run post` | GitHub Checks API payload and response JSON |
+| Check docs links in CI | `actions/docs-check` | Uploaded docs-check artifact |
+
+## Benchmarks
+
+| Job | Command | Output |
+| --- | --- | --- |
 | Run fixture packs | `arena run` | Aggregate results and per-case reports |
 | Compare fixture runs | `arena compare` | Benchmark delta JSON and Markdown |
 | Compare fixture runs in CI | `actions/arena-compare` | Uploaded benchmark comparison artifact |
 | Import fixture packs | `arena import` | Validated local fixture pack |
 | Sign fixture packs | `arena sign`, `arena verify` | SHA-256 pack metadata with optional signer provenance |
+| Publish benchmark data | `leaderboard build` | Stable leaderboard JSON |
+
+## Transcript Safety
+
+| Job | Command | Output |
+| --- | --- | --- |
 | Redact, verify, or index maintainer transcripts | `transcript redact`, `transcript verify`, `transcript corpus` | Redacted Markdown, leak-audit JSON, verification Markdown, corpus index, and badge JSON |
 | Verify transcripts in CI | `actions/transcript-verify` | Uploaded transcript verification artifact |
 | Verify transcript corpora in CI | `actions/transcript-corpus` | Uploaded corpus index, badge, and per-case verification artifact |
-| Generate PR comment | `review-comment` | Comment Markdown and badge JSON |
-| Enforce in CI | `ci-gate` | Gate bundle and optional failure |
-| Summarize CI gate | `ci-summary` | Step-summary Markdown |
-| Prepare or post Check Run payload | `check-run`, `check-run post` | GitHub Checks API payload and response JSON |
-| Publish benchmark data | `leaderboard build` | Stable leaderboard JSON |
+
+## Release Proof
+
+| Job | Command | Output |
+| --- | --- | --- |
 | Record release proof | `release-manifest`, `release-manifest verify`, `release-index build`, `release-replay verify`, `release-attest build`, `release-proof build` | Release manifest JSON, proof ledger Markdown, artifact verification, proof catalog, replay report, attestation badge, and full proof bundle |
 | Build release proof artifact | `actions/release-proof` | Uploaded tarball, manifest, replay, and attestation bundle |
 | Adopt release proof workflows | `examples/workflows/release-proof-on-tag.yml`, `examples/workflows/release-proof-manual.yml` | Copyable GitHub Actions workflow examples |

@@ -110,27 +110,47 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        INPUT_RUN: ${{ inputs.run }}
+        INPUT_REPO: ${{ inputs.repo }}
+        INPUT_RELEASE_TAG: ${{ inputs.release-tag }}
+        INPUT_PREVIOUS_TAG: ${{ inputs.previous-tag }}
+        INPUT_DOWNLOAD_ASSETS: ${{ inputs.download-assets }}
+        INPUT_CONSUME_DIR: ${{ inputs.consume-dir }}
+        INPUT_DIFF_DIR: ${{ inputs.diff-dir }}
+        INPUT_OUT: ${{ inputs.out }}
+        INPUT_ASSETS_DIR: ${{ inputs.assets-dir }}
+        INPUT_LEFT_ASSETS_DIR: ${{ inputs.left-assets-dir }}
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_TITLE: ${{ inputs.title }}
+        INPUT_INCLUDE_DIFF: ${{ inputs.include-diff }}
+        INPUT_BUILD_INDEX: ${{ inputs.build-index }}
+        INPUT_INDEX_TITLE: ${{ inputs.index-title }}
+        INPUT_EXTRA_INDEX_SITES: ${{ inputs.extra-index-sites }}
+        INPUT_MODE: ${{ inputs.mode }}
+        DEFAULT_REPO: ${{ github.repository }}
       run: |
         set -euo pipefail
 
         root="${{ github.action_path }}/../.."
-        run_mode="${{ inputs.run }}"
-        repo="${{ inputs.repo }}"
-        release_tag="${{ inputs.release-tag }}"
-        previous_tag="${{ inputs.previous-tag }}"
-        download_assets="${{ inputs.download-assets }}"
-        consume_dir="${{ inputs.consume-dir }}"
-        diff_dir="${{ inputs.diff-dir }}"
-        out="${{ inputs.out }}"
-        assets_dir="${{ inputs.assets-dir }}"
-        left_assets_dir="${{ inputs.left-assets-dir }}"
-        version="${{ inputs.version }}"
-        title="${{ inputs.title }}"
-        include_diff="${{ inputs.include-diff }}"
-        build_index="${{ inputs.build-index }}"
-        index_title="${{ inputs.index-title }}"
-        extra_index_sites="${{ inputs.extra-index-sites }}"
-        mode="${{ inputs.mode }}"
+        # shellcheck source=/dev/null
+        source "$root/scripts/lib/safe_paths.sh"
+        run_mode="$INPUT_RUN"
+        repo="$INPUT_REPO"
+        release_tag="$INPUT_RELEASE_TAG"
+        previous_tag="$INPUT_PREVIOUS_TAG"
+        download_assets="$INPUT_DOWNLOAD_ASSETS"
+        consume_dir="$INPUT_CONSUME_DIR"
+        diff_dir="$INPUT_DIFF_DIR"
+        out="$INPUT_OUT"
+        assets_dir="$INPUT_ASSETS_DIR"
+        left_assets_dir="$INPUT_LEFT_ASSETS_DIR"
+        version="$INPUT_VERSION"
+        title="$INPUT_TITLE"
+        include_diff="$INPUT_INCLUDE_DIFF"
+        build_index="$INPUT_BUILD_INDEX"
+        index_title="$INPUT_INDEX_TITLE"
+        extra_index_sites="$INPUT_EXTRA_INDEX_SITES"
+        mode="$INPUT_MODE"
 
         if [[ "$mode" != "fail" && "$mode" != "warn" ]]; then
           echo "::error::mode must be fail or warn"
@@ -138,7 +158,7 @@ runs:
         fi
 
         if [[ -z "$repo" ]]; then
-          repo="${{ github.repository }}"
+          repo="$DEFAULT_REPO"
         fi
 
         if [[ "$run_mode" != "reports" && "$run_mode" != "bundle" ]]; then
@@ -166,20 +186,28 @@ runs:
           exit 2
         fi
 
+        require_safe_artifact_dir "out" "$out" "$root" >/dev/null
+
         site_dir="$out/site"
         index_dir="$out/index"
         bundle_json="$out/bundle.json"
-        rm -rf "$site_dir" "$index_dir" "$out/consumer-proof" "$out/release-diff" "$bundle_json"
+        safe_rm_artifact_dir "site-dir" "$site_dir" "$root"
+        safe_rm_artifact_dir "index-dir" "$index_dir" "$root"
+        safe_rm_artifact_dir "consumer-proof-dir" "$out/consumer-proof" "$root"
+        safe_rm_artifact_dir "release-diff-dir" "$out/release-diff" "$root"
+        rm -f -- "$bundle_json"
         mkdir -p "$out"
 
         evidence_exit=0
         if [[ "$run_mode" == "bundle" ]]; then
+          require_safe_artifact_dir "assets-dir" "$assets_dir" "$root" >/dev/null
+          require_no_artifact_overlap "assets-dir" "$assets_dir" "out" "$out"
           if [[ "$download_assets" == "true" ]]; then
             if [[ -z "$release_tag" ]]; then
               echo "::error::release-tag is required when download-assets is true"
               exit 2
             fi
-            rm -rf "$assets_dir"
+            safe_rm_artifact_dir "assets-dir" "$assets_dir" "$root"
             mkdir -p "$assets_dir"
             gh release download "$release_tag" \
               --repo "$repo" \
@@ -189,7 +217,10 @@ runs:
               if [[ -z "$left_assets_dir" ]]; then
                 left_assets_dir="$out-previous-assets"
               fi
-              rm -rf "$left_assets_dir"
+              require_safe_artifact_dir "left-assets-dir" "$left_assets_dir" "$root" >/dev/null
+              require_no_artifact_overlap "left-assets-dir" "$left_assets_dir" "out" "$out"
+              require_no_artifact_overlap "left-assets-dir" "$left_assets_dir" "assets-dir" "$assets_dir"
+              safe_rm_artifact_dir "left-assets-dir" "$left_assets_dir" "$root"
               mkdir -p "$left_assets_dir"
               gh release download "$previous_tag" \
                 --repo "$repo" \

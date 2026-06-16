@@ -1,6 +1,6 @@
 # GitHub Action
 
-This repo exposes reusable composite actions for validating a workflow-bundle checkout, comparing Arena benchmark results, verifying redacted maintainer transcripts, verifying transcript corpora, building release proof artifacts, consuming published release proof assets, comparing release proof, exporting release evidence, verifying downloaded evidence artifacts, and auditing the release evidence negative fixture corpus.
+This repo exposes reusable composite actions for validating a workflow-bundle checkout, comparing Arena benchmark results, checking local Markdown docs links, verifying redacted maintainer transcripts, verifying transcript corpora, building release proof artifacts, consuming published release proof assets, comparing release proof, exporting release evidence, verifying downloaded evidence artifacts, and auditing the release evidence negative fixture corpus.
 
 ## Usage
 
@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate Codex workflow bundle
-        uses: jlekerli-source/ringly-codex-workflows/actions/validate@v3.38.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/validate@v3.39.0
 ```
 
 ## Inputs
@@ -34,7 +34,7 @@ jobs:
 
 ```yaml
 - name: Compare Arena results
-  uses: jlekerli-source/ringly-codex-workflows/actions/arena-compare@v3.38.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/arena-compare@v3.39.0
   with:
     left-results: artifacts/arena-old/results.json
     right-results: artifacts/arena-current/results.json
@@ -43,11 +43,23 @@ jobs:
 
 The action runs `codex-maintainer arena compare`, uploads `arena-compare.json` and `arena-compare.md`, and exposes the comparison status. See `arena-compare-action.md`.
 
+## Docs Check Action
+
+```yaml
+- name: Check docs links
+  uses: jlekerli-source/ringly-codex-workflows/actions/docs-check@v3.39.0
+  with:
+    path: .
+    mode: fail
+```
+
+The action runs `codex-maintainer docs-check`, uploads `docs-check.json` and `docs-check.md`, and exposes the docs-check status. See `docs-check-action.md`.
+
 ## Transcript Verify Action
 
 ```yaml
 - name: Verify redacted transcript
-  uses: jlekerli-source/ringly-codex-workflows/actions/transcript-verify@v3.38.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/transcript-verify@v3.39.0
   with:
     transcript: examples/redacted-transcript.md
     mode: fail
@@ -59,7 +71,7 @@ The action runs `codex-maintainer transcript verify`, uploads `transcript-verify
 
 ```yaml
 - name: Verify transcript corpus
-  uses: jlekerli-source/ringly-codex-workflows/actions/transcript-corpus@v3.38.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/transcript-corpus@v3.39.0
   with:
     source: fixtures/transcripts
     require-report: true
@@ -72,9 +84,9 @@ The action runs `codex-maintainer transcript corpus`, uploads `corpus.json`, `in
 
 ```yaml
 - name: Build release proof
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.38.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.39.0
   with:
-    release-url: https://github.com/owner/repo/releases/tag/v3.38.0
+    release-url: https://github.com/owner/repo/releases/tag/v3.39.0
     issue-url: https://github.com/owner/repo/issues/123
 ```
 
@@ -84,10 +96,10 @@ The action builds the release tarball, manifest, release index, replay report, a
 
 ```yaml
 - name: Verify published proof assets
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.38.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.39.0
   with:
     repo: jlekerli-source/ringly-codex-workflows
-    release-tag: v3.38.0
+    release-tag: v3.39.0
     mode: fail
 ```
 
@@ -97,11 +109,11 @@ The action downloads release assets with `gh release download`, runs `codex-main
 
 ```yaml
 - name: Compare published proof assets
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.38.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.39.0
   with:
     repo: jlekerli-source/ringly-codex-workflows
     left-tag: v0.0.0
-    right-tag: v3.38.0
+    right-tag: v3.39.0
     mode: fail
 ```
 
@@ -111,7 +123,7 @@ The action downloads both releases, runs `codex-maintainer release-diff compare`
 
 ```yaml
 - name: Export release evidence
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.38.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.39.0
   with:
     title: Codex Maintainer Release Evidence
     include-diff: auto
@@ -125,11 +137,11 @@ The action runs `codex-maintainer release-evidence site`, optionally runs `codex
 
 ```yaml
 - name: Build release evidence bundle
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.38.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.39.0
   with:
     run: bundle
     repo: jlekerli-source/ringly-codex-workflows
-    release-tag: v3.38.0
+    release-tag: v3.39.0
     previous-tag: v3.19.0
     download-assets: true
     mode: fail
@@ -141,7 +153,7 @@ Bundle mode downloads release assets, runs `codex-maintainer release-evidence bu
 
 ```yaml
 - name: Verify release evidence artifact
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.38.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.39.0
   with:
     download-artifact: true
     source-artifact-name: codex-maintainer-release-evidence
@@ -157,7 +169,7 @@ Use this in a downstream job to prove an evidence artifact produced by `actions/
 
 ```yaml
 - name: Audit release evidence negative fixtures
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-negative-index@v3.38.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-negative-index@v3.39.0
   with:
     mode: fail
 ```

@@ -1,0 +1,29 @@
+{
+  "name": "ios-shipguard",
+  "version": "0.2.0",
+  "description": "Codex workflow guardrails for solo iOS developers shipping permission-heavy apps.",
+  "author": {
+    "name": "Ringly Codex Workflows",
+    "url": "https://github.com/jlekerli-source/ringly-codex-workflows"
+  },
+  "homepage": "https://github.com/jlekerli-source/ringly-codex-workflows",
+  "repository": "https://github.com/jlekerli-source/ringly-codex-workflows",
+  "license": "MIT",
+  "keywords": ["codex", "ios", "swift", "permissions", "release-proof"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "iOS Shipguard",
+    "shortDescription": "Guardrails for solo iOS Codex work.",
+    "longDescription": "iOS Shipguard helps Codex classify risky iOS work, inventory permissions and runtime surfaces, ask required product questions before editing, and route simulator, StoreKit, widget, notification, and release proof through the right validation loop.",
+    "developerName": "Ringly Codex Workflows",
+    "category": "Developer",
+    "capabilities": ["Read", "Write", "Interactive"],
+    "defaultPrompt": [
+      "Use $ios-shipguard before risky iOS edits.",
+      "Open Shipguard Devspace for my simulator.",
+      "Send the latest preview event to Codex."
+    ],
+    "brandColor": "#2563EB"
+  }
+}

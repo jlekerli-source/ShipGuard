@@ -6,11 +6,11 @@ Use it after downloading a published release asset set:
 
 ```bash
 ./bin/codex-maintainer release-evidence bundle \
-  --assets /tmp/codex-maintainer-v3.38.0 \
+  --assets /tmp/codex-maintainer-v3.39.0 \
   --left /tmp/codex-maintainer-v3.19.0 \
-  --out /tmp/codex-maintainer-v3.38.0-evidence-bundle \
-  --version 3.38.0 \
-  --title "Codex Maintainer v3.38.0 Evidence" \
+  --out /tmp/codex-maintainer-v3.39.0-evidence-bundle \
+  --version 3.39.0 \
+  --title "Codex Maintainer v3.39.0 Evidence" \
   --index-title "Codex Maintainer Release Evidence"
 ```
 

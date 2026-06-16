@@ -29,7 +29,7 @@ Defaults:
 
 ```yaml
 - name: Generate Codex maintainer review comment
-  uses: jlekerli-source/ringly-codex-workflows/actions/review-comment@v0.8.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/review-comment@v3.39.0
   with:
     report: autopsy/report.json
     mode: warn
@@ -47,7 +47,7 @@ steps:
   - name: Generate autopsy report
     run: ./bin/codex-maintainer autopsy --run run.md --diff change.patch --tests test.log --out autopsy
   - name: Generate review comment
-    uses: jlekerli-source/ringly-codex-workflows/actions/review-comment@v0.8.0
+    uses: jlekerli-source/ringly-codex-workflows/actions/review-comment@v3.39.0
     with:
       report: autopsy/report.json
       mode: warn

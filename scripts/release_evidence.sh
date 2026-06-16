@@ -3,6 +3,8 @@
 set -euo pipefail
 
 tool_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=/dev/null
+source "$tool_root/scripts/lib/safe_paths.sh"
 
 usage() {
   cat <<'USAGE'
@@ -725,6 +727,12 @@ cmd_bundle() {
     [[ -d "$left_dir" ]] || fail "previous release assets directory not found: $left_dir"
   fi
 
+  require_safe_artifact_dir "out" "$out_dir" "$tool_root" >/dev/null || exit 1
+  require_no_artifact_overlap "assets" "$assets_dir" "out" "$out_dir" || exit 1
+  if [[ -n "$left_dir" ]]; then
+    require_no_artifact_overlap "left" "$left_dir" "out" "$out_dir" || exit 1
+  fi
+
   local assets_abs
   local out_abs
   assets_abs="$(cd "$assets_dir" && pwd -P)"
@@ -749,7 +757,10 @@ cmd_bundle() {
   local diff_dir="$out_dir/release-diff"
   local site_dir="$out_dir/site"
   local index_dir="$out_dir/index"
-  rm -rf "$consumer_dir" "$diff_dir" "$site_dir" "$index_dir"
+  safe_rm_artifact_dir "consumer proof output" "$consumer_dir" "$tool_root"
+  safe_rm_artifact_dir "release diff output" "$diff_dir" "$tool_root"
+  safe_rm_artifact_dir "site output" "$site_dir" "$tool_root"
+  safe_rm_artifact_dir "index output" "$index_dir" "$tool_root"
   mkdir -p "$out_dir"
 
   local consume_args=(release-consume verify --dir "$assets_dir" --out "$consumer_dir")

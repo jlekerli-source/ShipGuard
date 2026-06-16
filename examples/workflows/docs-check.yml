@@ -1,0 +1,22 @@
+name: Check docs links
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Check docs links
+        uses: jlekerli-source/ringly-codex-workflows/actions/docs-check@v3.39.0
+        with:
+          path: .
+          mode: fail
+          artifact-name: codex-maintainer-docs-check

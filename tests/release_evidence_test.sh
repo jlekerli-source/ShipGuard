@@ -171,4 +171,20 @@ if ./bin/codex-maintainer release-evidence bundle \
   exit 1
 fi
 
+if ./bin/codex-maintainer release-evidence bundle \
+  --assets "$assets" \
+  --out "." \
+  --version "$version" >/dev/null 2>&1; then
+  echo "expected bundle output at current directory to fail" >&2
+  exit 1
+fi
+
+if ./bin/codex-maintainer release-evidence bundle \
+  --assets "$assets" \
+  --out "$repo_root" \
+  --version "$version" >/dev/null 2>&1; then
+  echo "expected bundle output at repository root to fail" >&2
+  exit 1
+fi
+
 echo "release evidence tests passed"

@@ -69,6 +69,130 @@ Existing files are skipped. Use `--force` to overwrite generated workflow files:
 
 See `template-profiles.md` for profile details.
 
+## iOS Doctor
+
+Discover the iOS app topology before Codex chooses a proof path:
+
+```bash
+./bin/codex-maintainer ios doctor --path ../my-ios-app --out /tmp/ios-shipguard-doctor
+```
+
+The command writes `ios-doctor.md` and `ios-doctor.json`. It scans for Xcode projects, workspaces, Swift packages, schemes, deployment targets, Swift versions, bundle IDs, test plans, StoreKit configs, privacy manifests, plists, entitlements, and Swift imports.
+
+Use JSON output when another script or Codex workflow needs structured topology:
+
+```bash
+./bin/codex-maintainer ios doctor --path ../my-ios-app --json
+```
+
+Run `ios doctor` before `ios inventory` on a new app. Doctor tells Codex what can be built and tested; inventory tells Codex which permission/runtime surfaces need questions and proof. Inventory rebuilds doctor topology automatically unless `--doctor` points at a saved `ios-doctor.json`.
+
+## iOS Inventory
+
+Inventory permission and runtime surfaces before risky iOS Codex edits:
+
+```bash
+./bin/codex-maintainer ios inventory --path ../my-ios-app --out /tmp/ios-shipguard-inventory
+```
+
+The command writes `ios-inventory.md` and `ios-inventory.json`. It scans Swift source, plist files, entitlements, StoreKit configs, privacy manifests, and doctor topology for surfaces such as notifications, AlarmKit, Location, Camera, Microphone, Photos, HealthKit, Push Notifications, App Groups, Background Modes, Live Activities, WidgetKit, App Intents, StoreKit, Swift concurrency, Foundation Models, and Core ML.
+
+Reuse a saved topology report when CI or another Codex step should consume the same target map:
+
+```bash
+./bin/codex-maintainer ios inventory \
+  --path ../my-ios-app \
+  --doctor /tmp/ios-shipguard-doctor/ios-doctor.json \
+  --out /tmp/ios-shipguard-inventory
+```
+
+Use JSON output when another script or Codex workflow needs structured data:
+
+```bash
+./bin/codex-maintainer ios inventory --path ../my-ios-app --json
+```
+
+The JSON keeps the top-level `surfaces` list and adds `targets`, `owners`, `owner_status`, target `risk_counts`, StoreKit config ownership, and privacy manifest ownership. When the report marks a surface as `needs-user-answer`, Codex should ask the required product/proof question before editing. See `ios-shipguard.md`.
+
+## iOS Preview
+
+Serve a booted Simulator screenshot into Codex's in-app browser:
+
+```bash
+./bin/codex-maintainer ios preview --out /tmp/ios-shipguard-preview
+```
+
+The command writes `session.json`, `preview-url.txt`, `preview-events.jsonl`, and `last-screenshot.png` under the output directory. Open the printed URL in the Codex in-app browser, leave browser comments, or record click/note events on the preview page.
+
+Use fixture mode for tests or docs without a booted simulator:
+
+```bash
+./bin/codex-maintainer ios preview \
+  --out /tmp/ios-shipguard-preview \
+  --fixture-image path/to/screenshot.png \
+  --port 0
+```
+
+The preview bridge records visual intent and exposes `/api/handoff` so Codex can choose the next XcodeBuildMCP, UI test, or manual simulator proof step. Use XcodeBuildMCP semantic element refs for real tap/swipe proof; do not treat browser click coordinates as direct simulator input.
+
+## iOS Devspace
+
+Expose the preview bridge as a ChatGPT Apps / MCP connector:
+
+```bash
+./bin/codex-maintainer ios devspace --port 8787 --preview-out /tmp/ios-shipguard-preview
+```
+
+For tunneled HTTP mode, protect the MCP endpoint with a bearer token:
+
+```bash
+export SHIPGUARD_DEVSPACE_TOKEN="$(openssl rand -hex 32)"
+./bin/codex-maintainer ios devspace \
+  --port 8787 \
+  --preview-out /tmp/ios-shipguard-preview \
+  --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN
+```
+
+The command serves:
+
+- `/mcp`: MCP JSON-RPC endpoint for ChatGPT Developer Mode.
+- `/healthz`: local state and health check.
+- `/preview-screenshot.png`: screenshot proxy for the widget after `preview_start`.
+
+The connector registers the `ui://widget/shipguard-preview-v1.html` widget resource and tools for preview start, state, screenshots, event recording, handoff, simulator listing, slash-goal emission, and Codex handoff prompt preparation. Use `--stdio` for Codex plugin MCP integration, and HTTP mode with an HTTPS tunnel plus bearer auth for ChatGPT Developer Mode. See `shipguard-devspace.md`.
+
+## iOS Codex Handoff
+
+```bash
+./bin/codex-maintainer ios codex-handoff \
+  --prompt-file /tmp/ios-shipguard-preview/codex-handoff.md \
+  --out /tmp/ios-shipguard-preview/codex-supervisor
+```
+
+This prepares a guarded Codex app-server handoff bundle: prompt, request plan, and JSONL message template. Add `--execute` only from a trusted local terminal when you intentionally want to start `codex app-server`, create a thread, start a turn, and record the transcript.
+
+## iOS Goals
+
+Run the self-advancing Shipguard goal loop:
+
+```bash
+./bin/codex-maintainer ios goals init --state .shipguard/goals.json --out NEXT_SHIPGUARD_GOAL.md
+./bin/codex-maintainer ios goals next --state .shipguard/goals.json --out NEXT_SHIPGUARD_GOAL.md
+./bin/codex-maintainer ios goals status --state .shipguard/goals.json
+```
+
+Complete the current goal only after proof exists:
+
+```bash
+./bin/codex-maintainer ios goals complete \
+  --state .shipguard/goals.json \
+  --goal shipguard-ios-doctor \
+  --evidence path/to/proof.md \
+  --out NEXT_SHIPGUARD_GOAL.md
+```
+
+`complete` records the evidence receipt, advances to the next pending goal, and writes the next `/goal` block when `--out` is provided. The loop intentionally requires evidence; it does not infer completion from intent.
+
 ## Doctor
 
 Check whether a target repo has the starter workflow files:
@@ -298,7 +422,7 @@ Check Markdown files for broken local links:
 ./bin/codex-maintainer docs-check . --out /tmp/codex-maintainer-docs-check
 ```
 
-External URLs and in-page anchors are ignored. The command writes `docs-check.json` and `docs-check.md` when `--out` is provided. See `docs-check.md`.
+External URLs and in-page anchors are ignored. The command writes `docs-check.json` and `docs-check.md` when `--out` is provided. Use `actions/docs-check` when this audit should run in GitHub Actions. See `docs-check.md` and `docs-check-action.md`.
 
 ## Leaderboard
 
@@ -318,7 +442,7 @@ Generate release proof files for a tarball:
 
 ```bash
 ./bin/codex-maintainer release-manifest \
-  --tarball dist/codex-maintainer-v3.38.0.tar.gz \
+  --tarball dist/codex-maintainer-v3.39.0.tar.gz \
   --out /tmp/codex-maintainer-release-proof
 ```
 
@@ -327,7 +451,7 @@ Verify the manifest against the tarball:
 ```bash
 ./bin/codex-maintainer release-manifest verify \
   --manifest /tmp/codex-maintainer-release-proof/release-manifest.json \
-  --tarball dist/codex-maintainer-v3.38.0.tar.gz
+  --tarball dist/codex-maintainer-v3.39.0.tar.gz
 ```
 
 The command writes `release-manifest.json` and `proof-ledger.md`. Add `--ci-run-url`, `--release-url`, and `--issue-url` after publishing to bind the local artifact digest to public release proof. See `release-manifest.md`.
@@ -337,7 +461,7 @@ Build a release proof catalog from manifests:
 ```bash
 ./bin/codex-maintainer release-index build \
   --manifest dist/release-proof-v3.5.0/release-manifest.json \
-  --manifest dist/release-proof-v3.38.0/release-manifest.json \
+  --manifest dist/release-proof-v3.39.0/release-manifest.json \
   --out /tmp/codex-maintainer-release-index
 ```
 
@@ -348,7 +472,7 @@ Replay-verify downloaded release assets:
 ```bash
 ./bin/codex-maintainer release-replay verify \
   --manifest /tmp/codex-maintainer-release-proof/release-manifest.json \
-  --tarball /tmp/codex-maintainer-release-assets/codex-maintainer-v3.38.0.tar.gz \
+  --tarball /tmp/codex-maintainer-release-assets/codex-maintainer-v3.39.0.tar.gz \
   --index /tmp/codex-maintainer-release-index/release-index.json \
   --ledger /tmp/codex-maintainer-release-proof/proof-ledger.md \
   --out /tmp/codex-maintainer-release-replay
@@ -372,7 +496,7 @@ Build the full release proof bundle in one command:
 ```bash
 ./bin/codex-maintainer release-proof build \
   --out /tmp/codex-maintainer-release-proof-bundle \
-  --release-url https://github.com/owner/repo/releases/tag/v3.38.0
+  --release-url https://github.com/owner/repo/releases/tag/v3.39.0
 ```
 
 The command writes the release tarball, manifest, release index, replay report, attestation, and attestation badge. See `release-proof.md`.
@@ -383,9 +507,9 @@ Verify a flat directory of downloaded release assets and write a consumer report
 
 ```bash
 ./bin/codex-maintainer release-consume verify \
-  --dir /tmp/codex-maintainer-v3.38.0 \
-  --out /tmp/codex-maintainer-v3.38.0/consumer-proof \
-  --version 3.38.0
+  --dir /tmp/codex-maintainer-v3.39.0 \
+  --out /tmp/codex-maintainer-v3.39.0/consumer-proof \
+  --version 3.39.0
 ```
 
 The command writes `consumer-report.json`, `consumer-report.md`, `asset-digests.json`, `asset-digests.md`, `sha256.txt`, replay outputs, and attestation outputs. It also cross-checks downloaded replay, attestation, and badge assets when they are present. Use `actions/release-consume` when this verification should run in GitHub Actions. See `release-consume.md` and `release-consume-action.md`.
@@ -397,7 +521,7 @@ Compare two release proof asset directories and write JSON/Markdown diff reports
 ```bash
 ./bin/codex-maintainer release-diff compare \
   --left /tmp/codex-maintainer-old \
-  --right /tmp/codex-maintainer-v3.38.0 \
+  --right /tmp/codex-maintainer-v3.39.0 \
   --out /tmp/codex-maintainer-release-diff
 ```
 
@@ -409,7 +533,7 @@ Export release proof reports as a static evidence page:
 
 ```bash
 ./bin/codex-maintainer release-evidence site \
-  --consume /tmp/codex-maintainer-v3.38.0/consumer-proof \
+  --consume /tmp/codex-maintainer-v3.39.0/consumer-proof \
   --diff /tmp/codex-maintainer-release-diff \
   --out /tmp/codex-maintainer-release-site
 ```
@@ -421,7 +545,7 @@ Build a static index from one or more evidence site exports:
 ```bash
 ./bin/codex-maintainer release-evidence index \
   --site /tmp/codex-maintainer-previous-site \
-  --site /tmp/codex-maintainer-v3.38.0-site \
+  --site /tmp/codex-maintainer-v3.39.0-site \
   --out /tmp/codex-maintainer-release-history
 ```
 
@@ -431,11 +555,11 @@ Build the full local evidence path from downloaded release assets:
 
 ```bash
 ./bin/codex-maintainer release-evidence bundle \
-  --assets /tmp/codex-maintainer-v3.38.0 \
+  --assets /tmp/codex-maintainer-v3.39.0 \
   --left /tmp/codex-maintainer-old \
   --out /tmp/codex-maintainer-release-evidence-bundle \
-  --version 3.38.0 \
-  --title "Codex Maintainer v3.38.0 Evidence"
+  --version 3.39.0 \
+  --title "Codex Maintainer v3.39.0 Evidence"
 ```
 
 The command writes consumer proof, optional release-diff proof, `site/index.html`, `index/evidence-index.json`, `bundle.json`, and `README.md`. See `release-evidence-bundle.md`.
@@ -469,28 +593,28 @@ Use `actions/release-evidence-negative-index` when this guardrail index should r
 Download a published release bundle, verify the tarball digest, replay the proof, and rebuild the compact attestation:
 
 ```bash
-gh release download v3.38.0 \
+gh release download v3.39.0 \
   --repo jlekerli-source/ringly-codex-workflows \
-  --pattern 'codex-maintainer-v3.38.0.tar.gz' \
+  --pattern 'codex-maintainer-v3.39.0.tar.gz' \
   --pattern 'release-manifest.json' \
   --pattern 'release-index.json' \
   --pattern 'proof-ledger.md' \
   --pattern 'attestation-badge.json' \
-  --dir /tmp/codex-maintainer-v3.38.0
+  --dir /tmp/codex-maintainer-v3.39.0
 
-shasum -a 256 /tmp/codex-maintainer-v3.38.0/codex-maintainer-v3.38.0.tar.gz
+shasum -a 256 /tmp/codex-maintainer-v3.39.0/codex-maintainer-v3.39.0.tar.gz
 
 ./bin/codex-maintainer release-replay verify \
-  --manifest /tmp/codex-maintainer-v3.38.0/release-manifest.json \
-  --tarball /tmp/codex-maintainer-v3.38.0/codex-maintainer-v3.38.0.tar.gz \
-  --index /tmp/codex-maintainer-v3.38.0/release-index.json \
-  --ledger /tmp/codex-maintainer-v3.38.0/proof-ledger.md \
-  --out /tmp/codex-maintainer-v3.38.0/consumer-replay
+  --manifest /tmp/codex-maintainer-v3.39.0/release-manifest.json \
+  --tarball /tmp/codex-maintainer-v3.39.0/codex-maintainer-v3.39.0.tar.gz \
+  --index /tmp/codex-maintainer-v3.39.0/release-index.json \
+  --ledger /tmp/codex-maintainer-v3.39.0/proof-ledger.md \
+  --out /tmp/codex-maintainer-v3.39.0/consumer-replay
 
 ./bin/codex-maintainer release-attest build \
-  --manifest /tmp/codex-maintainer-v3.38.0/release-manifest.json \
-  --replay /tmp/codex-maintainer-v3.38.0/consumer-replay/replay-report.json \
-  --out /tmp/codex-maintainer-v3.38.0/consumer-attestation
+  --manifest /tmp/codex-maintainer-v3.39.0/release-manifest.json \
+  --replay /tmp/codex-maintainer-v3.39.0/consumer-replay/replay-report.json \
+  --out /tmp/codex-maintainer-v3.39.0/consumer-attestation
 ```
 
 See `release-proof-consumption.md` for the rejection rules and trust model.
@@ -536,8 +660,8 @@ The command writes a Markdown plan with a `/goal` block, release constraints, pr
 Download and extract a release package:
 
 ```bash
-tar -xzf codex-maintainer-v3.38.0.tar.gz
-cd codex-maintainer-v3.38.0
+tar -xzf codex-maintainer-v3.39.0.tar.gz
+cd codex-maintainer-v3.39.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 ```
 

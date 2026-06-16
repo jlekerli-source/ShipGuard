@@ -7,8 +7,10 @@ out_root="${1:-examples/demo-reports}"
 generated_at="${CODEX_MAINTAINER_GENERATED_AT:-2026-06-16T00:00:00Z}"
 
 cd "$repo_root"
+# shellcheck source=/dev/null
+source "$repo_root/scripts/lib/safe_paths.sh"
 
-rm -rf "$out_root"
+safe_rm_artifact_dir "out root" "$out_root" "$repo_root"
 mkdir -p "$out_root"
 
 CODEX_MAINTAINER_GENERATED_AT="$generated_at" \

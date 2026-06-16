@@ -70,6 +70,24 @@ jobs:
       - name: Run docs check tests
         run: ./tests/docs_check_test.sh
 
+      - name: Run docs check action tests
+        run: ./tests/docs_check_action_test.sh
+
+      - name: Run iOS doctor tests
+        run: ./tests/ios_doctor_test.sh
+
+      - name: Run iOS inventory tests
+        run: ./tests/ios_inventory_test.sh
+
+      - name: Run iOS target risk map tests
+        run: ./tests/ios_target_risk_map_test.sh
+
+      - name: Run iOS goal loop tests
+        run: ./tests/ios_goal_loop_test.sh
+
+      - name: Run safe path tests
+        run: ./tests/safe_paths_test.sh
+
       - name: Run transcript redaction tests
         run: ./tests/transcript_redaction_test.sh
 

@@ -1,0 +1,45 @@
+// !$*UTF8*$!
+{
+  archiveVersion = 1;
+  classes = {
+  };
+  objectVersion = 56;
+  objects = {
+
+/* Begin PBXNativeTarget section */
+    A00000000000000000000001 /* DemoCodexMaintainerApp */ = {
+      isa = PBXNativeTarget;
+      buildConfigurationList = A00000000000000000000002 /* Build configuration list for PBXNativeTarget "DemoCodexMaintainerApp" */;
+      name = DemoCodexMaintainerApp;
+      productName = DemoCodexMaintainerApp;
+    };
+/* End PBXNativeTarget section */
+
+/* Begin XCBuildConfiguration section */
+    A00000000000000000000003 /* Debug */ = {
+      isa = XCBuildConfiguration;
+      buildSettings = {
+        CODE_SIGN_ENTITLEMENTS = Sources/DemoCodexMaintainerApp/DemoCodexMaintainerApp.entitlements;
+        INFOPLIST_FILE = Sources/DemoCodexMaintainerApp/Info.plist;
+        IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+        PRODUCT_BUNDLE_IDENTIFIER = dev.codexmaintainer.demo;
+        SWIFT_VERSION = 6.0;
+      };
+      name = Debug;
+    };
+    A00000000000000000000004 /* Release */ = {
+      isa = XCBuildConfiguration;
+      buildSettings = {
+        CODE_SIGN_ENTITLEMENTS = Sources/DemoCodexMaintainerApp/DemoCodexMaintainerApp.entitlements;
+        INFOPLIST_FILE = Sources/DemoCodexMaintainerApp/Info.plist;
+        IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+        PRODUCT_BUNDLE_IDENTIFIER = dev.codexmaintainer.demo;
+        SWIFT_VERSION = 6.0;
+      };
+      name = Release;
+    };
+/* End XCBuildConfiguration section */
+
+  };
+  rootObject = A00000000000000000000005 /* Project object */;
+}

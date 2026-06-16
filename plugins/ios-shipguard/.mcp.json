@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "shipguard-devspace": {
+      "title": "Shipguard Devspace",
+      "description": "Expose iOS preview, visual event, and Codex handoff tools for Shipguard.",
+      "cwd": "../..",
+      "command": "python3",
+      "args": [
+        "./scripts/shipguard_devspace_mcp.py",
+        "--stdio",
+        "--repo-root",
+        "."
+      ]
+    }
+  }
+}

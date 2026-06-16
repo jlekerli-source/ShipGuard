@@ -24,6 +24,7 @@ required_files=(
   ".github/workflows/autopsy-artifact.yml"
   "actions/ci-gate/action.yml"
   "actions/arena-compare/action.yml"
+  "actions/docs-check/action.yml"
   "actions/release-evidence/action.yml"
   "actions/release-evidence-negative-index/action.yml"
   "actions/release-evidence-verify/action.yml"
@@ -43,12 +44,17 @@ required_files=(
   "docs/ci-gate.md"
   "docs/ci-summary.md"
   "docs/command-matrix.md"
+  "docs/core-loop.md"
   "docs/demo-reports.md"
+  "docs/docs-check-action.md"
   "docs/docs-check.md"
   "docs/_config.yml"
   "docs/cli.md"
   "docs/github-action.md"
   "docs/index.md"
+  "docs/ios-shipguard.md"
+  "docs/ios-preview.md"
+  "docs/shipguard-devspace.md"
   "docs/maintainer-reliability-os.md"
   "docs/next-goal.md"
   "docs/policy.md"
@@ -71,6 +77,13 @@ required_files=(
   "docs/transcript-verify-action.md"
   "docs/use-in-your-repo.md"
   "docs/workflow-diagram.md"
+  "docs/oss-evaluation.md"
+  "docs/superpowers/specs/2026-06-16-ios-preview-bridge-design.md"
+  "docs/superpowers/specs/2026-06-16-shipguard-devspace-mcp-design.md"
+  "docs/superpowers/plans/2026-06-16-oss-eval-improvements.md"
+  "docs/superpowers/plans/2026-06-16-ios-shipguard-autonomous-loop.md"
+  "docs/superpowers/plans/2026-06-16-ios-preview-bridge.md"
+  "docs/superpowers/plans/2026-06-16-shipguard-devspace-mcp.md"
   "examples/adoption-checklist.md"
   "examples/arena-results.md"
   "examples/redacted-transcript.md"
@@ -80,6 +93,7 @@ required_files=(
   "examples/workflows/release-proof-manual.yml"
   "examples/workflows/release-proof-on-tag.yml"
   "examples/workflows/arena-compare.yml"
+  "examples/workflows/docs-check.yml"
   "examples/workflows/transcript-corpus.yml"
   "examples/workflows/transcript-verify.yml"
   "examples/workflows/release-evidence-negative-index.yml"
@@ -107,6 +121,16 @@ required_files=(
   "fixtures/demo-ios-repo/Package.swift"
   "fixtures/demo-ios-repo/README.md"
   "fixtures/demo-ios-repo/SampleRun.md"
+  "fixtures/demo-ios-repo/DemoCodexMaintainerApp.xcodeproj/project.pbxproj"
+  "fixtures/demo-ios-repo/DemoCodexMaintainerApp.xcodeproj/xcshareddata/xcschemes/DemoCodexMaintainerApp.xcscheme"
+  "fixtures/demo-ios-repo/DemoCodexMaintainerApp.xcworkspace/contents.xcworkspacedata"
+  "fixtures/demo-ios-repo/DemoCodexMaintainerApp.xctestplan"
+  "fixtures/demo-ios-repo/DemoProducts.storekit"
+  "fixtures/demo-ios-repo/PrivacyInfo.xcprivacy"
+  "fixtures/demo-ios-repo/Sources/DemoCodexMaintainerApp/DemoCodexMaintainerApp.entitlements"
+  "fixtures/demo-ios-repo/Sources/DemoCodexMaintainerApp/DemoPermissions.swift"
+  "fixtures/demo-ios-repo/Sources/DemoCodexMaintainerApp/Info.plist"
+  "fixtures/demo-ios-repo/Tests/DemoCodexMaintainerAppTests/DemoPermissionsTests.swift"
   "fixtures/policy/strict.conf"
   "fixtures/autopsy/good-run/diff.patch"
   "fixtures/autopsy/good-run/run.md"
@@ -164,6 +188,9 @@ required_files=(
   "fixtures/release-evidence/negative/consumer-mismatch/site/evidence.json"
   "fixtures/release-evidence/negative/digest-summary-mismatch/site/evidence.json"
   "fixtures/release-evidence/negative/bundle-missing-output/bundle.json"
+  "evals/README.md"
+  "evals/cases.jsonl"
+  "evals/run_local.py"
   "scripts/arena_run.sh"
   "scripts/arena_import.sh"
   "scripts/arena_compare.sh"
@@ -176,7 +203,14 @@ required_files=(
   "scripts/ci_summary.sh"
   "scripts/docs_check.sh"
   "scripts/install.sh"
+  "scripts/ios_doctor.py"
+  "scripts/ios_goal_loop.py"
+  "scripts/ios_inventory.py"
+  "scripts/ios_preview.py"
+  "scripts/ios_codex_handoff.py"
+  "scripts/shipguard_devspace_mcp.py"
   "scripts/leaderboard_build.sh"
+  "scripts/lib/safe_paths.sh"
   "scripts/next_goal.sh"
   "scripts/package_release.sh"
   "scripts/policy.sh"
@@ -206,7 +240,15 @@ required_files=(
   "tests/ci_gate_test.sh"
   "tests/ci_summary_test.sh"
   "tests/cli_smoke_test.sh"
+  "tests/docs_check_action_test.sh"
   "tests/docs_check_test.sh"
+  "tests/ios_doctor_test.sh"
+  "tests/ios_goal_loop_test.sh"
+  "tests/ios_inventory_test.sh"
+  "tests/ios_preview_test.sh"
+  "tests/ios_codex_handoff_test.sh"
+  "tests/shipguard_devspace_mcp_test.sh"
+  "tests/ios_target_risk_map_test.sh"
   "tests/action_artifact_test.sh"
   "tests/arena_compare_action_test.sh"
   "tests/arena_import_test.sh"
@@ -231,6 +273,7 @@ required_files=(
   "tests/release_evidence_verify_action_test.sh"
   "tests/release_evidence_verify_test.sh"
   "tests/review_comment_test.sh"
+  "tests/safe_paths_test.sh"
   "tests/sarif_test.sh"
   "tests/self_audit_test.sh"
   "tests/template_profiles_test.sh"
@@ -242,8 +285,14 @@ required_files=(
   ".agents/skills/alarm-testing/SKILL.md"
   ".agents/skills/bug-triage/SKILL.md"
   ".agents/skills/notification-permissions/SKILL.md"
+  ".agents/plugins/marketplace.json"
   ".agents/skills/release-checklist/SKILL.md"
   ".agents/skills/ui-polish/SKILL.md"
+  "plugins/ios-shipguard/.mcp.json"
+  "plugins/ios-shipguard/.codex-plugin/plugin.json"
+  "plugins/ios-shipguard/skills/ios-shipguard/SKILL.md"
+  "plugins/ios-shipguard/skills/ios-shipguard/agents/openai.yaml"
+  "plugins/ios-shipguard/skills/ios-shipguard/references/modes.md"
 )
 
 for file in "${required_files[@]}"; do
@@ -274,6 +323,22 @@ for skill in .agents/skills/*/SKILL.md; do
   fi
 done
 
+while IFS= read -r skill; do
+  delimiter_count=$(grep -c '^---$' "$skill")
+  if [[ "$delimiter_count" -ne 2 ]]; then
+    echo "expected exactly two frontmatter delimiters: $skill" >&2
+    exit 1
+  fi
+  if [[ "$(grep -c '^name: ' "$skill")" -ne 1 ]]; then
+    echo "missing skill name: $skill" >&2
+    exit 1
+  fi
+  if [[ "$(grep -c '^description: ' "$skill")" -ne 1 ]]; then
+    echo "missing skill description: $skill" >&2
+    exit 1
+  fi
+done < <(find plugins -path '*/skills/*/SKILL.md' -type f | sort)
+
 while IFS= read -r script; do
   bash -n "$script"
   if head -n 1 "$script" | grep -q '^#!' && [[ ! -x "$script" ]]; then
@@ -281,6 +346,20 @@ while IFS= read -r script; do
     exit 1
   fi
 done < <(find scripts -type f -name '*.sh' | sort)
+
+while IFS= read -r script; do
+  python3 - "$script" <<'PY'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+compile(path.read_text(encoding="utf-8"), str(path), "exec")
+PY
+  if head -n 1 "$script" | grep -q '^#!' && [[ ! -x "$script" ]]; then
+    echo "script has shebang but is not executable: $script" >&2
+    exit 1
+  fi
+done < <(find scripts evals -type f -name '*.py' | sort)
 
 while IFS=: read -r file target; do
   [[ -z "$target" ]] && continue

@@ -34,6 +34,12 @@ Usage:
   codex-maintainer check-run post --payload <payload.json> --repo <owner/repo> --out <response.json> [--api-url <url>] [--token <token>] [--dry-run]
   codex-maintainer sarif --report <report.json> --out <results.sarif>
   codex-maintainer docs-check [path] [--out <dir>]
+  codex-maintainer ios doctor [--path <ios-project>] [--out <dir>] [--json|--markdown]
+  codex-maintainer ios inventory [--path <ios-project>] [--doctor <ios-doctor.json>] [--out <dir>] [--json|--markdown]
+  codex-maintainer ios preview --out <dir> [--device booted] [--host 127.0.0.1] [--port 8765]
+  codex-maintainer ios devspace [--host 127.0.0.1] [--port 8787] [--preview-url <url>] [--bearer-token-env <env>]
+  codex-maintainer ios codex-handoff --prompt-file <file>|--prompt <text> --out <dir> [--execute]
+  codex-maintainer ios goals init|status|next|complete [options]
   codex-maintainer leaderboard build --arena-results <results.json> --out <leaderboard.json>
   codex-maintainer release-manifest --tarball <release.tar.gz> --out <dir> [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--release-url <url>] [--issue-url <url>]
   codex-maintainer release-manifest verify --manifest <release-manifest.json> --tarball <release.tar.gz> [--version <version>] [--tag <tag>]
@@ -69,6 +75,7 @@ Commands:
   check-run   Generate or optionally post GitHub Checks API payloads from gate JSON.
   sarif       Convert an autopsy report JSON file into SARIF 2.1.0.
   docs-check  Check Markdown files for broken local links.
+  ios         iOS-focused Codex planning helpers for permission, preview, and runtime surfaces.
   leaderboard Build a stable leaderboard JSON file from arena results.
   release-manifest
               Generate release-manifest JSON and proof-ledger Markdown.
@@ -350,6 +357,32 @@ cmd_docs_check() {
   "$tool_root/scripts/docs_check.sh" "$@"
 }
 
+cmd_ios() {
+  local subcommand="${1:-}"
+  [[ "$subcommand" == "doctor" || "$subcommand" == "inventory" || "$subcommand" == "preview" || "$subcommand" == "devspace" || "$subcommand" == "codex-handoff" || "$subcommand" == "goals" ]] || fail "ios requires subcommand: doctor, inventory, preview, devspace, codex-handoff, or goals"
+  shift || true
+  case "$subcommand" in
+    doctor)
+      "$tool_root/scripts/ios_doctor.py" "$@"
+      ;;
+    inventory)
+      "$tool_root/scripts/ios_inventory.py" "$@"
+      ;;
+    preview)
+      "$tool_root/scripts/ios_preview.py" "$@"
+      ;;
+    devspace)
+      "$tool_root/scripts/shipguard_devspace_mcp.py" --repo-root "$tool_root" "$@"
+      ;;
+    codex-handoff)
+      "$tool_root/scripts/ios_codex_handoff.py" "$@"
+      ;;
+    goals)
+      "$tool_root/scripts/ios_goal_loop.py" "$@"
+      ;;
+  esac
+}
+
 cmd_leaderboard() {
   local subcommand="${1:-}"
   [[ "$subcommand" == "build" ]] || fail "leaderboard requires subcommand: build"
@@ -452,6 +485,9 @@ main() {
       ;;
     docs-check)
       cmd_docs_check "$@"
+      ;;
+    ios)
+      cmd_ios "$@"
       ;;
     leaderboard)
       cmd_leaderboard "$@"

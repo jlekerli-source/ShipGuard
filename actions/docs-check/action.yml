@@ -1,0 +1,103 @@
+name: Check Codex maintainer docs links
+description: Check Markdown files for broken local links, publish docs-check reports, and optionally fail on broken links.
+
+inputs:
+  path:
+    description: File or directory to check.
+    required: false
+    default: .
+  out:
+    description: Directory for docs-check output.
+    required: false
+    default: artifacts/codex-maintainer-docs-check
+  upload-artifact:
+    description: Set false to skip docs-check artifact upload.
+    required: false
+    default: "true"
+  artifact-name:
+    description: Uploaded docs-check artifact name.
+    required: false
+    default: codex-maintainer-docs-check
+  mode:
+    description: Use fail to fail the job on broken docs links, or warn to emit warnings only.
+    required: false
+    default: fail
+
+outputs:
+  status:
+    description: pass, blocked, or failed.
+    value: ${{ steps.docs-check.outputs.status }}
+  report-json:
+    description: Path to docs-check.json.
+    value: ${{ steps.docs-check.outputs.report-json }}
+  report-md:
+    description: Path to docs-check.md.
+    value: ${{ steps.docs-check.outputs.report-md }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check docs links
+      id: docs-check
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        root="${{ github.action_path }}/../.."
+        path="${{ inputs.path }}"
+        out="${{ inputs.out }}"
+        mode="${{ inputs.mode }}"
+
+        if [[ -z "$path" ]]; then
+          echo "::error::path is required"
+          exit 2
+        fi
+
+        if [[ "$mode" != "fail" && "$mode" != "warn" ]]; then
+          echo "::error::mode must be fail or warn"
+          exit 2
+        fi
+
+        check_exit=0
+        set +e
+        "$root/bin/codex-maintainer" docs-check "$path" --out "$out"
+        check_exit="$?"
+        set -e
+
+        status="failed"
+        if [[ -f "$out/docs-check.json" ]]; then
+          parsed_status="$(perl -0ne 'print $1 if /"status"\s*:\s*"([^"]+)"/' "$out/docs-check.json")"
+          if [[ -n "$parsed_status" ]]; then
+            status="$parsed_status"
+          fi
+        fi
+
+        if [[ "$check_exit" -ne 0 && "$status" == "pass" ]]; then
+          status="failed"
+        fi
+
+        {
+          echo "status=$status"
+          echo "report-json=$out/docs-check.json"
+          echo "report-md=$out/docs-check.md"
+        } >> "$GITHUB_OUTPUT"
+
+        if [[ "$status" == "blocked" || "$status" == "failed" ]]; then
+          message="docs-check status is $status"
+          if [[ "$mode" == "warn" ]]; then
+            echo "::warning::$message"
+          else
+            echo "::error::$message"
+            exit_code="$check_exit"
+            [[ "$exit_code" -eq 0 ]] && exit_code=1
+            exit "$exit_code"
+          fi
+        fi
+
+    - name: Upload docs-check report
+      if: ${{ inputs.upload-artifact == 'true' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.out }}
+        if-no-files-found: error

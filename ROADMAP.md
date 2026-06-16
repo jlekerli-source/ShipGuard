@@ -24,6 +24,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep optional GitHub Check Run posting explicit, token-scoped, and disabled by default.
 - Keep SARIF export stable for Autopsy findings and CI gate artifacts.
 - Keep local Markdown link audits dependency-free and strict enough for docs-heavy release work.
+- Keep docs-check GitHub Action output aligned with the CLI docs link audit.
 - Keep external arena fixture import strict about supported files and obvious secret leakage.
 - Keep fixture-pack integrity and optional signer metadata deterministic and verifiable.
 - Keep self-audit output stable enough to prove release readiness from source and extracted packages.

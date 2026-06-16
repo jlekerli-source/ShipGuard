@@ -26,6 +26,10 @@ fail() {
   exit 1
 }
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=/dev/null
+source "$script_dir/lib/safe_paths.sh"
+
 safe_case_id() {
   [[ "$1" =~ ^[A-Za-z0-9._-]+$ ]]
 }
@@ -82,6 +86,8 @@ done
 [[ -n "$out_dir" ]] || fail "--out is required"
 [[ -d "$source_dir" ]] || fail "source fixture directory not found: $source_dir"
 [[ "$source_dir" != "$out_dir" ]] || fail "--source and --out must be different directories"
+require_safe_artifact_dir "out" "$out_dir" "$(pwd -P)" >/dev/null || exit 1
+require_no_artifact_overlap "source" "$source_dir" "out" "$out_dir" || exit 1
 
 case_dirs=()
 while IFS= read -r case_dir; do

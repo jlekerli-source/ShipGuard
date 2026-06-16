@@ -10,6 +10,8 @@ Use it before publishing docs-heavy releases:
 
 The command ignores external URLs and in-page anchors. It checks relative links such as `docs/cli.md`, `../fixtures/arena`, and local image or report paths.
 
+For GitHub Actions, use `actions/docs-check` to run the same audit and upload the generated report directory as an artifact. See `docs-check-action.md`.
+
 With `--out`, it writes:
 
 - `docs-check.json`

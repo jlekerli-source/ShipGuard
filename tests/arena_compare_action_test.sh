@@ -27,7 +27,7 @@ grep -q 'exit "$exit_code"' "$action"
 grep -q 'actions/upload-artifact@v4' "$action"
 grep -q 'codex-maintainer-arena-compare' "$action"
 
-grep -q 'jlekerli-source/ringly-codex-workflows/actions/arena-compare@v3.38.0' "$workflow"
+grep -q 'jlekerli-source/ringly-codex-workflows/actions/arena-compare@v3.39.0' "$workflow"
 grep -q 'contents: read' "$workflow"
 grep -q 'mode: fail' "$workflow"
 grep -q 'artifact-name: codex-maintainer-arena-compare' "$workflow"
