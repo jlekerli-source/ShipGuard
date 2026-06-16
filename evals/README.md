@@ -1,10 +1,27 @@
-# Optional Live Evals
+# Evals
 
 The default benchmark for this repository is still `codex-maintainer arena run`, which scores saved maintainer-run artifacts deterministically.
 
-This folder is an optional live-eval scaffold for checking whether a current OpenAI model can follow the same maintainer-evidence rules. It is not required for normal toolkit validation and it does not run unless `OPENAI_API_KEY` is present.
+This folder contains two eval lanes:
 
-## Run
+- deterministic local Shipguard evals for mode routing, missing-question detection, proof honesty, and Codex brief quality
+- optional live OpenAI evals for checking whether a current model follows the same maintainer-evidence rules
+
+Deterministic Shipguard evals are CI-safe and do not require an API key:
+
+```bash
+./bin/codex-maintainer ios eval --cases evals/ios_shipguard_cases.jsonl --out /tmp/ios-shipguard-eval
+```
+
+The command writes `ios-shipguard-eval.json` and `ios-shipguard-eval.md`, and exits non-zero if any case fails.
+
+For a complete static first-run route that also runs doctor, inventory, guided plan, proof routing, modernization, app intelligence, AI readiness, eval, and redaction checks against the public fixture:
+
+```bash
+./bin/codex-maintainer ios demo --out /tmp/ios-shipguard-first-run
+```
+
+## Optional Live Run
 
 ```bash
 python3 evals/run_local.py
@@ -28,4 +45,3 @@ With `OPENAI_API_KEY`, it reads `evals/cases.jsonl`, calls the OpenAI Responses 
 - release approval, TestFlight status, or App Store Connect state
 
 Keep deterministic fixture scoring as the source of truth for CI. Use live evals as an optional signal when comparing model or prompt behavior.
-

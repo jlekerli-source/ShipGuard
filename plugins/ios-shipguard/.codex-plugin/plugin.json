@@ -1,7 +1,7 @@
 {
   "name": "ios-shipguard",
-  "version": "0.2.0",
-  "description": "Codex workflow guardrails for solo iOS developers shipping permission-heavy apps.",
+  "version": "0.2.0+codex.20260616230117",
+  "description": "Codex guardrails and live-preview handoffs for solo iOS developers shipping permission-heavy apps.",
   "author": {
     "name": "Ringly Codex Workflows",
     "url": "https://github.com/jlekerli-source/ringly-codex-workflows"
@@ -9,18 +9,31 @@
   "homepage": "https://github.com/jlekerli-source/ringly-codex-workflows",
   "repository": "https://github.com/jlekerli-source/ringly-codex-workflows",
   "license": "MIT",
-  "keywords": ["codex", "ios", "swift", "permissions", "release-proof"],
+  "keywords": [
+    "codex",
+    "ios",
+    "swift",
+    "permissions",
+    "release-proof",
+    "simulator-preview",
+    "evals"
+  ],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "iOS Shipguard",
-    "shortDescription": "Guardrails for solo iOS Codex work.",
-    "longDescription": "iOS Shipguard helps Codex classify risky iOS work, inventory permissions and runtime surfaces, ask required product questions before editing, and route simulator, StoreKit, widget, notification, and release proof through the right validation loop.",
+    "displayName": "Shipguard for Codex",
+    "shortDescription": "Guardrails and preview handoffs for iOS Codex work.",
+    "longDescription": "Shipguard for Codex helps classify risky iOS work, inventory permissions and runtime surfaces, ask required product questions before editing, preview a simulator screen through Devspace, run clean first-run demos and deterministic evals, and route simulator, StoreKit, widget, notification, Codex handoff, privacy, and release proof through the right validation loop.",
     "developerName": "Ringly Codex Workflows",
     "category": "Developer",
-    "capabilities": ["Read", "Write", "Interactive"],
+    "capabilities": [
+      "Read",
+      "Write",
+      "Interactive"
+    ],
     "defaultPrompt": [
       "Use $ios-shipguard before risky iOS edits.",
+      "Run a first Shipguard demo from this checkout.",
       "Open Shipguard Devspace for my simulator.",
       "Send the latest preview event to Codex."
     ],

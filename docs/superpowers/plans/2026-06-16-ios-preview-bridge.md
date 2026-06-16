@@ -19,7 +19,7 @@
 
 - [ ] **Step 1: Add a failing CLI test**
 
-Create `tests/ios_preview_test.sh` that starts the preview server on port `0` with a generated PNG fixture, waits for `preview-url.txt`, checks `/api/state`, downloads `/screenshot.png`, posts one tap event, verifies `preview-events.jsonl`, and checks `--help`.
+Create `tests/ios_preview_test.sh` that starts the preview server on port `0` with a generated PNG fixture, waits for `preview-url.txt`, checks `/api/state`, downloads `/screenshot.png`, posts one tap event, verifies `preview-events.jsonl`, checks `handoff.md` plus `/api/handoff.md`, and checks `--help`.
 
 - [ ] **Step 2: Run the focused test**
 
@@ -37,10 +37,10 @@ Implement:
 
 - args: `--out`, `--device`, `--host`, `--port`, `--refresh-ms`, `--fixture-image`, `--ready-file`, `--event-limit`.
 - loopback default: `127.0.0.1`.
-- endpoints: `/`, `/api/state`, `/api/events`, `/session.json`, `/screenshot.png`.
+- endpoints: `/`, `/api/state`, `/api/events`, `/api/handoff`, `/api/handoff.md`, `/session.json`, `/screenshot.png`.
 - JSON body limit for event POSTs.
 - screenshot capture through `xcrun simctl io <device> screenshot --type=png <tempfile>`, with fixture fallback.
-- session files: `session.json`, `preview-url.txt`, `preview-events.jsonl`, `last-screenshot.png`.
+- session files: `session.json`, `preview-url.txt`, `preview-events.jsonl`, `handoff.json`, `handoff.md`, `last-screenshot.png`.
 
 - [ ] **Step 4: Wire the dispatcher**
 

@@ -1,107 +1,82 @@
-# iOS Shipguard
+# Shipguard for Codex Docs
 
-This is the documentation landing page for the iOS-focused Codex workflow kit.
+Local-first Codex guardrails for solo iOS developers shipping permission-heavy apps.
 
-Start here:
+Shipguard helps Codex understand the app before editing, ask blocked product/proof questions, preview simulator UI through a browser or MCP widget, and keep proof claims tied to real evidence.
 
-- [Adoption guide](adoption-guide.md)
-- [iOS Shipguard](ios-shipguard.md)
-- [Use in your repo](use-in-your-repo.md)
-- [Workflow diagram](workflow-diagram.md)
-- [Maintainer Arena](arena.md)
-- [Arena Compare Action](arena-compare-action.md)
-- [CLI reference](cli.md)
-- [Agent Autopsy](autopsy.md)
-- [Autopsy in GitHub Actions](autopsy-github-actions.md)
-- [Benchmark Format](benchmark.md)
-- [Check Run Payload](check-run.md)
-- [CI Gate Mode](ci-gate.md)
-- [CI Step Summary](ci-summary.md)
-- [Command Matrix](command-matrix.md)
-- [Demo Reports](demo-reports.md)
-- [Docs Check Action](docs-check-action.md)
-- [Docs Check](docs-check.md)
-- [Maintainer Reliability OS](maintainer-reliability-os.md)
-- [Next Goal Generator](next-goal.md)
-- [Policy Configuration](policy.md)
-- [PR Review Bot Mode](pr-review-bot.md)
-- [Release Checklist](release-checklist.md)
-- [Release Attestation](release-attest.md)
-- [Release Consume](release-consume.md)
-- [Release Consume Action](release-consume-action.md)
-- [Release Diff Audit](release-diff.md)
-- [Release Diff Action](release-diff-action.md)
-- [Release Evidence Action](release-evidence-action.md)
-- [Release Evidence Bundle](release-evidence-bundle.md)
-- [Release Evidence Index](release-evidence-index.md)
-- [Release Evidence Site](release-evidence-site.md)
-- [Release Evidence Verification](release-evidence-verify.md)
-- [Release Index](release-index.md)
-- [Release Manifest](release-manifest.md)
-- [Release Proof Bundle](release-proof.md)
-- [Release Proof Action](release-proof-action.md)
-- [Release Proof Consumption](release-proof-consumption.md)
-- [Release Proof Workflows](release-proof-workflows.md)
-- [Release Replay](release-replay.md)
-- [SARIF Evidence Export](sarif.md)
-- [Template Profiles](template-profiles.md)
-- [Transcript Corpus Action](transcript-corpus-action.md)
-- [Transcript Corpus](transcript-corpus.md)
-- [Transcript Redaction](transcript-redaction.md)
-- [Transcript Verify Action](transcript-verify-action.md)
-- [GitHub Action](github-action.md)
-- [Changelog](../CHANGELOG.md)
+## Start Here
 
-## What This Kit Provides
+| Need | Read |
+| --- | --- |
+| First adoption path | [Adoption guide](adoption-guide.md) |
+| Shortest useful loop | [Core loop](core-loop.md) |
+| iOS plugin and modes | [iOS Shipguard](ios-shipguard.md) |
+| CLI command map | [Command matrix](command-matrix.md) |
+| Full CLI reference | [CLI reference](cli.md) |
+| Copy into another repo | [Use in your repo](use-in-your-repo.md) |
 
-- Root instructions for Codex in a risk-sensitive iOS repo.
-- A repo-local Codex plugin and skill for solo iOS release/permission guardrails.
-- Planning and subagent templates.
-- Reusable skills for alarm testing, notification permissions, release work, bug triage, and UI polish.
-- A small CLI for iOS permission inventory, validation, starter profile initialization, doctor checks, run scoring, autopsy reports, SARIF export, docs link checks, fixture arena runs, Arena comparisons, transcript redaction, verification, and corpus indexing, review comments, CI gates, CI summaries, check-run payloads, leaderboard JSON, release manifests, release indexes, release replay verification, release attestations, one-command release consumption, release diffs, release evidence site exports, release evidence indexes, release evidence bundles, release evidence verification, toolkit self-audits, and next-goal generation.
-- Reusable GitHub Actions for validation, Arena comparison artifacts, docs link audits, transcript verification, transcript corpus verification, CI gates, review comments, release proof artifacts, release proof consumption, release diff audits, release evidence exports, and release evidence verification.
-- Examples and a scorecard for judging agent output quality.
+## First Run
 
-## First 30 Minutes
+```bash
+./bin/codex-maintainer validate
+./bin/codex-maintainer ios demo --out /tmp/ios-shipguard-first-run
+```
 
-1. Read the [adoption guide](adoption-guide.md).
-2. Run `./bin/codex-maintainer validate` in this repo.
-3. Run `./bin/codex-maintainer init ios ../my-ios-app` against a test repo.
-4. Open the generated `AGENTS.md` and replace placeholders.
-5. Run `./bin/codex-maintainer doctor ../my-ios-app`.
-6. Run `./bin/codex-maintainer init web ../my-web-app` against a test repo when adopting the web profile.
-7. Run `./bin/codex-maintainer init backend ../my-service` or `./bin/codex-maintainer init cli ../my-tool` when adopting those profiles.
-8. Run `./bin/codex-maintainer autopsy --run fixtures/autopsy/good-run/run.md --diff fixtures/autopsy/good-run/diff.patch --tests fixtures/autopsy/good-run/tests.log --out /tmp/autopsy-good`.
-9. Run `./bin/codex-maintainer sarif --report /tmp/autopsy-good/report.json --out /tmp/autopsy-good/results.sarif`.
-10. Run `./bin/codex-maintainer ci-summary --gate /tmp/codex-gate/gate.json --out /tmp/codex-gate/summary.md` after a gate run.
-11. Run `./bin/codex-maintainer check-run --gate /tmp/codex-gate/gate.json --head-sha "$GITHUB_SHA" --out /tmp/codex-gate/check-run/payload.json` after a gate run.
-12. Run `./bin/codex-maintainer check-run post --payload /tmp/codex-gate/check-run/payload.json --repo "$GITHUB_REPOSITORY" --out /tmp/codex-gate/check-run/response.json --dry-run` before enabling real posting.
-13. Run `./bin/codex-maintainer arena run --fixture fixtures/arena --out /tmp/arena`.
-14. Run `./bin/codex-maintainer arena import --source fixtures/external-arena-pack --out /tmp/imported-arena`.
-15. Run `./bin/codex-maintainer arena compare --left /tmp/arena-old/results.json --right /tmp/arena/results.json --out /tmp/arena-compare`.
-16. Use `jlekerli-source/ringly-codex-workflows/actions/arena-compare@v3.39.0` when the same comparison should run in GitHub Actions.
-17. Run `./bin/codex-maintainer arena sign --fixture /tmp/imported-arena --out /tmp/imported-arena/PACK.json --signer "Example Maintainers" --signer-url "https://github.com/example/repo"`.
-18. Run `./bin/codex-maintainer arena verify --fixture /tmp/imported-arena --manifest /tmp/imported-arena/PACK.json`.
-19. Run `./bin/codex-maintainer leaderboard build --arena-results /tmp/arena/results.json --out /tmp/leaderboard.json`.
-20. Run `./bin/codex-maintainer release-manifest --tarball dist/codex-maintainer-v3.39.0.tar.gz --out /tmp/codex-maintainer-release-proof` after packaging.
-21. Run `./bin/codex-maintainer release-index build --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --out /tmp/codex-maintainer-release-index`.
-22. Run `./bin/codex-maintainer release-replay verify --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --tarball dist/codex-maintainer-v3.39.0.tar.gz --index /tmp/codex-maintainer-release-index/release-index.json --ledger /tmp/codex-maintainer-release-proof/proof-ledger.md --out /tmp/codex-maintainer-release-replay`.
-23. Run `./bin/codex-maintainer release-attest build --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --replay /tmp/codex-maintainer-release-replay/replay-report.json --out /tmp/codex-maintainer-release-attestation`.
-24. Run `./bin/codex-maintainer release-proof build --out /tmp/codex-maintainer-release-proof-bundle --release-url https://github.com/owner/repo/releases/tag/v3.39.0`.
-25. Run `./bin/codex-maintainer release-consume verify --dir /tmp/codex-maintainer-v3.39.0 --out /tmp/codex-maintainer-v3.39.0/consumer-proof --version 3.39.0` after downloading published assets.
-26. Use `jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.39.0` when the same verification should run in GitHub Actions.
-27. Run `./bin/codex-maintainer release-diff compare --left /tmp/codex-maintainer-old --right /tmp/codex-maintainer-v3.39.0 --out /tmp/codex-maintainer-release-diff`.
-28. Use `jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.39.0` when the same diff should run in GitHub Actions.
-29. Run `./bin/codex-maintainer release-evidence site --consume /tmp/codex-maintainer-v3.39.0/consumer-proof --diff /tmp/codex-maintainer-release-diff --out /tmp/codex-maintainer-release-site`.
-30. Run `./bin/codex-maintainer release-evidence index --site /tmp/codex-maintainer-release-site --out /tmp/codex-maintainer-release-history`.
-31. Run `./bin/codex-maintainer release-evidence bundle --assets /tmp/codex-maintainer-v3.39.0 --left /tmp/codex-maintainer-old --out /tmp/codex-maintainer-release-evidence-bundle --version 3.39.0`.
-32. Use `jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.39.0` when the same evidence export should run in GitHub Actions.
-33. Run `./bin/codex-maintainer release-evidence verify --dir /tmp/codex-maintainer-release-evidence --out /tmp/codex-maintainer-release-evidence-verify --require-diff true --require-index true` after downloading an evidence artifact.
-34. Use `jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.39.0` when the evidence artifact verification should run in GitHub Actions.
-35. Run `./bin/codex-maintainer release-evidence negative-index --fixture fixtures/release-evidence/negative --out /tmp/codex-maintainer-negative-evidence`.
-36. Use `jlekerli-source/ringly-codex-workflows/actions/release-evidence-negative-index@v3.39.0` when the same negative fixture index should run in GitHub Actions.
-37. Use `jlekerli-source/ringly-codex-workflows/actions/transcript-verify@v3.39.0` when redacted transcripts should be checked in GitHub Actions.
-38. Run `./bin/codex-maintainer transcript corpus --source fixtures/transcripts --out /tmp/transcript-corpus --require-report true` before publishing transcript examples.
-39. Use `jlekerli-source/ringly-codex-workflows/actions/transcript-corpus@v3.39.0` when transcript corpus checks should run in GitHub Actions.
-40. Run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-self-audit`.
-41. Run `./bin/codex-maintainer next-goal --out /tmp/NEXT_GOAL.md`.
+Then open `/tmp/ios-shipguard-first-run/README.md` to inspect the generated public-fixture report bundle.
+
+For a normal iOS planning path:
+
+```bash
+./bin/codex-maintainer ios doctor --path fixtures/demo-ios-repo --out /tmp/ios-shipguard-doctor
+./bin/codex-maintainer ios inventory \
+  --path fixtures/demo-ios-repo \
+  --doctor /tmp/ios-shipguard-doctor/ios-doctor.json \
+  --out /tmp/ios-shipguard-inventory
+./bin/codex-maintainer ios plan \
+  --mode permission-audit \
+  --inventory /tmp/ios-shipguard-inventory/ios-inventory.json \
+  --out /tmp/ios-shipguard-plan/ios-plan.md
+./bin/codex-maintainer ios prove \
+  --plan /tmp/ios-shipguard-plan/ios-plan.json \
+  --out /tmp/ios-shipguard-proof
+```
+
+## iOS Preview And Handoff
+
+| Surface | Purpose |
+| --- | --- |
+| [iOS Preview](ios-preview.md) | Serve a phone-shaped Simulator screenshot in Codex's browser and record click, right-click, and note receipts. |
+| [Shipguard Devspace](shipguard-devspace.md) | Expose the preview bridge as a local ChatGPT Apps / MCP widget with Codex handoff tools. |
+| [iOS Shipguard](ios-shipguard.md) | Route preview, permissions, StoreKit, release proof, privacy, and UI-polish work through the right mode. |
+| [Workflow diagram](workflow-diagram.md) | Visual overview of the maintainer loop. |
+
+## Maintainer Evidence
+
+| Area | Docs |
+| --- | --- |
+| Agent claim auditing | [Autopsy](autopsy.md), [Autopsy in GitHub Actions](autopsy-github-actions.md), [SARIF export](sarif.md) |
+| CI and PR feedback | [CI gate](ci-gate.md), [CI summary](ci-summary.md), [Check Run payload](check-run.md), [PR review bot](pr-review-bot.md) |
+| Benchmarks | [Arena](arena.md), [Arena compare action](arena-compare-action.md), [Benchmark format](benchmark.md), [Demo reports](demo-reports.md) |
+| Transcript safety | [Transcript redaction](transcript-redaction.md), [Transcript corpus](transcript-corpus.md), [Transcript verify action](transcript-verify-action.md), [Transcript corpus action](transcript-corpus-action.md) |
+| Docs quality | [Docs check](docs-check.md), [Docs check action](docs-check-action.md) |
+
+## Release Proof
+
+| Area | Docs |
+| --- | --- |
+| Release planning | [Release checklist](release-checklist.md), [Release proof bundle](release-proof.md), [Release proof workflows](release-proof-workflows.md) |
+| Release metadata | [Release manifest](release-manifest.md), [Release index](release-index.md), [Release replay](release-replay.md), [Release attestation](release-attest.md) |
+| Downstream verification | [Release consume](release-consume.md), [Release consume action](release-consume-action.md), [Release proof consumption](release-proof-consumption.md) |
+| Cross-release review | [Release diff](release-diff.md), [Release diff action](release-diff-action.md) |
+| Evidence publishing | [Release evidence bundle](release-evidence-bundle.md), [Release evidence site](release-evidence-site.md), [Release evidence index](release-evidence-index.md), [Release evidence action](release-evidence-action.md), [Release evidence verification](release-evidence-verify.md) |
+
+## Project Reference
+
+| Need | Read |
+| --- | --- |
+| Starter profiles | [Template profiles](template-profiles.md) |
+| Policy configuration | [Policy configuration](policy.md) |
+| Slash-goal release planning | [Next goal generator](next-goal.md) |
+| Full reliability loop | [Maintainer Reliability OS](maintainer-reliability-os.md) |
+| Reusable action overview | [GitHub Action](github-action.md) |
+| Release history | [Changelog](../CHANGELOG.md) |

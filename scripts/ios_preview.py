@@ -24,7 +24,7 @@ MAX_EVENT_BYTES = 16 * 1024
 MAX_NOTE_CHARS = 1000
 LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
 EVENT_TYPES = {"tap-request", "note", "navigate-request", "visual-bug", "copy-change"}
-EVENT_SOURCES = {"widget-click", "widget-context-menu", "chatgpt", "manual"}
+EVENT_SOURCES = {"preview-click", "preview-context-menu", "widget-click", "widget-context-menu", "chatgpt", "manual"}
 EVENT_ACTIONS = {"tap", "navigate", "change-copy", "fix-visual", "inspect", "accessibility"}
 
 
@@ -96,6 +96,8 @@ class PreviewSession:
         self.session_path = out_dir / "session.json"
         self.ready_path = out_dir / "preview-url.txt"
         self.event_log = out_dir / "preview-events.jsonl"
+        self.handoff_json = out_dir / "handoff.json"
+        self.handoff_markdown = out_dir / "handoff.md"
         self.last_screenshot = out_dir / "last-screenshot.png"
         self.lock = threading.Lock()
 
@@ -108,6 +110,7 @@ class PreviewSession:
             ready_file.parent.mkdir(parents=True, exist_ok=True)
             ready_file.write_text(url + "\n", encoding="utf-8")
         self.write_session()
+        self.write_handoff()
 
     def session_receipt(self) -> dict[str, Any]:
         return {
@@ -121,18 +124,25 @@ class PreviewSession:
             "outDir": str(self.out_dir),
             "sessionJson": str(self.session_path),
             "eventLog": str(self.event_log),
+            "handoffJson": str(self.handoff_json),
+            "handoffMarkdown": str(self.handoff_markdown),
             "lastScreenshot": str(self.last_screenshot),
             "handoff": [
                 "Open the preview URL in Codex's in-app browser or with @Browser.",
                 "Use browser comments on the preview page for visual feedback.",
-                "Read preview-events.jsonl for click and note receipts before editing SwiftUI code.",
-                "Read /api/handoff for the latest Codex/XcodeBuildMCP action plan.",
+                "Read preview-events.jsonl for click, right-click context menu, and note receipts before editing SwiftUI code.",
+                "Read handoff.json, handoff.md, /api/handoff, or /api/handoff.md for the latest Codex/XcodeBuildMCP action plan.",
                 "Use XcodeBuildMCP semantic element refs or focused UI tests for simulator actions.",
             ],
         }
 
     def write_session(self) -> None:
         self.session_path.write_text(json.dumps(self.session_receipt(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    def write_handoff(self) -> None:
+        handoff = self.agent_handoff()
+        self.handoff_json.write_text(json.dumps(handoff, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        self.handoff_markdown.write_text(self.agent_handoff_markdown(handoff), encoding="utf-8")
 
     def read_events(self) -> list[dict[str, Any]]:
         if not self.event_log.exists():
@@ -153,8 +163,111 @@ class PreviewSession:
             return None
         return events[-1]
 
+    def target_resolution(self, latest_event: dict[str, Any] | None) -> dict[str, Any]:
+        if not latest_event:
+            return {
+                "status": "waiting-for-event",
+                "intent": "none",
+                "rawCoordinateTapAllowed": False,
+                "xcodeBuildMCP": {
+                    "nextTool": "snapshot_ui",
+                    "reason": "No visual event has been recorded yet.",
+                },
+                "checklist": [
+                    "Wait for a browser comment, widget click, or Devspace event receipt.",
+                    "Capture a fresh screenshot or UI snapshot after the event is recorded.",
+                ],
+                "proofRequired": ["preview event receipt before UI/source changes"],
+            }
+
+        event_type = safe_text(latest_event.get("type"), 80) or "note"
+        action = safe_text(latest_event.get("action"), 80)
+        note = safe_text(latest_event.get("note"), MAX_NOTE_CHARS)
+        context_label = safe_text(latest_event.get("contextLabel"), 160)
+        coordinates: dict[str, Any] = {}
+        if "normalizedX" in latest_event and "normalizedY" in latest_event:
+            coordinates["normalized"] = {
+                "x": latest_event.get("normalizedX"),
+                "y": latest_event.get("normalizedY"),
+            }
+        if "pixelX" in latest_event and "pixelY" in latest_event:
+            coordinates["pixel"] = {
+                "x": latest_event.get("pixelX"),
+                "y": latest_event.get("pixelY"),
+            }
+        viewport = latest_event.get("viewport")
+        if isinstance(viewport, dict):
+            coordinates["viewport"] = {
+                "width": viewport.get("width"),
+                "height": viewport.get("height"),
+            }
+
+        base: dict[str, Any] = {
+            "status": "needs-semantic-target",
+            "intent": event_type,
+            "action": action or None,
+            "contextLabel": context_label or None,
+            "note": note,
+            "coordinates": coordinates,
+            "rawCoordinateTapAllowed": False,
+            "xcodeBuildMCP": {
+                "nextTool": "snapshot_ui",
+                "semanticTargetRequired": True,
+                "elementRefRequiredBeforeTouch": True,
+                "matchInputs": [
+                    "latestEvent.normalizedX/latestEvent.normalizedY",
+                    "latestEvent.note",
+                    "latestEvent.contextLabel",
+                    "last-screenshot.png",
+                    "snapshot_ui accessibility labels and frames",
+                ],
+            },
+            "checklist": [
+                "Capture XcodeBuildMCP snapshot_ui for the current simulator screen.",
+                "Match the visual event to one visible accessibility element by frame, label, role, and note.",
+                "Use an elementRef only after the semantic target is identified.",
+            ],
+            "proofRequired": [
+                "snapshot_ui target match rationale",
+                "refreshed preview screenshot after the change or simulator action",
+            ],
+        }
+
+        if event_type in {"tap-request", "navigate-request"}:
+            base["status"] = "needs-element-ref"
+            base["xcodeBuildMCP"]["allowedAfterMatch"] = ["touch(elementRef)"]
+            base["xcodeBuildMCP"]["forbidden"] = ["raw coordinate tap from browser event"]
+            base["checklist"].append("If no single semantic target matches, ask the user for clarification instead of tapping.")
+        elif event_type == "copy-change":
+            base["status"] = "source-edit-target"
+            base["xcodeBuildMCP"]["allowedAfterMatch"] = ["snapshot_ui for verification only"]
+            base["sourceEdit"] = {
+                "find": ["SwiftUI Text", "accessibilityLabel", "localization key", "button label"],
+                "rule": "Edit the smallest source copy surface that owns the selected UI text.",
+            }
+            base["checklist"].extend(
+                [
+                    "Find the owning SwiftUI text, accessibility label, or localization key before editing.",
+                    "Do not use simulator touch as proof for a pure copy change.",
+                ]
+            )
+        elif event_type == "visual-bug":
+            base["status"] = "visual-inspection-target"
+            base["xcodeBuildMCP"]["allowedAfterMatch"] = ["screenshot", "snapshot_ui for layout/accessibility context"]
+            base["visualInspection"] = {
+                "check": ["layout", "clipping", "contrast", "Dynamic Type", "hit target size"],
+                "rule": "Make the smallest layout/style change that addresses the selected region.",
+            }
+        else:
+            base["status"] = "planning-note"
+            base["xcodeBuildMCP"]["allowedAfterMatch"] = ["snapshot_ui if simulator context is needed"]
+            base["checklist"].append("Treat this as implementation feedback, not a simulator command.")
+
+        return base
+
     def agent_handoff(self) -> dict[str, Any]:
         latest_event = self.latest_event()
+        target_resolution = self.target_resolution(latest_event)
         prompt = (
             "Use $ios-shipguard preview-bridge mode. Read "
             f"{self.session_path} and {self.event_log}, inspect {self.last_screenshot}, "
@@ -211,15 +324,89 @@ class PreviewSession:
             "ok": True,
             "tool": "codex-maintainer ios preview",
             "latestEvent": latest_event,
+            "targetResolution": target_resolution,
             "prompt": prompt,
             "suggestedActions": suggested_actions,
             "receipts": {
                 "sessionJson": str(self.session_path),
                 "eventLog": str(self.event_log),
+                "handoffJson": str(self.handoff_json),
+                "handoffMarkdown": str(self.handoff_markdown),
                 "lastScreenshot": str(self.last_screenshot),
                 "previewUrl": self.url,
             },
         }
+
+    def agent_handoff_markdown(self, handoff: dict[str, Any] | None = None) -> str:
+        payload = handoff if isinstance(handoff, dict) else self.agent_handoff()
+        latest_event = payload.get("latestEvent")
+        target_resolution = payload.get("targetResolution")
+        receipts = payload.get("receipts") if isinstance(payload.get("receipts"), dict) else {}
+        suggested_actions = payload.get("suggestedActions")
+        if not isinstance(suggested_actions, list):
+            suggested_actions = []
+
+        target = target_resolution if isinstance(target_resolution, dict) else {}
+        xcode = target.get("xcodeBuildMCP") if isinstance(target.get("xcodeBuildMCP"), dict) else {}
+        checklist = target.get("checklist") if isinstance(target.get("checklist"), list) else []
+        proof_required = target.get("proofRequired") if isinstance(target.get("proofRequired"), list) else []
+
+        lines = [
+            "# iOS Shipguard Preview Handoff",
+            "",
+            "## Prompt",
+            "",
+            safe_text(payload.get("prompt"), 8000) or "Use $ios-shipguard preview-bridge mode.",
+            "",
+            "## Target Resolution",
+            "",
+            f"- Status: `{safe_text(target.get('status'), 120) or 'unknown'}`",
+            f"- Intent: `{safe_text(target.get('intent'), 120) or 'unknown'}`",
+            f"- Action: `{safe_text(target.get('action'), 120) or 'none'}`",
+            f"- Raw coordinate tap allowed: `{str(target.get('rawCoordinateTapAllowed') is True).lower()}`",
+            f"- XcodeBuildMCP next tool: `{safe_text(xcode.get('nextTool'), 120) or 'none'}`",
+            f"- Element ref required before touch: `{str(xcode.get('elementRefRequiredBeforeTouch') is True).lower()}`",
+            "",
+        ]
+
+        if checklist:
+            lines.extend(["## Checklist", ""])
+            lines.extend(f"- {safe_text(item, 240)}" for item in checklist if isinstance(item, str))
+            lines.append("")
+
+        if proof_required:
+            lines.extend(["## Required Proof", ""])
+            lines.extend(f"- {safe_text(item, 240)}" for item in proof_required if isinstance(item, str))
+            lines.append("")
+
+        lines.extend(["## Suggested Actions", ""])
+        if suggested_actions:
+            lines.extend(f"- {safe_text(item, 300)}" for item in suggested_actions if isinstance(item, str))
+        else:
+            lines.append("- Read the latest preview event before editing.")
+        lines.append("")
+
+        lines.extend(["## Latest Event", "", "```json"])
+        lines.append(json.dumps(latest_event, indent=2, sort_keys=True) if latest_event else "null")
+        lines.extend(["```", ""])
+
+        lines.extend(["## Receipts", ""])
+        for key in ["sessionJson", "eventLog", "handoffJson", "handoffMarkdown", "lastScreenshot", "previewUrl"]:
+            value = receipts.get(key)
+            if isinstance(value, str) and value:
+                lines.append(f"- {key}: `{value}`")
+        lines.extend(
+            [
+                "",
+                "## Safety Rules",
+                "",
+                "- Do not use browser coordinates as simulator taps.",
+                "- For tap or navigation events, match a semantic XcodeBuildMCP `elementRef` before touch.",
+                "- For copy or visual events, edit source and refresh preview proof instead of tapping the simulator.",
+                "",
+            ]
+        )
+        return "\n".join(lines)
 
     def state(self) -> dict[str, Any]:
         receipt = self.session_receipt()
@@ -281,6 +468,7 @@ class PreviewSession:
             with self.event_log.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(event, sort_keys=True) + "\n")
             self.write_session()
+            self.write_handoff()
         return event
 
     def capture_screenshot(self) -> tuple[bytes, str]:
@@ -357,6 +545,9 @@ class PreviewHandler(BaseHTTPRequestHandler):
                 self.send_json(HTTPStatus.OK, {"events": self.server.preview_session.read_events()})
             elif route == "/api/handoff":
                 self.send_json(HTTPStatus.OK, self.server.preview_session.agent_handoff())
+            elif route == "/api/handoff.md":
+                body = self.server.preview_session.agent_handoff_markdown().encode("utf-8")
+                self.send_bytes(HTTPStatus.OK, "text/markdown; charset=utf-8", body)
             elif route == "/session.json":
                 self.send_json(HTTPStatus.OK, self.server.preview_session.session_receipt())
             elif route == "/screenshot.png":
@@ -541,6 +732,34 @@ def render_html(session: PreviewSession) -> str:
       pointer-events: none;
       display: none;
     }}
+    .context-menu {{
+      position: absolute;
+      z-index: 4;
+      display: none;
+      min-width: 178px;
+      max-width: 220px;
+      padding: 6px;
+      border: 1px solid #2f3a46;
+      border-radius: 8px;
+      background: #111820;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+    }}
+    .context-menu button {{
+      width: 100%;
+      display: block;
+      margin: 0;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: #eef3f8;
+      text-align: left;
+      padding: 8px;
+    }}
+    .context-menu button:hover,
+    .context-menu button:focus {{
+      background: rgba(16, 185, 129, 0.18);
+      outline: none;
+    }}
     .panel {{
       background: var(--panel);
       border: 1px solid var(--line);
@@ -597,6 +816,19 @@ def render_html(session: PreviewSession) -> str:
     .warning {{
       color: var(--warning);
     }}
+    .handoff-markdown {{
+      white-space: pre-wrap;
+      max-height: 260px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+      background: transparent;
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.45;
+    }}
     @media (max-width: 860px) {{
       main {{
         grid-template-columns: 1fr;
@@ -625,6 +857,12 @@ def render_html(session: PreviewSession) -> str:
       <div class="screen" id="screen">
         <img id="screenshot" src="/screenshot.png" alt="Current iOS simulator screenshot">
         <div class="target" id="target"></div>
+        <div class="context-menu" id="context-menu" role="menu" aria-label="Preview target actions">
+          <button type="button" role="menuitem" data-type="tap-request" data-action="tap" data-label="Tap or navigate here">Tap or navigate here</button>
+          <button type="button" role="menuitem" data-type="copy-change" data-action="change-copy" data-label="Change copy here">Change copy here</button>
+          <button type="button" role="menuitem" data-type="visual-bug" data-action="fix-visual" data-label="Fix visual issue here">Fix visual issue here</button>
+          <button type="button" role="menuitem" data-type="note" data-action="inspect" data-label="Inspect this area">Inspect this area</button>
+        </div>
       </div>
     </section>
 
@@ -642,7 +880,7 @@ def render_html(session: PreviewSession) -> str:
 
       <div class="panel">
         <h2>Click Intent</h2>
-        <p>Click the phone image, describe what should change, then ask Codex to read the event log.</p>
+        <p>Click the phone image for a tap intent, or right-click to choose copy, visual, navigation, or inspection intent.</p>
         <textarea id="note" placeholder="Example: Rename this menu button to Settings and keep the icon."></textarea>
         <button class="primary" id="save-event">Record Event</button>
         <p class="warning" id="event-status"></p>
@@ -656,8 +894,15 @@ def render_html(session: PreviewSession) -> str:
       <div class="panel">
         <h2>Agent Action</h2>
         <p><code id="agent-handoff">pending</code></p>
-        <button id="copy-handoff">Copy</button>
+        <button id="copy-handoff">Copy Prompt</button>
         <p class="warning" id="copy-status"></p>
+      </div>
+
+      <div class="panel">
+        <h2>Full Handoff</h2>
+        <pre class="handoff-markdown" id="handoff-markdown">pending</pre>
+        <button id="copy-full-handoff">Copy Full Handoff</button>
+        <p class="warning" id="full-copy-status"></p>
       </div>
 
       <div class="panel">
@@ -672,10 +917,13 @@ def render_html(session: PreviewSession) -> str:
     const screenshot = document.getElementById("screenshot");
     const screen = document.getElementById("screen");
     const target = document.getElementById("target");
+    const contextMenu = document.getElementById("context-menu");
     const note = document.getElementById("note");
     const statusText = document.getElementById("event-status");
     const copyStatus = document.getElementById("copy-status");
+    const fullCopyStatus = document.getElementById("full-copy-status");
     const agentHandoff = document.getElementById("agent-handoff");
+    const handoffMarkdown = document.getElementById("handoff-markdown");
     const events = document.getElementById("events");
     const lastRefresh = document.getElementById("last-refresh");
     let selected = null;
@@ -689,6 +937,8 @@ def render_html(session: PreviewSession) -> str:
       const response = await fetch("/api/state", {{ cache: "no-store" }});
       const state = await response.json();
       agentHandoff.textContent = state.agentHandoff.prompt;
+      const markdownResponse = await fetch("/api/handoff.md", {{ cache: "no-store" }});
+      handoffMarkdown.textContent = await markdownResponse.text();
       events.innerHTML = "";
       for (const event of [...state.events].reverse()) {{
         const item = document.createElement("div");
@@ -696,7 +946,8 @@ def render_html(session: PreviewSession) -> str:
         const coords = event.normalizedX !== undefined
           ? ` x=${{event.normalizedX.toFixed(3)}} y=${{event.normalizedY.toFixed(3)}}`
           : "";
-        item.innerHTML = `<strong>${{event.type}}${{coords}}</strong><code>${{event.timestamp}}</code><p>${{escapeHtml(event.note || "")}}</p>`;
+        const action = event.action ? ` ${{event.action}}` : "";
+        item.innerHTML = `<strong>${{escapeHtml(event.type)}}${{escapeHtml(action)}}${{coords}}</strong><code>${{escapeHtml(event.timestamp)}}</code><p>${{escapeHtml(event.note || event.contextLabel || "")}}</p>`;
         events.appendChild(item);
       }}
     }}
@@ -711,7 +962,20 @@ def render_html(session: PreviewSession) -> str:
       }}[char]));
     }}
 
-    screen.addEventListener("click", (event) => {{
+    function hideContextMenu() {{
+      contextMenu.style.display = "none";
+    }}
+
+    function showContextMenu(x, y, rect) {{
+      const width = 220;
+      const left = Math.max(6, Math.min(x, rect.width - width - 6));
+      const top = Math.max(6, Math.min(y, rect.height - 190));
+      contextMenu.style.left = `${{left}}px`;
+      contextMenu.style.top = `${{top}}px`;
+      contextMenu.style.display = "block";
+    }}
+
+    function selectPoint(event, source) {{
       const rect = screen.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
@@ -720,13 +984,44 @@ def render_html(session: PreviewSession) -> str:
         normalizedY: Math.max(0, Math.min(1, y / rect.height)),
         pixelX: Math.round(x),
         pixelY: Math.round(y),
-        viewport: {{ width: Math.round(rect.width), height: Math.round(rect.height) }}
+        viewport: {{ width: Math.round(rect.width), height: Math.round(rect.height) }},
+        source
       }};
       target.style.left = `${{x}}px`;
       target.style.top = `${{y}}px`;
       target.style.display = "block";
       statusText.textContent = "Point selected. Add a note and record the event.";
+      return {{ x, y, rect }};
+    }}
+
+    screen.addEventListener("click", (event) => {{
+      if (contextMenu.contains(event.target)) return;
+      selectPoint(event, "preview-click");
+      hideContextMenu();
       note.focus();
+    }});
+
+    screen.addEventListener("contextmenu", (event) => {{
+      event.preventDefault();
+      const point = selectPoint(event, "preview-context-menu");
+      showContextMenu(point.x, point.y, point.rect);
+    }});
+
+    contextMenu.addEventListener("click", (event) => {{
+      const button = event.target.closest("button[data-type]");
+      if (!button || !selected) return;
+      selected.type = button.dataset.type;
+      selected.action = button.dataset.action;
+      selected.contextLabel = button.dataset.label;
+      statusText.textContent = `${{selected.contextLabel}} selected. Add a note and record the event.`;
+      hideContextMenu();
+      note.focus();
+    }});
+
+    document.addEventListener("click", (event) => {{
+      if (!contextMenu.contains(event.target) && event.target !== screen) {{
+        hideContextMenu();
+      }}
     }});
 
     document.getElementById("save-event").addEventListener("click", async () => {{
@@ -762,6 +1057,15 @@ def render_html(session: PreviewSession) -> str:
         copyStatus.textContent = "Copied.";
       }} catch (error) {{
         copyStatus.textContent = "Copy failed. Select the text manually.";
+      }}
+    }});
+
+    document.getElementById("copy-full-handoff").addEventListener("click", async () => {{
+      try {{
+        await navigator.clipboard.writeText(handoffMarkdown.textContent);
+        fullCopyStatus.textContent = "Copied.";
+      }} catch (error) {{
+        fullCopyStatus.textContent = "Copy failed. Select the text manually.";
       }}
     }});
 

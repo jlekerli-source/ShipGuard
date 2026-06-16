@@ -30,10 +30,10 @@ Measured from the current working tree on 2026-06-16:
 | Check | Result |
 | --- | --- |
 | `./bin/codex-maintainer validate` | pass |
-| `./bin/codex-maintainer self-audit --out /tmp/ringly-codex-workflows-self-audit` | pass, 36/36 commands checked, 111/111 artifacts checked |
+| `./bin/codex-maintainer self-audit --out /tmp/ringly-codex-workflows-self-audit` | pass, 48/48 commands checked, 142/142 artifacts checked |
 | `./bin/codex-maintainer docs-check . --out /tmp/ios-shipguard-docs-check` | pass, 290 Markdown files checked, 48 local links checked, 0 broken |
 | `./bin/codex-maintainer arena run --fixture fixtures/arena --out /tmp/ringly-codex-workflows-arena` | pass, 10 cases, average 7.00/12, 4.4s wall time |
-| Repository surface | 36 CLI help paths, 33 shell scripts, 3 Python scripts, 49 shell tests, 13 composite actions, 50 top-level docs pages |
+| Repository surface | 58 CLI usage paths, 33 shell scripts, 15 Python scripts, 61 shell tests, 13 composite actions, 52 top-level docs pages |
 | Distribution surface | 60 release tarballs in `dist/`, about 13 MB |
 
 ## Usefulness Score
@@ -46,7 +46,7 @@ Overall: 7/10.
 | Evidence quality | 8 | Autopsy, arena, self-audit, docs-check, release replay, and transcript verification are real proof paths. |
 | First-run clarity | 5 | README and docs expose many advanced commands before the core loop is obvious. |
 | Maintenance efficiency | 4 | Version and action reference changes touch many docs, examples, tests, and generated reports. |
-| Security posture | 6 | Secrets are out of scope and transcript redaction exists, but action inputs that delete/download paths need stricter guardrails. |
+| Security posture | 7 | Transcript redaction, safe artifact path guards, Devspace loopback/bearer boundaries, and iOS report redaction reduce accidental disclosure; hosted Devspace and destructive action paths still need stricter review. |
 | OpenAI/Codex fit | 7 | The repo fits Codex-style maintainer workflows without requiring API keys, but it does not yet include a live model eval harness. |
 
 ## What Is Working

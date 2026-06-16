@@ -1,4 +1,4 @@
 interface:
-  display_name: "iOS Shipguard"
+  display_name: "Shipguard for Codex"
   short_description: "Solo iOS release and permission guardrails"
   default_prompt: "Use $ios-shipguard to audit my iOS app before risky Codex edits."

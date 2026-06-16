@@ -20,6 +20,8 @@ The Devspace connector has two run modes:
 
 The app archetype is `interactive-decoupled`: data/action tools stay separate from the render tool so ChatGPT can reason about preview state before showing the widget.
 
+The MCP `initialize` response includes server-level instructions for host models. Those instructions describe the expected start, render, record, target-resolution, target-match, and Codex handoff sequence, and restate the no-raw-coordinate-tap and no-token-in-prompts boundaries.
+
 ## Start HTTP Mode
 
 Start the Devspace MCP endpoint:
@@ -57,7 +59,7 @@ The command prints:
 - `http://127.0.0.1:<port>/preview-screenshot.png`: screenshot proxy used by the widget after a preview starts.
 - `auth: bearer token required` when `--bearer-token-env` or `--bearer-token-file` is configured.
 
-HTTP mode binds to loopback only. To connect ChatGPT Developer Mode, expose the endpoint with an HTTPS tunnel and use the tunneled URL plus `/mcp`.
+HTTP mode binds to loopback only. In unauthenticated local mode, Devspace rejects non-loopback `Host`, `Origin`, and `Referer` headers and requires `application/json` for `/mcp` POST bodies. To connect ChatGPT Developer Mode, expose the endpoint with an HTTPS tunnel and use the tunneled URL plus `/mcp` with bearer auth.
 
 ## ChatGPT Developer Mode
 
@@ -67,6 +69,7 @@ HTTP mode binds to loopback only. To connect ChatGPT Developer Mode, expose the 
 4. Create a new app from the tunneled MCP URL.
 5. Ask ChatGPT to call `preview_start`, then `render_preview_widget`.
 6. Right-click a point in the phone preview to choose a typed action such as tap, copy change, visual fix, or inspection.
+7. Ask ChatGPT to prepare a Codex handoff once the event is recorded.
 
 Useful prompt:
 
@@ -86,15 +89,19 @@ Refresh or reconnect the ChatGPT app after changing tool descriptors, widget HTM
 | `preview_screenshot` | Capture screenshot metadata and proxy URL | No |
 | `preview_record_event` | Record click, note, navigation, visual-bug, or copy-change intent | Yes |
 | `preview_handoff` | Read the latest Codex/XcodeBuildMCP handoff payload | No |
+| `preview_handoff_markdown` | Read the copy-ready Markdown handoff from the active preview | No |
+| `preview_target_resolution` | Read structured guidance for mapping the latest visual event to source or a semantic `elementRef` | No |
+| `preview_match_target` | Rank `describe_ui` or `snapshot_ui` elements against the latest visual event | No |
 | `render_preview_widget` | Return the widget template and current preview data | No |
 | `simulator_list` | List local iOS Simulator devices from `simctl` | No |
+| `production_readiness` | Report Developer Mode readiness, production blockers, and hosting/security invariants | No |
 | `codex_goal_emit` | Emit a Shipguard slash-goal from the local catalog | No |
 | `codex_prepare_handoff` | Prepare a Codex app-server turn prompt, optionally writing it and supervisor artifacts locally | Yes |
 
 The widget resource URI is:
 
 ```text
-ui://widget/shipguard-preview-v1.html
+ui://widget/shipguard-preview-v2.html
 ```
 
 It is served as:
@@ -103,19 +110,23 @@ It is served as:
 text/html;profile=mcp-app
 ```
 
-The widget uses the MCP Apps bridge for tool results and `window.openai.callTool` when available for ChatGPT-hosted button actions. A right-click in the phone preview opens an in-widget context menu that records bounded event metadata: `source`, `action`, `contextLabel`, coordinates, and the user's note.
+The widget uses the MCP Apps bridge for tool results, `tools/call` for portable widget tool calls, and `window.openai.callTool` when available for ChatGPT-hosted button actions. A right-click in the phone preview opens an in-widget context menu that records bounded event metadata: `source`, `action`, `contextLabel`, coordinates, and the user's note.
+
+The preview widget auto-refreshes through bounded calls to the read-only `render_preview_widget` tool. Manual refresh remains available, and the widget reports a paused or unavailable live state when it is not running inside ChatGPT or another MCP Apps host. When bearer auth is enabled, screenshot view-token URLs are returned in widget-only `_meta` rather than model-visible `structuredContent`. The widget and `preview_handoff_markdown` surface the preview's full `handoff.md` so ChatGPT can hand Codex the target-resolution plan, receipts, and safety rules without reconstructing them.
+
+Use `production_readiness` before discussing hosted or production Devspace. It reports whether bearer auth is enabled, whether a public HTTPS endpoint is configured, which local-first security invariants are active, and which reviews are still required before production hosting. It does not enable non-loopback binding.
 
 ## Codex Handoff
 
-`codex_prepare_handoff` prepares the prompt that should be sent into Codex. It does not spawn Codex automatically. That guard is intentional: Codex app-server execution should run through a trusted local supervisor or explicit user action because it can edit code and run tools.
+`codex_prepare_handoff` prepares the prompt that should be sent into Codex. When an active preview exposes `handoff.md`, this tool uses that Markdown as the default prompt; otherwise it falls back to the JSON handoff prompt plus target-resolution summary. It does not spawn Codex automatically. That guard is intentional: Codex app-server execution should run through a trusted local supervisor or explicit user action because it can edit code and run tools.
 
 The handoff path is:
 
 ```text
-preview event -> preview_handoff -> codex_prepare_handoff -> Codex turn -> validation proof
+preview event -> preview_handoff_markdown -> codex_prepare_handoff -> Codex turn -> validation proof
 ```
 
-When a `tap-request` or `navigate-request` exists, the handoff instructs Codex to use XcodeBuildMCP `snapshot_ui`, map the visual event to a semantic `elementRef`, then use `touch` only after the target is identified. Copy and visual-fix context events route to source-code edits and preview proof instead of simulator taps.
+When a `tap-request` or `navigate-request` exists, the handoff instructs Codex to use XcodeBuildMCP `describe_ui` or `snapshot_ui`, map the visual event to a semantic `elementRef`, then use `tap` or `touch` only after the target is identified. The same rule is exposed as `targetResolution.status = needs-element-ref` with `rawCoordinateTapAllowed = false`. `preview_match_target` can rank UI snapshot candidates, but it never performs simulator input. Copy and visual-fix context events route to source-code edits and preview proof instead of simulator taps.
 
 ## Codex Handoff Supervisor
 
@@ -164,19 +175,34 @@ In this repository's local plugin layout, the MCP server runs from the repositor
 
 ## Security Boundary
 
+Threat model:
+
+- Assets: app screenshots, UI event notes, local paths, team IDs, bundle IDs, Apple accounts, bearer tokens, Codex handoff prompts, and any generated report that might later be pasted into ChatGPT, GitHub, or CI logs.
+- Trust boundaries: the local terminal and loopback server are trusted developer space; tunneled ChatGPT Developer Mode is semi-trusted planning space; public issues, release evidence, and benchmark corpora are untrusted publication space.
+- Attacker-controlled inputs: MCP request bodies, preview event notes, context-menu labels, handoff prompt text, local report contents, and tunnel-origin HTTP metadata.
+- Invariants: Devspace must not expose arbitrary shell execution, must not treat browser coordinates as simulator taps, must not place bearer tokens in prompts, must not leak screenshot view tokens to model-visible tool content, and should run `ios redact` before report artifacts cross from local proof into publication or external planning.
+
 - HTTP mode rejects non-loopback hosts.
 - HTTP mode can require `Authorization: Bearer <token>` through `--bearer-token-env` or `--bearer-token-file`.
 - MCP request bodies are size-limited.
 - Preview event payloads are bounded and schema-like.
+- Unauthenticated local HTTP mode rejects non-loopback `Host`, `Origin`, and `Referer` headers.
+- `/mcp` accepts JSON POST bodies only.
+- In bearer-auth HTTP mode, MCP file-write path arguments must stay inside the active `previewOut` directory.
+- In bearer-auth HTTP mode, `preview_start.fixtureImage` overrides are disabled; use a trusted local `--fixture-image` at server startup for tests.
 - The connector does not expose arbitrary shell execution.
 - The connector does not treat browser click coordinates as simulator taps.
 - The context menu records typed visual intent; it does not execute Codex or Xcode actions.
 - The connector does not spawn Codex app-server automatically.
 - `ios codex-handoff --execute` is a separate local terminal action and records a transcript.
-- When bearer auth is enabled, the screenshot proxy URL includes a random per-session view token because browser `<img>` requests cannot attach an Authorization header. That token can only fetch the current screenshot proxy; it cannot call MCP tools.
+- When bearer auth is enabled, the screenshot proxy URL includes a random per-session view token because browser `<img>` requests cannot attach an Authorization header. That token is returned only in tool-result `_meta`, can only fetch the current screenshot proxy, and cannot call MCP tools.
 - Use HTTPS tunneling only for local Developer Mode testing; production hosting needs its own auth, logging, and secret-handling review.
 
-Do not paste secrets into preview notes. Treat screenshots and event receipts as local planning evidence, not release proof.
+Do not paste secrets into preview notes. Treat screenshots and event receipts as local planning evidence, not release proof. Before sharing generated reports or logs, run:
+
+```bash
+./bin/codex-maintainer ios redact --in /tmp/ios-shipguard-preview --out /tmp/ios-shipguard-preview-redacted
+```
 
 ## Validation
 

@@ -28,8 +28,19 @@ test "$(./bin/codex-maintainer version)" = "$(sed -n '1p' VERSION)"
 ./bin/codex-maintainer ios inventory --help >/dev/null
 ./bin/codex-maintainer ios preview --help >/dev/null
 ./bin/codex-maintainer ios devspace --help >/dev/null
+./bin/codex-maintainer ios target-match --help >/dev/null
 ./bin/codex-maintainer ios codex-handoff --help >/dev/null
-./bin/codex-maintainer ios goals --help >/dev/null
+./bin/codex-maintainer ios plan --help >/dev/null
+./bin/codex-maintainer ios prove --help >/dev/null
+./bin/codex-maintainer ios modernize --help >/dev/null
+./bin/codex-maintainer ios app-intelligence --help >/dev/null
+./bin/codex-maintainer ios ai-readiness --help >/dev/null
+./bin/codex-maintainer ios redact --help >/dev/null
+./bin/codex-maintainer ios threat-model --help >/dev/null
+./bin/codex-maintainer ios eval --help >/dev/null
+./bin/codex-maintainer ios demo --help >/dev/null
+goals_help="$(./bin/codex-maintainer ios goals --help)"
+printf '%s\n' "$goals_help" | grep -q 'emit'
 ./bin/codex-maintainer leaderboard build --help >/dev/null
 ./bin/codex-maintainer release-attest build --help >/dev/null
 ./bin/codex-maintainer release-proof build --help >/dev/null

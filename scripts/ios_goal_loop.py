@@ -80,11 +80,12 @@ GOALS: list[dict[str, Any]] = [
         "id": "shipguard-ios-preview-bridge",
         "phase": "Phase 3: Proof Loop",
         "title": "Preview iOS App In Codex",
-        "objective": "Serve a booted iOS Simulator screenshot into Codex's in-app browser, capture click and note receipts, and route visual feedback back into the Shipguard proof loop.",
+        "objective": "Serve a booted iOS Simulator screenshot into Codex's in-app browser, capture click, right-click context-menu, and note receipts, and route visual feedback back into the Shipguard proof loop.",
         "deliverables": [
             "`codex-maintainer ios preview --out <dir>`",
             "localhost phone preview for Codex browser comments",
-            "session JSON, screenshot, and preview event receipts",
+            "session JSON, screenshot, and typed preview event receipts",
+            "copy-ready handoff.md with target resolution, receipts, and safety rules",
             "plugin mode routing and docs for the native-panel boundary",
         ],
         "proof": [
@@ -96,15 +97,17 @@ GOALS: list[dict[str, Any]] = [
         "id": "shipguard-devspace-mcp",
         "phase": "Phase 3: Proof Loop",
         "title": "Bridge Shipguard Preview To ChatGPT",
-        "objective": "Expose the iOS preview bridge through a Shipguard Devspace MCP/App connector with a widget resource, visual event tools, and Codex handoff preparation.",
+        "objective": "Expose the iOS preview bridge through a Shipguard Devspace MCP/App connector with a versioned widget resource, visual event tools, target resolution, UI snapshot target matching, production-readiness reporting, and Codex handoff preparation.",
         "deliverables": [
             "`codex-maintainer ios devspace --port <port>`",
+            "`codex-maintainer ios target-match --handoff <handoff.json> --snapshot <ui.json>`",
             "HTTP `/mcp` endpoint for ChatGPT Developer Mode",
             "stdio MCP mode for the iOS Shipguard Codex plugin",
-            "phone preview widget resource and screenshot proxy",
-            "tools for preview start, state, screenshots, events, handoff, simulator list, and Codex prompt preparation",
+            "`ui://widget/shipguard-preview-v2.html` phone preview widget resource and screenshot proxy",
+            "tools for preview start, state, screenshots, events, Markdown handoff, target resolution, target matching, simulator list, production readiness, and Codex prompt preparation",
         ],
         "proof": [
+            "./tests/ios_target_match_test.sh",
             "./tests/shipguard_devspace_mcp_test.sh",
             "python3 <plugin-creator>/scripts/validate_plugin.py plugins/ios-shipguard",
             "./bin/codex-maintainer docs-check docs/shipguard-devspace.md --out /tmp/shipguard-devspace-docs",
@@ -147,6 +150,7 @@ GOALS: list[dict[str, Any]] = [
         "title": "Audit App Intelligence Surfaces",
         "objective": "Recommend App Intents, entities, Spotlight, Shortcuts, Siri, controls, widgets, and Apple Intelligence exposure based on actual app capabilities.",
         "deliverables": [
+            "`codex-maintainer ios app-intelligence --path <repo> --out <dir>`",
             "App Intents and entity coverage report",
             "system-surface opportunity matrix",
             "blocked questions for user-visible actions and data privacy",
@@ -162,6 +166,7 @@ GOALS: list[dict[str, Any]] = [
         "title": "Audit AI Capability Choices",
         "objective": "Choose between Foundation Models, Core AI, Core ML, OpenAI API, or no AI based on privacy, latency, device support, cost, fallback, and feature value.",
         "deliverables": [
+            "`codex-maintainer ios ai-readiness --path <repo> --out <dir>`",
             "AI capability decision report",
             "on-device versus cloud tradeoff table",
             "privacy and fallback questions before implementation",
@@ -177,7 +182,7 @@ GOALS: list[dict[str, Any]] = [
         "title": "Harden Privacy And Security Reports",
         "objective": "Redact sensitive iOS project data from reports and threat-model plugin execution, local marketplace trust, generated artifacts, screenshots, logs, and uploads.",
         "deliverables": [
-            "iOS report redaction helper",
+            "`codex-maintainer ios redact --in <file-or-dir> --out <file-or-dir>`",
             "security threat model for Shipguard plugin/runtime surfaces",
             "tests for local path, team ID, bundle ID, token, and account redaction",
         ],
@@ -192,6 +197,7 @@ GOALS: list[dict[str, Any]] = [
         "title": "Evaluate Shipguard Behavior",
         "objective": "Grade whether Shipguard catches missing questions, routes the right mode, avoids false proof claims, and produces useful Codex briefs.",
         "deliverables": [
+            "`codex-maintainer ios eval --cases evals/ios_shipguard_cases.jsonl --out <dir>`",
             "deterministic Shipguard eval cases",
             "optional OpenAI trace/eval harness guidance",
             "quality gate for mode routing and proof honesty",
@@ -208,10 +214,11 @@ GOALS: list[dict[str, Any]] = [
         "objective": "Make iOS Shipguard easy to install, inspect, validate, package, and try from a clean checkout.",
         "deliverables": [
             "plugin metadata and install docs",
-            "clean first-run demo path",
+            "`codex-maintainer ios demo --out <dir>` clean first-run demo path",
             "release package assertions for every Shipguard artifact",
         ],
         "proof": [
+            "./tests/ios_shipguard_demo_test.sh",
             "python3 <plugin-creator>/scripts/validate_plugin.py plugins/ios-shipguard",
             "./tests/package_release_test.sh",
         ],

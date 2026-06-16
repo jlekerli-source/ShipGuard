@@ -38,8 +38,18 @@ Usage:
   codex-maintainer ios inventory [--path <ios-project>] [--doctor <ios-doctor.json>] [--out <dir>] [--json|--markdown]
   codex-maintainer ios preview --out <dir> [--device booted] [--host 127.0.0.1] [--port 8765]
   codex-maintainer ios devspace [--host 127.0.0.1] [--port 8787] [--preview-url <url>] [--bearer-token-env <env>]
+  codex-maintainer ios target-match --handoff <handoff.json> --snapshot <ui.json> [--out <dir>]
   codex-maintainer ios codex-handoff --prompt-file <file>|--prompt <text> --out <dir> [--execute]
-  codex-maintainer ios goals init|status|next|complete [options]
+  codex-maintainer ios plan --mode <mode> --inventory <ios-inventory.json> --out <file-or-dir>
+  codex-maintainer ios prove --plan <ios-plan.json> --out <dir>
+  codex-maintainer ios modernize --focus swift --path <repo> --out <dir>
+  codex-maintainer ios app-intelligence --path <repo> --out <dir>
+  codex-maintainer ios ai-readiness --path <repo> --out <dir>
+  codex-maintainer ios redact --in <file-or-dir> --out <file-or-dir> [--report <report.json>] [--private-term <text> ...]
+  codex-maintainer ios threat-model --path <repo> --out <dir>
+  codex-maintainer ios eval [--cases <cases.jsonl>] [--out <dir>] [--json|--markdown]
+  codex-maintainer ios demo --out <dir> [--fixture <repo>] [--cases <cases.jsonl>]
+  codex-maintainer ios goals init|status|next|emit|complete [options]
   codex-maintainer leaderboard build --arena-results <results.json> --out <leaderboard.json>
   codex-maintainer release-manifest --tarball <release.tar.gz> --out <dir> [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--release-url <url>] [--issue-url <url>]
   codex-maintainer release-manifest verify --manifest <release-manifest.json> --tarball <release.tar.gz> [--version <version>] [--tag <tag>]
@@ -359,7 +369,7 @@ cmd_docs_check() {
 
 cmd_ios() {
   local subcommand="${1:-}"
-  [[ "$subcommand" == "doctor" || "$subcommand" == "inventory" || "$subcommand" == "preview" || "$subcommand" == "devspace" || "$subcommand" == "codex-handoff" || "$subcommand" == "goals" ]] || fail "ios requires subcommand: doctor, inventory, preview, devspace, codex-handoff, or goals"
+  [[ "$subcommand" == "doctor" || "$subcommand" == "inventory" || "$subcommand" == "preview" || "$subcommand" == "devspace" || "$subcommand" == "target-match" || "$subcommand" == "codex-handoff" || "$subcommand" == "plan" || "$subcommand" == "prove" || "$subcommand" == "modernize" || "$subcommand" == "app-intelligence" || "$subcommand" == "ai-readiness" || "$subcommand" == "redact" || "$subcommand" == "threat-model" || "$subcommand" == "eval" || "$subcommand" == "demo" || "$subcommand" == "goals" ]] || fail "ios requires subcommand: doctor, inventory, preview, devspace, target-match, codex-handoff, plan, prove, modernize, app-intelligence, ai-readiness, redact, threat-model, eval, demo, or goals"
   shift || true
   case "$subcommand" in
     doctor)
@@ -374,8 +384,38 @@ cmd_ios() {
     devspace)
       "$tool_root/scripts/shipguard_devspace_mcp.py" --repo-root "$tool_root" "$@"
       ;;
+    target-match)
+      "$tool_root/scripts/ios_target_match.py" "$@"
+      ;;
     codex-handoff)
       "$tool_root/scripts/ios_codex_handoff.py" "$@"
+      ;;
+    plan)
+      "$tool_root/scripts/ios_plan.py" "$@"
+      ;;
+    prove)
+      "$tool_root/scripts/ios_prove.py" "$@"
+      ;;
+    modernize)
+      "$tool_root/scripts/ios_modernize.py" "$@"
+      ;;
+    app-intelligence)
+      "$tool_root/scripts/ios_app_intelligence.py" "$@"
+      ;;
+    ai-readiness)
+      "$tool_root/scripts/ios_ai_readiness.py" "$@"
+      ;;
+    redact)
+      "$tool_root/scripts/ios_redaction.py" "$@"
+      ;;
+    threat-model)
+      "$tool_root/scripts/ios_threat_model.py" "$@"
+      ;;
+    eval)
+      "$tool_root/scripts/ios_shipguard_eval.py" "$@"
+      ;;
+    demo)
+      "$tool_root/scripts/ios_shipguard_demo.py" "$@"
       ;;
     goals)
       "$tool_root/scripts/ios_goal_loop.py" "$@"

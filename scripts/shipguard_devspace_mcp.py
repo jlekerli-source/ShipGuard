@@ -24,12 +24,18 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from ios_target_match import match_target
+
 
 MAX_MCP_BODY_BYTES = 128 * 1024
 MAX_EVENT_BYTES = 16 * 1024
 MAX_NOTE_CHARS = 1000
+MAX_HANDOFF_MARKDOWN_CHARS = 16000
 LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
-WIDGET_URI = "ui://widget/shipguard-preview-v1.html"
+JSON_CONTENT_TYPES = {"application/json", "application/json-rpc"}
+WIDGET_VERSION = 2
+WIDGET_URI = f"ui://widget/shipguard-preview-v{WIDGET_VERSION}.html"
+WIDGET_HTTP_PATH = f"/widget/shipguard-preview-v{WIDGET_VERSION}.html"
 RESOURCE_MIME_TYPE = "text/html;profile=mcp-app"
 EVENT_TYPES = {"tap-request", "note", "navigate-request", "visual-bug", "copy-change"}
 EVENT_SOURCES = {"widget-click", "widget-context-menu", "chatgpt", "manual"}
@@ -93,6 +99,33 @@ def safe_text(value: Any, limit: int = MAX_NOTE_CHARS) -> str:
     return value.strip()[:limit]
 
 
+def format_target_resolution_for_prompt(target_resolution: Any) -> str:
+    if not isinstance(target_resolution, dict):
+        return ""
+    status = safe_text(target_resolution.get("status"), 120)
+    intent = safe_text(target_resolution.get("intent"), 120)
+    next_tool = ""
+    xcode = target_resolution.get("xcodeBuildMCP")
+    if isinstance(xcode, dict):
+        next_tool = safe_text(xcode.get("nextTool"), 120)
+    raw_allowed = target_resolution.get("rawCoordinateTapAllowed")
+    checklist = target_resolution.get("checklist")
+    checklist_rows = [safe_text(item, 220) for item in checklist if isinstance(item, str)] if isinstance(checklist, list) else []
+
+    lines = ["Target resolution plan:"]
+    if status:
+        lines.append(f"- status: {status}")
+    if intent:
+        lines.append(f"- intent: {intent}")
+    if next_tool:
+        lines.append(f"- XcodeBuildMCP next tool: {next_tool}")
+    if isinstance(raw_allowed, bool):
+        lines.append(f"- raw browser coordinate tap allowed: {str(raw_allowed).lower()}")
+    for item in checklist_rows[:4]:
+        lines.append(f"- {item}")
+    return "\n".join(lines)
+
+
 def load_bearer_token(args: argparse.Namespace) -> str | None:
     if args.bearer_token_env and args.bearer_token_file:
         fail("use either --bearer-token-env or --bearer-token-file, not both")
@@ -148,6 +181,13 @@ def post_json_url(url: str, payload: dict[str, Any], timeout: int = 8) -> dict[s
     return data
 
 
+def read_text_url(url: str, timeout: int = 8, limit: int = MAX_HANDOFF_MARKDOWN_CHARS) -> str:
+    with urllib.request.urlopen(url, timeout=timeout) as response:
+        data = response.read(limit + 1)
+    text = data.decode("utf-8", errors="replace")
+    return text[:limit]
+
+
 def normalize_preview_url(url: str) -> str:
     parsed = urlparse(url)
     if parsed.scheme not in {"http", "https"}:
@@ -156,6 +196,33 @@ def normalize_preview_url(url: str) -> str:
         raise RuntimeError("preview URL is missing host")
     normalized = url.rstrip("/") + "/"
     return normalized
+
+
+def host_header_name(value: str | None) -> str:
+    host = safe_text(value, 300).lower()
+    if not host:
+        return ""
+    if host.startswith("["):
+        end = host.find("]")
+        return host[1:end] if end > 1 else host
+    return host.split(":", 1)[0]
+
+
+def is_loopback_url(value: str) -> bool:
+    parsed = urlparse(value)
+    return parsed.scheme in {"http", "https"} and (parsed.hostname or "").lower() in LOOPBACK_HOSTS
+
+
+def content_type_name(value: str | None) -> str:
+    return safe_text(value, 200).split(";", 1)[0].strip().lower()
+
+
+def is_relative_to(path: Path, root: Path) -> bool:
+    try:
+        path.resolve().relative_to(root.resolve())
+        return True
+    except ValueError:
+        return False
 
 
 class PreviewClient:
@@ -170,6 +237,12 @@ class PreviewClient:
 
     def handoff(self) -> dict[str, Any]:
         return read_json_url(self.url("/api/handoff"))
+
+    def handoff_markdown(self) -> str:
+        try:
+            return read_text_url(self.url("/api/handoff.md"))
+        except urllib.error.URLError:
+            return ""
 
     def events(self) -> list[dict[str, Any]]:
         payload = read_json_url(self.url("/api/events"))
@@ -214,6 +287,13 @@ class DevspaceState:
         self.preview_process: subprocess.Popen[bytes] | None = None
         self.lock = threading.Lock()
 
+    def require_auth_scoped_path(self, path: Path, label: str) -> None:
+        if not self.auth_enabled:
+            return
+        root = self.preview_out.resolve()
+        if not is_relative_to(path, root):
+            raise RuntimeError(f"{label} must stay inside previewOut when bearer auth is enabled: {root}")
+
     def preview_client(self) -> PreviewClient:
         if not self.preview_url:
             raise RuntimeError("no active preview; call preview_start first")
@@ -254,11 +334,17 @@ class DevspaceState:
             state["previewRunning"] = False
         return state
 
-    def screenshot_proxy_url(self) -> str:
+    def screenshot_proxy_url(self, *, include_view_token: bool = True) -> str:
         url = self.server_url.rstrip("/") + "/preview-screenshot.png"
-        if self.screenshot_view_token:
+        if include_view_token and self.screenshot_view_token:
             return f"{url}?view={self.screenshot_view_token}"
         return url
+
+    def screenshot_proxy_meta(self) -> dict[str, Any]:
+        return {
+            "shipguard/screenshotProxyUrl": self.screenshot_proxy_url(include_view_token=True),
+            "shipguard/screenshotProxyRequiresViewToken": self.screenshot_view_token is not None,
+        }
 
     def start_preview(self, params: dict[str, Any]) -> dict[str, Any]:
         with self.lock:
@@ -271,11 +357,14 @@ class DevspaceState:
                 return {"attached": False, "previewUrl": self.preview_url, "state": self.public_state()}
 
             out_dir = Path(safe_text(params.get("outDir")) or str(self.preview_out)).expanduser().resolve()
+            self.require_auth_scoped_path(out_dir, "outDir")
             device = safe_text(params.get("device")) or self.default_device
             refresh_ms = bounded_int(params.get("refreshMs"), 250, 60000) or 1000
             port = bounded_int(params.get("port"), 0, 65535)
             preview_port = 0 if port is None else port
             fixture = safe_text(params.get("fixtureImage"))
+            if fixture and self.auth_enabled:
+                raise RuntimeError("fixtureImage override is disabled when bearer auth is enabled")
             fixture_path = Path(fixture).expanduser().resolve() if fixture else self.default_fixture_image
             if fixture_path and not fixture_path.is_file():
                 raise RuntimeError(f"fixture image not found: {fixture_path}")
@@ -351,6 +440,42 @@ class DevspaceState:
         handoff = client.handoff()
         return {"devspace": self.public_state(), "handoff": handoff}
 
+    def preview_handoff_markdown(self) -> dict[str, Any]:
+        client = self.preview_client()
+        return {
+            "devspace": self.public_state(),
+            "markdown": client.handoff_markdown(),
+            "handoff": client.handoff(),
+        }
+
+    def preview_target_resolution(self) -> dict[str, Any]:
+        handoff = self.preview_client().handoff()
+        target_resolution = handoff.get("targetResolution") if isinstance(handoff, dict) else None
+        if not isinstance(target_resolution, dict):
+            target_resolution = {
+                "status": "unavailable",
+                "rawCoordinateTapAllowed": False,
+                "reason": "preview handoff did not include targetResolution",
+            }
+        return {
+            "devspace": self.public_state(),
+            "latestEvent": handoff.get("latestEvent") if isinstance(handoff, dict) else None,
+            "targetResolution": target_resolution,
+            "handoff": handoff,
+        }
+
+    def preview_match_target(self, params: dict[str, Any]) -> dict[str, Any]:
+        snapshot = params.get("uiSnapshot")
+        if not isinstance(snapshot, dict):
+            raise RuntimeError("uiSnapshot object is required")
+        provided_handoff = params.get("handoff")
+        handoff = provided_handoff if isinstance(provided_handoff, dict) else self.preview_client().handoff()
+        max_candidates = bounded_int(params.get("maxCandidates"), 1, 20) or 5
+        return {
+            "devspace": self.public_state(),
+            "match": match_target(handoff, snapshot, max_candidates),
+        }
+
     def preview_events(self) -> dict[str, Any]:
         client = self.preview_client()
         return {"events": client.events(), "devspace": self.public_state()}
@@ -404,19 +529,103 @@ class DevspaceState:
             "captureMode": mode,
             "contentType": "image/png",
             "sampleBase64": encoded,
-            "proxyUrl": self.screenshot_proxy_url(),
+            "proxyUrl": self.screenshot_proxy_url(include_view_token=False),
             "devspace": self.public_state(),
+        }
+
+    def screenshot_tool_result(self) -> dict[str, Any]:
+        return {
+            "structuredContent": self.screenshot_metadata(),
+            "content": [{"type": "text", "text": "preview_screenshot completed."}],
+            "_meta": self.screenshot_proxy_meta(),
+        }
+
+    def production_readiness(self) -> dict[str, Any]:
+        parsed = urlparse(self.server_url)
+        host = parsed.hostname or ""
+        is_loopback = host in LOOPBACK_HOSTS
+        is_https = parsed.scheme == "https"
+        has_public_endpoint = is_https and not is_loopback
+        checks = [
+            {
+                "id": "loopback-default",
+                "status": "pass" if is_loopback or not self.server_url else "review",
+                "evidence": "HTTP mode binds to loopback; stdio mode may use --public-url metadata.",
+            },
+            {
+                "id": "bearer-auth",
+                "status": "pass" if self.auth_enabled else "fail",
+                "evidence": "Bearer auth is required for tunneled Developer Mode and any remote exposure.",
+            },
+            {
+                "id": "public-https-endpoint",
+                "status": "pass" if has_public_endpoint else "review",
+                "evidence": "ChatGPT Developer Mode needs an HTTPS tunnel or hosted HTTPS /mcp endpoint.",
+            },
+            {
+                "id": "no-raw-coordinate-taps",
+                "status": "pass",
+                "evidence": "Preview handoff and target matching require semantic elementRef review before touch.",
+            },
+            {
+                "id": "no-automatic-codex-execution",
+                "status": "pass",
+                "evidence": "codex_prepare_handoff prepares prompts and supervisor artifacts but does not spawn Codex.",
+            },
+            {
+                "id": "screenshot-token-containment",
+                "status": "pass",
+                "evidence": "Bearer-auth screenshot view-token URLs are widget-only _meta and image-proxy scoped.",
+            },
+            {
+                "id": "remote-path-scope",
+                "status": "pass" if self.auth_enabled else "local-only",
+                "evidence": "Bearer-auth file-write path arguments are scoped to previewOut.",
+            },
+            {
+                "id": "local-browser-origin-guard",
+                "status": "pass",
+                "evidence": "Unauthenticated loopback HTTP mode rejects non-loopback Host, Origin, and Referer headers.",
+            },
+            {
+                "id": "json-mcp-post-only",
+                "status": "pass",
+                "evidence": "HTTP /mcp only accepts JSON content types, which blocks simple browser form POSTs.",
+            },
+        ]
+        blockers = [check["id"] for check in checks if check["status"] == "fail"]
+        return {
+            "tool": "codex-maintainer ios devspace production_readiness",
+            "status": "developer-mode-ready" if self.auth_enabled and not blockers else "local-only",
+            "productionReady": False,
+            "developerModeReady": self.auth_enabled,
+            "serverUrl": self.server_url,
+            "publicEndpointConfigured": has_public_endpoint,
+            "checks": checks,
+            "blockers": blockers,
+            "requiredBeforeProduction": [
+                "stable public HTTPS hosting for /mcp and widget assets",
+                "formal auth and secret-handling review",
+                "operational logging that redacts bearer and screenshot view tokens",
+                "explicit policy for local simulator access and code-execution handoff",
+                "end-to-end ChatGPT Developer Mode test through the hosted endpoint",
+            ],
+            "note": "Devspace remains a local-first bridge; this report does not enable non-loopback binding or production hosting by itself.",
         }
 
     def render_widget_result(self) -> dict[str, Any]:
         preview: dict[str, Any] | None = None
         handoff: dict[str, Any] | None = None
+        target_resolution: dict[str, Any] | None = None
+        handoff_markdown: str | None = None
         events: list[dict[str, Any]] = []
-        screenshot_proxy_url = self.screenshot_proxy_url()
         if self.preview_url:
             client = self.preview_client()
             preview = client.state()
             handoff = client.handoff()
+            handoff_markdown = client.handoff_markdown()
+            maybe_resolution = handoff.get("targetResolution") if isinstance(handoff, dict) else None
+            target_resolution = maybe_resolution if isinstance(maybe_resolution, dict) else None
             events = client.events()
 
         return {
@@ -424,8 +633,9 @@ class DevspaceState:
                 "devspace": self.public_state(),
                 "preview": preview,
                 "handoff": handoff,
+                "handoffMarkdown": handoff_markdown,
+                "targetResolution": target_resolution,
                 "events": events[-self.event_limit :],
-                "screenshotProxyUrl": screenshot_proxy_url,
             },
             "content": [
                 {
@@ -439,6 +649,7 @@ class DevspaceState:
                 "ui": {"resourceUri": WIDGET_URI},
                 "openai/outputTemplate": WIDGET_URI,
                 "openai/toolInvocation/invoked": "Preview ready",
+                **self.screenshot_proxy_meta(),
             },
         }
 
@@ -508,14 +719,29 @@ class DevspaceState:
 
     def codex_prepare_handoff(self, params: dict[str, Any]) -> dict[str, Any]:
         handoff = self.preview_handoff()["handoff"] if self.preview_url else {}
+        handoff_markdown = self.preview_client().handoff_markdown() if self.preview_url else ""
         prompt = safe_text(params.get("prompt"), 8000)
+        explicit_prompt = bool(prompt)
+        prompt_source = "explicit" if explicit_prompt else "fallback"
+        if not prompt:
+            prompt = safe_text(handoff_markdown, MAX_HANDOFF_MARKDOWN_CHARS)
+            if prompt:
+                prompt_source = "preview-handoff-markdown"
         if not prompt:
             prompt = safe_text(handoff.get("prompt"), 8000)
+            if prompt:
+                prompt_source = "preview-handoff-json"
         if not prompt:
             prompt = (
                 "Use $ios-shipguard preview-bridge mode. Start or attach the Shipguard preview, "
-                "read /api/handoff, then make the smallest scoped code change and validate it."
+                "read /api/handoff.md, then make the smallest scoped code change and validate it."
             )
+            prompt_source = "fallback"
+        target_resolution = handoff.get("targetResolution") if isinstance(handoff, dict) else None
+        if not explicit_prompt and prompt_source != "preview-handoff-markdown":
+            resolution_summary = format_target_resolution_for_prompt(target_resolution)
+            if resolution_summary:
+                prompt = f"{prompt}\n\n{resolution_summary}"
 
         app_server_command = "codex app-server"
         turn_command = {
@@ -527,6 +753,7 @@ class DevspaceState:
         written = None
         if out_file:
             path = Path(out_file).expanduser().resolve()
+            self.require_auth_scoped_path(path, "outFile")
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(prompt + "\n", encoding="utf-8")
             written = str(path)
@@ -535,16 +762,17 @@ class DevspaceState:
         supervisor: dict[str, Any] | None = None
         if supervisor_out:
             supervisor_dir = Path(supervisor_out).expanduser().resolve()
+            self.require_auth_scoped_path(supervisor_dir, "supervisorOutDir")
             supervisor_dir.mkdir(parents=True, exist_ok=True)
-            prompt_source = Path(written) if written else supervisor_dir / "shipguard-source-prompt.md"
+            prompt_path = Path(written) if written else supervisor_dir / "shipguard-source-prompt.md"
             if not written:
-                prompt_source.write_text(prompt + "\n", encoding="utf-8")
+                prompt_path.write_text(prompt + "\n", encoding="utf-8")
             command = [
                 str(self.repo_root / "bin" / "codex-maintainer"),
                 "ios",
                 "codex-handoff",
                 "--prompt-file",
-                str(prompt_source),
+                str(prompt_path),
                 "--out",
                 str(supervisor_dir),
                 "--cwd",
@@ -582,15 +810,27 @@ class DevspaceState:
 
         return {
             "prompt": prompt,
+            "promptSource": prompt_source,
+            "handoffMarkdown": handoff_markdown,
             "writtenPrompt": written,
             "codexAppServerEnabled": self.allow_codex_app_server,
             "codexAppServer": turn_command,
             "codexSupervisor": supervisor,
+            "targetResolution": target_resolution,
             "handoff": handoff,
         }
 
 
-def tool_descriptor(name: str, title: str, description: str, input_schema: dict[str, Any], annotations: dict[str, Any], *, render: bool = False) -> dict[str, Any]:
+def tool_descriptor(
+    name: str,
+    title: str,
+    description: str,
+    input_schema: dict[str, Any],
+    annotations: dict[str, Any],
+    *,
+    render: bool = False,
+    widget_accessible: bool = False,
+) -> dict[str, Any]:
     descriptor: dict[str, Any] = {
         "name": name,
         "title": title,
@@ -598,14 +838,32 @@ def tool_descriptor(name: str, title: str, description: str, input_schema: dict[
         "inputSchema": input_schema,
         "annotations": annotations,
         "_meta": {
+            "ui": {"visibility": ["model", "app"]},
             "openai/toolInvocation/invoking": title[:64],
             "openai/toolInvocation/invoked": f"{title[:52]} ready",
         },
     }
+    if widget_accessible:
+        descriptor["_meta"]["openai/widgetAccessible"] = True
     if render:
-        descriptor["_meta"]["ui"] = {"resourceUri": WIDGET_URI}
+        descriptor["_meta"]["ui"]["resourceUri"] = WIDGET_URI
         descriptor["_meta"]["openai/outputTemplate"] = WIDGET_URI
     return descriptor
+
+
+def server_instructions() -> str:
+    return (
+        "Shipguard Devspace exposes a local iOS Simulator preview to ChatGPT through MCP. "
+        "Use this sequence: preview_start or attach to an existing preview URL, render_preview_widget, "
+        "record visual intent with preview_record_event, inspect preview_target_resolution, read preview_handoff_markdown, optionally rank "
+        "XcodeBuildMCP describe_ui or snapshot_ui JSON with preview_match_target, then prepare a Codex handoff "
+        "with codex_prepare_handoff. Use production_readiness before discussing tunneled or hosted use. "
+        "Do not treat widget or browser coordinates as simulator input; for tap or "
+        "navigation requests require a semantic XcodeBuildMCP elementRef before touch. Copy-change and visual-bug "
+        "events should guide source edits and refreshed preview proof, not raw simulator taps. This server is not "
+        "a remote shell and does not spawn Codex automatically; app-server execution requires an explicit local "
+        "supervisor action. Do not paste bearer tokens, screenshot view-token URLs, or secrets into prompts or notes."
+    )
 
 
 def object_schema(properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
@@ -661,7 +919,7 @@ def tool_descriptors() -> list[dict[str, Any]]:
         tool_descriptor(
             "preview_record_event",
             "Record preview event",
-            "Use this when a widget click or note should be logged as local visual intent.",
+            "Use this when a widget click, context-menu action, or note should be logged as local visual intent.",
             object_schema(
                 {
                     "type": {"type": "string", "enum": ["tap-request", "note", "navigate-request", "visual-bug", "copy-change"]},
@@ -685,6 +943,7 @@ def tool_descriptors() -> list[dict[str, Any]]:
                 ["type"],
             ),
             local_write,
+            widget_accessible=True,
         ),
         tool_descriptor(
             "preview_handoff",
@@ -694,17 +953,53 @@ def tool_descriptors() -> list[dict[str, Any]]:
             read_only,
         ),
         tool_descriptor(
+            "preview_handoff_markdown",
+            "Read Markdown handoff",
+            "Use this when ChatGPT or Codex needs the copy-ready Markdown handoff from the active preview.",
+            object_schema({}),
+            read_only,
+        ),
+        tool_descriptor(
+            "preview_target_resolution",
+            "Resolve preview target",
+            "Use this after a visual event when ChatGPT needs structured guidance for mapping the selected point to source or a semantic XcodeBuildMCP elementRef.",
+            object_schema({}),
+            read_only,
+        ),
+        tool_descriptor(
+            "preview_match_target",
+            "Match UI target",
+            "Use this after XcodeBuildMCP describe_ui or snapshot_ui to rank likely semantic targets for the latest preview event. It never performs simulator input.",
+            object_schema(
+                {
+                    "uiSnapshot": {"type": "object", "description": "JSON output from XcodeBuildMCP describe_ui or snapshot_ui."},
+                    "handoff": {"type": "object", "description": "Optional preview handoff override. Defaults to the active preview handoff."},
+                    "maxCandidates": {"type": "integer", "minimum": 1, "maximum": 20},
+                },
+                ["uiSnapshot"],
+            ),
+            read_only,
+        ),
+        tool_descriptor(
             "render_preview_widget",
             "Render preview widget",
             "Use this after preview_state or preview_start when ChatGPT should show the phone preview widget.",
             object_schema({}),
             read_only,
             render=True,
+            widget_accessible=True,
         ),
         tool_descriptor(
             "simulator_list",
             "List simulators",
             "Use this when ChatGPT needs local iOS Simulator names, states, and UDIDs before starting preview.",
+            object_schema({}),
+            read_only,
+        ),
+        tool_descriptor(
+            "production_readiness",
+            "Check production readiness",
+            "Use this before discussing tunneled, hosted, or production Devspace operation.",
             object_schema({}),
             read_only,
         ),
@@ -881,6 +1176,18 @@ def widget_html() -> str:
       border-color: var(--accent);
       color: #fff;
     }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+    .live-status {
+      display: inline-block;
+      min-width: 116px;
+      color: var(--muted);
+      font-size: 12px;
+    }
     .events {
       display: grid;
       gap: 8px;
@@ -922,14 +1229,22 @@ def widget_html() -> str:
         <h2>Visual Event</h2>
         <p id="selection">No target selected.</p>
         <textarea id="note" placeholder="Example: this Settings button should be easier to read."></textarea>
-        <button class="primary" id="record">Record Event</button>
-        <button id="refresh">Refresh</button>
-        <button id="handoff">Ask ChatGPT to hand this to Codex</button>
+        <div class="controls">
+          <button class="primary" id="record">Record Event</button>
+          <button id="refresh">Refresh</button>
+          <button id="toggle-live">Live On</button>
+          <button id="handoff">Ask ChatGPT to hand this to Codex</button>
+          <span class="live-status" id="live-status">Waiting</span>
+        </div>
         <p class="warning" id="status"></p>
       </div>
       <div class="panel">
         <h2>Agent Handoff</h2>
         <p><code id="prompt">No handoff yet.</code></p>
+      </div>
+      <div class="panel">
+        <h2>Target Resolution</h2>
+        <p><code id="target-resolution">Waiting for visual event.</code></p>
       </div>
       <div class="panel">
         <h2>Recent Events</h2>
@@ -945,11 +1260,21 @@ def widget_html() -> str:
     const noteEl = document.getElementById("note");
     const statusEl = document.getElementById("status");
     const promptEl = document.getElementById("prompt");
+    const targetResolutionEl = document.getElementById("target-resolution");
     const sessionEl = document.getElementById("session");
     const selectionEl = document.getElementById("selection");
     const eventsEl = document.getElementById("events");
+    const liveStatusEl = document.getElementById("live-status");
+    const toggleLiveEl = document.getElementById("toggle-live");
+    const AUTO_REFRESH_MS = 2000;
     let selected = null;
     let current = window.openai?.toolOutput || null;
+    let currentMeta = window.openai?.toolResponseMetadata || {};
+    let lastRenderAt = 0;
+    let refreshInFlight = false;
+    let rpcId = 1;
+    const pendingRpc = new Map();
+    let autoRefresh = window.openai?.widgetState?.autoRefresh !== false && hasToolHost();
 
     function escapeHtml(value) {
       return String(value || "").replace(/[&<>"']/g, (char) => ({
@@ -961,19 +1286,26 @@ def widget_html() -> str:
       }[char]));
     }
 
-    function render(data) {
+    function render(data, metadata) {
       current = data || current || {};
+      currentMeta = metadata || currentMeta || {};
+      lastRenderAt = Date.now();
       const preview = current.preview || {};
       const handoff = current.handoff || {};
       const devspace = current.devspace || {};
-      const screenshotUrl = current.screenshotProxyUrl;
+      const screenshotUrl = currentMeta["shipguard/screenshotProxyUrl"] || current.screenshotProxyUrl;
       if (screenshotUrl) {
         screenshotEl.src = screenshotUrl + "?ts=" + Date.now();
       }
       sessionEl.innerHTML = devspace.previewUrl
         ? `Preview <code>${escapeHtml(devspace.previewUrl)}</code>`
         : "No preview attached. Ask ChatGPT to call preview_start.";
-      promptEl.textContent = handoff.prompt || handoff.handoff?.prompt || "No handoff yet.";
+      promptEl.textContent = current.handoffMarkdown || handoff.prompt || handoff.handoff?.prompt || "No handoff yet.";
+      const targetResolution = current.targetResolution || handoff.targetResolution || {};
+      const nextTool = targetResolution.xcodeBuildMCP?.nextTool || "snapshot_ui";
+      targetResolutionEl.textContent = targetResolution.status
+        ? `${targetResolution.status}; next ${nextTool}; raw coordinate tap allowed: ${targetResolution.rawCoordinateTapAllowed === true ? "true" : "false"}`
+        : "Waiting for visual event.";
       const events = current.events || preview.events || [];
       eventsEl.innerHTML = "";
       for (const event of [...events].reverse()) {
@@ -986,14 +1318,98 @@ def widget_html() -> str:
         item.innerHTML = `<strong>${escapeHtml(event.type)}${escapeHtml(action)}${coords}</strong><br><code>${escapeHtml(event.timestamp)}</code><p>${escapeHtml(event.note || event.contextLabel || "")}</p>`;
         eventsEl.appendChild(item);
       }
+      updateLiveStatus();
+    }
+
+    function hasToolHost() {
+      return Boolean(window.openai?.callTool) || window.parent !== window;
+    }
+
+    function updateLiveStatus(message) {
+      toggleLiveEl.textContent = autoRefresh ? "Live On" : "Live Off";
+      if (message) {
+        liveStatusEl.textContent = message;
+        return;
+      }
+      if (!hasToolHost()) {
+        liveStatusEl.textContent = "Live unavailable";
+        return;
+      }
+      if (!lastRenderAt) {
+        liveStatusEl.textContent = autoRefresh ? "Live pending" : "Live paused";
+        return;
+      }
+      const ageSeconds = Math.max(0, Math.round((Date.now() - lastRenderAt) / 1000));
+      liveStatusEl.textContent = autoRefresh ? `Updated ${ageSeconds}s ago` : "Live paused";
+    }
+
+    function persistWidgetState() {
+      window.openai?.setWidgetState?.({ autoRefresh });
+    }
+
+    function resolveRpc(message) {
+      if (!message || message.jsonrpc !== "2.0" || message.id === undefined) return false;
+      const pending = pendingRpc.get(message.id);
+      if (!pending) return false;
+      clearTimeout(pending.timer);
+      pendingRpc.delete(message.id);
+      if (message.error) {
+        pending.reject(new Error(message.error.message || "Tool call failed."));
+      } else {
+        pending.resolve(message.result);
+      }
+      return true;
+    }
+
+    function rpcRequest(method, params) {
+      if (window.parent === window) {
+        return Promise.reject(new Error("No MCP Apps host is available."));
+      }
+      const id = rpcId++;
+      const payload = { jsonrpc: "2.0", id, method, params: params || {} };
+      return new Promise((resolve, reject) => {
+        const timer = window.setTimeout(() => {
+          pendingRpc.delete(id);
+          reject(new Error("Tool call timed out."));
+        }, 10000);
+        pendingRpc.set(id, { resolve, reject, timer });
+        window.parent.postMessage(payload, "*");
+      });
     }
 
     async function callTool(name, args) {
       if (window.openai?.callTool) {
         return window.openai.callTool(name, args || {});
       }
+      if (window.parent !== window) {
+        return rpcRequest("tools/call", { name, arguments: args || {} });
+      }
       statusEl.textContent = "Tool calls are available only inside ChatGPT or another MCP Apps host.";
       return null;
+    }
+
+    async function refreshPreview(options = {}) {
+      if (refreshInFlight) return null;
+      if (!options.manual && !autoRefresh) return null;
+      refreshInFlight = true;
+      updateLiveStatus(options.manual ? "Refreshing" : undefined);
+      try {
+        const result = await callTool("render_preview_widget", {});
+        if (result?.structuredContent) {
+          render(result.structuredContent, result._meta);
+          statusEl.textContent = options.manual ? "Refreshed." : statusEl.textContent;
+        } else if (options.manual) {
+          statusEl.textContent = "Refresh did not return preview data.";
+        }
+        return result;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Refresh failed.";
+        statusEl.textContent = message;
+        updateLiveStatus("Live stale");
+        return null;
+      } finally {
+        refreshInFlight = false;
+      }
     }
 
     function selectPoint(event, source) {
@@ -1073,15 +1489,28 @@ def widget_html() -> str:
       targetEl.style.display = "none";
       hideContextMenu();
       statusEl.textContent = "Event recorded.";
+      await refreshPreview({ manual: true });
     });
 
     document.getElementById("refresh").addEventListener("click", async () => {
-      const result = await callTool("render_preview_widget", {});
-      if (result?.structuredContent) render(result.structuredContent);
+      await refreshPreview({ manual: true });
+    });
+
+    toggleLiveEl.addEventListener("click", async () => {
+      if (!hasToolHost()) {
+        autoRefresh = false;
+        persistWidgetState();
+        updateLiveStatus("Live unavailable");
+        return;
+      }
+      autoRefresh = !autoRefresh;
+      persistWidgetState();
+      updateLiveStatus();
+      if (autoRefresh) await refreshPreview({ manual: true });
     });
 
     document.getElementById("handoff").addEventListener("click", async () => {
-      const prompt = promptEl.textContent || "Use Shipguard Devspace to hand the latest preview event to Codex.";
+      const prompt = current.handoffMarkdown || promptEl.textContent || "Use Shipguard Devspace to hand the latest preview event to Codex.";
       if (window.openai?.sendFollowUpMessage) {
         await window.openai.sendFollowUpMessage({ prompt });
       } else {
@@ -1097,16 +1526,23 @@ def widget_html() -> str:
       if (event.source !== window.parent) return;
       const message = event.data;
       if (!message || message.jsonrpc !== "2.0") return;
+      if (resolveRpc(message)) return;
       if (message.method === "ui/notifications/tool-result") {
-        render(message.params?.structuredContent);
+        render(message.params?.structuredContent, message.params?._meta);
       }
     }, { passive: true });
 
     window.addEventListener("openai:set_globals", (event) => {
-      render(event.detail?.globals?.toolOutput || window.openai?.toolOutput);
+      render(
+        event.detail?.globals?.toolOutput || window.openai?.toolOutput,
+        event.detail?.globals?.toolResponseMetadata || window.openai?.toolResponseMetadata
+      );
     }, { passive: true });
 
-    render(current);
+    render(current, currentMeta);
+    updateLiveStatus();
+    setInterval(() => refreshPreview(), AUTO_REFRESH_MS);
+    setInterval(() => updateLiveStatus(), 1000);
   </script>
 </body>
 </html>
@@ -1144,6 +1580,23 @@ class DevspaceHandler(BaseHTTPRequestHandler):
         else:
             self.send_json(status, {"ok": False, "error": message})
 
+    def reject_unsafe_local_browser_request(self) -> bool:
+        if self.server.bearer_token is not None:
+            return False
+        host = host_header_name(self.headers.get("Host"))
+        if host and host not in LOOPBACK_HOSTS:
+            self.send_error_json(HTTPStatus.FORBIDDEN, "non-loopback Host rejected for unauthenticated local Devspace")
+            return True
+        for header_name in ("Origin", "Referer"):
+            value = self.headers.get(header_name, "")
+            if value and not is_loopback_url(value):
+                self.send_error_json(
+                    HTTPStatus.FORBIDDEN,
+                    f"non-loopback {header_name} rejected for unauthenticated local Devspace",
+                )
+                return True
+        return False
+
     def has_screenshot_view_token(self) -> bool:
         view_token = self.server.devspace.screenshot_view_token
         if not view_token:
@@ -1176,12 +1629,14 @@ class DevspaceHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         route = urlparse(self.path).path
+        if self.reject_unsafe_local_browser_request():
+            return
         if not self.require_auth(allow_screenshot_view_token=route == "/preview-screenshot.png"):
             return
         try:
             if route == "/healthz":
                 self.send_json(HTTPStatus.OK, {"ok": True, "state": self.server.devspace.public_state()})
-            elif route == "/widget/shipguard-preview-v1.html":
+            elif route == WIDGET_HTTP_PATH:
                 self.send_bytes(HTTPStatus.OK, RESOURCE_MIME_TYPE, widget_html().encode("utf-8"))
             elif route == "/preview-screenshot.png":
                 data, mode = self.server.devspace.preview_client().screenshot()
@@ -1192,11 +1647,16 @@ class DevspaceHandler(BaseHTTPRequestHandler):
             self.send_error_json(HTTPStatus.INTERNAL_SERVER_ERROR, str(exc))
 
     def do_POST(self) -> None:
+        if self.reject_unsafe_local_browser_request():
+            return
         if not self.require_auth():
             return
         route = urlparse(self.path).path
         if route != "/mcp":
             self.send_error_json(HTTPStatus.NOT_FOUND, "not found")
+            return
+        if content_type_name(self.headers.get("Content-Type")) not in JSON_CONTENT_TYPES:
+            self.send_error_json(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, "Content-Type must be application/json")
             return
 
         content_length = self.headers.get("Content-Length")
@@ -1268,15 +1728,23 @@ class DevspaceHTTPServer(ThreadingHTTPServer):
         elif name == "preview_state":
             result = self.devspace.preview_state()
         elif name == "preview_screenshot":
-            result = self.devspace.screenshot_metadata()
+            return self.devspace.screenshot_tool_result()
         elif name == "preview_record_event":
             result = self.devspace.record_event(params)
         elif name == "preview_handoff":
             result = self.devspace.preview_handoff()
+        elif name == "preview_handoff_markdown":
+            result = self.devspace.preview_handoff_markdown()
+        elif name == "preview_target_resolution":
+            result = self.devspace.preview_target_resolution()
+        elif name == "preview_match_target":
+            result = self.devspace.preview_match_target(params)
         elif name == "render_preview_widget":
             return self.devspace.render_widget_result()
         elif name == "simulator_list":
             result = self.devspace.simulator_list()
+        elif name == "production_readiness":
+            result = self.devspace.production_readiness()
         elif name == "codex_goal_emit":
             result = self.devspace.codex_goal_emit(params)
         elif name == "codex_prepare_handoff":
@@ -1297,11 +1765,7 @@ def dispatch_rpc(devspace: DevspaceState, method: str, params: dict[str, Any]) -
             "protocolVersion": requested_version if isinstance(requested_version, str) else "2024-11-05",
             "serverInfo": {"name": "shipguard-devspace", "version": "0.1.0"},
             "capabilities": {"tools": {}, "resources": {}},
-            "instructions": (
-                "Shipguard Devspace exposes a local iOS Simulator preview to ChatGPT. "
-                "Start or attach preview first, render the widget for visual feedback, "
-                "then use preview_handoff and codex_prepare_handoff before asking Codex to edit code."
-            ),
+            "instructions": server_instructions(),
         }
     if method == "ping":
         return {}
@@ -1355,15 +1819,23 @@ def dispatch_rpc(devspace: DevspaceState, method: str, params: dict[str, Any]) -
         elif name == "preview_state":
             result = devspace.preview_state()
         elif name == "preview_screenshot":
-            result = devspace.screenshot_metadata()
+            return devspace.screenshot_tool_result()
         elif name == "preview_record_event":
             result = devspace.record_event(args)
         elif name == "preview_handoff":
             result = devspace.preview_handoff()
+        elif name == "preview_handoff_markdown":
+            result = devspace.preview_handoff_markdown()
+        elif name == "preview_target_resolution":
+            result = devspace.preview_target_resolution()
+        elif name == "preview_match_target":
+            result = devspace.preview_match_target(args)
         elif name == "render_preview_widget":
             return devspace.render_widget_result()
         elif name == "simulator_list":
             result = devspace.simulator_list()
+        elif name == "production_readiness":
+            result = devspace.production_readiness()
         elif name == "codex_goal_emit":
             result = devspace.codex_goal_emit(args)
         elif name == "codex_prepare_handoff":

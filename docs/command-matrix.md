@@ -12,10 +12,19 @@
 | Configure project policy | `policy init`, `policy show` | Plain policy file |
 | Discover iOS app topology | `ios doctor` | Xcode/Swift package topology, schemes, versions, privacy, StoreKit, and proof-readiness report |
 | Inventory iOS permission/runtime surfaces | `ios inventory` | Target risk map plus ask-before-editing gates for permissions, entitlements, StoreKit, privacy, and modernization surfaces |
-| Preview a booted iOS Simulator in Codex | `ios preview` | Local browser preview, simulator screenshot, and click/note event receipts |
-| Expose iOS preview to ChatGPT | `ios devspace` | Bearer-authenticated MCP endpoint, phone widget resource, screenshot proxy, and Codex handoff tools |
+| Preview a booted iOS Simulator in Codex | `ios preview` | Local browser preview, simulator screenshot, and typed click/right-click/note event receipts |
+| Match iOS preview target | `ios target-match` | Ranked UI snapshot candidates for a preview event |
+| Generate an iOS Codex brief | `ios plan` | Mode, blocked questions, owner files, target summary, proof route, and copy-ready brief |
+| Route iOS proof | `ios prove` | Checklist with source, simulator, StoreKit, release, privacy, preview, and blocked-manual evidence lanes |
+| Expose iOS preview to ChatGPT | `ios devspace` | Bearer-authenticated MCP endpoint, phone widget resource, screenshot proxy, target resolution, target matching, production-readiness reporting, and Codex handoff tools |
 | Prepare a Codex app-server handoff | `ios codex-handoff` | Prompt file, app-server request plan, JSONL message template, optional explicit execution transcript |
-| Continue Shipguard implementation loop | `ios goals init`, `ios goals next`, `ios goals complete` | Evidence-gated `/goal` file and local progress state |
+| Audit Swift modernization | `ios modernize` | Swift concurrency, SwiftUI, Observation, accessibility/localization, and availability fallback findings |
+| Audit app intelligence surfaces | `ios app-intelligence` | App Intent, AppEntity, Shortcuts, Siri, Spotlight, widget, controls, Apple Intelligence, and privacy-readiness matrix |
+| Audit AI capability choices | `ios ai-readiness` | Foundation Models, Core AI, Core ML, OpenAI API, no-AI decision matrix plus privacy, latency, cost, and fallback questions |
+| Redact iOS report artifacts | `ios redact` | Redacted report files plus JSON counts for local paths, team IDs, bundle IDs, tokens, accounts, emails, and device IDs |
+| Evaluate Shipguard behavior | `ios eval` | Deterministic mode-routing, missing-question, proof-honesty, and Codex brief quality report |
+| Try Shipguard from a clean checkout | `ios demo` | Static first-run bundle with doctor, inventory, plan, proof, modernization, intelligence, AI readiness, eval, and redaction reports |
+| Continue Shipguard implementation loop | `ios goals init`, `ios goals next`, `ios goals emit`, `ios goals complete` | Evidence-gated `/goal` file and local progress state |
 | Audit one AI run | `autopsy` | Markdown and JSON report |
 | Check docs links | `docs-check` | Broken local Markdown link report |
 

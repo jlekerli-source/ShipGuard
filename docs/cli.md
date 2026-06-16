@@ -122,7 +122,7 @@ Serve a booted Simulator screenshot into Codex's in-app browser:
 ./bin/codex-maintainer ios preview --out /tmp/ios-shipguard-preview
 ```
 
-The command writes `session.json`, `preview-url.txt`, `preview-events.jsonl`, and `last-screenshot.png` under the output directory. Open the printed URL in the Codex in-app browser, leave browser comments, or record click/note events on the preview page.
+The command writes `session.json`, `preview-url.txt`, `preview-events.jsonl`, `handoff.json`, `handoff.md`, and `last-screenshot.png` under the output directory. Open the printed URL in the Codex in-app browser, leave browser comments, click for tap intent, or right-click inside the preview page to record typed copy, visual, navigation, or inspection intent.
 
 Use fixture mode for tests or docs without a booted simulator:
 
@@ -133,7 +133,47 @@ Use fixture mode for tests or docs without a booted simulator:
   --port 0
 ```
 
-The preview bridge records visual intent and exposes `/api/handoff` so Codex can choose the next XcodeBuildMCP, UI test, or manual simulator proof step. Use XcodeBuildMCP semantic element refs for real tap/swipe proof; do not treat browser click coordinates as direct simulator input.
+The preview bridge records visual intent and exposes `/api/handoff` plus `/api/handoff.md` so Codex can choose the next XcodeBuildMCP, UI test, source edit, or manual simulator proof step. Use XcodeBuildMCP semantic element refs for real tap/swipe proof; do not treat browser click coordinates as direct simulator input.
+
+## iOS Target Match
+
+Rank XcodeBuildMCP UI snapshot elements against the latest preview handoff:
+
+```bash
+./bin/codex-maintainer ios target-match \
+  --handoff /tmp/ios-shipguard-preview/handoff.json \
+  --snapshot /tmp/ios-shipguard-preview/describe-ui.json \
+  --out /tmp/ios-shipguard-preview/target-match
+```
+
+The command writes `ios-target-match.json` and `ios-target-match.md`. It never performs simulator input; it ranks candidate `elementRef`, label, or role matches so Codex can review the target before using XcodeBuildMCP `tap`.
+
+## iOS Plan
+
+Turn inventory into a Codex-ready task brief:
+
+```bash
+./bin/codex-maintainer ios plan \
+  --mode permission-audit \
+  --inventory /tmp/ios-shipguard-inventory/ios-inventory.json \
+  --out /tmp/ios-shipguard-plan/ios-plan.md
+```
+
+The command writes Markdown and JSON. If `--out` is a directory, it writes `ios-plan.md` and `ios-plan.json`; if `--out` is a Markdown file, the JSON is written beside it. The plan includes the selected mode, blocked questions, owner files, selected surfaces, target summary, proof route, and a copy-ready Codex brief.
+
+Use `--mode auto` to infer the primary mode from inventory risk, or pass one of the Shipguard modes explicitly.
+
+## iOS Prove
+
+Build the smallest honest proof checklist from a generated plan:
+
+```bash
+./bin/codex-maintainer ios prove \
+  --plan /tmp/ios-shipguard-plan/ios-plan.json \
+  --out /tmp/ios-shipguard-proof
+```
+
+The command writes `ios-proof.md` and `ios-proof.json`. It marks manual blockers for missing user answers, App Store Connect, TestFlight, physical-device, StoreKit sandbox/live-account, screenshot-sharing, or semantic elementRef proof. It does not execute builds or claim proof; it routes what evidence is still required.
 
 ## iOS Devspace
 
@@ -159,7 +199,7 @@ The command serves:
 - `/healthz`: local state and health check.
 - `/preview-screenshot.png`: screenshot proxy for the widget after `preview_start`.
 
-The connector registers the `ui://widget/shipguard-preview-v1.html` widget resource and tools for preview start, state, screenshots, event recording, handoff, simulator listing, slash-goal emission, and Codex handoff prompt preparation. Use `--stdio` for Codex plugin MCP integration, and HTTP mode with an HTTPS tunnel plus bearer auth for ChatGPT Developer Mode. See `shipguard-devspace.md`.
+The connector registers the `ui://widget/shipguard-preview-v2.html` widget resource and tools for preview start, state, screenshots, event recording, JSON and Markdown handoff, target resolution, UI target matching, simulator listing, production-readiness reporting, slash-goal emission, and Codex handoff prompt preparation. Use `--stdio` for Codex plugin MCP integration, and HTTP mode with an HTTPS tunnel plus bearer auth for ChatGPT Developer Mode. See `shipguard-devspace.md`.
 
 ## iOS Codex Handoff
 
@@ -171,6 +211,109 @@ The connector registers the `ui://widget/shipguard-preview-v1.html` widget resou
 
 This prepares a guarded Codex app-server handoff bundle: prompt, request plan, and JSONL message template. Add `--execute` only from a trusted local terminal when you intentionally want to start `codex app-server`, create a thread, start a turn, and record the transcript.
 
+## iOS Modernize
+
+```bash
+./bin/codex-maintainer ios modernize \
+  --focus swift \
+  --path fixtures/demo-ios-repo \
+  --out /tmp/ios-shipguard-modernize
+```
+
+This writes `ios-modernize.md` and `ios-modernize.json`. The audit is static and local-only: it scans Swift files plus existing project/package metadata for Swift concurrency hotspots, SwiftUI/Observation migration opportunities, accessibility and localization review points, WidgetKit callback surfaces, and availability fallback guidance before adopting newer APIs such as Liquid Glass-specific styling.
+
+## iOS App Intelligence
+
+```bash
+./bin/codex-maintainer ios app-intelligence \
+  --path fixtures/demo-ios-repo \
+  --out /tmp/ios-shipguard-app-intelligence
+```
+
+This writes `ios-app-intelligence.md` and `ios-app-intelligence.json`. The audit is static and local-only: it scans App Intents, App Entities, App Shortcuts providers, WidgetKit, Core Spotlight, Siri-related tokens, controls, runtime handoff hints, and privacy-sensitive system exposure questions before Codex adds or changes App Intents.
+
+## iOS AI Readiness
+
+```bash
+./bin/codex-maintainer ios ai-readiness \
+  --path fixtures/demo-ios-repo \
+  --out /tmp/ios-shipguard-ai-readiness
+```
+
+This writes `ios-ai-readiness.md` and `ios-ai-readiness.json`. The audit is static and local-only: it scans for Foundation Models, Core AI, Core ML, Natural Language, model assets, and OpenAI API tokens, then produces an on-device versus cloud decision matrix with privacy, latency, cost, fallback, and proof questions.
+
+## iOS Redaction
+
+Redact sensitive iOS report artifacts before sharing them outside the local proof loop:
+
+```bash
+./bin/codex-maintainer ios redact \
+  --in /tmp/ios-shipguard-ai-readiness \
+  --out /tmp/ios-shipguard-ai-readiness-redacted \
+  --private-term "InternalAppName"
+```
+
+For a single report file:
+
+```bash
+./bin/codex-maintainer ios redact \
+  --in /tmp/ios-report.md \
+  --out /tmp/ios-report-redacted.md \
+  --report /tmp/ios-redaction.json
+```
+
+The command writes redacted file or directory output plus `ios-redaction.json` unless `--report` is provided. It redacts local user paths, Apple team IDs, bundle IDs in iOS project contexts, bearer/API tokens, secret assignments, emails, Apple account identifiers, device IDs, and explicit `--private-term` values. Directory mode processes text/report-style files and skips binary screenshots or media; use the output report to confirm skipped files before publishing.
+
+## iOS Shipguard Eval
+
+Run deterministic Shipguard behavior evals without an API key:
+
+```bash
+./bin/codex-maintainer ios eval \
+  --cases evals/ios_shipguard_cases.jsonl \
+  --out /tmp/ios-shipguard-eval
+```
+
+The command writes:
+
+- `ios-shipguard-eval.json`
+- `ios-shipguard-eval.md`
+
+It grades mode routing, ask-before-editing questions, proof boundaries, and forbidden proof claims for local cases. The checked-in suite covers permission, release proof, StoreKit, preview target matching, widget/shared-store, and privacy-security redaction behavior.
+
+Optional live model evals remain separate:
+
+```bash
+python3 evals/run_local.py
+```
+
+Without `OPENAI_API_KEY`, the live runner exits with status `2` and explains that live evals were skipped.
+
+## iOS Shipguard Demo
+
+Generate a static first-run demo bundle from the public iOS fixture:
+
+```bash
+./bin/codex-maintainer ios demo --out /tmp/ios-shipguard-first-run
+```
+
+The command writes:
+
+- `shipguard-demo.json`
+- `README.md`
+- `doctor/ios-doctor.md`
+- `inventory/ios-inventory.md`
+- `modernize/ios-modernize.md`
+- `plan/ios-plan.md`
+- `proof/ios-proof.md`
+- `app-intelligence/ios-app-intelligence.md`
+- `ai-readiness/ios-ai-readiness.md`
+- `eval/ios-shipguard-eval.md`
+- `redacted/ios-ai-readiness.md`
+- `redacted/ios-redaction.json`
+
+Use it from a clean checkout when you want to prove Shipguard can run without Xcode, a booted Simulator, credentials, or `OPENAI_API_KEY`. Live preview, Devspace, TestFlight, App Store Connect, and physical-device proof remain separate lanes.
+
 ## iOS Goals
 
 Run the self-advancing Shipguard goal loop:
@@ -178,8 +321,11 @@ Run the self-advancing Shipguard goal loop:
 ```bash
 ./bin/codex-maintainer ios goals init --state .shipguard/goals.json --out NEXT_SHIPGUARD_GOAL.md
 ./bin/codex-maintainer ios goals next --state .shipguard/goals.json --out NEXT_SHIPGUARD_GOAL.md
+./bin/codex-maintainer ios goals emit --goal shipguard-devspace-mcp --out SHIPGUARD_DEVSPACE_GOAL.md
 ./bin/codex-maintainer ios goals status --state .shipguard/goals.json
 ```
+
+Use `emit` when you want a specific catalog `/goal` block without mutating the local goal state.
 
 Complete the current goal only after proof exists:
 

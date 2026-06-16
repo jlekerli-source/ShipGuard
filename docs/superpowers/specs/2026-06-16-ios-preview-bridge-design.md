@@ -2,13 +2,13 @@
 
 ## Purpose
 
-iOS Shipguard should give Codex a practical app preview loop for iOS work without waiting for a new Codex host API. The viable first version is a local preview bridge that serves the booted iOS Simulator screen into Codex's existing in-app browser, records click/comment intent as structured evidence, and exposes an agent handoff payload for edits and simulator proof.
+iOS Shipguard should give Codex a practical app preview loop for iOS work without waiting for a new Codex host API. The viable first version is a local preview bridge that serves the booted iOS Simulator screen into Codex's existing in-app browser, records click, right-click context-menu, note, or browser-comment intent as structured evidence, and exposes an agent handoff payload for edits and simulator proof.
 
 ## Feasibility Boundary
 
 Current Codex docs support plugin bundles with skills, apps/connectors, MCP servers, hooks, and assets. They also document the in-app browser, browser comments, Browser use, app-server clients, and plugin-provided MCP servers. They do not document a plugin-owned native side panel or plugin-owned right-click menu inside arbitrary Codex windows.
 
-Because of that boundary, this design does not claim a native embedded phone panel. It ships the useful workflow through a localhost browser page that Codex can open and annotate today. A native panel or right-click integration stays a future host-platform request.
+Because of that boundary, this design does not claim a native embedded phone panel. It ships the useful workflow through a localhost browser page that Codex can open and annotate today. The local page may implement its own right-click menu; native host-level right-click integration stays a future host-platform request.
 
 ## User Experience
 
@@ -18,9 +18,9 @@ The user starts a preview session:
 ./bin/codex-maintainer ios preview --out /tmp/shipguard-preview
 ```
 
-The command prints and writes a localhost URL. The user opens that URL in the Codex in-app browser. The page shows a phone-shaped preview with an auto-refreshing screenshot from the booted simulator. The user can click an area, add a short note, and Codex records that as an event in `preview-events.jsonl`.
+The command prints and writes a localhost URL. The user opens that URL in the Codex in-app browser. The page shows a phone-shaped preview with an auto-refreshing screenshot from the booted simulator. The user can click an area for tap intent, right-click the preview to choose a typed action, add a short note, and Codex records that as an event in `preview-events.jsonl`.
 
-For visual feedback, the user can also use Codex browser comments directly on the preview page. The page keeps stable visible regions and a short Codex handoff block so the next prompt can say: read the preview session, latest event, `/api/handoff`, and screenshot, then modify the owning SwiftUI files or use XcodeBuildMCP semantic element refs.
+For visual feedback, the user can also use Codex browser comments directly on the preview page. The page keeps stable visible regions and copy-ready Codex handoff blocks so the next prompt can say: read `handoff.md`, the latest event, `/api/handoff.md`, and screenshot, then modify the owning SwiftUI files or use XcodeBuildMCP semantic element refs.
 
 ## Architecture
 
@@ -39,13 +39,16 @@ and serves:
 - `/api/state`: session metadata and recent events.
 - `/api/events`: event append and event listing.
 - `/api/handoff`: latest event plus Codex/XcodeBuildMCP next-step guidance.
+- `/api/handoff.md`: copy-ready Markdown handoff with prompt, target-resolution plan, receipts, and safety rules.
 - `/session.json`: session receipt for Codex.
 
 The session writes:
 
 - `session.json`: URL, device, output paths, and handoff instructions.
 - `preview-url.txt`: browser URL.
-- `preview-events.jsonl`: click/comment intent receipts.
+- `preview-events.jsonl`: click, right-click context-menu, note, and comment intent receipts.
+- `handoff.json`: latest structured handoff.
+- `handoff.md`: copy-ready Markdown handoff.
 - `last-screenshot.png`: last captured image when capture succeeds.
 
 Tests use `--fixture-image` so the preview server can be validated without a booted simulator.
@@ -71,7 +74,7 @@ The local goal loop gains `shipguard-ios-preview-bridge` so the feature is visib
 ## Non-Goals
 
 - No native Codex panel API is assumed.
-- No direct right-click host integration is claimed.
+- No native host-level right-click integration is claimed.
 - No default AppleScript or global mouse automation.
 - No hosted dashboard.
 - No replacement for XcodeBuildMCP simulator driving.

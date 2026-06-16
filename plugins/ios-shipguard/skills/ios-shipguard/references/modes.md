@@ -86,7 +86,7 @@ Proof:
 
 ## preview-bridge
 
-Use when the user wants an in-Codex visual preview loop for the current iOS Simulator screen, browser comments on a phone-shaped preview, or click/note receipts that should guide a SwiftUI edit.
+Use when the user wants an in-Codex visual preview loop for the current iOS Simulator screen, browser comments on a phone-shaped preview, or typed click/right-click/note receipts that should guide a SwiftUI edit.
 
 Ask:
 
@@ -98,8 +98,9 @@ Proof:
 
 - `codex-maintainer ios preview --out /tmp/ios-shipguard-preview`
 - Codex in-app browser opened to the printed localhost URL
-- `preview-events.jsonl` receipt when the user clicks or notes a target
-- `/api/handoff` payload read before choosing the next Codex or XcodeBuildMCP action
+- `preview-events.jsonl` receipt when the user clicks, right-clicks a typed context-menu action, or notes a target
+- `handoff.md` or `/api/handoff.md` payload read before choosing the next Codex or XcodeBuildMCP action, including `targetResolution.rawCoordinateTapAllowed: false`
+- `codex-maintainer ios target-match --handoff <handoff.json> --snapshot <ui.json> --out <dir>` when an XcodeBuildMCP UI JSON snapshot is available
 - XcodeBuildMCP `snapshot_ui` plus semantic `touch` elementRefs, UI test, or manual simulator proof for real taps; the preview bridge records visual intent and handoff guidance
 
 ## preview-devspace
@@ -116,10 +117,22 @@ Proof:
 
 - `codex-maintainer ios devspace --port 8787 --preview-out /tmp/ios-shipguard-preview`
 - `/mcp` responds to `initialize`, `tools/list`, and `resources/read`
-- `render_preview_widget` returns `ui://widget/shipguard-preview-v1.html`
+- `render_preview_widget` returns `ui://widget/shipguard-preview-v2.html`
 - left-click and right-click context menu `preview_record_event` receipts appear in `preview-events.jsonl`
-- `codex_prepare_handoff` produces a scoped Codex prompt
+- `preview_handoff_markdown` returns the active preview's copy-ready `handoff.md`
+- `preview_target_resolution` returns structured source-edit or semantic `elementRef` guidance for the latest event
+- `preview_match_target` ranks XcodeBuildMCP `describe_ui` or `snapshot_ui` elements without performing simulator input
+- `production_readiness` reports Developer Mode readiness and production-hosting blockers before non-local exposure is discussed
+- `codex_prepare_handoff` produces a scoped Codex prompt from the Markdown handoff when available
 - `codex-maintainer ios codex-handoff --prompt-file <file> --out <dir>` prepares the trusted app-server handoff bundle when execution should move from ChatGPT planning into Codex
+- `codex-maintainer ios modernize --focus swift --path . --out <dir>` records Swift concurrency, SwiftUI, Observation, accessibility/localization, and availability fallback findings before modernization work
+- `codex-maintainer ios plan --mode <mode> --inventory <ios-inventory.json> --out <file-or-dir>` turns inventory into owner files, blocked questions, target summary, proof route, and a Codex-ready brief
+- `codex-maintainer ios prove --plan <ios-plan.json> --out <dir>` records the smallest honest proof lane and manual blockers before proof claims
+- `codex-maintainer ios app-intelligence --path . --out <dir>` records App Intent, AppEntity, Shortcuts, Siri, Spotlight, widget, controls, Apple Intelligence, and privacy-readiness gaps before system exposure work
+- `codex-maintainer ios ai-readiness --path . --out <dir>` records Foundation Models, Core AI, Core ML, OpenAI API, no-AI, privacy, latency, cost, and fallback tradeoffs before model work
+- `codex-maintainer ios redact --in <file-or-dir> --out <file-or-dir>` redacts local paths, Apple team IDs, bundle IDs, tokens, accounts, emails, device IDs, and private terms before reports leave local proof space
+- `codex-maintainer ios eval --cases evals/ios_shipguard_cases.jsonl --out <dir>` grades mode routing, missing-question handling, proof honesty, and Codex brief quality before plugin guidance changes
+- `codex-maintainer ios demo --out <dir>` proves the clean static first-run path with doctor, inventory, plan, proof, modernization, intelligence, AI readiness, eval, and redaction reports
 - actual code edits still require Codex validation, XcodeBuildMCP, UI tests, or manual simulator proof
 
 Notes:
@@ -128,6 +141,24 @@ Notes:
 - ChatGPT Developer Mode should connect through an HTTPS tunnel for local testing, with Devspace started using `--bearer-token-env` or `--bearer-token-file`.
 - When bearer auth is enabled, MCP/tool routes require `Authorization: Bearer <token>` and the screenshot image uses a separate random per-session view token.
 - The connector does not spawn Codex app-server automatically; use `ios codex-handoff --execute` only from a trusted local terminal.
+- Treat screenshots and preview receipts as local planning evidence. Run `ios redact` for text reports and keep binary screenshots local unless the user explicitly approves sharing.
+
+## privacy-security
+
+Use when Shipguard artifacts, screenshots, logs, preview receipts, App Store identifiers, team IDs, bundle IDs, tokens, local paths, or reports may leave local proof space.
+
+Ask:
+
+- Which private terms must be redacted before this report is shared?
+- Are screenshots allowed to be shared, or should only redacted text reports leave the machine?
+- Is this local-only Developer Mode testing, public issue evidence, benchmark data, or release evidence?
+
+Proof:
+
+- `codex-maintainer ios redact --in <file-or-dir> --out <file-or-dir>`
+- `ios-redaction.json` with `status: pass` and `remainingRiskCount: 0`
+- screenshot sharing approval or explicit local-only note
+- Devspace bearer auth and loopback/tunnel boundary review when MCP is involved
 
 ## ui-polish
 
