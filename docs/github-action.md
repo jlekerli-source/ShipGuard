@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate Codex workflow bundle
-        uses: jlekerli-source/ringly-codex-workflows/actions/validate@v0.3.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/validate@v0.4.0
 ```
 
 ## Inputs

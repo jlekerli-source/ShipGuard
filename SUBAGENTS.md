@@ -43,11 +43,22 @@ Run after tests or before commit on high-risk changes.
 
 - The lead agent owns the plan and final answer.
 - Subagents receive only the task-local context needed for their role.
+- Do not assign two subagents to edit the same file area at the same time.
+- Use subagents for independent discovery, verification, or disjoint implementation, not as a replacement for a scoped task contract.
 - Inspector output should not include an intended fix unless the task is purely planning.
 - Implementer should not claim tests passed.
 - Tester should not change product code while validating.
 - Reviewer should cite concrete files and lines.
 - If a subagent finds a blocker, the lead decides whether to narrow scope, fix, or stop with a handoff.
+
+## Default Split
+
+For messy project-state or regression work, prefer this split:
+
+1. Explorer: find current source-of-truth files and owner areas.
+2. Explorer: identify the last known-good proof packet or commit.
+3. Verifier: check repo root, git status, ignored generated files, and validation lane.
+4. Lead: synthesize the result, choose GO/HOLD, and write the next worker prompt.
 
 ## Large Task Sequence
 
