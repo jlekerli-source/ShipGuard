@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.19.0 - One-Command Release Evidence Bundle
+
+- Added `codex-maintainer release-evidence bundle` to run release consumption, optional release diff, evidence site export, and evidence index generation in one local command.
+- Added `bundle.json` and bundle README output for reviewing the full local evidence export.
+- Added docs, tests, package verification, self-audit coverage, and release-train metadata.
+
 ## v3.18.0 - Release Evidence GitHub Action
 
 - Added `actions/release-evidence` for exporting release evidence sites and optional indexes in GitHub Actions.

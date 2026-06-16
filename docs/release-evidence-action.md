@@ -13,11 +13,11 @@ on:
       release-tag:
         description: Release tag to verify.
         required: true
-        default: v3.18.0
+        default: v3.19.0
       previous-tag:
         description: Previous release tag for diff proof.
         required: true
-        default: v3.17.0
+        default: v3.18.0
 
 permissions:
   contents: read
@@ -27,14 +27,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Verify published proof assets
-        uses: jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.18.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.19.0
         with:
           repo: jlekerli-source/ringly-codex-workflows
           release-tag: ${{ inputs.release-tag }}
           mode: fail
 
       - name: Compare release proof assets
-        uses: jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.18.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.19.0
         with:
           repo: jlekerli-source/ringly-codex-workflows
           left-tag: ${{ inputs.previous-tag }}
@@ -42,7 +42,7 @@ jobs:
           mode: fail
 
       - name: Export release evidence
-        uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.18.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.19.0
         with:
           title: Codex Maintainer Release Evidence
           include-diff: auto

@@ -39,6 +39,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep release-diff GitHub Action output aligned with the CLI diff audit.
 - Keep release evidence site exports static, self-contained, and derived from verified proof reports.
 - Keep release evidence indexes static, browsable, and sorted newest-to-oldest by release version.
+- Keep release evidence bundles aligned with release-consume, release-diff, site, and index output.
 - Keep release-evidence GitHub Action output aligned with the CLI site and index exporters.
 - Keep the reusable GitHub Action aligned with the CLI validator.
 - Maintain the public examples, scorecard, autopsy fixtures, and iOS starter template as the workflow evolves.

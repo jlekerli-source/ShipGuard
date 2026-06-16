@@ -77,6 +77,7 @@ commands=(
   "release-diff compare --help"
   "release-evidence site --help"
   "release-evidence index --help"
+  "release-evidence bundle --help"
   "self-audit --help"
   "next-goal --help"
 )
@@ -112,6 +113,7 @@ required_artifacts=(
   "docs/release-diff-action.md"
   "docs/release-diff.md"
   "docs/release-evidence-action.md"
+  "docs/release-evidence-bundle.md"
   "docs/release-evidence-index.md"
   "docs/release-evidence-site.md"
   "docs/release-proof.md"

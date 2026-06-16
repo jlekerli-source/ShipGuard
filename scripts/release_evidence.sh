@@ -11,10 +11,13 @@ codex-maintainer release-evidence
 Usage:
   codex-maintainer release-evidence site --consume <consumer-proof-dir> --out <dir> [--diff <release-diff-dir>] [--title <title>]
   codex-maintainer release-evidence index --site <evidence-site-dir> [--site <evidence-site-dir> ...] --out <dir> [--title <title>]
+  codex-maintainer release-evidence bundle --assets <release-assets-dir> --out <dir> [--version <version>] [--left <previous-release-assets-dir>] [--title <title>] [--index-title <title>]
 
 Inputs:
   --consume must contain consumer-report.json and asset-digests.json.
   --diff may contain release-diff.json.
+  --assets must contain downloaded release proof assets.
+  --left may contain previous release proof assets for a diff.
 
 Outputs:
   index.html
@@ -30,12 +33,28 @@ Index outputs:
   README.md
   sites/<release>/index.html
   sites/<release>/evidence.json
+
+Bundle outputs:
+  consumer-proof/consumer-report.json
+  release-diff/release-diff.json when --left is provided
+  site/index.html
+  index/evidence-index.json
+  bundle.json
+  README.md
 USAGE
 }
 
 fail() {
   echo "release-evidence: $*" >&2
   exit 1
+}
+
+json_escape() {
+  perl -0pe 's/\\/\\\\/g; s/"/\\"/g; s/\n/\\n/g; s/\r/\\r/g; s/\t/\\t/g'
+}
+
+json_string() {
+  printf '"%s"' "$(printf '%s' "$1" | json_escape)"
 }
 
 cmd_site() {
@@ -625,8 +644,168 @@ exit($status eq 'pass' ? 0 : 1);
 PERL
 }
 
+cmd_bundle() {
+  local assets_dir=""
+  local left_dir=""
+  local out_dir=""
+  local version=""
+  local title="Codex Maintainer Release Evidence"
+  local index_title="Codex Maintainer Release Evidence Index"
+
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+      --assets)
+        [[ "$#" -ge 2 && -n "${2:-}" ]] || fail "--assets requires a value"
+        assets_dir="$2"
+        shift 2
+        ;;
+      --left)
+        [[ "$#" -ge 2 && -n "${2:-}" ]] || fail "--left requires a value"
+        left_dir="$2"
+        shift 2
+        ;;
+      --out)
+        [[ "$#" -ge 2 && -n "${2:-}" ]] || fail "--out requires a value"
+        out_dir="$2"
+        shift 2
+        ;;
+      --version)
+        [[ "$#" -ge 2 && -n "${2:-}" ]] || fail "--version requires a value"
+        version="$2"
+        shift 2
+        ;;
+      --title)
+        [[ "$#" -ge 2 && -n "${2:-}" ]] || fail "--title requires a value"
+        title="$2"
+        shift 2
+        ;;
+      --index-title)
+        [[ "$#" -ge 2 && -n "${2:-}" ]] || fail "--index-title requires a value"
+        index_title="$2"
+        shift 2
+        ;;
+      --help|-h)
+        usage
+        exit 0
+        ;;
+      *)
+        fail "unknown bundle argument: $1"
+        ;;
+    esac
+  done
+
+  [[ -n "$assets_dir" ]] || fail "--assets is required"
+  [[ -n "$out_dir" ]] || fail "--out is required"
+  [[ -d "$assets_dir" ]] || fail "release assets directory not found: $assets_dir"
+  if [[ -n "$left_dir" ]]; then
+    [[ -d "$left_dir" ]] || fail "previous release assets directory not found: $left_dir"
+  fi
+
+  local assets_abs
+  local out_abs
+  assets_abs="$(cd "$assets_dir" && pwd -P)"
+  mkdir -p "$(dirname "$out_dir")"
+  out_abs="$(cd "$(dirname "$out_dir")" && pwd -P)/$(basename "$out_dir")"
+  case "$out_abs/" in
+    "$assets_abs"/*)
+      fail "--out must not be inside --assets"
+      ;;
+  esac
+  if [[ -n "$left_dir" ]]; then
+    local left_abs
+    left_abs="$(cd "$left_dir" && pwd -P)"
+    case "$out_abs/" in
+      "$left_abs"/*)
+        fail "--out must not be inside --left"
+        ;;
+    esac
+  fi
+
+  local consumer_dir="$out_dir/consumer-proof"
+  local diff_dir="$out_dir/release-diff"
+  local site_dir="$out_dir/site"
+  local index_dir="$out_dir/index"
+  rm -rf "$consumer_dir" "$diff_dir" "$site_dir" "$index_dir"
+  mkdir -p "$out_dir"
+
+  local consume_args=(release-consume verify --dir "$assets_dir" --out "$consumer_dir")
+  if [[ -n "$version" ]]; then
+    consume_args+=(--version "$version")
+  fi
+  "$tool_root/bin/codex-maintainer" "${consume_args[@]}"
+
+  local site_args=(release-evidence site --consume "$consumer_dir" --out "$site_dir" --title "$title")
+  local diff_included="false"
+  if [[ -n "$left_dir" ]]; then
+    "$tool_root/bin/codex-maintainer" release-diff compare \
+      --left "$left_dir" \
+      --right "$assets_dir" \
+      --out "$diff_dir"
+    site_args+=(--diff "$diff_dir")
+    diff_included="true"
+  fi
+
+  "$tool_root/bin/codex-maintainer" "${site_args[@]}"
+  "$tool_root/bin/codex-maintainer" release-evidence index \
+    --site "$site_dir" \
+    --out "$index_dir" \
+    --title "$index_title"
+
+  local tool_version
+  tool_version="$(sed -n '1p' "$tool_root/VERSION")"
+  local generated_at="${CODEX_MAINTAINER_GENERATED_AT:-$(date -u '+%Y-%m-%dT%H:%M:%SZ')}"
+
+  {
+    echo "{"
+    echo "  \"schema_version\": \"1.0\","
+    echo "  \"tool_version\": $(json_string "$tool_version"),"
+    echo "  \"generated_at\": $(json_string "$generated_at"),"
+    echo "  \"status\": \"pass\","
+    echo "  \"assets_dir\": $(json_string "$assets_dir"),"
+    echo "  \"left_dir\": $(json_string "$left_dir"),"
+    echo "  \"version\": $(json_string "$version"),"
+    echo "  \"diff_included\": $diff_included,"
+    echo "  \"outputs\": {"
+    echo "    \"consumer_report\": \"consumer-proof/consumer-report.json\","
+    if [[ "$diff_included" == "true" ]]; then
+      echo "    \"release_diff\": \"release-diff/release-diff.json\","
+    else
+      echo "    \"release_diff\": null,"
+    fi
+    echo "    \"evidence_site\": \"site/index.html\","
+    echo "    \"evidence_json\": \"site/evidence.json\","
+    echo "    \"evidence_index\": \"index/evidence-index.json\""
+    echo "  }"
+    echo "}"
+  } > "$out_dir/bundle.json"
+
+  {
+    echo "# Codex Maintainer Release Evidence Bundle"
+    echo
+    echo "- Generated: $generated_at"
+    echo "- Status: pass"
+    echo "- Assets: $assets_dir"
+    echo "- Previous assets: ${left_dir:-not included}"
+    echo "- Version: ${version:-auto}"
+    echo "- Consumer proof: consumer-proof/consumer-report.json"
+    if [[ "$diff_included" == "true" ]]; then
+      echo "- Release diff: release-diff/release-diff.json"
+    else
+      echo "- Release diff: not included"
+    fi
+    echo "- Evidence site: site/index.html"
+    echo "- Evidence index: index/evidence-index.json"
+    echo
+    echo "Open \`site/index.html\` for the release evidence page or \`index/index.html\` for the local evidence history."
+  } > "$out_dir/README.md"
+
+  echo "wrote: $out_dir/bundle.json"
+  echo "wrote: $out_dir/README.md"
+  echo "status: pass"
+}
+
 subcommand="${1:-}"
-[[ "$subcommand" == "site" || "$subcommand" == "index" ]] || fail "release-evidence requires subcommand: site or index"
+[[ "$subcommand" == "site" || "$subcommand" == "index" || "$subcommand" == "bundle" ]] || fail "release-evidence requires subcommand: site, index, or bundle"
 shift || true
 case "$subcommand" in
   site)
@@ -634,5 +813,8 @@ case "$subcommand" in
     ;;
   index)
     cmd_index "$@"
+    ;;
+  bundle)
+    cmd_bundle "$@"
     ;;
 esac

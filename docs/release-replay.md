@@ -3,19 +3,19 @@
 `codex-maintainer release-replay verify` verifies downloaded release assets against the release proof files that were published with them.
 
 ```bash
-gh release download v3.18.0 \
-  --pattern 'codex-maintainer-v3.18.0.tar.gz' \
+gh release download v3.19.0 \
+  --pattern 'codex-maintainer-v3.19.0.tar.gz' \
   --pattern 'release-manifest.json' \
   --pattern 'release-index.json' \
   --pattern 'proof-ledger.md' \
-  --dir /tmp/codex-maintainer-v3.18.0
+  --dir /tmp/codex-maintainer-v3.19.0
 
 ./bin/codex-maintainer release-replay verify \
-  --manifest /tmp/codex-maintainer-v3.18.0/release-manifest.json \
-  --tarball /tmp/codex-maintainer-v3.18.0/codex-maintainer-v3.18.0.tar.gz \
-  --index /tmp/codex-maintainer-v3.18.0/release-index.json \
-  --ledger /tmp/codex-maintainer-v3.18.0/proof-ledger.md \
-  --out /tmp/codex-maintainer-v3.18.0/replay
+  --manifest /tmp/codex-maintainer-v3.19.0/release-manifest.json \
+  --tarball /tmp/codex-maintainer-v3.19.0/codex-maintainer-v3.19.0.tar.gz \
+  --index /tmp/codex-maintainer-v3.19.0/release-index.json \
+  --ledger /tmp/codex-maintainer-v3.19.0/proof-ledger.md \
+  --out /tmp/codex-maintainer-v3.19.0/replay
 ```
 
 Outputs:

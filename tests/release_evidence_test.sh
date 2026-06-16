@@ -108,6 +108,40 @@ test -f "$tmp_dir/evidence-index/sites/v$version/index.html"
 test -f "$tmp_dir/evidence-index/sites/v$version/evidence.json"
 test -f "$tmp_dir/evidence-index/sites/v$version-2/index.html"
 
+CODEX_MAINTAINER_GENERATED_AT="2026-06-16T00:00:00Z" \
+  ./bin/codex-maintainer release-evidence bundle \
+    --assets "$assets" \
+    --left "$bundle" \
+    --out "$tmp_dir/evidence-bundle" \
+    --version "$version" \
+    --title "Release Evidence Bundle Test" \
+    --index-title "Release Evidence Bundle History" >/dev/null
+
+test -f "$tmp_dir/evidence-bundle/bundle.json"
+test -f "$tmp_dir/evidence-bundle/README.md"
+test -f "$tmp_dir/evidence-bundle/consumer-proof/consumer-report.json"
+test -f "$tmp_dir/evidence-bundle/release-diff/release-diff.json"
+test -f "$tmp_dir/evidence-bundle/site/index.html"
+test -f "$tmp_dir/evidence-bundle/site/evidence.json"
+test -f "$tmp_dir/evidence-bundle/index/evidence-index.json"
+grep -q '"status": "pass"' "$tmp_dir/evidence-bundle/bundle.json"
+grep -q '"diff_included": true' "$tmp_dir/evidence-bundle/bundle.json"
+grep -q '"release_diff": "release-diff/release-diff.json"' "$tmp_dir/evidence-bundle/bundle.json"
+grep -q '# Codex Maintainer Release Evidence Bundle' "$tmp_dir/evidence-bundle/README.md"
+grep -q 'Release Evidence Bundle Test' "$tmp_dir/evidence-bundle/site/index.html"
+grep -q 'Release Evidence Bundle History' "$tmp_dir/evidence-bundle/index/index.html"
+
+CODEX_MAINTAINER_GENERATED_AT="2026-06-16T00:00:00Z" \
+  ./bin/codex-maintainer release-evidence bundle \
+    --assets "$assets" \
+    --out "$tmp_dir/evidence-bundle-no-diff" \
+    --version "$version" >/dev/null
+
+grep -q '"diff_included": false' "$tmp_dir/evidence-bundle-no-diff/bundle.json"
+grep -q '"release_diff": null' "$tmp_dir/evidence-bundle-no-diff/bundle.json"
+test -f "$tmp_dir/evidence-bundle-no-diff/site/index.html"
+test -f "$tmp_dir/evidence-bundle-no-diff/index/evidence-index.json"
+
 if ./bin/codex-maintainer release-evidence index \
   --site "$tmp_dir/missing-site" \
   --out "$tmp_dir/should-not-exist-index" >/dev/null 2>&1; then
@@ -119,6 +153,21 @@ if ./bin/codex-maintainer release-evidence site \
   --consume "$tmp_dir/missing" \
   --out "$tmp_dir/should-not-exist" >/dev/null 2>&1; then
   echo "expected missing consumer proof directory to fail" >&2
+  exit 1
+fi
+
+if ./bin/codex-maintainer release-evidence bundle \
+  --assets "$tmp_dir/missing-assets" \
+  --out "$tmp_dir/should-not-exist-bundle" >/dev/null 2>&1; then
+  echo "expected missing release assets directory to fail" >&2
+  exit 1
+fi
+
+if ./bin/codex-maintainer release-evidence bundle \
+  --assets "$assets" \
+  --out "$assets/should-not-exist-bundle" \
+  --version "$version" >/dev/null 2>&1; then
+  echo "expected bundle output inside release assets to fail" >&2
   exit 1
 fi
 
