@@ -3,7 +3,7 @@
 The toolkit now has a full evidence loop:
 
 ```text
-policy -> autopsy -> sarif -> arena-import -> arena-sign -> arena -> review-comment -> ci-gate -> ci-summary -> check-run -> check-run-post -> leaderboard -> release-manifest -> release-index -> release-replay -> release-attest -> self-audit -> next-goal
+policy -> autopsy -> sarif -> arena-import -> arena-sign -> arena -> review-comment -> ci-gate -> ci-summary -> check-run -> check-run-post -> leaderboard -> release-manifest -> release-index -> release-replay -> release-attest -> release-proof -> self-audit -> next-goal
 ```
 
 That loop gives maintainers a way to:
@@ -23,6 +23,7 @@ That loop gives maintainers a way to:
 - catalog release proof manifests across releases
 - replay-verify downloaded release assets against manifests, indexes, and ledgers
 - generate a compact release attestation and badge from passing replay proof
+- build the full release proof bundle through a single local command
 - build the release proof chain through a reusable GitHub Action
 - audit the toolkit itself before release
 - generate the next slash-goal plan after release verification

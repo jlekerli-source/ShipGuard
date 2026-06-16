@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.8.0 - Release Proof Bundle CLI
+
+- Added `codex-maintainer release-proof build` for generating the full release proof bundle in one command.
+- Added bundle output for the release tarball, manifest, proof ledger, release index, replay report, attestation, and attestation badge.
+- Added release-proof CLI docs, tests, self-audit coverage, CI coverage, next-goal proof, and package verification.
+
 ## v3.7.0 - Release Proof Workflow Example Pack
 
 - Added tag-triggered and manual-dispatch GitHub Actions workflow examples for `actions/release-proof`.

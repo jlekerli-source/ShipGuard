@@ -18,7 +18,7 @@
 | Summarize CI gate | `ci-summary` | Step-summary Markdown |
 | Prepare or post Check Run payload | `check-run`, `check-run post` | GitHub Checks API payload and response JSON |
 | Publish benchmark data | `leaderboard build` | Stable leaderboard JSON |
-| Record release proof | `release-manifest`, `release-manifest verify`, `release-index build`, `release-replay verify`, `release-attest build` | Release manifest JSON, proof ledger Markdown, artifact verification, proof catalog, replay report, and attestation badge |
+| Record release proof | `release-manifest`, `release-manifest verify`, `release-index build`, `release-replay verify`, `release-attest build`, `release-proof build` | Release manifest JSON, proof ledger Markdown, artifact verification, proof catalog, replay report, attestation badge, and full proof bundle |
 | Build release proof artifact | `actions/release-proof` | Uploaded tarball, manifest, replay, and attestation bundle |
 | Adopt release proof workflows | `examples/workflows/release-proof-on-tag.yml`, `examples/workflows/release-proof-manual.yml` | Copyable GitHub Actions workflow examples |
 | Audit this toolkit | `self-audit` | Self-audit Markdown and JSON |

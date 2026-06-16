@@ -10,7 +10,7 @@ The workflow:
 
 - runs on pushed semantic-version tags
 - checks out the repository
-- calls `jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.7.0`
+- calls `jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.8.0`
 - uses the predictable release URL for the pushed tag
 - uploads the release proof bundle as a GitHub Actions artifact
 - prints action output paths for the tarball, manifest, replay report, attestation, and attestation badge
@@ -30,3 +30,5 @@ This is useful when publishing and proof generation are separated or when a main
 ## Safety Notes
 
 These examples do not create a GitHub release and do not upload release assets to a release page. They only build and upload a workflow artifact. Publish the release separately, then verify the final release assets with `codex-maintainer release-replay verify`.
+
+For local proof generation without GitHub Actions, use `codex-maintainer release-proof build`.

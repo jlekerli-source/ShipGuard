@@ -25,6 +25,7 @@ Start here:
 - [Release Attestation](release-attest.md)
 - [Release Index](release-index.md)
 - [Release Manifest](release-manifest.md)
+- [Release Proof Bundle](release-proof.md)
 - [Release Proof Action](release-proof-action.md)
 - [Release Proof Workflows](release-proof-workflows.md)
 - [Release Replay](release-replay.md)
@@ -62,9 +63,10 @@ Start here:
 15. Run `./bin/codex-maintainer arena sign --fixture /tmp/imported-arena --out /tmp/imported-arena/PACK.json`.
 16. Run `./bin/codex-maintainer arena verify --fixture /tmp/imported-arena --manifest /tmp/imported-arena/PACK.json`.
 17. Run `./bin/codex-maintainer leaderboard build --arena-results /tmp/arena/results.json --out /tmp/leaderboard.json`.
-18. Run `./bin/codex-maintainer release-manifest --tarball dist/codex-maintainer-v3.7.0.tar.gz --out /tmp/codex-maintainer-release-proof` after packaging.
+18. Run `./bin/codex-maintainer release-manifest --tarball dist/codex-maintainer-v3.8.0.tar.gz --out /tmp/codex-maintainer-release-proof` after packaging.
 19. Run `./bin/codex-maintainer release-index build --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --out /tmp/codex-maintainer-release-index`.
-20. Run `./bin/codex-maintainer release-replay verify --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --tarball dist/codex-maintainer-v3.7.0.tar.gz --index /tmp/codex-maintainer-release-index/release-index.json --ledger /tmp/codex-maintainer-release-proof/proof-ledger.md --out /tmp/codex-maintainer-release-replay`.
+20. Run `./bin/codex-maintainer release-replay verify --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --tarball dist/codex-maintainer-v3.8.0.tar.gz --index /tmp/codex-maintainer-release-index/release-index.json --ledger /tmp/codex-maintainer-release-proof/proof-ledger.md --out /tmp/codex-maintainer-release-replay`.
 21. Run `./bin/codex-maintainer release-attest build --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --replay /tmp/codex-maintainer-release-replay/replay-report.json --out /tmp/codex-maintainer-release-attestation`.
-22. Run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-self-audit`.
-23. Run `./bin/codex-maintainer next-goal --out /tmp/NEXT_GOAL.md`.
+22. Run `./bin/codex-maintainer release-proof build --out /tmp/codex-maintainer-release-proof-bundle --release-url https://github.com/owner/repo/releases/tag/v3.8.0`.
+23. Run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-self-audit`.
+24. Run `./bin/codex-maintainer next-goal --out /tmp/NEXT_GOAL.md`.
