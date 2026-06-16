@@ -84,6 +84,7 @@ For the next improvement loop, run `./bin/codex-maintainer next-goal --out NEXT_
 For CI-consumable findings, run `./bin/codex-maintainer sarif --report /tmp/autopsy/report.json --out /tmp/results.sarif`.
 For workflow-run summaries, run `./bin/codex-maintainer ci-summary --gate /tmp/codex-gate/gate.json --out /tmp/codex-gate/summary.md`.
 For Check Run payloads, run `./bin/codex-maintainer check-run --gate /tmp/codex-gate/gate.json --head-sha "$GITHUB_SHA" --out /tmp/codex-gate/check-run/payload.json`.
+To post a Check Run after reviewing the payload, run `./bin/codex-maintainer check-run post --payload /tmp/codex-gate/check-run/payload.json --repo "$GITHUB_REPOSITORY" --out /tmp/codex-gate/check-run/response.json`.
 
 ## What Is Inside
 
@@ -101,7 +102,7 @@ For Check Run payloads, run `./bin/codex-maintainer check-run --gate /tmp/codex-
 - `docs/autopsy.md`: guide for auditing AI coding claims against diffs and tests.
 - `docs/autopsy-github-actions.md`: minimal workflow for downloadable autopsy evidence.
 - `docs/benchmark.md`: public AI maintainer reliability benchmark format.
-- `docs/check-run.md`: GitHub Checks API payload export from gate results.
+- `docs/check-run.md`: GitHub Checks API payload export and optional posting from gate results.
 - `docs/ci-gate.md`: generate CI artifacts and optional failure from maintainer evidence.
 - `docs/ci-summary.md`: GitHub Actions step-summary Markdown from gate JSON.
 - `docs/command-matrix.md`: command surface map for maintainer jobs.

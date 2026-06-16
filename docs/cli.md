@@ -212,7 +212,16 @@ Generate a GitHub Checks API payload from `gate.json`:
   --out /tmp/codex-gate/check-run/payload.json
 ```
 
-The reusable CI gate action writes this payload into the artifact bundle. See `check-run.md`.
+Post the payload only when the workflow has an explicit token and `checks: write` permission:
+
+```bash
+./bin/codex-maintainer check-run post \
+  --payload /tmp/codex-gate/check-run/payload.json \
+  --repo "$GITHUB_REPOSITORY" \
+  --out /tmp/codex-gate/check-run/response.json
+```
+
+Use `--dry-run` to write the request metadata without contacting GitHub. The reusable CI gate action writes this payload into the artifact bundle and can post it when `post-check-run` is enabled. See `check-run.md`.
 
 ## SARIF
 

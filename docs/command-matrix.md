@@ -16,7 +16,7 @@
 | Generate PR comment | `review-comment` | Comment Markdown and badge JSON |
 | Enforce in CI | `ci-gate` | Gate bundle and optional failure |
 | Summarize CI gate | `ci-summary` | Step-summary Markdown |
-| Prepare Check Run payload | `check-run` | GitHub Checks API payload JSON |
+| Prepare or post Check Run payload | `check-run`, `check-run post` | GitHub Checks API payload and response JSON |
 | Publish benchmark data | `leaderboard build` | Stable leaderboard JSON |
 | Audit this toolkit | `self-audit` | Self-audit Markdown and JSON |
 | Continue the release loop | `next-goal` | Slash-goal Markdown plan |

@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.8.0 - Optional Check Run Posting
+
+- Added `codex-maintainer check-run post` for opt-in GitHub Checks API posting from generated payloads.
+- Added dry-run request proof with token redaction and payload SHA-256 metadata.
+- Updated the reusable CI gate action with optional `post-check-run` support and `checks: write` guidance.
+- Added check-run post docs, tests, self-audit coverage, CI coverage, and package verification.
+
 ## v2.7.0 - Signed Fixture Pack Metadata
 
 - Added `codex-maintainer arena sign` and `codex-maintainer arena verify`.

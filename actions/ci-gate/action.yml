@@ -33,6 +33,22 @@ inputs:
     description: Uploaded artifact name.
     required: false
     default: codex-maintainer-gate
+  post-check-run:
+    description: Set true to post the generated check-run payload with the GitHub Checks API.
+    required: false
+    default: "false"
+  github-token:
+    description: Token used when post-check-run is true. Requires checks: write permission.
+    required: false
+    default: ""
+  check-run-repository:
+    description: Repository to post the check run to. Defaults to github.repository.
+    required: false
+    default: ""
+  check-run-api-url:
+    description: GitHub API base URL for check-run posting.
+    required: false
+    default: https://api.github.com
 
 runs:
   using: composite
@@ -48,6 +64,7 @@ runs:
         "${{ github.action_path }}/../../bin/codex-maintainer" ci-gate "${args[@]}"
 
     - name: Append CI gate step summary
+      if: ${{ always() }}
       shell: bash
       run: |
         summary="${{ inputs.out }}/summary.md"
@@ -56,6 +73,7 @@ runs:
         fi
 
     - name: Generate check-run payload
+      if: ${{ always() }}
       shell: bash
       run: |
         "${{ github.action_path }}/../../bin/codex-maintainer" check-run \
@@ -63,7 +81,25 @@ runs:
           --head-sha "${{ github.sha }}" \
           --out "${{ inputs.out }}/check-run/payload.json"
 
+    - name: Post check run
+      if: ${{ always() && inputs.post-check-run == 'true' }}
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_API_URL: ${{ inputs.check-run-api-url }}
+        DEFAULT_CHECK_RUN_REPOSITORY: ${{ github.repository }}
+      run: |
+        repo="${{ inputs.check-run-repository }}"
+        if [[ -z "$repo" ]]; then
+          repo="$DEFAULT_CHECK_RUN_REPOSITORY"
+        fi
+        "${{ github.action_path }}/../../bin/codex-maintainer" check-run post \
+          --payload "${{ inputs.out }}/check-run/payload.json" \
+          --repo "$repo" \
+          --out "${{ inputs.out }}/check-run/response.json"
+
     - name: Upload CI gate artifact
+      if: ${{ always() }}
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name }}

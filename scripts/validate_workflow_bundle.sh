@@ -123,6 +123,7 @@ required_files=(
   "templates/web/README.md"
   "templates/web/AGENTS.md"
   "templates/policy/default.conf"
+  "tests/check_run_post_test.sh"
   "tests/check_run_test.sh"
   "tests/ci_gate_test.sh"
   "tests/ci_summary_test.sh"

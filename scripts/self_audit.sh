@@ -64,6 +64,7 @@ commands=(
   "ci-gate --help"
   "ci-summary --help"
   "check-run --help"
+  "check-run post --help"
   "sarif --help"
   "leaderboard build --help"
   "self-audit --help"

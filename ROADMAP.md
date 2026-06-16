@@ -14,6 +14,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep CI gate outputs stable for artifact and PR workflows.
 - Keep CI step-summary output readable in GitHub Actions workflow runs.
 - Keep GitHub Check Run payload export stable and opt-in.
+- Keep optional GitHub Check Run posting explicit, token-scoped, and disabled by default.
 - Keep SARIF export stable for Autopsy findings and CI gate artifacts.
 - Keep external arena fixture import strict about supported files and obvious secret leakage.
 - Keep fixture-pack integrity metadata deterministic and verifiable.
@@ -29,7 +30,6 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 
 - Add more anonymized transcripts from real maintenance work.
 - Expand Maintainer Arena with more task types and optional identity signing.
-- Add optional posting of generated Check Run payloads for teams that opt in.
 - Add additional template profiles for backend services and CLI tools.
 - Consider npm or Homebrew distribution after the release tarball path stays stable.
 - Enable GitHub Pages in repository settings after the docs shell is reviewed.

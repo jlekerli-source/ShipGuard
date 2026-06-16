@@ -48,10 +48,11 @@ Start here:
 8. Run `./bin/codex-maintainer sarif --report /tmp/autopsy-good/report.json --out /tmp/autopsy-good/results.sarif`.
 9. Run `./bin/codex-maintainer ci-summary --gate /tmp/codex-gate/gate.json --out /tmp/codex-gate/summary.md` after a gate run.
 10. Run `./bin/codex-maintainer check-run --gate /tmp/codex-gate/gate.json --head-sha "$GITHUB_SHA" --out /tmp/codex-gate/check-run/payload.json` after a gate run.
-11. Run `./bin/codex-maintainer arena run --fixture fixtures/arena --out /tmp/arena`.
-12. Run `./bin/codex-maintainer arena import --source fixtures/external-arena-pack --out /tmp/imported-arena`.
-13. Run `./bin/codex-maintainer arena sign --fixture /tmp/imported-arena --out /tmp/imported-arena/PACK.json`.
-14. Run `./bin/codex-maintainer arena verify --fixture /tmp/imported-arena --manifest /tmp/imported-arena/PACK.json`.
-15. Run `./bin/codex-maintainer leaderboard build --arena-results /tmp/arena/results.json --out /tmp/leaderboard.json`.
-16. Run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-self-audit`.
-17. Run `./bin/codex-maintainer next-goal --out /tmp/NEXT_GOAL.md`.
+11. Run `./bin/codex-maintainer check-run post --payload /tmp/codex-gate/check-run/payload.json --repo "$GITHUB_REPOSITORY" --out /tmp/codex-gate/check-run/response.json --dry-run` before enabling real posting.
+12. Run `./bin/codex-maintainer arena run --fixture fixtures/arena --out /tmp/arena`.
+13. Run `./bin/codex-maintainer arena import --source fixtures/external-arena-pack --out /tmp/imported-arena`.
+14. Run `./bin/codex-maintainer arena sign --fixture /tmp/imported-arena --out /tmp/imported-arena/PACK.json`.
+15. Run `./bin/codex-maintainer arena verify --fixture /tmp/imported-arena --manifest /tmp/imported-arena/PACK.json`.
+16. Run `./bin/codex-maintainer leaderboard build --arena-results /tmp/arena/results.json --out /tmp/leaderboard.json`.
+17. Run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-self-audit`.
+18. Run `./bin/codex-maintainer next-goal --out /tmp/NEXT_GOAL.md`.

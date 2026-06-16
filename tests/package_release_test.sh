@@ -62,6 +62,7 @@ grep -q "^$package_name/tests/arena_import_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/arena_sign_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/arena_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/autopsy_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/check_run_post_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/check_run_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ci_gate_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ci_summary_test.sh$" "$tar_list"
@@ -168,6 +169,13 @@ grep -q '| Score | 11/12 |' "$tmp_dir/package-summary.md"
   --out "$tmp_dir/package-check-run/payload.json" >/dev/null
 grep -q '"conclusion" : "success"' "$tmp_dir/package-check-run/payload.json"
 grep -q '"head_sha" : "0123456789abcdef"' "$tmp_dir/package-check-run/payload.json"
+"$package_root/bin/codex-maintainer" check-run post \
+  --payload "$tmp_dir/package-check-run/payload.json" \
+  --repo owner/repo \
+  --out "$tmp_dir/package-check-run/dry-run.json" \
+  --dry-run >/dev/null
+grep -q '"dry_run" : true' "$tmp_dir/package-check-run/dry-run.json"
+grep -q '"url" : "https://api.github.com/repos/owner/repo/check-runs"' "$tmp_dir/package-check-run/dry-run.json"
 "$package_root/bin/codex-maintainer" leaderboard build \
   --arena-results "$tmp_dir/package-arena/results.json" \
   --out "$tmp_dir/package-leaderboard.json" >/dev/null
@@ -190,6 +198,7 @@ grep -q './tests/template_profiles_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/arena_import_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/arena_sign_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/check_run_test.sh' "$tmp_dir/package-next-goal.md"
+grep -q './tests/check_run_post_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/ci_summary_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/sarif_test.sh' "$tmp_dir/package-next-goal.md"
 

@@ -25,6 +25,7 @@ Usage:
   codex-maintainer ci-gate --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--policy <policy.conf>] [--out <dir>] [--mode warn|fail]
   codex-maintainer ci-summary --gate <gate.json> --out <summary.md>
   codex-maintainer check-run --gate <gate.json> --head-sha <sha> --out <payload.json> [--name <name>]
+  codex-maintainer check-run post --payload <payload.json> --repo <owner/repo> --out <response.json> [--api-url <url>] [--token <token>] [--dry-run]
   codex-maintainer sarif --report <report.json> --out <results.sarif>
   codex-maintainer leaderboard build --arena-results <results.json> --out <leaderboard.json>
   codex-maintainer self-audit [--out <dir>]
@@ -44,7 +45,7 @@ Commands:
               Generate a PR-ready review comment and badge from an autopsy report.
   ci-gate     Generate autopsy, review, badge, gate JSON, and optional CI failure.
   ci-summary  Generate GitHub Actions step-summary Markdown from gate JSON.
-  check-run   Generate GitHub Checks API payload JSON from gate JSON.
+  check-run   Generate or optionally post GitHub Checks API payloads from gate JSON.
   sarif       Convert an autopsy report JSON file into SARIF 2.1.0.
   leaderboard Build a stable leaderboard JSON file from arena results.
   self-audit  Generate toolkit readiness proof.

@@ -98,6 +98,7 @@ cat > "$out_file" <<EOF
 ./tests/review_comment_test.sh
 ./tests/policy_test.sh
 ./tests/check_run_test.sh
+./tests/check_run_post_test.sh
 ./tests/ci_gate_test.sh
 ./tests/ci_summary_test.sh
 ./tests/sarif_test.sh
