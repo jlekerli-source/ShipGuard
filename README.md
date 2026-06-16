@@ -77,6 +77,7 @@ For a worked example, read `examples/issue-to-plan-to-validation.md`.
 For public proof without private app code, read `examples/demo-walkthrough.md`.
 For agent-claim auditing, run `./bin/codex-maintainer autopsy` against `fixtures/autopsy/`.
 For aggregate benchmark proof, run `./bin/codex-maintainer arena run --fixture fixtures/arena --out /tmp/arena`.
+For external benchmark packs, run `./bin/codex-maintainer arena import --source external-pack --out /tmp/imported-arena`.
 For toolkit release readiness, run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-audit`.
 For the next improvement loop, run `./bin/codex-maintainer next-goal --out NEXT_GOAL.md`.
 For CI-consumable findings, run `./bin/codex-maintainer sarif --report /tmp/autopsy/report.json --out /tmp/results.sarif`.
@@ -128,6 +129,7 @@ For Check Run payloads, run `./bin/codex-maintainer check-run --gate /tmp/codex-
 - `fixtures/demo-ios-repo/`: fake iOS-style repo for demo and package testing.
 - `fixtures/autopsy/`: good, weak, and dangerous AI-run fixtures for report testing.
 - `fixtures/arena/`: public benchmark fixture pack for aggregate arena runs.
+- `fixtures/external-arena-pack/`: sample external fixture pack for import testing.
 - `templates/ios/`: a starter workflow bundle for adapting these rules to another iOS app.
 - `templates/web/`: a starter workflow bundle for adapting these rules to a web app.
 - `SCORECARD.md`: a lightweight rubric for judging whether a Codex run produced usable maintainer evidence.

@@ -41,6 +41,7 @@ grep -q "^$package_name/docs/release-checklist.md$" "$tar_list"
 grep -q "^$package_name/docs/sarif.md$" "$tar_list"
 grep -q "^$package_name/docs/template-profiles.md$" "$tar_list"
 grep -q "^$package_name/scripts/install.sh$" "$tar_list"
+grep -q "^$package_name/scripts/arena_import.sh$" "$tar_list"
 grep -q "^$package_name/scripts/arena_run.sh$" "$tar_list"
 grep -q "^$package_name/scripts/autopsy_report.sh$" "$tar_list"
 grep -q "^$package_name/scripts/build_demo_reports.sh$" "$tar_list"
@@ -55,6 +56,7 @@ grep -q "^$package_name/scripts/sarif.sh$" "$tar_list"
 grep -q "^$package_name/scripts/self_audit.sh$" "$tar_list"
 grep -q "^$package_name/tests/package_release_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/action_artifact_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/arena_import_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/arena_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/autopsy_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/check_run_test.sh$" "$tar_list"
@@ -76,6 +78,8 @@ grep -q "^$package_name/fixtures/arena/good-maintainer/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/failing-validation/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/no-diff-implementation/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/review-only/run.md$" "$tar_list"
+grep -q "^$package_name/fixtures/external-arena-pack/imported-clean/run.md$" "$tar_list"
+grep -q "^$package_name/fixtures/external-arena-pack/imported-risky/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/autopsy/good-run/run.md$" "$tar_list"
 grep -q "^$package_name/examples/demo-reports/leaderboard.json$" "$tar_list"
 grep -q "^$package_name/.agents/skills/alarm-testing/SKILL.md$" "$tar_list"
@@ -115,6 +119,15 @@ grep -q '"verdict": "usable maintainer-quality run"' "$tmp_dir/package-autopsy/r
   --out "$tmp_dir/package-arena" >/dev/null
 grep -q '"average_total": 6.50' "$tmp_dir/package-arena/results.json"
 grep -q '"high_risk_finding_count": 5' "$tmp_dir/package-arena/results.json"
+"$package_root/bin/codex-maintainer" arena import \
+  --source "$package_root/fixtures/external-arena-pack" \
+  --out "$tmp_dir/package-imported-arena" \
+  --pack-name "package-imported" >/dev/null
+grep -q 'Pack: package-imported' "$tmp_dir/package-imported-arena/PACK.md"
+"$package_root/bin/codex-maintainer" arena run \
+  --fixture "$tmp_dir/package-imported-arena" \
+  --out "$tmp_dir/package-imported-results" >/dev/null
+grep -q '"case_count": 2' "$tmp_dir/package-imported-results/results.json"
 "$package_root/bin/codex-maintainer" review-comment \
   --report "$tmp_dir/package-autopsy/report.json" \
   --out "$tmp_dir/package-review/comment.md" \
@@ -163,6 +176,7 @@ grep -q '"version" : "2.1.0"' "$tmp_dir/package-sarif/results.sarif"
   --out "$tmp_dir/package-next-goal.md" >/dev/null
 grep -q '/goal Implement v2.6.0 Package Proof Followup' "$tmp_dir/package-next-goal.md"
 grep -q './tests/template_profiles_test.sh' "$tmp_dir/package-next-goal.md"
+grep -q './tests/arena_import_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/check_run_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/ci_summary_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/sarif_test.sh' "$tmp_dir/package-next-goal.md"

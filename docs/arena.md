@@ -30,6 +30,29 @@ fixtures/arena/<case-id>/tests.log
 
 Only `run.md` is required. Missing task, diff, or test evidence is passed through to Autopsy and can affect findings.
 
+## Import External Packs
+
+External fixture packs can be validated and copied into a local arena directory:
+
+```bash
+./bin/codex-maintainer arena import \
+  --source external-pack \
+  --out /tmp/imported-arena-pack \
+  --pack-name "external-pack"
+
+./bin/codex-maintainer arena run \
+  --fixture /tmp/imported-arena-pack \
+  --out /tmp/imported-arena-results
+```
+
+The importer:
+
+- requires `run.md` in every case directory
+- copies only `run.md`, `task.md`, `diff.patch`, and `tests.log`
+- writes `PACK.md` with source, import time, and case IDs
+- refuses to overwrite existing cases unless `--force` is passed
+- rejects obvious local machine paths and secret-looking strings
+
 ## Aggregate Metrics
 
 `results.json` includes:

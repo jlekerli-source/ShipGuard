@@ -93,6 +93,7 @@ cat > "$out_file" <<EOF
 ./tests/autopsy_test.sh
 ./tests/action_artifact_test.sh
 ./tests/arena_test.sh
+./tests/arena_import_test.sh
 ./tests/review_comment_test.sh
 ./tests/policy_test.sh
 ./tests/check_run_test.sh

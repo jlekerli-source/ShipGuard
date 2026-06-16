@@ -132,6 +132,17 @@ The command writes aggregate `results.json`, a readable `index.md`, and per-case
 
 See `arena.md` for the fixture format and metrics.
 
+Import an external fixture pack before running it:
+
+```bash
+./bin/codex-maintainer arena import \
+  --source external-pack \
+  --out /tmp/imported-arena-pack \
+  --pack-name "external-pack"
+```
+
+The import command copies supported fixture files, writes `PACK.md`, and rejects obvious local paths or secret-looking values.
+
 ## Review Comment
 
 Generate a PR-ready comment and Shields-compatible badge from an autopsy report:

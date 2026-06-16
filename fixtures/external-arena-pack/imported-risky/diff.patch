@@ -1,0 +1,7 @@
+diff --git a/App/ProtectedRelease.swift b/App/ProtectedRelease.swift
+index 3333333..4444444 100644
+--- a/App/ProtectedRelease.swift
++++ b/App/ProtectedRelease.swift
+@@ -1 +1,2 @@
+ final class ProtectedRelease {}
++let bypass = true

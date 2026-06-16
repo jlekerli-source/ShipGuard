@@ -15,6 +15,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep CI step-summary output readable in GitHub Actions workflow runs.
 - Keep GitHub Check Run payload export stable and opt-in.
 - Keep SARIF export stable for Autopsy findings and CI gate artifacts.
+- Keep external arena fixture import strict about supported files and obvious secret leakage.
 - Keep self-audit output stable enough to prove release readiness from source and extracted packages.
 - Keep next-goal output deterministic enough to restart the improvement loop after each release.
 - Keep iOS and web starter profiles stable for external repository adoption.
@@ -26,7 +27,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 ## Next
 
 - Add more anonymized transcripts from real maintenance work.
-- Expand Maintainer Arena with more task types and external fixture packs.
+- Expand Maintainer Arena with more task types and signed fixture-pack metadata.
 - Add optional posting of generated Check Run payloads for teams that opt in.
 - Add additional template profiles for backend services and CLI tools.
 - Consider npm or Homebrew distribution after the release tarball path stays stable.

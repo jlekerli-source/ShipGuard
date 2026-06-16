@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.6.0 - External Fixture Pack Import
+
+- Added `codex-maintainer arena import` for validating and copying external Maintainer Arena fixture packs.
+- Added sample external arena fixtures and import metadata output.
+- Added import safety checks for supported files, overwrite behavior, local paths, and secret-looking values.
+- Added arena import docs, tests, self-audit coverage, CI coverage, and package verification.
+
 ## v2.5.0 - Template Profile Expansion
 
 - Added `codex-maintainer init web` and `codex-maintainer doctor web`.

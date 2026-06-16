@@ -18,6 +18,7 @@ Usage:
   codex-maintainer score <run.md>
   codex-maintainer autopsy --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--policy <policy.conf>] [--out <dir>]
   codex-maintainer arena run --fixture <fixture-dir> [--out <dir>]
+  codex-maintainer arena import --source <fixture-dir> --out <fixture-dir> [--pack-name <name>] [--force]
   codex-maintainer review-comment --report <report.json> --out <comment.md> [--mode warn|fail]
   codex-maintainer ci-gate --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--policy <policy.conf>] [--out <dir>] [--mode warn|fail]
   codex-maintainer ci-summary --gate <gate.json> --out <summary.md>
@@ -36,7 +37,7 @@ Commands:
   policy      Initialize or inspect codex-maintainer policy config.
   score       Score a Codex run markdown file using SCORECARD.md categories.
   autopsy     Generate Markdown and JSON evidence reports for an AI coding run.
-  arena       Run multiple autopsy fixtures and aggregate benchmark results.
+  arena       Run or import multiple autopsy fixtures.
   review-comment
               Generate a PR-ready review comment and badge from an autopsy report.
   ci-gate     Generate autopsy, review, badge, gate JSON, and optional CI failure.
@@ -246,9 +247,16 @@ cmd_policy() {
 
 cmd_arena() {
   local subcommand="${1:-}"
-  [[ "$subcommand" == "run" ]] || fail "arena requires subcommand: run"
+  [[ "$subcommand" == "run" || "$subcommand" == "import" ]] || fail "arena requires subcommand: run or import"
   shift || true
-  "$tool_root/scripts/arena_run.sh" "$@"
+  case "$subcommand" in
+    run)
+      "$tool_root/scripts/arena_run.sh" "$@"
+      ;;
+    import)
+      "$tool_root/scripts/arena_import.sh" "$@"
+      ;;
+  esac
 }
 
 cmd_review_comment() {

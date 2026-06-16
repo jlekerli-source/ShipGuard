@@ -57,6 +57,7 @@ commands=(
   "policy show"
   "autopsy --help"
   "arena run --help"
+  "arena import --help"
   "review-comment --help"
   "ci-gate --help"
   "ci-summary --help"
@@ -89,6 +90,7 @@ required_artifacts=(
   "docs/check-run.md"
   "docs/template-profiles.md"
   "templates/web/AGENTS.md"
+  "fixtures/external-arena-pack/imported-clean/run.md"
 )
 
 artifact_count=0
