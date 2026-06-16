@@ -3,7 +3,7 @@
 The toolkit now has a full evidence loop:
 
 ```text
-policy -> autopsy -> sarif -> arena-import -> arena-sign -> arena -> review-comment -> ci-gate -> ci-summary -> check-run -> check-run-post -> leaderboard -> release-manifest -> release-index -> release-replay -> release-attest -> release-proof -> release-proof-consumption -> self-audit -> next-goal
+policy -> autopsy -> sarif -> arena-import -> arena-sign -> arena -> review-comment -> ci-gate -> ci-summary -> check-run -> check-run-post -> leaderboard -> release-manifest -> release-index -> release-replay -> release-attest -> release-proof -> release-consume -> self-audit -> next-goal
 ```
 
 That loop gives maintainers a way to:

@@ -25,6 +25,7 @@ Use this checklist for every release after `v2.0.0`.
 ./tests/release_proof_test.sh
 ./tests/release_index_test.sh
 ./tests/release_manifest_test.sh
+./tests/release_consume_test.sh
 ./tests/release_replay_test.sh
 ./tests/release_proof_action_test.sh
 ./tests/release_proof_consumption_test.sh
@@ -49,6 +50,7 @@ After publishing, consume the uploaded assets from a clean directory:
 
 ```bash
 gh release download vX.Y.Z --repo owner/repo --dir /tmp/codex-maintainer-vX.Y.Z
+./bin/codex-maintainer release-consume verify --dir /tmp/codex-maintainer-vX.Y.Z --out /tmp/codex-maintainer-vX.Y.Z/consumer-proof --version X.Y.Z
 ./bin/codex-maintainer release-replay verify --manifest /tmp/codex-maintainer-vX.Y.Z/release-manifest.json --tarball /tmp/codex-maintainer-vX.Y.Z/codex-maintainer-vX.Y.Z.tar.gz --index /tmp/codex-maintainer-vX.Y.Z/release-index.json --ledger /tmp/codex-maintainer-vX.Y.Z/proof-ledger.md --out /tmp/codex-maintainer-vX.Y.Z/consumer-replay
 ./bin/codex-maintainer release-attest build --manifest /tmp/codex-maintainer-vX.Y.Z/release-manifest.json --replay /tmp/codex-maintainer-vX.Y.Z/consumer-replay/replay-report.json --out /tmp/codex-maintainer-vX.Y.Z/consumer-attestation
 ```

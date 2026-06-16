@@ -4,9 +4,9 @@
 
 ```bash
 ./bin/codex-maintainer release-attest build \
-  --manifest /tmp/codex-maintainer-v3.9.0/release-manifest.json \
-  --replay /tmp/codex-maintainer-v3.9.0/replay-report.json \
-  --out /tmp/codex-maintainer-v3.9.0/attestation
+  --manifest /tmp/codex-maintainer-v3.10.0/release-manifest.json \
+  --replay /tmp/codex-maintainer-v3.10.0/replay-report.json \
+  --out /tmp/codex-maintainer-v3.10.0/attestation
 ```
 
 Outputs:

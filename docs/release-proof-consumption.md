@@ -5,58 +5,71 @@ This guide is for maintainers, reviewers, and downstream users who want to verif
 Download the release assets from GitHub:
 
 ```bash
-mkdir -p /tmp/codex-maintainer-v3.9.0
-gh release download v3.9.0 \
+mkdir -p /tmp/codex-maintainer-v3.10.0
+gh release download v3.10.0 \
   --repo jlekerli-source/ringly-codex-workflows \
-  --pattern 'codex-maintainer-v3.9.0.tar.gz' \
+  --pattern 'codex-maintainer-v3.10.0.tar.gz' \
   --pattern 'release-manifest.json' \
   --pattern 'release-index.json' \
   --pattern 'proof-ledger.md' \
   --pattern 'replay-report.json' \
   --pattern 'attestation.json' \
   --pattern 'attestation-badge.json' \
-  --dir /tmp/codex-maintainer-v3.9.0
+  --dir /tmp/codex-maintainer-v3.10.0
 ```
 
-Check the tarball digest:
+Use the consumer CLI for the full local verification path:
 
 ```bash
-shasum -a 256 /tmp/codex-maintainer-v3.9.0/codex-maintainer-v3.9.0.tar.gz
+./bin/codex-maintainer release-consume verify \
+  --dir /tmp/codex-maintainer-v3.10.0 \
+  --out /tmp/codex-maintainer-v3.10.0/consumer-proof \
+  --version 3.10.0
+```
+
+The command writes `sha256.txt`, replay output, attestation output, and `consumer-report.json`.
+
+For manual review, check the tarball digest:
+
+```bash
+shasum -a 256 /tmp/codex-maintainer-v3.10.0/codex-maintainer-v3.10.0.tar.gz
 ```
 
 Replay the release proof locally:
 
 ```bash
 ./bin/codex-maintainer release-replay verify \
-  --manifest /tmp/codex-maintainer-v3.9.0/release-manifest.json \
-  --tarball /tmp/codex-maintainer-v3.9.0/codex-maintainer-v3.9.0.tar.gz \
-  --index /tmp/codex-maintainer-v3.9.0/release-index.json \
-  --ledger /tmp/codex-maintainer-v3.9.0/proof-ledger.md \
-  --out /tmp/codex-maintainer-v3.9.0/consumer-replay
+  --manifest /tmp/codex-maintainer-v3.10.0/release-manifest.json \
+  --tarball /tmp/codex-maintainer-v3.10.0/codex-maintainer-v3.10.0.tar.gz \
+  --index /tmp/codex-maintainer-v3.10.0/release-index.json \
+  --ledger /tmp/codex-maintainer-v3.10.0/proof-ledger.md \
+  --out /tmp/codex-maintainer-v3.10.0/consumer-replay
 ```
 
 Rebuild the compact attestation from the downloaded manifest and your local replay result:
 
 ```bash
 ./bin/codex-maintainer release-attest build \
-  --manifest /tmp/codex-maintainer-v3.9.0/release-manifest.json \
-  --replay /tmp/codex-maintainer-v3.9.0/consumer-replay/replay-report.json \
-  --out /tmp/codex-maintainer-v3.9.0/consumer-attestation
+  --manifest /tmp/codex-maintainer-v3.10.0/release-manifest.json \
+  --replay /tmp/codex-maintainer-v3.10.0/consumer-replay/replay-report.json \
+  --out /tmp/codex-maintainer-v3.10.0/consumer-attestation
 ```
 
 Review these files:
 
-- `/tmp/codex-maintainer-v3.9.0/consumer-replay/replay-report.json`
-- `/tmp/codex-maintainer-v3.9.0/consumer-replay/replay-report.md`
-- `/tmp/codex-maintainer-v3.9.0/consumer-attestation/attestation.json`
-- `/tmp/codex-maintainer-v3.9.0/consumer-attestation/attestation.md`
-- `/tmp/codex-maintainer-v3.9.0/consumer-attestation/attestation-badge.json`
+- `/tmp/codex-maintainer-v3.10.0/consumer-proof/consumer-report.json`
+- `/tmp/codex-maintainer-v3.10.0/consumer-proof/consumer-report.md`
+- `/tmp/codex-maintainer-v3.10.0/consumer-proof/replay/replay-report.json`
+- `/tmp/codex-maintainer-v3.10.0/consumer-proof/replay/replay-report.md`
+- `/tmp/codex-maintainer-v3.10.0/consumer-proof/attestation/attestation.json`
+- `/tmp/codex-maintainer-v3.10.0/consumer-proof/attestation/attestation.md`
+- `/tmp/codex-maintainer-v3.10.0/consumer-proof/attestation/attestation-badge.json`
 
 Accept the release only when:
 
 - `replay-report.json` has `"status": "pass"`.
 - `attestation.json` has `"status" : "pass"` and `"blocked" : 0`.
-- `attestation-badge.json` says `pass v3.9.0`.
+- `attestation-badge.json` says `pass v3.10.0`.
 - The manifest tag and release URL both point to the release you downloaded.
 - The tarball SHA-256 from `shasum -a 256` matches the manifest artifact SHA-256.
 

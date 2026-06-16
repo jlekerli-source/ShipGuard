@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.10.0 - Release Proof Consumer CLI
+
+- Added `codex-maintainer release-consume verify` for one-command verification of downloaded release proof assets.
+- Added consumer reports, SHA-256 output, replay output, attestation output, CLI docs, and package verification.
+- Added release-consume tests, CI coverage, self-audit coverage, and next-goal proof.
+
 ## v3.9.0 - Release Proof Consumption Guide
 
 - Added `docs/release-proof-consumption.md` for downstream release reviewers who want to verify downloaded proof assets.

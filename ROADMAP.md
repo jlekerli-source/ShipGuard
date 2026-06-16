@@ -31,6 +31,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep release-proof workflow examples copy/paste-safe for tag-triggered and manual release proof runs.
 - Keep the one-command release proof bundle aligned with the manual CLI chain and GitHub Action.
 - Keep downstream release proof consumption docs aligned with the published tarball, replay, and attestation assets.
+- Keep release-consume output aligned with the documented downstream verification path.
 - Keep the reusable GitHub Action aligned with the CLI validator.
 - Maintain the public examples, scorecard, autopsy fixtures, and iOS starter template as the workflow evolves.
 - Keep the adoption docs and GitHub Pages shell current with each release.
