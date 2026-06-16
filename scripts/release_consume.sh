@@ -16,6 +16,9 @@ Inputs in --dir:
   release-manifest.json
   release-index.json
   proof-ledger.md
+  replay-report.json
+  attestation.json
+  attestation-badge.json
 
 Outputs:
   consumer-report.json
@@ -196,8 +199,88 @@ PERL
   local replay_status replay_blocked replay_pass attestation_status attestation_blocked badge_message
   IFS=$'\t' read -r replay_status replay_blocked replay_pass attestation_status attestation_blocked badge_message <<< "$replay_fields"
 
+  local published_fields
+  published_fields="$(LOCAL_REPLAY_FILE="$replay_dir/replay-report.json" LOCAL_ATTESTATION_FILE="$attestation_dir/attestation.json" LOCAL_BADGE_FILE="$attestation_dir/attestation-badge.json" \
+    PUBLISHED_REPLAY_FILE="$asset_dir/replay-report.json" PUBLISHED_ATTESTATION_FILE="$asset_dir/attestation.json" PUBLISHED_BADGE_FILE="$asset_dir/attestation-badge.json" perl <<'PERL'
+use strict;
+use warnings;
+use JSON::PP;
+
+sub read_json {
+  my ($file) = @_;
+  open my $fh, '<:encoding(UTF-8)', $file or die "cannot read $file: $!";
+  local $/;
+  my $data = decode_json(<$fh>);
+  close $fh;
+  return $data;
+}
+
+sub safe_read_json {
+  my ($file) = @_;
+  return (undef, 'missing') unless -f $file;
+  my $data = eval { read_json($file) };
+  return ($data, '') if $data;
+  my $err = $@ || 'unknown parse error';
+  chomp $err;
+  return (undef, $err);
+}
+
+my $local_replay = read_json($ENV{LOCAL_REPLAY_FILE});
+my $local_attestation = read_json($ENV{LOCAL_ATTESTATION_FILE});
+my $local_badge = read_json($ENV{LOCAL_BADGE_FILE});
+
+my ($published_replay, $replay_err) = safe_read_json($ENV{PUBLISHED_REPLAY_FILE});
+my ($published_attestation, $attestation_err) = safe_read_json($ENV{PUBLISHED_ATTESTATION_FILE});
+my ($published_badge, $badge_err) = safe_read_json($ENV{PUBLISHED_BADGE_FILE});
+
+my $replay_status = 'skipped';
+if ($published_replay) {
+  my $same =
+    (($published_replay->{schema_version} || '') eq '1.0') &&
+    (($published_replay->{status} || '') eq ($local_replay->{status} || '')) &&
+    (($published_replay->{version} || '') eq ($local_replay->{version} || '')) &&
+    ((($published_replay->{artifact} || {})->{actual_sha256} || '') eq (($local_replay->{artifact} || {})->{actual_sha256} || '')) &&
+    (((($published_replay->{summary} || {})->{blocked} || 0) + 0) == ((( $local_replay->{summary} || {})->{blocked} || 0) + 0));
+  $replay_status = $same ? 'pass' : 'blocked';
+} elsif ($replay_err ne 'missing') {
+  $replay_status = 'blocked';
+}
+
+my $attestation_status = 'skipped';
+if ($published_attestation) {
+  my $same =
+    (($published_attestation->{schema_version} || '') eq '1.0') &&
+    (($published_attestation->{status} || '') eq ($local_attestation->{status} || '')) &&
+    (($published_attestation->{version} || '') eq ($local_attestation->{version} || '')) &&
+    ((($published_attestation->{artifact} || {})->{sha256} || '') eq (($local_attestation->{artifact} || {})->{sha256} || '')) &&
+    (((($published_attestation->{replay_summary} || {})->{blocked} || 0) + 0) == ((( $local_attestation->{replay_summary} || {})->{blocked} || 0) + 0));
+  $attestation_status = $same ? 'pass' : 'blocked';
+} elsif ($attestation_err ne 'missing') {
+  $attestation_status = 'blocked';
+}
+
+my $badge_status = 'skipped';
+if ($published_badge) {
+  my $same =
+    (($published_badge->{schemaVersion} || 0) == 1) &&
+    (($published_badge->{message} || '') eq ($local_badge->{message} || ''));
+  $badge_status = $same ? 'pass' : 'blocked';
+} elsif ($badge_err ne 'missing') {
+  $badge_status = 'blocked';
+}
+
+my $blocked = 0;
+$blocked++ for grep { $_ eq 'blocked' } ($replay_status, $attestation_status, $badge_status);
+
+print join("\t", $replay_status, $attestation_status, $badge_status, $blocked), "\n";
+PERL
+)"
+
+  local published_replay_status published_attestation_status published_badge_status published_blocked
+  IFS=$'\t' read -r published_replay_status published_attestation_status published_badge_status published_blocked <<< "$published_fields"
+
   local status="pass"
-  if [[ "$replay_status" != "pass" || "$replay_blocked" != "0" || "$attestation_status" != "pass" || "$attestation_blocked" != "0" ]]; then
+  if [[ "$replay_status" != "pass" || "$replay_blocked" != "0" || "$attestation_status" != "pass" || "$attestation_blocked" != "0" || "$published_blocked" != "0" ]]; then
     status="blocked"
   fi
 
@@ -233,6 +316,12 @@ PERL
     echo "    \"attestation_status\": $(json_string "$attestation_status"),"
     echo "    \"attestation_blocked\": $attestation_blocked,"
     echo "    \"badge_message\": $(json_string "$badge_message")"
+    echo "  },"
+    echo "  \"published\": {"
+    echo "    \"replay_report\": $(json_string "$published_replay_status"),"
+    echo "    \"attestation\": $(json_string "$published_attestation_status"),"
+    echo "    \"attestation_badge\": $(json_string "$published_badge_status"),"
+    echo "    \"blocked\": $published_blocked"
     echo "  }"
     echo "}"
   } > "$report_json"
@@ -252,6 +341,9 @@ PERL
     echo "- Attestation status: $attestation_status"
     echo "- Attestation blocked checks: $attestation_blocked"
     echo "- Badge: $badge_message"
+    echo "- Published replay crosscheck: $published_replay_status"
+    echo "- Published attestation crosscheck: $published_attestation_status"
+    echo "- Published badge crosscheck: $published_badge_status"
     [[ -n "$release_url" ]] && echo "- Release: $release_url"
     [[ -n "$ci_run_url" ]] && echo "- CI run: $ci_run_url"
     [[ -n "$issue_url" ]] && echo "- Issue: $issue_url"

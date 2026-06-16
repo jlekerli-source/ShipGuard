@@ -65,11 +65,11 @@ Start here:
 15. Run `./bin/codex-maintainer arena sign --fixture /tmp/imported-arena --out /tmp/imported-arena/PACK.json`.
 16. Run `./bin/codex-maintainer arena verify --fixture /tmp/imported-arena --manifest /tmp/imported-arena/PACK.json`.
 17. Run `./bin/codex-maintainer leaderboard build --arena-results /tmp/arena/results.json --out /tmp/leaderboard.json`.
-18. Run `./bin/codex-maintainer release-manifest --tarball dist/codex-maintainer-v3.10.0.tar.gz --out /tmp/codex-maintainer-release-proof` after packaging.
+18. Run `./bin/codex-maintainer release-manifest --tarball dist/codex-maintainer-v3.11.0.tar.gz --out /tmp/codex-maintainer-release-proof` after packaging.
 19. Run `./bin/codex-maintainer release-index build --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --out /tmp/codex-maintainer-release-index`.
-20. Run `./bin/codex-maintainer release-replay verify --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --tarball dist/codex-maintainer-v3.10.0.tar.gz --index /tmp/codex-maintainer-release-index/release-index.json --ledger /tmp/codex-maintainer-release-proof/proof-ledger.md --out /tmp/codex-maintainer-release-replay`.
+20. Run `./bin/codex-maintainer release-replay verify --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --tarball dist/codex-maintainer-v3.11.0.tar.gz --index /tmp/codex-maintainer-release-index/release-index.json --ledger /tmp/codex-maintainer-release-proof/proof-ledger.md --out /tmp/codex-maintainer-release-replay`.
 21. Run `./bin/codex-maintainer release-attest build --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --replay /tmp/codex-maintainer-release-replay/replay-report.json --out /tmp/codex-maintainer-release-attestation`.
-22. Run `./bin/codex-maintainer release-proof build --out /tmp/codex-maintainer-release-proof-bundle --release-url https://github.com/owner/repo/releases/tag/v3.10.0`.
-23. Run `./bin/codex-maintainer release-consume verify --dir /tmp/codex-maintainer-v3.10.0 --out /tmp/codex-maintainer-v3.10.0/consumer-proof --version 3.10.0` after downloading published assets.
+22. Run `./bin/codex-maintainer release-proof build --out /tmp/codex-maintainer-release-proof-bundle --release-url https://github.com/owner/repo/releases/tag/v3.11.0`.
+23. Run `./bin/codex-maintainer release-consume verify --dir /tmp/codex-maintainer-v3.11.0 --out /tmp/codex-maintainer-v3.11.0/consumer-proof --version 3.11.0` after downloading published assets.
 24. Run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-self-audit`.
 25. Run `./bin/codex-maintainer next-goal --out /tmp/NEXT_GOAL.md`.

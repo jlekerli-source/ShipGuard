@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.11.0 - Published Proof Crosscheck
+
+- Extended `codex-maintainer release-consume verify` to cross-check downloaded replay, attestation, and badge assets against locally regenerated proof.
+- Added blocking behavior for mismatched published proof assets, including tampered attestation badges.
+- Updated release-consume docs, tests, package verification, demo reports, and release-train metadata.
+
 ## v3.10.0 - Release Proof Consumer CLI
 
 - Added `codex-maintainer release-consume verify` for one-command verification of downloaded release proof assets.

@@ -277,12 +277,17 @@ cp "$tmp_dir/package-release-proof-bundle/codex-maintainer-v$version.tar.gz" "$t
 cp "$tmp_dir/package-release-proof-bundle/proof/release-manifest.json" "$tmp_dir/package-release-consume-assets/"
 cp "$tmp_dir/package-release-proof-bundle/index/release-index.json" "$tmp_dir/package-release-consume-assets/"
 cp "$tmp_dir/package-release-proof-bundle/proof/proof-ledger.md" "$tmp_dir/package-release-consume-assets/"
+cp "$tmp_dir/package-release-proof-bundle/replay/replay-report.json" "$tmp_dir/package-release-consume-assets/"
+cp "$tmp_dir/package-release-proof-bundle/attestation/attestation.json" "$tmp_dir/package-release-consume-assets/"
+cp "$tmp_dir/package-release-proof-bundle/attestation/attestation-badge.json" "$tmp_dir/package-release-consume-assets/"
 "$package_root/bin/codex-maintainer" release-consume verify \
   --dir "$tmp_dir/package-release-consume-assets" \
   --out "$tmp_dir/package-release-consume" \
   --version "$version" >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/package-release-consume/consumer-report.json"
 grep -q '"replay_blocked": 0' "$tmp_dir/package-release-consume/consumer-report.json"
+grep -q '"replay_report": "pass"' "$tmp_dir/package-release-consume/consumer-report.json"
+grep -q '"attestation_badge": "pass"' "$tmp_dir/package-release-consume/consumer-report.json"
 "$package_root/tests/release_proof_consumption_test.sh" >/dev/null
 "$package_root/bin/codex-maintainer" self-audit \
   --out "$tmp_dir/package-self-audit" >/dev/null

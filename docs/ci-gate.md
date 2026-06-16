@@ -37,7 +37,7 @@ permissions:
   checks: write
 
 - name: Run Codex maintainer CI gate
-  uses: jlekerli-source/ringly-codex-workflows/actions/ci-gate@v3.10.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/ci-gate@v3.11.0
   with:
     run: run.md
     diff: change.patch
