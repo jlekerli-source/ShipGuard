@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.31.0 - Transcript Verification
+
+- Added `codex-maintainer transcript verify` for checking redacted transcript Markdown and optional redaction reports before public sharing.
+- Added verification JSON, Markdown, and badge outputs with blocking behavior for remaining emails, token-like values, secret assignments, local paths, and long hex strings.
+- Extended CI, self-audit, next-goal, source validation, and extracted-package proof coverage for transcript verification.
+
 ## v3.30.0 - Maintainer Transcript Redaction
 
 - Added `codex-maintainer transcript redact` for redacting maintainer transcripts into public-safe Markdown plus JSON leak-audit reports.

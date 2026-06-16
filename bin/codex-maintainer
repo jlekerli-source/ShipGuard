@@ -25,6 +25,7 @@ Usage:
   codex-maintainer arena verify --fixture <fixture-dir> --manifest <manifest.json>
   codex-maintainer arena compare --left <results.json> --right <results.json> --out <dir>
   codex-maintainer transcript redact --in <transcript.md> --out <redacted.md> [--report <report.json>] [--private-term <text> ...]
+  codex-maintainer transcript verify --in <redacted.md> --out <dir> [--report <redaction-report.json>]
   codex-maintainer review-comment --report <report.json> --out <comment.md> [--mode warn|fail]
   codex-maintainer ci-gate --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--policy <policy.conf>] [--out <dir>] [--mode warn|fail]
   codex-maintainer ci-summary --gate <gate.json> --out <summary.md>
@@ -58,7 +59,7 @@ Commands:
   score       Score a Codex run markdown file using SCORECARD.md categories.
   autopsy     Generate Markdown and JSON evidence reports for an AI coding run.
   arena       Run, import, sign, verify, or compare multiple autopsy fixtures.
-  transcript  Redact maintainer transcripts and write a leak-audit report.
+  transcript  Redact or verify maintainer transcripts before public sharing.
   review-comment
               Generate a PR-ready review comment and badge from an autopsy report.
   ci-gate     Generate autopsy, review, badge, gate JSON, and optional CI failure.
@@ -307,9 +308,16 @@ cmd_arena() {
 
 cmd_transcript() {
   local subcommand="${1:-}"
-  [[ "$subcommand" == "redact" ]] || fail "transcript requires subcommand: redact"
+  [[ "$subcommand" == "redact" || "$subcommand" == "verify" ]] || fail "transcript requires subcommand: redact or verify"
   shift || true
-  "$tool_root/scripts/transcript_redact.sh" "$@"
+  case "$subcommand" in
+    redact)
+      "$tool_root/scripts/transcript_redact.sh" "$@"
+      ;;
+    verify)
+      "$tool_root/scripts/transcript_verify.sh" "$@"
+      ;;
+  esac
 }
 
 cmd_review_comment() {

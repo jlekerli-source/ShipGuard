@@ -70,6 +70,9 @@ jobs:
       - name: Run transcript redaction tests
         run: ./tests/transcript_redaction_test.sh
 
+      - name: Run transcript verify tests
+        run: ./tests/transcript_verify_test.sh
+
       - name: Run leaderboard tests
         run: ./tests/leaderboard_test.sh
 

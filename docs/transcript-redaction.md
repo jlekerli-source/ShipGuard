@@ -31,3 +31,22 @@ The JSON report uses schema version `1.0` and includes:
 - `remaining_risks`: any remaining risky pattern counts
 
 This is a publication guardrail, not legal review. It is designed to catch obvious leaks before a maintainer adds a transcript to public docs, Arena fixtures, or benchmark writeups.
+
+## Verify
+
+Verify a redacted transcript before publishing it:
+
+```bash
+./bin/codex-maintainer transcript verify \
+  --in /tmp/redacted-transcript.md \
+  --report /tmp/redaction-report.json \
+  --out /tmp/transcript-verify
+```
+
+The command writes:
+
+- `transcript-verify.json`
+- `transcript-verify.md`
+- `badge.json`
+
+It exits non-zero with `status: blocked` when the transcript still contains obvious risky patterns or when the optional redaction report is not passing.

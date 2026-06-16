@@ -15,7 +15,7 @@
 | Compare fixture runs in CI | `actions/arena-compare` | Uploaded benchmark comparison artifact |
 | Import fixture packs | `arena import` | Validated local fixture pack |
 | Sign fixture packs | `arena sign`, `arena verify` | SHA-256 pack metadata |
-| Redact maintainer transcripts | `transcript redact` | Redacted Markdown and leak-audit JSON |
+| Redact or verify maintainer transcripts | `transcript redact`, `transcript verify` | Redacted Markdown, leak-audit JSON, verification Markdown, and badge JSON |
 | Generate PR comment | `review-comment` | Comment Markdown and badge JSON |
 | Enforce in CI | `ci-gate` | Gate bundle and optional failure |
 | Summarize CI gate | `ci-summary` | Step-summary Markdown |

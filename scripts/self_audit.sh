@@ -62,6 +62,7 @@ commands=(
   "arena sign --help"
   "arena verify --help"
   "transcript redact --help"
+  "transcript verify --help"
   "review-comment --help"
   "ci-gate --help"
   "ci-summary --help"
@@ -163,6 +164,7 @@ required_artifacts=(
   "scripts/release_manifest.sh"
   "scripts/release_replay.sh"
   "scripts/transcript_redact.sh"
+  "scripts/transcript_verify.sh"
 )
 
 artifact_count=0
