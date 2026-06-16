@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "status": "pass",
+  "source_name": "transcripts",
+  "require_report": true,
+  "case_count": 4,
+  "passed_count": 4,
+  "blocked_count": 0,
+  "cases": [
+    {
+      "id": "ios-notification-triage",
+      "status": "pass",
+      "remaining_risk_count": 0,
+      "redaction_report_status": "pass",
+      "redaction_report_present": true,
+      "redaction_report": "redaction-report.json",
+      "verification": "runs/ios-notification-triage/transcript-verify.json"
+    },
+    {
+      "id": "release-evidence-consumption",
+      "status": "pass",
+      "remaining_risk_count": 0,
+      "redaction_report_status": "pass",
+      "redaction_report_present": true,
+      "redaction_report": "redaction-report.json",
+      "verification": "runs/release-evidence-consumption/transcript-verify.json"
+    },
+    {
+      "id": "release-proof-review",
+      "status": "pass",
+      "remaining_risk_count": 0,
+      "redaction_report_status": "pass",
+      "redaction_report_present": true,
+      "redaction_report": "redaction-report.json",
+      "verification": "runs/release-proof-review/transcript-verify.json"
+    },
+    {
+      "id": "web-regression-review",
+      "status": "pass",
+      "remaining_risk_count": 0,
+      "redaction_report_status": "pass",
+      "redaction_report_present": true,
+      "redaction_report": "redaction-report.json",
+      "verification": "runs/web-regression-review/transcript-verify.json"
+    }
+  ]
+}

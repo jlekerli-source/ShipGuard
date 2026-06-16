@@ -28,7 +28,7 @@ grep -q 'exit_code="$corpus_exit"' "$action"
 grep -q 'actions/upload-artifact@v4' "$action"
 grep -q 'codex-maintainer-transcript-corpus' "$action"
 
-grep -q 'jlekerli-source/ringly-codex-workflows/actions/transcript-corpus@v3.35.0' "$workflow"
+grep -q 'jlekerli-source/ringly-codex-workflows/actions/transcript-corpus@v3.36.0' "$workflow"
 grep -q 'contents: read' "$workflow"
 grep -q 'require-report: true' "$workflow"
 grep -q 'mode: fail' "$workflow"
@@ -44,8 +44,9 @@ fi
   --require-report true >/dev/null
 
 grep -q '"status": "pass"' "$tmp_dir/corpus/corpus.json"
-grep -q '"case_count": 3' "$tmp_dir/corpus/corpus.json"
-grep -q '"message": "pass 3/3"' "$tmp_dir/corpus/badge.json"
+grep -q '"case_count": 4' "$tmp_dir/corpus/corpus.json"
+grep -q '"message": "pass 4/4"' "$tmp_dir/corpus/badge.json"
 grep -q '| release-proof-review | pass | 0 | pass | runs/release-proof-review/transcript-verify.json |' "$tmp_dir/corpus/index.md"
+grep -q '| release-evidence-consumption | pass | 0 | pass | runs/release-evidence-consumption/transcript-verify.json |' "$tmp_dir/corpus/index.md"
 
 echo "transcript corpus action tests passed"

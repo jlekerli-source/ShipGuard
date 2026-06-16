@@ -33,4 +33,6 @@ The aggregate status is `blocked` if any transcript still contains obvious risky
 
 For GitHub Actions, use `actions/transcript-corpus` to run the same corpus gate and upload the generated reports as an artifact.
 
+The checked public fixture pack includes four redacted maintainer-style cases covering notification triage, web regression review, release proof review, and release evidence consumption.
+
 This is not a claim that the transcripts are real adoption data. It is a reproducible publication gate for public-safe maintainer examples.

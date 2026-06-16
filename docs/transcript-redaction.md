@@ -65,3 +65,5 @@ Build a checked corpus of redacted transcripts:
 ```
 
 See `transcript-corpus.md` for the fixture layout and aggregate outputs.
+
+Checked demo corpus output is generated under `examples/demo-reports/transcripts/` from public fixtures only.

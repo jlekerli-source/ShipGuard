@@ -45,5 +45,8 @@ grep -q '"schema_version": "1.0"' "$tmp_dir/demo/leaderboard.json"
 test -f examples/demo-reports/README.md
 test -f examples/demo-reports/arena/results.json
 test -f examples/demo-reports/leaderboard.json
+test -f examples/demo-reports/transcripts/corpus.json
+test -f examples/demo-reports/transcripts/index.md
+grep -q '"case_count": 4' examples/demo-reports/transcripts/corpus.json
 
 echo "leaderboard tests passed"

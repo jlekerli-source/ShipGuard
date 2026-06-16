@@ -6,4 +6,4 @@ These reports are generated from the public fixture pack with:
 ./scripts/build_demo_reports.sh
 ```
 
-The demo output is intentionally small and reproducible. It is proof of format and workflow behavior, not a claim about real-world adoption.
+The generated output includes Arena results, leaderboard JSON, and transcript corpus verification reports. It is proof of format and workflow behavior, not a claim about real-world adoption.

@@ -1,0 +1,44 @@
+{
+   "checks" : [
+      {
+         "detail" : "no match",
+         "name" : "email",
+         "status" : "pass"
+      },
+      {
+         "detail" : "no match",
+         "name" : "secret token",
+         "status" : "pass"
+      },
+      {
+         "detail" : "no match",
+         "name" : "secret assignment",
+         "status" : "pass"
+      },
+      {
+         "detail" : "no match",
+         "name" : "hex token",
+         "status" : "pass"
+      },
+      {
+         "detail" : "no match",
+         "name" : "unix home path",
+         "status" : "pass"
+      },
+      {
+         "detail" : "no match",
+         "name" : "windows user path",
+         "status" : "pass"
+      },
+      {
+         "detail" : "redaction report is passing",
+         "name" : "redaction report",
+         "status" : "pass"
+      }
+   ],
+   "input_name" : "transcript.md",
+   "redaction_report_status" : "pass",
+   "remaining_risk_count" : 0,
+   "schema_version" : "1.0",
+   "status" : "pass"
+}

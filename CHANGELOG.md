@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.36.0 - Transcript Corpus Demo Proof
+
+- Added a `release-evidence-consumption` redacted transcript fixture with a checked redaction report.
+- Extended demo report generation to publish transcript corpus JSON, Markdown, badge, and per-case verification outputs.
+- Updated corpus, package, source validation, self-audit, docs, and action tests for the four-case public transcript fixture pack.
+
 ## v3.35.0 - Docs Release Proof Arena Fixture
 
 - Added a `docs-release-proof-drift` Maintainer Arena case for stale release proof documentation and workflow references.

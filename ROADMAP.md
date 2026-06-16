@@ -12,7 +12,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep Maintainer Arena comparison action output aligned with the CLI compare command.
 - Keep transcript redaction and verification output stable enough for safe public examples and benchmark notes.
 - Keep transcript verification action output aligned with the CLI verifier.
-- Keep transcript corpus indexing strict enough for public-safe maintainer example collections.
+- Keep transcript corpus indexing and checked demo output strict enough for public-safe maintainer example collections.
 - Keep transcript corpus action output aligned with the CLI corpus verifier.
 - Keep frontend, backend, CLI, and docs release-proof arena cases in the public benchmark fixture pack.
 - Keep PR review-comment output stable for warn/fail adoption.
@@ -59,7 +59,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 
 ## Next
 
-- Add more anonymized transcript cases when they can be fully redacted and verified through the corpus gate.
+- Add more anonymized transcript cases only when they can be fully redacted and verified through the corpus gate.
 - Expand Maintainer Arena with more task types and optional identity signing when the fixture contract needs it.
 - Add more specialized profiles only when they have clear maintainer workflows.
 - Consider npm or Homebrew distribution after the release tarball path stays stable.
