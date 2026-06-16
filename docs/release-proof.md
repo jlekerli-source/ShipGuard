@@ -5,7 +5,7 @@
 ```bash
 ./bin/codex-maintainer release-proof build \
   --out /tmp/codex-maintainer-release-proof-bundle \
-  --release-url https://github.com/owner/repo/releases/tag/v3.21.0 \
+  --release-url https://github.com/owner/repo/releases/tag/v3.22.0 \
   --issue-url https://github.com/owner/repo/issues/123
 ```
 

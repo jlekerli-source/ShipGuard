@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.22.0 - Release Evidence Verify Action Download Mode
+
+- Added optional artifact download mode to `actions/release-evidence-verify` with `download-artifact` and `source-artifact-name` inputs.
+- Updated the release evidence consume workflow so downstream evidence verification can download and verify the producer artifact in one action step.
+- Updated docs and package checks for the one-step evidence artifact verification path.
+
 ## v3.21.0 - Release Evidence Action Consumption Proof
 
 - Added `codex-maintainer release-evidence verify` to consume downloaded release evidence artifacts and verify their static evidence, copied source reports, optional index, and optional bundle metadata.

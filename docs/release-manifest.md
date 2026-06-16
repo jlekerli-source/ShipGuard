@@ -9,7 +9,7 @@ tarball="$(./scripts/package_release.sh)"
   --tarball "$tarball" \
   --out /tmp/codex-maintainer-release-proof \
   --ci-run-url "https://github.com/owner/repo/actions/runs/123" \
-  --release-url "https://github.com/owner/repo/releases/tag/v3.21.0" \
+  --release-url "https://github.com/owner/repo/releases/tag/v3.22.0" \
   --issue-url "https://github.com/owner/repo/issues/37"
 ```
 

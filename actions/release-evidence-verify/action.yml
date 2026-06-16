@@ -18,6 +18,14 @@ inputs:
     description: Use true to require evidence-index.json, false to skip the requirement, or auto to accept either.
     required: false
     default: auto
+  download-artifact:
+    description: Set true to download the release evidence artifact before verification.
+    required: false
+    default: "false"
+  source-artifact-name:
+    description: Evidence artifact name to download when download-artifact is true.
+    required: false
+    default: codex-maintainer-release-evidence
   upload-artifact:
     description: Set false to skip verification artifact upload.
     required: false
@@ -48,6 +56,13 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Download release evidence artifact
+      if: ${{ inputs.download-artifact == 'true' }}
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.source-artifact-name }}
+        path: ${{ inputs.dir }}
+
     - name: Verify release evidence artifact
       id: verify-evidence
       shell: bash
@@ -59,6 +74,7 @@ runs:
         out="${{ inputs.out }}"
         require_diff="${{ inputs.require-diff }}"
         require_index="${{ inputs.require-index }}"
+        download_artifact="${{ inputs.download-artifact }}"
         mode="${{ inputs.mode }}"
 
         if [[ "$mode" != "fail" && "$mode" != "warn" ]]; then
@@ -71,6 +87,10 @@ runs:
         fi
         if [[ "$require_index" != "auto" && "$require_index" != "true" && "$require_index" != "false" ]]; then
           echo "::error::require-index must be auto, true, or false"
+          exit 2
+        fi
+        if [[ "$download_artifact" != "true" && "$download_artifact" != "false" ]]; then
+          echo "::error::download-artifact must be true or false"
           exit 2
         fi
 

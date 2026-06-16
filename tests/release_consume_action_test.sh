@@ -25,7 +25,7 @@ grep -q 'actions/upload-artifact@v4' "$action"
 grep -q 'status="pass"' "$action"
 grep -q 'mode must be fail or warn' "$action"
 
-grep -q 'jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.21.0' "$workflow"
+grep -q 'jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.22.0' "$workflow"
 grep -q 'release-tag:' "$workflow"
 grep -q 'contents: read' "$workflow"
 grep -q 'mode: fail' "$workflow"

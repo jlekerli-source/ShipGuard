@@ -33,22 +33,20 @@ Checks include:
 
 Use `--require-diff true` when your workflow must include comparison against a previous release. Use `--require-index true` when your workflow must include a browsable evidence history. The default `auto` mode verifies those files when present without requiring them.
 
-In GitHub Actions, use `actions/download-artifact` and then `actions/release-evidence-verify`:
+In GitHub Actions, let `actions/release-evidence-verify` download and verify the artifact in one step:
 
 ```yaml
-- name: Download release evidence artifact
-  uses: actions/download-artifact@v4
-  with:
-    name: codex-maintainer-release-evidence
-    path: artifacts/codex-maintainer-release-evidence
-
 - name: Verify release evidence artifact
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.21.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.22.0
   with:
+    download-artifact: true
+    source-artifact-name: codex-maintainer-release-evidence
     dir: artifacts/codex-maintainer-release-evidence
     require-diff: true
     require-index: true
     mode: fail
 ```
+
+If a previous step already downloaded the artifact, leave `download-artifact` as `false` and point `dir` at the downloaded directory.
 
 See `release-evidence-action.md` for producing the artifact and `../examples/workflows/release-evidence-consume.yml` for the full two-job workflow.

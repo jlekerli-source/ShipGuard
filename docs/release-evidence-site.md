@@ -6,10 +6,10 @@ Use it after running `release-consume verify`, and optionally after running `rel
 
 ```bash
 ./bin/codex-maintainer release-evidence site \
-  --consume /tmp/codex-maintainer-v3.21.0/consumer-proof \
+  --consume /tmp/codex-maintainer-v3.22.0/consumer-proof \
   --diff /tmp/codex-maintainer-release-diff \
   --out /tmp/codex-maintainer-release-site \
-  --title "Codex Maintainer v3.21.0 Evidence"
+  --title "Codex Maintainer v3.22.0 Evidence"
 ```
 
 Outputs:
@@ -29,4 +29,4 @@ Use `codex-maintainer release-evidence index` when you want to collect multiple 
 
 Use `codex-maintainer release-evidence bundle` when you want to start from downloaded release assets and produce consumer proof, optional diff proof, the site, and an index in one command. See `release-evidence-bundle.md`.
 
-For GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.21.0` after `actions/release-consume` and optional `actions/release-diff`. See `release-evidence-action.md`.
+For GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.22.0` after `actions/release-consume` and optional `actions/release-diff`. See `release-evidence-action.md`.

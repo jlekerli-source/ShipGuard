@@ -10,9 +10,9 @@ Example workflow step:
 
 ```yaml
 - name: Build release proof
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.21.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.22.0
   with:
-    release-url: https://github.com/owner/repo/releases/tag/v3.21.0
+    release-url: https://github.com/owner/repo/releases/tag/v3.22.0
     issue-url: https://github.com/owner/repo/issues/123
     out: artifacts/codex-maintainer-release-proof
 ```
