@@ -17,6 +17,7 @@
 | Sign fixture packs | `arena sign`, `arena verify` | SHA-256 pack metadata |
 | Redact, verify, or index maintainer transcripts | `transcript redact`, `transcript verify`, `transcript corpus` | Redacted Markdown, leak-audit JSON, verification Markdown, corpus index, and badge JSON |
 | Verify transcripts in CI | `actions/transcript-verify` | Uploaded transcript verification artifact |
+| Verify transcript corpora in CI | `actions/transcript-corpus` | Uploaded corpus index, badge, and per-case verification artifact |
 | Generate PR comment | `review-comment` | Comment Markdown and badge JSON |
 | Enforce in CI | `ci-gate` | Gate bundle and optional failure |
 | Summarize CI gate | `ci-summary` | Step-summary Markdown |

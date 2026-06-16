@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.34.0 - Transcript Corpus GitHub Action
+
+- Added `actions/transcript-corpus` to run `codex-maintainer transcript corpus` in GitHub Actions and upload corpus artifacts.
+- Added a copyable transcript corpus workflow plus action docs for warn/fail publication checks.
+- Extended CI, source validation, self-audit, next-goal, package proof, and docs coverage for transcript corpus action output.
+
 ## v3.33.0 - Transcript Corpus Verification
 
 - Added `codex-maintainer transcript corpus` to verify and index public-safe redacted transcript fixtures.

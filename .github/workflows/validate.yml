@@ -79,6 +79,9 @@ jobs:
       - name: Run transcript corpus tests
         run: ./tests/transcript_corpus_test.sh
 
+      - name: Run transcript corpus action tests
+        run: ./tests/transcript_corpus_action_test.sh
+
       - name: Run leaderboard tests
         run: ./tests/leaderboard_test.sh
 

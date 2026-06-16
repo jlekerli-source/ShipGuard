@@ -1,0 +1,28 @@
+name: Verify maintainer transcript corpus
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Transcript corpus fixture directory
+        required: true
+        default: fixtures/transcripts
+
+permissions:
+  contents: read
+
+jobs:
+  transcript-corpus:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Verify transcript corpus
+        uses: jlekerli-source/ringly-codex-workflows/actions/transcript-corpus@v3.34.0
+        with:
+          source: ${{ inputs.source || 'fixtures/transcripts' }}
+          require-report: true
+          mode: fail
+          artifact-name: codex-maintainer-transcript-corpus

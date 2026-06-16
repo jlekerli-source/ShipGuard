@@ -10,7 +10,7 @@ on:
       release-tag:
         description: Release tag to verify and export.
         required: true
-        default: v3.33.0
+        default: v3.34.0
 
 permissions:
   contents: read
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build release evidence bundle
-        uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.33.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.34.0
         with:
           run: bundle
           repo: jlekerli-source/ringly-codex-workflows

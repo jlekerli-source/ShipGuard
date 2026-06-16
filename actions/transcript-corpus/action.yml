@@ -1,0 +1,119 @@
+name: Verify Codex maintainer transcript corpus
+description: Verify a corpus of redacted maintainer transcripts, publish corpus reports, and optionally fail on unsafe content.
+
+inputs:
+  source:
+    description: Directory containing transcript corpus cases.
+    required: true
+  out:
+    description: Directory for transcript corpus output.
+    required: false
+    default: artifacts/codex-maintainer-transcript-corpus
+  require-report:
+    description: Set true to require every corpus case to include redaction-report.json.
+    required: false
+    default: "false"
+  upload-artifact:
+    description: Set false to skip transcript corpus artifact upload.
+    required: false
+    default: "true"
+  artifact-name:
+    description: Uploaded transcript corpus artifact name.
+    required: false
+    default: codex-maintainer-transcript-corpus
+  mode:
+    description: Use fail to fail the job on blocked corpus verification, or warn to emit warnings only.
+    required: false
+    default: fail
+
+outputs:
+  status:
+    description: pass, blocked, or failed.
+    value: ${{ steps.transcript-corpus.outputs.status }}
+  corpus-json:
+    description: Path to corpus.json.
+    value: ${{ steps.transcript-corpus.outputs.corpus-json }}
+  index-md:
+    description: Path to index.md.
+    value: ${{ steps.transcript-corpus.outputs.index-md }}
+  badge:
+    description: Path to Shields-compatible badge JSON.
+    value: ${{ steps.transcript-corpus.outputs.badge }}
+
+runs:
+  using: composite
+  steps:
+    - name: Verify transcript corpus
+      id: transcript-corpus
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        root="${{ github.action_path }}/../.."
+        source="${{ inputs.source }}"
+        out="${{ inputs.out }}"
+        require_report="${{ inputs.require-report }}"
+        mode="${{ inputs.mode }}"
+
+        if [[ -z "$source" ]]; then
+          echo "::error::source is required"
+          exit 2
+        fi
+
+        if [[ "$require_report" != "true" && "$require_report" != "false" ]]; then
+          echo "::error::require-report must be true or false"
+          exit 2
+        fi
+
+        if [[ "$mode" != "fail" && "$mode" != "warn" ]]; then
+          echo "::error::mode must be fail or warn"
+          exit 2
+        fi
+
+        corpus_exit=0
+        set +e
+        "$root/bin/codex-maintainer" transcript corpus \
+          --source "$source" \
+          --out "$out" \
+          --require-report "$require_report"
+        corpus_exit="$?"
+        set -e
+
+        status="failed"
+        if [[ -f "$out/corpus.json" ]]; then
+          parsed_status="$(perl -0ne 'print $1 if /"status"\s*:\s*"([^"]+)"/' "$out/corpus.json")"
+          if [[ -n "$parsed_status" ]]; then
+            status="$parsed_status"
+          fi
+        fi
+
+        if [[ "$corpus_exit" -ne 0 && "$status" == "pass" ]]; then
+          status="failed"
+        fi
+
+        {
+          echo "status=$status"
+          echo "corpus-json=$out/corpus.json"
+          echo "index-md=$out/index.md"
+          echo "badge=$out/badge.json"
+        } >> "$GITHUB_OUTPUT"
+
+        if [[ "$status" == "blocked" || "$status" == "failed" ]]; then
+          message="transcript corpus status is $status"
+          if [[ "$mode" == "warn" ]]; then
+            echo "::warning::$message"
+          else
+            echo "::error::$message"
+            exit_code="$corpus_exit"
+            [[ "$exit_code" -eq 0 ]] && exit_code=1
+            exit "$exit_code"
+          fi
+        fi
+
+    - name: Upload transcript corpus
+      if: ${{ inputs.upload-artifact == 'true' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.out }}
+        if-no-files-found: error

@@ -13,6 +13,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep transcript redaction and verification output stable enough for safe public examples and benchmark notes.
 - Keep transcript verification action output aligned with the CLI verifier.
 - Keep transcript corpus indexing strict enough for public-safe maintainer example collections.
+- Keep transcript corpus action output aligned with the CLI corpus verifier.
 - Keep frontend, backend, and CLI arena cases in the public benchmark fixture pack.
 - Keep PR review-comment output stable for warn/fail adoption.
 - Keep leaderboard schema `1.0` stable for public benchmark consumers.

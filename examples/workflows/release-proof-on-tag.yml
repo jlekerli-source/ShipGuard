@@ -17,7 +17,7 @@ jobs:
 
       - name: Build Codex maintainer release proof
         id: release-proof
-        uses: jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.33.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.34.0
         with:
           release-url: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
           out: artifacts/codex-maintainer-release-proof

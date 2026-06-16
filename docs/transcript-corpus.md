@@ -31,4 +31,6 @@ The command writes:
 
 The aggregate status is `blocked` if any transcript still contains obvious risky content, if any verification report fails, or if `--require-report true` is set and a case is missing `redaction-report.json`.
 
+For GitHub Actions, use `actions/transcript-corpus` to run the same corpus gate and upload the generated reports as an artifact.
+
 This is not a claim that the transcripts are real adoption data. It is a reproducible publication gate for public-safe maintainer examples.

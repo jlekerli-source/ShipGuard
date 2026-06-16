@@ -5,19 +5,19 @@
 Use it after downloading release assets from GitHub:
 
 ```bash
-mkdir -p /tmp/codex-maintainer-v3.33.0
-gh release download v3.33.0 \
+mkdir -p /tmp/codex-maintainer-v3.34.0
+gh release download v3.34.0 \
   --repo jlekerli-source/ringly-codex-workflows \
-  --pattern 'codex-maintainer-v3.33.0.tar.gz' \
+  --pattern 'codex-maintainer-v3.34.0.tar.gz' \
   --pattern 'release-manifest.json' \
   --pattern 'release-index.json' \
   --pattern 'proof-ledger.md' \
-  --dir /tmp/codex-maintainer-v3.33.0
+  --dir /tmp/codex-maintainer-v3.34.0
 
 ./bin/codex-maintainer release-consume verify \
-  --dir /tmp/codex-maintainer-v3.33.0 \
-  --out /tmp/codex-maintainer-v3.33.0/consumer-proof \
-  --version 3.33.0
+  --dir /tmp/codex-maintainer-v3.34.0 \
+  --out /tmp/codex-maintainer-v3.34.0/consumer-proof \
+  --version 3.34.0
 ```
 
 Inputs expected in `--dir`:

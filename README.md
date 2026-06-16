@@ -17,8 +17,8 @@ The goal is simple: make AI-assisted coding repeatable, reviewable, and useful f
 Install from a release tarball:
 
 ```bash
-tar -xzf codex-maintainer-v3.33.0.tar.gz
-cd codex-maintainer-v3.33.0
+tar -xzf codex-maintainer-v3.34.0.tar.gz
+cd codex-maintainer-v3.34.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/codex-maintainer" version
 ```
@@ -60,6 +60,7 @@ Read the guided setup first:
 - `docs/release-replay.md`: replay verification for downloaded release assets.
 - `docs/sarif.md`: convert Autopsy findings into SARIF for CI consumers.
 - `docs/template-profiles.md`: iOS, web, backend, and CLI starter profile usage.
+- `docs/transcript-corpus-action.md`: GitHub Action for transcript corpus verification artifacts.
 - `docs/transcript-redaction.md`: redact and verify maintainer transcripts before public sharing.
 - `docs/transcript-corpus.md`: verify and index a public-safe transcript corpus.
 - `docs/transcript-verify-action.md`: GitHub Action for transcript verification artifacts.
@@ -99,11 +100,12 @@ For public proof without private app code, read `examples/demo-walkthrough.md`.
 For agent-claim auditing, run `./bin/codex-maintainer autopsy` against `fixtures/autopsy/`.
 For aggregate benchmark proof, run `./bin/codex-maintainer arena run --fixture fixtures/arena --out /tmp/arena`.
 For benchmark regression proof, run `./bin/codex-maintainer arena compare --left /tmp/arena-old/results.json --right /tmp/arena/results.json --out /tmp/arena-compare`.
-To compare Arena results in GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/arena-compare@v3.33.0`.
+To compare Arena results in GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/arena-compare@v3.34.0`.
 To publish a maintainer transcript safely, run `./bin/codex-maintainer transcript redact --in raw-transcript.md --out /tmp/redacted-transcript.md --report /tmp/redaction-report.json --private-term "InternalProjectName"`.
 To verify a redacted transcript before publishing, run `./bin/codex-maintainer transcript verify --in /tmp/redacted-transcript.md --report /tmp/redaction-report.json --out /tmp/transcript-verify`.
-To verify a redacted transcript in GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/transcript-verify@v3.33.0`.
+To verify a redacted transcript in GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/transcript-verify@v3.34.0`.
 To publish a checked transcript corpus, run `./bin/codex-maintainer transcript corpus --source fixtures/transcripts --out /tmp/transcript-corpus --require-report true`.
+To verify a checked transcript corpus in GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/transcript-corpus@v3.34.0`.
 For external benchmark packs, run `./bin/codex-maintainer arena import --source external-pack --out /tmp/imported-arena`.
 For fixture-pack integrity metadata, run `./bin/codex-maintainer arena sign --fixture /tmp/imported-arena --out /tmp/imported-arena/PACK.json`.
 For toolkit release readiness, run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-audit`.
@@ -112,24 +114,24 @@ For CI-consumable findings, run `./bin/codex-maintainer sarif --report /tmp/auto
 For workflow-run summaries, run `./bin/codex-maintainer ci-summary --gate /tmp/codex-gate/gate.json --out /tmp/codex-gate/summary.md`.
 For Check Run payloads, run `./bin/codex-maintainer check-run --gate /tmp/codex-gate/gate.json --head-sha "$GITHUB_SHA" --out /tmp/codex-gate/check-run/payload.json`.
 To post a Check Run after reviewing the payload, run `./bin/codex-maintainer check-run post --payload /tmp/codex-gate/check-run/payload.json --repo "$GITHUB_REPOSITORY" --out /tmp/codex-gate/check-run/response.json`.
-For release proof files, run `./bin/codex-maintainer release-manifest --tarball dist/codex-maintainer-v3.33.0.tar.gz --out /tmp/release-proof`.
-To verify release proof files, run `./bin/codex-maintainer release-manifest verify --manifest /tmp/release-proof/release-manifest.json --tarball dist/codex-maintainer-v3.33.0.tar.gz`.
+For release proof files, run `./bin/codex-maintainer release-manifest --tarball dist/codex-maintainer-v3.34.0.tar.gz --out /tmp/release-proof`.
+To verify release proof files, run `./bin/codex-maintainer release-manifest verify --manifest /tmp/release-proof/release-manifest.json --tarball dist/codex-maintainer-v3.34.0.tar.gz`.
 To catalog release proof files, run `./bin/codex-maintainer release-index build --manifest /tmp/release-proof/release-manifest.json --out /tmp/release-index`.
-To replay release proof from downloaded assets, run `./bin/codex-maintainer release-replay verify --manifest /tmp/release-proof/release-manifest.json --tarball dist/codex-maintainer-v3.33.0.tar.gz --index /tmp/release-index/release-index.json --ledger /tmp/release-proof/proof-ledger.md --out /tmp/release-replay`.
+To replay release proof from downloaded assets, run `./bin/codex-maintainer release-replay verify --manifest /tmp/release-proof/release-manifest.json --tarball dist/codex-maintainer-v3.34.0.tar.gz --index /tmp/release-index/release-index.json --ledger /tmp/release-proof/proof-ledger.md --out /tmp/release-replay`.
 To generate a compact release attestation, run `./bin/codex-maintainer release-attest build --manifest /tmp/release-proof/release-manifest.json --replay /tmp/release-replay/replay-report.json --out /tmp/release-attestation`.
-To generate the full proof bundle in one command, run `./bin/codex-maintainer release-proof build --out /tmp/release-proof-bundle --release-url https://github.com/owner/repo/releases/tag/v3.33.0`.
-To consume a published proof bundle, run `./bin/codex-maintainer release-consume verify --dir /tmp/codex-maintainer-v3.33.0 --out /tmp/codex-maintainer-v3.33.0/consumer-proof --version 3.33.0`.
-To verify a published proof bundle in GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.33.0`.
-To compare two release proof bundles, run `./bin/codex-maintainer release-diff compare --left /tmp/codex-maintainer-old --right /tmp/codex-maintainer-v3.33.0 --out /tmp/release-diff`.
-To compare two published proof bundles in GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.33.0`.
-To export a static evidence page, run `./bin/codex-maintainer release-evidence site --consume /tmp/codex-maintainer-v3.33.0/consumer-proof --diff /tmp/release-diff --out /tmp/release-site`.
+To generate the full proof bundle in one command, run `./bin/codex-maintainer release-proof build --out /tmp/release-proof-bundle --release-url https://github.com/owner/repo/releases/tag/v3.34.0`.
+To consume a published proof bundle, run `./bin/codex-maintainer release-consume verify --dir /tmp/codex-maintainer-v3.34.0 --out /tmp/codex-maintainer-v3.34.0/consumer-proof --version 3.34.0`.
+To verify a published proof bundle in GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/release-consume@v3.34.0`.
+To compare two release proof bundles, run `./bin/codex-maintainer release-diff compare --left /tmp/codex-maintainer-old --right /tmp/codex-maintainer-v3.34.0 --out /tmp/release-diff`.
+To compare two published proof bundles in GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.34.0`.
+To export a static evidence page, run `./bin/codex-maintainer release-evidence site --consume /tmp/codex-maintainer-v3.34.0/consumer-proof --diff /tmp/release-diff --out /tmp/release-site`.
 To build a static evidence history, run `./bin/codex-maintainer release-evidence index --site /tmp/release-site --out /tmp/release-history`.
-To build the local release evidence proof path in one command, run `./bin/codex-maintainer release-evidence bundle --assets /tmp/codex-maintainer-v3.33.0 --left /tmp/codex-maintainer-old --out /tmp/release-evidence-bundle --version 3.33.0`.
-To export release evidence in GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.33.0`.
+To build the local release evidence proof path in one command, run `./bin/codex-maintainer release-evidence bundle --assets /tmp/codex-maintainer-v3.34.0 --left /tmp/codex-maintainer-old --out /tmp/release-evidence-bundle --version 3.34.0`.
+To export release evidence in GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/release-evidence@v3.34.0`.
 To consume a downloaded release evidence artifact, run `./bin/codex-maintainer release-evidence verify --dir /tmp/codex-maintainer-release-evidence --out /tmp/codex-maintainer-release-evidence-verify --require-diff true --require-index true`.
 To audit the checked-in broken evidence fixtures, run `./bin/codex-maintainer release-evidence negative-index --fixture fixtures/release-evidence/negative --out /tmp/codex-maintainer-negative-evidence`.
-To verify release evidence artifacts in GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.33.0`.
-To publish the negative fixture index in GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/release-evidence-negative-index@v3.33.0`.
+To verify release evidence artifacts in GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.34.0`.
+To publish the negative fixture index in GitHub Actions, use `jlekerli-source/ringly-codex-workflows/actions/release-evidence-negative-index@v3.34.0`.
 
 ## What Is Inside
 
@@ -148,6 +150,7 @@ To publish the negative fixture index in GitHub Actions, use `jlekerli-source/ri
 - `actions/release-diff/`: a reusable GitHub composite action for release proof diff audits.
 - `actions/release-evidence/`: a reusable GitHub composite action for static release evidence exports.
 - `actions/release-evidence-verify/`: a reusable GitHub composite action for downloaded release evidence artifact verification.
+- `actions/transcript-corpus/`: a reusable GitHub composite action for transcript corpus verification artifacts.
 - `actions/transcript-verify/`: a reusable GitHub composite action for transcript verification artifacts.
 - `docs/cli.md`: command reference for the CLI.
 - `docs/arena.md`: guide for running the public maintainer fixture arena.

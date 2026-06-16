@@ -16,8 +16,8 @@ From a cloned repository:
 From a release tarball:
 
 ```bash
-tar -xzf codex-maintainer-v3.33.0.tar.gz
-cd codex-maintainer-v3.33.0
+tar -xzf codex-maintainer-v3.34.0.tar.gz
+cd codex-maintainer-v3.34.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/codex-maintainer" init ios ../my-ios-app
 "$HOME/.local/bin/codex-maintainer" init web ../my-web-app
