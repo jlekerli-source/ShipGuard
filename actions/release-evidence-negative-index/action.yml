@@ -1,0 +1,105 @@
+name: Audit Codex maintainer release evidence negative fixtures
+description: Run the bundled release evidence negative fixtures and upload an index of expected blocked checks.
+
+inputs:
+  fixture:
+    description: Negative fixture directory, or bundled to use this action's checked-in fixtures.
+    required: false
+    default: bundled
+  out:
+    description: Directory for negative fixture index reports.
+    required: false
+    default: artifacts/codex-maintainer-release-evidence-negative-index
+  title:
+    description: Title for the generated negative fixture index.
+    required: false
+    default: Codex Maintainer Release Evidence Negative Fixture Index
+  upload-artifact:
+    description: Set false to skip negative fixture index artifact upload.
+    required: false
+    default: "true"
+  artifact-name:
+    description: Uploaded negative fixture index artifact name.
+    required: false
+    default: codex-maintainer-release-evidence-negative-index
+  mode:
+    description: Use fail to fail the job when expected blocked checks are not observed, or warn to emit warnings only.
+    required: false
+    default: fail
+
+outputs:
+  status:
+    description: pass or blocked.
+    value: ${{ steps.negative-index.outputs.status }}
+  report-json:
+    description: Path to negative-fixture-index.json.
+    value: ${{ steps.negative-index.outputs.report-json }}
+  report-md:
+    description: Path to negative-fixture-index.md.
+    value: ${{ steps.negative-index.outputs.report-md }}
+  badge:
+    description: Path to Shields-compatible badge JSON.
+    value: ${{ steps.negative-index.outputs.badge }}
+
+runs:
+  using: composite
+  steps:
+    - name: Build release evidence negative fixture index
+      id: negative-index
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        root="${{ github.action_path }}/../.."
+        fixture="${{ inputs.fixture }}"
+        out="${{ inputs.out }}"
+        title="${{ inputs.title }}"
+        mode="${{ inputs.mode }}"
+
+        if [[ "$mode" != "fail" && "$mode" != "warn" ]]; then
+          echo "::error::mode must be fail or warn"
+          exit 2
+        fi
+
+        if [[ -z "$fixture" || "$fixture" == "bundled" ]]; then
+          fixture="$root/fixtures/release-evidence/negative"
+        fi
+
+        index_exit=0
+        set +e
+        "$root/bin/codex-maintainer" release-evidence negative-index \
+          --fixture "$fixture" \
+          --out "$out" \
+          --title "$title"
+        index_exit="$?"
+        set -e
+
+        status="pass"
+        if [[ "$index_exit" -ne 0 ]]; then
+          status="blocked"
+        fi
+
+        {
+          echo "status=$status"
+          echo "report-json=$out/negative-fixture-index.json"
+          echo "report-md=$out/negative-fixture-index.md"
+          echo "badge=$out/badge.json"
+        } >> "$GITHUB_OUTPUT"
+
+        if [[ "$status" == "blocked" ]]; then
+          message="release evidence negative fixture index failed"
+          if [[ "$mode" == "warn" ]]; then
+            echo "::warning::$message"
+          else
+            echo "::error::$message"
+            exit "$index_exit"
+          fi
+        fi
+
+    - name: Upload release evidence negative fixture index artifact
+      if: ${{ inputs.upload-artifact == 'true' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.out }}
+        if-no-files-found: error

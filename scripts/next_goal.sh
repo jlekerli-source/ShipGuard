@@ -115,6 +115,9 @@ cat > "$out_file" <<EOF
 ./tests/release_diff_action_test.sh
 ./tests/release_evidence_test.sh
 ./tests/release_evidence_action_test.sh
+./tests/release_evidence_verify_test.sh
+./tests/release_evidence_verify_action_test.sh
+./tests/release_evidence_negative_index_action_test.sh
 ./tests/release_proof_action_test.sh
 ./tests/release_proof_consumption_test.sh
 ./tests/release_proof_workflow_test.sh

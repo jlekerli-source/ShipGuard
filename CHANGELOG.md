@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.25.0 - Release Evidence Negative Index Action
+
+- Added `actions/release-evidence-negative-index` to run the bundled negative evidence fixture manifest in GitHub Actions and upload the guardrail index artifact.
+- Added a copyable workflow example plus action docs for publishing `negative-fixture-index.json`, Markdown, badge, and per-case verifier outputs from CI.
+- Extended CI, next-goal generation, source validation, self-audit, and package proof coverage for the new action.
+
 ## v3.24.0 - Release Evidence Negative Fixture Index
 
 - Added `codex-maintainer release-evidence negative-index` to run the checked-in negative fixture manifest and publish JSON, Markdown, badge, and per-case verifier outputs.

@@ -26,7 +26,7 @@
 | Compare releases | `release-diff compare`, `actions/release-diff` | Release diff JSON and Markdown |
 | Export release evidence | `release-evidence site`, `release-evidence index`, `release-evidence bundle`, `actions/release-evidence` | Static evidence site, optional history index, and one-command local evidence bundle |
 | Consume release evidence | `release-evidence verify`, `actions/release-evidence-verify` | Evidence artifact verification report, Markdown summary, and badge JSON |
-| Audit release evidence failures | `release-evidence negative-index` | Index of intentionally broken evidence fixtures and expected blocked checks |
+| Audit release evidence failures | `release-evidence negative-index`, `actions/release-evidence-negative-index` | Index of intentionally broken evidence fixtures and expected blocked checks |
 | Audit this toolkit | `self-audit` | Self-audit Markdown and JSON |
 | Continue the release loop | `next-goal` | Slash-goal Markdown plan |
 
