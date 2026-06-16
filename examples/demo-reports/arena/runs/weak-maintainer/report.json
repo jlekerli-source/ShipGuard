@@ -1,12 +1,13 @@
 {
   "schema_version": "0.1",
-  "tool_version": "1.0.0",
+  "tool_version": "1.3.0",
   "generated_at": "2026-06-16T00:00:00Z",
   "inputs": {
     "run": "fixtures/arena/weak-maintainer/run.md",
     "task": "fixtures/arena/weak-maintainer/task.md",
     "diff": "fixtures/arena/weak-maintainer/diff.patch",
-    "tests": ""
+    "tests": "",
+    "policy": ""
   },
   "score": {
     "total": 3,
@@ -25,7 +26,8 @@
     "changed_files": 1,
     "has_diff": true,
     "has_tests": false,
-    "has_task": true
+    "has_task": true,
+    "max_changed_files": 3
   },
   "findings": [
     {"id": "missing_score_category", "severity": "medium", "message": "Run summary is missing score category: Risk awareness.", "evidence": "Risk awareness"},

@@ -31,4 +31,4 @@ It is intentionally small:
 - scope-control average
 - per-task scores and verdicts
 
-The first checked-in leaderboard is a fixture baseline, not an adoption or model-quality claim.
+The checked-in leaderboard is a fixture baseline across six public maintainer cases. It is not an adoption or model-quality claim.

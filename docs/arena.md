@@ -41,4 +41,4 @@ Only `run.md` is required. Missing task, diff, or test evidence is passed throug
 - validation quality average
 - scope control average
 
-The first public fixture pack includes good, weak, and dangerous maintainer runs so the benchmark shows both clean evidence and failure modes.
+The public fixture pack includes clean, weak, dangerous, failing-validation, missing-diff, and review-only maintainer runs so the benchmark shows multiple evidence and failure modes.

@@ -1,0 +1,36 @@
+{
+  "schema_version": "0.1",
+  "tool_version": "1.3.0",
+  "generated_at": "2026-06-16T00:00:00Z",
+  "inputs": {
+    "run": "fixtures/arena/no-diff-implementation/run.md",
+    "task": "fixtures/arena/no-diff-implementation/task.md",
+    "diff": "",
+    "tests": "",
+    "policy": ""
+  },
+  "score": {
+    "total": 6,
+    "max": 12,
+    "verdict": "analysis only; request a narrower repair pass",
+    "categories": {
+      "scope_control": {"label": "Scope control", "score": 1},
+      "owner_file_accuracy": {"label": "Owner-file accuracy", "score": 1},
+      "risk_awareness": {"label": "Risk awareness", "score": 1},
+      "validation_quality": {"label": "Validation quality", "score": 0},
+      "handoff_honesty": {"label": "Handoff honesty", "score": 2},
+      "regression_awareness": {"label": "Regression awareness", "score": 1}
+    }
+  },
+  "evidence": {
+    "changed_files": 0,
+    "has_diff": false,
+    "has_tests": false,
+    "has_task": true,
+    "max_changed_files": 3
+  },
+  "findings": [
+    {"id": "no_test_log", "severity": "medium", "message": "No test log was provided, so validation evidence cannot be verified.", "evidence": "--tests missing"},
+    {"id": "changed_without_diff", "severity": "medium", "message": "Run describes implementation changes, but no diff was provided.", "evidence": "Implemented the requested settings copy adjustment and updated the cleanup note, but did not provide the diff."}
+  ]
+}

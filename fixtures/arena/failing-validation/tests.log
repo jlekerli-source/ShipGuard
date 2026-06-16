@@ -1,0 +1,2 @@
+FAIL ./scripts/run_permission_validation.sh
+Expected denial recovery copy to remain visible.

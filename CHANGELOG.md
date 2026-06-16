@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.3.0 - Expanded reliability benchmark pack
+
+- Added failing-validation, no-diff implementation, and review-only arena fixtures.
+- Expanded generated demo reports and leaderboard output.
+- Updated arena, benchmark, package, and leaderboard tests for the larger fixture pack.
+
 ## v1.2.0 - CI gate mode
 
 - Added `codex-maintainer ci-gate` for Autopsy, review comments, badges, and gate JSON in one command.

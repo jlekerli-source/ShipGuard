@@ -1,7 +1,7 @@
 # Agent Autopsy Report
 
 - Generated: 2026-06-16T00:00:00Z
-- Tool version: 1.0.0
+- Tool version: 1.3.0
 - Verdict: do not merge until high-risk findings are resolved
 - Total score: 3/12
 
@@ -11,6 +11,7 @@
 - Task file: fixtures/arena/weak-maintainer/task.md
 - Diff file: fixtures/arena/weak-maintainer/diff.patch
 - Test log: not provided
+- Policy file: built-in defaults
 - Changed files from diff: 1
 
 ## Category Scores

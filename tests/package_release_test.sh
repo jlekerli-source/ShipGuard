@@ -52,6 +52,9 @@ grep -q "^$package_name/templates/ios/AGENTS.md$" "$tar_list"
 grep -q "^$package_name/templates/policy/default.conf$" "$tar_list"
 grep -q "^$package_name/fixtures/policy/strict.conf$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/good-maintainer/run.md$" "$tar_list"
+grep -q "^$package_name/fixtures/arena/failing-validation/run.md$" "$tar_list"
+grep -q "^$package_name/fixtures/arena/no-diff-implementation/run.md$" "$tar_list"
+grep -q "^$package_name/fixtures/arena/review-only/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/autopsy/good-run/run.md$" "$tar_list"
 grep -q "^$package_name/examples/demo-reports/leaderboard.json$" "$tar_list"
 grep -q "^$package_name/.agents/skills/alarm-testing/SKILL.md$" "$tar_list"
@@ -86,8 +89,8 @@ grep -q '"verdict": "usable maintainer-quality run"' "$tmp_dir/package-autopsy/r
 "$package_root/bin/codex-maintainer" arena run \
   --fixture "$package_root/fixtures/arena" \
   --out "$tmp_dir/package-arena" >/dev/null
-grep -q '"average_total": 5.00' "$tmp_dir/package-arena/results.json"
-grep -q '"high_risk_finding_count": 4' "$tmp_dir/package-arena/results.json"
+grep -q '"average_total": 6.50' "$tmp_dir/package-arena/results.json"
+grep -q '"high_risk_finding_count": 5' "$tmp_dir/package-arena/results.json"
 "$package_root/bin/codex-maintainer" review-comment \
   --report "$tmp_dir/package-autopsy/report.json" \
   --out "$tmp_dir/package-review/comment.md" \
@@ -107,7 +110,7 @@ grep -q '"status": "pass"' "$tmp_dir/package-gate/gate.json"
   --arena-results "$tmp_dir/package-arena/results.json" \
   --out "$tmp_dir/package-leaderboard.json" >/dev/null
 grep -q '"schema_version": "1.0"' "$tmp_dir/package-leaderboard.json"
-grep -q '"average_total": 5.00' "$tmp_dir/package-leaderboard.json"
+grep -q '"average_total": 6.50' "$tmp_dir/package-leaderboard.json"
 
 install_prefix="$tmp_dir/install"
 PREFIX="$install_prefix" "$package_root/scripts/install.sh" >/dev/null

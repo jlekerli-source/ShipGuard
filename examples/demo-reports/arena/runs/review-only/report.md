@@ -3,16 +3,16 @@
 - Generated: 2026-06-16T00:00:00Z
 - Tool version: 1.3.0
 - Verdict: usable maintainer-quality run
-- Total score: 11/12
+- Total score: 10/12
 
 ## Inputs
 
-- Run summary: fixtures/arena/good-maintainer/run.md
-- Task file: fixtures/arena/good-maintainer/task.md
-- Diff file: fixtures/arena/good-maintainer/diff.patch
-- Test log: fixtures/arena/good-maintainer/tests.log
+- Run summary: fixtures/arena/review-only/run.md
+- Task file: fixtures/arena/review-only/task.md
+- Diff file: not provided
+- Test log: not provided
 - Policy file: built-in defaults
-- Changed files from diff: 1
+- Changed files from diff: 0
 
 ## Category Scores
 
@@ -23,11 +23,13 @@
 | Risk awareness | 2 |
 | Validation quality | 2 |
 | Handoff honesty | 2 |
-| Regression awareness | 1 |
+| Regression awareness | 0 |
 
 ## Findings
 
-No autopsy findings.
+| Severity | Finding | Evidence |
+| --- | --- | --- |
+| medium | no_test_log: No test log was provided, so validation evidence cannot be verified. | --tests missing |
 
 ## Maintainer Rule
 

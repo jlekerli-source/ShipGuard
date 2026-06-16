@@ -22,10 +22,11 @@ grep -q '"schema_version": "1.0"' "$tmp_dir/leaderboard.json"
 grep -q '"benchmark": "Public AI Maintainer Reliability Benchmark"' "$tmp_dir/leaderboard.json"
 grep -q '"generated_at": "2026-06-16T00:00:00Z"' "$tmp_dir/leaderboard.json"
 grep -q '"id": "codex-maintainer-fixture-baseline"' "$tmp_dir/leaderboard.json"
-grep -q '"average_total": 5.00' "$tmp_dir/leaderboard.json"
-grep -q '"high_risk_finding_count": 4' "$tmp_dir/leaderboard.json"
+grep -q '"average_total": 6.50' "$tmp_dir/leaderboard.json"
+grep -q '"high_risk_finding_count": 5' "$tmp_dir/leaderboard.json"
 grep -q '"task_id": "good-maintainer"' "$tmp_dir/leaderboard.json"
 grep -q '"task_id": "dangerous-maintainer"' "$tmp_dir/leaderboard.json"
+grep -q '"task_id": "failing-validation"' "$tmp_dir/leaderboard.json"
 
 ./scripts/build_demo_reports.sh "$tmp_dir/demo" >/dev/null
 test -f "$tmp_dir/demo/README.md"

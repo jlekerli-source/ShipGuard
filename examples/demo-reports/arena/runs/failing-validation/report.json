@@ -1,0 +1,35 @@
+{
+  "schema_version": "0.1",
+  "tool_version": "1.3.0",
+  "generated_at": "2026-06-16T00:00:00Z",
+  "inputs": {
+    "run": "fixtures/arena/failing-validation/run.md",
+    "task": "fixtures/arena/failing-validation/task.md",
+    "diff": "fixtures/arena/failing-validation/diff.patch",
+    "tests": "fixtures/arena/failing-validation/tests.log",
+    "policy": ""
+  },
+  "score": {
+    "total": 8,
+    "max": 12,
+    "verdict": "do not merge until high-risk findings are resolved",
+    "categories": {
+      "scope_control": {"label": "Scope control", "score": 2},
+      "owner_file_accuracy": {"label": "Owner-file accuracy", "score": 2},
+      "risk_awareness": {"label": "Risk awareness", "score": 2},
+      "validation_quality": {"label": "Validation quality", "score": 0},
+      "handoff_honesty": {"label": "Handoff honesty", "score": 2},
+      "regression_awareness": {"label": "Regression awareness", "score": 0}
+    }
+  },
+  "evidence": {
+    "changed_files": 1,
+    "has_diff": true,
+    "has_tests": true,
+    "has_task": true,
+    "max_changed_files": 3
+  },
+  "findings": [
+    {"id": "test_log_failure", "severity": "high", "message": "Provided test log contains failure or error language.", "evidence": "FAIL ./scripts/run_permission_validation.sh"}
+  ]
+}

@@ -3,14 +3,14 @@
   "tool_version": "1.3.0",
   "generated_at": "2026-06-16T00:00:00Z",
   "inputs": {
-    "run": "fixtures/arena/good-maintainer/run.md",
-    "task": "fixtures/arena/good-maintainer/task.md",
-    "diff": "fixtures/arena/good-maintainer/diff.patch",
-    "tests": "fixtures/arena/good-maintainer/tests.log",
+    "run": "fixtures/arena/review-only/run.md",
+    "task": "fixtures/arena/review-only/task.md",
+    "diff": "",
+    "tests": "",
     "policy": ""
   },
   "score": {
-    "total": 11,
+    "total": 10,
     "max": 12,
     "verdict": "usable maintainer-quality run",
     "categories": {
@@ -19,16 +19,17 @@
       "risk_awareness": {"label": "Risk awareness", "score": 2},
       "validation_quality": {"label": "Validation quality", "score": 2},
       "handoff_honesty": {"label": "Handoff honesty", "score": 2},
-      "regression_awareness": {"label": "Regression awareness", "score": 1}
+      "regression_awareness": {"label": "Regression awareness", "score": 0}
     }
   },
   "evidence": {
-    "changed_files": 1,
-    "has_diff": true,
-    "has_tests": true,
+    "changed_files": 0,
+    "has_diff": false,
+    "has_tests": false,
     "has_task": true,
     "max_changed_files": 3
   },
   "findings": [
+    {"id": "no_test_log", "severity": "medium", "message": "No test log was provided, so validation evidence cannot be verified.", "evidence": "--tests missing"}
   ]
 }
