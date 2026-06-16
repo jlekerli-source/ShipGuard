@@ -13,6 +13,7 @@ Start here:
 - [Autopsy in GitHub Actions](autopsy-github-actions.md)
 - [Benchmark Format](benchmark.md)
 - [Demo Reports](demo-reports.md)
+- [Policy Configuration](policy.md)
 - [PR Review Bot Mode](pr-review-bot.md)
 - [GitHub Action](github-action.md)
 - [Changelog](../CHANGELOG.md)

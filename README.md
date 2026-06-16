@@ -31,6 +31,7 @@ Read the guided setup first:
 - `docs/autopsy-github-actions.md`: upload autopsy reports as GitHub Actions artifacts.
 - `docs/benchmark.md`: stable public benchmark and leaderboard format.
 - `docs/demo-reports.md`: checked-in demo reports generated from public fixtures.
+- `docs/policy.md`: configure protected paths, risky claims, and scope limits.
 - `docs/pr-review-bot.md`: generate PR-ready review comments and badge JSON from autopsy reports.
 - `docs/use-in-your-repo.md`: copy/paste setup for another repository.
 - `docs/workflow-diagram.md`: visual workflow map.
@@ -79,6 +80,7 @@ For aggregate benchmark proof, run `./bin/codex-maintainer arena run --fixture f
 - `docs/autopsy-github-actions.md`: minimal workflow for downloadable autopsy evidence.
 - `docs/benchmark.md`: public AI maintainer reliability benchmark format.
 - `docs/demo-reports.md`: generated reports from the fixture pack.
+- `docs/policy.md`: plain policy config for project-specific risk rules.
 - `docs/pr-review-bot.md`: warn/fail PR review comment mode for autopsy reports.
 - `docs/github-action.md`: usage guide for the reusable action.
 - `docs/adoption-guide.md`: practical onboarding path for new maintainers.

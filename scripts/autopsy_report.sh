@@ -9,7 +9,7 @@ usage() {
 codex-maintainer autopsy
 
 Usage:
-  codex-maintainer autopsy --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--out <dir>]
+  codex-maintainer autopsy --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--policy <policy.conf>] [--out <dir>]
 
 Outputs:
   report.md
@@ -60,7 +60,43 @@ run_file=""
 diff_file=""
 tests_file=""
 task_file=""
+policy_file=""
 out_dir="autopsy-report"
+max_changed_files=3
+protected_pattern='Secrets|Credentials|Protected|AlarmRuntime|StoreKit'
+validation_claim_pattern='(^|[^A-Za-z])((tests?|validation|ci).*(passed|green|success|succeeded)|all tests passed)([^A-Za-z]|$)'
+risky_claim_pattern='(^|[^A-Za-z])(release[- ]ready|production[- ]ready|security[- ]safe|no vulnerabilities|secure|approved|live|guaranteed|proven)([^A-Za-z]|$)'
+
+read_policy() {
+  local file="$1"
+  local line key value
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%%#*}"
+    [[ -z "$line" || "$line" != *"="* ]] && continue
+    key="${line%%=*}"
+    value="${line#*=}"
+    case "$key" in
+      max_changed_files)
+        [[ "$value" =~ ^[0-9]+$ ]] || fail "policy max_changed_files must be an integer"
+        max_changed_files="$value"
+        ;;
+      protected_patterns)
+        protected_pattern="$value"
+        ;;
+      validation_claim_patterns)
+        validation_claim_pattern="$value"
+        ;;
+      risky_claim_patterns)
+        risky_claim_pattern="$value"
+        ;;
+      warn_below|fail_below)
+        ;;
+      *)
+        fail "unknown policy key: $key"
+        ;;
+    esac
+  done < "$file"
+}
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
@@ -84,6 +120,11 @@ while [[ "$#" -gt 0 ]]; do
       task_file="${2:-}"
       shift 2
       ;;
+    --policy)
+      [[ "$#" -ge 2 && -n "${2:-}" ]] || fail "--policy requires a value"
+      policy_file="${2:-}"
+      shift 2
+      ;;
     --out)
       [[ "$#" -ge 2 && -n "${2:-}" ]] || fail "--out requires a value"
       out_dir="${2:-}"
@@ -104,6 +145,8 @@ done
 [[ -z "$diff_file" || -f "$diff_file" ]] || fail "diff file not found: $diff_file"
 [[ -z "$tests_file" || -f "$tests_file" ]] || fail "test log not found: $tests_file"
 [[ -z "$task_file" || -f "$task_file" ]] || fail "task file not found: $task_file"
+[[ -z "$policy_file" || -f "$policy_file" ]] || fail "policy file not found: $policy_file"
+[[ -n "$policy_file" ]] && read_policy "$policy_file"
 
 mkdir -p "$out_dir"
 markdown_report="$out_dir/report.md"
@@ -152,9 +195,6 @@ for label in "${category_labels[@]}"; do
   total=$((total + score))
 done
 
-validation_claim_pattern='(^|[^A-Za-z])((tests?|validation|ci).*(passed|green|success|succeeded)|all tests passed)([^A-Za-z]|$)'
-risky_claim_pattern='(^|[^A-Za-z])(release[- ]ready|production[- ]ready|security[- ]safe|no vulnerabilities|secure|approved|live|guaranteed|proven)([^A-Za-z]|$)'
-
 if [[ -z "$tests_file" ]]; then
   add_finding "no_test_log" "medium" "No test log was provided, so validation evidence cannot be verified." "--tests missing"
   if grep -Eiq "$validation_claim_pattern" "$run_file"; then
@@ -177,11 +217,11 @@ fi
 changed_files=0
 if [[ -n "$diff_file" ]]; then
   changed_files="$(grep -c '^diff --git ' "$diff_file" || true)"
-  if [[ "$changed_files" -gt 3 ]]; then
-    add_finding "scope_creep_signal" "medium" "Diff touches more than three files; review whether the task scope expanded." "$changed_files changed files"
+  if [[ "$changed_files" -gt "$max_changed_files" ]]; then
+    add_finding "scope_creep_signal" "medium" "Diff touches more files than the configured policy limit." "$changed_files changed files; limit $max_changed_files"
   fi
-  if grep -Eiq 'Secrets|Credentials|Protected|AlarmRuntime|StoreKit' "$diff_file"; then
-    add_finding "protected_area_touch" "high" "Diff appears to touch protected or high-risk file areas." "$(grep -Ei 'Secrets|Credentials|Protected|AlarmRuntime|StoreKit' "$diff_file" | head -n 1)"
+  if [[ -n "$protected_pattern" ]] && grep -Eiq "$protected_pattern" "$diff_file"; then
+    add_finding "protected_area_touch" "high" "Diff appears to touch protected or high-risk file areas." "$(grep -Ei "$protected_pattern" "$diff_file" | head -n 1)"
   fi
 else
   if grep -Eiq 'changed|modified|updated|fixed|implemented' "$run_file"; then
@@ -213,6 +253,7 @@ verdict="$(verdict_for_total "$total" "$high_count")"
   echo "- Task file: ${task_file:-not provided}"
   echo "- Diff file: ${diff_file:-not provided}"
   echo "- Test log: ${tests_file:-not provided}"
+  echo "- Policy file: ${policy_file:-built-in defaults}"
   echo "- Changed files from diff: $changed_files"
   echo
   echo "## Category Scores"
@@ -249,7 +290,8 @@ verdict="$(verdict_for_total "$total" "$high_count")"
   echo "    \"run\": $(json_string "$run_file"),"
   echo "    \"task\": $(json_string "${task_file:-}"),"
   echo "    \"diff\": $(json_string "${diff_file:-}"),"
-  echo "    \"tests\": $(json_string "${tests_file:-}")"
+  echo "    \"tests\": $(json_string "${tests_file:-}"),"
+  echo "    \"policy\": $(json_string "${policy_file:-}")"
   echo "  },"
   echo "  \"score\": {"
   echo "    \"total\": $total,"
@@ -267,7 +309,8 @@ verdict="$(verdict_for_total "$total" "$high_count")"
   echo "    \"changed_files\": $changed_files,"
   echo "    \"has_diff\": $([[ -n "$diff_file" ]] && echo true || echo false),"
   echo "    \"has_tests\": $([[ -n "$tests_file" ]] && echo true || echo false),"
-  echo "    \"has_task\": $([[ -n "$task_file" ]] && echo true || echo false)"
+  echo "    \"has_task\": $([[ -n "$task_file" ]] && echo true || echo false),"
+  echo "    \"max_changed_files\": $max_changed_files"
   echo "  },"
   echo "  \"findings\": ["
   if [[ "${#finding_ids[@]}" -gt 0 ]]; then

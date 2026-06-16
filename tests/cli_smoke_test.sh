@@ -10,6 +10,7 @@ cd "$repo_root"
 
 ./bin/codex-maintainer --help >/dev/null
 test "$(./bin/codex-maintainer version)" = "$(sed -n '1p' VERSION)"
+./bin/codex-maintainer policy show >/dev/null
 ./bin/codex-maintainer autopsy --help >/dev/null
 ./bin/codex-maintainer arena run --help >/dev/null
 ./bin/codex-maintainer review-comment --help >/dev/null

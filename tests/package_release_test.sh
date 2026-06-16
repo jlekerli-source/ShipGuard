@@ -28,20 +28,25 @@ grep -q "^$package_name/docs/arena.md$" "$tar_list"
 grep -q "^$package_name/docs/autopsy-github-actions.md$" "$tar_list"
 grep -q "^$package_name/docs/benchmark.md$" "$tar_list"
 grep -q "^$package_name/docs/demo-reports.md$" "$tar_list"
+grep -q "^$package_name/docs/policy.md$" "$tar_list"
 grep -q "^$package_name/docs/pr-review-bot.md$" "$tar_list"
 grep -q "^$package_name/scripts/install.sh$" "$tar_list"
 grep -q "^$package_name/scripts/arena_run.sh$" "$tar_list"
 grep -q "^$package_name/scripts/autopsy_report.sh$" "$tar_list"
 grep -q "^$package_name/scripts/build_demo_reports.sh$" "$tar_list"
 grep -q "^$package_name/scripts/leaderboard_build.sh$" "$tar_list"
+grep -q "^$package_name/scripts/policy.sh$" "$tar_list"
 grep -q "^$package_name/scripts/review_comment.sh$" "$tar_list"
 grep -q "^$package_name/tests/package_release_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/action_artifact_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/arena_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/autopsy_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/leaderboard_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/policy_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/review_comment_test.sh$" "$tar_list"
 grep -q "^$package_name/templates/ios/AGENTS.md$" "$tar_list"
+grep -q "^$package_name/templates/policy/default.conf$" "$tar_list"
+grep -q "^$package_name/fixtures/policy/strict.conf$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/good-maintainer/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/autopsy/good-run/run.md$" "$tar_list"
 grep -q "^$package_name/examples/demo-reports/leaderboard.json$" "$tar_list"
@@ -62,6 +67,7 @@ if grep -RIEq "$local_path_pattern|ghp_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}" "$
 fi
 
 test "$("$package_root/bin/codex-maintainer" version)" = "$version"
+"$package_root/bin/codex-maintainer" policy show >/dev/null
 "$package_root/bin/codex-maintainer" validate "$package_root" >/dev/null
 "$package_root/bin/codex-maintainer" init ios "$tmp_dir/demo-target" --force >/dev/null
 "$package_root/bin/codex-maintainer" doctor "$tmp_dir/demo-target" >/dev/null

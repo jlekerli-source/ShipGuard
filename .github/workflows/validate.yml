@@ -34,6 +34,9 @@ jobs:
       - name: Run review comment tests
         run: ./tests/review_comment_test.sh
 
+      - name: Run policy tests
+        run: ./tests/policy_test.sh
+
       - name: Run leaderboard tests
         run: ./tests/leaderboard_test.sh
 

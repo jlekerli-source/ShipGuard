@@ -12,8 +12,10 @@ Usage:
   codex-maintainer init ios [target] [--force]
   codex-maintainer validate [path]
   codex-maintainer doctor [path]
+  codex-maintainer policy init [target] [--force]
+  codex-maintainer policy show [policy.conf]
   codex-maintainer score <run.md>
-  codex-maintainer autopsy --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--out <dir>]
+  codex-maintainer autopsy --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--policy <policy.conf>] [--out <dir>]
   codex-maintainer arena run --fixture <fixture-dir> [--out <dir>]
   codex-maintainer review-comment --report <report.json> --out <comment.md> [--mode warn|fail]
   codex-maintainer leaderboard build --arena-results <results.json> --out <leaderboard.json>
@@ -24,6 +26,7 @@ Commands:
   init ios     Copy the iOS workflow starter into a target repo.
   validate    Validate this workflow bundle or another checkout of it.
   doctor      Check whether a target repo has the starter workflow files.
+  policy      Initialize or inspect codex-maintainer policy config.
   score       Score a Codex run markdown file using SCORECARD.md categories.
   autopsy     Generate Markdown and JSON evidence reports for an AI coding run.
   arena       Run multiple autopsy fixtures and aggregate benchmark results.
@@ -189,6 +192,10 @@ cmd_autopsy() {
   "$tool_root/scripts/autopsy_report.sh" "$@"
 }
 
+cmd_policy() {
+  "$tool_root/scripts/policy.sh" "$@"
+}
+
 cmd_arena() {
   local subcommand="${1:-}"
   [[ "$subcommand" == "run" ]] || fail "arena requires subcommand: run"
@@ -229,6 +236,9 @@ main() {
       ;;
     doctor)
       cmd_doctor "$@"
+      ;;
+    policy)
+      cmd_policy "$@"
       ;;
     score)
       cmd_score "$@"

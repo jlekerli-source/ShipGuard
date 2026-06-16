@@ -18,6 +18,17 @@ You can also pass a path to another checkout of this workflow bundle:
 
 Validation checks required files, skill metadata, shell syntax, executable scripts, local markdown links, YAML files, and whitespace.
 
+## Policy
+
+Create or inspect a policy file:
+
+```bash
+./bin/codex-maintainer policy init .codex-maintainer/policy.conf
+./bin/codex-maintainer policy show .codex-maintainer/policy.conf
+```
+
+Pass a policy into Autopsy with `--policy`. See `policy.md`.
+
 ## Version
 
 Print the toolkit version:

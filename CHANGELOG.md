@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.1.0 - Policy configuration
+
+- Added plain `key=value` policy files for protected patterns, risky claims, validation claims, scope limits, and thresholds.
+- Added `codex-maintainer policy init` and `codex-maintainer policy show`.
+- Added `codex-maintainer autopsy --policy`.
+- Added policy docs, fixtures, tests, and package verification.
+
 ## v1.0.0 - Public AI Maintainer Reliability Benchmark
 
 - Stabilized CLI docs for `autopsy`, `arena`, `review-comment`, and `leaderboard`.

@@ -10,6 +10,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep Maintainer Arena fixture aggregation stable for public benchmark examples.
 - Keep PR review-comment output stable for warn/fail adoption.
 - Keep leaderboard schema `1.0` stable for public benchmark consumers.
+- Keep policy config plain, auditable, and non-executable.
 - Keep release packaging and installer scripts reproducible.
 - Keep the reusable GitHub Action aligned with the CLI validator.
 - Maintain the public examples, scorecard, autopsy fixtures, and iOS starter template as the workflow evolves.
