@@ -94,6 +94,9 @@ jobs:
       - name: Run release diff action tests
         run: ./tests/release_diff_action_test.sh
 
+      - name: Run release evidence tests
+        run: ./tests/release_evidence_test.sh
+
       - name: Run release replay tests
         run: ./tests/release_replay_test.sh
 

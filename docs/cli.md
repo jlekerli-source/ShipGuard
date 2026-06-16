@@ -259,7 +259,7 @@ Generate release proof files for a tarball:
 
 ```bash
 ./bin/codex-maintainer release-manifest \
-  --tarball dist/codex-maintainer-v3.15.0.tar.gz \
+  --tarball dist/codex-maintainer-v3.16.0.tar.gz \
   --out /tmp/codex-maintainer-release-proof
 ```
 
@@ -268,7 +268,7 @@ Verify the manifest against the tarball:
 ```bash
 ./bin/codex-maintainer release-manifest verify \
   --manifest /tmp/codex-maintainer-release-proof/release-manifest.json \
-  --tarball dist/codex-maintainer-v3.15.0.tar.gz
+  --tarball dist/codex-maintainer-v3.16.0.tar.gz
 ```
 
 The command writes `release-manifest.json` and `proof-ledger.md`. Add `--ci-run-url`, `--release-url`, and `--issue-url` after publishing to bind the local artifact digest to public release proof. See `release-manifest.md`.
@@ -278,7 +278,7 @@ Build a release proof catalog from manifests:
 ```bash
 ./bin/codex-maintainer release-index build \
   --manifest dist/release-proof-v3.5.0/release-manifest.json \
-  --manifest dist/release-proof-v3.15.0/release-manifest.json \
+  --manifest dist/release-proof-v3.16.0/release-manifest.json \
   --out /tmp/codex-maintainer-release-index
 ```
 
@@ -289,7 +289,7 @@ Replay-verify downloaded release assets:
 ```bash
 ./bin/codex-maintainer release-replay verify \
   --manifest /tmp/codex-maintainer-release-proof/release-manifest.json \
-  --tarball /tmp/codex-maintainer-release-assets/codex-maintainer-v3.15.0.tar.gz \
+  --tarball /tmp/codex-maintainer-release-assets/codex-maintainer-v3.16.0.tar.gz \
   --index /tmp/codex-maintainer-release-index/release-index.json \
   --ledger /tmp/codex-maintainer-release-proof/proof-ledger.md \
   --out /tmp/codex-maintainer-release-replay
@@ -313,7 +313,7 @@ Build the full release proof bundle in one command:
 ```bash
 ./bin/codex-maintainer release-proof build \
   --out /tmp/codex-maintainer-release-proof-bundle \
-  --release-url https://github.com/owner/repo/releases/tag/v3.15.0
+  --release-url https://github.com/owner/repo/releases/tag/v3.16.0
 ```
 
 The command writes the release tarball, manifest, release index, replay report, attestation, and attestation badge. See `release-proof.md`.
@@ -324,9 +324,9 @@ Verify a flat directory of downloaded release assets and write a consumer report
 
 ```bash
 ./bin/codex-maintainer release-consume verify \
-  --dir /tmp/codex-maintainer-v3.15.0 \
-  --out /tmp/codex-maintainer-v3.15.0/consumer-proof \
-  --version 3.15.0
+  --dir /tmp/codex-maintainer-v3.16.0 \
+  --out /tmp/codex-maintainer-v3.16.0/consumer-proof \
+  --version 3.16.0
 ```
 
 The command writes `consumer-report.json`, `consumer-report.md`, `asset-digests.json`, `asset-digests.md`, `sha256.txt`, replay outputs, and attestation outputs. It also cross-checks downloaded replay, attestation, and badge assets when they are present. Use `actions/release-consume` when this verification should run in GitHub Actions. See `release-consume.md` and `release-consume-action.md`.
@@ -338,39 +338,52 @@ Compare two release proof asset directories and write JSON/Markdown diff reports
 ```bash
 ./bin/codex-maintainer release-diff compare \
   --left /tmp/codex-maintainer-old \
-  --right /tmp/codex-maintainer-v3.15.0 \
+  --right /tmp/codex-maintainer-v3.16.0 \
   --out /tmp/codex-maintainer-release-diff
 ```
 
 The command accepts flat GitHub release downloads or nested `release-proof build` output. It compares release tarballs, manifests, indexes, ledgers, replay reports, attestations, and badges. Use `actions/release-diff` when this comparison should run in GitHub Actions. See `release-diff.md` and `release-diff-action.md`.
+
+## Release Evidence
+
+Export release proof reports as a static evidence page:
+
+```bash
+./bin/codex-maintainer release-evidence site \
+  --consume /tmp/codex-maintainer-v3.16.0/consumer-proof \
+  --diff /tmp/codex-maintainer-release-diff \
+  --out /tmp/codex-maintainer-release-site
+```
+
+The command writes `index.html`, `evidence.json`, `README.md`, and source JSON copies under `sources/`. See `release-evidence-site.md`.
 
 ## Release Proof Consumption
 
 Download a published release bundle, verify the tarball digest, replay the proof, and rebuild the compact attestation:
 
 ```bash
-gh release download v3.15.0 \
+gh release download v3.16.0 \
   --repo jlekerli-source/ringly-codex-workflows \
-  --pattern 'codex-maintainer-v3.15.0.tar.gz' \
+  --pattern 'codex-maintainer-v3.16.0.tar.gz' \
   --pattern 'release-manifest.json' \
   --pattern 'release-index.json' \
   --pattern 'proof-ledger.md' \
   --pattern 'attestation-badge.json' \
-  --dir /tmp/codex-maintainer-v3.15.0
+  --dir /tmp/codex-maintainer-v3.16.0
 
-shasum -a 256 /tmp/codex-maintainer-v3.15.0/codex-maintainer-v3.15.0.tar.gz
+shasum -a 256 /tmp/codex-maintainer-v3.16.0/codex-maintainer-v3.16.0.tar.gz
 
 ./bin/codex-maintainer release-replay verify \
-  --manifest /tmp/codex-maintainer-v3.15.0/release-manifest.json \
-  --tarball /tmp/codex-maintainer-v3.15.0/codex-maintainer-v3.15.0.tar.gz \
-  --index /tmp/codex-maintainer-v3.15.0/release-index.json \
-  --ledger /tmp/codex-maintainer-v3.15.0/proof-ledger.md \
-  --out /tmp/codex-maintainer-v3.15.0/consumer-replay
+  --manifest /tmp/codex-maintainer-v3.16.0/release-manifest.json \
+  --tarball /tmp/codex-maintainer-v3.16.0/codex-maintainer-v3.16.0.tar.gz \
+  --index /tmp/codex-maintainer-v3.16.0/release-index.json \
+  --ledger /tmp/codex-maintainer-v3.16.0/proof-ledger.md \
+  --out /tmp/codex-maintainer-v3.16.0/consumer-replay
 
 ./bin/codex-maintainer release-attest build \
-  --manifest /tmp/codex-maintainer-v3.15.0/release-manifest.json \
-  --replay /tmp/codex-maintainer-v3.15.0/consumer-replay/replay-report.json \
-  --out /tmp/codex-maintainer-v3.15.0/consumer-attestation
+  --manifest /tmp/codex-maintainer-v3.16.0/release-manifest.json \
+  --replay /tmp/codex-maintainer-v3.16.0/consumer-replay/replay-report.json \
+  --out /tmp/codex-maintainer-v3.16.0/consumer-attestation
 ```
 
 See `release-proof-consumption.md` for the rejection rules and trust model.
@@ -416,8 +429,8 @@ The command writes a Markdown plan with a `/goal` block, release constraints, pr
 Download and extract a release package:
 
 ```bash
-tar -xzf codex-maintainer-v3.15.0.tar.gz
-cd codex-maintainer-v3.15.0
+tar -xzf codex-maintainer-v3.16.0.tar.gz
+cd codex-maintainer-v3.16.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 ```
 

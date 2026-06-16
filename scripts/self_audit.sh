@@ -75,6 +75,7 @@ commands=(
   "release-replay verify --help"
   "release-consume verify --help"
   "release-diff compare --help"
+  "release-evidence site --help"
   "self-audit --help"
   "next-goal --help"
 )
@@ -108,6 +109,7 @@ required_artifacts=(
   "docs/release-consume.md"
   "docs/release-diff-action.md"
   "docs/release-diff.md"
+  "docs/release-evidence-site.md"
   "docs/release-proof.md"
   "docs/release-proof-consumption.md"
   "docs/release-manifest.md"
@@ -129,6 +131,7 @@ required_artifacts=(
   "scripts/release_attest.sh"
   "scripts/release_consume.sh"
   "scripts/release_diff.sh"
+  "scripts/release_evidence.sh"
   "scripts/release_proof.sh"
   "scripts/release_index.sh"
   "scripts/release_manifest.sh"

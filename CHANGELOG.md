@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.16.0 - Release Evidence Site Export
+
+- Added `codex-maintainer release-evidence site` for exporting release-consume and release-diff reports as a static evidence page.
+- The export writes `index.html`, `evidence.json`, `README.md`, and copied source JSON under `sources/`.
+- Added docs, tests, CI coverage, package verification, self-audit coverage, and next-goal proof.
+
 ## v3.15.0 - Release Diff CI Action
 
 - Added `actions/release-diff` for comparing two published release proof asset sets in GitHub Actions.
