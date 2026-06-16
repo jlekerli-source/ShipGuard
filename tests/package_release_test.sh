@@ -36,6 +36,7 @@ grep -q "^$package_name/docs/next-goal.md$" "$tar_list"
 grep -q "^$package_name/docs/policy.md$" "$tar_list"
 grep -q "^$package_name/docs/pr-review-bot.md$" "$tar_list"
 grep -q "^$package_name/docs/release-checklist.md$" "$tar_list"
+grep -q "^$package_name/docs/sarif.md$" "$tar_list"
 grep -q "^$package_name/scripts/install.sh$" "$tar_list"
 grep -q "^$package_name/scripts/arena_run.sh$" "$tar_list"
 grep -q "^$package_name/scripts/autopsy_report.sh$" "$tar_list"
@@ -45,6 +46,7 @@ grep -q "^$package_name/scripts/leaderboard_build.sh$" "$tar_list"
 grep -q "^$package_name/scripts/next_goal.sh$" "$tar_list"
 grep -q "^$package_name/scripts/policy.sh$" "$tar_list"
 grep -q "^$package_name/scripts/review_comment.sh$" "$tar_list"
+grep -q "^$package_name/scripts/sarif.sh$" "$tar_list"
 grep -q "^$package_name/scripts/self_audit.sh$" "$tar_list"
 grep -q "^$package_name/tests/package_release_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/action_artifact_test.sh$" "$tar_list"
@@ -55,6 +57,7 @@ grep -q "^$package_name/tests/leaderboard_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/next_goal_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/policy_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/review_comment_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/sarif_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/self_audit_test.sh$" "$tar_list"
 grep -q "^$package_name/templates/ios/AGENTS.md$" "$tar_list"
 grep -q "^$package_name/templates/policy/default.conf$" "$tar_list"
@@ -114,6 +117,8 @@ grep -q '"message": "pass 11/12"' "$tmp_dir/package-review/badge.json"
   --policy "$package_root/templates/policy/default.conf" \
   --out "$tmp_dir/package-gate" >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/package-gate/gate.json"
+grep -q '"sarif": "sarif/results.sarif"' "$tmp_dir/package-gate/gate.json"
+grep -q '"version" : "2.1.0"' "$tmp_dir/package-gate/sarif/results.sarif"
 "$package_root/bin/codex-maintainer" leaderboard build \
   --arena-results "$tmp_dir/package-arena/results.json" \
   --out "$tmp_dir/package-leaderboard.json" >/dev/null
@@ -123,11 +128,15 @@ grep -q '"average_total": 6.50' "$tmp_dir/package-leaderboard.json"
   --out "$tmp_dir/package-self-audit" >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/package-self-audit/self-audit.json"
 grep -q '| codex-maintainer leaderboard build --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+"$package_root/bin/codex-maintainer" sarif \
+  --report "$tmp_dir/package-autopsy/report.json" \
+  --out "$tmp_dir/package-sarif/results.sarif" >/dev/null
+grep -q '"version" : "2.1.0"' "$tmp_dir/package-sarif/results.sarif"
 "$package_root/bin/codex-maintainer" next-goal \
-  --release 2.2.0 \
+  --release 2.3.0 \
   --title "Package Proof Followup" \
   --out "$tmp_dir/package-next-goal.md" >/dev/null
-grep -q '/goal Implement v2.2.0 Package Proof Followup' "$tmp_dir/package-next-goal.md"
+grep -q '/goal Implement v2.3.0 Package Proof Followup' "$tmp_dir/package-next-goal.md"
 
 install_prefix="$tmp_dir/install"
 PREFIX="$install_prefix" "$package_root/scripts/install.sh" >/dev/null

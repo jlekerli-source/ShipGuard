@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.2.0 - SARIF Evidence Export
+
+- Added `codex-maintainer sarif` for converting Autopsy report JSON into SARIF 2.1.0.
+- Added SARIF output to `codex-maintainer ci-gate` artifact bundles and `gate.json`.
+- Added SARIF docs, tests, self-audit coverage, CI coverage, and package verification.
+
 ## v2.1.0 - Next Goal Generator
 
 - Added `codex-maintainer next-goal` for deterministic slash-goal release planning.

@@ -14,6 +14,7 @@ Usage:
 Outputs:
   autopsy/report.md
   autopsy/report.json
+  sarif/results.sarif
   review/comment.md
   review/badge.json
   gate.json
@@ -126,6 +127,7 @@ done
 
 mkdir -p "$out_dir"
 autopsy_dir="$out_dir/autopsy"
+sarif_dir="$out_dir/sarif"
 review_dir="$out_dir/review"
 
 autopsy_args=(--run "$run_file" --out "$autopsy_dir")
@@ -135,6 +137,9 @@ autopsy_args=(--run "$run_file" --out "$autopsy_dir")
 [[ -n "$policy_file" ]] && autopsy_args+=(--policy "$policy_file")
 
 "$tool_root/scripts/autopsy_report.sh" "${autopsy_args[@]}" >/dev/null
+"$tool_root/scripts/sarif.sh" \
+  --report "$autopsy_dir/report.json" \
+  --out "$sarif_dir/results.sarif" >/dev/null
 "$tool_root/scripts/review_comment.sh" \
   --report "$autopsy_dir/report.json" \
   --out "$review_dir/comment.md" \
@@ -165,6 +170,7 @@ fi
   echo "  \"warn_below\": $warn_below,"
   echo "  \"fail_below\": $fail_below,"
   echo "  \"autopsy_report\": \"autopsy/report.json\","
+  echo "  \"sarif\": \"sarif/results.sarif\","
   echo "  \"review_comment\": \"review/comment.md\","
   echo "  \"badge\": \"review/badge.json\""
   echo "}"

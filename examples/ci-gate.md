@@ -18,7 +18,8 @@ Expected:
 ```json
 {
   "status": "pass",
-  "score": 11
+  "score": 11,
+  "sarif": "sarif/results.sarif"
 }
 ```
 

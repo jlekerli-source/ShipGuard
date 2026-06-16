@@ -155,6 +155,18 @@ Run Autopsy, review-comment, badge generation, and gate JSON in one command:
 
 Use `--mode fail` when blocked gates should fail CI. See `ci-gate.md`.
 
+## SARIF
+
+Convert an Autopsy report into SARIF 2.1.0:
+
+```bash
+./bin/codex-maintainer sarif \
+  --report /tmp/autopsy/report.json \
+  --out /tmp/autopsy/results.sarif
+```
+
+`ci-gate` writes `sarif/results.sarif` automatically. See `sarif.md`.
+
 ## Leaderboard
 
 Build a stable public leaderboard JSON file from arena results:

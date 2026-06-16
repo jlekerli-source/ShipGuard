@@ -19,6 +19,7 @@ Usage:
   codex-maintainer arena run --fixture <fixture-dir> [--out <dir>]
   codex-maintainer review-comment --report <report.json> --out <comment.md> [--mode warn|fail]
   codex-maintainer ci-gate --run <run.md> [--diff <patch.diff>] [--tests <test.log>] [--task <task.md>] [--policy <policy.conf>] [--out <dir>] [--mode warn|fail]
+  codex-maintainer sarif --report <report.json> --out <results.sarif>
   codex-maintainer leaderboard build --arena-results <results.json> --out <leaderboard.json>
   codex-maintainer self-audit [--out <dir>]
   codex-maintainer next-goal [--out <file>] [--release <version>] [--title <title>]
@@ -36,6 +37,7 @@ Commands:
   review-comment
               Generate a PR-ready review comment and badge from an autopsy report.
   ci-gate     Generate autopsy, review, badge, gate JSON, and optional CI failure.
+  sarif       Convert an autopsy report JSON file into SARIF 2.1.0.
   leaderboard Build a stable leaderboard JSON file from arena results.
   self-audit  Generate toolkit readiness proof.
   next-goal   Generate a slash-goal release objective for the next improvement loop.
@@ -217,6 +219,10 @@ cmd_ci_gate() {
   "$tool_root/scripts/ci_gate.sh" "$@"
 }
 
+cmd_sarif() {
+  "$tool_root/scripts/sarif.sh" "$@"
+}
+
 cmd_leaderboard() {
   local subcommand="${1:-}"
   [[ "$subcommand" == "build" ]] || fail "leaderboard requires subcommand: build"
@@ -272,6 +278,9 @@ main() {
       ;;
     ci-gate)
       cmd_ci_gate "$@"
+      ;;
+    sarif)
+      cmd_sarif "$@"
       ;;
     leaderboard)
       cmd_leaderboard "$@"

@@ -1,5 +1,5 @@
 name: Run Codex maintainer CI gate
-description: Run autopsy, review-comment, badge generation, and artifact upload from a Codex maintainer run summary.
+description: Run autopsy, SARIF export, review-comment, badge generation, and artifact upload from a Codex maintainer run summary.
 
 inputs:
   run:

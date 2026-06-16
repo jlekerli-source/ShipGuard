@@ -1,6 +1,6 @@
 # CI Gate Mode
 
-CI Gate Mode runs Autopsy, generates a review comment, creates badge JSON, writes `gate.json`, and uploads the whole bundle when used through the composite action.
+CI Gate Mode runs Autopsy, generates SARIF, creates a review comment, creates badge JSON, writes `gate.json`, and uploads the whole bundle when used through the composite action.
 
 ## Command
 
@@ -19,6 +19,7 @@ Outputs:
 
 - `autopsy/report.md`
 - `autopsy/report.json`
+- `sarif/results.sarif`
 - `review/comment.md`
 - `review/badge.json`
 - `gate.json`

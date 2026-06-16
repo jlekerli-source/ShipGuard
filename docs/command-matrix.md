@@ -9,6 +9,7 @@
 | Check target repo setup | `doctor` | Missing file report |
 | Configure project policy | `policy init`, `policy show` | Plain policy file |
 | Audit one AI run | `autopsy` | Markdown and JSON report |
+| Export CI evidence | `sarif` | SARIF 2.1.0 results |
 | Compare fixture runs | `arena run` | Aggregate results and per-case reports |
 | Generate PR comment | `review-comment` | Comment Markdown and badge JSON |
 | Enforce in CI | `ci-gate` | Gate bundle and optional failure |

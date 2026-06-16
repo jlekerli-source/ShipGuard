@@ -3,13 +3,14 @@
 The toolkit now has a full evidence loop:
 
 ```text
-policy -> autopsy -> arena -> review-comment -> ci-gate -> leaderboard -> self-audit -> next-goal
+policy -> autopsy -> sarif -> arena -> review-comment -> ci-gate -> leaderboard -> self-audit -> next-goal
 ```
 
 That loop gives maintainers a way to:
 
 - configure project-specific risk rules
 - audit individual AI coding runs
+- export findings into SARIF for CI consumers
 - benchmark public fixture packs
 - turn reports into PR comments and badge JSON
 - fail CI only when the project opts in

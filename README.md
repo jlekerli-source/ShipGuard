@@ -38,6 +38,7 @@ Read the guided setup first:
 - `docs/policy.md`: configure protected paths, risky claims, and scope limits.
 - `docs/pr-review-bot.md`: generate PR-ready review comments and badge JSON from autopsy reports.
 - `docs/release-checklist.md`: release proof commands and publishing checks.
+- `docs/sarif.md`: convert Autopsy findings into SARIF for CI consumers.
 - `docs/use-in-your-repo.md`: copy/paste setup for another repository.
 - `docs/workflow-diagram.md`: visual workflow map.
 - `docs/index.md`: GitHub Pages-ready documentation landing page.
@@ -69,6 +70,7 @@ For agent-claim auditing, run `./bin/codex-maintainer autopsy` against `fixtures
 For aggregate benchmark proof, run `./bin/codex-maintainer arena run --fixture fixtures/arena --out /tmp/arena`.
 For toolkit release readiness, run `./bin/codex-maintainer self-audit --out /tmp/codex-maintainer-audit`.
 For the next improvement loop, run `./bin/codex-maintainer next-goal --out NEXT_GOAL.md`.
+For CI-consumable findings, run `./bin/codex-maintainer sarif --report /tmp/autopsy/report.json --out /tmp/results.sarif`.
 
 ## What Is Inside
 
@@ -94,6 +96,7 @@ For the next improvement loop, run `./bin/codex-maintainer next-goal --out NEXT_
 - `docs/policy.md`: plain policy config for project-specific risk rules.
 - `docs/pr-review-bot.md`: warn/fail PR review comment mode for autopsy reports.
 - `docs/release-checklist.md`: release validation and publishing checklist.
+- `docs/sarif.md`: SARIF export for Autopsy findings and CI gate artifacts.
 - `docs/github-action.md`: usage guide for the reusable action.
 - `docs/adoption-guide.md`: practical onboarding path for new maintainers.
 - `docs/use-in-your-repo.md`: copyable setup instructions for another repo.

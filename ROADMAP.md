@@ -12,6 +12,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep leaderboard schema `1.0` stable for public benchmark consumers.
 - Keep policy config plain, auditable, and non-executable.
 - Keep CI gate outputs stable for artifact and PR workflows.
+- Keep SARIF export stable for Autopsy findings and CI gate artifacts.
 - Keep self-audit output stable enough to prove release readiness from source and extracted packages.
 - Keep next-goal output deterministic enough to restart the improvement loop after each release.
 - Keep release packaging and installer scripts reproducible.
@@ -23,7 +24,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 
 - Add more anonymized transcripts from real maintenance work.
 - Expand Maintainer Arena with more task types and external fixture packs.
-- Add SARIF or check-run output for CI consumers.
+- Add check-run output for CI consumers.
 - Add template variants for non-iOS apps, including a web-app workflow kit.
 - Consider npm or Homebrew distribution after the release tarball path stays stable.
 - Enable GitHub Pages in repository settings after the docs shell is reviewed.

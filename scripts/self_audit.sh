@@ -59,6 +59,7 @@ commands=(
   "arena run --help"
   "review-comment --help"
   "ci-gate --help"
+  "sarif --help"
   "leaderboard build --help"
   "self-audit --help"
   "next-goal --help"
@@ -81,6 +82,7 @@ required_artifacts=(
   "examples/demo-reports/leaderboard.json"
   "examples/demo-reports/arena/results.json"
   "docs/next-goal.md"
+  "docs/sarif.md"
 )
 
 artifact_count=0
