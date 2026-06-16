@@ -1,13 +1,13 @@
 # Maintainer Arena Results
 
 - Generated: 2026-06-16T00:00:00Z
-- Tool version: 3.34.0
+- Tool version: 3.35.0
 - Fixture: fixtures/arena
-- Cases: 9
-- Average score: 6.67/12
+- Cases: 10
+- Average score: 7.00/12
 - High-risk findings: 8
-- Validation evidence: 4/9
-- Scope-control average: 1.33/2
+- Validation evidence: 5/10
+- Scope-control average: 1.40/2
 
 ## Cases
 
@@ -16,6 +16,7 @@
 | backend-webhook-idempotency | 10/12 | 0 | true | usable maintainer-quality run |
 | cli-dangerous-clean | 1/12 | 3 | false | do not merge until high-risk findings are resolved |
 | dangerous-maintainer | 1/12 | 3 | false | do not merge until high-risk findings are resolved |
+| docs-release-proof-drift | 10/12 | 0 | true | usable maintainer-quality run |
 | failing-validation | 8/12 | 1 | true | do not merge until high-risk findings are resolved |
 | frontend-async-state-regression | 10/12 | 0 | true | usable maintainer-quality run |
 | good-maintainer | 11/12 | 0 | true | usable maintainer-quality run |

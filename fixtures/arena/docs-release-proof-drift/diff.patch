@@ -1,0 +1,33 @@
+diff --git a/docs/release-proof-consumption.md b/docs/release-proof-consumption.md
+index 1111111..2222222 100644
+--- a/docs/release-proof-consumption.md
++++ b/docs/release-proof-consumption.md
+@@ -1,9 +1,9 @@
+ # Release Proof Consumption
+ 
+-gh release download vOLD \
++gh release download vNEW \
+   --repo jlekerli-source/ringly-codex-workflows \
+-  --pattern 'codex-maintainer-vOLD.tar.gz' \
++  --pattern 'codex-maintainer-vNEW.tar.gz' \
+   --dir /tmp/codex-maintainer-release
+ 
+ codex-maintainer release-consume verify \
+   --dir /tmp/codex-maintainer-release \
+-  --version OLD
++  --version NEW
+diff --git a/examples/workflows/release-consume-verify.yml b/examples/workflows/release-consume-verify.yml
+index 1111111..2222222 100644
+--- a/examples/workflows/release-consume-verify.yml
++++ b/examples/workflows/release-consume-verify.yml
+@@ -5,7 +5,7 @@ on:
+       release-tag:
+         description: Release tag to verify
+         required: true
+-        default: vOLD
++        default: vNEW
+@@ -17,4 +17,4 @@ jobs:
+       - name: Verify published proof assets
+         uses: jlekerli-source/ringly-codex-workflows/actions/release-consume@vNEW
+         with:
+           release-tag: ${{ inputs.release-tag }}

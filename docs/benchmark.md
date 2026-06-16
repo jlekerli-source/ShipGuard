@@ -42,4 +42,4 @@ Use `actions/arena-compare` to publish the same comparison as a GitHub Actions a
 - scope-control average
 - per-task scores and verdicts
 
-The checked-in leaderboard is a fixture baseline across nine public maintainer cases. It is not an adoption or model-quality claim.
+The checked-in leaderboard is a fixture baseline across ten public maintainer cases. It is not an adoption or model-quality claim.

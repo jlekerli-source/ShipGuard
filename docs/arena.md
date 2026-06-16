@@ -85,7 +85,7 @@ Verify a pack before running it:
 - validation quality average
 - scope control average
 
-The public fixture pack includes clean, weak, dangerous, failing-validation, missing-diff, review-only, backend webhook, frontend async-state, and CLI cleanup maintainer runs so the benchmark shows multiple evidence and failure modes.
+The public fixture pack includes clean, weak, dangerous, failing-validation, missing-diff, review-only, backend webhook, frontend async-state, docs release-proof drift, and CLI cleanup maintainer runs so the benchmark shows multiple evidence and failure modes.
 
 ## Compare Runs
 

@@ -1,0 +1,2 @@
+PASS ./tests/docs_release_proof_drift_test.sh
+0 failed, 4 passed

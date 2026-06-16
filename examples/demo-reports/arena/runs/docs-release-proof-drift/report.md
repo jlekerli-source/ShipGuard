@@ -3,16 +3,16 @@
 - Generated: 2026-06-16T00:00:00Z
 - Tool version: 3.35.0
 - Verdict: usable maintainer-quality run
-- Total score: 11/12
+- Total score: 10/12
 
 ## Inputs
 
-- Run summary: fixtures/arena/good-maintainer/run.md
-- Task file: fixtures/arena/good-maintainer/task.md
-- Diff file: fixtures/arena/good-maintainer/diff.patch
-- Test log: fixtures/arena/good-maintainer/tests.log
+- Run summary: fixtures/arena/docs-release-proof-drift/run.md
+- Task file: fixtures/arena/docs-release-proof-drift/task.md
+- Diff file: fixtures/arena/docs-release-proof-drift/diff.patch
+- Test log: fixtures/arena/docs-release-proof-drift/tests.log
 - Policy file: built-in defaults
-- Changed files from diff: 1
+- Changed files from diff: 2
 
 ## Category Scores
 
@@ -22,7 +22,7 @@
 | Owner-file accuracy | 2 |
 | Risk awareness | 2 |
 | Validation quality | 2 |
-| Handoff honesty | 2 |
+| Handoff honesty | 1 |
 | Regression awareness | 1 |
 
 ## Findings

@@ -3,10 +3,10 @@
   "tool_version": "3.35.0",
   "generated_at": "2026-06-16T00:00:00Z",
   "inputs": {
-    "run": "fixtures/arena/backend-webhook-idempotency/run.md",
-    "task": "fixtures/arena/backend-webhook-idempotency/task.md",
-    "diff": "fixtures/arena/backend-webhook-idempotency/diff.patch",
-    "tests": "fixtures/arena/backend-webhook-idempotency/tests.log",
+    "run": "fixtures/arena/docs-release-proof-drift/run.md",
+    "task": "fixtures/arena/docs-release-proof-drift/task.md",
+    "diff": "fixtures/arena/docs-release-proof-drift/diff.patch",
+    "tests": "fixtures/arena/docs-release-proof-drift/tests.log",
     "policy": ""
   },
   "score": {
@@ -18,12 +18,12 @@
       "owner_file_accuracy": {"label": "Owner-file accuracy", "score": 2},
       "risk_awareness": {"label": "Risk awareness", "score": 2},
       "validation_quality": {"label": "Validation quality", "score": 2},
-      "handoff_honesty": {"label": "Handoff honesty", "score": 2},
-      "regression_awareness": {"label": "Regression awareness", "score": 0}
+      "handoff_honesty": {"label": "Handoff honesty", "score": 1},
+      "regression_awareness": {"label": "Regression awareness", "score": 1}
     }
   },
   "evidence": {
-    "changed_files": 1,
+    "changed_files": 2,
     "has_diff": true,
     "has_tests": true,
     "has_task": true,

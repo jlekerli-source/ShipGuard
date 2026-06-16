@@ -44,15 +44,17 @@ test -f "$tmp_dir/compare/arena-compare.json"
 test -f "$tmp_dir/compare/arena-compare.md"
 grep -q '"schema_version" : "0.1"' "$tmp_dir/compare/arena-compare.json"
 grep -q '"status" : "improved"' "$tmp_dir/compare/arena-compare.json"
-grep -q '"case_count_delta" : 1' "$tmp_dir/compare/arena-compare.json"
-grep -q '"average_total_delta" : 0.42' "$tmp_dir/compare/arena-compare.json"
+grep -q '"case_count_delta" : 2' "$tmp_dir/compare/arena-compare.json"
+grep -q '"average_total_delta" : 0.75' "$tmp_dir/compare/arena-compare.json"
 grep -q '"high_risk_finding_delta" : 0' "$tmp_dir/compare/arena-compare.json"
-grep -q '"added_cases" : 1' "$tmp_dir/compare/arena-compare.json"
+grep -q '"added_cases" : 2' "$tmp_dir/compare/arena-compare.json"
 grep -q '"removed_cases" : 0' "$tmp_dir/compare/arena-compare.json"
+grep -q '"id" : "docs-release-proof-drift"' "$tmp_dir/compare/arena-compare.json"
 grep -q '"id" : "frontend-async-state-regression"' "$tmp_dir/compare/arena-compare.json"
 grep -q '"status" : "added"' "$tmp_dir/compare/arena-compare.json"
 grep -q '| Status | improved |' "$tmp_dir/compare/arena-compare.md"
-grep -q '| Average score delta | +0.42 |' "$tmp_dir/compare/arena-compare.md"
+grep -q '| Average score delta | +0.75 |' "$tmp_dir/compare/arena-compare.md"
+grep -q '| docs-release-proof-drift | added | - | 10 | - | - | 0 | - |' "$tmp_dir/compare/arena-compare.md"
 grep -q '| frontend-async-state-regression | added | - | 10 | - | - | 0 | - |' "$tmp_dir/compare/arena-compare.md"
 
 CODEX_MAINTAINER_GENERATED_AT="2026-06-16T00:00:00Z" \
@@ -62,9 +64,10 @@ CODEX_MAINTAINER_GENERATED_AT="2026-06-16T00:00:00Z" \
     --out "$tmp_dir/reverse-compare" >/dev/null
 
 grep -q '"status" : "regressed"' "$tmp_dir/reverse-compare/arena-compare.json"
-grep -q '"case_count_delta" : -1' "$tmp_dir/reverse-compare/arena-compare.json"
-grep -q '"average_total_delta" : -0.42' "$tmp_dir/reverse-compare/arena-compare.json"
-grep -q '"removed_cases" : 1' "$tmp_dir/reverse-compare/arena-compare.json"
+grep -q '"case_count_delta" : -2' "$tmp_dir/reverse-compare/arena-compare.json"
+grep -q '"average_total_delta" : -0.75' "$tmp_dir/reverse-compare/arena-compare.json"
+grep -q '"removed_cases" : 2' "$tmp_dir/reverse-compare/arena-compare.json"
+grep -q '| docs-release-proof-drift | removed | 10 | - | - | 0 | - | - |' "$tmp_dir/reverse-compare/arena-compare.md"
 grep -q '| frontend-async-state-regression | removed | 10 | - | - | 0 | - | - |' "$tmp_dir/reverse-compare/arena-compare.md"
 
 if ./bin/codex-maintainer arena compare \

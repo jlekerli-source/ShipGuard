@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.35.0 - Docs Release Proof Arena Fixture
+
+- Added a `docs-release-proof-drift` Maintainer Arena case for stale release proof documentation and workflow references.
+- Updated the public Arena and leaderboard baselines to ten cases with explicit docs drift coverage.
+- Extended source validation, package proof, docs, demo reports, and benchmark tests for the expanded fixture pack.
+
 ## v3.34.0 - Transcript Corpus GitHub Action
 
 - Added `actions/transcript-corpus` to run `codex-maintainer transcript corpus` in GitHub Actions and upload corpus artifacts.

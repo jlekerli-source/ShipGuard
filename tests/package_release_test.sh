@@ -152,6 +152,10 @@ grep -q "^$package_name/fixtures/arena/good-maintainer/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/backend-webhook-idempotency/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/backend-webhook-idempotency/tests.log$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/cli-dangerous-clean/run.md$" "$tar_list"
+grep -q "^$package_name/fixtures/arena/docs-release-proof-drift/diff.patch$" "$tar_list"
+grep -q "^$package_name/fixtures/arena/docs-release-proof-drift/run.md$" "$tar_list"
+grep -q "^$package_name/fixtures/arena/docs-release-proof-drift/task.md$" "$tar_list"
+grep -q "^$package_name/fixtures/arena/docs-release-proof-drift/tests.log$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/frontend-async-state-regression/diff.patch$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/frontend-async-state-regression/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/frontend-async-state-regression/task.md$" "$tar_list"
@@ -229,7 +233,8 @@ grep -q '"verdict": "usable maintainer-quality run"' "$tmp_dir/package-autopsy/r
 "$package_root/bin/codex-maintainer" arena run \
   --fixture "$package_root/fixtures/arena" \
   --out "$tmp_dir/package-arena" >/dev/null
-grep -q '"average_total": 6.67' "$tmp_dir/package-arena/results.json"
+grep -q '"case_count": 10' "$tmp_dir/package-arena/results.json"
+grep -q '"average_total": 7.00' "$tmp_dir/package-arena/results.json"
 grep -q '"high_risk_finding_count": 8' "$tmp_dir/package-arena/results.json"
 mkdir -p "$tmp_dir/package-eight-case-fixture"
 for case_id in \
@@ -251,7 +256,8 @@ done
   --right "$tmp_dir/package-arena/results.json" \
   --out "$tmp_dir/package-arena-compare" >/dev/null
 grep -q '"status" : "improved"' "$tmp_dir/package-arena-compare/arena-compare.json"
-grep -q '"average_total_delta" : 0.42' "$tmp_dir/package-arena-compare/arena-compare.json"
+grep -q '"average_total_delta" : 0.75' "$tmp_dir/package-arena-compare/arena-compare.json"
+grep -q '"id" : "docs-release-proof-drift"' "$tmp_dir/package-arena-compare/arena-compare.json"
 grep -q '"id" : "frontend-async-state-regression"' "$tmp_dir/package-arena-compare/arena-compare.json"
 "$package_root/bin/codex-maintainer" arena import \
   --source "$package_root/fixtures/external-arena-pack" \
@@ -310,7 +316,7 @@ grep -q '"url" : "https://api.github.com/repos/owner/repo/check-runs"' "$tmp_dir
   --arena-results "$tmp_dir/package-arena/results.json" \
   --out "$tmp_dir/package-leaderboard.json" >/dev/null
 grep -q '"schema_version": "1.0"' "$tmp_dir/package-leaderboard.json"
-grep -q '"average_total": 6.67' "$tmp_dir/package-leaderboard.json"
+grep -q '"average_total": 7.00' "$tmp_dir/package-leaderboard.json"
 "$package_root/bin/codex-maintainer" release-manifest \
   --tarball "$tarball" \
   --out "$tmp_dir/package-release-proof" \
