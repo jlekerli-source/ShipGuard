@@ -31,6 +31,7 @@ grep -q './tests/sarif_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/next_goal_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/release_index_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/release_manifest_test.sh' "$tmp_dir/NEXT_GOAL.md"
+grep -q './tests/release_replay_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './bin/codex-maintainer next-goal --out NEXT_GOAL.md' "$tmp_dir/NEXT_GOAL.md"
 
 if ./bin/codex-maintainer next-goal --release nope >/dev/null 2>&1; then

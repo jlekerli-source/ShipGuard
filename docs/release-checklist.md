@@ -23,6 +23,7 @@ Use this checklist for every release after `v2.0.0`.
 ./tests/next_goal_test.sh
 ./tests/release_index_test.sh
 ./tests/release_manifest_test.sh
+./tests/release_replay_test.sh
 ./tests/package_release_test.sh
 ```
 
@@ -34,6 +35,7 @@ shasum -a 256 dist/codex-maintainer-vX.Y.Z.tar.gz
 ./bin/codex-maintainer release-manifest --tarball dist/codex-maintainer-vX.Y.Z.tar.gz --out /tmp/codex-maintainer-release-proof
 ./bin/codex-maintainer release-manifest verify --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --tarball dist/codex-maintainer-vX.Y.Z.tar.gz
 ./bin/codex-maintainer release-index build --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --out /tmp/codex-maintainer-release-index
+./bin/codex-maintainer release-replay verify --manifest /tmp/codex-maintainer-release-proof/release-manifest.json --tarball dist/codex-maintainer-vX.Y.Z.tar.gz --index /tmp/codex-maintainer-release-index/release-index.json --ledger /tmp/codex-maintainer-release-proof/proof-ledger.md --out /tmp/codex-maintainer-release-replay
 ```
 
 Before publishing, confirm:

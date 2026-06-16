@@ -76,6 +76,9 @@ jobs:
       - name: Run release index tests
         run: ./tests/release_index_test.sh
 
+      - name: Run release replay tests
+        run: ./tests/release_replay_test.sh
+
       - name: Run release package tests
         run: ./tests/package_release_test.sh
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.4.0 - Release Forensics And Asset Replay
+
+- Added `codex-maintainer release-replay verify` for replay-verifying downloaded release assets.
+- Added `replay-report.json` and `replay-report.md` outputs with manifest, tarball, release-index, and proof-ledger checks.
+- Added tarball runtime-file checks, forbidden-entry checks, and private-path or secret-looking token scans.
+- Added release-replay docs, tests, self-audit coverage, CI coverage, next-goal proof, and package verification.
+
 ## v3.3.0 - Release Index And Proof Catalog
 
 - Added `codex-maintainer release-index build` for cataloging release manifest files.

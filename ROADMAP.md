@@ -25,6 +25,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep release packaging and installer scripts reproducible.
 - Keep release manifests and proof ledgers reproducible from local release artifacts.
 - Keep release proof indexes deterministic and based on verified manifests.
+- Keep release replay reports deterministic for downloaded tarball, manifest, index, and ledger assets.
 - Keep the reusable GitHub Action aligned with the CLI validator.
 - Maintain the public examples, scorecard, autopsy fixtures, and iOS starter template as the workflow evolves.
 - Keep the adoption docs and GitHub Pages shell current with each release.

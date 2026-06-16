@@ -9,7 +9,7 @@ tarball="$(./scripts/package_release.sh)"
   --tarball "$tarball" \
   --out /tmp/codex-maintainer-release-proof \
   --ci-run-url "https://github.com/owner/repo/actions/runs/123" \
-  --release-url "https://github.com/owner/repo/releases/tag/v3.3.0" \
+  --release-url "https://github.com/owner/repo/releases/tag/v3.4.0" \
   --issue-url "https://github.com/owner/repo/issues/37"
 ```
 
@@ -38,4 +38,4 @@ The manifest records:
 
 The proof ledger is meant for release notes and maintainer audits. It lists the release artifact digest and the manual checks that must be confirmed after publishing.
 
-Verification checks schema version, optional expected version and tag, commit presence, artifact name, byte count, SHA-256, and whether the artifact path is portable. It does not publish a release, close issues, or verify remote GitHub state.
+Verification checks schema version, optional expected version and tag, commit presence, artifact name, byte count, SHA-256, and whether the artifact path is portable. Use `codex-maintainer release-replay verify` after downloading release assets when you also want package-entry, release-index, proof-ledger, and private-path checks. Neither command publishes a release, closes issues, or verifies remote GitHub state.

@@ -70,6 +70,7 @@ commands=(
   "release-index build --help"
   "release-manifest --help"
   "release-manifest verify --help"
+  "release-replay verify --help"
   "self-audit --help"
   "next-goal --help"
 )
@@ -97,6 +98,7 @@ required_artifacts=(
   "docs/template-profiles.md"
   "docs/release-manifest.md"
   "docs/release-index.md"
+  "docs/release-replay.md"
   "templates/web/AGENTS.md"
   "templates/backend/AGENTS.md"
   "templates/cli/AGENTS.md"
@@ -105,6 +107,7 @@ required_artifacts=(
   "scripts/arena_verify.sh"
   "scripts/release_index.sh"
   "scripts/release_manifest.sh"
+  "scripts/release_replay.sh"
 )
 
 artifact_count=0

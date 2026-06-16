@@ -40,6 +40,7 @@ grep -q "^$package_name/docs/pr-review-bot.md$" "$tar_list"
 grep -q "^$package_name/docs/release-checklist.md$" "$tar_list"
 grep -q "^$package_name/docs/release-index.md$" "$tar_list"
 grep -q "^$package_name/docs/release-manifest.md$" "$tar_list"
+grep -q "^$package_name/docs/release-replay.md$" "$tar_list"
 grep -q "^$package_name/docs/sarif.md$" "$tar_list"
 grep -q "^$package_name/docs/template-profiles.md$" "$tar_list"
 grep -q "^$package_name/scripts/install.sh$" "$tar_list"
@@ -57,6 +58,7 @@ grep -q "^$package_name/scripts/next_goal.sh$" "$tar_list"
 grep -q "^$package_name/scripts/policy.sh$" "$tar_list"
 grep -q "^$package_name/scripts/release_index.sh$" "$tar_list"
 grep -q "^$package_name/scripts/release_manifest.sh$" "$tar_list"
+grep -q "^$package_name/scripts/release_replay.sh$" "$tar_list"
 grep -q "^$package_name/scripts/review_comment.sh$" "$tar_list"
 grep -q "^$package_name/scripts/sarif.sh$" "$tar_list"
 grep -q "^$package_name/scripts/self_audit.sh$" "$tar_list"
@@ -75,6 +77,7 @@ grep -q "^$package_name/tests/next_goal_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/policy_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_index_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_manifest_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/release_replay_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/review_comment_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/sarif_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/self_audit_test.sh$" "$tar_list"
@@ -222,6 +225,15 @@ grep -q 'Artifact SHA-256:' "$tmp_dir/package-release-proof/proof-ledger.md"
   --out "$tmp_dir/package-release-index" >/dev/null
 grep -q '"release_count" : 1' "$tmp_dir/package-release-index/release-index.json"
 grep -q '| '"$version"' | v'"$version"' | 0123456789ab | codex-maintainer-v'"$version"'.tar.gz |' "$tmp_dir/package-release-index/release-index.md"
+"$package_root/bin/codex-maintainer" release-replay verify \
+  --manifest "$tmp_dir/package-release-proof/release-manifest.json" \
+  --tarball "$tarball" \
+  --index "$tmp_dir/package-release-index/release-index.json" \
+  --ledger "$tmp_dir/package-release-proof/proof-ledger.md" \
+  --out "$tmp_dir/package-release-replay" >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/package-release-replay/replay-report.json"
+grep -q '"name": "artifact sha256"' "$tmp_dir/package-release-replay/replay-report.json"
+grep -q '# Release Replay Report' "$tmp_dir/package-release-replay/replay-report.md"
 "$package_root/bin/codex-maintainer" self-audit \
   --out "$tmp_dir/package-self-audit" >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/package-self-audit/self-audit.json"
@@ -229,6 +241,7 @@ grep -q '| codex-maintainer leaderboard build --help | pass |' "$tmp_dir/package
 grep -q '| codex-maintainer release-index build --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| codex-maintainer release-manifest --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| codex-maintainer release-manifest verify --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| codex-maintainer release-replay verify --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 "$package_root/bin/codex-maintainer" sarif \
   --report "$tmp_dir/package-autopsy/report.json" \
   --out "$tmp_dir/package-sarif/results.sarif" >/dev/null
@@ -247,6 +260,7 @@ grep -q './tests/ci_summary_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/sarif_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_index_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/release_manifest_test.sh' "$tmp_dir/package-next-goal.md"
+grep -q './tests/release_replay_test.sh' "$tmp_dir/package-next-goal.md"
 
 install_prefix="$tmp_dir/install"
 PREFIX="$install_prefix" "$package_root/scripts/install.sh" >/dev/null

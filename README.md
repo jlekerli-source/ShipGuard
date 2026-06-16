@@ -17,8 +17,8 @@ The goal is simple: make AI-assisted coding repeatable, reviewable, and useful f
 Install from a release tarball:
 
 ```bash
-tar -xzf codex-maintainer-v3.3.0.tar.gz
-cd codex-maintainer-v3.3.0
+tar -xzf codex-maintainer-v3.4.0.tar.gz
+cd codex-maintainer-v3.4.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/codex-maintainer" version
 ```
@@ -42,6 +42,7 @@ Read the guided setup first:
 - `docs/release-checklist.md`: release proof commands and publishing checks.
 - `docs/release-index.md`: release proof catalog generation from manifests.
 - `docs/release-manifest.md`: release tarball manifest and proof ledger output.
+- `docs/release-replay.md`: replay verification for downloaded release assets.
 - `docs/sarif.md`: convert Autopsy findings into SARIF for CI consumers.
 - `docs/template-profiles.md`: iOS, web, backend, and CLI starter profile usage.
 - `docs/use-in-your-repo.md`: copy/paste setup for another repository.
@@ -87,9 +88,10 @@ For CI-consumable findings, run `./bin/codex-maintainer sarif --report /tmp/auto
 For workflow-run summaries, run `./bin/codex-maintainer ci-summary --gate /tmp/codex-gate/gate.json --out /tmp/codex-gate/summary.md`.
 For Check Run payloads, run `./bin/codex-maintainer check-run --gate /tmp/codex-gate/gate.json --head-sha "$GITHUB_SHA" --out /tmp/codex-gate/check-run/payload.json`.
 To post a Check Run after reviewing the payload, run `./bin/codex-maintainer check-run post --payload /tmp/codex-gate/check-run/payload.json --repo "$GITHUB_REPOSITORY" --out /tmp/codex-gate/check-run/response.json`.
-For release proof files, run `./bin/codex-maintainer release-manifest --tarball dist/codex-maintainer-v3.3.0.tar.gz --out /tmp/release-proof`.
-To verify release proof files, run `./bin/codex-maintainer release-manifest verify --manifest /tmp/release-proof/release-manifest.json --tarball dist/codex-maintainer-v3.3.0.tar.gz`.
+For release proof files, run `./bin/codex-maintainer release-manifest --tarball dist/codex-maintainer-v3.4.0.tar.gz --out /tmp/release-proof`.
+To verify release proof files, run `./bin/codex-maintainer release-manifest verify --manifest /tmp/release-proof/release-manifest.json --tarball dist/codex-maintainer-v3.4.0.tar.gz`.
 To catalog release proof files, run `./bin/codex-maintainer release-index build --manifest /tmp/release-proof/release-manifest.json --out /tmp/release-index`.
+To replay release proof from downloaded assets, run `./bin/codex-maintainer release-replay verify --manifest /tmp/release-proof/release-manifest.json --tarball dist/codex-maintainer-v3.4.0.tar.gz --index /tmp/release-index/release-index.json --ledger /tmp/release-proof/proof-ledger.md --out /tmp/release-replay`.
 
 ## What Is Inside
 
@@ -119,6 +121,7 @@ To catalog release proof files, run `./bin/codex-maintainer release-index build 
 - `docs/release-checklist.md`: release validation and publishing checklist.
 - `docs/release-index.md`: release proof catalog generation.
 - `docs/release-manifest.md`: release manifest and proof-ledger generation.
+- `docs/release-replay.md`: downloaded release asset replay verification.
 - `docs/sarif.md`: SARIF export for Autopsy findings and CI gate artifacts.
 - `docs/template-profiles.md`: profile docs for iOS, web, backend, and CLI workflow starters.
 - `docs/github-action.md`: usage guide for the reusable action.
