@@ -37,7 +37,7 @@ In GitHub Actions, let `actions/release-evidence-verify` download and verify the
 
 ```yaml
 - name: Verify release evidence artifact
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.23.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.24.0
   with:
     download-artifact: true
     source-artifact-name: codex-maintainer-release-evidence
@@ -58,5 +58,15 @@ Each negative fixture should exit nonzero while still writing:
 - `evidence-verify.json` with `status` set to `blocked`
 - `evidence-verify.md` with the failed check
 - `badge.json` with `message` set to `blocked`
+
+Use `negative-index` to run the full fixture manifest and publish a compact guardrail report:
+
+```bash
+./bin/codex-maintainer release-evidence negative-index \
+  --fixture fixtures/release-evidence/negative \
+  --out /tmp/codex-maintainer-negative-evidence
+```
+
+The command reads `cases.tsv`, runs every case through `release-evidence verify`, and writes `negative-fixture-index.json`, `negative-fixture-index.md`, `badge.json`, plus per-case verifier outputs under `runs/<case>/`. It passes only when every listed negative fixture blocks on its expected check.
 
 See `release-evidence-action.md` for producing the artifact and `../examples/workflows/release-evidence-consume.yml` for the full two-job workflow.

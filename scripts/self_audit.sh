@@ -79,6 +79,7 @@ commands=(
   "release-evidence index --help"
   "release-evidence bundle --help"
   "release-evidence verify --help"
+  "release-evidence negative-index --help"
   "self-audit --help"
   "next-goal --help"
 )
@@ -139,6 +140,7 @@ required_artifacts=(
   "templates/cli/AGENTS.md"
   "fixtures/external-arena-pack/imported-clean/run.md"
   "fixtures/release-evidence/negative/README.md"
+  "fixtures/release-evidence/negative/cases.tsv"
   "scripts/arena_sign.sh"
   "scripts/arena_verify.sh"
   "scripts/release_attest.sh"

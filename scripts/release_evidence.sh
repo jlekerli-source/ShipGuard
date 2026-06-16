@@ -13,6 +13,7 @@ Usage:
   codex-maintainer release-evidence index --site <evidence-site-dir> [--site <evidence-site-dir> ...] --out <dir> [--title <title>]
   codex-maintainer release-evidence bundle --assets <release-assets-dir> --out <dir> [--version <version>] [--left <previous-release-assets-dir>] [--title <title>] [--index-title <title>]
   codex-maintainer release-evidence verify --dir <evidence-artifact-dir> --out <dir> [--require-diff auto|true|false] [--require-index auto|true|false]
+  codex-maintainer release-evidence negative-index --fixture <negative-fixture-dir> --out <dir> [--title <title>]
 
 Inputs:
   --consume must contain consumer-report.json and asset-digests.json.
@@ -47,6 +48,14 @@ Verify outputs:
   evidence-verify.json
   evidence-verify.md
   badge.json
+
+Negative fixture index outputs:
+  negative-fixture-index.json
+  negative-fixture-index.md
+  badge.json
+  runs/<case>/evidence-verify.json
+  runs/<case>/evidence-verify.md
+  runs/<case>/badge.json
 USAGE
 }
 
@@ -1129,8 +1138,204 @@ exit($status eq 'pass' ? 0 : 1);
 PERL
 }
 
+cmd_negative_index() {
+  local fixture_dir=""
+  local out_dir=""
+  local title="Release Evidence Negative Fixture Index"
+
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+      --fixture)
+        [[ "$#" -ge 2 && -n "${2:-}" ]] || fail "--fixture requires a value"
+        fixture_dir="$2"
+        shift 2
+        ;;
+      --out)
+        [[ "$#" -ge 2 && -n "${2:-}" ]] || fail "--out requires a value"
+        out_dir="$2"
+        shift 2
+        ;;
+      --title)
+        [[ "$#" -ge 2 && -n "${2:-}" ]] || fail "--title requires a value"
+        title="$2"
+        shift 2
+        ;;
+      --help|-h)
+        usage
+        exit 0
+        ;;
+      *)
+        fail "unknown negative-index argument: $1"
+        ;;
+    esac
+  done
+
+  [[ -n "$fixture_dir" ]] || fail "--fixture is required"
+  [[ -n "$out_dir" ]] || fail "--out is required"
+  [[ -d "$fixture_dir" ]] || fail "negative fixture directory not found: $fixture_dir"
+  [[ -f "$fixture_dir/cases.tsv" ]] || fail "missing cases.tsv in $fixture_dir"
+
+  mkdir -p "$out_dir/runs"
+
+  local tool_version
+  tool_version="$(sed -n '1p' "$tool_root/VERSION")"
+  local generated_at="${CODEX_MAINTAINER_GENERATED_AT:-$(date -u '+%Y-%m-%dT%H:%M:%SZ')}"
+  local results_file="$out_dir/results.tsv"
+  : > "$results_file"
+
+  local case_name expected_check description case_dir run_dir exit_code
+  local blocked expected_failed badge_blocked files_present case_status
+  local case_count=0
+  local expected_blocked_count=0
+  local passed_count=0
+  local failed_count=0
+
+  while IFS=$'\t' read -r case_name expected_check description || [[ -n "$case_name" ]]; do
+    [[ -n "$case_name" ]] || continue
+    [[ "${case_name:0:1}" != "#" ]] || continue
+    [[ "$case_name" != "case" ]] || continue
+    [[ "$case_name" =~ ^[A-Za-z0-9._-]+$ ]] || fail "invalid case name in cases.tsv: $case_name"
+    [[ -n "$expected_check" ]] || fail "missing expected_check for case: $case_name"
+
+    case_count=$((case_count + 1))
+    case_dir="$fixture_dir/$case_name"
+    run_dir="$out_dir/runs/$case_name"
+    [[ -d "$case_dir" ]] || fail "negative fixture case directory not found: $case_dir"
+    mkdir -p "$run_dir"
+
+    if CODEX_MAINTAINER_GENERATED_AT="$generated_at" "$tool_root/bin/codex-maintainer" \
+      release-evidence verify \
+      --dir "$case_dir" \
+      --out "$run_dir" >/dev/null 2>&1; then
+      exit_code=0
+    else
+      exit_code=$?
+    fi
+
+    files_present=false
+    if [[ -f "$run_dir/evidence-verify.json" && -f "$run_dir/evidence-verify.md" && -f "$run_dir/badge.json" ]]; then
+      files_present=true
+    fi
+
+    blocked=false
+    if [[ -f "$run_dir/evidence-verify.json" ]] && grep -q '"status" : "blocked"' "$run_dir/evidence-verify.json"; then
+      blocked=true
+    fi
+
+    expected_failed=false
+    if [[ -f "$run_dir/evidence-verify.md" ]] && grep -Fq "| $expected_check | fail |" "$run_dir/evidence-verify.md"; then
+      expected_failed=true
+    fi
+
+    badge_blocked=false
+    if [[ -f "$run_dir/badge.json" ]] && grep -q '"message" : "blocked"' "$run_dir/badge.json"; then
+      badge_blocked=true
+    fi
+
+    case_status=fail
+    if [[ "$exit_code" -ne 0 && "$files_present" == "true" && "$blocked" == "true" && "$expected_failed" == "true" && "$badge_blocked" == "true" ]]; then
+      case_status=pass
+      expected_blocked_count=$((expected_blocked_count + 1))
+      passed_count=$((passed_count + 1))
+    else
+      failed_count=$((failed_count + 1))
+    fi
+
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+      "$case_name" "$expected_check" "${description:-}" "$case_status" "$exit_code" \
+      "$blocked" "$expected_failed" "$badge_blocked" >> "$results_file"
+  done < "$fixture_dir/cases.tsv"
+
+  [[ "$case_count" -gt 0 ]] || fail "cases.tsv must contain at least one case"
+
+  local status="pass"
+  [[ "$failed_count" -ne 0 ]] && status="blocked"
+
+  {
+    echo "{"
+    echo "  \"schema_version\" : \"1.0\","
+    echo "  \"tool_version\" : $(json_string "$tool_version"),"
+    echo "  \"generated_at\" : $(json_string "$generated_at"),"
+    echo "  \"title\" : $(json_string "$title"),"
+    echo "  \"status\" : $(json_string "$status"),"
+    echo "  \"fixture_dir\" : $(json_string "$fixture_dir"),"
+    echo "  \"case_count\" : $case_count,"
+    echo "  \"expected_blocked_count\" : $expected_blocked_count,"
+    echo "  \"passed_count\" : $passed_count,"
+    echo "  \"failed_count\" : $failed_count,"
+    echo "  \"cases\" : ["
+    local first=true
+    while IFS=$'\t' read -r case_name expected_check description case_status exit_code blocked expected_failed badge_blocked; do
+      if [[ "$first" == "true" ]]; then
+        first=false
+      else
+        echo ","
+      fi
+      echo "    {"
+      echo "      \"name\" : $(json_string "$case_name"),"
+      echo "      \"expected_check\" : $(json_string "$expected_check"),"
+      echo "      \"description\" : $(json_string "$description"),"
+      echo "      \"status\" : $(json_string "$case_status"),"
+      echo "      \"verify_exit_code\" : $exit_code,"
+      echo "      \"blocked\" : $blocked,"
+      echo "      \"expected_check_failed\" : $expected_failed,"
+      echo "      \"badge_blocked\" : $badge_blocked,"
+      echo "      \"report\" : $(json_string "runs/$case_name/evidence-verify.json"),"
+      echo "      \"markdown\" : $(json_string "runs/$case_name/evidence-verify.md"),"
+      echo "      \"badge\" : $(json_string "runs/$case_name/badge.json")"
+      echo -n "    }"
+    done < "$results_file"
+    echo
+    echo "  ]"
+    echo "}"
+  } > "$out_dir/negative-fixture-index.json"
+
+  {
+    echo "# $title"
+    echo
+    echo "- Generated: $generated_at"
+    echo "- Status: $status"
+    echo "- Fixture directory: $fixture_dir"
+    echo "- Cases: $case_count"
+    echo "- Expected blocked cases: $expected_blocked_count"
+    echo "- Failed index checks: $failed_count"
+    echo
+    echo "| Case | Status | Expected blocked check | Verify exit | Blocked report | Badge blocked | Description |"
+    echo "| --- | --- | --- | --- | --- | --- | --- |"
+    while IFS=$'\t' read -r case_name expected_check description case_status exit_code blocked expected_failed badge_blocked; do
+      local safe_description="$description"
+      safe_description="${safe_description//|/\\|}"
+      echo "| $case_name | $case_status | $expected_check | $exit_code | $blocked | $badge_blocked | $safe_description |"
+    done < "$results_file"
+    echo
+    echo "Per-case verifier outputs are under \`runs/<case>/\`."
+  } > "$out_dir/negative-fixture-index.md"
+
+  {
+    echo "{"
+    echo "  \"schemaVersion\" : 1,"
+    echo "  \"label\" : \"negative evidence fixtures\","
+    if [[ "$status" == "pass" ]]; then
+      echo "  \"message\" : \"pass $passed_count/$case_count\","
+      echo "  \"color\" : \"brightgreen\""
+    else
+      echo "  \"message\" : \"blocked $failed_count/$case_count\","
+      echo "  \"color\" : \"red\""
+    fi
+    echo "}"
+  } > "$out_dir/badge.json"
+
+  rm -f "$results_file"
+
+  echo "wrote: $out_dir/negative-fixture-index.json"
+  echo "wrote: $out_dir/negative-fixture-index.md"
+  echo "wrote: $out_dir/badge.json"
+  echo "status: $status"
+  [[ "$status" == "pass" ]]
+}
+
 subcommand="${1:-}"
-[[ "$subcommand" == "site" || "$subcommand" == "index" || "$subcommand" == "bundle" || "$subcommand" == "verify" ]] || fail "release-evidence requires subcommand: site, index, bundle, or verify"
+[[ "$subcommand" == "site" || "$subcommand" == "index" || "$subcommand" == "bundle" || "$subcommand" == "verify" || "$subcommand" == "negative-index" ]] || fail "release-evidence requires subcommand: site, index, bundle, verify, or negative-index"
 shift || true
 case "$subcommand" in
   site)
@@ -1144,5 +1349,8 @@ case "$subcommand" in
     ;;
   verify)
     cmd_verify "$@"
+    ;;
+  negative-index)
+    cmd_negative_index "$@"
     ;;
 esac

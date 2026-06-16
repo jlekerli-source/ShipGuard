@@ -9,6 +9,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 cd "$repo_root"
 
 ./bin/codex-maintainer release-evidence verify --help >/dev/null
+./bin/codex-maintainer release-evidence negative-index --help >/dev/null
 
 version="$(sed -n '1p' VERSION)"
 bundle="$tmp_dir/release-proof-bundle"
@@ -124,5 +125,24 @@ expect_negative_fixture "missing-source" "asset digests source present"
 expect_negative_fixture "consumer-mismatch" "consumer release matches evidence"
 expect_negative_fixture "digest-summary-mismatch" "asset digest summary matches"
 expect_negative_fixture "bundle-missing-output" "bundle evidence index output"
+
+CODEX_MAINTAINER_GENERATED_AT="2026-06-16T00:00:00Z" \
+  ./bin/codex-maintainer release-evidence negative-index \
+    --fixture fixtures/release-evidence/negative \
+    --out "$tmp_dir/negative-index" \
+    --title "Release Evidence Negative Fixture Index" >/dev/null
+
+test -f "$tmp_dir/negative-index/negative-fixture-index.json"
+test -f "$tmp_dir/negative-index/negative-fixture-index.md"
+test -f "$tmp_dir/negative-index/badge.json"
+test -f "$tmp_dir/negative-index/runs/missing-source/evidence-verify.json"
+grep -q '"status" : "pass"' "$tmp_dir/negative-index/negative-fixture-index.json"
+grep -q '"case_count" : 4' "$tmp_dir/negative-index/negative-fixture-index.json"
+grep -q '"expected_blocked_count" : 4' "$tmp_dir/negative-index/negative-fixture-index.json"
+grep -q '"message" : "pass 4/4"' "$tmp_dir/negative-index/badge.json"
+grep -q '| missing-source | pass | asset digests source present |' "$tmp_dir/negative-index/negative-fixture-index.md"
+grep -q '| consumer-mismatch | pass | consumer release matches evidence |' "$tmp_dir/negative-index/negative-fixture-index.md"
+grep -q '| digest-summary-mismatch | pass | asset digest summary matches |' "$tmp_dir/negative-index/negative-fixture-index.md"
+grep -q '| bundle-missing-output | pass | bundle evidence index output |' "$tmp_dir/negative-index/negative-fixture-index.md"
 
 echo "release evidence verify tests passed"

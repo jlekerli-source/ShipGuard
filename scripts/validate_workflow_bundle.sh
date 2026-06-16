@@ -124,6 +124,7 @@ required_files=(
   "fixtures/external-arena-pack/imported-risky/run.md"
   "fixtures/external-arena-pack/imported-risky/task.md"
   "fixtures/release-evidence/negative/README.md"
+  "fixtures/release-evidence/negative/cases.tsv"
   "fixtures/release-evidence/negative/missing-source/site/evidence.json"
   "fixtures/release-evidence/negative/consumer-mismatch/site/evidence.json"
   "fixtures/release-evidence/negative/digest-summary-mismatch/site/evidence.json"

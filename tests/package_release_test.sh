@@ -137,6 +137,7 @@ grep -q "^$package_name/fixtures/external-arena-pack/imported-clean/run.md$" "$t
 grep -q "^$package_name/fixtures/external-arena-pack/imported-risky/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/autopsy/good-run/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/release-evidence/negative/README.md$" "$tar_list"
+grep -q "^$package_name/fixtures/release-evidence/negative/cases.tsv$" "$tar_list"
 grep -q "^$package_name/fixtures/release-evidence/negative/missing-source/site/evidence.json$" "$tar_list"
 grep -q "^$package_name/fixtures/release-evidence/negative/consumer-mismatch/site/evidence.json$" "$tar_list"
 grep -q "^$package_name/fixtures/release-evidence/negative/digest-summary-mismatch/site/evidence.json$" "$tar_list"
@@ -365,6 +366,16 @@ test -f "$tmp_dir/package-release-evidence-verify/badge.json"
 grep -q '"status" : "pass"' "$tmp_dir/package-release-evidence-verify/evidence-verify.json"
 grep -q '"bundle_present" : true' "$tmp_dir/package-release-evidence-verify/evidence-verify.json"
 grep -q '"message" : "pass v'"$version"'"' "$tmp_dir/package-release-evidence-verify/badge.json"
+"$package_root/bin/codex-maintainer" release-evidence negative-index \
+  --fixture "$package_root/fixtures/release-evidence/negative" \
+  --out "$tmp_dir/package-release-evidence-negative-index" >/dev/null
+test -f "$tmp_dir/package-release-evidence-negative-index/negative-fixture-index.json"
+test -f "$tmp_dir/package-release-evidence-negative-index/negative-fixture-index.md"
+test -f "$tmp_dir/package-release-evidence-negative-index/badge.json"
+grep -q '"status" : "pass"' "$tmp_dir/package-release-evidence-negative-index/negative-fixture-index.json"
+grep -q '"case_count" : 4' "$tmp_dir/package-release-evidence-negative-index/negative-fixture-index.json"
+grep -q '"expected_blocked_count" : 4' "$tmp_dir/package-release-evidence-negative-index/negative-fixture-index.json"
+grep -q '"message" : "pass 4/4"' "$tmp_dir/package-release-evidence-negative-index/badge.json"
 test -f "$package_root/actions/release-diff/action.yml"
 grep -q 'release-diff compare' "$package_root/actions/release-diff/action.yml"
 grep -q 'actions/upload-artifact@v4' "$package_root/actions/release-diff/action.yml"
@@ -408,6 +419,7 @@ grep -q '| codex-maintainer release-evidence site --help | pass |' "$tmp_dir/pac
 grep -q '| codex-maintainer release-evidence index --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| codex-maintainer release-evidence bundle --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| codex-maintainer release-evidence verify --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| codex-maintainer release-evidence negative-index --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| actions/release-consume/action.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| actions/release-diff/action.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| actions/release-evidence/action.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -434,6 +446,7 @@ grep -q '| examples/workflows/release-evidence-bundle.yml | pass |' "$tmp_dir/pa
 grep -q '| examples/workflows/release-evidence-consume.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| examples/workflows/release-evidence-export.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/release-evidence/negative/README.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| fixtures/release-evidence/negative/cases.tsv | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| examples/release-proof-consumption-checklist.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 "$package_root/bin/codex-maintainer" sarif \
   --report "$tmp_dir/package-autopsy/report.json" \

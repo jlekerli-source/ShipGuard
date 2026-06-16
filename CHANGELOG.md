@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.24.0 - Release Evidence Negative Fixture Index
+
+- Added `codex-maintainer release-evidence negative-index` to run the checked-in negative fixture manifest and publish JSON, Markdown, badge, and per-case verifier outputs.
+- Added `fixtures/release-evidence/negative/cases.tsv` so expected blocked checks are data-driven instead of only hardcoded in tests.
+- Extended source validation, self-audit, docs, and package proof coverage for the negative fixture index path.
+
 ## v3.23.0 - Release Evidence Verification Negative Fixtures
 
 - Added checked-in negative fixtures for `release-evidence verify`, covering missing source reports, consumer/evidence release mismatches, digest summary mismatches, and missing bundle outputs.

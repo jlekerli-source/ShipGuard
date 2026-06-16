@@ -42,6 +42,7 @@ Usage:
   codex-maintainer release-evidence index --site <evidence-site-dir> [--site <evidence-site-dir> ...] --out <dir> [--title <title>]
   codex-maintainer release-evidence bundle --assets <release-assets-dir> --out <dir> [--version <version>] [--left <previous-release-assets-dir>] [--title <title>] [--index-title <title>]
   codex-maintainer release-evidence verify --dir <evidence-artifact-dir> --out <dir> [--require-diff auto|true|false] [--require-index auto|true|false]
+  codex-maintainer release-evidence negative-index --fixture <negative-fixture-dir> --out <dir> [--title <title>]
   codex-maintainer self-audit [--out <dir>]
   codex-maintainer next-goal [--out <file>] [--release <version>] [--title <title>]
   codex-maintainer version

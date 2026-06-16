@@ -1,0 +1,5 @@
+case	expected_check	description
+missing-source	asset digests source present	evidence.json points at a missing asset-digests source
+consumer-mismatch	consumer release matches evidence	consumer proof reports a different release than the evidence page
+digest-summary-mismatch	asset digest summary matches	asset digest source rows do not match the evidence summary
+bundle-missing-output	bundle evidence index output	bundle manifest points at a missing evidence index output

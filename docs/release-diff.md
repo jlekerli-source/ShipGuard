@@ -7,7 +7,7 @@ Use it when you want to answer what changed between two published or locally bui
 ```bash
 ./bin/codex-maintainer release-diff compare \
   --left /tmp/codex-maintainer-old \
-  --right /tmp/codex-maintainer-v3.23.0 \
+  --right /tmp/codex-maintainer-v3.24.0 \
   --out /tmp/codex-maintainer-release-diff
 ```
 
