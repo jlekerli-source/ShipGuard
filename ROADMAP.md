@@ -4,19 +4,18 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 
 ## Now
 
-- Tighten the root `AGENTS.md` template for iOS projects with alarms, notifications, widgets, payments, and release gates.
-- Add small Codex skills that can be copied into other repositories.
-- Keep the evaluation suite realistic and tied to product-maintenance risk.
-- Maintain the public examples and scorecard as the workflow evolves.
+- Keep the CLI stable for `init`, `validate`, `doctor`, and `score`.
+- Keep the reusable GitHub Action aligned with the CLI validator.
+- Maintain the public examples, scorecard, and iOS starter template as the workflow evolves.
 
 ## Next
 
 - Add more anonymized transcripts from real maintenance work.
 - Add template variants for non-iOS apps, including a web-app workflow kit.
-- Add a simple changelog once the workflow stabilizes beyond v0.1.x.
+- Add a simple changelog once the workflow stabilizes beyond v0.3.x.
 
 ## Later
 
 - Publish a small collection of anonymized maintainer workflows from real Ringly work.
-- Add GitHub Actions for markdown linting and shell syntax checks.
+- Add stricter markdown linting and shell linting when dependency cost is justified.
 - Build a comparison matrix against other agent-workflow formats.

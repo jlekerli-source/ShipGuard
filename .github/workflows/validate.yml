@@ -14,4 +14,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate workflow bundle
-        run: ./scripts/validate_workflow_bundle.sh
+        run: ./bin/codex-maintainer validate
+
+      - name: Run CLI smoke tests
+        run: ./tests/cli_smoke_test.sh
+
+      - name: Validate through reusable action
+        uses: ./actions/validate

@@ -14,6 +14,18 @@ The goal is simple: make AI-assisted coding repeatable, reviewable, and useful f
 
 ## Quick Start
 
+Validate this workflow bundle:
+
+```bash
+./bin/codex-maintainer validate
+```
+
+Copy the iOS starter into another project:
+
+```bash
+./bin/codex-maintainer init ios ../my-ios-app
+```
+
 1. Copy `AGENTS.md` into your repo root and replace the Ringly-specific paths with your project paths.
 2. Use `PLANS.md` before risky work, release work, or changes that touch persistence, notifications, payments, or app lifecycle code.
 3. Pick the relevant skill under `.agents/skills/` and paste it into your Codex task context.
@@ -22,12 +34,6 @@ The goal is simple: make AI-assisted coding repeatable, reviewable, and useful f
 
 For a worked example, read `examples/issue-to-plan-to-validation.md`.
 
-To validate this workflow bundle itself:
-
-```bash
-./scripts/validate_workflow_bundle.sh
-```
-
 ## What Is Inside
 
 - `AGENTS.md`: a root instruction template for mobile-app maintenance with high-risk feature areas.
@@ -35,6 +41,10 @@ To validate this workflow bundle itself:
 - `SUBAGENTS.md`: inspector, implementer, tester, and reviewer roles for larger Codex tasks.
 - `.agents/skills/`: reusable Codex skills for alarm testing, notification permissions, UI polish, release checklists, and bug triage.
 - `scripts/`: small checklists and prompts for release handoff, bug triage, and alarm/notification validation.
+- `bin/codex-maintainer`: a dependency-light CLI for init, validation, doctor checks, and run scoring.
+- `actions/validate/`: a reusable GitHub composite action for workflow-bundle validation.
+- `docs/cli.md`: command reference for the CLI.
+- `docs/github-action.md`: usage guide for the reusable action.
 - `.github/workflows/validate.yml`: a lightweight CI check for required files, skill metadata, shell syntax, and whitespace.
 - `examples/issue-to-plan-to-validation.md`: an anonymized sample from messy issue to plan, proof, and handoff.
 - `examples/prompt-pack.md`: copyable prompts for common maintainer tasks.

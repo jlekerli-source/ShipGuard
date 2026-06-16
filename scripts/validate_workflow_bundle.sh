@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+root="${1:-.}"
+cd "$root"
+
 required_files=(
   "README.md"
   "AGENTS.md"
@@ -13,10 +16,16 @@ required_files=(
   "ROADMAP.md"
   "SECURITY.md"
   "LICENSE"
+  "bin/codex-maintainer"
+  "actions/validate/action.yml"
+  "docs/cli.md"
+  "docs/github-action.md"
   "examples/issue-to-plan-to-validation.md"
   "examples/prompt-pack.md"
+  "examples/scored-run.md"
   "templates/ios/README.md"
   "templates/ios/AGENTS.md"
+  "tests/cli_smoke_test.sh"
   ".agents/skills/alarm-testing/SKILL.md"
   ".agents/skills/bug-triage/SKILL.md"
   ".agents/skills/notification-permissions/SKILL.md"
@@ -82,6 +91,10 @@ else
   echo "ruby unavailable; skipping yaml parse"
 fi
 
-git diff --check
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  git diff --check
+else
+  echo "not inside a git worktree; skipping git diff --check"
+fi
 
 echo "workflow bundle validation passed"

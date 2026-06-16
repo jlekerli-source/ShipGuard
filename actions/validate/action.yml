@@ -1,0 +1,16 @@
+name: Validate Codex workflow bundle
+description: Run the codex-maintainer validator for a workflow bundle checkout.
+
+inputs:
+  path:
+    description: Path to validate.
+    required: false
+    default: .
+
+runs:
+  using: composite
+  steps:
+    - name: Validate workflow bundle
+      shell: bash
+      run: |
+        "${{ github.action_path }}/../../bin/codex-maintainer" validate "${{ inputs.path }}"
