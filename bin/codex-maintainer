@@ -33,6 +33,7 @@ Usage:
   codex-maintainer check-run --gate <gate.json> --head-sha <sha> --out <payload.json> [--name <name>]
   codex-maintainer check-run post --payload <payload.json> --repo <owner/repo> --out <response.json> [--api-url <url>] [--token <token>] [--dry-run]
   codex-maintainer sarif --report <report.json> --out <results.sarif>
+  codex-maintainer docs-check [path] [--out <dir>]
   codex-maintainer leaderboard build --arena-results <results.json> --out <leaderboard.json>
   codex-maintainer release-manifest --tarball <release.tar.gz> --out <dir> [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--release-url <url>] [--issue-url <url>]
   codex-maintainer release-manifest verify --manifest <release-manifest.json> --tarball <release.tar.gz> [--version <version>] [--tag <tag>]
@@ -67,6 +68,7 @@ Commands:
   ci-summary  Generate GitHub Actions step-summary Markdown from gate JSON.
   check-run   Generate or optionally post GitHub Checks API payloads from gate JSON.
   sarif       Convert an autopsy report JSON file into SARIF 2.1.0.
+  docs-check  Check Markdown files for broken local links.
   leaderboard Build a stable leaderboard JSON file from arena results.
   release-manifest
               Generate release-manifest JSON and proof-ledger Markdown.
@@ -344,6 +346,10 @@ cmd_sarif() {
   "$tool_root/scripts/sarif.sh" "$@"
 }
 
+cmd_docs_check() {
+  "$tool_root/scripts/docs_check.sh" "$@"
+}
+
 cmd_leaderboard() {
   local subcommand="${1:-}"
   [[ "$subcommand" == "build" ]] || fail "leaderboard requires subcommand: build"
@@ -443,6 +449,9 @@ main() {
       ;;
     sarif)
       cmd_sarif "$@"
+      ;;
+    docs-check)
+      cmd_docs_check "$@"
       ;;
     leaderboard)
       cmd_leaderboard "$@"

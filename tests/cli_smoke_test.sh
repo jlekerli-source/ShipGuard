@@ -23,6 +23,7 @@ test "$(./bin/codex-maintainer version)" = "$(sed -n '1p' VERSION)"
 ./bin/codex-maintainer check-run --help >/dev/null
 ./bin/codex-maintainer check-run post --help >/dev/null
 ./bin/codex-maintainer sarif --help >/dev/null
+./bin/codex-maintainer docs-check --help >/dev/null
 ./bin/codex-maintainer leaderboard build --help >/dev/null
 ./bin/codex-maintainer release-attest build --help >/dev/null
 ./bin/codex-maintainer release-proof build --help >/dev/null

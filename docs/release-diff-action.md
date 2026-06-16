@@ -17,7 +17,7 @@ on:
       right-tag:
         description: Newer release tag.
         required: true
-        default: v3.37.0
+        default: v3.38.0
 
 permissions:
   contents: read
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Compare release proof assets
-        uses: jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.37.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/release-diff@v3.38.0
         with:
           repo: jlekerli-source/ringly-codex-workflows
           left-tag: ${{ inputs.left-tag }}

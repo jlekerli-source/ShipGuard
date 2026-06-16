@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.38.0 - Docs Link Audit
+
+- Added `codex-maintainer docs-check` for dependency-free local Markdown link audits.
+- Added JSON and Markdown docs-check reports plus broken-link failure behavior.
+- Extended CI, self-audit, next-goal, source validation, package proof, README, and CLI docs for docs-heavy release guardrails.
+
 ## v3.37.0 - Arena Signer Metadata
 
 - Added optional `--signer` and `--signer-url` metadata to `codex-maintainer arena sign` manifests.

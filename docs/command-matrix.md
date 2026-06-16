@@ -10,6 +10,7 @@
 | Configure project policy | `policy init`, `policy show` | Plain policy file |
 | Audit one AI run | `autopsy` | Markdown and JSON report |
 | Export CI evidence | `sarif` | SARIF 2.1.0 results |
+| Check docs links | `docs-check` | Broken local Markdown link report |
 | Run fixture packs | `arena run` | Aggregate results and per-case reports |
 | Compare fixture runs | `arena compare` | Benchmark delta JSON and Markdown |
 | Compare fixture runs in CI | `actions/arena-compare` | Uploaded benchmark comparison artifact |

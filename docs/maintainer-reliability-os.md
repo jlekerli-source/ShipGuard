@@ -3,7 +3,7 @@
 The toolkit now has a full evidence loop:
 
 ```text
-policy -> autopsy -> sarif -> arena-import -> arena-sign -> arena -> arena-compare -> transcript-redact -> transcript-verify -> review-comment -> ci-gate -> ci-summary -> check-run -> check-run-post -> leaderboard -> release-manifest -> release-index -> release-replay -> release-attest -> release-proof -> release-consume -> self-audit -> next-goal
+policy -> autopsy -> sarif -> docs-check -> arena-import -> arena-sign -> arena -> arena-compare -> transcript-redact -> transcript-verify -> review-comment -> ci-gate -> ci-summary -> check-run -> check-run-post -> leaderboard -> release-manifest -> release-index -> release-replay -> release-attest -> release-proof -> release-consume -> self-audit -> next-goal
 ```
 
 That loop gives maintainers a way to:
@@ -11,6 +11,7 @@ That loop gives maintainers a way to:
 - configure project-specific risk rules
 - audit individual AI coding runs
 - export findings into SARIF for CI consumers
+- catch broken local Markdown links before docs-heavy releases
 - import external fixture packs with basic safety checks
 - sign and verify fixture-pack integrity metadata
 - benchmark public fixture packs

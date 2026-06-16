@@ -8,7 +8,7 @@ Use it when a workflow has already produced two Arena `results.json` files and y
 
 ```yaml
 - name: Compare Arena results
-  uses: jlekerli-source/ringly-codex-workflows/actions/arena-compare@v3.37.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/arena-compare@v3.38.0
   with:
     left-results: artifacts/arena-old/results.json
     right-results: artifacts/arena-current/results.json

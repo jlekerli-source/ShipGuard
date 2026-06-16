@@ -37,7 +37,7 @@ In GitHub Actions, let `actions/release-evidence-verify` download and verify the
 
 ```yaml
 - name: Verify release evidence artifact
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.37.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.38.0
   with:
     download-artifact: true
     source-artifact-name: codex-maintainer-release-evidence
