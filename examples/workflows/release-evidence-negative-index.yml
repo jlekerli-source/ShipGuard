@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Audit bundled release evidence negative fixtures
-        uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-negative-index@v3.25.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-negative-index@v3.26.0
         with:
           mode: fail
           artifact-name: codex-maintainer-release-evidence-negative-index

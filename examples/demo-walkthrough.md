@@ -22,8 +22,8 @@ This walkthrough proves the toolkit without private Ringly code.
 ## From A Release Package
 
 ```bash
-tar -xzf codex-maintainer-v3.25.0.tar.gz
-cd codex-maintainer-v3.25.0
+tar -xzf codex-maintainer-v3.26.0.tar.gz
+cd codex-maintainer-v3.26.0
 ./bin/codex-maintainer version
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/codex-maintainer" init ios /tmp/demo-ios-repo

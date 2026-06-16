@@ -10,7 +10,7 @@ The workflow:
 
 - runs on pushed semantic-version tags
 - checks out the repository
-- calls `jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.25.0`
+- calls `jlekerli-source/ringly-codex-workflows/actions/release-proof@v3.26.0`
 - uses the predictable release URL for the pushed tag
 - uploads the release proof bundle as a GitHub Actions artifact
 - prints action output paths for the tarball, manifest, replay report, attestation, and attestation badge

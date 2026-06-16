@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Audit release evidence negative fixtures
-        uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-negative-index@v3.25.0
+        uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-negative-index@v3.26.0
         with:
           mode: fail
 ```
@@ -39,8 +39,9 @@ The default `fixture: bundled` uses the fixture manifest shipped inside this act
 ## Outputs
 
 - `status`
+- `index-html`
 - `report-json`
 - `report-md`
 - `badge`
 
-The uploaded artifact contains `negative-fixture-index.json`, `negative-fixture-index.md`, `badge.json`, and per-case verifier outputs under `runs/<case>/`.
+The uploaded artifact contains `index.html`, `negative-fixture-index.json`, `negative-fixture-index.md`, `badge.json`, and per-case verifier outputs under `runs/<case>/`.

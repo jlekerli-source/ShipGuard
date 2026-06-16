@@ -46,6 +46,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep release-evidence negative fixtures current so blocked verification paths stay explicit and reproducible.
 - Keep release-evidence negative fixture indexes current so intentional failure coverage is reviewable from one report.
 - Keep release-evidence negative fixture index action output aligned with the CLI guardrail index.
+- Keep release-evidence negative fixture HTML reports static, dependency-free, and aligned with JSON and Markdown outputs.
 - Keep the reusable GitHub Action aligned with the CLI validator.
 - Maintain the public examples, scorecard, autopsy fixtures, and iOS starter template as the workflow evolves.
 - Keep the adoption docs and GitHub Pages shell current with each release.

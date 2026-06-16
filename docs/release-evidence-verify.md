@@ -37,7 +37,7 @@ In GitHub Actions, let `actions/release-evidence-verify` download and verify the
 
 ```yaml
 - name: Verify release evidence artifact
-  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.25.0
+  uses: jlekerli-source/ringly-codex-workflows/actions/release-evidence-verify@v3.26.0
   with:
     download-artifact: true
     source-artifact-name: codex-maintainer-release-evidence
@@ -67,7 +67,7 @@ Use `negative-index` to run the full fixture manifest and publish a compact guar
   --out /tmp/codex-maintainer-negative-evidence
 ```
 
-The command reads `cases.tsv`, runs every case through `release-evidence verify`, and writes `negative-fixture-index.json`, `negative-fixture-index.md`, `badge.json`, plus per-case verifier outputs under `runs/<case>/`. It passes only when every listed negative fixture blocks on its expected check.
+The command reads `cases.tsv`, runs every case through `release-evidence verify`, and writes `index.html`, `negative-fixture-index.json`, `negative-fixture-index.md`, `badge.json`, plus per-case verifier outputs under `runs/<case>/`. It passes only when every listed negative fixture blocks on its expected check.
 
 Use `actions/release-evidence-negative-index` when the same guardrail report should be published from GitHub Actions. See `release-evidence-negative-index-action.md`.
 

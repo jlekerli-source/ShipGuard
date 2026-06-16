@@ -31,6 +31,9 @@ outputs:
   status:
     description: pass or blocked.
     value: ${{ steps.negative-index.outputs.status }}
+  index-html:
+    description: Path to the browsable index.html report.
+    value: ${{ steps.negative-index.outputs.index-html }}
   report-json:
     description: Path to negative-fixture-index.json.
     value: ${{ steps.negative-index.outputs.report-json }}
@@ -81,6 +84,7 @@ runs:
 
         {
           echo "status=$status"
+          echo "index-html=$out/index.html"
           echo "report-json=$out/negative-fixture-index.json"
           echo "report-md=$out/negative-fixture-index.md"
           echo "badge=$out/badge.json"

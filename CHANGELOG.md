@@ -1,5 +1,11 @@
 # Changelog
 
+## v3.26.0 - Release Evidence Negative Fixture HTML Report
+
+- Added a browsable `index.html` report to `codex-maintainer release-evidence negative-index` outputs.
+- Exposed `index-html` from `actions/release-evidence-negative-index` so CI artifacts can link directly to the visual report.
+- Extended CLI, action, docs, and package proof coverage for the HTML output.
+
 ## v3.25.0 - Release Evidence Negative Index Action
 
 - Added `actions/release-evidence-negative-index` to run the bundled negative evidence fixture manifest in GitHub Actions and upload the guardrail index artifact.

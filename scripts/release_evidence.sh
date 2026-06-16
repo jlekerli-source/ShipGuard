@@ -50,6 +50,7 @@ Verify outputs:
   badge.json
 
 Negative fixture index outputs:
+  index.html
   negative-fixture-index.json
   negative-fixture-index.md
   badge.json
@@ -70,6 +71,14 @@ json_escape() {
 
 json_string() {
   printf '"%s"' "$(printf '%s' "$1" | json_escape)"
+}
+
+html_escape() {
+  perl -0pe 's/&/&amp;/g; s/</&lt;/g; s/>/&gt;/g; s/"/&quot;/g; s/'"'"'/&#39;/g'
+}
+
+html_text() {
+  printf '%s' "$1" | html_escape
 }
 
 cmd_site() {
@@ -1312,6 +1321,61 @@ cmd_negative_index() {
   } > "$out_dir/negative-fixture-index.md"
 
   {
+    cat <<HTML
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>$(html_text "$title")</title>
+  <style>
+    :root { color-scheme: light; --ink: #1f2937; --muted: #596273; --line: #d9dee7; --panel: #f6f8fb; --good: #0f766e; --bad: #b42318; }
+    body { margin: 0; font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--ink); background: #fff; }
+    main { max-width: 1120px; margin: 0 auto; padding: 28px; }
+    h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: 0; }
+    p { margin: 0 0 12px; color: var(--muted); }
+    .status { display: inline-block; margin: 12px 0 18px; padding: 5px 10px; border-radius: 6px; font-weight: 700; color: #fff; background: var(--good); }
+    .status.blocked { background: var(--bad); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 10px 0 18px; }
+    .metric { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--panel); }
+    .label { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; }
+    .value { display: block; margin-top: 4px; overflow-wrap: anywhere; font-weight: 650; }
+    table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+    th, td { border: 1px solid var(--line); padding: 8px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+    th { background: var(--panel); }
+    code { background: var(--panel); padding: 2px 4px; border-radius: 4px; }
+    a { color: #1d4ed8; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>$(html_text "$title")</h1>
+  <p>Intentional release evidence failure fixtures, executed through <code>release-evidence verify</code>.</p>
+  <div class="status $([[ "$status" == "pass" ]] || echo "blocked")">$(html_text "$status")</div>
+  <div class="grid">
+    <div class="metric"><span class="label">Cases</span><span class="value">$case_count</span></div>
+    <div class="metric"><span class="label">Expected blocked</span><span class="value">$expected_blocked_count</span></div>
+    <div class="metric"><span class="label">Failed index checks</span><span class="value">$failed_count</span></div>
+    <div class="metric"><span class="label">Fixture directory</span><span class="value">$(html_text "$fixture_dir")</span></div>
+  </div>
+  <p><a href="negative-fixture-index.json">Machine-readable index</a> | <a href="negative-fixture-index.md">Markdown report</a> | <a href="badge.json">Badge JSON</a></p>
+  <table>
+    <thead><tr><th>Case</th><th>Status</th><th>Expected blocked check</th><th>Verify exit</th><th>Blocked report</th><th>Badge blocked</th><th>Description</th><th>Links</th></tr></thead>
+    <tbody>
+HTML
+    while IFS=$'\t' read -r case_name expected_check description case_status exit_code blocked expected_failed badge_blocked; do
+      echo "      <tr><td>$(html_text "$case_name")</td><td>$(html_text "$case_status")</td><td>$(html_text "$expected_check")</td><td>$exit_code</td><td>$blocked</td><td>$badge_blocked</td><td>$(html_text "$description")</td><td><a href=\"runs/$case_name/evidence-verify.md\">Markdown</a> | <a href=\"runs/$case_name/evidence-verify.json\">JSON</a></td></tr>"
+    done < "$results_file"
+    cat <<HTML
+    </tbody>
+  </table>
+</main>
+</body>
+</html>
+HTML
+  } > "$out_dir/index.html"
+
+  {
     echo "{"
     echo "  \"schemaVersion\" : 1,"
     echo "  \"label\" : \"negative evidence fixtures\","
@@ -1327,6 +1391,7 @@ cmd_negative_index() {
 
   rm -f "$results_file"
 
+  echo "wrote: $out_dir/index.html"
   echo "wrote: $out_dir/negative-fixture-index.json"
   echo "wrote: $out_dir/negative-fixture-index.md"
   echo "wrote: $out_dir/badge.json"
