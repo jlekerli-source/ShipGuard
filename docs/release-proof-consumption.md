@@ -2,14 +2,14 @@
 
 This guide is for maintainers, reviewers, and downstream users who want to verify a published `shipguard` release without trusting README claims alone.
 
-For CI, use `jlekerli-source/shipguard/actions/release-consume@v3.38.0` to download the assets, run this verification, upload the consumer proof bundle, and fail the job when proof is invalid. Use `jlekerli-source/shipguard/actions/release-evidence@v3.38.0` afterward when you want a static HTML evidence artifact.
+For CI, use `jlekerli-source/ShipGuard/actions/release-consume@v3.38.0` to download the assets, run this verification, upload the consumer proof bundle, and fail the job when proof is invalid. Use `jlekerli-source/ShipGuard/actions/release-evidence@v3.38.0` afterward when you want a static HTML evidence artifact.
 
 Download the release assets from GitHub:
 
 ```bash
 mkdir -p /tmp/shipguard-v3.38.0
 gh release download v3.38.0 \
-  --repo jlekerli-source/shipguard \
+  --repo jlekerli-source/ShipGuard \
   --pattern 'shipguard-v3.38.0.tar.gz' \
   --pattern 'release-manifest.json' \
   --pattern 'release-index.json' \

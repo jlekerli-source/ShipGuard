@@ -196,7 +196,7 @@ status="pass"
 [[ "$missing" -ne 0 ]] && status="blocked"
 
 {
-  echo "# Shipguard Self-Audit"
+  echo "# ShipGuard Self-Audit"
   echo
   echo "- Generated: $generated_at"
   echo "- Version: $version"

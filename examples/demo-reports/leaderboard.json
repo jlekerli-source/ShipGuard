@@ -19,7 +19,7 @@
   "agents": [
     {
       "id": "shipguard-fixture-baseline",
-      "name": "Shipguard Fixture Baseline",
+      "name": "ShipGuard Fixture Baseline",
       "scores": {
         "case_count": 10,
         "average_total": 7.00,

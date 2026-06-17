@@ -2,7 +2,7 @@
 
 Use this checklist before trusting a published toolkit release.
 
-- [ ] Download release assets with `gh release download v3.38.0 --repo jlekerli-source/shipguard`.
+- [ ] Download release assets with `gh release download v3.38.0 --repo jlekerli-source/ShipGuard`.
 - [ ] Confirm these assets are present: `shipguard-v3.38.0.tar.gz`, `release-manifest.json`, `release-index.json`, `proof-ledger.md`, `replay-report.json`, `attestation.json`, and `attestation-badge.json`.
 - [ ] Run `shasum -a 256 /tmp/shipguard-v3.38.0/shipguard-v3.38.0.tar.gz`.
 - [ ] Run `shipguard release-consume verify --dir /tmp/shipguard-v3.38.0 --out /tmp/shipguard-v3.38.0/consumer-proof --version 3.38.0`.

@@ -1,8 +1,8 @@
-# Shipguard
+# ShipGuard
 
-Public operating rules for using Codex on risk-sensitive solo iOS work.
+ShipGuard is a Codex workflow kit for risk-sensitive solo iOS maintenance.
 
-This repository shares the workflow layer I use around Ringly, an iPhone alarm app where reliability, notification truth, StoreKit behavior, and release proof matter. It does not contain private Ringly source code. It contains the reusable process: agent instructions, planning templates, validation routing, skill prompts, release checklists, and evaluation tasks.
+It packages the operating layer I use around Ringly, an iPhone alarm app where reliability, notification truth, StoreKit behavior, and release proof matter. It does not contain private Ringly source code. It contains the reusable process: agent instructions, planning templates, validation routing, skill prompts, release checklists, GitHub Actions, and evaluation tasks that make Codex work auditable instead of vague.
 
 The goal is simple: make AI-assisted coding repeatable, reviewable, and useful for real product maintenance.
 
@@ -103,12 +103,12 @@ For public proof without private app code, read `examples/demo-walkthrough.md`.
 For agent-claim auditing, run `./bin/shipguard autopsy` against `fixtures/autopsy/`.
 For aggregate benchmark proof, run `./bin/shipguard arena run --fixture fixtures/arena --out /tmp/arena`.
 For benchmark regression proof, run `./bin/shipguard arena compare --left /tmp/arena-old/results.json --right /tmp/arena/results.json --out /tmp/arena-compare`.
-To compare Arena results in GitHub Actions, use `jlekerli-source/shipguard/actions/arena-compare@v3.38.0`.
+To compare Arena results in GitHub Actions, use `jlekerli-source/ShipGuard/actions/arena-compare@v3.38.0`.
 To publish a maintainer transcript safely, run `./bin/shipguard transcript redact --in raw-transcript.md --out /tmp/redacted-transcript.md --report /tmp/redaction-report.json --private-term "InternalProjectName"`.
 To verify a redacted transcript before publishing, run `./bin/shipguard transcript verify --in /tmp/redacted-transcript.md --report /tmp/redaction-report.json --out /tmp/transcript-verify`.
-To verify a redacted transcript in GitHub Actions, use `jlekerli-source/shipguard/actions/transcript-verify@v3.38.0`.
+To verify a redacted transcript in GitHub Actions, use `jlekerli-source/ShipGuard/actions/transcript-verify@v3.38.0`.
 To publish a checked transcript corpus, run `./bin/shipguard transcript corpus --source fixtures/transcripts --out /tmp/transcript-corpus --require-report true`.
-To verify a checked transcript corpus in GitHub Actions, use `jlekerli-source/shipguard/actions/transcript-corpus@v3.38.0`.
+To verify a checked transcript corpus in GitHub Actions, use `jlekerli-source/ShipGuard/actions/transcript-corpus@v3.38.0`.
 For external benchmark packs, run `./bin/shipguard arena import --source external-pack --out /tmp/imported-arena`.
 For fixture-pack integrity metadata, run `./bin/shipguard arena sign --fixture /tmp/imported-arena --out /tmp/imported-arena/PACK.json --signer "Example Maintainers" --signer-url "https://github.com/example/repo"`.
 For toolkit release readiness, run `./bin/shipguard self-audit --out /tmp/shipguard-audit`.
@@ -125,17 +125,17 @@ To replay release proof from downloaded assets, run `./bin/shipguard release-rep
 To generate a compact release attestation, run `./bin/shipguard release-attest build --manifest /tmp/release-proof/release-manifest.json --replay /tmp/release-replay/replay-report.json --out /tmp/release-attestation`.
 To generate the full proof bundle in one command, run `./bin/shipguard release-proof build --out /tmp/release-proof-bundle --release-url https://github.com/owner/repo/releases/tag/v3.38.0`.
 To consume a published proof bundle, run `./bin/shipguard release-consume verify --dir /tmp/shipguard-v3.38.0 --out /tmp/shipguard-v3.38.0/consumer-proof --version 3.38.0`.
-To verify a published proof bundle in GitHub Actions, use `jlekerli-source/shipguard/actions/release-consume@v3.38.0`.
+To verify a published proof bundle in GitHub Actions, use `jlekerli-source/ShipGuard/actions/release-consume@v3.38.0`.
 To compare two release proof bundles, run `./bin/shipguard release-diff compare --left /tmp/shipguard-old --right /tmp/shipguard-v3.38.0 --out /tmp/release-diff`.
-To compare two published proof bundles in GitHub Actions, use `jlekerli-source/shipguard/actions/release-diff@v3.38.0`.
+To compare two published proof bundles in GitHub Actions, use `jlekerli-source/ShipGuard/actions/release-diff@v3.38.0`.
 To export a static evidence page, run `./bin/shipguard release-evidence site --consume /tmp/shipguard-v3.38.0/consumer-proof --diff /tmp/release-diff --out /tmp/release-site`.
 To build a static evidence history, run `./bin/shipguard release-evidence index --site /tmp/release-site --out /tmp/release-history`.
 To build the local release evidence proof path in one command, run `./bin/shipguard release-evidence bundle --assets /tmp/shipguard-v3.38.0 --left /tmp/shipguard-old --out /tmp/release-evidence-bundle --version 3.38.0`.
-To export release evidence in GitHub Actions, use `jlekerli-source/shipguard/actions/release-evidence@v3.38.0`.
+To export release evidence in GitHub Actions, use `jlekerli-source/ShipGuard/actions/release-evidence@v3.38.0`.
 To consume a downloaded release evidence artifact, run `./bin/shipguard release-evidence verify --dir /tmp/shipguard-release-evidence --out /tmp/shipguard-release-evidence-verify --require-diff true --require-index true`.
 To audit the checked-in broken evidence fixtures, run `./bin/shipguard release-evidence negative-index --fixture fixtures/release-evidence/negative --out /tmp/shipguard-negative-evidence`.
-To verify release evidence artifacts in GitHub Actions, use `jlekerli-source/shipguard/actions/release-evidence-verify@v3.38.0`.
-To publish the negative fixture index in GitHub Actions, use `jlekerli-source/shipguard/actions/release-evidence-negative-index@v3.38.0`.
+To verify release evidence artifacts in GitHub Actions, use `jlekerli-source/ShipGuard/actions/release-evidence-verify@v3.38.0`.
+To publish the negative fixture index in GitHub Actions, use `jlekerli-source/ShipGuard/actions/release-evidence-negative-index@v3.38.0`.
 
 ## What Is Inside
 

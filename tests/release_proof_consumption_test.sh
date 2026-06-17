@@ -16,7 +16,7 @@ test -f "$doc"
 test -f "$checklist"
 
 grep -q "gh release download v$version" "$doc"
-grep -q -- "--repo jlekerli-source/shipguard" "$doc"
+grep -q -- "--repo jlekerli-source/ShipGuard" "$doc"
 grep -q "shipguard-v$version.tar.gz" "$doc"
 grep -q "release-manifest.json" "$doc"
 grep -q "release-index.json" "$doc"
@@ -40,9 +40,9 @@ SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \
     --version "$version" \
     --tag "v$version" \
     --commit 0123456789abcdef \
-    --ci-run-url "https://github.com/jlekerli-source/shipguard/actions/runs/123" \
-    --release-url "https://github.com/jlekerli-source/shipguard/releases/tag/v$version" \
-    --issue-url "https://github.com/jlekerli-source/shipguard/issues/99" >/dev/null
+    --ci-run-url "https://github.com/jlekerli-source/ShipGuard/actions/runs/123" \
+    --release-url "https://github.com/jlekerli-source/ShipGuard/releases/tag/v$version" \
+    --issue-url "https://github.com/jlekerli-source/ShipGuard/issues/99" >/dev/null
 
 shasum -a 256 "$tmp_dir/downloaded/shipguard-v$version.tar.gz" > "$tmp_dir/sha256.txt"
 grep -q "$(perl -MJSON::PP -e 'open my $fh, "<", $ARGV[0] or die $!; local $/; print decode_json(<$fh>)->{artifact}->{sha256}' "$tmp_dir/downloaded/proof/release-manifest.json")" "$tmp_dir/sha256.txt"

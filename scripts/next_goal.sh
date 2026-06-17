@@ -74,7 +74,7 @@ cat > "$out_file" <<EOF
 - Title: $title
 
 \`\`\`text
-/goal Implement v$release_version $title for jlekerli-source/shipguard: choose one high-signal maintainer reliability improvement from ROADMAP.md, add CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v$release_version $title for jlekerli-source/ShipGuard: choose one high-signal maintainer reliability improvement from ROADMAP.md, add CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 \`\`\`
 
 ## Constraints

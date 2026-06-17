@@ -62,7 +62,7 @@ In a repo that contains this workflow bundle, use:
 
 ```yaml
 - name: Validate Codex workflow bundle
-  uses: jlekerli-source/shipguard/actions/validate@v1.0.0
+  uses: jlekerli-source/ShipGuard/actions/validate@v1.0.0
 ```
 
 For a product repo that only copied starter files, keep using `doctor` from a checkout of this toolkit until that repo has its own validator.

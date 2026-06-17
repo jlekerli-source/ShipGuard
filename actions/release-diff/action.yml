@@ -1,4 +1,4 @@
-name: Compare Shipguard release proof
+name: Compare ShipGuard release proof
 description: Download two release proof asset sets, compare them, and upload a release diff audit.
 
 inputs:

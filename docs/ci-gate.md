@@ -36,8 +36,8 @@ permissions:
   contents: read
   checks: write
 
-- name: Run Shipguard CI gate
-  uses: jlekerli-source/shipguard/actions/ci-gate@v3.38.0
+- name: Run ShipGuard CI gate
+  uses: jlekerli-source/ShipGuard/actions/ci-gate@v3.38.0
   with:
     run: run.md
     diff: change.patch

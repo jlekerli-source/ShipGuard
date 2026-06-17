@@ -1,4 +1,4 @@
-name: Audit Shipguard release evidence negative fixtures
+name: Audit ShipGuard release evidence negative fixtures
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Audit bundled release evidence negative fixtures
-        uses: jlekerli-source/shipguard/actions/release-evidence-negative-index@v3.38.0
+        uses: jlekerli-source/ShipGuard/actions/release-evidence-negative-index@v3.38.0
         with:
           mode: fail
           artifact-name: shipguard-release-evidence-negative-index

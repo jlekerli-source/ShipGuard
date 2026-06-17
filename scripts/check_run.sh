@@ -25,7 +25,7 @@ cmd_payload() {
 gate_file=""
 head_sha=""
 out_file=""
-check_name="Shipguard Gate"
+check_name="ShipGuard Gate"
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in

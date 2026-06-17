@@ -22,7 +22,7 @@ fail() {
 
 cmd_build() {
   local out_dir=""
-  local title="Shipguard Release Proof Catalog"
+  local title="ShipGuard Release Proof Catalog"
   local manifests=()
 
   while [[ "$#" -gt 0 ]]; do

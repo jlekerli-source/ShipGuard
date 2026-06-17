@@ -7,7 +7,7 @@ Use it after downloading release assets from GitHub:
 ```bash
 mkdir -p /tmp/shipguard-v3.38.0
 gh release download v3.38.0 \
-  --repo jlekerli-source/shipguard \
+  --repo jlekerli-source/ShipGuard \
   --pattern 'shipguard-v3.38.0.tar.gz' \
   --pattern 'release-manifest.json' \
   --pattern 'release-index.json' \

@@ -144,7 +144,7 @@ elif [[ "$total" -lt "$warn_below" ]]; then
 fi
 
 {
-  echo "## Shipguard Review"
+  echo "## ShipGuard Review"
   echo
   echo "| Field | Value |"
   echo "| --- | --- |"

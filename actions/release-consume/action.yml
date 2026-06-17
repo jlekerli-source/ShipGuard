@@ -1,5 +1,5 @@
-name: Verify Shipguard release proof
-description: Download and verify Shipguard release proof assets with consumer reports and digest matrices.
+name: Verify ShipGuard release proof
+description: Download and verify ShipGuard release proof assets with consumer reports and digest matrices.
 
 inputs:
   release-tag:

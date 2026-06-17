@@ -1,4 +1,4 @@
-name: Verify Shipguard release evidence
+name: Verify ShipGuard release evidence
 description: Verify a downloaded release evidence artifact and produce machine-readable consumption proof.
 
 inputs:

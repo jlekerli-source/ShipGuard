@@ -1,5 +1,5 @@
-name: Generate Shipguard review comment
-description: Generate a PR-ready Shipguard review comment, badge JSON, and artifact bundle from an autopsy report.
+name: Generate ShipGuard review comment
+description: Generate a PR-ready ShipGuard review comment, badge JSON, and artifact bundle from an autopsy report.
 
 inputs:
   report:

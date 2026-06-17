@@ -6,7 +6,7 @@ Use it when redacted maintainer transcripts, benchmark notes, or public examples
 
 ```yaml
 - name: Verify redacted transcript
-  uses: jlekerli-source/shipguard/actions/transcript-verify@v3.38.0
+  uses: jlekerli-source/ShipGuard/actions/transcript-verify@v3.38.0
   with:
     transcript: docs/public-transcript.md
     report: artifacts/redaction-report.json

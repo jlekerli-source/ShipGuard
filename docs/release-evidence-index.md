@@ -9,7 +9,7 @@ Use it after generating one or more evidence sites:
   --site /tmp/shipguard-previous-site \
   --site /tmp/shipguard-v3.38.0-site \
   --out /tmp/shipguard-evidence-history \
-  --title "Shipguard Release Evidence"
+  --title "ShipGuard Release Evidence"
 ```
 
 Outputs:
@@ -25,4 +25,4 @@ The index sorts semantic versions from newest to oldest, links to each copied ev
 
 Use `shipguard release-evidence bundle` when you want the local command to build the evidence site and index together from downloaded release assets. See `release-evidence-bundle.md`.
 
-For GitHub Actions, set `build-index: true` on `jlekerli-source/shipguard/actions/release-evidence@v3.38.0`. See `release-evidence-action.md`.
+For GitHub Actions, set `build-index: true` on `jlekerli-source/ShipGuard/actions/release-evidence@v3.38.0`. See `release-evidence-action.md`.

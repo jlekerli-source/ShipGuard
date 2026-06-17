@@ -85,7 +85,7 @@ cmd_site() {
   local consume_dir=""
   local diff_dir=""
   local out_dir=""
-  local title="Shipguard Release Evidence"
+  local title="ShipGuard Release Evidence"
 
   while [[ "$#" -gt 0 ]]; do
     case "$1" in
@@ -403,7 +403,7 @@ PERL
 
 cmd_index() {
   local out_dir=""
-  local title="Shipguard Release Evidence Index"
+  local title="ShipGuard Release Evidence Index"
   local site_dirs=()
 
   while [[ "$#" -gt 0 ]]; do
@@ -673,8 +673,8 @@ cmd_bundle() {
   local left_dir=""
   local out_dir=""
   local version=""
-  local title="Shipguard Release Evidence"
-  local index_title="Shipguard Release Evidence Index"
+  local title="ShipGuard Release Evidence"
+  local index_title="ShipGuard Release Evidence Index"
 
   while [[ "$#" -gt 0 ]]; do
     case "$1" in
@@ -804,7 +804,7 @@ cmd_bundle() {
   } > "$out_dir/bundle.json"
 
   {
-    echo "# Shipguard Release Evidence Bundle"
+    echo "# ShipGuard Release Evidence Bundle"
     echo
     echo "- Generated: $generated_at"
     echo "- Status: pass"

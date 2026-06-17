@@ -1,5 +1,5 @@
-name: Run Shipguard CI gate
-description: Run autopsy, SARIF export, review-comment, badge generation, step-summary output, check-run payload generation, and artifact upload from a Shipguard run summary.
+name: Run ShipGuard CI gate
+description: Run autopsy, SARIF export, review-comment, badge generation, step-summary output, check-run payload generation, and artifact upload from a ShipGuard run summary.
 
 inputs:
   run:

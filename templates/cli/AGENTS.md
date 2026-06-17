@@ -1,4 +1,4 @@
-# CLI Tool Shipguard Instructions
+# CLI Tool ShipGuard Instructions
 
 Use this file as the root operating contract for Codex in a command-line tool repository.
 

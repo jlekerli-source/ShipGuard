@@ -7,7 +7,7 @@ index 1111111..2222222 100644
  
 -gh release download vOLD \
 +gh release download vNEW \
-   --repo jlekerli-source/shipguard \
+   --repo jlekerli-source/ShipGuard \
 -  --pattern 'shipguard-vOLD.tar.gz' \
 +  --pattern 'shipguard-vNEW.tar.gz' \
    --dir /tmp/shipguard-release
@@ -28,6 +28,6 @@ index 1111111..2222222 100644
 +        default: vNEW
 @@ -17,4 +17,4 @@ jobs:
        - name: Verify published proof assets
-         uses: jlekerli-source/shipguard/actions/release-consume@vNEW
+         uses: jlekerli-source/ShipGuard/actions/release-consume@vNEW
          with:
            release-tag: ${{ inputs.release-tag }}

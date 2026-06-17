@@ -123,7 +123,7 @@ my $sarif = {
       tool => {
         driver => {
           name => 'shipguard',
-          informationUri => 'https://github.com/jlekerli-source/shipguard',
+          informationUri => 'https://github.com/jlekerli-source/ShipGuard',
           semanticVersion => $ENV{TOOL_VERSION},
           rules => \@rules,
         },

@@ -1,4 +1,4 @@
-name: Build and verify Shipguard release evidence
+name: Build and verify ShipGuard release evidence
 
 on:
   workflow_dispatch:
@@ -20,10 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build release evidence bundle
-        uses: jlekerli-source/shipguard/actions/release-evidence@v3.38.0
+        uses: jlekerli-source/ShipGuard/actions/release-evidence@v3.38.0
         with:
           run: bundle
-          repo: jlekerli-source/shipguard
+          repo: jlekerli-source/ShipGuard
           release-tag: ${{ inputs.release-tag }}
           previous-tag: ${{ inputs.previous-tag }}
           download-assets: true
@@ -35,7 +35,7 @@ jobs:
     needs: build-release-evidence
     steps:
       - name: Verify release evidence artifact
-        uses: jlekerli-source/shipguard/actions/release-evidence-verify@v3.38.0
+        uses: jlekerli-source/ShipGuard/actions/release-evidence-verify@v3.38.0
         with:
           download-artifact: true
           source-artifact-name: shipguard-release-evidence

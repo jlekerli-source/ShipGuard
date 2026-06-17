@@ -18,9 +18,9 @@ SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \
     --version "$version" \
     --tag "v$version" \
     --commit 0123456789abcdef \
-    --ci-run-url "https://github.com/jlekerli-source/shipguard/actions/runs/123" \
-    --release-url "https://github.com/jlekerli-source/shipguard/releases/tag/v$version" \
-    --issue-url "https://github.com/jlekerli-source/shipguard/issues/99" >/dev/null
+    --ci-run-url "https://github.com/jlekerli-source/ShipGuard/actions/runs/123" \
+    --release-url "https://github.com/jlekerli-source/ShipGuard/releases/tag/v$version" \
+    --issue-url "https://github.com/jlekerli-source/ShipGuard/issues/99" >/dev/null
 
 mkdir -p "$tmp_dir/downloaded"
 cp "$tmp_dir/proof-bundle/shipguard-v$version.tar.gz" "$tmp_dir/downloaded/"

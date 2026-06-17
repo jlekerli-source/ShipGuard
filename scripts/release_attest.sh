@@ -27,7 +27,7 @@ cmd_build() {
   local manifest_file=""
   local replay_file=""
   local out_dir=""
-  local title="Shipguard Release Attestation"
+  local title="ShipGuard Release Attestation"
 
   while [[ "$#" -gt 0 ]]; do
     case "$1" in

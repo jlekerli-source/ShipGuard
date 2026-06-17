@@ -5,7 +5,7 @@
 ## Report Usage
 
 ```yaml
-name: Export Shipguard release evidence
+name: Export ShipGuard release evidence
 
 on:
   workflow_dispatch:
@@ -27,24 +27,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Verify published proof assets
-        uses: jlekerli-source/shipguard/actions/release-consume@v3.38.0
+        uses: jlekerli-source/ShipGuard/actions/release-consume@v3.38.0
         with:
-          repo: jlekerli-source/shipguard
+          repo: jlekerli-source/ShipGuard
           release-tag: ${{ inputs.release-tag }}
           mode: fail
 
       - name: Compare release proof assets
-        uses: jlekerli-source/shipguard/actions/release-diff@v3.38.0
+        uses: jlekerli-source/ShipGuard/actions/release-diff@v3.38.0
         with:
-          repo: jlekerli-source/shipguard
+          repo: jlekerli-source/ShipGuard
           left-tag: ${{ inputs.previous-tag }}
           right-tag: ${{ inputs.release-tag }}
           mode: fail
 
       - name: Export release evidence
-        uses: jlekerli-source/shipguard/actions/release-evidence@v3.38.0
+        uses: jlekerli-source/ShipGuard/actions/release-evidence@v3.38.0
         with:
-          title: Shipguard Release Evidence
+          title: ShipGuard Release Evidence
           include-diff: auto
           build-index: true
           mode: fail
@@ -53,7 +53,7 @@ jobs:
 ## Bundle Usage
 
 ```yaml
-name: Build Shipguard release evidence bundle
+name: Build ShipGuard release evidence bundle
 
 on:
   workflow_dispatch:
@@ -75,15 +75,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build release evidence bundle
-        uses: jlekerli-source/shipguard/actions/release-evidence@v3.38.0
+        uses: jlekerli-source/ShipGuard/actions/release-evidence@v3.38.0
         with:
           run: bundle
-          repo: jlekerli-source/shipguard
+          repo: jlekerli-source/ShipGuard
           release-tag: ${{ inputs.release-tag }}
           previous-tag: ${{ inputs.previous-tag }}
           download-assets: true
-          title: Shipguard Release Evidence
-          index-title: Shipguard Release Evidence
+          title: ShipGuard Release Evidence
+          index-title: ShipGuard Release Evidence
           mode: fail
 ```
 
@@ -102,10 +102,10 @@ jobs:
 | `assets-dir` | `artifacts/shipguard-release-assets` | Release asset directory for `run=bundle`. |
 | `left-assets-dir` | empty | Previous release asset directory for `run=bundle` diff proof. |
 | `version` | empty | Expected release version for `run=bundle`; omit to let `release-consume` infer it. |
-| `title` | `Shipguard Release Evidence` | Title for the generated evidence site. |
+| `title` | `ShipGuard Release Evidence` | Title for the generated evidence site. |
 | `include-diff` | `auto` | `auto` includes diff proof when present; `true` requires it; `false` skips it. |
 | `build-index` | `false` | Set `true` to build an evidence index containing the generated site. |
-| `index-title` | `Shipguard Release Evidence Index` | Title for the generated evidence index. |
+| `index-title` | `ShipGuard Release Evidence Index` | Title for the generated evidence index. |
 | `extra-index-sites` | empty | Newline-separated evidence site directories to include after the generated site. |
 | `upload-artifact` | `true` | Upload the evidence directory with `actions/upload-artifact`. |
 | `artifact-name` | `shipguard-release-evidence` | Uploaded artifact name. |
@@ -129,7 +129,7 @@ To prove the uploaded artifact can be consumed outside the producer job, run `ac
 
 ```yaml
 - name: Verify release evidence artifact
-  uses: jlekerli-source/shipguard/actions/release-evidence-verify@v3.38.0
+  uses: jlekerli-source/ShipGuard/actions/release-evidence-verify@v3.38.0
   with:
     download-artifact: true
     source-artifact-name: shipguard-release-evidence

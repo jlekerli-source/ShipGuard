@@ -1,4 +1,4 @@
-name: Verify Shipguard transcript corpus
+name: Verify ShipGuard transcript corpus
 description: Verify a corpus of redacted maintainer transcripts, publish corpus reports, and optionally fail on unsafe content.
 
 inputs:

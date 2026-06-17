@@ -13,7 +13,7 @@ Usage:
 
 Defaults:
   --agent shipguard-fixture-baseline
-  --name Shipguard Fixture Baseline
+  --name ShipGuard Fixture Baseline
   --benchmark Public AI Maintainer Reliability Benchmark
 USAGE
 }
@@ -26,7 +26,7 @@ fail() {
 arena_results=""
 out_file=""
 agent_id="shipguard-fixture-baseline"
-agent_name="Shipguard Fixture Baseline"
+agent_name="ShipGuard Fixture Baseline"
 benchmark_name="Public AI Maintainer Reliability Benchmark"
 
 while [[ "$#" -gt 0 ]]; do

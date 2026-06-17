@@ -28,8 +28,8 @@ Defaults:
 ## Reusable Action
 
 ```yaml
-- name: Generate Shipguard review comment
-  uses: jlekerli-source/shipguard/actions/review-comment@v0.8.0
+- name: Generate ShipGuard review comment
+  uses: jlekerli-source/ShipGuard/actions/review-comment@v0.8.0
   with:
     report: autopsy/report.json
     mode: warn
@@ -47,7 +47,7 @@ steps:
   - name: Generate autopsy report
     run: ./bin/shipguard autopsy --run run.md --diff change.patch --tests test.log --out autopsy
   - name: Generate review comment
-    uses: jlekerli-source/shipguard/actions/review-comment@v0.8.0
+    uses: jlekerli-source/ShipGuard/actions/review-comment@v0.8.0
     with:
       report: autopsy/report.json
       mode: warn

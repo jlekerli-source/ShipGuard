@@ -10,8 +10,8 @@ Use it after downloading a published release asset set:
   --left /tmp/shipguard-v3.19.0 \
   --out /tmp/shipguard-v3.38.0-evidence-bundle \
   --version 3.38.0 \
-  --title "Shipguard v3.38.0 Evidence" \
-  --index-title "Shipguard Release Evidence"
+  --title "ShipGuard v3.38.0 Evidence" \
+  --index-title "ShipGuard Release Evidence"
 ```
 
 Outputs:

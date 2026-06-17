@@ -10,7 +10,7 @@ cd "$repo_root"
 
 action="actions/release-proof/action.yml"
 test -f "$action"
-grep -q 'name: Build Shipguard release proof' "$action"
+grep -q 'name: Build ShipGuard release proof' "$action"
 grep -q 'release-url:' "$action"
 grep -q 'required: true' "$action"
 grep -q 'actions/upload-artifact@v4' "$action"

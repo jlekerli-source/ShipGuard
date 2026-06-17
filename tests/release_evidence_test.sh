@@ -127,7 +127,7 @@ test -f "$tmp_dir/evidence-bundle/index/evidence-index.json"
 grep -q '"status": "pass"' "$tmp_dir/evidence-bundle/bundle.json"
 grep -q '"diff_included": true' "$tmp_dir/evidence-bundle/bundle.json"
 grep -q '"release_diff": "release-diff/release-diff.json"' "$tmp_dir/evidence-bundle/bundle.json"
-grep -q '# Shipguard Release Evidence Bundle' "$tmp_dir/evidence-bundle/README.md"
+grep -q '# ShipGuard Release Evidence Bundle' "$tmp_dir/evidence-bundle/README.md"
 grep -q 'Release Evidence Bundle Test' "$tmp_dir/evidence-bundle/site/index.html"
 grep -q 'Release Evidence Bundle History' "$tmp_dir/evidence-bundle/index/index.html"
 

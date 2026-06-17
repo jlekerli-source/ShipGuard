@@ -1,4 +1,4 @@
-name: Audit Shipguard release evidence negative fixtures
+name: Audit ShipGuard release evidence negative fixtures
 description: Run the bundled release evidence negative fixtures and upload an index of expected blocked checks.
 
 inputs:
@@ -13,7 +13,7 @@ inputs:
   title:
     description: Title for the generated negative fixture index.
     required: false
-    default: Shipguard Release Evidence Negative Fixture Index
+    default: ShipGuard Release Evidence Negative Fixture Index
   upload-artifact:
     description: Set false to skip negative fixture index artifact upload.
     required: false

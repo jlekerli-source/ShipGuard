@@ -5,7 +5,7 @@
 ## Usage
 
 ```yaml
-name: Compare Shipguard releases
+name: Compare ShipGuard releases
 
 on:
   workflow_dispatch:
@@ -27,9 +27,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Compare release proof assets
-        uses: jlekerli-source/shipguard/actions/release-diff@v3.38.0
+        uses: jlekerli-source/ShipGuard/actions/release-diff@v3.38.0
         with:
-          repo: jlekerli-source/shipguard
+          repo: jlekerli-source/ShipGuard
           left-tag: ${{ inputs.left-tag }}
           right-tag: ${{ inputs.right-tag }}
           mode: fail

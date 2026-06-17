@@ -1,6 +1,6 @@
 # Demo iOS Repo
 
-This fixture is a fake iOS-style project used to demonstrate the Shipguard workflow kit.
+This fixture is a fake iOS-style project used to demonstrate the ShipGuard workflow kit.
 
 It intentionally contains no private Ringly source code, credentials, product strategy, generated artifacts, or real App Store data.
 

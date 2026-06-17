@@ -67,7 +67,7 @@ my $high = defined $gate->{high_risk_findings} ? $gate->{high_risk_findings} : 0
 my $mode = $gate->{mode} || 'warn';
 
 open my $out, '>:encoding(UTF-8)', $ENV{OUT_FILE} or die "cannot write summary: $!";
-print {$out} "# Shipguard Gate\n\n";
+print {$out} "# ShipGuard Gate\n\n";
 print {$out} "| Field | Value |\n";
 print {$out} "| --- | --- |\n";
 print {$out} "| Status | $status |\n";

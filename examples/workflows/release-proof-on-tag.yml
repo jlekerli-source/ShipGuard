@@ -15,9 +15,9 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v5
 
-      - name: Build Shipguard release proof
+      - name: Build ShipGuard release proof
         id: release-proof
-        uses: jlekerli-source/shipguard/actions/release-proof@v3.38.0
+        uses: jlekerli-source/ShipGuard/actions/release-proof@v3.38.0
         with:
           release-url: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
           out: artifacts/shipguard-release-proof

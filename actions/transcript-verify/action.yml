@@ -1,4 +1,4 @@
-name: Verify Shipguard transcript
+name: Verify ShipGuard transcript
 description: Verify a redacted maintainer transcript, publish verification reports, and optionally fail on remaining risky content.
 
 inputs:

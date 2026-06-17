@@ -437,7 +437,7 @@ Build the full local evidence path from downloaded release assets:
   --left /tmp/shipguard-old \
   --out /tmp/shipguard-release-evidence-bundle \
   --version 3.38.0 \
-  --title "Shipguard v3.38.0 Evidence"
+  --title "ShipGuard v3.38.0 Evidence"
 ```
 
 The command writes consumer proof, optional release-diff proof, `site/index.html`, `index/evidence-index.json`, `bundle.json`, and `README.md`. See `release-evidence-bundle.md`.
@@ -472,7 +472,7 @@ Download a published release bundle, verify the tarball digest, replay the proof
 
 ```bash
 gh release download v3.38.0 \
-  --repo jlekerli-source/shipguard \
+  --repo jlekerli-source/ShipGuard \
   --pattern 'shipguard-v3.38.0.tar.gz' \
   --pattern 'release-manifest.json' \
   --pattern 'release-index.json' \

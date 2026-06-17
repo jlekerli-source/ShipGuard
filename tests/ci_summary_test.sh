@@ -19,7 +19,7 @@ cd "$repo_root"
   --mode warn >/dev/null
 
 test -f "$tmp_dir/gate/summary.md"
-grep -q '# Shipguard Gate' "$tmp_dir/gate/summary.md"
+grep -q '# ShipGuard Gate' "$tmp_dir/gate/summary.md"
 grep -q '| Status | blocked |' "$tmp_dir/gate/summary.md"
 grep -q '| Score | 1/12 |' "$tmp_dir/gate/summary.md"
 grep -q -- '- sarif: `sarif/results.sarif`' "$tmp_dir/gate/summary.md"

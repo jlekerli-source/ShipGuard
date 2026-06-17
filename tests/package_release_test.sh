@@ -225,13 +225,13 @@ test "$("$package_root/bin/codex-maintainer" version)" = "$version"
 "$package_root/bin/shipguard" doctor "$tmp_dir/demo-target" >/dev/null
 "$package_root/bin/shipguard" init web "$tmp_dir/web-target" --force >/dev/null
 "$package_root/bin/shipguard" doctor web "$tmp_dir/web-target" >/dev/null
-grep -q 'Web Shipguard Instructions' "$tmp_dir/web-target/AGENTS.md"
+grep -q 'Web ShipGuard Instructions' "$tmp_dir/web-target/AGENTS.md"
 "$package_root/bin/shipguard" init backend "$tmp_dir/backend-target" --force >/dev/null
 "$package_root/bin/shipguard" doctor backend "$tmp_dir/backend-target" >/dev/null
-grep -q 'Backend Service Shipguard Instructions' "$tmp_dir/backend-target/AGENTS.md"
+grep -q 'Backend Service ShipGuard Instructions' "$tmp_dir/backend-target/AGENTS.md"
 "$package_root/bin/shipguard" init cli "$tmp_dir/cli-target" --force >/dev/null
 "$package_root/bin/shipguard" doctor cli "$tmp_dir/cli-target" >/dev/null
-grep -q 'CLI Tool Shipguard Instructions' "$tmp_dir/cli-target/AGENTS.md"
+grep -q 'CLI Tool ShipGuard Instructions' "$tmp_dir/cli-target/AGENTS.md"
 "$package_root/bin/shipguard" autopsy \
   --run "$package_root/fixtures/autopsy/good-run/run.md" \
   --task "$package_root/fixtures/autopsy/good-run/task.md" \
@@ -283,7 +283,7 @@ grep -q '"case_count": 2' "$tmp_dir/package-imported-results/results.json"
   --out "$tmp_dir/package-imported-arena/PACK.json" \
   --pack-name "package-imported" \
   --signer "Package Fixture Maintainer" \
-  --signer-url "https://github.com/jlekerli-source/shipguard" >/dev/null
+  --signer-url "https://github.com/jlekerli-source/ShipGuard" >/dev/null
 grep -q '"signature_type" : "sha256-content-digest"' "$tmp_dir/package-imported-arena/PACK.json"
 grep -q '"signer" : "Package Fixture Maintainer"' "$tmp_dir/package-imported-arena/PACK.json"
 grep -q '"identity_digest" : "[a-f0-9]\{64\}"' "$tmp_dir/package-imported-arena/PACK.json"
@@ -371,7 +371,7 @@ grep -q '# Release Replay Report' "$tmp_dir/package-release-replay/replay-report
   --out "$tmp_dir/package-release-attestation" >/dev/null
 grep -q '"status" : "pass"' "$tmp_dir/package-release-attestation/attestation.json"
 grep -q '"message" : "pass v'"$version"'"' "$tmp_dir/package-release-attestation/attestation-badge.json"
-grep -q '# Shipguard Release Attestation' "$tmp_dir/package-release-attestation/attestation.md"
+grep -q '# ShipGuard Release Attestation' "$tmp_dir/package-release-attestation/attestation.md"
 "$package_root/bin/shipguard" release-proof build \
   --out "$tmp_dir/package-release-proof-bundle" \
   --version "$version" \

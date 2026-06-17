@@ -1,4 +1,4 @@
-name: Build Shipguard release evidence bundle
+name: Build ShipGuard release evidence bundle
 
 on:
   workflow_dispatch:
@@ -20,13 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build release evidence bundle
-        uses: jlekerli-source/shipguard/actions/release-evidence@v3.38.0
+        uses: jlekerli-source/ShipGuard/actions/release-evidence@v3.38.0
         with:
           run: bundle
-          repo: jlekerli-source/shipguard
+          repo: jlekerli-source/ShipGuard
           release-tag: ${{ inputs.release-tag }}
           previous-tag: ${{ inputs.previous-tag }}
           download-assets: true
-          title: Shipguard Release Evidence
-          index-title: Shipguard Release Evidence
+          title: ShipGuard Release Evidence
+          index-title: ShipGuard Release Evidence
           mode: fail

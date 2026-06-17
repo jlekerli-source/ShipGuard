@@ -1,4 +1,4 @@
-name: Export Shipguard release evidence
+name: Export ShipGuard release evidence
 description: Build a static release evidence site, optional evidence index, or full evidence bundle from release proof reports.
 
 inputs:
@@ -49,7 +49,7 @@ inputs:
   title:
     description: Title for the generated evidence site.
     required: false
-    default: Shipguard Release Evidence
+    default: ShipGuard Release Evidence
   include-diff:
     description: Use true to require diff proof, false to skip it, or auto to include it when present.
     required: false
@@ -61,7 +61,7 @@ inputs:
   index-title:
     description: Title for the generated evidence index.
     required: false
-    default: Shipguard Release Evidence Index
+    default: ShipGuard Release Evidence Index
   extra-index-sites:
     description: Optional newline-separated evidence site directories to include in the index after the generated site.
     required: false

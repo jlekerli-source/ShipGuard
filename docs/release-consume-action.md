@@ -5,7 +5,7 @@
 ## Usage
 
 ```yaml
-name: Verify Shipguard release proof
+name: Verify ShipGuard release proof
 
 on:
   workflow_dispatch:
@@ -23,9 +23,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Verify published proof assets
-        uses: jlekerli-source/shipguard/actions/release-consume@v3.38.0
+        uses: jlekerli-source/ShipGuard/actions/release-consume@v3.38.0
         with:
-          repo: jlekerli-source/shipguard
+          repo: jlekerli-source/ShipGuard
           release-tag: ${{ inputs.release-tag }}
           mode: fail
 ```

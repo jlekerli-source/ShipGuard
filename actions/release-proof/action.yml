@@ -1,4 +1,4 @@
-name: Build Shipguard release proof
+name: Build ShipGuard release proof
 description: Build a release tarball, manifest, index, replay report, attestation, and uploaded proof artifact.
 
 inputs:

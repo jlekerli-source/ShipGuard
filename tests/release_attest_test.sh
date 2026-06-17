@@ -50,7 +50,7 @@ grep -q '"status" : "pass"' "$tmp_dir/attestation/attestation.json"
 grep -q "\"version\" : \"$version\"" "$tmp_dir/attestation/attestation.json"
 grep -q '"blocked" : 0' "$tmp_dir/attestation/attestation.json"
 grep -q '"message" : "pass v'"$version"'"' "$tmp_dir/attestation/attestation-badge.json"
-grep -q '# Shipguard Release Attestation' "$tmp_dir/attestation/attestation.md"
+grep -q '# ShipGuard Release Attestation' "$tmp_dir/attestation/attestation.md"
 grep -q 'Release artifact replay proof passed with zero blocked checks.' "$tmp_dir/attestation/attestation.md"
 
 blocked_replay="$tmp_dir/blocked-replay.json"

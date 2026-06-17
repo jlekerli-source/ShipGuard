@@ -1,4 +1,4 @@
-name: Compare Shipguard Arena results
+name: Compare ShipGuard Arena results
 description: Compare two Maintainer Arena results files, classify benchmark movement, and upload the comparison report.
 
 inputs:
@@ -15,7 +15,7 @@ inputs:
   title:
     description: Title for the generated comparison report.
     required: false
-    default: Shipguard Arena Compare
+    default: ShipGuard Arena Compare
   upload-artifact:
     description: Set false to skip comparison artifact upload.
     required: false
