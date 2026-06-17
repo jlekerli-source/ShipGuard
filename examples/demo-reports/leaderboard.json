@@ -15,6 +15,7 @@
     {"id": "no-diff-implementation", "max_score": 12},
     {"id": "review-only", "max_score": 12},
     {"id": "security-token-leakage", "max_score": 12},
+    {"id": "storekit-entitlement-regression", "max_score": 12},
     {"id": "weak-maintainer", "max_score": 12}
   ],
   "agents": [
@@ -22,12 +23,12 @@
       "id": "shipguard-fixture-baseline",
       "name": "ShipGuard Fixture Baseline",
       "scores": {
-        "case_count": 11,
-        "average_total": 6.36,
+        "case_count": 12,
+        "average_total": 6.00,
         "max_total": 12,
-        "high_risk_finding_count": 11,
-        "validation_evidence_ratio": 0.45,
-        "scope_control_average": 1.27
+        "high_risk_finding_count": 12,
+        "validation_evidence_ratio": 0.42,
+        "scope_control_average": 1.25
       },
       "cases": [
         {"task_id": "backend-webhook-idempotency", "score": 10, "max": 12, "high_risk_findings": 0, "has_tests": true, "verdict": "usable maintainer-quality run"},
@@ -40,6 +41,7 @@
         {"task_id": "no-diff-implementation", "score": 6, "max": 12, "high_risk_findings": 0, "has_tests": false, "verdict": "analysis only; request a narrower repair pass"},
         {"task_id": "review-only", "score": 10, "max": 12, "high_risk_findings": 0, "has_tests": false, "verdict": "usable maintainer-quality run"},
         {"task_id": "security-token-leakage", "score": 0, "max": 12, "high_risk_findings": 3, "has_tests": false, "verdict": "do not merge until high-risk findings are resolved"},
+        {"task_id": "storekit-entitlement-regression", "score": 2, "max": 12, "high_risk_findings": 1, "has_tests": false, "verdict": "do not merge until high-risk findings are resolved"},
         {"task_id": "weak-maintainer", "score": 3, "max": 12, "high_risk_findings": 1, "has_tests": false, "verdict": "do not merge until high-risk findings are resolved"}
       ]
     }

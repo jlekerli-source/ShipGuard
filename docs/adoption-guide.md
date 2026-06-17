@@ -40,6 +40,28 @@ Use this guide when you want to bring the workflow kit into another repository w
 
 6. Copy one prompt from `examples/prompt-pack.md` and test it on a small, low-risk issue.
 
+## CLI Versus Codex Plugin
+
+Use the CLI when you need repeatable proof from a shell command:
+
+- validate the workflow bundle with `shipguard validate`
+- inspect copied starter files with `shipguard doctor`
+- score a run with `shipguard autopsy`
+- run the public benchmark with `shipguard arena run`
+- package or verify release evidence
+
+Use the local Codex plugin when you want Codex to load ShipGuard guidance at thread startup:
+
+```bash
+codex plugin marketplace add .
+codex plugin add ios-shipguard@shipguard
+./bin/shipguard codex status --strict
+```
+
+Start a new Codex thread after installing or refreshing the plugin. Existing threads keep the skill metadata they loaded at startup.
+
+Use `shipguard ios ...` helpers before risky iOS work when a project has permissions, StoreKit, widgets, App Intents, notifications, background modes, Live Activities, preview handoffs, or release proof. These commands do not replace Xcode, Simulator, TestFlight, App Store Connect, or device evidence; they route the questions and proof lanes before edits.
+
 ## What To Customize First
 
 - Project overview and source paths.

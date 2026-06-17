@@ -89,7 +89,7 @@ The signer fields are provenance metadata for public review. They are intentiona
 - validation quality average
 - scope control average
 
-The public fixture pack includes clean, weak, dangerous, failing-validation, missing-diff, review-only, backend webhook, frontend async-state, docs release-proof drift, CLI cleanup, and security token-leakage maintainer runs so the benchmark shows multiple evidence and failure modes.
+The public fixture pack includes clean, weak, dangerous, failing-validation, missing-diff, review-only, backend webhook, frontend async-state, docs release-proof drift, CLI cleanup, security token-leakage, and StoreKit entitlement regression maintainer runs so the benchmark shows multiple evidence and failure modes.
 
 ## Compare Runs
 

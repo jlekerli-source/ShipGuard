@@ -1,0 +1,28 @@
+diff --git a/App/PremiumEntitlementStore.swift b/App/PremiumEntitlementStore.swift
+index 1111111..2222222 100644
+--- a/App/PremiumEntitlementStore.swift
++++ b/App/PremiumEntitlementStore.swift
+@@ -11,8 +11,8 @@ final class PremiumEntitlementStore {
+   func apply(transaction: Transaction) {
+     switch transaction.productID {
+     case "shipguard.monthly":
+-      isPremium = transaction.revocationDate == nil && transaction.expirationDate ?? .distantFuture > Date()
++      isPremium = true
+     case "shipguard.yearly":
+-      isPremium = transaction.revocationDate == nil && transaction.expirationDate ?? .distantFuture > Date()
++      isPremium = true
+     default:
+       break
+     }
+diff --git a/App/PremiumRestoreView.swift b/App/PremiumRestoreView.swift
+index 3333333..4444444 100644
+--- a/App/PremiumRestoreView.swift
++++ b/App/PremiumRestoreView.swift
+@@ -20,7 +20,7 @@ struct PremiumRestoreView: View {
+   var body: some View {
+     Button("Restore") {
+-      Task { await store.restorePurchases() }
++      store.isPremium = true
+     }
+   }
+ }

@@ -10,7 +10,7 @@ cd "$repo_root"
 
 ./bin/shipguard arena compare --help >/dev/null
 
-mkdir -p "$tmp_dir/nine-case-fixture"
+mkdir -p "$tmp_dir/ten-case-fixture"
 for case_id in \
   backend-webhook-idempotency \
   cli-dangerous-clean \
@@ -20,13 +20,14 @@ for case_id in \
   no-diff-implementation \
   review-only \
   security-token-leakage \
+  storekit-entitlement-regression \
   weak-maintainer; do
-  cp -R "fixtures/arena/$case_id" "$tmp_dir/nine-case-fixture/$case_id"
+  cp -R "fixtures/arena/$case_id" "$tmp_dir/ten-case-fixture/$case_id"
 done
 
 SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \
   ./bin/shipguard arena run \
-    --fixture "$tmp_dir/nine-case-fixture" \
+    --fixture "$tmp_dir/ten-case-fixture" \
     --out "$tmp_dir/old-arena" >/dev/null
 
 SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \

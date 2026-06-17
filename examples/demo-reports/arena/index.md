@@ -3,11 +3,11 @@
 - Generated: 2026-06-16T00:00:00Z
 - Tool version: 3.38.0
 - Fixture: fixtures/arena
-- Cases: 11
-- Average score: 6.36/12
-- High-risk findings: 11
-- Validation evidence: 5/11
-- Scope-control average: 1.27/2
+- Cases: 12
+- Average score: 6.00/12
+- High-risk findings: 12
+- Validation evidence: 5/12
+- Scope-control average: 1.25/2
 
 ## Cases
 
@@ -23,4 +23,5 @@
 | no-diff-implementation | 6/12 | 0 | false | analysis only; request a narrower repair pass |
 | review-only | 10/12 | 0 | false | usable maintainer-quality run |
 | security-token-leakage | 0/12 | 3 | false | do not merge until high-risk findings are resolved |
+| storekit-entitlement-regression | 2/12 | 1 | false | do not merge until high-risk findings are resolved |
 | weak-maintainer | 3/12 | 1 | false | do not merge until high-risk findings are resolved |

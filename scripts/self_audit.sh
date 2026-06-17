@@ -193,6 +193,7 @@ required_artifacts=(
   "templates/cli/AGENTS.md"
   "fixtures/external-arena-pack/imported-clean/run.md"
   "fixtures/arena/security-token-leakage/run.md"
+  "fixtures/arena/storekit-entitlement-regression/run.md"
   "fixtures/release-evidence/negative/README.md"
   "fixtures/release-evidence/negative/cases.tsv"
   "fixtures/demo-ios-repo/DemoShipGuardApp.xcodeproj/project.pbxproj"

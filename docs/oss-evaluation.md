@@ -20,12 +20,12 @@ Current checkout:
 
 ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check
 # status: pass
-# files_checked: 293
+# files_checked: 296
 # links_checked: 53
 # broken_count: 0
 
 ./bin/shipguard arena run --fixture fixtures/arena --out /tmp/shipguard-arena
-# average: 6.36/12
+# average: 6.00/12
 ```
 
 Codex install check from this machine:
@@ -125,8 +125,8 @@ Status: started.
 
 ### Phase 5: Benchmark And Product Polish
 
-Status: planned.
+Status: started.
 
-- Add regression-awareness Arena fixtures.
-- Improve first-run adoption docs around CLI versus plugin usage.
+- Added `fixtures/arena/storekit-entitlement-regression` to exercise regression-awareness and proof honesty around subscription restore behavior.
+- Improved first-run adoption docs around CLI versus plugin usage.
 - Keep Agents SDK deferred unless ShipGuard becomes a runnable agent service with a concrete eval target.

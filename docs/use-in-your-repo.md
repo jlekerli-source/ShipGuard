@@ -67,7 +67,19 @@ In a repo that contains this workflow bundle, use:
 
 For a product repo that only copied starter files, keep using `doctor` from a checkout of this toolkit until that repo has its own validator.
 
-## 5. First Codex Task
+## 5. Optional Codex Plugin
+
+Install the plugin only when you want Codex itself to start with ShipGuard iOS guidance. The CLI remains the source of repeatable proof commands.
+
+```bash
+codex plugin marketplace add .
+codex plugin add ios-shipguard@shipguard
+./bin/shipguard codex status --strict
+```
+
+After install or refresh, start a new Codex thread. Updating GitHub or the local checkout does not update skill metadata inside an already-running thread.
+
+## 6. First Codex Task
 
 Use this low-risk pattern:
 
