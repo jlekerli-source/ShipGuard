@@ -219,6 +219,7 @@ required_files=(
   "scripts/arena_verify.sh"
   "scripts/autopsy_report.sh"
   "scripts/build_demo_reports.sh"
+  "scripts/bug-triage/prompts.md"
   "scripts/check_run.sh"
   "scripts/codex_status.sh"
   "scripts/ci_gate.sh"

@@ -22,8 +22,8 @@ ShipGuard is not tied to any single app. This repo ships reusable CLI commands, 
 Install from a release tarball, then validate the bundle:
 
 ```bash
-tar -xzf shipguard-v3.68.0.tar.gz
-cd shipguard-v3.68.0
+tar -xzf shipguard-v3.69.0.tar.gz
+cd shipguard-v3.69.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" version
 ./bin/shipguard validate

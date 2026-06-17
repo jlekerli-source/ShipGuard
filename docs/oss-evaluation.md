@@ -10,7 +10,7 @@ Current checkout:
 
 ```bash
 ./bin/shipguard version
-# 3.68.0
+# 3.69.0
 
 ./bin/shipguard validate
 # workflow bundle validation passed

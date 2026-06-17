@@ -2,7 +2,12 @@
 
 ## Unreleased
 
+No unreleased changes.
+
+## v3.69.0 - Performance Validation Gates And Starter Hygiene
+
 - Added `validationRoute` and `stopCondition` to grouped `ios performance` actions so reports show how to prove the first experiment and when to stop before broad refactors; `ios report-quality` now flags grouped performance output that hides validation routes or stop conditions from JSON or Markdown.
+- Made copied starter skills product-neutral instead of Ringly-branded, copied the bug-triage prompt helper during `shipguard init`, and taught `doctor`, validation, and package tests to require that generated helper file.
 
 ## v3.68.0 - Performance First Experiment Gate
 

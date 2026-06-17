@@ -4,7 +4,7 @@ Use these prompts to turn unclear reports into bounded Codex tasks.
 
 ## Inspector Prompt
 
-Inspect this Ringly bug without editing files.
+Inspect this app bug without editing files.
 
 - Reproduce the reported behavior from the code, tests, or logs.
 - Identify expected behavior, current failure, likely owner files, and validation route.
@@ -14,7 +14,7 @@ Inspect this Ringly bug without editing files.
 
 ## Implementer Prompt
 
-Implement the smallest safe fix for this Ringly bug.
+Implement the smallest safe fix for this app bug.
 
 - Use the inspector's affected files and validation route.
 - Keep the change narrow.
@@ -24,7 +24,7 @@ Implement the smallest safe fix for this Ringly bug.
 
 ## Tester Prompt
 
-Validate this Ringly bug fix.
+Validate this app bug fix.
 
 - Run the narrowest routed command from `docs/validation-commands.md`.
 - Classify any failure as product, infrastructure, environment, timeout, or blocked-manual.
@@ -33,7 +33,7 @@ Validate this Ringly bug fix.
 
 ## Reviewer Prompt
 
-Review this Ringly bug-fix diff.
+Review this app bug-fix diff.
 
 - Findings first, ordered by severity.
 - Cite files and lines.

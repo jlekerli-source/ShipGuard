@@ -1,6 +1,6 @@
 ---
 name: release-checklist
-description: Ringly release-readiness and App Store/TestFlight checklist workflow. Use when preparing release evidence, TestFlight handoff, App Store review, StoreKit proof, release preflight, device release pass, or public-release readiness claims.
+description: App release-readiness and App Store/TestFlight checklist workflow. Use when preparing release evidence, TestFlight handoff, App Store review, StoreKit proof, release preflight, device release pass, or public-release readiness claims.
 ---
 
 # Release Checklist

@@ -12,6 +12,11 @@ cd "$repo_root"
 ./bin/shipguard doctor ios "$tmp_dir/ios-app" >/dev/null
 ./bin/shipguard doctor "$tmp_dir/ios-app" >/dev/null
 grep -q 'AGENTS.md Template For iOS App Work' "$tmp_dir/ios-app/AGENTS.md"
+test -f "$tmp_dir/ios-app/scripts/bug-triage/prompts.md"
+if rg -n 'Ringly' "$tmp_dir/ios-app/.agents/skills" "$tmp_dir/ios-app/scripts/bug-triage" >/dev/null; then
+  echo "starter skills must not leak Ringly-specific branding" >&2
+  exit 1
+fi
 
 ./bin/shipguard init web "$tmp_dir/web-app" >/dev/null
 ./bin/shipguard doctor web "$tmp_dir/web-app" >/dev/null

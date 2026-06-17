@@ -1,6 +1,6 @@
 ---
 name: bug-triage
-description: Ringly bug-triage workflow. Use when investigating a reported bug, flaky test, regression, crash, UI mismatch, release blocker, alarm trust issue, StoreKit issue, localization exposure bug, or unclear user feedback before implementation.
+description: App bug-triage workflow. Use when investigating a reported bug, flaky test, regression, crash, UI mismatch, release blocker, permission/reliability issue, StoreKit issue, localization exposure bug, or unclear user feedback before implementation.
 ---
 
 # Bug Triage

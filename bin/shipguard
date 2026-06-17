@@ -158,6 +158,7 @@ copy_profile() {
   copy_file "$tool_root/SUBAGENTS.md" "$target/SUBAGENTS.md" "$force"
   copy_file "$tool_root/SCORECARD.md" "$target/SCORECARD.md" "$force"
   copy_dir "$tool_root/.agents/skills" "$target/.agents/skills" "$force"
+  copy_dir "$tool_root/scripts/bug-triage" "$target/scripts/bug-triage" "$force"
 
   echo "initialized $profile Codex workflow starter in $target"
 }
@@ -226,6 +227,7 @@ cmd_doctor() {
     ".agents/skills/notification-permissions/SKILL.md"
     ".agents/skills/release-checklist/SKILL.md"
     ".agents/skills/ui-polish/SKILL.md"
+    "scripts/bug-triage/prompts.md"
   )
 
   [[ -d "$tool_root/templates/$profile" ]] || fail "unknown doctor profile: $profile"

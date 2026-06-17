@@ -1,6 +1,6 @@
 ---
 name: ui-polish
-description: Ringly SwiftUI product-polish workflow. Use when a task touches visual hierarchy, copy, interaction states, Dynamic Type, compact layouts, localization/RTL, onboarding, settings, alarm authoring, premium screens, or UI test polish.
+description: SwiftUI product-polish workflow. Use when a task touches visual hierarchy, copy, interaction states, Dynamic Type, compact layouts, localization/RTL, onboarding, settings, authoring flows, premium screens, or UI test polish.
 ---
 
 # UI Polish
@@ -13,7 +13,7 @@ Use this skill for narrow UI improvements that preserve alarm trust.
 2. Define the user job and remove unnecessary UI before adding more chrome.
 3. Keep the first screen usable. Do not replace real app surfaces with explanatory landing-page copy.
 4. Check empty, loading, denied, degraded, failed, cancelled, downgrade, offline, compact, Dynamic Type, and localized states when the surface can enter them.
-5. Keep alarm and premium copy truthful. Premium must never imply better alarm delivery.
+5. Keep reliability, permission, and premium copy truthful. Paid features must never imply stronger system delivery than the app can prove.
 6. Prefer existing components, themes, symbols, accessibility identifiers, and localization helpers.
 7. Validate with the narrow UI lane:
 
@@ -25,7 +25,7 @@ Use this skill for narrow UI improvements that preserve alarm trust.
 python3 ./scripts/check_localization_coverage.py
 ```
 
-8. If visual proof is missing, say so. Screenshots and simulator proof do not replace physical alarm proof.
+8. If visual proof is missing, say so. Screenshots and simulator proof do not replace physical-device proof for delivery or reliability claims.
 
 ## Rules
 

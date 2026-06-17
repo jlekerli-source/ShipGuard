@@ -1,6 +1,6 @@
 ---
 name: notification-permissions
-description: Ringly notification, AlarmKit access, and permission-truth workflow. Use when a task touches notification authorization, AlarmKit readiness, fallback alerts, permission copy, settings permission UI, onboarding permission prompts, or alarm scheduling availability.
+description: iOS notification, AlarmKit access, and permission-truth workflow. Use when a task touches notification authorization, AlarmKit readiness, fallback alerts, permission copy, settings permission UI, onboarding permission prompts, or alarm scheduling availability.
 ---
 
 # Notification Permissions

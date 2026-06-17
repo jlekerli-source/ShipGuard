@@ -8,7 +8,7 @@ Use it when a workflow has already produced two Arena `results.json` files and y
 
 ```yaml
 - name: Compare Arena results
-  uses: jlekerli-source/ShipGuard/actions/arena-compare@v3.68.0
+  uses: jlekerli-source/ShipGuard/actions/arena-compare@v3.69.0
   with:
     left-results: artifacts/arena-old/results.json
     right-results: artifacts/arena-current/results.json

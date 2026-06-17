@@ -1,6 +1,6 @@
 ---
 name: alarm-testing
-description: Ringly alarm-runtime and wake-path testing workflow. Use when a task touches alarms, AlarmKit, notification fallback, wake screens, Live Activity, missions, hardware volume, Daily Shift, repeating alarms, alarm persistence, or physical-device alarm proof.
+description: iOS alarm-runtime and wake-path testing workflow. Use when a task touches alarms, AlarmKit, notification fallback, wake screens, Live Activity, missions, hardware volume, repeating alarms, alarm persistence, or physical-device alarm proof.
 ---
 
 # Alarm Testing
@@ -18,7 +18,7 @@ Use this skill to keep alarm work narrow, truthful, and evidence-backed.
 
 3. Stop if the task needs a protected file but no `Alarm runtime unlock:` note exists.
 4. Reproduce or describe the wake-path state: foreground, inactive, background, lock screen, killed app, TestFlight, or physical device.
-5. Check edge cases: selected sound, AlarmKit carrier sound, notification fallback, hardware volume, Focus/mute, Bluetooth route, Dynamic Island, Live Activity cleanup, mission enforcement, Daily Shift, repeat coverage, stale duplicate fire, and disabled-off behavior.
+5. Check edge cases: selected sound, AlarmKit carrier sound, notification fallback, hardware volume, Focus/mute, Bluetooth route, Dynamic Island, Live Activity cleanup, challenge or mission enforcement when present, repeat coverage, stale duplicate fire, and disabled-off behavior.
 6. Choose the narrowest validation lane:
 
 ## Required Checks To Consider
