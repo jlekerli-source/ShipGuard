@@ -49,6 +49,14 @@ SPEC_WORKFLOW_ARTIFACT_MARKERS = {
     "spec": ["# Feature Spec", "## User Outcomes", "## Acceptance Criteria", "## Clarifying Questions"],
     "tasks": ["# Tasks", "`S001`", "`S006`", "Proof:"],
 }
+SPEC_WORKFLOW_REQUIRED_VALIDATION_COMMANDS = [
+    "git diff --check",
+    "./tests/ios_spec_workflow_test.sh",
+    "./tests/ios_report_quality_test.sh",
+    "./tests/ios_devspace_check_test.sh",
+    "./tests/cli_smoke_test.sh",
+    "./bin/shipguard validate",
+]
 SPEC_WORKFLOW_PLACEHOLDER_RE = re.compile(r"(?im)^\s*(?:[-*]\s*)?(?:TODO|TBD|FIXME)\b")
 TOKEN_RISK_PATTERNS = {
     "bearer-token": re.compile(r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{12,}"),
@@ -444,6 +452,31 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                 recommendation="Regenerate the spec workflow so acceptance criteria state how each report-quality question will be answered.",
             )
 
+    technical_plan = report.get("technicalPlan")
+    recommended_validation = (
+        technical_plan.get("recommendedValidation") if isinstance(technical_plan, dict) else None
+    )
+    validation_text = ""
+    if isinstance(recommended_validation, list):
+        validation_text = "\n".join(str(item) for item in recommended_validation if isinstance(item, str))
+    normalized_validation_text = normalized_question_text(validation_text)
+    missing_validation_commands = [
+        command
+        for command in SPEC_WORKFLOW_REQUIRED_VALIDATION_COMMANDS
+        if normalized_question_text(command) not in normalized_validation_text
+    ]
+    if missing_validation_commands:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="spec-workflow-validation-coverage-missing",
+            evidence=(
+                f"{path_name} technicalPlan.recommendedValidation missing "
+                f"{len(missing_validation_commands)} of {len(SPEC_WORKFLOW_REQUIRED_VALIDATION_COMMANDS)} required validation commands"
+            ),
+            recommendation="Regenerate the spec workflow so recommendedValidation lists exact proof commands before implementation.",
+        )
+
     artifacts = report.get("artifacts")
     if not isinstance(artifacts, dict):
         add_issue(
@@ -512,8 +545,9 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
             needs_question_coverage = artifact_name in {"markdown", "spec"} and bool(expected_questions)
             needs_task_coverage = artifact_name == "tasks" and bool(expected_task_questions)
             needs_acceptance_coverage = artifact_name == "spec" and bool(expected_task_questions)
+            needs_validation_coverage = artifact_name == "plan"
             artifact_text = ""
-            if markers or needs_question_coverage or needs_task_coverage or needs_acceptance_coverage:
+            if markers or needs_question_coverage or needs_task_coverage or needs_acceptance_coverage or needs_validation_coverage:
                 artifact_text = local_artifact_path.read_text(encoding="utf-8", errors="ignore")
             if markers:
                 missing_markers = [marker for marker in markers if marker not in artifact_text]
@@ -584,6 +618,25 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                             f"{missing_acceptance_count} of {len(expected_task_questions)} report actionability questions in {raw_value}"
                         ),
                         recommendation="Regenerate the spec workflow so feature-spec.md acceptance criteria preserve the report-quality questions.",
+                    )
+            if needs_validation_coverage:
+                validation_section = markdown_section_text(artifact_text, "Validation")
+                normalized_artifact_text = normalized_question_text(validation_section)
+                missing_validation_commands = [
+                    command
+                    for command in SPEC_WORKFLOW_REQUIRED_VALIDATION_COMMANDS
+                    if normalized_question_text(command) not in normalized_artifact_text
+                ]
+                if missing_validation_commands:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="spec-workflow-validation-artifact-missing",
+                        evidence=(
+                            f"{path_name} artifact {artifact_name} missing "
+                            f"{len(missing_validation_commands)} of {len(SPEC_WORKFLOW_REQUIRED_VALIDATION_COMMANDS)} validation commands in {raw_value}"
+                        ),
+                        recommendation="Regenerate the spec workflow so implementation-plan.md lists exact validation commands.",
                     )
 
     section_checks = [
