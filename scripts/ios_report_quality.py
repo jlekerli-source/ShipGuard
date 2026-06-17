@@ -57,6 +57,13 @@ SPEC_WORKFLOW_REQUIRED_VALIDATION_COMMANDS = [
     "./tests/cli_smoke_test.sh",
     "./bin/shipguard validate",
 ]
+SPEC_WORKFLOW_REQUIRED_ANALYSIS_GATES = [
+    "Spec includes what and why before implementation details.",
+    "Plan maps every risky surface to a proof lane.",
+    "Tasks are ordered and independently verifiable.",
+    "Devspace remains a connector and handoff path, not an execution bypass.",
+    "Private-app observations remain ShipGuard product-QA evidence only.",
+]
 SPEC_WORKFLOW_PLACEHOLDER_RE = re.compile(r"(?im)^\s*(?:[-*]\s*)?(?:TODO|TBD|FIXME)\b")
 TOKEN_RISK_PATTERNS = {
     "bearer-token": re.compile(r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{12,}"),
@@ -477,6 +484,28 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
             recommendation="Regenerate the spec workflow so recommendedValidation lists exact proof commands before implementation.",
         )
 
+    analysis_gates = report.get("analysisGates")
+    analysis_text = ""
+    if isinstance(analysis_gates, list):
+        analysis_text = "\n".join(str(item) for item in analysis_gates if isinstance(item, str))
+    normalized_analysis_text = normalized_question_text(analysis_text)
+    missing_analysis_gates = [
+        gate
+        for gate in SPEC_WORKFLOW_REQUIRED_ANALYSIS_GATES
+        if normalized_question_text(gate) not in normalized_analysis_text
+    ]
+    if missing_analysis_gates:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="spec-workflow-analysis-coverage-missing",
+            evidence=(
+                f"{path_name} analysisGates missing "
+                f"{len(missing_analysis_gates)} of {len(SPEC_WORKFLOW_REQUIRED_ANALYSIS_GATES)} required analysis gates"
+            ),
+            recommendation="Regenerate the spec workflow so analysisGates preserve the checks needed before implementation.",
+        )
+
     artifacts = report.get("artifacts")
     if not isinstance(artifacts, dict):
         add_issue(
@@ -546,8 +575,16 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
             needs_task_coverage = artifact_name == "tasks" and bool(expected_task_questions)
             needs_acceptance_coverage = artifact_name == "spec" and bool(expected_task_questions)
             needs_validation_coverage = artifact_name == "plan"
+            needs_analysis_coverage = artifact_name == "plan"
             artifact_text = ""
-            if markers or needs_question_coverage or needs_task_coverage or needs_acceptance_coverage or needs_validation_coverage:
+            if (
+                markers
+                or needs_question_coverage
+                or needs_task_coverage
+                or needs_acceptance_coverage
+                or needs_validation_coverage
+                or needs_analysis_coverage
+            ):
                 artifact_text = local_artifact_path.read_text(encoding="utf-8", errors="ignore")
             if markers:
                 missing_markers = [marker for marker in markers if marker not in artifact_text]
@@ -637,6 +674,25 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                             f"{len(missing_validation_commands)} of {len(SPEC_WORKFLOW_REQUIRED_VALIDATION_COMMANDS)} validation commands in {raw_value}"
                         ),
                         recommendation="Regenerate the spec workflow so implementation-plan.md lists exact validation commands.",
+                    )
+            if needs_analysis_coverage:
+                analysis_section = markdown_section_text(artifact_text, "Analysis Gates")
+                normalized_artifact_text = normalized_question_text(analysis_section)
+                missing_analysis_gates = [
+                    gate
+                    for gate in SPEC_WORKFLOW_REQUIRED_ANALYSIS_GATES
+                    if normalized_question_text(gate) not in normalized_artifact_text
+                ]
+                if missing_analysis_gates:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="spec-workflow-analysis-artifact-missing",
+                        evidence=(
+                            f"{path_name} artifact {artifact_name} missing "
+                            f"{len(missing_analysis_gates)} of {len(SPEC_WORKFLOW_REQUIRED_ANALYSIS_GATES)} analysis gates in {raw_value}"
+                        ),
+                        recommendation="Regenerate the spec workflow so implementation-plan.md lists the required analysis gates.",
                     )
 
     section_checks = [

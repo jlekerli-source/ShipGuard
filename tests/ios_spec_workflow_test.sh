@@ -54,7 +54,9 @@ grep -q 'The ShipGuard change answers report-quality actionability question:' "$
 grep -q 'The ShipGuard change answers report-quality actionability question:' "$tmp_dir/spec/ios-spec-workflow.json"
 grep -q '# Implementation Plan' "$tmp_dir/spec/implementation-plan.md"
 grep -q './tests/ios_spec_workflow_test.sh' "$tmp_dir/spec/implementation-plan.md"
+grep -q 'Devspace remains a connector and handoff path' "$tmp_dir/spec/implementation-plan.md"
 grep -q './tests/ios_report_quality_test.sh' "$tmp_dir/spec/ios-spec-workflow.json"
+grep -q 'Private-app observations remain ShipGuard product-QA evidence only' "$tmp_dir/spec/ios-spec-workflow.json"
 grep -q '# Tasks' "$tmp_dir/spec/tasks.md"
 grep -q '`S007` Resolve report-quality actionability question:' "$tmp_dir/spec/tasks.md"
 grep -q '"id": "S007"' "$tmp_dir/spec/ios-spec-workflow.json"
@@ -223,6 +225,41 @@ grep -q '"ruleId": "spec-workflow-validation-coverage-missing"' "$tmp_dir/missin
 grep -q '"ruleId": "spec-workflow-validation-artifact-missing"' "$tmp_dir/missing-validation-coverage-quality/ios-report-quality.json"
 if grep -R -F -q "$tmp_dir" "$tmp_dir/missing-validation-coverage-quality"; then
   echo "shareable missing-validation-coverage quality output must not include temp absolute paths" >&2
+  exit 1
+fi
+
+cp -R "$tmp_dir/spec" "$tmp_dir/missing-analysis-coverage-spec"
+python3 - <<'PY' "$tmp_dir/missing-analysis-coverage-spec/ios-spec-workflow.json"
+import json
+import sys
+path = sys.argv[1]
+data = json.load(open(path, encoding="utf-8"))
+data["analysisGates"] = ["Analysis gates need maintainer selection."]
+open(path, "w", encoding="utf-8").write(json.dumps(data, indent=2, sort_keys=True) + "\n")
+PY
+python3 - <<'PY' "$tmp_dir/missing-analysis-coverage-spec/implementation-plan.md"
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+before, _ = text.split("## Analysis Gates", 1)
+path.write_text(
+    before
+    + "## Analysis Gates\n\n"
+    + "- Analysis gates need maintainer selection.\n",
+    encoding="utf-8",
+)
+PY
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/missing-analysis-coverage-spec" \
+  --out "$tmp_dir/missing-analysis-coverage-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-analysis-coverage-quality/ios-report-quality.json"
+grep -q '"ruleId": "spec-workflow-analysis-coverage-missing"' "$tmp_dir/missing-analysis-coverage-quality/ios-report-quality.json"
+grep -q '"ruleId": "spec-workflow-analysis-artifact-missing"' "$tmp_dir/missing-analysis-coverage-quality/ios-report-quality.json"
+if grep -R -F -q "$tmp_dir" "$tmp_dir/missing-analysis-coverage-quality"; then
+  echo "shareable missing-analysis-coverage quality output must not include temp absolute paths" >&2
   exit 1
 fi
 

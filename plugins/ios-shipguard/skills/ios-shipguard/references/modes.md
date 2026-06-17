@@ -129,6 +129,7 @@ Proof:
 - If report-quality emits `spec-workflow-acceptance-coverage-missing` or `spec-workflow-acceptance-artifact-missing`, regenerate the spec workflow so report-quality actionability questions become acceptance criteria in JSON and `feature-spec.md`
 - If report-quality emits `spec-workflow-task-coverage-missing` or `spec-workflow-task-artifact-missing`, regenerate the spec workflow so report-quality actionability questions become proof-gated tasks in `taskPlan` and `tasks.md`
 - If report-quality emits `spec-workflow-validation-coverage-missing` or `spec-workflow-validation-artifact-missing`, regenerate the spec workflow so exact proof commands remain in `technicalPlan.recommendedValidation` and `implementation-plan.md`
+- If report-quality emits `spec-workflow-analysis-coverage-missing` or `spec-workflow-analysis-artifact-missing`, regenerate the spec workflow so required analysis gates remain in JSON and `implementation-plan.md`
 - If report-quality emits `spec-workflow-artifact-file-missing` or `spec-workflow-artifact-file-empty`, regenerate or copy the complete spec-workflow bundle before treating it as proof
 - If report-quality emits `spec-workflow-artifact-content-incomplete` or `spec-workflow-artifact-placeholder-content`, regenerate the spec workflow so the bundle contains real headings, task IDs, proof cues, and Devspace guardrails
 - If report-quality emits `declared-shareability-missing` or `declared-shareability-local-mode`, regenerate the source report with `--shareable` before scoring or sharing

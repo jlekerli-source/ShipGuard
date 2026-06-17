@@ -18,7 +18,7 @@
 | Run iOS preview bridge | `ios preview`, `ios target-match` | Local phone preview, visual event receipts, and semantic target matching |
 | Run ShipGuard Devspace | `ios devspace`, `ios devspace-check`, `ios codex-handoff` | MCP/App bridge, connector-readiness report, preview widget, and guarded Codex handoff bundle |
 | Audit iOS modernization and system exposure | `ios modernize`, `ios app-intelligence`, `ios ai-readiness` | Swift modernization, App Intents/system-surface, and AI capability reports with optional ShipGuard-only eval boundaries and shareable path-safe output |
-| Generate iOS spec workflow | `ios spec-workflow` | ShipGuard-owned constitution, feature spec, implementation plan, tasks, analysis gates, slash plan/goal, Devspace guardrails, and report-quality artifact/question/acceptance/task/validation checks |
+| Generate iOS spec workflow | `ios spec-workflow` | ShipGuard-owned constitution, feature spec, implementation plan, tasks, analysis gates, slash plan/goal, Devspace guardrails, and report-quality artifact/question/acceptance/task/validation/analysis checks |
 | Redact or evaluate iOS reports | `ios redact`, `ios report-quality`, `ios eval`, `ios demo` | Redacted local reports, shareable report-usefulness scoring with actionability questions, deterministic behavior evals, and clean first-run demo |
 | Continue iOS ShipGuard goals | `ios goals` | Evidence-gated slash-goal state and next-goal output |
 | Configure project policy | `policy init`, `policy show` | Plain policy file |

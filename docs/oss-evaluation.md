@@ -105,6 +105,8 @@ The next acceptance-criteria probe showed a report-grounded spec workflow could 
 
 The next validation-command probe showed a report-grounded spec workflow could pass even when `technicalPlan.recommendedValidation` was empty and `implementation-plan.md` only said validation needed maintainer selection. Report-quality now emits `spec-workflow-validation-coverage-missing` or `spec-workflow-validation-artifact-missing` when the spec workflow drops exact proof commands.
 
+The next analysis-gate probe showed a report-grounded spec workflow could pass after `analysisGates` and `implementation-plan.md` were reduced to a generic maintainer-selection placeholder. Report-quality now emits `spec-workflow-analysis-coverage-missing` or `spec-workflow-analysis-artifact-missing` when the spec workflow drops the required pre-implementation analysis gates.
+
 The installed Codex cache now has `ios-shipguard` metadata version `0.2.0+codex.20260617011237`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
 
 ## Verdict
