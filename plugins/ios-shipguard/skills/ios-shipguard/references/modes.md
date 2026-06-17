@@ -122,7 +122,7 @@ Proof:
 
 - Run the selected command with `--shipguard-eval`: `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness`; use `--shareable` when that report will leave local proof space
 - Run `shipguard ios report-quality --reports <eval-output-dir> --out <quality-dir> --shareable` to grade ShipGuard report usefulness, not target-app quality, when the quality artifact will leave local proof space
-- Use the report-quality Actionability Questions to choose the next ShipGuard rule, fixture, report section, or docs improvement
+- Use the report-quality `priorityAction` and prioritized Actionability Questions to choose the next ShipGuard rule, fixture, report section, or docs improvement
 - Run `shipguard ios spec-workflow --path <private-app-or-shipguard-repo> --feature <improvement> --from-report <quality-dir> --shipguard-eval --shareable --out <spec-dir>` when those deduplicated questions need to become a proof-gated ShipGuard plan rather than target-app work
 - If report-quality emits `spec-workflow-report-context-missing` or `spec-workflow-actionability-missing`, regenerate the spec workflow with `--from-report <quality-dir>` so the plan is grounded in observed ShipGuard output
 - If report-quality emits `spec-workflow-question-coverage-missing` or `spec-workflow-question-artifact-missing`, regenerate the spec workflow so report-quality actionability questions survive as JSON and Markdown clarifying questions

@@ -65,8 +65,12 @@ actionability_fixture="fixtures/ios-report-quality/actionability"
   --out "$tmp_dir/actionability-quality" \
   --shareable >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/actionability-quality/ios-report-quality.json"
+grep -q '"priorityAction":' "$tmp_dir/actionability-quality/ios-report-quality.json"
+grep -q '"prioritizedActionabilityQuestions":' "$tmp_dir/actionability-quality/ios-report-quality.json"
+grep -q '"kind": "answer-actionability-question"' "$tmp_dir/actionability-quality/ios-report-quality.json"
 grep -q '"report": "fixtures/ios-report-quality/actionability/ios-ai-readiness-report.json"' "$tmp_dir/actionability-quality/ios-report-quality.json"
 grep -q '"question": "Does the report explain which AI path is the safest default for this app type?"' "$tmp_dir/actionability-quality/ios-report-quality.json"
+grep -q 'Priority Action' "$tmp_dir/actionability-quality/ios-report-quality.md"
 grep -q 'Actionability Questions' "$tmp_dir/actionability-quality/ios-report-quality.md"
 grep -q 'safest default for this app type' "$tmp_dir/actionability-quality/ios-report-quality.md"
 grep -q 'Answer the actionability questions above' "$tmp_dir/actionability-quality/ios-report-quality.md"
@@ -74,6 +78,122 @@ if grep -q 'local-path-shareability-warning' "$tmp_dir/shareable-quality/ios-rep
   echo "shareable report-quality output should not add local-path warnings for shareable inputs" >&2
   exit 1
 fi
+
+priority_fixture="$tmp_dir/priority-fixture"
+mkdir -p "$priority_fixture"
+cat > "$priority_fixture/ios-ai-readiness.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard ios ai-readiness",
+  "intent": "shipguard-evaluation",
+  "generatedAt": "2026-06-17T00:00:00Z",
+  "status": "review",
+  "shareability": {
+    "mode": "shareable",
+    "localAbsolutePathsIncluded": false
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "scanScope": {
+    "skippedDirectoryCount": 0,
+    "skippedDirectories": []
+  },
+  "findings": [
+    {
+      "ruleId": "ai-lower-priority",
+      "severity": "review",
+      "evidence": "AI readiness fixture has a review-level source finding.",
+      "recommendation": "Keep AI guidance path-safe.",
+      "proofGuidance": "Run report-quality on the fixture."
+    }
+  ],
+  "reportQualityQuestions": [
+    "AI lower-priority question should not outrank blocked performance."
+  ]
+}
+JSON
+cat > "$priority_fixture/ios-ai-readiness.md" <<'MD'
+# AI Readiness Priority Fixture
+
+## ShipGuard Evaluation Boundary
+
+This fixture is ShipGuard product QA only.
+
+## Scan Scope
+
+No skipped directories.
+MD
+cat > "$priority_fixture/ios-performance.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard ios performance",
+  "intent": "shipguard-evaluation",
+  "generatedAt": "2026-06-17T00:00:00Z",
+  "status": "blocked",
+  "shareability": {
+    "mode": "shareable",
+    "localAbsolutePathsIncluded": false
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "scanScope": {
+    "skippedDirectoryCount": 0,
+    "skippedDirectories": []
+  },
+  "findings": [
+    {
+      "ruleId": "performance-higher-priority",
+      "severity": "high",
+      "evidence": "Performance fixture has a blocked source finding.",
+      "recommendation": "Prioritize blocked performance report questions.",
+      "proofGuidance": "Run report-quality on the fixture."
+    }
+  ],
+  "reportQualityQuestions": [
+    "Performance priority question should be first."
+  ]
+}
+JSON
+cat > "$priority_fixture/ios-performance.md" <<'MD'
+# Performance Priority Fixture
+
+## ShipGuard Evaluation Boundary
+
+This fixture is ShipGuard product QA only.
+
+## Scan Scope
+
+No skipped directories.
+MD
+./bin/shipguard ios report-quality \
+  --reports "$priority_fixture" \
+  --out "$tmp_dir/priority-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/priority-quality/ios-report-quality.json"
+python3 - <<'PY' "$tmp_dir/priority-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+priority = data["priorityAction"]
+if priority["kind"] != "answer-actionability-question":
+    raise SystemExit(f"unexpected priority kind: {priority!r}")
+if priority["tool"] != "shipguard ios performance":
+    raise SystemExit(f"expected performance priority, got {priority!r}")
+if priority["sourceStatus"] != "blocked":
+    raise SystemExit(f"expected blocked source status, got {priority!r}")
+if priority["question"] != "Performance priority question should be first.":
+    raise SystemExit(f"unexpected priority question: {priority!r}")
+ranked = data["prioritizedActionabilityQuestions"]
+if ranked[0]["tool"] != "shipguard ios performance":
+    raise SystemExit(f"ranked questions did not start with performance: {ranked!r}")
+PY
+grep -q 'Priority Action' "$tmp_dir/priority-quality/ios-report-quality.md"
+grep -q 'Performance priority question should be first.' "$tmp_dir/priority-quality/ios-report-quality.md"
 
 local_contract_reports="$tmp_dir/local-contract-reports"
 ./bin/shipguard ios modernize \

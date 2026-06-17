@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added report-quality priority actions so read-only ShipGuard product-QA passes rank the next concrete finding or actionability question instead of leaving developers with an unprioritized checklist.
 - Added spec-workflow slash handoff coverage so report-quality flags bundles whose `slashPlan`, `slashGoal`, or `ios-spec-workflow.md` drops the copy-ready `/plan` and `/goal` next-loop handoff.
 - Fixed spec-workflow actionability question preservation so repeated report-quality questions are deduplicated before clarifying-question and task caps are applied.
 

@@ -64,6 +64,17 @@ SPEC_WORKFLOW_REQUIRED_ANALYSIS_GATES = [
     "Devspace remains a connector and handoff path, not an execution bypass.",
     "Private-app observations remain ShipGuard product-QA evidence only.",
 ]
+SEVERITY_PRIORITY = {"high": 0, "review": 1, "opportunity": 2}
+STATUS_PRIORITY = {"blocked": 0, "review": 1, "pass": 2}
+TOOL_NEXT_ACTION_PRIORITY = {
+    "shipguard ios performance": 0,
+    "shipguard ios design": 1,
+    "shipguard ios modernize": 2,
+    "shipguard ios app-intelligence": 3,
+    "shipguard ios ai-readiness": 4,
+    "shipguard ios spec-workflow": 5,
+    "shipguard ios devspace-check": 6,
+}
 SPEC_WORKFLOW_PLACEHOLDER_RE = re.compile(r"(?im)^\s*(?:[-*]\s*)?(?:TODO|TBD|FIXME)\b")
 TOKEN_RISK_PATTERNS = {
     "bearer-token": re.compile(r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{12,}"),
@@ -331,6 +342,18 @@ def score_for(issues: list[dict[str, str]]) -> int:
         else:
             score -= 4
     return max(0, score)
+
+
+def severity_rank(value: object) -> int:
+    return SEVERITY_PRIORITY.get(str(value or "").lower(), 9)
+
+
+def status_rank(value: object) -> int:
+    return STATUS_PRIORITY.get(str(value or "").lower(), 9)
+
+
+def tool_priority(value: object) -> int:
+    return TOOL_NEXT_ACTION_PRIORITY.get(str(value or ""), 99)
 
 
 def report_status(issues: list[dict[str, str]]) -> str:
@@ -820,6 +843,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
             "status": "blocked",
             "score": score_for(issues),
             "issues": issues,
+            "issueCount": len(issues),
         }
 
     tool = str(loaded.get("tool") or "")
@@ -992,6 +1016,135 @@ def build_redaction_plan(
     }
 
 
+def priority_reason(row: dict[str, Any]) -> str:
+    quality_status = str(row.get("reportQualityStatus") or "")
+    source_status = str(row.get("sourceStatus") or "")
+    tool = str(row.get("tool") or "unknown")
+    if quality_status and quality_status != "pass":
+        return f"report-quality status is {quality_status}"
+    if source_status and source_status != "pass":
+        return f"source report status is {source_status}"
+    return f"{tool} is next in the default iOS maintenance priority order"
+
+
+def ranked_actionability_questions(graded: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for report_index, report in enumerate(graded):
+        for question_index, question in enumerate(report.get("actionabilityQuestions", [])):
+            row = {
+                "tool": question.get("tool") or report.get("tool") or "unknown",
+                "report": question.get("report") or report.get("path") or "<unknown-report>",
+                "question": question.get("question") or "",
+                "sourceStatus": report.get("reportStatus") or "unknown",
+                "reportQualityStatus": report.get("status") or "unknown",
+                "score": report.get("score"),
+                "_reportIndex": report_index,
+                "_questionIndex": question_index,
+            }
+            if not row["question"]:
+                continue
+            rows.append(row)
+
+    rows.sort(
+        key=lambda row: (
+            status_rank(row.get("reportQualityStatus")),
+            status_rank(row.get("sourceStatus")),
+            int(row.get("score") if isinstance(row.get("score"), int) else 999),
+            tool_priority(row.get("tool")),
+            row["_reportIndex"],
+            row["_questionIndex"],
+        )
+    )
+    for index, row in enumerate(rows, start=1):
+        row["priority"] = index
+        row["priorityReason"] = priority_reason(row)
+        row.pop("_reportIndex", None)
+        row.pop("_questionIndex", None)
+    return rows
+
+
+def top_report_quality_issue(issues: list[dict[str, Any]]) -> dict[str, Any] | None:
+    if not issues:
+        return None
+    return sorted(
+        issues,
+        key=lambda issue: (
+            severity_rank(issue.get("severity")),
+            tool_priority(issue.get("tool")),
+            str(issue.get("report") or ""),
+            str(issue.get("ruleId") or ""),
+        ),
+    )[0]
+
+
+def build_priority_action(issues: list[dict[str, Any]], ranked_questions: list[dict[str, Any]]) -> dict[str, Any]:
+    issue = top_report_quality_issue(issues)
+    if issue:
+        return {
+            "kind": "fix-report-quality-finding",
+            "summary": (
+                f"Fix `{issue.get('ruleId')}` in `{Path(str(issue.get('report') or '')).name}`: "
+                f"{issue.get('recommendation')}"
+            ),
+            "severity": issue.get("severity"),
+            "ruleId": issue.get("ruleId"),
+            "tool": issue.get("tool"),
+            "report": issue.get("report"),
+            "recommendation": issue.get("recommendation"),
+        }
+    if ranked_questions:
+        question = ranked_questions[0]
+        return {
+            "kind": "answer-actionability-question",
+            "summary": (
+                f"Start with `{question['tool']}` question #{question['priority']}: "
+                f"{question['question']}"
+            ),
+            "tool": question["tool"],
+            "report": question["report"],
+            "sourceStatus": question["sourceStatus"],
+            "reportQualityStatus": question["reportQualityStatus"],
+            "question": question["question"],
+            "priorityReason": question["priorityReason"],
+        }
+    return {
+        "kind": "add-actionability-questions",
+        "summary": "Add reportQualityQuestions to source reports so report-quality can propose a concrete next ShipGuard improvement.",
+        "recommendation": "Regenerate the source report with --shipguard-eval after adding reportQualityQuestions.",
+    }
+
+
+def build_next_actions(priority_action: dict[str, Any], ranked_questions: list[dict[str, Any]]) -> list[str]:
+    kind = priority_action.get("kind")
+    if kind == "fix-report-quality-finding":
+        return [
+            priority_action["summary"],
+            "Regenerate the affected report and rerun ios report-quality before using it as product-QA evidence.",
+            "After report-quality passes, convert the highest-priority remaining question into a public fixture or eval case.",
+            "Run private-app reports with --shipguard-eval and keep unredacted reports local.",
+            "Use shipguard ios redact before sharing reports outside the local development loop.",
+        ]
+    if kind == "answer-actionability-question":
+        return [
+            priority_action["summary"],
+            "Answer the actionability questions above in priority order instead of choosing from an unranked list.",
+            "Convert the top answer into a public fixture, eval case, report section, or docs change before editing ShipGuard rules.",
+            "If implementation needs planning, feed this report-quality output into ios spec-workflow with --from-report.",
+            "Run private-app reports with --shipguard-eval and keep unredacted reports local.",
+        ]
+    if ranked_questions:
+        return [
+            "Answer the actionability questions above to decide which ShipGuard rule, report section, fixture, or doc should improve next.",
+            "Convert repeated report-quality weaknesses into public fixtures or eval cases.",
+            "Run private-app reports with --shipguard-eval and keep unredacted reports local.",
+        ]
+    return [
+        priority_action["summary"],
+        "Convert repeated report-quality weaknesses into public fixtures or eval cases.",
+        "Run private-app reports with --shipguard-eval and keep unredacted reports local.",
+    ]
+
+
 def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any]:
     paths = report_json_files(inputs)
     input_paths = resolved_input_paths(inputs)
@@ -1009,6 +1162,8 @@ def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any
         status = "blocked"
     elif any(item["status"] == "review" for item in graded):
         status = "review"
+    ranked_questions = ranked_actionability_questions(graded)
+    priority_action = build_priority_action(issues, ranked_questions)
     return {
         "schemaVersion": SCHEMA_VERSION,
         "tool": REPORT_QUALITY_TOOL,
@@ -1032,13 +1187,9 @@ def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any
         "reports": graded,
         "findings": issues,
         "actionabilityQuestions": actionability_questions[:30],
-        "nextActions": [
-            "Fix high report-quality issues before using the report as product QA evidence.",
-            "Answer the actionability questions above to decide which ShipGuard rule, report section, fixture, or doc should improve next.",
-            "Convert repeated report-quality weaknesses into public fixtures or eval cases.",
-            "Run private-app reports with --shipguard-eval and keep unredacted reports local.",
-            "Use shipguard ios redact before sharing reports outside the local development loop.",
-        ],
+        "prioritizedActionabilityQuestions": ranked_questions[:30],
+        "priorityAction": priority_action,
+        "nextActions": build_next_actions(priority_action, ranked_questions),
         "redactionPlan": build_redaction_plan(inputs, issues, input_paths=input_paths, shareable=shareable, cwd=cwd),
     }
 
@@ -1055,12 +1206,12 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         "## Reports",
         "",
-        "| Score | Status | Tool | Intent | Report | Issues |",
-        "| ---: | --- | --- | --- | --- | ---: |",
+        "| Score | Quality Status | Source Status | Tool | Intent | Report | Issues |",
+        "| ---: | --- | --- | --- | --- | --- | ---: |",
     ]
     for item in report["reports"]:
         lines.append(
-            f"| {item['score']} | {item['status']} | `{table_cell(item.get('tool') or 'unknown', 40)}` | {item.get('intent') or '-'} | `{Path(item['path']).name}` | {item['issueCount']} |"
+            f"| {item['score']} | {item['status']} | {item.get('reportStatus') or '-'} | `{table_cell(item.get('tool') or 'unknown', 40)}` | {item.get('intent') or '-'} | `{Path(item['path']).name}` | {item['issueCount']} |"
         )
 
     lines.extend(["", "## Findings", ""])
@@ -1073,12 +1224,25 @@ def render_markdown(report: dict[str, Any]) -> str:
     else:
         lines.append("No report-quality issues were detected.")
 
+    priority = report.get("priorityAction") or {}
+    lines.extend(["", "## Priority Action", ""])
+    if priority:
+        lines.append(f"- Kind: `{priority.get('kind') or 'unknown'}`")
+        lines.append(f"- Summary: {priority.get('summary') or 'No priority action available.'}")
+        if priority.get("priorityReason"):
+            lines.append(f"- Reason: {priority['priorityReason']}")
+        if priority.get("sourceStatus"):
+            lines.append(f"- Source status: `{priority['sourceStatus']}`")
+    else:
+        lines.append("No priority action was generated.")
+
     lines.extend(["", "## Actionability Questions", ""])
-    if report["actionabilityQuestions"]:
-        lines.extend(["| Tool | Report | Question |", "| --- | --- | --- |"])
-        for item in report["actionabilityQuestions"][:12]:
+    ranked_questions = report.get("prioritizedActionabilityQuestions") or report["actionabilityQuestions"]
+    if ranked_questions:
+        lines.extend(["| Priority | Tool | Source Status | Report | Question | Reason |", "| ---: | --- | --- | --- | --- | --- |"])
+        for index, item in enumerate(ranked_questions[:12], start=1):
             lines.append(
-                f"| `{table_cell(item.get('tool') or 'unknown', 40)}` | `{Path(item['report']).name}` | {table_cell(item['question'], 140)} |"
+                f"| {item.get('priority') or index} | `{table_cell(item.get('tool') or 'unknown', 40)}` | {item.get('sourceStatus') or '-'} | `{Path(item['report']).name}` | {table_cell(item['question'], 140)} | {table_cell(item.get('priorityReason') or '-', 90)} |"
             )
     else:
         lines.append("No report-quality questions were found in the input reports.")
