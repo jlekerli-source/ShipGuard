@@ -2,6 +2,21 @@
 
 `shipguard ios preview` gives iOS ShipGuard a local visual loop that works inside Codex today. It serves a phone-shaped localhost page for the Codex in-app browser, refreshes the current Simulator screenshot, and records click, right-click, or note intent as evidence.
 
+## Build iOS Apps Visual Loop
+
+When the Build iOS Apps plugin is installed, prefer its `ios-simulator-browser` workflow for live Simulator mirroring, SwiftUI preview rendering, and package-backed hot reload. That is the fastest visual iteration loop when it is available and the preview lives in an importable Swift package.
+
+ShipGuard preview remains useful for a different job: typed event receipts, target-resolution handoff, redaction boundaries, report-quality evidence, and ChatGPT/Codex handoff preparation. A practical loop is:
+
+```text
+Build iOS Apps live mirror or SwiftUI preview
+  -> ShipGuard preview receipt or target-resolution handoff
+  -> Codex/XcodeBuildMCP source edit or semantic simulator action
+  -> refreshed visual proof
+```
+
+Do not claim hot reload proof from ShipGuard alone. For hot reload QA, keep the Build iOS Apps launcher output and a browser-visible frame showing the changed preview.
+
 ## Start A Preview
 
 Boot and launch your app with XcodeBuildMCP, Xcode, or your normal local workflow. Then run:

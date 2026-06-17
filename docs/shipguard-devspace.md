@@ -22,6 +22,12 @@ The app archetype is `interactive-decoupled`: data/action tools stay separate fr
 
 The MCP `initialize` response includes server-level instructions for host models. Those instructions describe the expected start, render, record, target-resolution, target-match, and Codex handoff sequence, and restate the no-raw-coordinate-tap and no-token-in-prompts boundaries.
 
+## Relationship To Build iOS Apps
+
+Use the Build iOS Apps plugin for the native Codex-side visual loop when it is available: Simulator mirroring in the in-app browser, SwiftUI previews, and package-backed hot reload. Use ShipGuard Devspace when ChatGPT should plan from a phone preview widget, when you need MCP-readable visual receipts, or when the output must become a guarded Codex handoff with redaction and report-quality boundaries.
+
+ShipGuard does not replace Build iOS Apps and does not force a ChatGPT model choice. It adds the local-first proof layer around visual planning: bearer-token checks, screenshot-token handling, target-resolution rules, no raw coordinate taps, redaction handoff, and explicit Codex execution boundaries.
+
 ## Start HTTP Mode
 
 Start the Devspace MCP endpoint:
@@ -199,14 +205,24 @@ The `ios-shipguard` plugin includes `.mcp.json` for stdio MCP integration:
 {
   "mcpServers": {
     "shipguard-devspace": {
-      "command": "python3",
-      "args": ["./scripts/shipguard_devspace_mcp.py", "--stdio", "--repo-root", "."]
+      "command": "bash",
+      "args": ["-lc", "resolve and run shipguard ios devspace --stdio"]
     }
   }
 }
 ```
 
-In this repository's local plugin layout, the MCP server runs from the repository root so it can call `bin/shipguard`.
+The installed Codex plugin cache contains the plugin bundle, not the whole ShipGuard source checkout. For that reason the MCP launcher resolves an installed CLI in this order: `SHIPGUARD_CLI`, `shipguard` on `PATH`, `$HOME/.local/bin/shipguard`, then app-local `./bin/shipguard`. If none exists, it exits with a clear install message instead of pointing at a cache-relative source path that cannot exist.
+
+Run this after plugin or CLI changes:
+
+```bash
+codex plugin marketplace add .
+codex plugin add ios-shipguard@shipguard
+./bin/shipguard codex status --strict
+```
+
+Then start a new Codex thread so the refreshed skill and MCP metadata are loaded.
 
 ## Security Boundary
 

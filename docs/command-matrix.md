@@ -15,7 +15,7 @@
 | Route iOS proof claims | `ios prove` | Source, simulator, performance, StoreKit, privacy, release, and blocked-manual evidence lane |
 | Audit iOS performance hotspots | `ios performance` | Ranked SwiftUI, body-work, GPU composition, image decoding, notification-cleanup findings with impact explanations, high-severity reasons, local/manual proof boundaries, grouped next actions with first experiments, validation routes, stop conditions, optional ShipGuard-only eval boundary, and shareable path-safe output |
 | Audit iOS design quality | `ios design` | App-type inference, design DNA, motion, haptics, preview routing, and ImageGen icon handoff |
-| Run iOS preview bridge | `ios preview`, `ios target-match` | Local phone preview, visual event receipts, and semantic target matching |
+| Run iOS preview bridge | `ios preview`, `ios target-match` | Local phone preview, visual event receipts, semantic target matching, and proof handoff around Build iOS Apps live preview/hot reload loops |
 | Run ShipGuard Devspace | `ios devspace`, `ios devspace-check`, `ios codex-handoff` | MCP/App bridge, connector-readiness report, preview widget, and guarded Codex handoff bundle |
 | Audit iOS modernization and system exposure | `ios modernize`, `ios app-intelligence`, `ios ai-readiness` | Swift modernization, App Intents/system-surface, and AI capability reports with optional ShipGuard-only eval boundaries and shareable path-safe output |
 | Generate iOS spec workflow | `ios spec-workflow` | ShipGuard-owned constitution, feature spec, implementation plan, tasks, analysis gates, slash plan/goal, Devspace guardrails, and report-quality artifact/question/acceptance/task/validation/analysis checks |

@@ -4,6 +4,15 @@
 
 No unreleased changes.
 
+## v3.70.0 - Plugin Review And Devspace MCP Launch
+
+- Fixed the iOS ShipGuard plugin MCP launcher so installed Codex plugin caches resolve an installed `shipguard` CLI instead of pointing at missing cache-relative source scripts.
+- Added Codex status/package checks for stale Devspace MCP sidecar configuration and stale installed CLI versions used by the MCP launcher.
+- Added plugin interface website, privacy, and terms URLs and trimmed default prompts to the three Codex actually uses.
+- Made release packaging write tarballs atomically so parallel validation cannot leave a partially written `dist/shipguard-vX.Y.Z.tar.gz`.
+- Added a ShipGuard-native open-source operating surface with support, governance, code of conduct, proposal/bug templates, package proof, and docs routing.
+- Added Build iOS Apps visual-loop routing guidance so ShipGuard complements simulator browser, SwiftUI preview, and hot reload workflows with receipts, redaction, report quality, and Codex handoff proof.
+
 ## v3.69.0 - Performance Validation Gates And Starter Hygiene
 
 - Added `validationRoute` and `stopCondition` to grouped `ios performance` actions so reports show how to prove the first experiment and when to stop before broad refactors; `ios report-quality` now flags grouped performance output that hides validation routes or stop conditions from JSON or Markdown.

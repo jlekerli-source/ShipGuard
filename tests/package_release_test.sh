@@ -35,7 +35,16 @@ tar -tzf "$tarball" > "$tar_list"
 grep -q "^$package_name/bin/shipguard$" "$tar_list"
 grep -q "^$package_name/bin/codex-maintainer$" "$tar_list"
 grep -q "^$package_name/AGENTS.md$" "$tar_list"
+grep -q "^$package_name/CODE_OF_CONDUCT.md$" "$tar_list"
+grep -q "^$package_name/CONTRIBUTING.md$" "$tar_list"
+grep -q "^$package_name/GOVERNANCE.md$" "$tar_list"
+grep -q "^$package_name/LICENSE$" "$tar_list"
+grep -q "^$package_name/SECURITY.md$" "$tar_list"
+grep -q "^$package_name/SUPPORT.md$" "$tar_list"
 grep -q "^$package_name/.agents/plugins/marketplace.json$" "$tar_list"
+grep -q "^$package_name/.github/ISSUE_TEMPLATE/bug-report.yml$" "$tar_list"
+grep -q "^$package_name/.github/ISSUE_TEMPLATE/proposal.yml$" "$tar_list"
+grep -q "^$package_name/.github/ISSUE_TEMPLATE/workflow-gap.yml$" "$tar_list"
 grep -q "^$package_name/plugins/ios-shipguard/.codex-plugin/plugin.json$" "$tar_list"
 grep -q "^$package_name/plugins/ios-shipguard/.mcp.json$" "$tar_list"
 grep -q "^$package_name/plugins/ios-shipguard/assets/app-icon.png$" "$tar_list"
@@ -45,6 +54,27 @@ grep -q "^$package_name/plugins/ios-shipguard/skills/ios-shipguard/agents/openai
 grep -q "^$package_name/plugins/ios-shipguard/skills/ios-shipguard/references/modes.md$" "$tar_list"
 grep -q 'SHIPGUARD_CLI' plugins/ios-shipguard/skills/ios-shipguard/SKILL.md
 grep -q 'command -v shipguard' plugins/ios-shipguard/skills/ios-shipguard/SKILL.md
+grep -q 'Build iOS Apps' plugins/ios-shipguard/skills/ios-shipguard/SKILL.md
+grep -q 'hot reload' docs/ios-preview.md
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+plugin = json.loads(Path("plugins/ios-shipguard/.codex-plugin/plugin.json").read_text(encoding="utf-8"))
+interface = plugin["interface"]
+for key in ("websiteURL", "privacyPolicyURL", "termsOfServiceURL"):
+    assert interface.get(key, "").startswith("https://github.com/jlekerli-source/ShipGuard"), key
+assert len(interface["defaultPrompt"]) <= 3
+
+mcp = json.loads(Path("plugins/ios-shipguard/.mcp.json").read_text(encoding="utf-8"))
+server = mcp["mcpServers"]["shipguard-devspace"]
+assert server["command"] == "bash"
+args = " ".join(server["args"])
+assert "SHIPGUARD_CLI" in args
+assert "command -v shipguard" in args
+assert "$HOME/.local/bin/shipguard" in args
+assert "./scripts/shipguard_devspace_mcp.py" not in args
+PY
 grep -q "^$package_name/.github/workflows/autopsy-artifact.yml$" "$tar_list"
 grep -q "^$package_name/actions/arena-compare/action.yml$" "$tar_list"
 grep -q "^$package_name/actions/ci-gate/action.yml$" "$tar_list"
@@ -82,6 +112,8 @@ grep -q "^$package_name/docs/shipguard-devspace.md$" "$tar_list"
 grep -q "^$package_name/docs/maintainer-reliability-os.md$" "$tar_list"
 grep -q "^$package_name/docs/next-goal.md$" "$tar_list"
 grep -q "^$package_name/docs/oss-evaluation.md$" "$tar_list"
+grep -q "^$package_name/docs/open-source.md$" "$tar_list"
+grep -q "^$package_name/docs/privacy.md$" "$tar_list"
 grep -q "^$package_name/docs/security-threat-model.md$" "$tar_list"
 grep -q "^$package_name/docs/policy.md$" "$tar_list"
 grep -q "^$package_name/docs/pr-review-bot.md$" "$tar_list"

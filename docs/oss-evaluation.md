@@ -10,7 +10,7 @@ Current checkout:
 
 ```bash
 ./bin/shipguard version
-# 3.69.0
+# 3.70.0
 
 ./bin/shipguard validate
 # workflow bundle validation passed
@@ -127,7 +127,7 @@ The next read-only spec-workflow loop over public demo reports showed repeated a
 
 The next read-only full-report pass showed report-quality could score all source reports as structurally valid while leaving 21 actionability questions unranked and even suggesting "fix high report-quality issues" when there were no findings. `ios report-quality` now emits `priorityAction` and `prioritizedActionabilityQuestions`, ranks report-quality findings before questions, and ranks questions from blocked/review source reports before lower-risk output so the next ShipGuard improvement is concrete.
 
-The installed Codex cache now has `ios-shipguard` metadata version `0.2.0+codex.20260617011237`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
+The installed Codex cache now has `ios-shipguard` metadata version `0.2.1+codex.20260617215919`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, source-path MCP sidecar, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
 
 ## Verdict
 
@@ -170,6 +170,7 @@ The Codex plugin source and local cache are now clean enough for local use. The 
 - A repository threat model artifact before running a full Codex Security scan.
 - More Arena fixtures for security-sensitive workflows: credentials, untrusted paths, generated artifacts, network posting, GitHub token scope, and release asset trust.
 - Optional OpenAI Agents SDK evaluation only if ShipGuard becomes a runnable agent service. Do not add OpenAI API dependencies to the CLI without that product decision.
+- Keep the open-source operating model first-class: contribution flow, support routing, governance, code of conduct, issue templates, package proof, and public docs should stay ShipGuard-native rather than copied from another project.
 
 ## Remove Or Defer
 

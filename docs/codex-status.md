@@ -48,11 +48,15 @@ Use `--strict` in local proof scripts when a missing or stale install should fai
 
 - the ShipGuard toolkit version from `VERSION`
 - whether tracked `plugins/ios-shipguard` source exists in this checkout
+- whether tracked `.mcp.json` Devspace sidecar config exists and launches through an installed ShipGuard CLI fallback
+- whether the CLI that the plugin MCP launcher will resolve prints the same version as this checkout
 - whether `.agents/plugins/marketplace.json` exposes `ios-shipguard@shipguard` from `./plugins/ios-shipguard`
 - installed `ios-shipguard` plugin metadata under the Codex plugin cache
 - stale repository URLs that still point at `ringly-codex-workflows`
 - old `Shipguard` display casing in plugin and agent metadata
 - old `codex-maintainer` command guidance inside the installed skill text
+- installed Devspace MCP config that still points at missing cache-relative source scripts
+- missing or stale installed CLI resolution for Devspace MCP
 - the exact handoff for repository updates, plugin reinstall, new-thread refresh, and stale-cache cleanup
 
 ## Interpreting Status

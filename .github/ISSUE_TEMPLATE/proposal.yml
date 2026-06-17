@@ -1,0 +1,43 @@
+name: ShipGuard proposal
+description: Propose a ShipGuard-native workflow, command, report, fixture, or plugin improvement.
+title: "[proposal] "
+labels: ["proposal"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What maintainer failure should ShipGuard prevent?
+    validations:
+      required: true
+  - type: textarea
+    id: native-fit
+    attributes:
+      label: Native ShipGuard fit
+      description: Explain how this fits ShipGuard's local-first proof, report-quality, redaction, or plugin model.
+    validations:
+      required: true
+  - type: textarea
+    id: public-fixture
+    attributes:
+      label: Public fixture or eval
+      description: What public/demo fixture can prove this without depending on private app code?
+    validations:
+      required: false
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation
+      description: Which exact commands should prove the proposal?
+      render: shell
+    validations:
+      required: false
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Boundaries
+      options:
+        - label: This proposal does not require copying another project's code or text.
+          required: true
+        - label: This proposal does not require private app source or unredacted private reports.
+          required: true

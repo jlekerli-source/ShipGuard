@@ -27,11 +27,14 @@ paths=(
   "README.md"
   "CHANGELOG.md"
   "CODEX_TASK_TEMPLATE.md"
+  "CODE_OF_CONDUCT.md"
   "CONTRIBUTING.md"
   "EVALUATION_SUITE.md"
+  "GOVERNANCE.md"
   "PLANS.md"
   "ROADMAP.md"
   "SECURITY.md"
+  "SUPPORT.md"
   "SUBAGENTS.md"
   "SCORECARD.md"
   "LICENSE"
@@ -59,6 +62,8 @@ find "$package_root" \
 find "$package_root" -type f -name '*.pyc' -delete
 
 tarball="$dist_dir/$package_name.tar.gz"
-tar -C "$work_dir" -czf "$tarball" "$package_name"
+tmp_tarball="$work_dir/$package_name.tar.gz"
+tar -C "$work_dir" -czf "$tmp_tarball" "$package_name"
+mv -f "$tmp_tarball" "$tarball"
 
 echo "$tarball"

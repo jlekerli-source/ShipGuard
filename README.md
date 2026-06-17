@@ -22,8 +22,8 @@ ShipGuard is not tied to any single app. This repo ships reusable CLI commands, 
 Install from a release tarball, then validate the bundle:
 
 ```bash
-tar -xzf shipguard-v3.69.0.tar.gz
-cd shipguard-v3.69.0
+tar -xzf shipguard-v3.70.0.tar.gz
+cd shipguard-v3.70.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" version
 ./bin/shipguard validate
@@ -57,6 +57,8 @@ Start with these docs:
 - `docs/command-matrix.md`: map maintainer jobs to CLI commands.
 - `docs/ios-shipguard.md`: iOS plugin, skill, and CLI workflow.
 - `docs/shipguard-devspace.md`: ChatGPT visual-planning bridge from the iPhone preview.
+- `docs/open-source.md`: ShipGuard's native open-source operating model.
+- `docs/privacy.md`: local-first privacy boundary for reports, previews, and plugin use.
 - `docs/oss-evaluation.md`: how read-only app evidence becomes ShipGuard product improvements.
 - `docs/security-threat-model.md`: trust boundaries for local CLI, plugin, Devspace, GitHub, and release proof.
 - `docs/index.md`: full documentation map.
@@ -112,6 +114,12 @@ This repository turns those habits into public templates that developers can ada
 This is an early public workflow kit. The next priorities are documented in `ROADMAP.md`, and contribution guidance lives in `CONTRIBUTING.md`.
 
 The repository is also configured as a GitHub template, so you can start from it directly and then replace the sample project profile with your own app's workflow.
+
+## Open Source
+
+ShipGuard is MIT licensed and built in public as a local-first developer tool. The public repo should contain the CLI, plugin metadata, skills, docs, fixtures, evals, examples, tests, and release proof needed to trust the tool without private app code.
+
+Use `CONTRIBUTING.md` for contribution workflow, `SUPPORT.md` for issue routing, `GOVERNANCE.md` for maintainer boundaries, `CODE_OF_CONDUCT.md` for community behavior, and `SECURITY.md` for vulnerability or unsafe-disclosure handling. The native rule is: learn from mature open-source tools, but convert every idea into ShipGuard's own proof, report-quality, redaction, and local-first model.
 
 ## License
 

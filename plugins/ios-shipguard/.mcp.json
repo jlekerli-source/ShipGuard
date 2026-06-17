@@ -3,13 +3,10 @@
     "shipguard-devspace": {
       "title": "ShipGuard Devspace",
       "description": "Expose iOS preview, visual event, and Codex handoff tools for ShipGuard.",
-      "cwd": "../..",
-      "command": "python3",
+      "command": "bash",
       "args": [
-        "./scripts/shipguard_devspace_mcp.py",
-        "--stdio",
-        "--repo-root",
-        "."
+        "-lc",
+        "if [ -n \"${SHIPGUARD_CLI:-}\" ] && [ -x \"$SHIPGUARD_CLI\" ]; then exec \"$SHIPGUARD_CLI\" ios devspace --stdio; elif command -v shipguard >/dev/null 2>&1; then exec shipguard ios devspace --stdio; elif [ -x \"$HOME/.local/bin/shipguard\" ]; then exec \"$HOME/.local/bin/shipguard\" ios devspace --stdio; elif [ -x ./bin/shipguard ]; then exec ./bin/shipguard ios devspace --stdio; else echo \"ShipGuard CLI not found. Install it with PREFIX=\\\"$HOME/.local\\\" ./scripts/install.sh or set SHIPGUARD_CLI to an executable shipguard path.\" >&2; exit 127; fi"
       ]
     }
   }

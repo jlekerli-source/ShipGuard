@@ -217,6 +217,8 @@ The command binds to `127.0.0.1`, captures the booted Simulator with `xcrun simc
 
 Open the printed URL in Codex's in-app browser or ask `@Browser` to open it. You can leave browser comments on the rendered phone preview, click the preview page for tap intent, or right-click inside the preview page to choose copy, visual, navigation, or inspection intent before recording a note. Codex should read `handoff.md`, `preview-events.jsonl`, or the preview server's `/api/handoff.md` payload before editing or choosing an XcodeBuildMCP action.
 
+When the Build iOS Apps plugin is installed, prefer its simulator browser or SwiftUI preview hot reload workflow for fast live rendering. Use ShipGuard preview when you need typed visual receipts, target-resolution handoff, redaction boundaries, report-quality evidence, or ChatGPT/Codex handoff preparation. Do not claim hot reload proof unless Build iOS Apps launcher output and a browser-visible frame show the changed preview.
+
 The bridge is intentionally not a native plugin-owned Codex side panel. Current plugin docs cover skills, apps/connectors, MCP servers, hooks, and assets, while the in-app browser is the documented surface for local visual previews and comments. See `docs/ios-preview.md`.
 
 ## ShipGuard Devspace

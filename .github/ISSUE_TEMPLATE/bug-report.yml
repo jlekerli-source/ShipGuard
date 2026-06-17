@@ -1,0 +1,56 @@
+name: Bug report
+description: Report a reproducible ShipGuard CLI, plugin, docs, or release-proof bug.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: ShipGuard version
+      description: Run `shipguard version` or `./bin/shipguard version`.
+      placeholder: "3.70.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - CLI
+        - iOS reports
+        - Codex plugin
+        - Devspace
+        - Release proof
+        - Docs
+        - GitHub Actions
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command or workflow
+      description: Paste the exact command or workflow step. Redact private paths and tokens.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include public fixture output, redacted report snippets, or logs when possible.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed secrets, tokens, private app source, customer data, and unredacted local paths.
+          required: true

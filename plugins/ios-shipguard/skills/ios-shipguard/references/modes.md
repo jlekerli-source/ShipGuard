@@ -120,28 +120,14 @@ Ask:
 
 Proof:
 
-- Run the selected command with `--shipguard-eval`: `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness`; use `--shareable` when that report will leave local proof space
-- Run `shipguard ios report-quality --reports <eval-output-dir> --out <quality-dir> --shareable` to grade ShipGuard report usefulness, not target-app quality, when the quality artifact will leave local proof space
-- Use the report-quality `priorityAction` and prioritized Actionability Questions to choose the next ShipGuard rule, fixture, report section, or docs improvement
-- Run `shipguard ios spec-workflow --path <private-app-or-shipguard-repo> --feature <improvement> --from-report <quality-dir> --shipguard-eval --shareable --out <spec-dir>` when those deduplicated questions need to become a proof-gated ShipGuard plan rather than target-app work
-- If report-quality emits `spec-workflow-report-context-missing` or `spec-workflow-actionability-missing`, regenerate the spec workflow with `--from-report <quality-dir>` so the plan is grounded in observed ShipGuard output
-- If report-quality emits `spec-workflow-question-coverage-missing` or `spec-workflow-question-artifact-missing`, regenerate the spec workflow so report-quality actionability questions survive as JSON and Markdown clarifying questions
-- If report-quality emits `spec-workflow-acceptance-coverage-missing` or `spec-workflow-acceptance-artifact-missing`, regenerate the spec workflow so report-quality actionability questions become acceptance criteria in JSON and `feature-spec.md`
-- If report-quality emits `spec-workflow-task-coverage-missing` or `spec-workflow-task-artifact-missing`, regenerate the spec workflow so report-quality actionability questions become proof-gated tasks in `taskPlan` and `tasks.md`
-- If report-quality emits `spec-workflow-validation-coverage-missing` or `spec-workflow-validation-artifact-missing`, regenerate the spec workflow so exact proof commands remain in `technicalPlan.recommendedValidation` and `implementation-plan.md`
-- If report-quality emits `spec-workflow-analysis-coverage-missing` or `spec-workflow-analysis-artifact-missing`, regenerate the spec workflow so required analysis gates remain in JSON and `implementation-plan.md`
-- If report-quality emits `spec-workflow-slash-handoff-incomplete` or `spec-workflow-slash-handoff-artifact-missing`, regenerate the spec workflow so `slashPlan`, `slashGoal`, and `ios-spec-workflow.md` preserve copy-ready `/plan` and `/goal` next-loop handoff text
-- If report-quality emits `spec-workflow-artifact-file-missing` or `spec-workflow-artifact-file-empty`, regenerate or copy the complete spec-workflow bundle before treating it as proof
-- If report-quality emits `spec-workflow-artifact-content-incomplete` or `spec-workflow-artifact-placeholder-content`, regenerate the spec workflow so the bundle contains real headings, task IDs, proof cues, and Devspace guardrails
-- If report-quality emits `performance-finding-impact-missing` or `performance-markdown-impact-missing`, improve `ios performance` explanation fields or Markdown so findings explain why they matter without private app context
-- If report-quality emits `performance-high-severity-reason-missing` or `performance-markdown-severity-reason-missing`, improve `ios performance` severity fields or Markdown so high findings cite explicit thresholds, actor context, or source signals
-- If report-quality emits `performance-proof-boundary-missing` or `performance-markdown-proof-boundary-missing`, improve `ios performance` proof fields or Markdown so Codex-local proof is separated from physical-device, account, TestFlight, or human proof
-- If report-quality emits `performance-grouped-action-plan-missing`, `performance-grouped-action-plan-incomplete`, `performance-grouped-first-experiment-missing`, `performance-grouped-validation-route-missing`, `performance-grouped-stop-condition-missing`, `performance-markdown-first-experiment-missing`, `performance-markdown-validation-route-missing`, `performance-markdown-stop-condition-missing`, or `performance-markdown-grouping-missing`, improve `ios performance` grouping fields or Markdown so repeated rules become rule-level next actions with a smallest first experiment, validation route, and stop condition before duplicate rows
-- If report-quality emits `declared-shareability-missing` or `declared-shareability-local-mode`, regenerate the source report with `--shareable` before scoring or sharing
-- If report-quality emits token/path shareability findings, run the generated `shipguard ios redact` command before moving artifacts into ChatGPT, GitHub, docs, or release evidence
-- Keep generated private-app reports local unless the user approves redaction and sharing
-- Convert useful observations into ShipGuard rules, report shape, docs, or public fixtures only
-- Do not edit the scanned app or present its findings as the active app-work target
+- Run the selected command with `--shipguard-eval` and `--shareable` before the report leaves local proof space.
+- Run `shipguard ios report-quality --reports <eval-output-dir> --out <quality-dir> --shareable` to grade ShipGuard report usefulness, not target-app quality.
+- Use `priorityAction` and prioritized Actionability Questions to choose the next ShipGuard rule, fixture, report section, docs improvement, or spec workflow.
+- Run `shipguard ios spec-workflow --from-report <quality-dir> --shipguard-eval --shareable` when those questions need to become proof-gated ShipGuard implementation work.
+- If report-quality flags missing impact, severity reason, proof boundary, grouping, shareability, redaction, or spec-workflow coverage, improve ShipGuard output shape or regeneration logic instead of turning scanned-app findings into app work.
+- Keep generated private-app reports local unless the user approves redaction and sharing.
+- Convert useful observations into ShipGuard rules, report shape, docs, or public fixtures only.
+- Do not edit the scanned app or present its findings as the active app-work target.
 
 ## design-audit
 
@@ -170,6 +156,8 @@ Proof:
 
 Use when the user wants an in-Codex visual preview loop for the current iOS Simulator screen, browser comments on a phone-shaped preview, or typed click/right-click/note receipts that should guide a SwiftUI edit.
 
+If the Build iOS Apps `ios-simulator-browser` skill is available, prefer it for live Simulator mirroring, SwiftUI preview rendering, and package-backed hot reload. Use ShipGuard preview after that when the task needs typed receipts, target-resolution handoff, redaction, report-quality evidence, or a ChatGPT/Codex handoff. The two loops are complementary: Build iOS Apps is the fast visual renderer, ShipGuard is the proof and workflow guard.
+
 Ask:
 
 - Which simulator, scheme, and app state should be previewed?
@@ -178,12 +166,14 @@ Ask:
 
 Proof:
 
+- Build iOS Apps `serve-sim` browser proof or SwiftUI preview hot reload proof when that skill is available and live rendering is the goal
 - `shipguard ios preview --out /tmp/ios-shipguard-preview`
 - Codex in-app browser opened to the printed localhost URL
 - `preview-events.jsonl` receipt when the user clicks, right-clicks a typed context-menu action, or notes a target
 - `handoff.md` or `/api/handoff.md` payload read before choosing the next Codex or XcodeBuildMCP action, including `targetResolution.rawCoordinateTapAllowed: false`
 - `shipguard ios target-match --handoff <handoff.json> --snapshot <ui.json> --out <dir>` when an XcodeBuildMCP UI JSON snapshot is available
 - XcodeBuildMCP `snapshot_ui` plus semantic `touch` elementRefs, UI test, or manual simulator proof for real taps; the preview bridge records visual intent and handoff guidance
+- Do not claim hot reload success unless launcher output and a browser-visible frame show the changed preview
 
 ## preview-devspace
 

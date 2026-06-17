@@ -65,6 +65,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep the reusable GitHub Action aligned with the CLI validator.
 - Maintain the public examples, scorecard, autopsy fixtures, and iOS starter template as the workflow evolves.
 - Keep the adoption docs and GitHub Pages shell current with each release.
+- Keep ShipGuard's open-source operating surface complete: README, license, contribution guide, support policy, governance, code of conduct, security policy, issue templates, package proof, and docs index should all ship together.
 
 ## Next
 

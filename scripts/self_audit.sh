@@ -121,6 +121,17 @@ for command in "${commands[@]}"; do
 done
 
 required_artifacts=(
+  "README.md"
+  "LICENSE"
+  "CODE_OF_CONDUCT.md"
+  "CONTRIBUTING.md"
+  "GOVERNANCE.md"
+  "SECURITY.md"
+  "SUPPORT.md"
+  ".github/ISSUE_TEMPLATE/config.yml"
+  ".github/ISSUE_TEMPLATE/workflow-gap.yml"
+  ".github/ISSUE_TEMPLATE/bug-report.yml"
+  ".github/ISSUE_TEMPLATE/proposal.yml"
   "templates/policy/default.conf"
   ".agents/plugins/marketplace.json"
   "actions/arena-compare/action.yml"
@@ -178,6 +189,8 @@ required_artifacts=(
   "docs/release-proof-workflows.md"
   "docs/release-replay.md"
   "docs/oss-evaluation.md"
+  "docs/open-source.md"
+  "docs/privacy.md"
   "docs/security-threat-model.md"
   "examples/workflows/release-proof-on-tag.yml"
   "examples/workflows/arena-compare.yml"

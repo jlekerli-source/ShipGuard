@@ -437,15 +437,21 @@ assert any(tool["name"] == "render_preview_widget" for tool in stdio_payload["re
 
 plugin_config = json.loads(Path("plugins/ios-shipguard/.mcp.json").read_text(encoding="utf-8"))
 plugin_server = plugin_config["mcpServers"]["shipguard-devspace"]
-plugin_root = Path("plugins/ios-shipguard").resolve()
-plugin_cwd = (plugin_root / plugin_server["cwd"]).resolve()
+assert plugin_server["command"] == "bash"
+plugin_args = " ".join(plugin_server["args"])
+assert "SHIPGUARD_CLI" in plugin_args
+assert "command -v shipguard" in plugin_args
+assert "$HOME/.local/bin/shipguard" in plugin_args
+plugin_env = os.environ.copy()
+plugin_env["SHIPGUARD_CLI"] = str(Path("bin/shipguard").resolve())
 plugin_stdio = subprocess.run(
     [plugin_server["command"], *plugin_server["args"]],
-    cwd=str(plugin_cwd),
+    cwd=str(Path("plugins/ios-shipguard").resolve()),
     input='{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}\n',
     stdout=subprocess.PIPE,
     stderr=subprocess.PIPE,
     text=True,
+    env=plugin_env,
     timeout=5,
     check=False,
 )
