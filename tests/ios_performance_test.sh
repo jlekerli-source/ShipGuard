@@ -76,12 +76,14 @@ grep -q '"intent": "app-development"' "$tmp_dir/performance/ios-performance.json
 grep -q '"ruleId": "swiftui-periodic-timeline"' "$tmp_dir/performance/ios-performance.json"
 grep -q '"ruleId": "notification-removal-ui-stall"' "$tmp_dir/performance/ios-performance.json"
 grep -q '"ruleId": "formatter-created-in-view"' "$tmp_dir/performance/ios-performance.json"
+grep -q '"severityReason":' "$tmp_dir/performance/ios-performance.json"
 grep -q '"impact":' "$tmp_dir/performance/ios-performance.json"
 grep -q '"groupedActionPlan":' "$tmp_dir/performance/ios-performance.json"
 grep -q '"scanScope"' "$tmp_dir/performance/ios-performance.json"
 grep -q '"release-artifacts"' "$tmp_dir/performance/ios-performance.json"
 grep -q 'Scan Scope' "$tmp_dir/performance/ios-performance.md"
 grep -q 'release-artifacts' "$tmp_dir/performance/ios-performance.md"
+grep -q 'Why severity' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Why it matters' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Grouped Next Actions' "$tmp_dir/performance/ios-performance.md"
 if grep -q 'GeneratedPerformanceNoise.swift' "$tmp_dir/performance/ios-performance.json"; then
@@ -98,7 +100,7 @@ groups = {item["ruleId"]: item for item in report["groupedActionPlan"]}
 for rule_id in ("swiftui-periodic-timeline", "notification-removal-ui-stall"):
     if groups.get(rule_id, {}).get("count", 0) <= 3:
         raise SystemExit(f"expected repeated group for {rule_id}: {groups.get(rule_id)}")
-    for field in ("firstLocations", "whyThisGroupMatters", "recommendedFirstMove", "proofGuidance"):
+    for field in ("firstLocations", "severityReason", "whyThisGroupMatters", "recommendedFirstMove", "proofGuidance"):
         if not groups[rule_id].get(field):
             raise SystemExit(f"group {rule_id} missing {field}: {groups[rule_id]}")
 
@@ -114,7 +116,12 @@ grep -q '"shipguardOnly": true' "$tmp_dir/eval-performance/ios-performance.json"
 grep -q 'ShipGuard Evaluation Boundary' "$tmp_dir/eval-performance/ios-performance.md"
 grep -q 'Do not edit the scanned app' "$tmp_dir/eval-performance/ios-performance.md"
 grep -q 'Report Quality Questions' "$tmp_dir/eval-performance/ios-performance.md"
-grep -q 'Were high findings justified by evidence instead of broad suspicion?' "$tmp_dir/eval-performance/ios-performance.json"
+grep -q 'Did proof guidance name what Codex can verify locally and what remains device/manual proof?' "$tmp_dir/eval-performance/ios-performance.json"
+grep -q 'Did high severity reasons cite concrete thresholds, actor context, or source signals rather than broad suspicion?' "$tmp_dir/eval-performance/ios-performance.json"
+if grep -q 'Were high findings justified by evidence instead of broad suspicion?' "$tmp_dir/eval-performance/ios-performance.json"; then
+  echo "ios performance should not keep a satisfied high-evidence gate as the first actionability question" >&2
+  exit 1
+fi
 grep -q 'Did grouped next actions make repeated rules scannable without hiding full JSON evidence?' "$tmp_dir/eval-performance/ios-performance.json"
 if grep -q 'Were repeated rules grouped enough to stay scannable?' "$tmp_dir/eval-performance/ios-performance.json"; then
   echo "ios performance should not keep a satisfied grouping gate as the first actionability question" >&2

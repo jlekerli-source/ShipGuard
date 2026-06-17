@@ -149,6 +149,7 @@ cat > "$priority_fixture/ios-performance.json" <<'JSON'
       "ruleId": "performance-higher-priority",
       "severity": "high",
       "evidence": "Performance fixture has a blocked source finding.",
+      "severityReason": "High because this fixture intentionally represents a blocked performance source report.",
       "impact": "This fixture should stay first because blocked performance reports should outrank lower-status source reports.",
       "recommendation": "Prioritize blocked performance report questions.",
       "proofGuidance": "Run report-quality on the fixture."
@@ -172,9 +173,9 @@ No skipped directories.
 
 ## Top Findings
 
-| Severity | Rule | Why it matters |
-| --- | --- | --- |
-| high | `performance-higher-priority` | This fixture should stay first because blocked performance reports should outrank lower-status source reports. |
+| Severity | Rule | Why severity | Why it matters |
+| --- | --- | --- | --- |
+| high | `performance-higher-priority` | High because this fixture intentionally represents a blocked performance source report. | This fixture should stay first because blocked performance reports should outrank lower-status source reports. |
 MD
 ./bin/shipguard ios report-quality \
   --reports "$priority_fixture" \
@@ -309,6 +310,127 @@ MD
 grep -q '"status": "review"' "$tmp_dir/missing-markdown-impact-quality/ios-report-quality.json"
 grep -q '"ruleId": "performance-markdown-impact-missing"' "$tmp_dir/missing-markdown-impact-quality/ios-report-quality.json"
 
+missing_severity_dir="$tmp_dir/missing-severity"
+mkdir -p "$missing_severity_dir"
+cat > "$missing_severity_dir/ios-performance.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard ios performance",
+  "intent": "shipguard-evaluation",
+  "generatedAt": "2026-06-17T00:00:00Z",
+  "status": "blocked",
+  "shareability": {
+    "mode": "shareable",
+    "localAbsolutePathsIncluded": false
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "scanScope": {
+    "skippedDirectoryCount": 0,
+    "skippedDirectories": []
+  },
+  "findings": [
+    {
+      "ruleId": "performance-high-without-reason",
+      "severity": "high",
+      "evidence": "High performance fixture has no explicit severity reason.",
+      "impact": "High findings should explain why the severity is high.",
+      "recommendation": "Add a severity reason.",
+      "proof": "Run report-quality on the fixture."
+    }
+  ],
+  "reportQualityQuestions": [
+    "Does report-quality enforce high severity reasons?"
+  ]
+}
+JSON
+cat > "$missing_severity_dir/ios-performance.md" <<'MD'
+# Missing Severity Performance Fixture
+
+## ShipGuard Evaluation Boundary
+
+This fixture is ShipGuard product QA only.
+
+## Scan Scope
+
+No skipped directories.
+
+## Top Findings
+
+| Severity | Rule | Why severity | Why it matters |
+| --- | --- | --- | --- |
+| high | `performance-high-without-reason` | Missing in JSON. | High findings should explain why the severity is high. |
+MD
+./bin/shipguard ios report-quality \
+  --reports "$missing_severity_dir" \
+  --out "$tmp_dir/missing-severity-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-severity-quality/ios-report-quality.json"
+grep -q '"ruleId": "performance-high-severity-reason-missing"' "$tmp_dir/missing-severity-quality/ios-report-quality.json"
+
+missing_markdown_severity_dir="$tmp_dir/missing-markdown-severity"
+mkdir -p "$missing_markdown_severity_dir"
+cat > "$missing_markdown_severity_dir/ios-performance.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard ios performance",
+  "intent": "shipguard-evaluation",
+  "generatedAt": "2026-06-17T00:00:00Z",
+  "status": "blocked",
+  "shareability": {
+    "mode": "shareable",
+    "localAbsolutePathsIncluded": false
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "scanScope": {
+    "skippedDirectoryCount": 0,
+    "skippedDirectories": []
+  },
+  "findings": [
+    {
+      "ruleId": "performance-hidden-severity",
+      "severity": "high",
+      "evidence": "High performance fixture hides severity reason from Markdown.",
+      "severityReason": "High because this fixture has an explicit high source signal.",
+      "impact": "Reviewers need the severity reason in Markdown too.",
+      "recommendation": "Show severity reason in Markdown.",
+      "proof": "Run report-quality on the fixture."
+    }
+  ],
+  "reportQualityQuestions": [
+    "Does report-quality enforce Markdown severity visibility?"
+  ]
+}
+JSON
+cat > "$missing_markdown_severity_dir/ios-performance.md" <<'MD'
+# Hidden Severity Performance Fixture
+
+## ShipGuard Evaluation Boundary
+
+This fixture is ShipGuard product QA only.
+
+## Scan Scope
+
+No skipped directories.
+
+## Top Findings
+
+| Severity | Rule | Why it matters |
+| --- | --- | --- |
+| high | `performance-hidden-severity` | Reviewers need the severity reason in Markdown too. |
+MD
+./bin/shipguard ios report-quality \
+  --reports "$missing_markdown_severity_dir" \
+  --out "$tmp_dir/missing-markdown-severity-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-markdown-severity-quality/ios-report-quality.json"
+grep -q '"ruleId": "performance-markdown-severity-reason-missing"' "$tmp_dir/missing-markdown-severity-quality/ios-report-quality.json"
+
 missing_grouping_dir="$tmp_dir/missing-grouping"
 mkdir -p "$missing_grouping_dir"
 cat > "$missing_grouping_dir/ios-performance.json" <<'JSON'
@@ -335,6 +457,7 @@ cat > "$missing_grouping_dir/ios-performance.json" <<'JSON'
       "ruleId": "performance-repeated-rule",
       "severity": "high",
       "evidence": "Repeated performance evidence 1.",
+      "severityReason": "High because this repeated fixture represents a concrete high source signal.",
       "impact": "Repeated rows are noisy without grouped action guidance.",
       "recommendation": "Group repeated rules.",
       "proof": "Run report-quality on the fixture."
@@ -343,6 +466,7 @@ cat > "$missing_grouping_dir/ios-performance.json" <<'JSON'
       "ruleId": "performance-repeated-rule",
       "severity": "high",
       "evidence": "Repeated performance evidence 2.",
+      "severityReason": "High because this repeated fixture represents a concrete high source signal.",
       "impact": "Repeated rows are noisy without grouped action guidance.",
       "recommendation": "Group repeated rules.",
       "proof": "Run report-quality on the fixture."
@@ -351,6 +475,7 @@ cat > "$missing_grouping_dir/ios-performance.json" <<'JSON'
       "ruleId": "performance-repeated-rule",
       "severity": "high",
       "evidence": "Repeated performance evidence 3.",
+      "severityReason": "High because this repeated fixture represents a concrete high source signal.",
       "impact": "Repeated rows are noisy without grouped action guidance.",
       "recommendation": "Group repeated rules.",
       "proof": "Run report-quality on the fixture."
@@ -359,6 +484,7 @@ cat > "$missing_grouping_dir/ios-performance.json" <<'JSON'
       "ruleId": "performance-repeated-rule",
       "severity": "high",
       "evidence": "Repeated performance evidence 4.",
+      "severityReason": "High because this repeated fixture represents a concrete high source signal.",
       "impact": "Repeated rows are noisy without grouped action guidance.",
       "recommendation": "Group repeated rules.",
       "proof": "Run report-quality on the fixture."
@@ -382,9 +508,9 @@ No skipped directories.
 
 ## Top Findings
 
-| Severity | Rule | Why it matters |
-| --- | --- | --- |
-| high | `performance-repeated-rule` | Repeated rows are noisy without grouped action guidance. |
+| Severity | Rule | Why severity | Why it matters |
+| --- | --- | --- | --- |
+| high | `performance-repeated-rule` | High because this repeated fixture represents a concrete high source signal. | Repeated rows are noisy without grouped action guidance. |
 MD
 ./bin/shipguard ios report-quality \
   --reports "$missing_grouping_dir" \
@@ -411,6 +537,7 @@ data["groupedActionPlan"] = [
         "count": 4,
         "severity": "high",
         "firstLocations": ["Demo.swift:1"],
+        "severityReason": "High because this repeated fixture represents a concrete high source signal.",
         "whyThisGroupMatters": "Repeated rows are noisy without grouped action guidance.",
         "recommendedFirstMove": "Group repeated rules.",
         "proofGuidance": "Run report-quality on the fixture."

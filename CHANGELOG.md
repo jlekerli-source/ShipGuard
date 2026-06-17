@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added high-severity justification for `ios performance` findings so high findings explain the threshold, actor context, or source signal behind severity, render that reason in Markdown, and let `ios report-quality` flag missing JSON or Markdown severity explanations.
 - Added grouped performance next actions so `ios performance` summarizes repeated rule clusters before individual findings, caps repeated high rows in Markdown, and lets `ios report-quality` flag repeated performance reports that lack `groupedActionPlan` or a visible `Grouped Next Actions` section.
 - Added a performance finding explanation gate so `ios report-quality` flags `ios performance` findings that omit an `impact`/`whyItMatters` explanation or hide that explanation from Markdown, and adjusted performance product-QA questions so completed explanation coverage no longer remains the top next action.
 - Added report-quality priority actions so read-only ShipGuard product-QA passes rank the next concrete finding or actionability question instead of leaving developers with an unprioritized checklist.

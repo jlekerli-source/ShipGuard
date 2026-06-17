@@ -502,6 +502,45 @@ def performance_grouping_issues(report: dict[str, Any], *, markdown: str, path_n
     return issues
 
 
+def performance_high_severity_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    findings = report.get("findings")
+    if not isinstance(findings, list) or not findings:
+        return issues
+    high_findings = [
+        (index, item)
+        for index, item in enumerate(findings[:20], start=1)
+        if isinstance(item, dict) and str(item.get("severity") or "").lower() == "high"
+    ]
+    if not high_findings:
+        return issues
+    for index, item in high_findings:
+        if not item.get("severityReason"):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="performance-high-severity-reason-missing",
+                evidence=f"{path_name} high finding #{index} has no severityReason",
+                recommendation="Explain why a performance finding is high severity using an explicit threshold, context, or source signal.",
+            )
+    if issues:
+        return issues
+    severity_markdown_visible = bool(
+        "Why severity" in markdown
+        or "Severity reason" in markdown
+        or "Severity evidence" in markdown
+    )
+    if not severity_markdown_visible:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-markdown-severity-reason-missing",
+            evidence=f"{path_name} has high performance findings but Markdown does not surface why severity is high",
+            recommendation="Show high-severity justification in Markdown so reviewers can distinguish concrete thresholds from broad suspicion.",
+        )
+    return issues
+
+
 def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     inputs = report.get("reportInputs")
@@ -1036,6 +1075,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     if tool == "shipguard ios performance":
         issues.extend(performance_finding_explanation_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_grouping_issues(loaded, markdown=markdown, path_name=path.name))
+        issues.extend(performance_high_severity_issues(loaded, markdown=markdown, path_name=path.name))
 
     if has_local_path(raw_text):
         add_issue(
