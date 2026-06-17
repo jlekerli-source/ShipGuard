@@ -31,6 +31,7 @@ SPEC_WORKFLOW_REQUIRED_ARTIFACTS = {
     "constitution",
     "spec",
     "checklist",
+    "integrationDecisions",
     "plan",
     "tasks",
     "analysis",
@@ -49,6 +50,12 @@ SPEC_WORKFLOW_ARTIFACT_MARKERS = {
         "# Requirements Quality Checklist",
         "Unit tests for ShipGuard planning requirements",
         "[Completeness]",
+    ],
+    "integrationDecisions": [
+        "# Native Integration Decisions",
+        "## Replacement Decisions",
+        "## Source-by-Source Evaluation",
+        "## Report-Quality Questions Driving This Integration",
     ],
     "constitution": ["# ShipGuard Constitution", "Read-only product QA", "Devspace is a planning bridge"],
     "devspaceGuardrails": [
@@ -74,6 +81,7 @@ SPEC_WORKFLOW_REQUIRED_ANALYSIS_GATES = [
     "Spec includes what and why before implementation details.",
     "Plan maps every risky surface to a proof lane.",
     "Tasks are ordered and independently verifiable.",
+    "Integration decisions explain whether external workflow ideas replace, extend, keep, or defer ShipGuard surfaces.",
     "Devspace remains a connector and handoff path, not an execution bypass.",
     "Private-app observations remain ShipGuard product-QA evidence only.",
 ]
@@ -853,7 +861,7 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                 severity="review",
                 rule_id="spec-workflow-artifacts-incomplete",
                 evidence=f"{path_name} artifacts missing: {', '.join(missing)}",
-                recommendation="Keep every spec workflow output self-describing: constitution, spec, checklist, plan, tasks, consistency analysis, Devspace guardrails, JSON, and Markdown.",
+                recommendation="Keep every spec workflow output self-describing: constitution, spec, checklist, integration decisions, plan, tasks, consistency analysis, Devspace guardrails, JSON, and Markdown.",
             )
         base_dir = path.parent
         for artifact_name in sorted(SPEC_WORKFLOW_REQUIRED_ARTIFACTS & set(artifacts)):
@@ -901,7 +909,7 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                 )
                 continue
             markers = SPEC_WORKFLOW_ARTIFACT_MARKERS.get(artifact_name, [])
-            needs_question_coverage = artifact_name in {"analysis", "checklist", "markdown", "spec"} and bool(expected_questions)
+            needs_question_coverage = artifact_name in {"analysis", "checklist", "integrationDecisions", "markdown", "spec"} and bool(expected_questions)
             needs_task_coverage = artifact_name == "tasks" and bool(expected_task_questions)
             needs_acceptance_coverage = artifact_name == "spec" and bool(expected_task_questions)
             needs_validation_coverage = artifact_name == "plan"
@@ -1052,6 +1060,7 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
         ("constitution", "spec-workflow-constitution-missing"),
         ("featureSpec", "spec-workflow-feature-spec-missing"),
         ("requirementsChecklist", "spec-workflow-checklist-missing"),
+        ("integrationDecisions", "spec-workflow-integration-decisions-missing"),
         ("technicalPlan", "spec-workflow-plan-missing"),
         ("taskPlan", "spec-workflow-tasks-missing"),
         ("consistencyAnalysis", "spec-workflow-consistency-analysis-missing"),
@@ -1066,7 +1075,7 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                 severity="review",
                 rule_id=rule_id,
                 evidence=f"{path_name} has empty {field}",
-                recommendation="Regenerate the spec workflow so constitution, spec, checklist, plan, tasks, consistency analysis, analysis gates, and Devspace guardrails are all reviewable.",
+                recommendation="Regenerate the spec workflow so constitution, spec, checklist, integration decisions, plan, tasks, consistency analysis, analysis gates, and Devspace guardrails are all reviewable.",
             )
     if not report.get("slashPlan") or not report.get("slashGoal"):
         add_issue(

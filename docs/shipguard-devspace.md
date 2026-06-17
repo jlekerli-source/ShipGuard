@@ -155,7 +155,7 @@ When Devspace or report-quality findings need to become implementation work, gen
   --out /tmp/ios-shipguard-spec
 ```
 
-This creates constitution, spec, plan, tasks, analysis gates, slash plan/goal, and Devspace guardrail artifacts. It borrows the structure of spec-driven development and MCP bridge safety patterns without vendoring external code or turning Devspace into a remote shell.
+This creates constitution, spec, requirements checklist, native integration decisions, plan, tasks, consistency analysis, analysis gates, slash plan/goal, and Devspace guardrail artifacts. It borrows the structure of spec-driven development and MCP bridge safety patterns without vendoring external code or turning Devspace into a remote shell.
 
 ## Codex Handoff
 
