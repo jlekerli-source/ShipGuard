@@ -34,6 +34,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep `--shipguard-eval` supported across `ios modernize`, `ios app-intelligence`, and `ios ai-readiness` so private-app learning improves ShipGuard report quality and public fixtures without becoming target-app work.
 - Keep `ios report-quality` strict enough to turn private read-only report weaknesses into ShipGuard rules, docs, and public fixtures without grading or editing the scanned app.
 - Keep report-quality shareability checks aligned with Devspace-style connector risks: token-bearing URLs must be blocked before sharing and redaction commands should be explicit.
+- Keep `ios devspace-check` useful as a ShipGuard-only connector readiness report for loopback defaults, bearer auth, MCP widget metadata, screenshot token handling, semantic target resolution, Codex handoff boundaries, public URL safety, and honest ChatGPT model-boundary language.
 - Keep iOS, web, backend, and CLI starter profiles stable for external repository adoption.
 - Keep release packaging and installer scripts reproducible.
 - Keep release manifests and proof ledgers reproducible from local release artifacts.

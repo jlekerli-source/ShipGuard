@@ -101,12 +101,14 @@ Run iOS-specific topology, inventory, planning, proof, preview, and privacy help
 ./bin/shipguard ios app-intelligence --path ../my-ios-app --out /tmp/ios-shipguard-app-intelligence-eval --shipguard-eval
 ./bin/shipguard ios ai-readiness --path ../my-ios-app --out /tmp/ios-shipguard-ai-readiness-eval --shipguard-eval
 ./bin/shipguard ios report-quality --reports /tmp/ios-shipguard-performance-eval --reports /tmp/ios-shipguard-design-eval --out /tmp/ios-shipguard-report-quality
+./bin/shipguard ios devspace-check --path . --preview-out /tmp/ios-shipguard-preview --out /tmp/ios-shipguard-devspace-check
 ```
 
 The iOS namespace also includes:
 
 - `ios preview`: serve a local simulator screenshot preview for the Codex in-app browser.
 - `ios devspace`: expose the preview bridge as a local MCP/App surface.
+- `ios devspace-check`: statically grade ShipGuard Devspace connector readiness, public URL safety, widget metadata, handoff boundaries, and preview evidence without starting the server or grading a target app.
 - `ios target-match`: rank visual preview events against XcodeBuildMCP UI snapshots.
 - `ios codex-handoff`: prepare a guarded Codex app-server handoff.
 - `ios plan --mode performance-audit`: route FPS, hitches, launch/scroll stutter, profiler fallback, and device-vs-simulator proof gaps.

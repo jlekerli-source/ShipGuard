@@ -203,6 +203,7 @@ cat >> "$out_file" <<EOF
 ./tests/ios_plan_test.sh
 ./tests/ios_prove_test.sh
 ./tests/ios_performance_test.sh
+./tests/ios_devspace_check_test.sh
 ./tests/ios_design_test.sh
 ./tests/ios_modernize_test.sh
 ./tests/ios_app_intelligence_test.sh

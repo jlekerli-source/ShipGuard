@@ -29,6 +29,7 @@ test "$(./bin/codex-maintainer version)" = "$(sed -n '1p' VERSION)"
 ./bin/shipguard ios inventory --help >/dev/null
 ./bin/shipguard ios preview --help >/dev/null
 ./bin/shipguard ios devspace --help >/dev/null
+./bin/shipguard ios devspace-check --help >/dev/null
 ./bin/shipguard ios target-match --help >/dev/null
 ./bin/shipguard ios codex-handoff --help >/dev/null
 ./bin/shipguard ios plan --help >/dev/null

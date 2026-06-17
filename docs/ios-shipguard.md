@@ -200,6 +200,19 @@ export SHIPGUARD_DEVSPACE_TOKEN="$(openssl rand -hex 32)"
 
 Use this when the user wants ChatGPT or GPT-5.5 Pro to plan from a live phone widget and then prepare a Codex handoff. Devspace serves `/mcp`, registers `ui://widget/shipguard-preview-v2.html`, proxies screenshots, records preview events, and prepares a scoped Codex app-server prompt without spawning Codex automatically. Model selection happens in ChatGPT; ShipGuard exposes the MCP/App bridge but cannot force which ChatGPT model is used. Use bearer auth whenever HTTP mode is exposed through a tunnel.
 
+Before sharing a tunneled URL or evaluating the connector itself, run:
+
+```bash
+./bin/shipguard ios devspace-check \
+  --path . \
+  --preview-out /tmp/ios-shipguard-preview \
+  --public-url https://your-tunnel.example/mcp \
+  --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN \
+  --out /tmp/ios-shipguard-devspace-check
+```
+
+`ios devspace-check` is ShipGuard-only product QA. It statically grades loopback defaults, bearer auth, MCP widget metadata, screenshot-token handling, semantic target-resolution, Codex handoff execution boundaries, production-readiness guidance, redaction routing, and model-choice honesty without grading or editing a target app.
+
 See `docs/shipguard-devspace.md`.
 
 ## Swift Modernization Audit

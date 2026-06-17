@@ -38,6 +38,7 @@ Usage:
   shipguard ios inventory [--path <ios-project>] [--doctor <ios-doctor.json>] [--out <dir>] [--json|--markdown]
   shipguard ios preview --out <dir> [--device booted] [--host 127.0.0.1] [--port 8765]
   shipguard ios devspace [--host 127.0.0.1] [--port 8787] [--preview-url <url>] [--bearer-token-env <env>]
+  shipguard ios devspace-check [--path <shipguard-repo>] [--out <dir>] [--preview-out <dir>] [--public-url <url>] [--bearer-token-env <env>] [--strict] [--json|--markdown]
   shipguard ios target-match --handoff <handoff.json> --snapshot <ui.json> [--out <dir>]
   shipguard ios codex-handoff --prompt-file <file>|--prompt <text> --out <dir> [--execute]
   shipguard ios plan --mode <mode> --inventory <ios-inventory.json> --out <file-or-dir>
@@ -373,7 +374,7 @@ cmd_docs_check() {
 
 cmd_ios() {
   local subcommand="${1:-}"
-  [[ "$subcommand" == "doctor" || "$subcommand" == "inventory" || "$subcommand" == "preview" || "$subcommand" == "devspace" || "$subcommand" == "target-match" || "$subcommand" == "codex-handoff" || "$subcommand" == "plan" || "$subcommand" == "prove" || "$subcommand" == "performance" || "$subcommand" == "design" || "$subcommand" == "modernize" || "$subcommand" == "app-intelligence" || "$subcommand" == "ai-readiness" || "$subcommand" == "report-quality" || "$subcommand" == "redact" || "$subcommand" == "eval" || "$subcommand" == "demo" || "$subcommand" == "goals" ]] || fail "ios requires subcommand: doctor, inventory, preview, devspace, target-match, codex-handoff, plan, prove, performance, design, modernize, app-intelligence, ai-readiness, report-quality, redact, eval, demo, or goals"
+  [[ "$subcommand" == "doctor" || "$subcommand" == "inventory" || "$subcommand" == "preview" || "$subcommand" == "devspace" || "$subcommand" == "devspace-check" || "$subcommand" == "target-match" || "$subcommand" == "codex-handoff" || "$subcommand" == "plan" || "$subcommand" == "prove" || "$subcommand" == "performance" || "$subcommand" == "design" || "$subcommand" == "modernize" || "$subcommand" == "app-intelligence" || "$subcommand" == "ai-readiness" || "$subcommand" == "report-quality" || "$subcommand" == "redact" || "$subcommand" == "eval" || "$subcommand" == "demo" || "$subcommand" == "goals" ]] || fail "ios requires subcommand: doctor, inventory, preview, devspace, devspace-check, target-match, codex-handoff, plan, prove, performance, design, modernize, app-intelligence, ai-readiness, report-quality, redact, eval, demo, or goals"
   shift || true
   case "$subcommand" in
     doctor)
@@ -387,6 +388,9 @@ cmd_ios() {
       ;;
     devspace)
       "$tool_root/scripts/shipguard_devspace_mcp.py" --repo-root "$tool_root" "$@"
+      ;;
+    devspace-check)
+      "$tool_root/scripts/ios_devspace_check.py" "$@"
       ;;
     target-match)
       "$tool_root/scripts/ios_target_match.py" "$@"

@@ -116,6 +116,25 @@ The preview widget auto-refreshes through bounded calls to the read-only `render
 
 Use `production_readiness` before discussing hosted or production Devspace. It reports whether bearer auth is enabled, whether a public HTTPS endpoint is configured, which local-first security invariants are active, and which reviews are still required before production hosting. It does not enable non-loopback binding.
 
+## Connector Readiness Check
+
+Run the static checker before sharing a tunneled Devspace URL, refreshing the plugin, or judging whether ChatGPT Developer Mode has enough connector proof:
+
+```bash
+./bin/shipguard ios devspace-check \
+  --path . \
+  --preview-out /tmp/ios-shipguard-preview \
+  --public-url https://your-tunnel.example/mcp \
+  --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN \
+  --out /tmp/ios-shipguard-devspace-check
+```
+
+`ios devspace-check` inspects ShipGuard's own Devspace source, docs, and plugin guidance without starting the server or reading private app code. It checks loopback defaults, bearer auth support, widget URI and `text/html;profile=mcp-app` metadata, `openai/outputTemplate` routing, screenshot view-token handling, semantic target-resolution boundaries, Codex handoff execution boundaries, `production_readiness`, redaction guidance, and the ChatGPT model-choice boundary.
+
+When `--public-url` is supplied, the report verifies HTTPS, refuses token-like URL query parameters, and requires `--bearer-token-env` without reading or printing the token value. When `--preview-out` is supplied, it verifies that preview evidence includes `session.json`, `handoff.md`, and `preview-events.jsonl`.
+
+The output is `ios-devspace-check.json` and `ios-devspace-check.md`. Treat it as ShipGuard product QA: improve the connector, docs, tests, or fixtures from the findings, but do not convert private app observations into app work.
+
 ## Codex Handoff
 
 `codex_prepare_handoff` prepares the prompt that should be sent into Codex. When an active preview exposes `handoff.md`, this tool uses that Markdown as the default prompt; otherwise it falls back to the JSON handoff prompt plus target-resolution summary. It does not spawn Codex automatically. That guard is intentional: Codex app-server execution should run through a trusted local supervisor or explicit user action because it can edit code and run tools.
@@ -209,7 +228,9 @@ Do not paste secrets into preview notes. Treat screenshots and event receipts as
 Focused validation:
 
 ```bash
+./tests/ios_devspace_check_test.sh
 ./tests/shipguard_devspace_mcp_test.sh
+python3 -m py_compile scripts/ios_devspace_check.py
 python3 -m py_compile scripts/shipguard_devspace_mcp.py
 ```
 
