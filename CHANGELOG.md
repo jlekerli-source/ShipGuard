@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- Added `validationRoute` and `stopCondition` to grouped `ios performance` actions so reports show how to prove the first experiment and when to stop before broad refactors; `ios report-quality` now flags grouped performance output that hides validation routes or stop conditions from JSON or Markdown.
 
 ## v3.68.0 - Performance First Experiment Gate
 

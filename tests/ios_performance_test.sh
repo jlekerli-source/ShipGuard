@@ -89,6 +89,8 @@ grep -q 'Why severity' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Why it matters' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Grouped Next Actions' "$tmp_dir/performance/ios-performance.md"
 grep -q 'First experiment' "$tmp_dir/performance/ios-performance.md"
+grep -q 'Validation route' "$tmp_dir/performance/ios-performance.md"
+grep -q 'Stop condition' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Proof Boundaries' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Codex local proof' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Manual/device proof' "$tmp_dir/performance/ios-performance.md"
@@ -106,7 +108,7 @@ groups = {item["ruleId"]: item for item in report["groupedActionPlan"]}
 for rule_id in ("swiftui-periodic-timeline", "notification-removal-ui-stall"):
     if groups.get(rule_id, {}).get("count", 0) <= 3:
         raise SystemExit(f"expected repeated group for {rule_id}: {groups.get(rule_id)}")
-    for field in ("firstLocations", "severityReason", "whyThisGroupMatters", "firstExperiment", "recommendedFirstMove", "localProof", "manualProof", "proofGuidance"):
+    for field in ("firstLocations", "severityReason", "whyThisGroupMatters", "firstExperiment", "validationRoute", "stopCondition", "recommendedFirstMove", "localProof", "manualProof", "proofGuidance"):
         if not groups[rule_id].get(field):
             raise SystemExit(f"group {rule_id} missing {field}: {groups[rule_id]}")
 
@@ -122,8 +124,12 @@ grep -q '"shipguardOnly": true' "$tmp_dir/eval-performance/ios-performance.json"
 grep -q 'ShipGuard Evaluation Boundary' "$tmp_dir/eval-performance/ios-performance.md"
 grep -q 'Do not edit the scanned app' "$tmp_dir/eval-performance/ios-performance.md"
 grep -q 'Report Quality Questions' "$tmp_dir/eval-performance/ios-performance.md"
-grep -q 'Did grouped first experiments name a clear validation route and stop condition before broader refactors?' "$tmp_dir/eval-performance/ios-performance.json"
 grep -q 'Did report wording keep target-app remediation separate from ShipGuard product QA next steps?' "$tmp_dir/eval-performance/ios-performance.json"
+grep -q 'Which grouped performance observation should become a public fixture or eval case before changing scanner heuristics again?' "$tmp_dir/eval-performance/ios-performance.json"
+if grep -q 'Did grouped first experiments name a clear validation route and stop condition before broader refactors?' "$tmp_dir/eval-performance/ios-performance.json"; then
+  echo "ios performance should not keep a satisfied stop-condition gate as the first actionability question" >&2
+  exit 1
+fi
 if grep -q 'Did grouped next actions name the smallest first experiment before broad refactors?' "$tmp_dir/eval-performance/ios-performance.json"; then
   echo "ios performance should not keep a satisfied first-experiment gate as the first actionability question" >&2
   exit 1

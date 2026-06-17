@@ -401,9 +401,9 @@ def shipguard_eval_boundary() -> dict[str, Any]:
 
 def shipguard_eval_questions() -> list[str]:
     return [
-        "Did grouped first experiments name a clear validation route and stop condition before broader refactors?",
         "Did report wording keep target-app remediation separate from ShipGuard product QA next steps?",
-        "Which observation should become a public fixture or eval case before changing the rule again?",
+        "Which grouped performance observation should become a public fixture or eval case before changing scanner heuristics again?",
+        "Did the report make it obvious which evidence would promote a source suspicion into broader work?",
     ]
 
 
@@ -465,6 +465,8 @@ def grouped_action_plan(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "severityReason": first["severityReason"],
                 "whyThisGroupMatters": first["impact"],
                 "firstExperiment": first_experiment_for_rule(rule_id),
+                "validationRoute": validation_route_for_rule(rule_id),
+                "stopCondition": stop_condition_for_rule(rule_id),
                 "recommendedFirstMove": first["recommendation"],
                 "localProof": first["localProof"],
                 "manualProof": first["manualProof"],
@@ -495,6 +497,38 @@ def first_experiment_for_rule(rule_id: str) -> str:
     return experiments.get(
         rule_id,
         "Change one flagged location only, rerun the smallest matching local proof route, and keep the broader refactor blocked until that experiment shows useful signal.",
+    )
+
+
+def validation_route_for_rule(rule_id: str) -> str:
+    routes = {
+        "notification-removal-ui-stall": "Compare launch or tap samples on the same route, then run the relevant notification/alarm validation lane that proves delivery semantics were not changed.",
+        "swiftui-periodic-timeline": "Record or sample the same visible screen before and after the cadence/visibility gate, including inactive or Reduce Motion state when applicable.",
+        "formatter-created-in-view": "Run the focused view/test route that renders the formatted value, then sample the same screen only if redraw cost was the concern.",
+        "swiftui-large-blur": "Capture before/after screenshots and sample the same slow interaction or scroll route after changing one blur treatment.",
+        "swiftui-repeat-forever-animation": "Capture an at-rest screen recording plus a same-route sample with Reduce Motion or visibility gating enabled.",
+        "swiftui-shadow-stack": "Compare hierarchy screenshots and one scroll or interaction sample on the repeated card/surface route.",
+        "image-decoding-in-view-path": "Sample the same image-heavy screen or scroll route and compare memory/CPU after moving one decode/downsample path.",
+    }
+    return routes.get(
+        rule_id,
+        "Rerun the smallest local proof route that exercises the first flagged location and compare before/after evidence at the same grain.",
+    )
+
+
+def stop_condition_for_rule(rule_id: str) -> str:
+    conditions = {
+        "notification-removal-ui-stall": "Stop after one moved/deferred cleanup if main-thread samples no longer show notification removal on the interaction path and notification/alarm semantics still pass; otherwise revert or record the remaining device/manual blocker.",
+        "swiftui-periodic-timeline": "Stop if the sampled route shows reduced redraw/hitch pressure without stale UI or Reduce Motion regression; do not change additional timelines without that signal.",
+        "formatter-created-in-view": "Stop if rendered text remains unchanged and the local route passes; skip mass formatter migration if the sample shows no measurable redraw or launch signal.",
+        "swiftui-large-blur": "Stop if screenshots preserve visual hierarchy and the same interaction sample improves or stays neutral; do not broaden the visual rewrite on appearance regressions or no signal.",
+        "swiftui-repeat-forever-animation": "Stop if the at-rest recording/sample shows less constant motion work and Reduce Motion/visibility behavior is correct; do not remove more motion without that proof.",
+        "swiftui-shadow-stack": "Stop if hierarchy screenshots still read clearly and the interaction sample improves or stays neutral; do not flatten unrelated card styles on visual regression.",
+        "image-decoding-in-view-path": "Stop if the same image-heavy route shows lower decode/memory pressure with unchanged image quality; avoid broader pipeline work when the first path has no signal.",
+    }
+    return conditions.get(
+        rule_id,
+        "Stop after the first flagged location unless the same-route proof shows useful signal and no visible, semantic, or test regression.",
     )
 
 
@@ -651,14 +685,14 @@ def markdown_report(report: dict[str, Any]) -> str:
                 "",
                 "Start with rule groups, not individual duplicate rows. Inspect the first locations, prove the group on the slow screen, then decide whether the pattern is real before broad refactors.",
                 "",
-                "| Rule | Count | First Locations | Why severity | Why this group matters | First experiment | First move | Codex local proof | Manual/device proof |",
-                "| --- | ---: | --- | --- | --- | --- | --- | --- | --- |",
+                "| Rule | Count | First Locations | Why severity | Why this group matters | First experiment | Validation route | Stop condition | First move | Codex local proof | Manual/device proof |",
+                "| --- | ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
             ]
         )
         for group in report["groupedActionPlan"]:
             locations = "<br>".join(f"`{location}`" for location in group["firstLocations"])
             lines.append(
-                f"| `{group['ruleId']}` | {group['count']} | {locations} | {table_cell(group['severityReason'])} | {table_cell(group['whyThisGroupMatters'])} | {table_cell(group['firstExperiment'])} | {table_cell(group['recommendedFirstMove'])} | {table_cell(group['localProof'])} | {table_cell(group['manualProof'])} |"
+                f"| `{group['ruleId']}` | {group['count']} | {locations} | {table_cell(group['severityReason'])} | {table_cell(group['whyThisGroupMatters'])} | {table_cell(group['firstExperiment'])} | {table_cell(group['validationRoute'])} | {table_cell(group['stopCondition'])} | {table_cell(group['recommendedFirstMove'])} | {table_cell(group['localProof'])} | {table_cell(group['manualProof'])} |"
             )
 
     selected_findings = select_markdown_findings(report["findings"])

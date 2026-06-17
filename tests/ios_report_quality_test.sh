@@ -678,6 +678,8 @@ data["groupedActionPlan"] = [
         "severityReason": "High because this repeated fixture represents a concrete high source signal.",
         "whyThisGroupMatters": "Repeated rows are noisy without grouped action guidance.",
         "firstExperiment": "Change one repeated fixture location, rerun report-quality, and stop if the grouped action is not clearer.",
+        "validationRoute": "Run report-quality on this grouped fixture and inspect the grouped action table.",
+        "stopCondition": "Stop once report-quality passes and the Markdown exposes grouped action proof fields.",
         "recommendedFirstMove": "Group repeated rules.",
         "proofGuidance": "Run report-quality on the fixture."
     }
@@ -704,6 +706,8 @@ path = Path(sys.argv[1])
 data = json.loads(path.read_text(encoding="utf-8"))
 for group in data["groupedActionPlan"]:
     group.pop("firstExperiment", None)
+    group.pop("validationRoute", None)
+    group.pop("stopCondition", None)
 path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 PY
 cat > "$missing_first_experiment_dir/ios-performance.md" <<'MD'
@@ -725,7 +729,11 @@ MD
   --shareable >/dev/null
 grep -q '"status": "review"' "$tmp_dir/missing-first-experiment-quality/ios-report-quality.json"
 grep -q '"ruleId": "performance-grouped-first-experiment-missing"' "$tmp_dir/missing-first-experiment-quality/ios-report-quality.json"
+grep -q '"ruleId": "performance-grouped-validation-route-missing"' "$tmp_dir/missing-first-experiment-quality/ios-report-quality.json"
+grep -q '"ruleId": "performance-grouped-stop-condition-missing"' "$tmp_dir/missing-first-experiment-quality/ios-report-quality.json"
 grep -q '"ruleId": "performance-markdown-first-experiment-missing"' "$tmp_dir/missing-first-experiment-quality/ios-report-quality.json"
+grep -q '"ruleId": "performance-markdown-validation-route-missing"' "$tmp_dir/missing-first-experiment-quality/ios-report-quality.json"
+grep -q '"ruleId": "performance-markdown-stop-condition-missing"' "$tmp_dir/missing-first-experiment-quality/ios-report-quality.json"
 
 local_contract_reports="$tmp_dir/local-contract-reports"
 ./bin/shipguard ios modernize \

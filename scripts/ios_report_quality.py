@@ -469,6 +469,16 @@ def performance_grouping_issues(report: dict[str, Any], *, markdown: str, path_n
             for item in grouped
             if isinstance(item, dict) and not item.get("firstExperiment")
         ]
+        missing_validation_route = [
+            str(item.get("ruleId") or "<unknown>")
+            for item in grouped
+            if isinstance(item, dict) and not item.get("validationRoute")
+        ]
+        missing_stop_condition = [
+            str(item.get("ruleId") or "<unknown>")
+            for item in grouped
+            if isinstance(item, dict) and not item.get("stopCondition")
+        ]
         if missing_first_experiment:
             add_issue(
                 issues,
@@ -477,6 +487,22 @@ def performance_grouping_issues(report: dict[str, Any], *, markdown: str, path_n
                 evidence=f"{path_name} groupedActionPlan missing firstExperiment for: {', '.join(missing_first_experiment[:5])}",
                 recommendation="Add a tiny reversible firstExperiment to each grouped performance action before broader refactor advice.",
             )
+        if missing_validation_route:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="performance-grouped-validation-route-missing",
+                evidence=f"{path_name} groupedActionPlan missing validationRoute for: {', '.join(missing_validation_route[:5])}",
+                recommendation="Add a concrete validationRoute to each grouped performance action so the first experiment has an exact proof path.",
+            )
+        if missing_stop_condition:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="performance-grouped-stop-condition-missing",
+                evidence=f"{path_name} groupedActionPlan missing stopCondition for: {', '.join(missing_stop_condition[:5])}",
+                recommendation="Add an explicit stopCondition to each grouped performance action so broad refactors stay blocked until the first experiment has signal.",
+            )
         if "First experiment" not in markdown:
             add_issue(
                 issues,
@@ -484,6 +510,22 @@ def performance_grouping_issues(report: dict[str, Any], *, markdown: str, path_n
                 rule_id="performance-markdown-first-experiment-missing",
                 evidence=f"{path_name} groupedActionPlan includes next actions but Markdown does not show a First experiment column",
                 recommendation="Show the smallest first experiment in Markdown so reviewers can start with a narrow proof step.",
+            )
+        if "Validation route" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="performance-markdown-validation-route-missing",
+                evidence=f"{path_name} groupedActionPlan includes validation routes but Markdown does not show a Validation route column",
+                recommendation="Show grouped validation routes in Markdown so Codex and reviewers know which proof path to run.",
+            )
+        if "Stop condition" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="performance-markdown-stop-condition-missing",
+                evidence=f"{path_name} groupedActionPlan includes stop conditions but Markdown does not show a Stop condition column",
+                recommendation="Show grouped stop conditions in Markdown so broad refactors remain gated by first-experiment evidence.",
             )
     repeated_rules = sorted(rule_id for rule_id, count in rule_counts.items() if count > 3)
     if not repeated_rules:
