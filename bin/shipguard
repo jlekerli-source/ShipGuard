@@ -43,7 +43,7 @@ Usage:
   shipguard ios codex-handoff --prompt-file <file>|--prompt <text> --out <dir> [--execute]
   shipguard ios plan --mode <mode> --inventory <ios-inventory.json> --out <file-or-dir>
   shipguard ios prove --plan <ios-plan.json> --out <dir>
-  shipguard ios performance --path <repo> --out <dir> [--shipguard-eval] [--json|--markdown]
+  shipguard ios performance --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard ios design --path <repo> --out <dir> [--app-type auto|utility|game|fitness|health|education|kids|creative|commerce|social|finance|saas] [--preview-out <dir>] [--icon-brief] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard ios modernize --focus swift --path <repo> --out <dir> [--shipguard-eval] [--json|--markdown]
   shipguard ios app-intelligence --path <repo> --out <dir> [--shipguard-eval] [--json|--markdown]

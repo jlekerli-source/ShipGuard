@@ -98,8 +98,8 @@ Ask:
 
 Proof:
 
-- `shipguard ios performance --path . --out <dir>` for ranked source hotspots before choosing edits
-- Add `--shipguard-eval` to `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness` when a private app is only a read-only sample for improving ShipGuard itself; add `--shareable` to design evals that will be scored or shared
+- `shipguard ios performance --path . --out <dir>` for ranked source hotspots before choosing edits; add `--shareable` before report-quality scoring or external planning
+- Add `--shipguard-eval` to `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness` when a private app is only a read-only sample for improving ShipGuard itself; add `--shareable` to performance or design evals that will be scored or shared
 - XcodeBuildMCP project/scheme/simulator selection before build/run
 - build and launch the same route being measured
 - Animation Hitches or Time Profiler trace when the simulator/device supports it
@@ -120,7 +120,7 @@ Ask:
 
 Proof:
 
-- Run the selected command with `--shipguard-eval`: `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness`; use `shipguard ios design --shareable` when that design report will leave local proof space
+- Run the selected command with `--shipguard-eval`: `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness`; use `shipguard ios performance --shareable` or `shipguard ios design --shareable` when that report will leave local proof space
 - Run `shipguard ios report-quality --reports <eval-output-dir> --out <quality-dir> --shareable` to grade ShipGuard report usefulness, not target-app quality, when the quality artifact will leave local proof space
 - Use the report-quality Actionability Questions to choose the next ShipGuard rule, fixture, report section, or docs improvement
 - If report-quality emits token/path shareability findings, run the generated `shipguard ios redact` command before moving artifacts into ChatGPT, GitHub, docs, or release evidence

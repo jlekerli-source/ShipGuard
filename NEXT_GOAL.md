@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-17T16:02:10Z
+- Generated: 2026-06-17T16:15:03Z
 - Current toolkit version: 3.38.0
-- Target release: v3.47.0
-- Title: Report-Quality Actionability Fixture Expansion
+- Target release: v3.48.0
+- Title: Performance Report Shareability Refinement
 
 ## Slash Plan
 
 ```text
-/plan v3.47.0 Report-Quality Actionability Fixture Expansion for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Aggregate input reportQualityQuestions in ios report-quality output and add a public actionability fixture so report-quality artifacts name the next ShipGuard rule, fixture, report section, or docs improvement instead of only generic next actions.
+/plan v3.48.0 Performance Report Shareability Refinement for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add ios performance --shareable so performance reports can omit local absolute project paths before report-quality scoring or external planning while preserving local default reports.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.47.0 Report-Quality Actionability Fixture Expansion for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Aggregate input reportQualityQuestions in ios report-quality output and add a public actionability fixture so report-quality artifacts name the next ShipGuard rule, fixture, report section, or docs improvement instead of only generic next actions, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.48.0 Performance Report Shareability Refinement for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add ios performance --shareable so performance reports can omit local absolute project paths before report-quality scoring or external planning while preserving local default reports, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Aggregate input reportQualityQuestions in ios report-quality output and add a public actionability fixture so report-quality artifacts name the next ShipGuard rule, fixture, report section, or docs improvement instead of only generic next actions.
+Add ios performance --shareable so performance reports can omit local absolute project paths before report-quality scoring or external planning while preserving local default reports.
 
 ## Completion Receipt
 
-- Completed scope: Aggregate input reportQualityQuestions in ios report-quality output and add a public actionability fixture so report-quality artifacts name the next ShipGuard rule, fixture, report section, or docs improvement instead of only generic next actions.
-- Evidence: Full read-only ShipGuard product-QA over Ringly and Ilmify showed source reports carried useful reportQualityQuestions, but ios report-quality ended with generic Next Actions only; after the change, Ringly and Ilmify shareable quality artifacts aggregate 21 Actionability Questions each, and the public fixtures/ios-report-quality/actionability case proves the section without private app code. Validated with python3 -m py_compile scripts/ios_report_quality.py; ./tests/ios_report_quality_test.sh; ./tests/ios_design_test.sh; ./tests/ios_shipguard_eval_test.sh; git diff --check; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v347; ./tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict. Remote push remains blocked by GitHub repository rules: protected main cannot be updated directly and new branch creation is restricted.
+- Completed scope: Add ios performance --shareable so performance reports can omit local absolute project paths before report-quality scoring or external planning while preserving local default reports.
+- Evidence: Read-only ShipGuard product-QA on Ringly and Ilmify showed ios performance --shipguard-eval reports still triggered local-path-shareability-warning because ios-performance.json and Markdown carried absolute project paths. After adding --shareable, Ringly and Ilmify performance reports use project ".", mark shareability mode as shareable, and shareable report-quality emits no local-path warning. Validated with python3 -m py_compile scripts/ios_performance.py; ./tests/ios_performance_test.sh; ./tests/ios_report_quality_test.sh; git diff --check; read-only Ringly and Ilmify ios performance --shipguard-eval --shareable plus ios report-quality --shareable; artifact scan for local paths and local-path-shareability-warning; ./tests/ios_shipguard_eval_test.sh; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v348; ./tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict. Remote main push remains blocked by GitHub repository rules because main is protected; use a branch/PR path.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.48.0 Performance Report Shareability Refinement for jlekerli-source/ShipGuard:
+/plan v3.49.0 Remaining iOS Report Shareability Coverage for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Aggregate input reportQualityQuestions in ios report-quality output and add a pu
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.48.0 Performance Report Shareability Refinement for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.49.0 Remaining iOS Report Shareability Coverage for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.48.0 --title "Performance Report Shareability Refinement" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.49.0 --title "Remaining iOS Report Shareability Coverage" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -130,12 +130,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.47.0.
+1. Open or update the tracking issue for v3.48.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.47.0` and upload `dist/shipguard-v3.47.0.tar.gz`.
+6. Create release `v3.48.0` and upload `dist/shipguard-v3.48.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

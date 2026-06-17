@@ -95,7 +95,7 @@ Run iOS-specific topology, inventory, planning, proof, preview, and privacy help
 ./bin/shipguard ios prove --plan /tmp/ios-shipguard-plan/ios-plan.json --out /tmp/ios-shipguard-proof
 ./bin/shipguard ios performance --path ../my-ios-app --out /tmp/ios-shipguard-performance
 ./bin/shipguard ios design --path ../my-ios-app --out /tmp/ios-shipguard-design --icon-brief
-./bin/shipguard ios performance --path ../my-ios-app --out /tmp/ios-shipguard-performance-eval --shipguard-eval
+./bin/shipguard ios performance --path ../my-ios-app --out /tmp/ios-shipguard-performance-eval --shipguard-eval --shareable
 ./bin/shipguard ios design --path ../my-ios-app --out /tmp/ios-shipguard-design-eval --shipguard-eval --shareable
 ./bin/shipguard ios modernize --focus swift --path ../my-ios-app --out /tmp/ios-shipguard-modernize-eval --shipguard-eval
 ./bin/shipguard ios app-intelligence --path ../my-ios-app --out /tmp/ios-shipguard-app-intelligence-eval --shipguard-eval
@@ -112,7 +112,7 @@ The iOS namespace also includes:
 - `ios target-match`: rank visual preview events against XcodeBuildMCP UI snapshots.
 - `ios codex-handoff`: prepare a guarded Codex app-server handoff.
 - `ios plan --mode performance-audit`: route FPS, hitches, launch/scroll stutter, profiler fallback, and device-vs-simulator proof gaps.
-- `ios performance`: scan Swift source for ranked app-side performance hotspots before Codex edits.
+- `ios performance`: scan Swift source for ranked app-side performance hotspots before Codex edits; add `--shareable` when performance reports will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or report-quality scoring.
 - `ios design`: audit app-type-specific UI/UX coherence, motion, haptics, preview routing, and ImageGen app-icon handoff before visual work; add `--shareable` when design reports will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or report-quality scoring.
 - iOS source scanners skip generated/proof/cache directories such as build output, release artifacts, scratch folders, web assets, and plugin/editor caches; reports include a scan-scope summary so private-app product QA stays auditable.
 - `--shipguard-eval`: mark `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, or `ios ai-readiness` as ShipGuard product QA only, so findings improve ShipGuard rather than becoming target-app work.

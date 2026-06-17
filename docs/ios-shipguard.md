@@ -111,6 +111,8 @@ Use `performance-audit` when the user reports FPS drops, hitches, slow launch, l
 
 The `ios performance` report is read-only. It scans Swift source for ranked hotspots such as high-frequency `TimelineView`, continuous `repeatForever` animation, large blur/shadow composition, formatter allocation in SwiftUI paths, image decoding in UI paths, and notification cleanup that may block launch or interaction. iOS source scanners skip generated/proof/cache directories and list those scan-scope exclusions in JSON and Markdown so large app workspaces do not turn release artifacts or scratch files into product findings.
 
+Use `--shareable` when a performance report will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or `ios report-quality`; default local reports keep the absolute project root for operator debugging.
+
 The plan tells Codex to build and launch the same route being measured, try Animation Hitches or Time Profiler when supported, fall back to `sample`, logs, screenshots, and symbolication when `xctrace` is unavailable, and keep protected runtime boundaries explicit. It also blocks device-level smoothness claims until a physical-device Instruments trace exists for touch latency, ProMotion refresh, thermal pressure, replacement displays, sensors, audio, or wake timing.
 
 ## ShipGuard Report-Quality Eval Mode
@@ -121,7 +123,8 @@ Use `--shipguard-eval` only when a real app is acting as a private read-only sam
 ./bin/shipguard ios performance \
   --path <private-ios-app> \
   --out /tmp/ios-shipguard-performance-eval \
-  --shipguard-eval
+  --shipguard-eval \
+  --shareable
 ./bin/shipguard ios design \
   --path <private-ios-app> \
   --out /tmp/ios-shipguard-design-eval \
@@ -150,7 +153,7 @@ Use `--shipguard-eval` only when a real app is acting as a private read-only sam
   --shareable
 ```
 
-Those reports add a ShipGuard evaluation boundary. Findings from those runs must be used to improve ShipGuard rules, report shape, docs, or public fixtures; they must not become target-app remediation tasks without a separate explicit app-work request. Markdown output may be grouped or capped to stay reviewable; JSON keeps the full finding list for deeper ShipGuard product QA. Use `--shareable` for design evals before report-quality scoring or external planning so local absolute app paths are omitted.
+Those reports add a ShipGuard evaluation boundary. Findings from those runs must be used to improve ShipGuard rules, report shape, docs, or public fixtures; they must not become target-app remediation tasks without a separate explicit app-work request. Markdown output may be grouped or capped to stay reviewable; JSON keeps the full finding list for deeper ShipGuard product QA. Use `--shareable` for performance and design evals before report-quality scoring or external planning so local absolute app paths are omitted.
 
 `ios report-quality` then grades ShipGuard's output quality, not the scanned app. It checks whether the reports are parseable, scoped to read-only product QA, paired with Markdown, honest about skipped scan scope, useful in finding evidence/recommendation/proof guidance, and safe to share or redact. It also aggregates each input report's `reportQualityQuestions` into an actionability checklist so the next ShipGuard rule, fixture, report section, or docs improvement is explicit. Token-like connector URLs or auth strings are detected without echoing token values, then a redaction plan with `shipguard ios redact` commands is emitted for any report set that should not be shared raw. Add `--shareable` when the report-quality artifact itself will move into ChatGPT, GitHub, docs, benchmark fixtures, or release evidence; default local output keeps absolute input/report paths for operator debugging.
 

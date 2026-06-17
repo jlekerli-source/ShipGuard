@@ -31,11 +31,18 @@ SWIFT
   --path "$fixture" \
   --out "$tmp_dir/eval-performance" \
   --shipguard-eval >/dev/null
+./bin/shipguard ios performance \
+  --path "$fixture" \
+  --out "$tmp_dir/shareable-performance" \
+  --shipguard-eval \
+  --shareable >/dev/null
 
 test -f "$tmp_dir/performance/ios-performance.json"
 test -f "$tmp_dir/performance/ios-performance.md"
 test -f "$tmp_dir/eval-performance/ios-performance.json"
 test -f "$tmp_dir/eval-performance/ios-performance.md"
+test -f "$tmp_dir/shareable-performance/ios-performance.json"
+test -f "$tmp_dir/shareable-performance/ios-performance.md"
 grep -q '"tool": "shipguard ios performance"' "$tmp_dir/performance/ios-performance.json"
 grep -q '"status": "blocked"' "$tmp_dir/performance/ios-performance.json"
 grep -q '"intent": "app-development"' "$tmp_dir/performance/ios-performance.json"
@@ -57,6 +64,22 @@ grep -q '"shipguardOnly": true' "$tmp_dir/eval-performance/ios-performance.json"
 grep -q 'ShipGuard Evaluation Boundary' "$tmp_dir/eval-performance/ios-performance.md"
 grep -q 'Do not edit the scanned app' "$tmp_dir/eval-performance/ios-performance.md"
 grep -q 'Report Quality Questions' "$tmp_dir/eval-performance/ios-performance.md"
+grep -q '"mode": "shareable"' "$tmp_dir/shareable-performance/ios-performance.json"
+grep -q '"localAbsolutePathsIncluded": false' "$tmp_dir/shareable-performance/ios-performance.json"
+grep -q '"project": "."' "$tmp_dir/shareable-performance/ios-performance.json"
+grep -q 'Shareability mode: `shareable`' "$tmp_dir/shareable-performance/ios-performance.md"
+if grep -R -F -q "$tmp_dir" "$tmp_dir/shareable-performance"; then
+  echo "ios performance --shareable should not leak local temp paths" >&2
+  exit 1
+fi
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/shareable-performance" \
+  --out "$tmp_dir/shareable-performance-quality" \
+  --shareable >/dev/null
+if grep -q 'local-path-shareability-warning' "$tmp_dir/shareable-performance-quality/ios-report-quality.json"; then
+  echo "shareable ios performance should not trigger report-quality local-path warning" >&2
+  exit 1
+fi
 
 json_stdout="$(./bin/shipguard ios performance --path fixtures/demo-ios-repo --json)"
 printf '%s\n' "$json_stdout" | grep -q '"tool": "shipguard ios performance"'

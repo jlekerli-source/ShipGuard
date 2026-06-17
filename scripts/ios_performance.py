@@ -54,6 +54,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Mark this scan as ShipGuard product QA only; findings must not become target-app work.",
     )
+    parser.add_argument(
+        "--shareable",
+        action="store_true",
+        help="Omit local absolute project paths before moving the report into ChatGPT, GitHub, docs, benchmarks, or report-quality scoring.",
+    )
     parser.add_argument("--json", action="store_true", help="Print JSON report to stdout")
     parser.add_argument("--markdown", action="store_true", help="Print Markdown report to stdout")
     return parser.parse_args()
@@ -68,6 +73,17 @@ def rel(path: Path, root: Path) -> str:
         return path.relative_to(root).as_posix()
     except ValueError:
         return path.as_posix()
+
+
+def report_path(path: Path, *, root: Path, shareable: bool, placeholder: str) -> str:
+    if not shareable:
+        return path.as_posix()
+    try:
+        relative = path.relative_to(root)
+    except ValueError:
+        return f"<{placeholder}>"
+    text = relative.as_posix()
+    return text or "."
 
 
 def eval_numeric_ast(node: ast.AST) -> float:
@@ -388,7 +404,7 @@ def summarize_rules(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
     )
 
 
-def build_report(root: Path, *, shipguard_eval: bool = False) -> dict[str, Any]:
+def build_report(root: Path, *, shipguard_eval: bool = False, shareable: bool = False) -> dict[str, Any]:
     if not root.exists():
         fail(f"path not found: {root}")
     root = root.resolve()
@@ -419,7 +435,14 @@ def build_report(root: Path, *, shipguard_eval: bool = False) -> dict[str, Any]:
         "tool": "shipguard ios performance",
         "intent": "shipguard-evaluation" if shipguard_eval else "app-development",
         "generatedAt": utc_now(),
-        "project": str(root),
+        "project": report_path(root, root=root, shareable=shareable, placeholder="scanned-app"),
+        "shareability": {
+            "mode": "shareable" if shareable else "local",
+            "localAbsolutePathsIncluded": not shareable,
+            "note": "Use --shareable before moving this performance report into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or report-quality scoring."
+            if not shareable
+            else "Local absolute project paths are omitted from report fields intended for external sharing.",
+        },
         "status": status,
         "metrics": {
             **metrics,
@@ -468,6 +491,7 @@ def markdown_report(report: dict[str, Any]) -> str:
         f"- Status: `{report['status']}`",
         f"- Intent: `{report['intent']}`",
         f"- Project: `{report['project']}`",
+        f"- Shareability mode: `{report['shareability']['mode']}`",
         f"- Swift files: {metrics['swiftFiles']}",
         f"- SwiftUI files: {metrics['swiftuiFiles']}",
         f"- Findings: {metrics['findings']} ({metrics['high']} high, {metrics['review']} review, {metrics['opportunity']} opportunity)",
@@ -559,7 +583,7 @@ def markdown_report(report: dict[str, Any]) -> str:
 
 def main() -> None:
     args = parse_args()
-    report = build_report(Path(args.path), shipguard_eval=args.shipguard_eval)
+    report = build_report(Path(args.path), shipguard_eval=args.shipguard_eval, shareable=args.shareable)
     markdown = markdown_report(report)
     if args.out:
         out_dir = Path(args.out)
