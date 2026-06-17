@@ -146,12 +146,13 @@ Use `--shipguard-eval` only when a real app is acting as a private read-only sam
   --reports /tmp/ios-shipguard-modernize-eval \
   --reports /tmp/ios-shipguard-app-intelligence-eval \
   --reports /tmp/ios-shipguard-ai-readiness-eval \
-  --out /tmp/ios-shipguard-report-quality
+  --out /tmp/ios-shipguard-report-quality \
+  --shareable
 ```
 
 Those reports add a ShipGuard evaluation boundary. Findings from those runs must be used to improve ShipGuard rules, report shape, docs, or public fixtures; they must not become target-app remediation tasks without a separate explicit app-work request. Markdown output may be grouped or capped to stay reviewable; JSON keeps the full finding list for deeper ShipGuard product QA. Use `--shareable` for design evals before report-quality scoring or external planning so local absolute app paths are omitted.
 
-`ios report-quality` then grades ShipGuard's output quality, not the scanned app. It checks whether the reports are parseable, scoped to read-only product QA, paired with Markdown, honest about skipped scan scope, useful in finding evidence/recommendation/proof guidance, and safe to share or redact. It also detects token-like connector URLs or auth strings without echoing the token value, then emits a redaction plan with `shipguard ios redact` commands for any report set that should not be shared raw.
+`ios report-quality` then grades ShipGuard's output quality, not the scanned app. It checks whether the reports are parseable, scoped to read-only product QA, paired with Markdown, honest about skipped scan scope, useful in finding evidence/recommendation/proof guidance, and safe to share or redact. It also detects token-like connector URLs or auth strings without echoing the token value, then emits a redaction plan with `shipguard ios redact` commands for any report set that should not be shared raw. Add `--shareable` when the report-quality artifact itself will move into ChatGPT, GitHub, docs, benchmark fixtures, or release evidence; default local output keeps absolute input/report paths for operator debugging.
 
 ## Design QA Audit
 

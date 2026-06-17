@@ -48,7 +48,7 @@ Usage:
   shipguard ios modernize --focus swift --path <repo> --out <dir> [--shipguard-eval] [--json|--markdown]
   shipguard ios app-intelligence --path <repo> --out <dir> [--shipguard-eval] [--json|--markdown]
   shipguard ios ai-readiness --path <repo> --out <dir> [--shipguard-eval] [--json|--markdown]
-  shipguard ios report-quality --reports <file-or-dir> [--reports <file-or-dir> ...] [--out <dir>] [--strict] [--json|--markdown]
+  shipguard ios report-quality --reports <file-or-dir> [--reports <file-or-dir> ...] [--out <dir>] [--shareable] [--strict] [--json|--markdown]
   shipguard ios redact --in <file-or-dir> --out <file-or-dir> [--report <report.json>] [--private-term <text> ...]
   shipguard ios eval [--cases <cases.jsonl>] [--out <dir>] [--json|--markdown]
   shipguard ios demo --out <dir> [--fixture <repo>] [--cases <cases.jsonl>]

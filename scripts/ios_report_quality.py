@@ -54,6 +54,11 @@ def parse_args() -> argparse.Namespace:
         help="Report JSON file or directory containing ShipGuard iOS reports. May be passed multiple times.",
     )
     parser.add_argument("--out", help="Output directory for ios-report-quality.md and ios-report-quality.json")
+    parser.add_argument(
+        "--shareable",
+        action="store_true",
+        help="Omit local absolute input/report paths from JSON and Markdown before external sharing.",
+    )
     parser.add_argument("--strict", action="store_true", help="Exit non-zero when report-quality status is not pass")
     parser.add_argument("--json", action="store_true", help="Print JSON to stdout")
     parser.add_argument("--markdown", action="store_true", help="Print Markdown to stdout")
@@ -85,6 +90,28 @@ def report_json_files(inputs: list[str]) -> list[Path]:
     if not unique:
         fail("no report JSON files found")
     return unique
+
+
+def resolved_input_paths(inputs: list[str]) -> list[Path]:
+    return [Path(item).expanduser().resolve() for item in inputs]
+
+
+def path_label(path: Path, *, input_paths: list[Path], shareable: bool, cwd: Path) -> str:
+    if not shareable:
+        return path.as_posix()
+    try:
+        relative = path.relative_to(cwd)
+        return relative.as_posix() or "."
+    except ValueError:
+        pass
+    for index, root in enumerate(input_paths, start=1):
+        try:
+            relative = path.relative_to(root)
+        except ValueError:
+            continue
+        suffix = relative.as_posix()
+        return f"<report-input-{index}>" if not suffix or suffix == "." else f"<report-input-{index}>/{suffix}"
+    return "<local-report-path>"
 
 
 def paired_markdown(path: Path) -> Path | None:
@@ -211,24 +238,28 @@ def finding_quality_issues(report: dict[str, Any]) -> list[dict[str, str]]:
     return issues
 
 
-def grade_report(path: Path) -> dict[str, Any]:
+def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: Path) -> dict[str, Any]:
     loaded = read_json(path)
     markdown_path = paired_markdown(path)
     markdown = markdown_path.read_text(encoding="utf-8", errors="ignore") if markdown_path else ""
     raw_text = path.read_text(encoding="utf-8", errors="ignore") + "\n" + markdown
     issues: list[dict[str, str]] = []
+    display_path = path_label(path, input_paths=input_paths, shareable=shareable, cwd=cwd)
+    display_markdown_path = (
+        path_label(markdown_path, input_paths=input_paths, shareable=shareable, cwd=cwd) if markdown_path else None
+    )
 
     if loaded is None:
         add_issue(
             issues,
             severity="high",
             rule_id="report-json-invalid",
-            evidence=f"{path} is not valid JSON",
+            evidence=f"{display_path} is not valid JSON",
             recommendation="Fix the report writer so every report has parseable JSON.",
         )
         return {
-            "path": path.as_posix(),
-            "markdownPath": markdown_path.as_posix() if markdown_path else None,
+            "path": display_path,
+            "markdownPath": display_markdown_path,
             "tool": None,
             "intent": None,
             "status": "blocked",
@@ -352,8 +383,8 @@ def grade_report(path: Path) -> dict[str, Any]:
 
     score = score_for(issues)
     return {
-        "path": path.as_posix(),
-        "markdownPath": markdown_path.as_posix() if markdown_path else None,
+        "path": display_path,
+        "markdownPath": display_markdown_path,
         "tool": tool,
         "intent": intent or None,
         "reportStatus": loaded.get("status"),
@@ -364,21 +395,29 @@ def grade_report(path: Path) -> dict[str, Any]:
     }
 
 
-def build_redaction_plan(inputs: list[str], issues: list[dict[str, Any]]) -> dict[str, Any]:
+def build_redaction_plan(
+    inputs: list[str],
+    issues: list[dict[str, Any]],
+    *,
+    input_paths: list[Path],
+    shareable: bool,
+    cwd: Path,
+) -> dict[str, Any]:
     shareability_rules = {"local-path-shareability-warning", "token-shareability-risk"}
     matching = [issue for issue in issues if issue["ruleId"] in shareability_rules]
-    input_paths = [Path(item).expanduser().resolve() for item in inputs]
     commands = []
     for index, path in enumerate(input_paths, start=1):
         suffix = "" if len(input_paths) == 1 else f"-{index}"
+        input_label = path_label(path, input_paths=input_paths, shareable=shareable, cwd=cwd)
+        output_label = "<redacted-report-dir>" if shareable else f"/tmp/ios-shipguard-redacted-report-quality{suffix}"
         commands.append(
             {
-                "input": path.as_posix(),
-                "output": f"/tmp/ios-shipguard-redacted-report-quality{suffix}",
+                "input": input_label,
+                "output": output_label,
                 "command": (
                     "./bin/shipguard ios redact "
-                    f"--in {shlex.quote(path.as_posix())} "
-                    f"--out /tmp/ios-shipguard-redacted-report-quality{suffix}"
+                    f"--in {shlex.quote(input_label)} "
+                    f"--out {shlex.quote(output_label)}"
                 ),
             }
         )
@@ -391,9 +430,11 @@ def build_redaction_plan(inputs: list[str], issues: list[dict[str, Any]]) -> dic
     }
 
 
-def build_report(inputs: list[str]) -> dict[str, Any]:
+def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any]:
     paths = report_json_files(inputs)
-    graded = [grade_report(path) for path in paths]
+    input_paths = resolved_input_paths(inputs)
+    cwd = Path.cwd().resolve()
+    graded = [grade_report(path, input_paths=input_paths, shareable=shareable, cwd=cwd) for path in paths]
     issues = []
     for item in graded:
         for issue in item["issues"]:
@@ -411,7 +452,14 @@ def build_report(inputs: list[str]) -> dict[str, Any]:
         "status": status,
         "reportCount": len(graded),
         "averageScore": average,
-        "inputs": [str(Path(item).expanduser().resolve()) for item in inputs],
+        "inputs": [path_label(path, input_paths=input_paths, shareable=shareable, cwd=cwd) for path in input_paths],
+        "shareability": {
+            "mode": "shareable" if shareable else "local",
+            "localAbsolutePathsIncluded": not shareable,
+            "note": "Use --shareable before moving report-quality output into ChatGPT, GitHub, docs, benchmark fixtures, or release evidence."
+            if not shareable
+            else "Local absolute input and report paths are omitted from report-quality fields.",
+        },
         "scopeBoundary": {
             "shipguardOnly": True,
             "targetAppsReadOnly": True,
@@ -425,7 +473,7 @@ def build_report(inputs: list[str]) -> dict[str, Any]:
             "Run private-app reports with --shipguard-eval and keep unredacted reports local.",
             "Use shipguard ios redact before sharing reports outside the local development loop.",
         ],
-        "redactionPlan": build_redaction_plan(inputs, issues),
+        "redactionPlan": build_redaction_plan(inputs, issues, input_paths=input_paths, shareable=shareable, cwd=cwd),
     }
 
 
@@ -436,6 +484,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Status: `{report['status']}`",
         f"- Reports: {report['reportCount']}",
         f"- Average score: {report['averageScore']}/100",
+        f"- Shareability mode: `{report['shareability']['mode']}`",
         "- Purpose: grade ShipGuard report usefulness, not target-app quality.",
         "",
         "## Reports",
@@ -488,7 +537,7 @@ def write_outputs(report: dict[str, Any], out_dir: Path) -> None:
 
 def main() -> int:
     args = parse_args()
-    report = build_report(args.reports)
+    report = build_report(args.reports, shareable=args.shareable)
     if args.out:
         write_outputs(report, Path(args.out).expanduser().resolve())
     if args.json:

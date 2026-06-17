@@ -36,6 +36,30 @@ grep -q 'local-path-shareability-warning' "$tmp_dir/quality/ios-report-quality.j
 grep -q '"redactionPlan":' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'Redaction Plan' "$tmp_dir/quality/ios-report-quality.md"
 
+shareable_reports="$tmp_dir/shareable-reports"
+./bin/shipguard ios design \
+  --path fixtures/demo-ios-repo \
+  --out "$shareable_reports/design" \
+  --shipguard-eval \
+  --shareable >/dev/null
+./bin/shipguard ios report-quality \
+  --reports "$shareable_reports/design" \
+  --out "$tmp_dir/shareable-quality" \
+  --shareable >/dev/null
+grep -q '"mode": "shareable"' "$tmp_dir/shareable-quality/ios-report-quality.json"
+grep -q '"localAbsolutePathsIncluded": false' "$tmp_dir/shareable-quality/ios-report-quality.json"
+grep -q '"path": "<report-input-1>/ios-design.json"' "$tmp_dir/shareable-quality/ios-report-quality.json"
+grep -q '"markdownPath": "<report-input-1>/ios-design.md"' "$tmp_dir/shareable-quality/ios-report-quality.json"
+grep -q 'Shareability mode: `shareable`' "$tmp_dir/shareable-quality/ios-report-quality.md"
+if grep -R -F -q "$tmp_dir" "$tmp_dir/shareable-quality"; then
+  echo "shareable report-quality output must not include local absolute temp paths" >&2
+  exit 1
+fi
+if grep -q 'local-path-shareability-warning' "$tmp_dir/shareable-quality/ios-report-quality.json"; then
+  echo "shareable report-quality output should not add local-path warnings for shareable inputs" >&2
+  exit 1
+fi
+
 bad_dir="$tmp_dir/bad"
 mkdir -p "$bad_dir"
 cat > "$bad_dir/ios-performance.json" <<'JSON'
@@ -82,6 +106,24 @@ grep -q '"blockedUntilRedacted": true' "$tmp_dir/token-quality/ios-report-qualit
 grep -q 'shipguard ios redact' "$tmp_dir/token-quality/ios-report-quality.md"
 if grep -R -q 'fixtureconnector1234567890' "$tmp_dir/token-quality"; then
   echo "report-quality output must not echo token-like fixture values" >&2
+  exit 1
+fi
+
+./bin/shipguard ios report-quality \
+  --reports "$token_fixture" \
+  --out "$tmp_dir/token-quality-shareable" \
+  --shareable >/dev/null
+grep -q '"status": "blocked"' "$tmp_dir/token-quality-shareable/ios-report-quality.json"
+grep -q '"mode": "shareable"' "$tmp_dir/token-quality-shareable/ios-report-quality.json"
+grep -q '"report": "fixtures/ios-report-quality/token-shareability/ios-devspace-report.json"' "$tmp_dir/token-quality-shareable/ios-report-quality.json"
+grep -q '"input": "fixtures/ios-report-quality/token-shareability"' "$tmp_dir/token-quality-shareable/ios-report-quality.json"
+grep -q '"output": "<redacted-report-dir>"' "$tmp_dir/token-quality-shareable/ios-report-quality.json"
+if grep -R -F -q "$repo_root" "$tmp_dir/token-quality-shareable"; then
+  echo "shareable token report-quality output must not include repo absolute paths" >&2
+  exit 1
+fi
+if grep -R -q 'fixtureconnector1234567890' "$tmp_dir/token-quality-shareable"; then
+  echo "shareable report-quality output must not echo token-like fixture values" >&2
   exit 1
 fi
 
