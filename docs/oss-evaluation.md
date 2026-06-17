@@ -91,6 +91,8 @@ The next declared-shareability pass showed `ios report-quality --shareable` stil
 
 The next read-only Ringly/Ilmify design and performance pass produced structurally clean report-quality output with useful actionability questions, but ShipGuard still lacked a first-class way to convert those questions into governed implementation work. `ios spec-workflow` now generates ShipGuard-owned constitution, feature spec, implementation plan, tasks, analysis gates, slash plan/goal, and Devspace guardrails from a feature or report-quality artifact so private-app observations become ShipGuard product work instead of app remediation tasks.
 
+A follow-up misuse probe showed a shareable spec workflow generated without `--from-report` still passed report-quality even though it was not grounded in observed ShipGuard output. Report-quality now emits `spec-workflow-report-context-missing` and `spec-workflow-actionability-missing` for that case, so polished-looking spec artifacts need real report evidence before they pass adoption scoring.
+
 The installed Codex cache now has `ios-shipguard` metadata version `0.2.0+codex.20260617011237`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
 
 ## Verdict
@@ -216,6 +218,7 @@ Status: started.
 - Added `ios modernize --shareable`, `ios app-intelligence --shareable`, and `ios ai-readiness --shareable` after read-only Ringly/Ilmify checks showed those path-safe reports still lacked an explicit shareability contract.
 - Added declared-shareability report-quality findings after read-only Ringly/Ilmify local-mode reports showed shareable scoring could pass reports that were path-clean but not explicitly generated for sharing.
 - Added `shipguard ios spec-workflow` after clean read-only report-quality runs showed the missing step was converting actionability questions into proof-gated ShipGuard specs, tasks, slash plans, and Devspace guardrails.
+- Added spec-workflow adoption quality findings after a misuse probe showed report-quality needed to distinguish report-grounded spec workflows from standalone polished plans.
 - Added modernization rule summaries and capped Markdown for modernize, app-intelligence, and AI-readiness reports so private-app findings stay useful for improving ShipGuard without becoming app remediation tasks.
 - Improved first-run adoption docs around CLI versus plugin usage.
 - Upgraded `shipguard next-goal` so the next improvement loop emits a reviewable `/plan` before the `/goal`, and can now carry bounded scope, completion evidence, and the following `/goal` handoff.

@@ -26,6 +26,7 @@ DECLARED_SHAREABILITY_TOOLS = SOURCE_SCANNER_TOOLS | {
     "shipguard ios devspace-check",
 }
 REPORT_QUALITY_TOOL = "shipguard ios report-quality"
+SPEC_WORKFLOW_TOOL = "shipguard ios spec-workflow"
 TOKEN_RISK_PATTERNS = {
     "bearer-token": re.compile(r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{12,}"),
     "query-token": re.compile(
@@ -289,6 +290,89 @@ def finding_quality_issues(report: dict[str, Any]) -> list[dict[str, str]]:
     return issues
 
 
+def spec_workflow_quality_issues(report: dict[str, Any], *, path_name: str) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    inputs = report.get("reportInputs")
+    if not isinstance(inputs, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="spec-workflow-report-inputs-missing",
+            evidence=f"{path_name} has no reportInputs object",
+            recommendation="Generate spec workflows from report-quality or source-scanner outputs so adoption work is grounded in evidence.",
+        )
+        return issues
+
+    reports = inputs.get("reports")
+    questions = inputs.get("actionabilityQuestions")
+    if not isinstance(reports, list) or not reports:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="spec-workflow-report-context-missing",
+            evidence=f"{path_name} has no reportInputs.reports entries",
+            recommendation="Pass --from-report <report-quality-dir> or another ShipGuard report so the spec workflow is tied to observed tool output.",
+        )
+    if not isinstance(questions, list) or not questions:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="spec-workflow-actionability-missing",
+            evidence=f"{path_name} has no reportInputs.actionabilityQuestions entries",
+            recommendation="Feed report-quality output into spec-workflow so real actionability questions become clarifying questions and tasks.",
+        )
+
+    artifacts = report.get("artifacts")
+    required_artifacts = {"constitution", "spec", "plan", "tasks", "devspaceGuardrails", "json", "markdown"}
+    if not isinstance(artifacts, dict):
+        add_issue(
+            issues,
+            severity="high",
+            rule_id="spec-workflow-artifacts-missing",
+            evidence=f"{path_name} has no artifacts manifest",
+            recommendation="Emit a complete artifacts map so downstream users know which generated files to review.",
+        )
+    else:
+        missing = sorted(required_artifacts - set(artifacts))
+        if missing:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="spec-workflow-artifacts-incomplete",
+                evidence=f"{path_name} artifacts missing: {', '.join(missing)}",
+                recommendation="Keep every spec workflow output self-describing: constitution, spec, plan, tasks, Devspace guardrails, JSON, and Markdown.",
+            )
+
+    section_checks = [
+        ("constitution", "spec-workflow-constitution-missing"),
+        ("featureSpec", "spec-workflow-feature-spec-missing"),
+        ("technicalPlan", "spec-workflow-plan-missing"),
+        ("taskPlan", "spec-workflow-tasks-missing"),
+        ("analysisGates", "spec-workflow-analysis-gates-missing"),
+        ("devspaceGuardrails", "spec-workflow-devspace-guardrails-missing"),
+    ]
+    for field, rule_id in section_checks:
+        value = report.get(field)
+        if not value:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id=rule_id,
+                evidence=f"{path_name} has empty {field}",
+                recommendation="Regenerate the spec workflow so constitution, spec, plan, tasks, analysis gates, and Devspace guardrails are all reviewable.",
+            )
+    if not report.get("slashPlan") or not report.get("slashGoal"):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="spec-workflow-slash-handoff-missing",
+            evidence=f"{path_name} is missing slashPlan or slashGoal",
+            recommendation="Emit slash plan and slash goal text so the next Codex loop can continue without reconstructing the handoff.",
+        )
+
+    return issues
+
+
 def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: Path) -> dict[str, Any]:
     loaded = read_json(path)
     markdown_path = paired_markdown(path)
@@ -405,6 +489,9 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
 
     if shareable and tool in DECLARED_SHAREABILITY_TOOLS:
         issues.extend(declared_shareability_issues(loaded, path_name=path.name))
+
+    if tool == SPEC_WORKFLOW_TOOL:
+        issues.extend(spec_workflow_quality_issues(loaded, path_name=path.name))
 
     findings = loaded.get("findings")
     if isinstance(findings, list) and len(findings) > 30 and not loaded.get("ruleSummary"):

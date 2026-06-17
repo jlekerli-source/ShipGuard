@@ -70,6 +70,19 @@ fi
   --shareable >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/spec-quality/ios-report-quality.json"
 
+./bin/shipguard ios spec-workflow \
+  --path fixtures/demo-ios-repo \
+  --feature "No report context spec" \
+  --shareable \
+  --out "$tmp_dir/no-context-spec" >/dev/null
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/no-context-spec" \
+  --out "$tmp_dir/no-context-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/no-context-quality/ios-report-quality.json"
+grep -q '"ruleId": "spec-workflow-report-context-missing"' "$tmp_dir/no-context-quality/ios-report-quality.json"
+grep -q '"ruleId": "spec-workflow-actionability-missing"' "$tmp_dir/no-context-quality/ios-report-quality.json"
+
 json_stdout="$(
   ./bin/shipguard ios spec-workflow \
     --path fixtures/demo-ios-repo \
