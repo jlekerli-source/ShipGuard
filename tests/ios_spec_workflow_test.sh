@@ -34,8 +34,10 @@ test -f "$tmp_dir/spec/ios-spec-workflow.json"
 test -f "$tmp_dir/spec/ios-spec-workflow.md"
 test -f "$tmp_dir/spec/shipguard-constitution.md"
 test -f "$tmp_dir/spec/feature-spec.md"
+test -f "$tmp_dir/spec/requirements-checklist.md"
 test -f "$tmp_dir/spec/implementation-plan.md"
 test -f "$tmp_dir/spec/tasks.md"
+test -f "$tmp_dir/spec/consistency-analysis.md"
 test -f "$tmp_dir/spec/devspace-guardrails.md"
 python3 -m json.tool "$tmp_dir/spec/ios-spec-workflow.json" >/dev/null
 grep -q '"tool": "shipguard ios spec-workflow"' "$tmp_dir/spec/ios-spec-workflow.json"
@@ -46,21 +48,37 @@ grep -q '"intent": "shipguard-evaluation"' "$tmp_dir/spec/ios-spec-workflow.json
 grep -q '"shipguardOnly": true' "$tmp_dir/spec/ios-spec-workflow.json"
 grep -q '"source": "GitHub Spec Kit"' "$tmp_dir/spec/ios-spec-workflow.json"
 grep -q '"source": "CodexPro"' "$tmp_dir/spec/ios-spec-workflow.json"
+grep -q '"source": "Expo"' "$tmp_dir/spec/ios-spec-workflow.json"
+grep -q '"source": "Xcode Build Optimization Agent Skills"' "$tmp_dir/spec/ios-spec-workflow.json"
+grep -q '"source": "Build iOS Apps / OpenAI native iOS workflow"' "$tmp_dir/spec/ios-spec-workflow.json"
+grep -q '"requirementsChecklist":' "$tmp_dir/spec/ios-spec-workflow.json"
+grep -q '"consistencyAnalysis":' "$tmp_dir/spec/ios-spec-workflow.json"
+grep -q '"checklist": "requirements-checklist.md"' "$tmp_dir/spec/ios-spec-workflow.json"
+grep -q '"analysis": "consistency-analysis.md"' "$tmp_dir/spec/ios-spec-workflow.json"
 grep -q 'Did the report tailor advice to the app type' "$tmp_dir/spec/ios-spec-workflow.json"
 grep -q '# ShipGuard Constitution' "$tmp_dir/spec/shipguard-constitution.md"
 grep -q 'Devspace is a planning bridge' "$tmp_dir/spec/shipguard-constitution.md"
 grep -q '# Feature Spec' "$tmp_dir/spec/feature-spec.md"
 grep -q 'The ShipGuard change answers report-quality actionability question:' "$tmp_dir/spec/feature-spec.md"
 grep -q 'The ShipGuard change answers report-quality actionability question:' "$tmp_dir/spec/ios-spec-workflow.json"
+grep -q '# Requirements Quality Checklist' "$tmp_dir/spec/requirements-checklist.md"
+grep -q 'Unit tests for ShipGuard planning requirements' "$tmp_dir/spec/requirements-checklist.md"
+grep -q '\[Completeness\]' "$tmp_dir/spec/requirements-checklist.md"
+grep -q 'Did the report tailor advice to the app type' "$tmp_dir/spec/requirements-checklist.md"
 grep -q '# Implementation Plan' "$tmp_dir/spec/implementation-plan.md"
 grep -q './tests/ios_spec_workflow_test.sh' "$tmp_dir/spec/implementation-plan.md"
 grep -q 'Devspace remains a connector and handoff path' "$tmp_dir/spec/implementation-plan.md"
 grep -q './tests/ios_report_quality_test.sh' "$tmp_dir/spec/ios-spec-workflow.json"
 grep -q 'Private-app observations remain ShipGuard product-QA evidence only' "$tmp_dir/spec/ios-spec-workflow.json"
 grep -q '# Tasks' "$tmp_dir/spec/tasks.md"
-grep -q '`S007` Resolve report-quality actionability question:' "$tmp_dir/spec/tasks.md"
-grep -q '"id": "S007"' "$tmp_dir/spec/ios-spec-workflow.json"
+grep -q '`S009` Resolve report-quality actionability question:' "$tmp_dir/spec/tasks.md"
+grep -q '"id": "S009"' "$tmp_dir/spec/ios-spec-workflow.json"
 grep -q 'Resolve report-quality actionability question:' "$tmp_dir/spec/ios-spec-workflow.json"
+grep -q '# Spec Workflow Consistency Analysis' "$tmp_dir/spec/consistency-analysis.md"
+grep -q '## Coverage Summary' "$tmp_dir/spec/consistency-analysis.md"
+grep -q '## Constitution Alignment' "$tmp_dir/spec/consistency-analysis.md"
+grep -q '## Cross-Artifact Checks' "$tmp_dir/spec/consistency-analysis.md"
+grep -q 'Did the report tailor advice to the app type' "$tmp_dir/spec/consistency-analysis.md"
 grep -q '# Devspace Guardrails' "$tmp_dir/spec/devspace-guardrails.md"
 grep -q 'Model selection happens in ChatGPT, not ShipGuard' "$tmp_dir/spec/devspace-guardrails.md" || \
   grep -q 'model selection happens in ChatGPT, not ShipGuard' "$tmp_dir/spec/devspace-guardrails.md"
@@ -163,9 +181,26 @@ if grep -R -F -q "$tmp_dir" "$tmp_dir/missing-artifact-quality"; then
   exit 1
 fi
 
+cp -R "$tmp_dir/spec" "$tmp_dir/missing-native-spec-artifacts"
+rm "$tmp_dir/missing-native-spec-artifacts/requirements-checklist.md" "$tmp_dir/missing-native-spec-artifacts/consistency-analysis.md"
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/missing-native-spec-artifacts" \
+  --out "$tmp_dir/missing-native-spec-artifacts-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-native-spec-artifacts-quality/ios-report-quality.json"
+grep -q '"ruleId": "spec-workflow-artifact-file-missing"' "$tmp_dir/missing-native-spec-artifacts-quality/ios-report-quality.json"
+grep -q 'requirements-checklist.md' "$tmp_dir/missing-native-spec-artifacts-quality/ios-report-quality.json"
+grep -q 'consistency-analysis.md' "$tmp_dir/missing-native-spec-artifacts-quality/ios-report-quality.json"
+if grep -R -F -q "$tmp_dir" "$tmp_dir/missing-native-spec-artifacts-quality"; then
+  echo "shareable missing-native-spec-artifacts quality output must not include temp absolute paths" >&2
+  exit 1
+fi
+
 cp -R "$tmp_dir/spec" "$tmp_dir/weak-content-spec"
 printf '# Tasks\n\n- TODO\n' > "$tmp_dir/weak-content-spec/tasks.md"
 printf '# Devspace Guardrails\n\n- TODO\n' > "$tmp_dir/weak-content-spec/devspace-guardrails.md"
+printf '# Requirements Quality Checklist\n\n- TODO\n' > "$tmp_dir/weak-content-spec/requirements-checklist.md"
+printf '# Spec Workflow Consistency Analysis\n\n- TODO\n' > "$tmp_dir/weak-content-spec/consistency-analysis.md"
 ./bin/shipguard ios report-quality \
   --reports "$tmp_dir/weak-content-spec" \
   --out "$tmp_dir/weak-content-quality" \
@@ -175,6 +210,8 @@ grep -q '"ruleId": "spec-workflow-artifact-content-incomplete"' "$tmp_dir/weak-c
 grep -q '"ruleId": "spec-workflow-artifact-placeholder-content"' "$tmp_dir/weak-content-quality/ios-report-quality.json"
 grep -q 'tasks.md' "$tmp_dir/weak-content-quality/ios-report-quality.json"
 grep -q 'devspace-guardrails.md' "$tmp_dir/weak-content-quality/ios-report-quality.json"
+grep -q 'requirements-checklist.md' "$tmp_dir/weak-content-quality/ios-report-quality.json"
+grep -q 'consistency-analysis.md' "$tmp_dir/weak-content-quality/ios-report-quality.json"
 if grep -R -F -q "$tmp_dir" "$tmp_dir/weak-content-quality"; then
   echo "shareable weak-content quality output must not include temp absolute paths" >&2
   exit 1

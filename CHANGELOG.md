@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-No unreleased changes.
+- Expanded `ios spec-workflow` into a fuller ShipGuard-native integration of external workflow inspiration: it now emits `requirements-checklist.md` and `consistency-analysis.md`, records ShipGuard-owned adaptations from Spec Kit, CodexPro, Expo, Xcode Build Optimization Agent Skills, and the OpenAI native iOS preview loop, and keeps those ideas as native proof/report-quality artifacts rather than vendored code.
+- Tightened `ios report-quality` so spec-workflow bundles must declare and include the requirements checklist and consistency analysis, preserve report-quality questions through those artifacts, and fail review when those native integration files are missing or placeholder-only.
+- Deduplicated repeated report-quality actionability questions while preserving duplicate counts and duplicate source reports, so real-app product-QA output stays prioritized without hiding later unique questions.
 
 ## v3.70.1 - Package Codex Status Fallback
 

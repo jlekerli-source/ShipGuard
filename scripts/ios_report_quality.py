@@ -30,13 +30,26 @@ SPEC_WORKFLOW_TOOL = "shipguard ios spec-workflow"
 SPEC_WORKFLOW_REQUIRED_ARTIFACTS = {
     "constitution",
     "spec",
+    "checklist",
     "plan",
     "tasks",
+    "analysis",
     "devspaceGuardrails",
     "json",
     "markdown",
 }
 SPEC_WORKFLOW_ARTIFACT_MARKERS = {
+    "analysis": [
+        "# Spec Workflow Consistency Analysis",
+        "## Coverage Summary",
+        "## Constitution Alignment",
+        "## Cross-Artifact Checks",
+    ],
+    "checklist": [
+        "# Requirements Quality Checklist",
+        "Unit tests for ShipGuard planning requirements",
+        "[Completeness]",
+    ],
     "constitution": ["# ShipGuard Constitution", "Read-only product QA", "Devspace is a planning bridge"],
     "devspaceGuardrails": [
         "# Devspace Guardrails",
@@ -269,6 +282,32 @@ def add_issue(
 
 def normalized_question_text(value: object) -> str:
     return re.sub(r"\s+", " ", str(value)).strip().lower()
+
+
+def dedupe_question_rows(rows: list[dict[str, Any]], *, annotate_duplicates: bool = False) -> list[dict[str, Any]]:
+    deduped: list[dict[str, Any]] = []
+    seen: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        key = normalized_question_text(row.get("question") or "")
+        if not key:
+            continue
+        if key in seen:
+            if annotate_duplicates:
+                existing = seen[key]
+                existing["duplicateCount"] = int(existing.get("duplicateCount") or 1) + 1
+                report = str(row.get("report") or "").strip()
+                if report and report != existing.get("report"):
+                    duplicate_reports = existing.setdefault("duplicateReports", [])
+                    if isinstance(duplicate_reports, list) and report not in duplicate_reports and len(duplicate_reports) < 8:
+                        duplicate_reports.append(report)
+            continue
+        copied = dict(row)
+        if annotate_duplicates:
+            copied["duplicateCount"] = 1
+            copied["duplicateReports"] = []
+        deduped.append(copied)
+        seen[key] = copied
+    return deduped
 
 
 def markdown_section_text(markdown: str, heading: str) -> str:
@@ -814,7 +853,7 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                 severity="review",
                 rule_id="spec-workflow-artifacts-incomplete",
                 evidence=f"{path_name} artifacts missing: {', '.join(missing)}",
-                recommendation="Keep every spec workflow output self-describing: constitution, spec, plan, tasks, Devspace guardrails, JSON, and Markdown.",
+                recommendation="Keep every spec workflow output self-describing: constitution, spec, checklist, plan, tasks, consistency analysis, Devspace guardrails, JSON, and Markdown.",
             )
         base_dir = path.parent
         for artifact_name in sorted(SPEC_WORKFLOW_REQUIRED_ARTIFACTS & set(artifacts)):
@@ -862,7 +901,7 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                 )
                 continue
             markers = SPEC_WORKFLOW_ARTIFACT_MARKERS.get(artifact_name, [])
-            needs_question_coverage = artifact_name in {"markdown", "spec"} and bool(expected_questions)
+            needs_question_coverage = artifact_name in {"analysis", "checklist", "markdown", "spec"} and bool(expected_questions)
             needs_task_coverage = artifact_name == "tasks" and bool(expected_task_questions)
             needs_acceptance_coverage = artifact_name == "spec" and bool(expected_task_questions)
             needs_validation_coverage = artifact_name == "plan"
@@ -1012,8 +1051,10 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
     section_checks = [
         ("constitution", "spec-workflow-constitution-missing"),
         ("featureSpec", "spec-workflow-feature-spec-missing"),
+        ("requirementsChecklist", "spec-workflow-checklist-missing"),
         ("technicalPlan", "spec-workflow-plan-missing"),
         ("taskPlan", "spec-workflow-tasks-missing"),
+        ("consistencyAnalysis", "spec-workflow-consistency-analysis-missing"),
         ("analysisGates", "spec-workflow-analysis-gates-missing"),
         ("devspaceGuardrails", "spec-workflow-devspace-guardrails-missing"),
     ]
@@ -1025,7 +1066,7 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                 severity="review",
                 rule_id=rule_id,
                 evidence=f"{path_name} has empty {field}",
-                recommendation="Regenerate the spec workflow so constitution, spec, plan, tasks, analysis gates, and Devspace guardrails are all reviewable.",
+                recommendation="Regenerate the spec workflow so constitution, spec, checklist, plan, tasks, consistency analysis, analysis gates, and Devspace guardrails are all reviewable.",
             )
     if not report.get("slashPlan") or not report.get("slashGoal"):
         add_issue(
@@ -1284,6 +1325,7 @@ def ranked_actionability_questions(graded: list[dict[str, Any]]) -> list[dict[st
             row["_questionIndex"],
         )
     )
+    rows = dedupe_question_rows(rows, annotate_duplicates=True)
     for index, row in enumerate(rows, start=1):
         row["priority"] = index
         row["priorityReason"] = priority_reason(row)
@@ -1391,6 +1433,7 @@ def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any
         status = "blocked"
     elif any(item["status"] == "review" for item in graded):
         status = "review"
+    actionability_questions = dedupe_question_rows(actionability_questions)
     ranked_questions = ranked_actionability_questions(graded)
     priority_action = build_priority_action(issues, ranked_questions)
     return {

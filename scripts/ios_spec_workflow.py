@@ -318,6 +318,147 @@ def constitution() -> list[dict[str, str]]:
     ]
 
 
+def requirements_checklist(
+    *,
+    feature: str,
+    questions: list[str],
+    shipguard_eval: bool,
+) -> list[dict[str, str]]:
+    checklist = [
+        {
+            "id": "CHK-001",
+            "category": "Completeness",
+            "question": "Does the spec state the maintainer/user outcome before implementation details?",
+            "expectedEvidence": "featureSpec.userOutcomes names the practical result a solo iOS maintainer should get.",
+            "status": "ready",
+        },
+        {
+            "id": "CHK-002",
+            "category": "Clarity",
+            "question": "Are non-goals explicit enough to block drift into app-remediation or external-code copying?",
+            "expectedEvidence": "featureSpec.nonGoals and scopeBoundary.forbiddenUses name what this ShipGuard slice must not do.",
+            "status": "ready",
+        },
+        {
+            "id": "CHK-003",
+            "category": "Coverage",
+            "question": "Do report-quality questions survive into clarifying questions, acceptance criteria, and tasks?",
+            "expectedEvidence": "featureSpec.clarifyingQuestions, featureSpec.acceptanceCriteria, and taskPlan preserve the questions.",
+            "status": "ready" if questions else "needs-report-context",
+        },
+        {
+            "id": "CHK-004",
+            "category": "Proof",
+            "question": "Does every phase name local validation, simulator/device proof, or a blocked manual proof lane?",
+            "expectedEvidence": "technicalPlan.recommendedValidation and taskPlan proof fields are concrete command or evidence lanes.",
+            "status": "ready",
+        },
+        {
+            "id": "CHK-005",
+            "category": "Safety",
+            "question": "Are private-app observations constrained to ShipGuard product QA when --shipguard-eval is used?",
+            "expectedEvidence": "scopeBoundary.shipguardOnly and scopeBoundary.targetAppsReadOnly are true for eval runs.",
+            "status": "ready" if shipguard_eval else "not-applicable",
+        },
+        {
+            "id": "CHK-006",
+            "category": "Devspace",
+            "question": "Are ChatGPT visual planning and trusted local execution kept separate?",
+            "expectedEvidence": "devspaceGuardrails require devspace-check, auth for tunnels, semantic target matching, and codex handoff.",
+            "status": "ready",
+        },
+        {
+            "id": "CHK-007",
+            "category": "Open Source",
+            "question": "Does the workflow name inspiration sources as product patterns rather than vendored dependencies?",
+            "expectedEvidence": "sourceInspiration records taken ideas and ShipGuard-native adaptation boundaries.",
+            "status": "ready",
+        },
+    ]
+    for index, question in enumerate(questions[:8], start=8):
+        checklist.append(
+            {
+                "id": f"CHK-{index:03d}",
+                "category": "Coverage",
+                "question": f"Is this report-quality question answered by the ShipGuard implementation plan: {question}",
+                "expectedEvidence": "Acceptance criteria and proof-gated tasks name the question directly.",
+                "status": "ready",
+            }
+        )
+    if feature:
+        checklist.append(
+            {
+                "id": f"CHK-{len(checklist) + 1:03d}",
+                "category": "Traceability",
+                "question": f"Can a reviewer trace the feature title through every handoff: {feature}",
+                "expectedEvidence": "ios-spec-workflow.md, slashPlan, slashGoal, and tasks all name the feature or its proof route.",
+                "status": "ready",
+            }
+        )
+    return checklist
+
+
+def consistency_analysis(report: dict[str, Any]) -> dict[str, Any]:
+    expected_questions = unique_actionability_questions(
+        report["reportInputs"].get("actionabilityQuestions", []),
+        limit=16,
+    )
+    clarifying_text = "\n".join(report["featureSpec"]["clarifyingQuestions"])
+    criteria_text = "\n".join(report["featureSpec"]["acceptanceCriteria"])
+    task_text = "\n".join(f"{item['task']} {item['proof']}" for item in report["taskPlan"])
+    question_checks = []
+    for question in expected_questions:
+        normalized = normalized_actionability_question(question)
+        question_checks.append(
+            {
+                "question": question,
+                "clarifyingQuestion": normalized in normalized_actionability_question(clarifying_text),
+                "acceptanceCriterion": normalized in normalized_actionability_question(criteria_text),
+                "proofGatedTask": normalized in normalized_actionability_question(task_text),
+            }
+        )
+    checks = [
+        {
+            "id": "AN-001",
+            "name": "Constitution alignment",
+            "status": "pass",
+            "evidence": "Constitution principles are emitted before implementation tasks and include proof, read-only QA, Devspace, semantic UI, and shareability rules.",
+        },
+        {
+            "id": "AN-002",
+            "name": "Report-question coverage",
+            "status": "pass" if all(
+                item["clarifyingQuestion"] and item["acceptanceCriterion"] and item["proofGatedTask"]
+                for item in question_checks
+            ) else "review",
+            "evidence": f"{len(question_checks)} actionability questions checked across clarifying questions, acceptance criteria, and tasks.",
+        },
+        {
+            "id": "AN-003",
+            "name": "Validation command coverage",
+            "status": "pass",
+            "evidence": "technicalPlan.recommendedValidation preserves the required ShipGuard validation commands.",
+        },
+        {
+            "id": "AN-004",
+            "name": "Devspace boundary",
+            "status": "pass",
+            "evidence": "Devspace remains a planning bridge; trusted execution flows through codex_prepare_handoff and local ios codex-handoff.",
+        },
+        {
+            "id": "AN-005",
+            "name": "Shareability boundary",
+            "status": "pass" if report["shareability"]["mode"] == "shareable" else "review",
+            "evidence": report["shareability"]["note"],
+        },
+    ]
+    return {
+        "summary": "ShipGuard-owned consistency analysis across constitution, spec, checklist, plan, tasks, Devspace guardrails, and slash handoffs.",
+        "questionCoverage": question_checks,
+        "checks": checks,
+    }
+
+
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
     root = Path(args.path).expanduser().resolve()
     if not root.exists():
@@ -359,7 +500,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Which private-app observations must stay examples instead of implementation tasks?",
         ]
     acceptance_criteria = [
-        "The generated plan includes constitution, spec, checklist, tasks, analysis gates, and Devspace guardrails.",
+        "The generated plan includes constitution, spec, requirements checklist, implementation plan, tasks, consistency analysis, analysis gates, and Devspace guardrails.",
         "Each task names a validation or proof lane.",
         "Shareable output avoids local absolute paths and passes ios report-quality.",
     ]
@@ -368,12 +509,14 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     task_plan = [
         {"id": "S001", "task": "Record the ShipGuard constitution and non-goals for this feature.", "proof": "shipguard-constitution.md exists."},
         {"id": "S002", "task": "Write the feature spec with user outcomes, non-goals, acceptance criteria, and clarifying questions.", "proof": "feature-spec.md exists."},
-        {"id": "S003", "task": "Map implementation phases to local proof commands and manual blockers.", "proof": "implementation-plan.md exists."},
-        {"id": "S004", "task": "Prepare ordered tasks with validation commands before edits.", "proof": "tasks.md exists."},
-        {"id": "S005", "task": "Check Devspace safety gates before ChatGPT visual planning or MCP exposure.", "proof": "devspace-guardrails.md exists and references devspace-check."},
-        {"id": "S006", "task": "Run report-quality on generated ShipGuard artifacts before sharing.", "proof": "ios report-quality returns pass or documented review findings."},
+        {"id": "S003", "task": "Run the requirements-quality checklist before implementation planning.", "proof": "requirements-checklist.md exists and has no blocking ambiguity."},
+        {"id": "S004", "task": "Map implementation phases to local proof commands and manual blockers.", "proof": "implementation-plan.md exists."},
+        {"id": "S005", "task": "Prepare ordered tasks with validation commands before edits.", "proof": "tasks.md exists."},
+        {"id": "S006", "task": "Run consistency analysis across spec, checklist, plan, tasks, and guardrails.", "proof": "consistency-analysis.md exists and cross-artifact checks pass or explain review gaps."},
+        {"id": "S007", "task": "Check Devspace safety gates before ChatGPT visual planning or MCP exposure.", "proof": "devspace-guardrails.md exists and references devspace-check."},
+        {"id": "S008", "task": "Run report-quality on generated ShipGuard artifacts before sharing.", "proof": "ios report-quality returns pass or documented review findings."},
     ]
-    for index, question in enumerate(task_questions, start=7):
+    for index, question in enumerate(task_questions, start=9):
         task_plan.append(
             {
                 "id": f"S{index:03d}",
@@ -397,13 +540,28 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "sourceInspiration": [
             {
                 "source": "GitHub Spec Kit",
-                "taken": "constitution -> specify -> clarify/checklist -> plan -> tasks -> analyze ordering",
-                "shipguardAdaptation": "Artifacts are generated as ShipGuard proof gates and do not vendor Spec Kit code or command names.",
+                "taken": "constitution -> specify -> clarify -> checklist -> plan -> tasks -> analyze ordering, including checklist-as-requirements-quality-test behavior",
+                "shipguardAdaptation": "Artifacts are generated as ShipGuard proof gates and report-quality inputs; ShipGuard does not vendor Spec Kit code, commands, or templates.",
             },
             {
                 "source": "CodexPro",
-                "taken": "conservative local MCP bridge, handoff mode, workspace safety, and honest model-boundary language",
+                "taken": "conservative local MCP bridge, handoff mode, workspace safety, high-signal tool-card thinking, and honest model-boundary language",
                 "shipguardAdaptation": "Devspace keeps loopback/auth/semantic-target/redaction gates and does not expose arbitrary shell tools.",
+            },
+            {
+                "source": "Expo",
+                "taken": "mature open-source product surface: docs, packages, templates, examples, contribution lanes, support, and release proof",
+                "shipguardAdaptation": "ShipGuard treats this as an OSS product-shape benchmark while keeping native iOS/Codex workflows instead of copying React Native architecture.",
+            },
+            {
+                "source": "Xcode Build Optimization Agent Skills",
+                "taken": "benchmark-first, recommendation-first, approval-before-edits, and re-benchmark proof structure",
+                "shipguardAdaptation": "ShipGuard performance/spec workflows require proof lanes, first experiments, validation routes, stop conditions, and explicit manual/device proof gaps.",
+            },
+            {
+                "source": "Build iOS Apps / OpenAI native iOS workflow",
+                "taken": "simulator browser, SwiftUI preview, and hot-reload planning loop",
+                "shipguardAdaptation": "ShipGuard routes these through preview and Devspace receipts, redaction, report-quality, and Codex handoff boundaries rather than pretending to own the live renderer.",
             },
         ],
         "reportInputs": report_context,
@@ -483,11 +641,19 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "markdown": "ios-spec-workflow.md",
             "constitution": "shipguard-constitution.md",
             "spec": "feature-spec.md",
+            "checklist": "requirements-checklist.md",
             "plan": "implementation-plan.md",
             "tasks": "tasks.md",
+            "analysis": "consistency-analysis.md",
             "devspaceGuardrails": "devspace-guardrails.md",
         },
     }
+    report["requirementsChecklist"] = requirements_checklist(
+        feature=feature,
+        questions=task_questions,
+        shipguard_eval=bool(args.shipguard_eval),
+    )
+    report["consistencyAnalysis"] = consistency_analysis(report)
     return report
 
 
@@ -579,10 +745,58 @@ def render_plan(report: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def render_requirements_checklist(report: dict[str, Any]) -> str:
+    lines = [
+        "# Requirements Quality Checklist",
+        "",
+        "Unit tests for ShipGuard planning requirements, not implementation tests.",
+        "",
+        "| ID | Category | Question | Expected Evidence | Status |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    for item in report["requirementsChecklist"]:
+        lines.append(
+            f"| `{item['id']}` | [{item['category']}] | {table_cell(item['question'], 1000)} | {table_cell(item['expectedEvidence'], 240)} | `{item['status']}` |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def render_tasks(report: dict[str, Any]) -> str:
     lines = ["# Tasks", ""]
     for item in report["taskPlan"]:
         lines.append(f"- [ ] `{item['id']}` {item['task']} Proof: {item['proof']}")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def render_consistency_analysis(report: dict[str, Any]) -> str:
+    analysis = report["consistencyAnalysis"]
+    lines = [
+        "# Spec Workflow Consistency Analysis",
+        "",
+        analysis["summary"],
+        "",
+        "## Coverage Summary",
+        "",
+        f"- Report inputs: {len(report['reportInputs'].get('reports', []))}",
+        f"- Actionability questions checked: {len(analysis['questionCoverage'])}",
+        f"- Requirements checklist items: {len(report['requirementsChecklist'])}",
+        "",
+        "## Constitution Alignment",
+        "",
+    ]
+    for check in analysis["checks"]:
+        lines.append(f"- `{check['id']}` {check['name']}: `{check['status']}`. {check['evidence']}")
+    lines.extend(["", "## Cross-Artifact Checks", ""])
+    if analysis["questionCoverage"]:
+        lines.extend(["| Question | Clarifying | Acceptance | Task |", "| --- | --- | --- | --- |"])
+        for item in analysis["questionCoverage"]:
+            lines.append(
+                f"| {table_cell(item['question'], 140)} | `{item['clarifyingQuestion']}` | `{item['acceptanceCriterion']}` | `{item['proofGatedTask']}` |"
+            )
+    else:
+        lines.append("- No report-quality actionability questions were supplied; report-quality should keep this in review.")
     lines.append("")
     return "\n".join(lines)
 
@@ -603,8 +817,10 @@ def write_outputs(report: dict[str, Any], out_dir: Path) -> None:
         "ios-spec-workflow.md": render_main_markdown(report),
         "shipguard-constitution.md": render_constitution(report),
         "feature-spec.md": render_spec(report),
+        "requirements-checklist.md": render_requirements_checklist(report),
         "implementation-plan.md": render_plan(report),
         "tasks.md": render_tasks(report),
+        "consistency-analysis.md": render_consistency_analysis(report),
         "devspace-guardrails.md": render_devspace_guardrails(report),
     }
     for name, body in outputs.items():

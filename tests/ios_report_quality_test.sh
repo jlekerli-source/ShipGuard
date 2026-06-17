@@ -74,6 +74,108 @@ grep -q 'Priority Action' "$tmp_dir/actionability-quality/ios-report-quality.md"
 grep -q 'Actionability Questions' "$tmp_dir/actionability-quality/ios-report-quality.md"
 grep -q 'safest default for this app type' "$tmp_dir/actionability-quality/ios-report-quality.md"
 grep -q 'Answer the actionability questions above' "$tmp_dir/actionability-quality/ios-report-quality.md"
+
+dedupe_fixture="$tmp_dir/dedupe-fixture"
+mkdir -p "$dedupe_fixture"
+cat > "$dedupe_fixture/ios-performance.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard ios performance",
+  "intent": "shipguard-evaluation",
+  "generatedAt": "2026-06-18T00:00:00Z",
+  "status": "blocked",
+  "shareability": {
+    "mode": "shareable",
+    "localAbsolutePathsIncluded": false
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "scanScope": {
+    "skippedDirectoryCount": 0,
+    "skippedDirectories": []
+  },
+  "findings": [],
+  "reportQualityQuestions": [
+    "Did report wording keep target-app remediation separate from ShipGuard product QA next steps?",
+    "Which grouped performance observation should become a public fixture?"
+  ]
+}
+JSON
+cat > "$dedupe_fixture/ios-performance.md" <<'MD'
+# Performance Dedupe Fixture
+
+## ShipGuard Evaluation Boundary
+
+This fixture is ShipGuard product QA only.
+
+## Scan Scope
+
+No skipped directories.
+MD
+cat > "$dedupe_fixture/ios-design.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard ios design",
+  "intent": "shipguard-evaluation",
+  "generatedAt": "2026-06-18T00:00:00Z",
+  "status": "blocked",
+  "shareability": {
+    "mode": "shareable",
+    "localAbsolutePathsIncluded": false
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "scanScope": {
+    "skippedDirectoryCount": 0,
+    "skippedDirectories": []
+  },
+  "findings": [],
+  "reportQualityQuestions": [
+    "Did report wording keep target-app remediation separate from ShipGuard product QA next steps?",
+    "Should design DNA evidence include enough app-type context for a public fixture?"
+  ]
+}
+JSON
+cat > "$dedupe_fixture/ios-design.md" <<'MD'
+# Design Dedupe Fixture
+
+## ShipGuard Evaluation Boundary
+
+This fixture is ShipGuard product QA only.
+
+## Scan Scope
+
+No skipped directories.
+MD
+./bin/shipguard ios report-quality \
+  --reports "$dedupe_fixture" \
+  --out "$tmp_dir/dedupe-quality" \
+  --shareable >/dev/null
+python3 - <<'PY' "$tmp_dir/dedupe-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+shared = "Did report wording keep target-app remediation separate from ShipGuard product QA next steps?"
+ranked = data["prioritizedActionabilityQuestions"]
+texts = [item["question"] for item in ranked]
+if texts.count(shared) != 1:
+    raise SystemExit(f"expected one shared question, got {texts!r}")
+if "Which grouped performance observation should become a public fixture?" not in texts:
+    raise SystemExit(f"later unique performance question was dropped: {texts!r}")
+if "Should design DNA evidence include enough app-type context for a public fixture?" not in texts:
+    raise SystemExit(f"later unique design question was dropped: {texts!r}")
+shared_row = next(item for item in ranked if item["question"] == shared)
+if shared_row.get("duplicateCount") != 2:
+    raise SystemExit(f"expected duplicateCount=2, got {shared_row!r}")
+questions = [item["question"] for item in data["actionabilityQuestions"]]
+if questions.count(shared) != 1:
+    raise SystemExit(f"raw actionabilityQuestions were not deduped: {questions!r}")
+PY
 if grep -q 'local-path-shareability-warning' "$tmp_dir/shareable-quality/ios-report-quality.json"; then
   echo "shareable report-quality output should not add local-path warnings for shareable inputs" >&2
   exit 1
