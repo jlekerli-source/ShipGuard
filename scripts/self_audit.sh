@@ -145,6 +145,7 @@ required_artifacts=(
   "docs/ci-summary.md"
   "docs/check-run.md"
   "docs/codex-status.md"
+  "docs/compatibility.md"
   "docs/ios-preview.md"
   "docs/ios-shipguard.md"
   "docs/shipguard-devspace.md"

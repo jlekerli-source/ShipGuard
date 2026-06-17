@@ -23,8 +23,6 @@ PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" version
 ```
 
-The old `codex-maintainer` command remains as a compatibility alias.
-
 Read the guided setup first:
 
 - `docs/adoption-guide.md`: first 30 minutes with the workflow kit.
@@ -37,6 +35,7 @@ Read the guided setup first:
 - `docs/ci-gate.md`: CI gate command and GitHub Action for policy enforcement.
 - `docs/ci-summary.md`: GitHub Actions step-summary output from gate JSON.
 - `docs/codex-status.md`: local Codex plugin install-state check.
+- `docs/compatibility.md`: legacy command-wrapper policy for older automation.
 - `docs/command-matrix.md`: one-page map from maintainer jobs to CLI commands.
 - `docs/demo-reports.md`: checked-in demo reports generated from public fixtures.
 - `docs/docs-check.md`: local Markdown link audit for docs-heavy releases.
@@ -159,7 +158,7 @@ To publish the negative fixture index in GitHub Actions, use `jlekerli-source/Sh
 - `evals/`: deterministic ShipGuard behavior eval cases plus the optional live runner.
 - `scripts/`: release handoff, bug triage, alarm validation, packaging, and autopsy report generation.
 - `bin/shipguard`: a dependency-light CLI for profile init, validation, doctor checks, iOS ShipGuard helpers, run scoring, autopsy reports, Arena comparison, transcript redaction, verification, corpus indexing, CI artifacts, and release-loop proof.
-- `bin/codex-maintainer`: compatibility wrapper for older automation.
+- Legacy command wrappers are documented in `docs/compatibility.md`.
 - `VERSION`: the release version used by the CLI and package script.
 - `actions/validate/`: a reusable GitHub composite action for workflow-bundle validation.
 - `actions/arena-compare/`: a reusable GitHub composite action for Arena comparison artifacts.

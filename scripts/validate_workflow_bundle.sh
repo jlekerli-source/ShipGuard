@@ -50,6 +50,7 @@ required_files=(
   "docs/ci-gate.md"
   "docs/ci-summary.md"
   "docs/codex-status.md"
+  "docs/compatibility.md"
   "docs/command-matrix.md"
   "docs/demo-reports.md"
   "docs/docs-check.md"

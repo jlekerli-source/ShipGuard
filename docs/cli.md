@@ -39,8 +39,6 @@ Print the toolkit version:
 
 The command reads `VERSION`, which is also used by the release packaging script.
 
-`bin/codex-maintainer` remains available as a compatibility wrapper for older automation.
-
 ## Init
 
 Copy a starter workflow profile into another project:
@@ -590,4 +588,6 @@ The installer copies toolkit files into `${PREFIX:-/usr/local}/lib/shipguard` an
 
 ## Package Contents
 
-Release packages include the CLI, scripts, skills, templates, examples, demo fixtures, docs, scorecard, planning templates, and license. They exclude `.git`, `dist`, generated caches, and local machine paths.
+Release packages include the CLI, compatibility wrappers, scripts, skills, templates, examples, demo fixtures, docs, scorecard, planning templates, and license. They exclude `.git`, `dist`, generated caches, and local machine paths.
+
+See `compatibility.md` for the legacy wrapper policy.

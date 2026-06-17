@@ -20,8 +20,8 @@ Current checkout:
 
 ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check
 # status: pass
-# files_checked: 305
-# links_checked: 53
+# files_checked: 306
+# links_checked: 54
 # broken_count: 0
 
 ./bin/shipguard arena run --fixture fixtures/arena --out /tmp/shipguard-arena
@@ -73,7 +73,7 @@ The Codex plugin source and local cache are now clean enough for local use. The 
 ## Remove Or Defer
 
 - Keep stale public references to `ringly-codex-workflows` out of plugin source and future packages.
-- Remove `codex-maintainer` from primary docs after compatibility coverage is proven for one more release.
+- Keep legacy wrapper details out of primary README and CLI flow; route them to `docs/compatibility.md` while package tests prove older automation still works.
 - Defer npm or Homebrew distribution until the Codex plugin source and release install story are reliable.
 - Defer a full Codex Security repository scan until subagent authorization is explicit; use threat modeling first.
 - Defer Agents SDK work until there is a clear agent product, input contract, and eval target.
@@ -135,4 +135,5 @@ Status: started.
 - Added `fixtures/arena/storekit-entitlement-regression` to exercise regression-awareness and proof honesty around subscription restore behavior.
 - Improved first-run adoption docs around CLI versus plugin usage.
 - Upgraded `shipguard next-goal` so the next improvement loop emits a reviewable `/plan` before the `/goal`.
+- Moved legacy command-wrapper guidance out of primary README and CLI flow into `docs/compatibility.md`.
 - Keep Agents SDK deferred unless ShipGuard becomes a runnable agent service with a concrete eval target.
