@@ -402,7 +402,10 @@ grep -q '| Status | pass |' "$tmp_dir/package-gate/summary.md"
 "$package_root/bin/shipguard" docs-check "$package_root" --out "$tmp_dir/package-docs-check" >/dev/null
 grep -q '"status" : "pass"' "$tmp_dir/package-docs-check/docs-check.json"
 grep -q '"broken_count" : 0' "$tmp_dir/package-docs-check/docs-check.json"
-"$package_root/bin/shipguard" codex status --cache "$tmp_dir/empty-codex-cache" >/dev/null
+package_empty_codex_status="$("$package_root/bin/shipguard" codex status --cache "$tmp_dir/empty-codex-cache")"
+printf '%s\n' "$package_empty_codex_status" | grep -q 'Overall status: missing'
+printf '%s\n' "$package_empty_codex_status" | grep -q '## Refresh Handoff'
+printf '%s\n' "$package_empty_codex_status" | grep -q 'pushing or pulling the repository updates source only'
 package_plugin_version="$(python3 - "$package_root/plugins/ios-shipguard/.codex-plugin/plugin.json" <<'PY'
 import json
 import sys
@@ -413,7 +416,9 @@ PY
 package_plugin_cache="$tmp_dir/package-codex-cache/shipguard/ios-shipguard/$package_plugin_version"
 mkdir -p "$(dirname "$package_plugin_cache")"
 cp -R "$package_root/plugins/ios-shipguard" "$package_plugin_cache"
-"$package_root/bin/shipguard" codex status --cache "$tmp_dir/package-codex-cache" --strict >/dev/null
+package_codex_status="$("$package_root/bin/shipguard" codex status --cache "$tmp_dir/package-codex-cache" --strict)"
+printf '%s\n' "$package_codex_status" | grep -q 'Overall status: pass'
+printf '%s\n' "$package_codex_status" | grep -q 'codex plugin add ios-shipguard@shipguard'
 "$package_root/bin/shipguard" ci-summary \
   --gate "$tmp_dir/package-gate/gate.json" \
   --out "$tmp_dir/package-summary.md" >/dev/null

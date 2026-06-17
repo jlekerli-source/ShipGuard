@@ -24,6 +24,8 @@ codex plugin add ios-shipguard@shipguard
 
 Then start a new Codex thread before relying on refreshed skill instructions.
 
+The command prints this refresh handoff in its output so status reports remain actionable even when copied into a Codex thread or issue.
+
 ## Usage
 
 ```bash
@@ -51,6 +53,7 @@ Use `--strict` in local proof scripts when a missing or stale install should fai
 - stale repository URLs that still point at `ringly-codex-workflows`
 - old `Shipguard` display casing in plugin and agent metadata
 - old `codex-maintainer` command guidance inside the installed skill text
+- the exact handoff for repository updates, plugin reinstall, new-thread refresh, and stale-cache cleanup
 
 ## Interpreting Status
 

@@ -41,6 +41,10 @@ status_output="$(./bin/shipguard codex status --cache "$tmp_dir/cache")"
 printf '%s\n' "$status_output" | grep -q '# ShipGuard Codex Status'
 printf '%s\n' "$status_output" | grep -q 'Overall status: stale'
 printf '%s\n' "$status_output" | grep -q 'Local marketplace id: shipguard'
+printf '%s\n' "$status_output" | grep -q '## Refresh Handoff'
+printf '%s\n' "$status_output" | grep -q 'pushing or pulling the repository updates source only'
+printf '%s\n' "$status_output" | grep -q 'codex plugin add ios-shipguard@shipguard'
+printf '%s\n' "$status_output" | grep -q 'start a new Codex thread'
 printf '%s\n' "$status_output" | grep -q 'stale_metadata'
 printf '%s\n' "$status_output" | grep -q 'stale_skill_text'
 
@@ -51,6 +55,7 @@ fi
 
 empty_output="$(./bin/shipguard codex status --cache "$tmp_dir/empty-cache")"
 printf '%s\n' "$empty_output" | grep -q 'Overall status: missing'
+printf '%s\n' "$empty_output" | grep -q '## Refresh Handoff'
 printf '%s\n' "$empty_output" | grep -q 'missing_install'
 
 fresh_cache="$tmp_dir/fresh-cache/shipguard/ios-shipguard/$(python3 - <<'PY'
@@ -67,5 +72,6 @@ printf '%s\n' "$fresh_output" | grep -q 'Overall status: pass'
 printf '%s\n' "$fresh_output" | grep -q 'Tracked plugin source: present'
 printf '%s\n' "$fresh_output" | grep -q 'Local marketplace plugin path: ./plugins/ios-shipguard'
 printf '%s\n' "$fresh_output" | grep -q 'iOS ShipGuard'
+printf '%s\n' "$fresh_output" | grep -q 'if status remains stale after reinstall'
 
 echo "codex status tests passed"

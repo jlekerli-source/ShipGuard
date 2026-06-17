@@ -112,6 +112,7 @@ Status: done locally.
 - Added `.agents/plugins/marketplace.json` with marketplace id `shipguard` and plugin id `ios-shipguard`.
 - Documented the local install flow: `codex plugin marketplace add .`, then `codex plugin add ios-shipguard@shipguard`.
 - Documented the new-thread boundary required for Codex to load refreshed skill metadata.
+- Added the same Git/source, plugin-cache, and new-thread refresh handoff directly to `shipguard codex status`.
 - Remaining distribution work is a real external marketplace/release install path beyond the local checkout.
 
 ### Phase 4: Security Evaluation

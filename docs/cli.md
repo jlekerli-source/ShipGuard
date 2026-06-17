@@ -343,7 +343,7 @@ Use `--cache` for fixture caches or non-default Codex plugin locations, and `--s
 ./bin/shipguard codex status --cache /tmp/codex-plugin-cache --strict
 ```
 
-The command is read-only. It reports installed `ios-shipguard` plugin metadata, old repository URLs, old `Shipguard` casing, old `codex-maintainer` guidance, and whether tracked plugin source exists in the checkout. See `codex-status.md`.
+The command is read-only. It reports installed `ios-shipguard` plugin metadata, old repository URLs, old `Shipguard` casing, old `codex-maintainer` guidance, whether tracked plugin source exists in the checkout, and the exact refresh handoff for Git source, plugin cache, and new Codex threads. See `codex-status.md`.
 
 ## Leaderboard
 

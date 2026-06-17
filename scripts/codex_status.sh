@@ -258,6 +258,13 @@ done
     echo "| none | none | none | none | none | missing |"
   fi
   echo
+  echo "## Refresh Handoff"
+  echo
+  echo "- Git update: pushing or pulling the repository updates source only; it does not refresh the Codex plugin cache."
+  echo "- Plugin refresh: run \`codex plugin marketplace add .\`, then \`codex plugin add ios-shipguard@shipguard\`, then \`./bin/shipguard codex status --strict\`."
+  echo "- Thread refresh: start a new Codex thread after reinstalling the plugin, because running threads keep the skill metadata loaded at startup."
+  echo "- Cache cleanup: if status remains stale after reinstall, remove the stale ios-shipguard cache entry and reinstall from this checkout."
+  echo
   echo "## Findings"
   echo
   if [[ "$finding_count" -gt 0 ]]; then
