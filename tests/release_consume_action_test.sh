@@ -8,6 +8,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 cd "$repo_root"
 
+version="$(sed -n '1p' VERSION)"
 action="actions/release-consume/action.yml"
 workflow="examples/workflows/release-consume-verify.yml"
 
@@ -25,7 +26,7 @@ grep -q 'actions/upload-artifact@v4' "$action"
 grep -q 'status="pass"' "$action"
 grep -q 'mode must be fail or warn' "$action"
 
-grep -q 'jlekerli-source/ShipGuard/actions/release-consume@v3.59.0' "$workflow"
+grep -q "jlekerli-source/ShipGuard/actions/release-consume@v$version" "$workflow"
 grep -q 'release-tag:' "$workflow"
 grep -q 'contents: read' "$workflow"
 grep -q 'mode: fail' "$workflow"
@@ -34,7 +35,6 @@ if command -v ruby >/dev/null 2>&1; then
   ruby -ryaml -e 'ARGV.each { |file| YAML.load_file(file) }' "$action" "$workflow"
 fi
 
-version="$(sed -n '1p' VERSION)"
 bundle="$tmp_dir/release-proof-bundle"
 SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \
   ./bin/shipguard release-proof build \

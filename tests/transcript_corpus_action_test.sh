@@ -8,6 +8,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 cd "$repo_root"
 
+version="$(sed -n '1p' VERSION)"
 action="actions/transcript-corpus/action.yml"
 workflow="examples/workflows/transcript-corpus.yml"
 
@@ -28,7 +29,7 @@ grep -q 'exit_code="$corpus_exit"' "$action"
 grep -q 'actions/upload-artifact@v4' "$action"
 grep -q 'shipguard-transcript-corpus' "$action"
 
-grep -q 'jlekerli-source/ShipGuard/actions/transcript-corpus@v3.59.0' "$workflow"
+grep -q "jlekerli-source/ShipGuard/actions/transcript-corpus@v$version" "$workflow"
 grep -q 'contents: read' "$workflow"
 grep -q 'require-report: true' "$workflow"
 grep -q 'mode: fail' "$workflow"

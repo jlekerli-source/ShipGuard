@@ -6,6 +6,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cd "$repo_root"
 
+version="$(sed -n '1p' VERSION)"
 tag_workflow="examples/workflows/release-proof-on-tag.yml"
 manual_workflow="examples/workflows/release-proof-manual.yml"
 
@@ -14,7 +15,7 @@ test -f "$manual_workflow"
 
 for workflow in "$tag_workflow" "$manual_workflow"; do
   grep -q 'actions/checkout@v5' "$workflow"
-  grep -q 'jlekerli-source/ShipGuard/actions/release-proof@v3.59.0' "$workflow"
+  grep -q "jlekerli-source/ShipGuard/actions/release-proof@v$version" "$workflow"
   grep -q 'release-url:' "$workflow"
   grep -q 'artifacts/shipguard-release-proof' "$workflow"
   grep -q 'attestation-badge' "$workflow"

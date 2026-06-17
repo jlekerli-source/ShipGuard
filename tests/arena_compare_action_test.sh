@@ -8,6 +8,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 cd "$repo_root"
 
+version="$(sed -n '1p' VERSION)"
 action="actions/arena-compare/action.yml"
 workflow="examples/workflows/arena-compare.yml"
 
@@ -27,7 +28,7 @@ grep -q 'exit "$exit_code"' "$action"
 grep -q 'actions/upload-artifact@v4' "$action"
 grep -q 'shipguard-arena-compare' "$action"
 
-grep -q 'jlekerli-source/ShipGuard/actions/arena-compare@v3.59.0' "$workflow"
+grep -q "jlekerli-source/ShipGuard/actions/arena-compare@v$version" "$workflow"
 grep -q 'contents: read' "$workflow"
 grep -q 'mode: fail' "$workflow"
 grep -q 'artifact-name: shipguard-arena-compare' "$workflow"

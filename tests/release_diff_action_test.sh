@@ -8,6 +8,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 cd "$repo_root"
 
+version="$(sed -n '1p' VERSION)"
 action="actions/release-diff/action.yml"
 workflow="examples/workflows/release-diff-compare.yml"
 
@@ -27,7 +28,7 @@ grep -q 'actions/upload-artifact@v4' "$action"
 grep -q 'status="pass"' "$action"
 grep -q 'mode must be fail or warn' "$action"
 
-grep -q 'jlekerli-source/ShipGuard/actions/release-diff@v3.59.0' "$workflow"
+grep -q "jlekerli-source/ShipGuard/actions/release-diff@v$version" "$workflow"
 grep -q 'left-tag:' "$workflow"
 grep -q 'right-tag:' "$workflow"
 grep -q 'contents: read' "$workflow"

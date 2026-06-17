@@ -1,7 +1,7 @@
 # Next Goal
 
 - Generated: 2026-06-17T21:08:17Z
-- Current toolkit version: 3.59.0
+- Current toolkit version: 3.68.0
 - Target release: v3.68.0
 - Title: Performance First Experiment Gate
 

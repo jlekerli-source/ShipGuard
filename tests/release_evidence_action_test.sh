@@ -8,6 +8,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 cd "$repo_root"
 
+version="$(sed -n '1p' VERSION)"
 action="actions/release-evidence/action.yml"
 workflow="examples/workflows/release-evidence-export.yml"
 bundle_workflow="examples/workflows/release-evidence-bundle.yml"
@@ -47,25 +48,25 @@ grep -q 'evidence-json=' "$action"
 grep -q 'evidence-index-json=' "$action"
 grep -q 'bundle=' "$action"
 
-grep -q 'jlekerli-source/ShipGuard/actions/release-consume@v3.59.0' "$workflow"
-grep -q 'jlekerli-source/ShipGuard/actions/release-diff@v3.59.0' "$workflow"
-grep -q 'jlekerli-source/ShipGuard/actions/release-evidence@v3.59.0' "$workflow"
+grep -q "jlekerli-source/ShipGuard/actions/release-consume@v$version" "$workflow"
+grep -q "jlekerli-source/ShipGuard/actions/release-diff@v$version" "$workflow"
+grep -q "jlekerli-source/ShipGuard/actions/release-evidence@v$version" "$workflow"
 grep -q 'previous-tag:' "$workflow"
 grep -q 'release-tag:' "$workflow"
 grep -q 'default: v3.22.0' "$workflow"
-grep -q 'default: v3.59.0' "$workflow"
+grep -q "default: v$version" "$workflow"
 grep -q 'contents: read' "$workflow"
 grep -q 'include-diff: auto' "$workflow"
 grep -q 'build-index: true' "$workflow"
 grep -q 'mode: fail' "$workflow"
 
-grep -q 'jlekerli-source/ShipGuard/actions/release-evidence@v3.59.0' "$bundle_workflow"
+grep -q "jlekerli-source/ShipGuard/actions/release-evidence@v$version" "$bundle_workflow"
 grep -q 'run: bundle' "$bundle_workflow"
 grep -q 'download-assets: true' "$bundle_workflow"
 grep -q 'previous-tag:' "$bundle_workflow"
 grep -q 'release-tag:' "$bundle_workflow"
 grep -q 'default: v3.22.0' "$bundle_workflow"
-grep -q 'default: v3.59.0' "$bundle_workflow"
+grep -q "default: v$version" "$bundle_workflow"
 grep -q 'contents: read' "$bundle_workflow"
 grep -q 'mode: fail' "$bundle_workflow"
 
@@ -73,7 +74,6 @@ if command -v ruby >/dev/null 2>&1; then
   ruby -ryaml -e 'ARGV.each { |file| YAML.load_file(file) }' "$action" "$workflow" "$bundle_workflow"
 fi
 
-version="$(sed -n '1p' VERSION)"
 bundle="$tmp_dir/release-proof-bundle"
 
 SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \

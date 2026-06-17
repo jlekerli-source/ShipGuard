@@ -8,6 +8,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 cd "$repo_root"
 
+version="$(sed -n '1p' VERSION)"
 action="actions/release-evidence-verify/action.yml"
 workflow="examples/workflows/release-evidence-consume.yml"
 
@@ -29,10 +30,10 @@ grep -q 'evidence-verify.json' "$action"
 grep -q 'badge.json' "$action"
 grep -q 'actions/upload-artifact@v4' "$action"
 
-grep -q 'jlekerli-source/ShipGuard/actions/release-evidence@v3.59.0' "$workflow"
-grep -q 'jlekerli-source/ShipGuard/actions/release-evidence-verify@v3.59.0' "$workflow"
+grep -q "jlekerli-source/ShipGuard/actions/release-evidence@v$version" "$workflow"
+grep -q "jlekerli-source/ShipGuard/actions/release-evidence-verify@v$version" "$workflow"
 grep -q 'default: v3.22.0' "$workflow"
-grep -q 'default: v3.59.0' "$workflow"
+grep -q "default: v$version" "$workflow"
 grep -q 'download-artifact: true' "$workflow"
 grep -q 'source-artifact-name: shipguard-release-evidence' "$workflow"
 grep -q 'require-diff: true' "$workflow"
@@ -42,7 +43,6 @@ if command -v ruby >/dev/null 2>&1; then
   ruby -ryaml -e 'ARGV.each { |file| YAML.load_file(file) }' "$action" "$workflow"
 fi
 
-version="$(sed -n '1p' VERSION)"
 bundle="$tmp_dir/release-proof-bundle"
 
 SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \
