@@ -92,4 +92,8 @@ printf '%s\n' "$fresh_output" | grep -q 'Local marketplace plugin path: ./plugin
 printf '%s\n' "$fresh_output" | grep -q 'iOS ShipGuard'
 printf '%s\n' "$fresh_output" | grep -q 'if status remains stale after reinstall'
 
+fallback_output="$(env -u SHIPGUARD_CLI HOME="$tmp_dir/no-home" PATH="/usr/bin:/bin:/usr/sbin:/sbin" ./bin/shipguard codex status --cache "$tmp_dir/fresh-cache" --strict)"
+printf '%s\n' "$fallback_output" | grep -q 'Overall status: pass'
+printf '%s\n' "$fallback_output" | grep -Fq "Resolved ShipGuard CLI for MCP/status: $repo_root/bin/shipguard"
+
 echo "codex status tests passed"

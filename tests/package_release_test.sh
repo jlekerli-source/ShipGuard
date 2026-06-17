@@ -489,8 +489,9 @@ PY
 package_plugin_cache="$tmp_dir/package-codex-cache/shipguard/ios-shipguard/$package_plugin_version"
 mkdir -p "$(dirname "$package_plugin_cache")"
 cp -R "$package_root/plugins/ios-shipguard" "$package_plugin_cache"
-package_codex_status="$("$package_root/bin/shipguard" codex status --cache "$tmp_dir/package-codex-cache" --strict)"
+package_codex_status="$(env -u SHIPGUARD_CLI HOME="$tmp_dir/package-home" PATH="/usr/bin:/bin:/usr/sbin:/sbin" "$package_root/bin/shipguard" codex status --cache "$tmp_dir/package-codex-cache" --strict)"
 printf '%s\n' "$package_codex_status" | grep -q 'Overall status: pass'
+printf '%s\n' "$package_codex_status" | grep -Fq "Resolved ShipGuard CLI for MCP/status: $package_root/bin/shipguard"
 printf '%s\n' "$package_codex_status" | grep -q 'codex plugin add ios-shipguard@shipguard'
 "$package_root/bin/shipguard" ci-summary \
   --gate "$tmp_dir/package-gate/gate.json" \

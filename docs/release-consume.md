@@ -5,19 +5,19 @@
 Use it after downloading release assets from GitHub:
 
 ```bash
-mkdir -p /tmp/shipguard-v3.70.0
-gh release download v3.70.0 \
+mkdir -p /tmp/shipguard-v3.70.1
+gh release download v3.70.1 \
   --repo jlekerli-source/ShipGuard \
-  --pattern 'shipguard-v3.70.0.tar.gz' \
+  --pattern 'shipguard-v3.70.1.tar.gz' \
   --pattern 'release-manifest.json' \
   --pattern 'release-index.json' \
   --pattern 'proof-ledger.md' \
-  --dir /tmp/shipguard-v3.70.0
+  --dir /tmp/shipguard-v3.70.1
 
 ./bin/shipguard release-consume verify \
-  --dir /tmp/shipguard-v3.70.0 \
-  --out /tmp/shipguard-v3.70.0/consumer-proof \
-  --version 3.70.0
+  --dir /tmp/shipguard-v3.70.1 \
+  --out /tmp/shipguard-v3.70.1/consumer-proof \
+  --version 3.70.1
 ```
 
 Inputs expected in `--dir`:

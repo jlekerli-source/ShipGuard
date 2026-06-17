@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-17T21:42:11Z
-- Current toolkit version: 3.69.0
-- Target release: v3.69.0
-- Title: Performance Validation Gates And Starter Hygiene
+- Generated: 2026-06-17T22:56:24Z
+- Current toolkit version: 3.70.1
+- Target release: v3.70.1
+- Title: Package Codex Status Fallback
 
 ## Slash Plan
 
 ```text
-/plan v3.69.0 Performance Validation Gates And Starter Hygiene for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Finish grouped ios performance validation gates with validationRoute and stopCondition fields, align the public 3.69.0 version/docs/package proof, and fix review-found starter hygiene by making copied skills product-neutral while shipping the bug-triage prompt helper through init, doctor, validation, and package checks.
+/plan v3.70.1 Package Codex Status Fallback for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Fix ShipGuard package and clean CI environments so codex status validates the extracted package CLI when no global shipguard install exists, align release references to v3.70.1, refresh the local Codex plugin, and keep external inspiration native to ShipGuard rather than copied.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.69.0 Performance Validation Gates And Starter Hygiene for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Finish grouped ios performance validation gates with validationRoute and stopCondition fields, align the public 3.69.0 version/docs/package proof, and fix review-found starter hygiene by making copied skills product-neutral while shipping the bug-triage prompt helper through init, doctor, validation, and package checks, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.70.1 Package Codex Status Fallback for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Fix ShipGuard package and clean CI environments so codex status validates the extracted package CLI when no global shipguard install exists, align release references to v3.70.1, refresh the local Codex plugin, and keep external inspiration native to ShipGuard rather than copied, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Finish grouped ios performance validation gates with validationRoute and stopCondition fields, align the public 3.69.0 version/docs/package proof, and fix review-found starter hygiene by making copied skills product-neutral while shipping the bug-triage prompt helper through init, doctor, validation, and package checks.
+Fix ShipGuard package and clean CI environments so codex status validates the extracted package CLI when no global shipguard install exists, align release references to v3.70.1, refresh the local Codex plugin, and keep external inspiration native to ShipGuard rather than copied.
 
 ## Completion Receipt
 
-- Completed scope: Finish grouped ios performance validation gates with validationRoute and stopCondition fields, align the public 3.69.0 version/docs/package proof, and fix review-found starter hygiene by making copied skills product-neutral while shipping the bug-triage prompt helper through init, doctor, validation, and package checks.
-- Evidence: Repo review found the CLI is installed and healthy, but starter init output still had Ringly-branded skill text and referenced scripts/bug-triage/prompts.md without copying it. The fix makes copied starter skills product-neutral, copies scripts/bug-triage during shipguard init, requires that helper in doctor and validate, adds package coverage, aligns command-matrix report-quality wording with validationRoute and stopCondition, moves the release to VERSION 3.69.0, updates docs/examples/action references, and keeps the existing grouped performance validation gate in the release. Validation passed: git diff --check; python3 -m py_compile scripts/ios_performance.py scripts/ios_report_quality.py scripts/ios_doctor.py evals/run_local.py; ./tests/ios_performance_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v369-docs-check; ./tests/cli_smoke_test.sh; ./tests/template_profiles_test.sh; ./tests/codex_status_test.sh; ./bin/shipguard codex status --strict; ./tests/ios_shipguard_eval_test.sh; ./tests/self_audit_test.sh; ./tests/next_goal_test.sh; ./tests/package_release_test.sh. Package proof produced dist/shipguard-v3.69.0.tar.gz and codex status reported toolkit version 3.69.0 with overall status pass.
+- Completed scope: Fix ShipGuard package and clean CI environments so codex status validates the extracted package CLI when no global shipguard install exists, align release references to v3.70.1, refresh the local Codex plugin, and keep external inspiration native to ShipGuard rather than copied.
+- Evidence: Implemented package/source CLI fallback in scripts/codex_status.sh; added codex_status_test and package_release_test coverage that unsets SHIPGUARD_CLI, uses a clean HOME, and removes shipguard from PATH; bumped VERSION/docs/examples/actions to 3.70.1; regenerated package proof; installed the 3.70.1 CLI and refreshed ios-shipguard@shipguard; validation passed: git diff --check, ./tests/codex_status_test.sh, ./bin/shipguard validate, ./tests/package_release_test.sh, ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check, ./tests/self_audit_test.sh, ./tests/cli_smoke_test.sh, ./bin/shipguard codex status --strict.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.70.0 Starter Profile Routing And Review Quality Gate for jlekerli-source/ShipGuard:
+/plan v3.71.0 Native Open Source Product Polish for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Finish grouped ios performance validation gates with validationRoute and stopCon
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.70.0 Starter Profile Routing And Review Quality Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.71.0 Native Open Source Product Polish for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.70.0 --title "Starter Profile Routing And Review Quality Gate" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.71.0 --title "Native Open Source Product Polish" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -131,12 +131,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.69.0.
+1. Open or update the tracking issue for v3.70.1.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.69.0` and upload `dist/shipguard-v3.69.0.tar.gz`.
+6. Create release `v3.70.1` and upload `dist/shipguard-v3.70.1.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

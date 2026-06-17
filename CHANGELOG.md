@@ -4,6 +4,12 @@
 
 No unreleased changes.
 
+## v3.70.1 - Package Codex Status Fallback
+
+- Fixed `shipguard codex status --strict` for clean package/CI environments by resolving the current checkout or extracted package CLI when no installed global `shipguard` command exists.
+- Added package-release coverage that runs Codex status without `SHIPGUARD_CLI`, without `~/.local`, and without `shipguard` on `PATH` so release proof catches consumer install assumptions.
+- Added diagnostics to the package release test so GitHub Actions reports the exact failing line and command instead of hiding package proof failures.
+
 ## v3.70.0 - Plugin Review And Devspace MCP Launch
 
 - Fixed the iOS ShipGuard plugin MCP launcher so installed Codex plugin caches resolve an installed `shipguard` CLI instead of pointing at missing cache-relative source scripts.

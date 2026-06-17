@@ -1,6 +1,6 @@
 # Codex Status
 
-`shipguard codex status` checks whether a ShipGuard-related Codex plugin is installed in the local Codex plugin cache and whether that install looks stale.
+`shipguard codex status` checks whether a ShipGuard-related Codex plugin is installed in the local Codex plugin cache and whether that install looks stale. It also proves that a usable ShipGuard CLI can be resolved from the installed command, local user install, or the checked-out/extracted package itself.
 
 It does not install, remove, or edit anything under `~/.codex`.
 
@@ -48,15 +48,15 @@ Use `--strict` in local proof scripts when a missing or stale install should fai
 
 - the ShipGuard toolkit version from `VERSION`
 - whether tracked `plugins/ios-shipguard` source exists in this checkout
-- whether tracked `.mcp.json` Devspace sidecar config exists and launches through an installed ShipGuard CLI fallback
-- whether the CLI that the plugin MCP launcher will resolve prints the same version as this checkout
+- whether tracked `.mcp.json` Devspace sidecar config exists and launches through a ShipGuard CLI fallback instead of a cache-relative source path
+- whether the resolved CLI prints the same version as this checkout or extracted package
 - whether `.agents/plugins/marketplace.json` exposes `ios-shipguard@shipguard` from `./plugins/ios-shipguard`
 - installed `ios-shipguard` plugin metadata under the Codex plugin cache
 - stale repository URLs that still point at `ringly-codex-workflows`
 - old `Shipguard` display casing in plugin and agent metadata
 - old `codex-maintainer` command guidance inside the installed skill text
 - installed Devspace MCP config that still points at missing cache-relative source scripts
-- missing or stale installed CLI resolution for Devspace MCP
+- missing or stale CLI resolution for Devspace MCP, local source validation, and package validation
 - the exact handoff for repository updates, plugin reinstall, new-thread refresh, and stale-cache cleanup
 
 ## Interpreting Status

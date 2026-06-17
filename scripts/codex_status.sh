@@ -114,6 +114,8 @@ elif command -v shipguard >/dev/null 2>&1; then
   resolved_cli="$(command -v shipguard)"
 elif [[ -x "$HOME/.local/bin/shipguard" ]]; then
   resolved_cli="$HOME/.local/bin/shipguard"
+elif [[ -x "$tool_root/bin/shipguard" ]]; then
+  resolved_cli="$tool_root/bin/shipguard"
 fi
 
 if [[ -n "$resolved_cli" ]]; then
@@ -196,7 +198,7 @@ fi
 
 if [[ -z "$resolved_cli" ]]; then
   status="stale"
-  add_finding "missing_cli_for_mcp: no installed ShipGuard CLI was found for the plugin MCP launcher; install with PREFIX=\"\$HOME/.local\" ./scripts/install.sh or set SHIPGUARD_CLI."
+  add_finding "missing_cli_for_mcp: no ShipGuard CLI was found for the plugin MCP launcher or package/source validation; install with PREFIX=\"\$HOME/.local\" ./scripts/install.sh, set SHIPGUARD_CLI, or run from a complete checkout/package."
 elif [[ -z "$resolved_cli_version" ]]; then
   status="stale"
   add_finding "unreadable_cli_for_mcp: resolved ShipGuard CLI at $resolved_cli did not print a version."
@@ -291,10 +293,10 @@ done
   fi
   echo "- Tracked plugin MCP: $source_mcp_status"
   if [[ -n "$resolved_cli" ]]; then
-    echo "- Resolved ShipGuard CLI for MCP: $resolved_cli"
+    echo "- Resolved ShipGuard CLI for MCP/status: $resolved_cli"
     echo "- Resolved ShipGuard CLI version: ${resolved_cli_version:-unknown}"
   else
-    echo "- Resolved ShipGuard CLI for MCP: missing"
+    echo "- Resolved ShipGuard CLI for MCP/status: missing"
   fi
   if [[ "$marketplace_status" == "present" ]]; then
     echo "- Local marketplace: present"
