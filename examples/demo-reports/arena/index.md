@@ -3,11 +3,11 @@
 - Generated: 2026-06-16T00:00:00Z
 - Tool version: 3.38.0
 - Fixture: fixtures/arena
-- Cases: 12
-- Average score: 6.00/12
-- High-risk findings: 12
-- Validation evidence: 5/12
-- Scope-control average: 1.25/2
+- Cases: 13
+- Average score: 5.62/12
+- High-risk findings: 14
+- Validation evidence: 5/13
+- Scope-control average: 1.23/2
 
 ## Cases
 
@@ -21,6 +21,7 @@
 | frontend-async-state-regression | 10/12 | 0 | true | usable maintainer-quality run |
 | good-maintainer | 11/12 | 0 | true | usable maintainer-quality run |
 | no-diff-implementation | 6/12 | 0 | false | analysis only; request a narrower repair pass |
+| release-asset-trust-bypass | 1/12 | 2 | false | do not merge until high-risk findings are resolved |
 | review-only | 10/12 | 0 | false | usable maintainer-quality run |
 | security-token-leakage | 0/12 | 3 | false | do not merge until high-risk findings are resolved |
 | storekit-entitlement-regression | 2/12 | 1 | false | do not merge until high-risk findings are resolved |

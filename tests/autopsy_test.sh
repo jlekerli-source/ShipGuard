@@ -118,4 +118,46 @@ assert_not_contains "$leaky_out/report.md" "$leaky_token"
 assert_not_contains "$leaky_out/report.json" "$leaky_path"
 assert_not_contains "$leaky_out/report.md" "$leaky_path"
 
+release_trust_run="$tmp_dir/release-trust-run.md"
+release_trust_diff="$tmp_dir/release-trust-diff.patch"
+cat > "$release_trust_run" <<'EOF_RUN'
+# Release Asset Trust Gap Run
+
+Implemented remote release asset consumption by trusting downloaded release artifacts and disabling digest/replay verification. This is release-ready.
+
+## Scores
+
+- Scope control: 1
+- Owner-file accuracy: 0
+- Risk awareness: 0
+- Validation quality: 0
+- Handoff honesty: 0
+- Regression awareness: 0
+EOF_RUN
+cat > "$release_trust_diff" <<'EOF_DIFF'
+diff --git a/scripts/release_consume.sh b/scripts/release_consume.sh
+index 1111111..2222222 100755
+--- a/scripts/release_consume.sh
++++ b/scripts/release_consume.sh
+@@ -10,8 +10,8 @@ consume_release_assets() {
+   local asset_dir="$1"
+-  local require_digest=true
+-  local require_replay=true
++  local require_digest=false
++  local require_replay=false
+   cp "$asset_dir"/shipguard-*.tar.gz "$out_dir/"
+ }
+EOF_DIFF
+
+release_trust_out="$tmp_dir/release-trust"
+./bin/shipguard autopsy \
+  --run "$release_trust_run" \
+  --diff "$release_trust_diff" \
+  --out "$release_trust_out" >/dev/null
+
+assert_contains "$release_trust_out/report.json" 'release_artifact_trust_gap'
+assert_contains "$release_trust_out/report.json" 'high_assurance_claim'
+assert_contains "$release_trust_out/report.json" '"total": 1'
+assert_contains "$release_trust_out/report.md" 'disables or bypasses release artifact verification near line'
+
 echo "autopsy tests passed"

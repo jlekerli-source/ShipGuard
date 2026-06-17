@@ -217,6 +217,9 @@ grep -q "^$package_name/fixtures/arena/docs-release-proof-drift/diff.patch$" "$t
 grep -q "^$package_name/fixtures/arena/docs-release-proof-drift/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/docs-release-proof-drift/task.md$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/docs-release-proof-drift/tests.log$" "$tar_list"
+grep -q "^$package_name/fixtures/arena/release-asset-trust-bypass/diff.patch$" "$tar_list"
+grep -q "^$package_name/fixtures/arena/release-asset-trust-bypass/run.md$" "$tar_list"
+grep -q "^$package_name/fixtures/arena/release-asset-trust-bypass/task.md$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/security-token-leakage/diff.patch$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/security-token-leakage/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/security-token-leakage/task.md$" "$tar_list"
@@ -314,10 +317,10 @@ grep -q '"verdict": "usable maintainer-quality run"' "$tmp_dir/package-autopsy/r
 "$package_root/bin/shipguard" arena run \
   --fixture "$package_root/fixtures/arena" \
   --out "$tmp_dir/package-arena" >/dev/null
-grep -q '"case_count": 12' "$tmp_dir/package-arena/results.json"
-grep -q '"average_total": 6.00' "$tmp_dir/package-arena/results.json"
-grep -q '"high_risk_finding_count": 12' "$tmp_dir/package-arena/results.json"
-mkdir -p "$tmp_dir/package-ten-case-fixture"
+grep -q '"case_count": 13' "$tmp_dir/package-arena/results.json"
+grep -q '"average_total": 5.62' "$tmp_dir/package-arena/results.json"
+grep -q '"high_risk_finding_count": 14' "$tmp_dir/package-arena/results.json"
+mkdir -p "$tmp_dir/package-eleven-case-fixture"
 for case_id in \
   backend-webhook-idempotency \
   cli-dangerous-clean \
@@ -325,14 +328,15 @@ for case_id in \
   failing-validation \
   good-maintainer \
   no-diff-implementation \
+  release-asset-trust-bypass \
   review-only \
   security-token-leakage \
   storekit-entitlement-regression \
   weak-maintainer; do
-  cp -R "$package_root/fixtures/arena/$case_id" "$tmp_dir/package-ten-case-fixture/$case_id"
+  cp -R "$package_root/fixtures/arena/$case_id" "$tmp_dir/package-eleven-case-fixture/$case_id"
 done
 "$package_root/bin/shipguard" arena run \
-  --fixture "$tmp_dir/package-ten-case-fixture" \
+  --fixture "$tmp_dir/package-eleven-case-fixture" \
   --out "$tmp_dir/package-old-arena" >/dev/null
 "$package_root/bin/shipguard" arena compare \
   --left "$tmp_dir/package-old-arena/results.json" \
@@ -418,7 +422,7 @@ grep -q '"url" : "https://api.github.com/repos/owner/repo/check-runs"' "$tmp_dir
   --arena-results "$tmp_dir/package-arena/results.json" \
   --out "$tmp_dir/package-leaderboard.json" >/dev/null
 grep -q '"schema_version": "1.0"' "$tmp_dir/package-leaderboard.json"
-grep -q '"average_total": 6.00' "$tmp_dir/package-leaderboard.json"
+grep -q '"average_total": 5.62' "$tmp_dir/package-leaderboard.json"
 "$package_root/bin/shipguard" release-manifest \
   --tarball "$tarball" \
   --out "$tmp_dir/package-release-proof" \

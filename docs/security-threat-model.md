@@ -43,7 +43,7 @@ High-value assets:
 | Secret or token printed into a public report | credential exposure and account takeover | transcript redaction, iOS redaction, Autopsy `sensitive_data_leak`, safe fixture import checks | keep adding Arena cases for token and path leakage |
 | Stale plugin cache with old branding or guidance | Codex executes outdated workflow instructions | `shipguard codex status --strict`, marketplace-backed install docs | require fresh thread after plugin refresh |
 | Devspace screenshot or event leak | private app UI or local path exposure | loopback default, optional bearer token, screenshot proxy token, bounded event payloads | test authenticated screenshot access before external tunnels |
-| Release proof overclaim | false release readiness or security claim | release manifest, release replay, release consume, autopsy risky-claim findings | keep App Store/TestFlight claims blocked without external evidence |
+| Release proof overclaim | false release readiness or security claim | release manifest, release replay, release consume, autopsy risky-claim and release-trust-gap findings | keep App Store/TestFlight claims blocked without external evidence |
 | Unsafe artifact deletion | user data loss outside intended output dirs | `scripts/lib/safe_paths.sh` and package tests | use safe path helpers in new cleanup commands |
 | Untrusted fixture pack hides local paths or secrets | benchmark artifact leaks private data | arena import allowlist and rejection checks | expand negative fixture coverage |
 | GitHub token overuse in local posting commands | unintended issue, check-run, or release mutation | dry-run options, explicit payload files, `gh auth status` visibility | document token scopes before adding new posting commands |
@@ -67,4 +67,4 @@ The current proof command is:
 ./bin/shipguard arena run --fixture fixtures/arena --out /tmp/shipguard-security-arena
 ```
 
-The fixture `fixtures/arena/security-token-leakage` is intentionally a bad run. It should remain low-scoring and produce high-risk findings. Autopsy now also has a dedicated `sensitive_data_leak` finding for unredacted local paths, secret-looking tokens, bearer values, and secret assignments in run, task, diff, or test evidence.
+The fixtures `fixtures/arena/security-token-leakage` and `fixtures/arena/release-asset-trust-bypass` are intentionally bad runs. They should remain low-scoring and produce high-risk findings. Autopsy now has dedicated findings for unredacted local paths, secret-looking tokens, bearer values, secret assignments, and release artifact verification bypasses in run, task, diff, or test evidence.

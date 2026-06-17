@@ -82,6 +82,35 @@ while (my $line = <$fh>) {
 PERL
 }
 
+release_artifact_trust_gap_evidence() {
+  local label="$1"
+  local file="$2"
+  perl -CS - "$label" "$file" <<'PERL'
+use strict;
+use warnings;
+
+my ($label, $file) = @ARGV;
+open my $fh, '<:encoding(UTF-8)', $file or exit 0;
+while (my $line = <$fh>) {
+  my $mentions_artifact = $line =~ /\b(?:release[- ]?assets?|assets?|artifacts?|tarballs?|bundles?|manifests?|attestations?|replay|digests?|sha[- ]?256|checksums?)\b/i;
+  my $mentions_bypass = $line =~ /\b(?:skip|skips|skipped|disable|disabled|bypass|bypasses|bypassed|trust|trusted|unchecked|unverified|without|no)\b/i;
+  my $mentions_verification = $line =~ /\b(?:verify|verification|digest|sha[- ]?256|checksum|manifest|attestation|replay)\b/i;
+  if ($mentions_artifact && $mentions_bypass && $mentions_verification) {
+    print "$label disables or bypasses release artifact verification near line $.\n";
+    exit 0;
+  }
+  if ($line =~ /\b(?:verify|verification|requiredigest|require_digest|require[-_]?digest|require[-_]?replay|replay_required|digest_required|sha256_required)[A-Za-z0-9_-]*\s*[:=]\s*(?:false|0|no)\b/i) {
+    print "$label disables or bypasses release artifact verification near line $.\n";
+    exit 0;
+  }
+  if ($line =~ /\b(?:--no-verify|--skip-verify|--skip-digest|--trust-release-assets)\b/i) {
+    print "$label disables or bypasses release artifact verification near line $.\n";
+    exit 0;
+  }
+}
+PERL
+}
+
 run_file=""
 diff_file=""
 tests_file=""
@@ -261,6 +290,18 @@ for input_index in "${!input_labels[@]}"; do
   sensitive_line="$(sensitive_evidence "$input_label" "$input_path" || true)"
   if [[ -n "$sensitive_line" ]]; then
     add_finding "sensitive_data_leak" "high" "Input evidence contains an unredacted local path or secret-looking value; redact before sharing or merging." "$sensitive_line"
+  fi
+done
+
+release_gap_reported=0
+for input_index in "${!input_labels[@]}"; do
+  [[ "$release_gap_reported" -eq 0 ]] || break
+  input_label="${input_labels[$input_index]}"
+  input_path="${input_paths[$input_index]}"
+  release_gap_line="$(release_artifact_trust_gap_evidence "$input_label" "$input_path" || true)"
+  if [[ -n "$release_gap_line" ]]; then
+    add_finding "release_artifact_trust_gap" "high" "Input evidence disables or bypasses release artifact digest, manifest, attestation, or replay verification." "$release_gap_line"
+    release_gap_reported=1
   fi
 done
 

@@ -45,6 +45,7 @@ The first version detects evidence gaps that are common in agent handoffs:
 - weak test logs that do not contain a clear pass signal
 - high-assurance claims such as production-ready, secure, proven, or live
 - unredacted local home paths, secret-looking tokens, bearer values, or secret assignments in the run, task, diff, or test evidence
+- release artifact trust gaps where digest, manifest, attestation, or replay verification is disabled or bypassed
 - diffs that touch more than three files
 - protected-area touches such as secrets, credentials, alarms, or StoreKit
 - implementation claims without a provided diff
