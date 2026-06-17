@@ -336,6 +336,30 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Which evidence is required before Codex can claim the work is complete?",
             "Which private-app observations must stay examples instead of implementation tasks?",
         ]
+    task_questions: list[str] = []
+    seen_task_questions: set[str] = set()
+    for item in questions[:16]:
+        question = item["question"].strip()
+        key = re.sub(r"\s+", " ", question).strip().lower()
+        if question and key not in seen_task_questions:
+            task_questions.append(question)
+            seen_task_questions.add(key)
+    task_plan = [
+        {"id": "S001", "task": "Record the ShipGuard constitution and non-goals for this feature.", "proof": "shipguard-constitution.md exists."},
+        {"id": "S002", "task": "Write the feature spec with user outcomes, non-goals, acceptance criteria, and clarifying questions.", "proof": "feature-spec.md exists."},
+        {"id": "S003", "task": "Map implementation phases to local proof commands and manual blockers.", "proof": "implementation-plan.md exists."},
+        {"id": "S004", "task": "Prepare ordered tasks with validation commands before edits.", "proof": "tasks.md exists."},
+        {"id": "S005", "task": "Check Devspace safety gates before ChatGPT visual planning or MCP exposure.", "proof": "devspace-guardrails.md exists and references devspace-check."},
+        {"id": "S006", "task": "Run report-quality on generated ShipGuard artifacts before sharing.", "proof": "ios report-quality returns pass or documented review findings."},
+    ]
+    for index, question in enumerate(task_questions, start=7):
+        task_plan.append(
+            {
+                "id": f"S{index:03d}",
+                "task": f"Resolve report-quality actionability question: {question}",
+                "proof": "The resulting ShipGuard rule, fixture, report section, or docs change answers this question without turning private-app evidence into target-app work.",
+            }
+        )
 
     report = {
         "schemaVersion": SCHEMA_VERSION,
@@ -400,14 +424,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 "./bin/shipguard validate",
             ],
         },
-        "taskPlan": [
-            {"id": "S001", "task": "Record the ShipGuard constitution and non-goals for this feature.", "proof": "shipguard-constitution.md exists."},
-            {"id": "S002", "task": "Write the feature spec with user outcomes, non-goals, acceptance criteria, and clarifying questions.", "proof": "feature-spec.md exists."},
-            {"id": "S003", "task": "Map implementation phases to local proof commands and manual blockers.", "proof": "implementation-plan.md exists."},
-            {"id": "S004", "task": "Prepare ordered tasks with validation commands before edits.", "proof": "tasks.md exists."},
-            {"id": "S005", "task": "Check Devspace safety gates before ChatGPT visual planning or MCP exposure.", "proof": "devspace-guardrails.md exists and references devspace-check."},
-            {"id": "S006", "task": "Run report-quality on generated ShipGuard artifacts before sharing.", "proof": "ios report-quality returns pass or documented review findings."},
-        ],
+        "taskPlan": task_plan,
         "analysisGates": [
             "Spec includes what and why before implementation details.",
             "Plan maps every risky surface to a proof lane.",

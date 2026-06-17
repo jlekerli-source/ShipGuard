@@ -99,6 +99,8 @@ The next content-quality probe replaced valid `tasks.md` and `devspace-guardrail
 
 The next question-coverage probe replaced the generated clarifying questions with a generic question while leaving the spec bundle structurally valid. Report-quality now emits `spec-workflow-question-coverage-missing` and `spec-workflow-question-artifact-missing`, so report-grounded spec workflows must preserve the source actionability questions in JSON and Markdown.
 
+The next task-coverage probe showed a report-grounded spec workflow could pass even when `taskPlan` and `tasks.md` stayed generic and answered none of the source actionability questions. Spec-workflow now creates `S007+` proof-gated tasks for those questions, and report-quality emits `spec-workflow-task-coverage-missing` or `spec-workflow-task-artifact-missing` if a bundle drops them.
+
 The installed Codex cache now has `ios-shipguard` metadata version `0.2.0+codex.20260617011237`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
 
 ## Verdict

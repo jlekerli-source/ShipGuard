@@ -250,13 +250,16 @@ def spec_workflow_expected_questions(inputs: dict[str, Any], limit: int = 8) -> 
     if not isinstance(raw_questions, list):
         return []
     questions: list[str] = []
+    seen: set[str] = set()
     for item in raw_questions:
         if isinstance(item, dict):
             question = str(item.get("question") or "").strip()
         else:
             question = str(item).strip()
-        if question:
+        key = normalized_question_text(question)
+        if question and key not in seen:
             questions.append(question)
+            seen.add(key)
         if len(questions) >= limit:
             break
     return questions
@@ -367,6 +370,7 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
         )
 
     expected_questions = spec_workflow_expected_questions(inputs)
+    expected_task_questions = spec_workflow_expected_questions(inputs, limit=16)
     if expected_questions:
         feature_spec = report.get("featureSpec")
         clarifying_questions = feature_spec.get("clarifyingQuestions") if isinstance(feature_spec, dict) else None
@@ -388,6 +392,30 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                     f"{missing_question_count} of {len(expected_questions)} report actionability questions"
                 ),
                 recommendation="Regenerate the spec workflow so report-quality actionability questions become clarifying questions in JSON.",
+            )
+    if expected_task_questions:
+        task_plan = report.get("taskPlan")
+        task_text = ""
+        if isinstance(task_plan, list):
+            task_text = "\n".join(
+                f"{item.get('task') or ''} {item.get('proof') or ''}"
+                for item in task_plan
+                if isinstance(item, dict)
+            )
+        normalized_task_text = normalized_question_text(task_text)
+        missing_task_count = sum(
+            1 for question in expected_task_questions if normalized_question_text(question) not in normalized_task_text
+        )
+        if missing_task_count:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="spec-workflow-task-coverage-missing",
+                evidence=(
+                    f"{path_name} taskPlan missing "
+                    f"{missing_task_count} of {len(expected_task_questions)} report actionability questions"
+                ),
+                recommendation="Regenerate the spec workflow so taskPlan includes proof-gated tasks for each report-quality question.",
             )
 
     artifacts = report.get("artifacts")
@@ -456,8 +484,9 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                 continue
             markers = SPEC_WORKFLOW_ARTIFACT_MARKERS.get(artifact_name, [])
             needs_question_coverage = artifact_name in {"markdown", "spec"} and bool(expected_questions)
+            needs_task_coverage = artifact_name == "tasks" and bool(expected_task_questions)
             artifact_text = ""
-            if markers or needs_question_coverage:
+            if markers or needs_question_coverage or needs_task_coverage:
                 artifact_text = local_artifact_path.read_text(encoding="utf-8", errors="ignore")
             if markers:
                 missing_markers = [marker for marker in markers if marker not in artifact_text]
@@ -495,6 +524,22 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                             f"{missing_question_count} of {len(expected_questions)} report actionability questions in {raw_value}"
                         ),
                         recommendation="Regenerate the spec workflow so feature-spec and main Markdown preserve the report-quality questions.",
+                    )
+            if needs_task_coverage:
+                normalized_artifact_text = normalized_question_text(artifact_text)
+                missing_task_count = sum(
+                    1 for question in expected_task_questions if normalized_question_text(question) not in normalized_artifact_text
+                )
+                if missing_task_count:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="spec-workflow-task-artifact-missing",
+                        evidence=(
+                            f"{path_name} artifact {artifact_name} missing "
+                            f"{missing_task_count} of {len(expected_task_questions)} report actionability questions in {raw_value}"
+                        ),
+                        recommendation="Regenerate the spec workflow so tasks.md includes proof-gated tasks for the report-quality questions.",
                     )
 
     section_checks = [

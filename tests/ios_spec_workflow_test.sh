@@ -52,6 +52,9 @@ grep -q 'Devspace is a planning bridge' "$tmp_dir/spec/shipguard-constitution.md
 grep -q '# Feature Spec' "$tmp_dir/spec/feature-spec.md"
 grep -q '# Implementation Plan' "$tmp_dir/spec/implementation-plan.md"
 grep -q '# Tasks' "$tmp_dir/spec/tasks.md"
+grep -q '`S007` Resolve report-quality actionability question:' "$tmp_dir/spec/tasks.md"
+grep -q '"id": "S007"' "$tmp_dir/spec/ios-spec-workflow.json"
+grep -q 'Resolve report-quality actionability question:' "$tmp_dir/spec/ios-spec-workflow.json"
 grep -q '# Devspace Guardrails' "$tmp_dir/spec/devspace-guardrails.md"
 grep -q 'Model selection happens in ChatGPT, not ShipGuard' "$tmp_dir/spec/devspace-guardrails.md" || \
   grep -q 'model selection happens in ChatGPT, not ShipGuard' "$tmp_dir/spec/devspace-guardrails.md"
@@ -98,6 +101,42 @@ grep -q 'tasks.md' "$tmp_dir/weak-content-quality/ios-report-quality.json"
 grep -q 'devspace-guardrails.md' "$tmp_dir/weak-content-quality/ios-report-quality.json"
 if grep -R -F -q "$tmp_dir" "$tmp_dir/weak-content-quality"; then
   echo "shareable weak-content quality output must not include temp absolute paths" >&2
+  exit 1
+fi
+
+cp -R "$tmp_dir/spec" "$tmp_dir/missing-task-coverage-spec"
+python3 - <<'PY' "$tmp_dir/missing-task-coverage-spec/ios-spec-workflow.json"
+import json
+import sys
+path = sys.argv[1]
+data = json.load(open(path, encoding="utf-8"))
+data["taskPlan"] = [item for item in data["taskPlan"] if not str(item.get("task", "")).startswith("Resolve report-quality actionability question:")]
+open(path, "w", encoding="utf-8").write(json.dumps(data, indent=2, sort_keys=True) + "\n")
+PY
+python3 - <<'PY' "$tmp_dir/missing-task-coverage-spec/tasks.md"
+from pathlib import Path
+import sys
+
+Path(sys.argv[1]).write_text(
+    "# Tasks\n\n"
+    "- [ ] `S001` Record the ShipGuard constitution and non-goals for this feature. Proof: shipguard-constitution.md exists.\n"
+    "- [ ] `S002` Write the feature spec with user outcomes, non-goals, acceptance criteria, and clarifying questions. Proof: feature-spec.md exists.\n"
+    "- [ ] `S003` Map implementation phases to local proof commands and manual blockers. Proof: implementation-plan.md exists.\n"
+    "- [ ] `S004` Prepare ordered tasks with validation commands before edits. Proof: tasks.md exists.\n"
+    "- [ ] `S005` Check Devspace safety gates before ChatGPT visual planning or MCP exposure. Proof: devspace-guardrails.md exists and references devspace-check.\n"
+    "- [ ] `S006` Run report-quality on generated ShipGuard artifacts before sharing. Proof: ios report-quality returns pass or documented review findings.\n",
+    encoding="utf-8",
+)
+PY
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/missing-task-coverage-spec" \
+  --out "$tmp_dir/missing-task-coverage-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-task-coverage-quality/ios-report-quality.json"
+grep -q '"ruleId": "spec-workflow-task-coverage-missing"' "$tmp_dir/missing-task-coverage-quality/ios-report-quality.json"
+grep -q '"ruleId": "spec-workflow-task-artifact-missing"' "$tmp_dir/missing-task-coverage-quality/ios-report-quality.json"
+if grep -R -F -q "$tmp_dir" "$tmp_dir/missing-task-coverage-quality"; then
+  echo "shareable missing-task-coverage quality output must not include temp absolute paths" >&2
   exit 1
 fi
 
