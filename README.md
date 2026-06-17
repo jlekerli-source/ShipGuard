@@ -45,6 +45,7 @@ Read the guided setup first:
 - `docs/maintainer-reliability-os.md`: the full policy-to-self-audit evidence loop.
 - `docs/next-goal.md`: generate the next slash-goal release plan.
 - `docs/oss-evaluation.md`: current usefulness, refinement, and plugin evaluation.
+- `docs/security-threat-model.md`: local CLI, plugin, Devspace, GitHub, and release-proof trust boundaries.
 - `docs/shipguard-devspace.md`: MCP/App bridge for ShipGuard preview, target matching, and Codex handoff preparation.
 - `docs/policy.md`: configure protected paths, risky claims, and scope limits.
 - `docs/pr-review-bot.md`: generate PR-ready review comments and badge JSON from autopsy reports.
@@ -109,6 +110,7 @@ For agent-claim auditing, run `./bin/shipguard autopsy` against `fixtures/autops
 For aggregate benchmark proof, run `./bin/shipguard arena run --fixture fixtures/arena --out /tmp/arena`.
 For benchmark regression proof, run `./bin/shipguard arena compare --left /tmp/arena-old/results.json --right /tmp/arena/results.json --out /tmp/arena-compare`.
 To compare Arena results in GitHub Actions, use `jlekerli-source/ShipGuard/actions/arena-compare@v3.38.0`.
+For security-focused proof, read `docs/security-threat-model.md` and keep `fixtures/arena/security-token-leakage` in the Arena pack.
 To publish a maintainer transcript safely, run `./bin/shipguard transcript redact --in raw-transcript.md --out /tmp/redacted-transcript.md --report /tmp/redaction-report.json --private-term "InternalProjectName"`.
 To verify a redacted transcript before publishing, run `./bin/shipguard transcript verify --in /tmp/redacted-transcript.md --report /tmp/redaction-report.json --out /tmp/transcript-verify`.
 To verify a redacted transcript in GitHub Actions, use `jlekerli-source/ShipGuard/actions/transcript-verify@v3.38.0`.

@@ -20,12 +20,12 @@ Current checkout:
 
 ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check
 # status: pass
-# files_checked: 285
-# links_checked: 48
+# files_checked: 293
+# links_checked: 53
 # broken_count: 0
 
 ./bin/shipguard arena run --fixture fixtures/arena --out /tmp/shipguard-arena
-# average: 7.00/12
+# average: 6.36/12
 ```
 
 Codex install check from this machine:
@@ -116,10 +116,10 @@ Status: done locally.
 
 ### Phase 4: Security Evaluation
 
-Status: planned.
+Status: started.
 
-- Write a repository threat model before a full scan.
-- Add one Arena fixture for secret/path leakage, token-scoped GitHub posting, or release asset trust.
+- Added `docs/security-threat-model.md` before any full scan.
+- Added `fixtures/arena/security-token-leakage` for token, local path, and overclaim failure pressure.
 - Only run the full Codex Security repository scan with explicit subagent authorization.
 
 ### Phase 5: Benchmark And Product Polish

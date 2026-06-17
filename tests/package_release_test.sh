@@ -58,6 +58,7 @@ grep -q "^$package_name/docs/shipguard-devspace.md$" "$tar_list"
 grep -q "^$package_name/docs/maintainer-reliability-os.md$" "$tar_list"
 grep -q "^$package_name/docs/next-goal.md$" "$tar_list"
 grep -q "^$package_name/docs/oss-evaluation.md$" "$tar_list"
+grep -q "^$package_name/docs/security-threat-model.md$" "$tar_list"
 grep -q "^$package_name/docs/policy.md$" "$tar_list"
 grep -q "^$package_name/docs/pr-review-bot.md$" "$tar_list"
 grep -q "^$package_name/docs/release-checklist.md$" "$tar_list"
@@ -216,6 +217,9 @@ grep -q "^$package_name/fixtures/arena/docs-release-proof-drift/diff.patch$" "$t
 grep -q "^$package_name/fixtures/arena/docs-release-proof-drift/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/docs-release-proof-drift/task.md$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/docs-release-proof-drift/tests.log$" "$tar_list"
+grep -q "^$package_name/fixtures/arena/security-token-leakage/diff.patch$" "$tar_list"
+grep -q "^$package_name/fixtures/arena/security-token-leakage/run.md$" "$tar_list"
+grep -q "^$package_name/fixtures/arena/security-token-leakage/task.md$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/frontend-async-state-regression/diff.patch$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/frontend-async-state-regression/run.md$" "$tar_list"
 grep -q "^$package_name/fixtures/arena/frontend-async-state-regression/task.md$" "$tar_list"
@@ -307,10 +311,10 @@ grep -q '"verdict": "usable maintainer-quality run"' "$tmp_dir/package-autopsy/r
 "$package_root/bin/shipguard" arena run \
   --fixture "$package_root/fixtures/arena" \
   --out "$tmp_dir/package-arena" >/dev/null
-grep -q '"case_count": 10' "$tmp_dir/package-arena/results.json"
-grep -q '"average_total": 7.00' "$tmp_dir/package-arena/results.json"
-grep -q '"high_risk_finding_count": 8' "$tmp_dir/package-arena/results.json"
-mkdir -p "$tmp_dir/package-eight-case-fixture"
+grep -q '"case_count": 11' "$tmp_dir/package-arena/results.json"
+grep -q '"average_total": 6.36' "$tmp_dir/package-arena/results.json"
+grep -q '"high_risk_finding_count": 11' "$tmp_dir/package-arena/results.json"
+mkdir -p "$tmp_dir/package-nine-case-fixture"
 for case_id in \
   backend-webhook-idempotency \
   cli-dangerous-clean \
@@ -319,18 +323,19 @@ for case_id in \
   good-maintainer \
   no-diff-implementation \
   review-only \
+  security-token-leakage \
   weak-maintainer; do
-  cp -R "$package_root/fixtures/arena/$case_id" "$tmp_dir/package-eight-case-fixture/$case_id"
+  cp -R "$package_root/fixtures/arena/$case_id" "$tmp_dir/package-nine-case-fixture/$case_id"
 done
 "$package_root/bin/shipguard" arena run \
-  --fixture "$tmp_dir/package-eight-case-fixture" \
+  --fixture "$tmp_dir/package-nine-case-fixture" \
   --out "$tmp_dir/package-old-arena" >/dev/null
 "$package_root/bin/shipguard" arena compare \
   --left "$tmp_dir/package-old-arena/results.json" \
   --right "$tmp_dir/package-arena/results.json" \
   --out "$tmp_dir/package-arena-compare" >/dev/null
 grep -q '"status" : "improved"' "$tmp_dir/package-arena-compare/arena-compare.json"
-grep -q '"average_total_delta" : 0.75' "$tmp_dir/package-arena-compare/arena-compare.json"
+grep -q '"average_total_delta" : 0.8' "$tmp_dir/package-arena-compare/arena-compare.json"
 grep -q '"id" : "docs-release-proof-drift"' "$tmp_dir/package-arena-compare/arena-compare.json"
 grep -q '"id" : "frontend-async-state-regression"' "$tmp_dir/package-arena-compare/arena-compare.json"
 "$package_root/bin/shipguard" arena import \
@@ -409,7 +414,7 @@ grep -q '"url" : "https://api.github.com/repos/owner/repo/check-runs"' "$tmp_dir
   --arena-results "$tmp_dir/package-arena/results.json" \
   --out "$tmp_dir/package-leaderboard.json" >/dev/null
 grep -q '"schema_version": "1.0"' "$tmp_dir/package-leaderboard.json"
-grep -q '"average_total": 7.00' "$tmp_dir/package-leaderboard.json"
+grep -q '"average_total": 6.36' "$tmp_dir/package-leaderboard.json"
 "$package_root/bin/shipguard" release-manifest \
   --tarball "$tarball" \
   --out "$tmp_dir/package-release-proof" \
@@ -687,6 +692,7 @@ grep -q '| docs/release-proof-consumption.md | pass |' "$tmp_dir/package-self-au
 grep -q '| docs/release-proof-action.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/release-proof-workflows.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/oss-evaluation.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| docs/security-threat-model.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| examples/workflows/release-proof-on-tag.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| examples/workflows/arena-compare.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| examples/workflows/transcript-corpus.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"

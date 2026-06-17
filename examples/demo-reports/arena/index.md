@@ -3,11 +3,11 @@
 - Generated: 2026-06-16T00:00:00Z
 - Tool version: 3.38.0
 - Fixture: fixtures/arena
-- Cases: 10
-- Average score: 7.00/12
-- High-risk findings: 8
-- Validation evidence: 5/10
-- Scope-control average: 1.40/2
+- Cases: 11
+- Average score: 6.36/12
+- High-risk findings: 11
+- Validation evidence: 5/11
+- Scope-control average: 1.27/2
 
 ## Cases
 
@@ -22,4 +22,5 @@
 | good-maintainer | 11/12 | 0 | true | usable maintainer-quality run |
 | no-diff-implementation | 6/12 | 0 | false | analysis only; request a narrower repair pass |
 | review-only | 10/12 | 0 | false | usable maintainer-quality run |
+| security-token-leakage | 0/12 | 3 | false | do not merge until high-risk findings are resolved |
 | weak-maintainer | 3/12 | 1 | false | do not merge until high-risk findings are resolved |

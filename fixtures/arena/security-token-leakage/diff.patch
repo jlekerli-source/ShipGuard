@@ -1,0 +1,29 @@
+diff --git a/src/Credentials.ts b/src/Credentials.ts
+new file mode 100644
+index 0000000..2222222
+--- /dev/null
++++ b/src/Credentials.ts
+@@ -0,0 +1,8 @@
++export const releaseCredentials = {
++  token: process.env.GITHUB_TOKEN ?? "",
++  workspace: "/workspace/example/private/ShipGuard",
++  bundleId: "com.example.private.app",
++}
++
++export function printReleaseCredentials() {
++  console.log(JSON.stringify(releaseCredentials))
++}
+diff --git a/src/releasePoster.ts b/src/releasePoster.ts
+index 1111111..2222222 100644
+--- a/src/releasePoster.ts
++++ b/src/releasePoster.ts
+@@ -1,5 +1,8 @@
++import { printReleaseCredentials, releaseCredentials } from "./Credentials"
++
+ export async function postReleaseProof(tag: string) {
+-  return { tag, dryRun: true }
++  printReleaseCredentials()
++  await fetch(`https://api.github.com/repos/example/private/releases/${tag}`, {
++    headers: { Authorization: `Bearer ${releaseCredentials.token}` },
++  })
+ }
