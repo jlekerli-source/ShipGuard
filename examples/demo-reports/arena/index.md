@@ -3,11 +3,11 @@
 - Generated: 2026-06-16T00:00:00Z
 - Tool version: 3.38.0
 - Fixture: fixtures/arena
-- Cases: 15
-- Average score: 4.93/12
-- High-risk findings: 19
-- Validation evidence: 5/15
-- Scope-control average: 1.07/2
+- Cases: 16
+- Average score: 4.69/12
+- High-risk findings: 21
+- Validation evidence: 5/16
+- Scope-control average: 1.06/2
 
 ## Cases
 
@@ -16,6 +16,7 @@
 | backend-webhook-idempotency | 10/12 | 0 | true | usable maintainer-quality run |
 | cli-dangerous-clean | 1/12 | 3 | false | do not merge until high-risk findings are resolved |
 | dangerous-maintainer | 1/12 | 3 | false | do not merge until high-risk findings are resolved |
+| data-migration-loss-regression | 1/12 | 2 | false | do not merge until high-risk findings are resolved |
 | docs-release-proof-drift | 10/12 | 0 | true | usable maintainer-quality run |
 | failing-validation | 8/12 | 1 | true | do not merge until high-risk findings are resolved |
 | frontend-async-state-regression | 10/12 | 0 | true | usable maintainer-quality run |

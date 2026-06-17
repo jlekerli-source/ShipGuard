@@ -197,6 +197,7 @@ required_artifacts=(
   "fixtures/arena/github-posting-without-dry-run/run.md"
   "fixtures/arena/release-asset-trust-bypass/run.md"
   "fixtures/arena/security-token-leakage/run.md"
+  "fixtures/arena/data-migration-loss-regression/run.md"
   "fixtures/arena/storekit-entitlement-regression/run.md"
   "fixtures/release-evidence/negative/README.md"
   "fixtures/release-evidence/negative/cases.tsv"

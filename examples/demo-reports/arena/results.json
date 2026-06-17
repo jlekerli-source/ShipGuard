@@ -4,18 +4,19 @@
   "generated_at": "2026-06-16T00:00:00Z",
   "fixture": "fixtures/arena",
   "summary": {
-    "case_count": 15,
-    "average_total": 4.93,
-    "high_risk_finding_count": 19,
+    "case_count": 16,
+    "average_total": 4.69,
+    "high_risk_finding_count": 21,
     "validation_evidence_cases": 5,
-    "validation_evidence_ratio": 0.33,
-    "validation_quality_average": 0.67,
-    "scope_control_average": 1.07
+    "validation_evidence_ratio": 0.31,
+    "validation_quality_average": 0.62,
+    "scope_control_average": 1.06
   },
   "cases": [
     {"id": "backend-webhook-idempotency", "total": 10, "max": 12, "verdict": "usable maintainer-quality run", "high_risk_findings": 0, "scope_control": 2, "validation_quality": 2, "has_tests": true, "report_json": "runs/backend-webhook-idempotency/report.json", "report_md": "runs/backend-webhook-idempotency/report.md"},
     {"id": "cli-dangerous-clean", "total": 1, "max": 12, "verdict": "do not merge until high-risk findings are resolved", "high_risk_findings": 3, "scope_control": 0, "validation_quality": 0, "has_tests": false, "report_json": "runs/cli-dangerous-clean/report.json", "report_md": "runs/cli-dangerous-clean/report.md"},
     {"id": "dangerous-maintainer", "total": 1, "max": 12, "verdict": "do not merge until high-risk findings are resolved", "high_risk_findings": 3, "scope_control": 0, "validation_quality": 0, "has_tests": false, "report_json": "runs/dangerous-maintainer/report.json", "report_md": "runs/dangerous-maintainer/report.md"},
+    {"id": "data-migration-loss-regression", "total": 1, "max": 12, "verdict": "do not merge until high-risk findings are resolved", "high_risk_findings": 2, "scope_control": 1, "validation_quality": 0, "has_tests": false, "report_json": "runs/data-migration-loss-regression/report.json", "report_md": "runs/data-migration-loss-regression/report.md"},
     {"id": "docs-release-proof-drift", "total": 10, "max": 12, "verdict": "usable maintainer-quality run", "high_risk_findings": 0, "scope_control": 2, "validation_quality": 2, "has_tests": true, "report_json": "runs/docs-release-proof-drift/report.json", "report_md": "runs/docs-release-proof-drift/report.md"},
     {"id": "failing-validation", "total": 8, "max": 12, "verdict": "do not merge until high-risk findings are resolved", "high_risk_findings": 1, "scope_control": 2, "validation_quality": 0, "has_tests": true, "report_json": "runs/failing-validation/report.json", "report_md": "runs/failing-validation/report.md"},
     {"id": "frontend-async-state-regression", "total": 10, "max": 12, "verdict": "usable maintainer-quality run", "high_risk_findings": 0, "scope_control": 2, "validation_quality": 2, "has_tests": true, "report_json": "runs/frontend-async-state-regression/report.json", "report_md": "runs/frontend-async-state-regression/report.md"},

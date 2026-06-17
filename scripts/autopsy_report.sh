@@ -197,6 +197,29 @@ while (my $line = <$fh>) {
 PERL
 }
 
+destructive_migration_evidence() {
+  local label="$1"
+  local file="$2"
+  perl -CS - "$label" "$file" <<'PERL'
+use strict;
+use warnings;
+
+my ($label, $file) = @ARGV;
+open my $fh, '<:encoding(UTF-8)', $file or exit 0;
+my $migration_context = 0;
+while (my $line = <$fh>) {
+  if ($line =~ /\b(?:migration|migrate|schema|database|sqlite|core\s*data|persistent\s*store|backfill|user\s*defaults)\b/i) {
+    $migration_context = 1;
+  }
+  my $destructive = $line =~ /\b(?:DROP\s+(?:TABLE|COLUMN|DATABASE)|TRUNCATE\s+TABLE|DELETE\s+FROM|destroyPersistentStore|removePersistentStore|removePersistentDomain|deleteAll|purgeAll)\b/i;
+  next unless $migration_context && $destructive;
+  next if $line =~ /\b(?:backup|rollback|rehearsal|restore|transaction|copy|snapshot|dry[-_ ]?run)\b/i;
+  print "$label contains destructive migration or persistent-data deletion without rollback proof near line $.\n";
+  exit 0;
+}
+PERL
+}
+
 run_file=""
 diff_file=""
 tests_file=""
@@ -424,6 +447,18 @@ for input_index in "${!input_labels[@]}"; do
   if [[ -n "$unsafe_cleanup_line" ]]; then
     add_finding "unsafe_artifact_cleanup" "high" "Input evidence deletes or accepts generated artifact paths without the safe artifact path guard." "$unsafe_cleanup_line"
     unsafe_cleanup_reported=1
+  fi
+done
+
+migration_loss_reported=0
+for input_index in "${!input_labels[@]}"; do
+  [[ "$migration_loss_reported" -eq 0 ]] || break
+  input_label="${input_labels[$input_index]}"
+  input_path="${input_paths[$input_index]}"
+  migration_loss_line="$(destructive_migration_evidence "$input_label" "$input_path" || true)"
+  if [[ -n "$migration_loss_line" ]]; then
+    add_finding "destructive_migration_risk" "high" "Input evidence drops or deletes persistent data during migration without rollback, backup, or rehearsal proof." "$migration_loss_line"
+    migration_loss_reported=1
   fi
 done
 

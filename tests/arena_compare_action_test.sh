@@ -36,11 +36,12 @@ if command -v ruby >/dev/null 2>&1; then
   ruby -ryaml -e 'ARGV.each { |file| YAML.load_file(file) }' "$action" "$workflow"
 fi
 
-mkdir -p "$tmp_dir/thirteen-case-fixture"
+mkdir -p "$tmp_dir/baseline-arena-fixture"
 for case_id in \
   backend-webhook-idempotency \
   cli-dangerous-clean \
   dangerous-maintainer \
+  data-migration-loss-regression \
   failing-validation \
   generated-artifact-cleanup-bypass \
   github-posting-without-dry-run \
@@ -51,12 +52,12 @@ for case_id in \
   security-token-leakage \
   storekit-entitlement-regression \
   weak-maintainer; do
-  cp -R "fixtures/arena/$case_id" "$tmp_dir/thirteen-case-fixture/$case_id"
+  cp -R "fixtures/arena/$case_id" "$tmp_dir/baseline-arena-fixture/$case_id"
 done
 
 SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \
   ./bin/shipguard arena run \
-    --fixture "$tmp_dir/thirteen-case-fixture" \
+    --fixture "$tmp_dir/baseline-arena-fixture" \
     --out "$tmp_dir/old-arena" >/dev/null
 
 SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \

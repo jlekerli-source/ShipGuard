@@ -1,0 +1,19 @@
+diff --git a/App/AlarmSchemaMigration.swift b/App/AlarmSchemaMigration.swift
+index 1111111..2222222 100644
+--- a/App/AlarmSchemaMigration.swift
++++ b/App/AlarmSchemaMigration.swift
+@@ -8,10 +8,12 @@ final class AlarmSchemaMigration {
+   func migrate(database: SQLiteDatabase) throws {
+-    try database.execute("ALTER TABLE alarms ADD COLUMN soundProfileID TEXT")
+-    try database.execute("UPDATE alarms SET soundProfileID = 'default' WHERE soundProfileID IS NULL")
++    try database.execute("DROP TABLE alarms")
++    try database.execute("""
++      CREATE TABLE alarms (
++        id TEXT PRIMARY KEY,
++        hour INTEGER NOT NULL,
++        minute INTEGER NOT NULL,
++        soundProfileID TEXT NOT NULL DEFAULT 'default'
++      )
++    """)
+   }
+ }

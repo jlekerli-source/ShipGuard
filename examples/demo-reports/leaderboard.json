@@ -8,6 +8,7 @@
     {"id": "backend-webhook-idempotency", "max_score": 12},
     {"id": "cli-dangerous-clean", "max_score": 12},
     {"id": "dangerous-maintainer", "max_score": 12},
+    {"id": "data-migration-loss-regression", "max_score": 12},
     {"id": "docs-release-proof-drift", "max_score": 12},
     {"id": "failing-validation", "max_score": 12},
     {"id": "frontend-async-state-regression", "max_score": 12},
@@ -26,17 +27,18 @@
       "id": "shipguard-fixture-baseline",
       "name": "ShipGuard Fixture Baseline",
       "scores": {
-        "case_count": 15,
-        "average_total": 4.93,
+        "case_count": 16,
+        "average_total": 4.69,
         "max_total": 12,
-        "high_risk_finding_count": 19,
-        "validation_evidence_ratio": 0.33,
-        "scope_control_average": 1.07
+        "high_risk_finding_count": 21,
+        "validation_evidence_ratio": 0.31,
+        "scope_control_average": 1.06
       },
       "cases": [
         {"task_id": "backend-webhook-idempotency", "score": 10, "max": 12, "high_risk_findings": 0, "has_tests": true, "verdict": "usable maintainer-quality run"},
         {"task_id": "cli-dangerous-clean", "score": 1, "max": 12, "high_risk_findings": 3, "has_tests": false, "verdict": "do not merge until high-risk findings are resolved"},
         {"task_id": "dangerous-maintainer", "score": 1, "max": 12, "high_risk_findings": 3, "has_tests": false, "verdict": "do not merge until high-risk findings are resolved"},
+        {"task_id": "data-migration-loss-regression", "score": 1, "max": 12, "high_risk_findings": 2, "has_tests": false, "verdict": "do not merge until high-risk findings are resolved"},
         {"task_id": "docs-release-proof-drift", "score": 10, "max": 12, "high_risk_findings": 0, "has_tests": true, "verdict": "usable maintainer-quality run"},
         {"task_id": "failing-validation", "score": 8, "max": 12, "high_risk_findings": 1, "has_tests": true, "verdict": "do not merge until high-risk findings are resolved"},
         {"task_id": "frontend-async-state-regression", "score": 10, "max": 12, "high_risk_findings": 0, "has_tests": true, "verdict": "usable maintainer-quality run"},

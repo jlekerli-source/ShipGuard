@@ -20,12 +20,12 @@ Current checkout:
 
 ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check
 # status: pass
-# files_checked: 306
+# files_checked: 309
 # links_checked: 54
 # broken_count: 0
 
 ./bin/shipguard arena run --fixture fixtures/arena --out /tmp/shipguard-arena
-# average: 4.93/12
+# average: 4.69/12
 ```
 
 Codex install check from this machine:
@@ -133,6 +133,7 @@ Status: started.
 Status: started.
 
 - Added `fixtures/arena/storekit-entitlement-regression` to exercise regression-awareness and proof honesty around subscription restore behavior.
+- Added `fixtures/arena/data-migration-loss-regression` plus an Autopsy `destructive_migration_risk` finding for migrations that drop persistent user data without backup, rollback, or rehearsal proof.
 - Improved first-run adoption docs around CLI versus plugin usage.
 - Upgraded `shipguard next-goal` so the next improvement loop emits a reviewable `/plan` before the `/goal`.
 - Moved legacy command-wrapper guidance out of primary README and CLI flow into `docs/compatibility.md`.

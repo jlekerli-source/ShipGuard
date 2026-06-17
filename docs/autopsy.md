@@ -48,6 +48,7 @@ The first version detects evidence gaps that are common in agent handoffs:
 - release artifact trust gaps where digest, manifest, attestation, or replay verification is disabled or bypassed
 - broad GitHub token permissions and network mutation paths enabled without dry-run or payload-review safeguards
 - unsafe generated artifact cleanup that bypasses the safe artifact path guard
+- destructive migrations or persistent-data deletion without backup, rollback, or rehearsal proof
 - diffs that touch more than three files
 - protected-area touches such as secrets, credentials, alarms, or StoreKit
 - implementation claims without a provided diff
@@ -65,7 +66,8 @@ The repository ships three public fixtures:
 - `fixtures/autopsy/good-run/`: narrow change, test proof, score `11/12`, no findings.
 - `fixtures/autopsy/weak-run/`: partial score and validation claim without test output.
 - `fixtures/autopsy/dangerous-run/`: release-ready and secure claims with no tests and protected-area diff touches.
-- `tests/autopsy_test.sh` also builds a temporary leak fixture and verifies that the report flags the leak without echoing the secret or local path.
+- `fixtures/arena/data-migration-loss-regression/`: destructive migration regression fixture that should stay blocked.
+- `tests/autopsy_test.sh` also builds temporary leak, release-trust, network-posting, and unsafe-cleanup fixtures and verifies that sensitive findings do not echo secrets or local paths.
 
 Run all fixture checks:
 

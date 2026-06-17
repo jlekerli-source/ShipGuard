@@ -247,4 +247,16 @@ assert_contains "$unsafe_cleanup_out/report.json" 'high_assurance_claim'
 assert_contains "$unsafe_cleanup_out/report.json" '"total": 1'
 assert_contains "$unsafe_cleanup_out/report.md" 'contains unsafe artifact cleanup near line'
 
+migration_out="$tmp_dir/migration-loss"
+./bin/shipguard autopsy \
+  --run fixtures/arena/data-migration-loss-regression/run.md \
+  --task fixtures/arena/data-migration-loss-regression/task.md \
+  --diff fixtures/arena/data-migration-loss-regression/diff.patch \
+  --out "$migration_out" >/dev/null
+
+assert_contains "$migration_out/report.json" 'destructive_migration_risk'
+assert_contains "$migration_out/report.json" 'high_assurance_claim'
+assert_contains "$migration_out/report.json" '"total": 1'
+assert_contains "$migration_out/report.md" 'contains destructive migration or persistent-data deletion without rollback proof near line'
+
 echo "autopsy tests passed"
