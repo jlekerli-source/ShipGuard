@@ -222,13 +222,21 @@ def build_decision_matrix(counts: dict[str, int]) -> list[dict[str, str]]:
     ]
 
 
-def finding(rule_id: str, severity: str, title: str, evidence: str, recommendation: str) -> dict[str, str]:
+def finding(
+    rule_id: str,
+    severity: str,
+    title: str,
+    evidence: str,
+    recommendation: str,
+    proof_guidance: str,
+) -> dict[str, str]:
     return {
         "ruleId": rule_id,
         "severity": severity,
         "title": title,
         "evidence": evidence,
         "recommendation": recommendation,
+        "proofGuidance": proof_guidance,
     }
 
 
@@ -242,6 +250,7 @@ def build_findings(counts: dict[str, int], facts: dict[str, Any]) -> list[dict[s
                 "OpenAI API usage needs cloud data-flow approval",
                 f"{counts['OpenAI API']} OpenAI API token(s) detected.",
                 "Require server-side API key handling, retention/privacy review, cost budget, latency fallback, and structured output validation before implementation.",
+                "Show the server-side key boundary, retention/privacy decision, structured output schema, latency fallback, and cost instrumentation before claiming this path is ready.",
             )
         )
     if counts.get("Foundation Models", 0) > 0:
@@ -252,6 +261,7 @@ def build_findings(counts: dict[str, int], facts: dict[str, Any]) -> list[dict[s
                 "Foundation Models usage needs availability fallback",
                 f"{counts['Foundation Models']} Foundation Models token(s) detected.",
                 "Gate the feature on model availability, supported OS/device/language, refusal behavior, and a non-AI fallback.",
+                "Run supported and unsupported OS/device/language paths and record unavailable-model, refusal, and deterministic fallback behavior.",
             )
         )
     if counts.get("Core ML", 0) > 0:
@@ -262,6 +272,7 @@ def build_findings(counts: dict[str, int], facts: dict[str, Any]) -> list[dict[s
                 "Core ML usage needs model-performance proof",
                 f"{counts['Core ML']} Core ML token(s) or assets detected.",
                 "Record model size, load time, memory, thermal impact, fixture accuracy, and minimum-device performance.",
+                "Capture model asset size, load latency, memory footprint, thermal impact, fixture accuracy, and minimum-device timing from a repeatable test route.",
             )
         )
     if not any(counts.values()):
@@ -272,6 +283,7 @@ def build_findings(counts: dict[str, int], facts: dict[str, Any]) -> list[dict[s
                 "No AI capability tokens detected",
                 "No Foundation Models, Core AI, Core ML, NaturalLanguage, or OpenAI API tokens were detected.",
                 "Prefer no AI until a user-visible job, data boundary, expected output quality, and fallback path are defined.",
+                "Document the user job and deterministic baseline first; add model proof only after a concrete AI value proposition exists.",
             )
         )
     if not facts["privacyManifests"]:
@@ -282,6 +294,7 @@ def build_findings(counts: dict[str, int], facts: dict[str, Any]) -> list[dict[s
                 "Privacy manifest evidence is missing",
                 "No PrivacyInfo.xcprivacy file was discovered.",
                 "Before AI features ship, document data collection, model inputs, retention, and third-party data transfers.",
+                "Add or review privacy-manifest evidence for model inputs, collected data, retention, and third-party transfers before shipping AI behavior.",
             )
         )
     return findings
@@ -477,9 +490,11 @@ def render_markdown(report: dict[str, Any]) -> str:
 
     lines.extend(["", "## Findings", ""])
     if report["findings"]:
-        lines.extend(["| Severity | Rule | Finding | Recommendation |", "| --- | --- | --- | --- |"])
+        lines.extend(["| Severity | Rule | Finding | Recommendation | Proof Guidance |", "| --- | --- | --- | --- | --- |"])
         for item in report["findings"]:
-            lines.append(f"| {item['severity']} | `{item['ruleId']}` | {item['title']} | {item['recommendation']} |")
+            lines.append(
+                f"| {item['severity']} | `{item['ruleId']}` | {item['title']} | {item['recommendation']} | {item['proofGuidance']} |"
+            )
     else:
         lines.append("No AI readiness findings were detected.")
 

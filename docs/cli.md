@@ -100,6 +100,7 @@ Run iOS-specific topology, inventory, planning, proof, preview, and privacy help
 ./bin/shipguard ios modernize --focus swift --path ../my-ios-app --out /tmp/ios-shipguard-modernize-eval --shipguard-eval
 ./bin/shipguard ios app-intelligence --path ../my-ios-app --out /tmp/ios-shipguard-app-intelligence-eval --shipguard-eval
 ./bin/shipguard ios ai-readiness --path ../my-ios-app --out /tmp/ios-shipguard-ai-readiness-eval --shipguard-eval
+./bin/shipguard ios report-quality --reports /tmp/ios-shipguard-performance-eval --reports /tmp/ios-shipguard-design-eval --out /tmp/ios-shipguard-report-quality
 ```
 
 The iOS namespace also includes:
@@ -113,6 +114,7 @@ The iOS namespace also includes:
 - `ios design`: audit app-type-specific UI/UX coherence, motion, haptics, preview routing, and ImageGen app-icon handoff before visual work.
 - iOS source scanners skip generated/proof/cache directories such as build output, release artifacts, scratch folders, web assets, and plugin/editor caches; reports include a scan-scope summary so private-app product QA stays auditable.
 - `--shipguard-eval`: mark `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, or `ios ai-readiness` as ShipGuard product QA only, so findings improve ShipGuard rather than becoming target-app work.
+- `ios report-quality`: grade ShipGuard report usefulness across read-only product-QA outputs; it evaluates report structure, boundaries, proof guidance, scan scope, and shareability, not target-app quality.
 - `ios modernize`: audit Swift, SwiftUI, Observation, accessibility, localization, and availability risks.
 - `ios app-intelligence`: audit App Intents, shortcuts, widgets, Spotlight, controls, and system exposure.
 - `ios ai-readiness`: compare on-device, cloud, Core ML, and no-AI options before model work.

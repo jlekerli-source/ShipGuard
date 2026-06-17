@@ -13,7 +13,7 @@ The generated file includes:
 - an exact `/plan` block for the next release
 - an exact `/goal` block for the next release
 - optional bounded scope and completion receipt sections
-- an optional following `/goal` handoff after completion evidence is supplied
+- an optional following `/plan` and `/goal` handoff after completion evidence is supplied
 - release constraints
 - required proof commands
 - the iOS report-quality proof lane for `ios performance`, `ios design`, modernize, app-intelligence, AI-readiness, eval, demo, and goal-loop helpers

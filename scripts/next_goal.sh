@@ -141,10 +141,20 @@ if [[ -n "$completion_evidence" ]]; then
 - Completed scope: $completed_scope
 - Evidence: $completion_evidence
 
+## Following Slash Plan
+
+\`\`\`text
+/plan v$following_version $following_title for jlekerli-source/ShipGuard:
+1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
+2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
+3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
+4. Generate the next completion receipt and following /plan plus /goal after validation passes.
+\`\`\`
+
 ## Following Slash Goal
 
 \`\`\`text
-/goal Prepare v$following_version $following_title for jlekerli-source/ShipGuard: create a fresh /plan with shipguard next-goal, choose one bounded ROADMAP.md improvement, implement it with proof, and generate the next goal after completion.
+/goal Implement v$following_version $following_title for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 \`\`\`
 
 Generate that follow-up file with:
@@ -197,6 +207,7 @@ cat >> "$out_file" <<EOF
 ./tests/ios_modernize_test.sh
 ./tests/ios_app_intelligence_test.sh
 ./tests/ios_ai_readiness_test.sh
+./tests/ios_report_quality_test.sh
 ./tests/ios_redaction_test.sh
 ./tests/ios_shipguard_eval_test.sh
 ./tests/ios_shipguard_demo_test.sh

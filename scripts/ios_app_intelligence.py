@@ -363,13 +363,21 @@ def build_surface_matrix(counters: dict[str, int], types: list[dict[str, Any]], 
     ]
 
 
-def finding(rule_id: str, severity: str, title: str, evidence: str, recommendation: str) -> dict[str, str]:
+def finding(
+    rule_id: str,
+    severity: str,
+    title: str,
+    evidence: str,
+    recommendation: str,
+    proof_guidance: str,
+) -> dict[str, str]:
     return {
         "ruleId": rule_id,
         "severity": severity,
         "title": title,
         "evidence": evidence,
         "recommendation": recommendation,
+        "proofGuidance": proof_guidance,
     }
 
 
@@ -383,6 +391,7 @@ def build_findings(counters: dict[str, int], actions: list[dict[str, str]], enti
                 "App Intent exists without discoverable App Shortcuts",
                 f"{counters['appIntentCount']} App Intent type(s) detected; no AppShortcutsProvider detected.",
                 "Add AppShortcutsProvider entries only for the first high-value actions users should run from Shortcuts, Siri, Spotlight, or widgets.",
+                "Build and inspect Shortcuts/Siri discoverability for the chosen phrases, symbols, parameter labels, and denied or unavailable states.",
             )
         )
     if counters["appIntentCount"] > 0 and counters["appEntityCount"] == 0:
@@ -393,6 +402,7 @@ def build_findings(counters: dict[str, int], actions: list[dict[str, str]], enti
                 "No AppEntity surface detected",
                 "No AppEntity type was detected.",
                 "Add a small AppEntity only if the system needs to identify, display, search, or disambiguate app content.",
+                "Prove the entity has a stable identifier, safe display representation, privacy-reviewed fields, and useful disambiguation behavior before exposing it.",
             )
         )
     if counters["appIntentCount"] > 0 and counters["openAppIntentCount"] == 0:
@@ -403,6 +413,7 @@ def build_findings(counters: dict[str, int], actions: list[dict[str, str]], enti
                 "Intent handoff model is not explicit",
                 "No openAppWhenRun declaration was detected.",
                 "Decide whether each intent completes inline or opens the app, and route open-app intents through one clear app entry path.",
+                "Run the intent and record whether it completes inline or opens the exact app route with correct state restoration and error handling.",
             )
         )
     if counters["widgetCount"] > 0 and counters["appIntentCount"] > 0:
@@ -413,6 +424,7 @@ def build_findings(counters: dict[str, int], actions: list[dict[str, str]], enti
                 "WidgetKit can reuse the App Intent surface",
                 "WidgetKit and App Intents were both detected.",
                 "Reuse the same action/entity model for widget configuration or widget actions when the parameters match.",
+                "Verify widget configuration, timeline refresh, tap-through, stale-data handling, and shared entity display before claiming reuse works.",
             )
         )
     if actions and not entities:
@@ -423,6 +435,7 @@ def build_findings(counters: dict[str, int], actions: list[dict[str, str]], enti
                 "Entity candidates need product selection",
                 "Candidate actions exist, but no entity candidates were inferred.",
                 "Ask which user-visible objects should be exposed before creating entity types.",
+                "Record the selected user-visible objects, privacy-safe fields, identifiers, and system-surface proof route before adding entity types.",
             )
         )
     return findings
@@ -611,12 +624,16 @@ def render_markdown(report: dict[str, Any]) -> str:
 
     lines.extend(["", "## Findings", ""])
     if report["findings"]:
-        lines.extend(["| Severity | Rule | Finding | Recommendation |", "| --- | --- | --- | --- |"])
+        lines.extend(["| Severity | Rule | Finding | Recommendation | Proof Guidance |", "| --- | --- | --- | --- | --- |"])
         visible_findings, hidden_findings = capped_items(report["findings"], MARKDOWN_FINDING_LIMIT)
         for item in visible_findings:
-            lines.append(f"| {item['severity']} | `{item['ruleId']}` | {item['title']} | {item['recommendation']} |")
+            lines.append(
+                f"| {item['severity']} | `{item['ruleId']}` | {item['title']} | {item['recommendation']} | {item['proofGuidance']} |"
+            )
         if hidden_findings:
-            lines.append(f"| note | `markdown-cap` | {hidden_findings} more finding(s) hidden from Markdown | See ios-app-intelligence.json for the full list. |")
+            lines.append(
+                f"| note | `markdown-cap` | {hidden_findings} more finding(s) hidden from Markdown | See ios-app-intelligence.json for the full list. | See JSON for proof guidance. |"
+            )
     else:
         lines.append("No app-intelligence findings were detected.")
 

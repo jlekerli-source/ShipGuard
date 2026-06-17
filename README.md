@@ -129,6 +129,7 @@ For iOS FPS, hitch, launch, scroll, or touch-latency work, run `./bin/shipguard 
 For iOS UI/UX, design coherence, motion, haptics, preview routing, or app icon direction, run `./bin/shipguard ios design --path . --out /tmp/ios-shipguard-design`.
 The iOS scanners skip generated/proof/cache directories and list those scan-scope exclusions in JSON and Markdown reports.
 When a private app is only being used to improve ShipGuard itself, add `--shipguard-eval` to `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, or `ios ai-readiness` and treat the report as ShipGuard product QA, not an app work backlog.
+After read-only product-QA runs, grade ShipGuard's own report usefulness with `./bin/shipguard ios report-quality --reports /tmp/shipguard-readonly-loop --out /tmp/shipguard-report-quality`.
 For a clean iOS plugin demo, run `./bin/shipguard ios demo --out /tmp/ios-shipguard-first-run`.
 To install the local Codex plugin from this checkout, run `codex plugin marketplace add .`, then `codex plugin add ios-shipguard@shipguard`, then start a new Codex thread so the refreshed skill metadata loads.
 For release proof files, run `./bin/shipguard release-manifest --tarball dist/shipguard-v3.38.0.tar.gz --out /tmp/release-proof`.

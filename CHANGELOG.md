@@ -5,6 +5,7 @@
 - Added scoped `shipguard next-goal` output with bounded scope, completion receipt, and following `/goal` handoff support.
 - Added iOS `performance-audit` mode and `shipguard ios performance` source scanner for FPS, hitches, profiler fallback, sampled stacks, before/after comparison, ranked SwiftUI/runtime hotspots, physical-device smoothness proof boundaries, and `--shipguard-eval` product-QA runs.
 - Added `shipguard ios design` for genre-aware UI/UX coherence, motion, haptics, preview routing, and ChatGPT ImageGen app-icon handoff reports.
+- Added `shipguard ios report-quality` to score read-only ShipGuard product-QA reports for eval boundaries, scan scope, proof guidance, Markdown companions, and shareability without grading the target app.
 - Extended `--shipguard-eval` product-QA boundaries to `ios modernize`, `ios app-intelligence`, and `ios ai-readiness`, with summarized/capped Markdown output where real-app read-only checks showed noisy reports.
 - Refined iOS read-only scanners to skip generated/proof/cache directories, disclose scan-scope exclusions in reports, and weight design app-type inference toward app/project source instead of repeated instruction-document tokens.
 

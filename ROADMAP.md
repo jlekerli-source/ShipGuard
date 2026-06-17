@@ -32,6 +32,7 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep iOS source scanners fast and honest about scope: skip generated/proof/cache directories, report those exclusions, and keep private-app scans read-only.
 - Keep `ios design` genre-aware so UI/UX, motion, haptics, preview, Devspace, and app-icon guidance changes with utility, game, health, fitness, commerce, creative, and SaaS app context; app-type inference should prefer app/project source over repeated instruction-document wording.
 - Keep `--shipguard-eval` supported across `ios modernize`, `ios app-intelligence`, and `ios ai-readiness` so private-app learning improves ShipGuard report quality and public fixtures without becoming target-app work.
+- Keep `ios report-quality` strict enough to turn private read-only report weaknesses into ShipGuard rules, docs, and public fixtures without grading or editing the scanned app.
 - Keep iOS, web, backend, and CLI starter profiles stable for external repository adoption.
 - Keep release packaging and installer scripts reproducible.
 - Keep release manifests and proof ledgers reproducible from local release artifacts.

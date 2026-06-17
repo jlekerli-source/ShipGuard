@@ -57,6 +57,8 @@ grep -q '"surface": "Shortcuts"' "$tmp_dir/app-intelligence/ios-app-intelligence
 grep -q '"status": "partial"' "$tmp_dir/app-intelligence/ios-app-intelligence.json"
 grep -q '"ruleId": "app-intent-missing-shortcuts-provider"' "$tmp_dir/app-intelligence/ios-app-intelligence.json"
 grep -q '"ruleId": "app-intent-missing-entity-surface"' "$tmp_dir/app-intelligence/ios-app-intelligence.json"
+grep -q '"proofGuidance":' "$tmp_dir/app-intelligence/ios-app-intelligence.json"
+grep -q 'Proof Guidance' "$tmp_dir/app-intelligence/ios-app-intelligence.md"
 grep -q '"DemoAlarmIntent"' "$tmp_dir/app-intelligence/ios-app-intelligence.json"
 grep -q '"intent": "shipguard-evaluation"' "$tmp_dir/eval-app-intelligence/ios-app-intelligence.json"
 grep -q '"shipguardOnly": true' "$tmp_dir/eval-app-intelligence/ios-app-intelligence.json"

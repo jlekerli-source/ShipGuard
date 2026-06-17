@@ -88,10 +88,11 @@ Start here:
 18. Run `./bin/shipguard ios performance --path fixtures/demo-ios-repo --out /tmp/ios-shipguard-performance`.
 19. Run `./bin/shipguard ios design --path fixtures/demo-ios-repo --out /tmp/ios-shipguard-design --icon-brief`.
 20. Use `--shipguard-eval` with `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, or `ios ai-readiness` only when a private app is a read-only sample for improving ShipGuard.
-21. Read [Security Threat Model](security-threat-model.md) before adding network posting, plugin execution, release publishing, or external scan work.
-22. Run `./bin/shipguard arena run --fixture fixtures/arena --out /tmp/arena`.
-23. Run `./bin/shipguard arena import --source fixtures/external-arena-pack --out /tmp/imported-arena`.
-24. Run `./bin/shipguard arena compare --left /tmp/arena-old/results.json --right /tmp/arena/results.json --out /tmp/arena-compare`.
+21. Run `./bin/shipguard ios report-quality --reports /tmp/ios-shipguard-performance --reports /tmp/ios-shipguard-design --out /tmp/ios-shipguard-report-quality` to grade ShipGuard report usefulness.
+22. Read [Security Threat Model](security-threat-model.md) before adding network posting, plugin execution, release publishing, or external scan work.
+23. Run `./bin/shipguard arena run --fixture fixtures/arena --out /tmp/arena`.
+24. Run `./bin/shipguard arena import --source fixtures/external-arena-pack --out /tmp/imported-arena`.
+25. Run `./bin/shipguard arena compare --left /tmp/arena-old/results.json --right /tmp/arena/results.json --out /tmp/arena-compare`.
 25. Use `jlekerli-source/ShipGuard/actions/arena-compare@v3.38.0` when the same comparison should run in GitHub Actions.
 26. Run `./bin/shipguard arena sign --fixture /tmp/imported-arena --out /tmp/imported-arena/PACK.json --signer "Example Maintainers" --signer-url "https://github.com/example/repo"`.
 27. Run `./bin/shipguard arena verify --fixture /tmp/imported-arena --manifest /tmp/imported-arena/PACK.json`.

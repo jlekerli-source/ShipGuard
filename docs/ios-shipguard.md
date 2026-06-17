@@ -139,9 +139,18 @@ Use `--shipguard-eval` only when a real app is acting as a private read-only sam
   --path <private-ios-app> \
   --out /tmp/ios-shipguard-ai-readiness-eval \
   --shipguard-eval
+./bin/shipguard ios report-quality \
+  --reports /tmp/ios-shipguard-performance-eval \
+  --reports /tmp/ios-shipguard-design-eval \
+  --reports /tmp/ios-shipguard-modernize-eval \
+  --reports /tmp/ios-shipguard-app-intelligence-eval \
+  --reports /tmp/ios-shipguard-ai-readiness-eval \
+  --out /tmp/ios-shipguard-report-quality
 ```
 
 Those reports add a ShipGuard evaluation boundary. Findings from those runs must be used to improve ShipGuard rules, report shape, docs, or public fixtures; they must not become target-app remediation tasks without a separate explicit app-work request. Markdown output may be grouped or capped to stay reviewable; JSON keeps the full finding list for deeper ShipGuard product QA.
+
+`ios report-quality` then grades ShipGuard's output quality, not the scanned app. It checks whether the reports are parseable, scoped to read-only product QA, paired with Markdown, honest about skipped scan scope, useful in finding evidence/recommendation/proof guidance, and safe to share or redact.
 
 ## Design QA Audit
 
