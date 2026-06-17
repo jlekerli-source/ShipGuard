@@ -87,6 +87,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Mark this scan as ShipGuard product QA only; findings must not become target-app work.",
     )
+    parser.add_argument(
+        "--shareable",
+        action="store_true",
+        help="Omit local absolute paths from JSON and Markdown so the report can be scored or shared without redaction.",
+    )
     parser.add_argument("--json", action="store_true", help="Print JSON to stdout instead of Markdown")
     parser.add_argument("--markdown", action="store_true", help="Print Markdown to stdout")
     return parser.parse_args()
@@ -101,6 +106,16 @@ def rel(path: Path, root: Path) -> str:
         return path.relative_to(root).as_posix()
     except ValueError:
         return path.as_posix()
+
+
+def report_path(path: Path, *, root: Path, shareable: bool, placeholder: str) -> str:
+    if not shareable:
+        return path.as_posix()
+    try:
+        relative = path.relative_to(root)
+        return relative.as_posix() or "."
+    except ValueError:
+        return f"<{placeholder}>"
 
 
 def source_records(root: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
@@ -538,7 +553,7 @@ def read_json_file(path: Path) -> dict[str, Any] | None:
         return None
 
 
-def preview_evidence(preview_out: str | None) -> dict[str, Any]:
+def preview_evidence(preview_out: str | None, *, root: Path, shareable: bool) -> dict[str, Any]:
     if not preview_out:
         return {
             "status": "not-provided",
@@ -547,10 +562,10 @@ def preview_evidence(preview_out: str | None) -> dict[str, Any]:
                 "shipguard ios devspace --port 8787 --preview-out /tmp/ios-shipguard-preview --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN",
             ],
         }
-    root = Path(preview_out).expanduser().resolve()
-    session = read_json_file(root / "session.json")
-    handoff = read_json_file(root / "handoff.json")
-    events_path = root / "preview-events.jsonl"
+    preview_root = Path(preview_out).expanduser().resolve()
+    session = read_json_file(preview_root / "session.json")
+    handoff = read_json_file(preview_root / "handoff.json")
+    events_path = preview_root / "preview-events.jsonl"
     events: list[dict[str, Any]] = []
     if events_path.is_file():
         for raw in events_path.read_text(encoding="utf-8", errors="ignore").splitlines():
@@ -563,11 +578,11 @@ def preview_evidence(preview_out: str | None) -> dict[str, Any]:
                 continue
     latest = events[-1] if events else None
     return {
-        "status": "provided" if root.is_dir() else "missing",
-        "path": root.as_posix(),
+        "status": "provided" if preview_root.is_dir() else "missing",
+        "path": report_path(preview_root, root=root, shareable=shareable, placeholder="preview-out"),
         "sessionFound": session is not None,
         "handoffFound": handoff is not None,
-        "screenshotFound": (root / "last-screenshot.png").is_file(),
+        "screenshotFound": (preview_root / "last-screenshot.png").is_file(),
         "eventCount": len(events),
         "latestEventType": latest.get("type") if isinstance(latest, dict) else None,
         "captureMode": session.get("captureMode") if isinstance(session, dict) else None,
@@ -657,6 +672,7 @@ def build_report(
     preview_out: str | None,
     icon_brief: bool,
     shipguard_eval: bool = False,
+    shareable: bool = False,
 ) -> dict[str, Any]:
     if not root.exists():
         fail(f"path not found: {root}")
@@ -666,7 +682,7 @@ def build_report(
     facts = collect_doctor_facts(root)
     app_type = infer_app_type(records, facts, app_type_override)
     dna = collect_design_dna(records)
-    preview = preview_evidence(preview_out)
+    preview = preview_evidence(preview_out, root=root, shareable=shareable)
     icon = build_icon_brief(app_type["value"], app_type, dna) if icon_brief else None
     findings = build_findings(app_type["value"], dna, preview, icon_brief)
     return {
@@ -675,7 +691,14 @@ def build_report(
         "generatedAt": utc_now(),
         "intent": "shipguard-evaluation" if shipguard_eval else "app-development",
         "status": status_for(findings),
-        "root": root.as_posix(),
+        "root": report_path(root, root=root, shareable=shareable, placeholder="scanned-app"),
+        "shareability": {
+            "mode": "shareable" if shareable else "local",
+            "localAbsolutePathsIncluded": not shareable,
+            "note": "Use --shareable before moving this design report into ChatGPT, GitHub, docs, benchmark fixtures, or release evidence."
+            if not shareable
+            else "Local absolute paths are omitted from report fields; still run report-quality before public sharing.",
+        },
         "appType": app_type,
         "sourceSummary": {
             "filesScanned": len(records),
@@ -739,6 +762,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         f"- Status: `{report['status']}`",
         f"- Intent: `{report['intent']}`",
+        f"- Shareability mode: `{report['shareability']['mode']}`",
         f"- App type: `{app_type['value']}`",
         f"- App-type confidence: {app_type['confidence']}",
         f"- Swift files: {report['sourceSummary']['swiftFiles']}",
@@ -895,6 +919,7 @@ def main() -> int:
         preview_out=args.preview_out,
         icon_brief=args.icon_brief,
         shipguard_eval=args.shipguard_eval,
+        shareable=args.shareable,
     )
     if args.out:
         write_outputs(report, Path(args.out).expanduser().resolve())

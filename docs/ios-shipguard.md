@@ -125,7 +125,8 @@ Use `--shipguard-eval` only when a real app is acting as a private read-only sam
 ./bin/shipguard ios design \
   --path <private-ios-app> \
   --out /tmp/ios-shipguard-design-eval \
-  --shipguard-eval
+  --shipguard-eval \
+  --shareable
 ./bin/shipguard ios modernize \
   --focus swift \
   --path <private-ios-app> \
@@ -148,7 +149,7 @@ Use `--shipguard-eval` only when a real app is acting as a private read-only sam
   --out /tmp/ios-shipguard-report-quality
 ```
 
-Those reports add a ShipGuard evaluation boundary. Findings from those runs must be used to improve ShipGuard rules, report shape, docs, or public fixtures; they must not become target-app remediation tasks without a separate explicit app-work request. Markdown output may be grouped or capped to stay reviewable; JSON keeps the full finding list for deeper ShipGuard product QA.
+Those reports add a ShipGuard evaluation boundary. Findings from those runs must be used to improve ShipGuard rules, report shape, docs, or public fixtures; they must not become target-app remediation tasks without a separate explicit app-work request. Markdown output may be grouped or capped to stay reviewable; JSON keeps the full finding list for deeper ShipGuard product QA. Use `--shareable` for design evals before report-quality scoring or external planning so local absolute app paths are omitted.
 
 `ios report-quality` then grades ShipGuard's output quality, not the scanned app. It checks whether the reports are parseable, scoped to read-only product QA, paired with Markdown, honest about skipped scan scope, useful in finding evidence/recommendation/proof guidance, and safe to share or redact. It also detects token-like connector URLs or auth strings without echoing the token value, then emits a redaction plan with `shipguard ios redact` commands for any report set that should not be shared raw.
 
@@ -165,10 +166,13 @@ Run a genre-aware UI/UX and design-coherence audit before asking Codex to redesi
   --app-type game \
   --preview-out /tmp/ios-shipguard-preview \
   --icon-brief \
+  --shareable \
   --out /tmp/ios-shipguard-design-game
 ```
 
 The report infers app type, records design DNA signals, applies motion guidance from the Design Motion Principles frequency gate, emits an iOS haptics blueprint, and tells Codex when `ios preview` or `ios devspace` should be used. App-type inference weights app/project source above repeated docs or agent-instruction wording; use `--app-type` when the automatic genre inference is wrong or the user has already named the product category.
+
+Use `--shareable` when a design report will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or `ios report-quality`; default local reports keep absolute roots for operator debugging.
 
 Use `--icon-brief` for app-icon work. ShipGuard writes `app-icon-imagegen-brief.md` for ChatGPT ImageGen and an App Store asset checklist; it does not generate CSS, SVG, or local placeholder icon art.
 

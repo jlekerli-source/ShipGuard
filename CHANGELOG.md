@@ -10,6 +10,7 @@
 - Added `shipguard ios devspace-check` to statically grade Devspace connector readiness, public URL safety, preview evidence, MCP widget metadata, handoff boundaries, and ChatGPT model-choice honesty without grading target apps.
 - Added a public Devspace complete-preview fixture and handoff-quality checks for target-resolution, event receipts, raw-coordinate safety, and paste-safe handoff Markdown.
 - Added `ios devspace-check --shareable` so connector-readiness reports can omit local absolute paths before report-quality scoring or external sharing.
+- Added `ios design --shareable` so design QA reports can omit local absolute app and preview paths before report-quality scoring or external planning.
 - Extended `--shipguard-eval` product-QA boundaries to `ios modernize`, `ios app-intelligence`, and `ios ai-readiness`, with summarized/capped Markdown output where real-app read-only checks showed noisy reports.
 - Refined iOS read-only scanners to skip generated/proof/cache directories, disclose scan-scope exclusions in reports, and weight design app-type inference toward app/project source instead of repeated instruction-document tokens.
 

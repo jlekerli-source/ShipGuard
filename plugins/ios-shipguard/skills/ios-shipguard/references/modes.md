@@ -99,7 +99,7 @@ Ask:
 Proof:
 
 - `shipguard ios performance --path . --out <dir>` for ranked source hotspots before choosing edits
-- Add `--shipguard-eval` to `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness` when a private app is only a read-only sample for improving ShipGuard itself
+- Add `--shipguard-eval` to `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness` when a private app is only a read-only sample for improving ShipGuard itself; add `--shareable` to design evals that will be scored or shared
 - XcodeBuildMCP project/scheme/simulator selection before build/run
 - build and launch the same route being measured
 - Animation Hitches or Time Profiler trace when the simulator/device supports it
@@ -120,7 +120,7 @@ Ask:
 
 Proof:
 
-- Run the selected command with `--shipguard-eval`: `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness`
+- Run the selected command with `--shipguard-eval`: `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness`; use `shipguard ios design --shareable` when that design report will leave local proof space
 - Run `shipguard ios report-quality --reports <eval-output-dir> --out <quality-dir>` to grade ShipGuard report usefulness, not target-app quality
 - If report-quality emits token/path shareability findings, run the generated `shipguard ios redact` command before moving artifacts into ChatGPT, GitHub, docs, or release evidence
 - Keep generated private-app reports local unless the user approves redaction and sharing
@@ -143,6 +143,7 @@ Proof:
 - Add `--app-type <type>` when the app genre is known or the inference is wrong
 - Add `--preview-out <dir>` when phone-shaped preview receipts already exist
 - Add `--icon-brief` when app icon direction is in scope, then use ChatGPT ImageGen for bitmap candidates
+- Add `--shareable` when design reports will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or report-quality scoring
 - `shipguard ios preview --out /tmp/ios-shipguard-preview` for phone-shaped visual proof
 - `shipguard ios devspace-check --path . --preview-out /tmp/ios-shipguard-preview --shareable --out /tmp/ios-shipguard-devspace-check` before judging connector readiness or sharing a tunneled endpoint
 - `shipguard ios devspace --port 8787 --preview-out /tmp/ios-shipguard-preview --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN` when ChatGPT should plan from the preview widget; model choice happens in ChatGPT, not ShipGuard

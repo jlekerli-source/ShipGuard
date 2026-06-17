@@ -79,7 +79,8 @@ printf 'fixture image bytes\n' > "$preview_out/last-screenshot.png"
   --app-type game \
   --preview-out "$preview_out" \
   --icon-brief \
-  --shipguard-eval >/dev/null
+  --shipguard-eval \
+  --shareable >/dev/null
 
 test -f "$tmp_dir/design/ios-design.md"
 test -f "$tmp_dir/design/ios-design.json"
@@ -103,6 +104,10 @@ grep -q '"ruleId": "preview-proof-not-provided"' "$tmp_dir/design/ios-design.jso
 grep -q '"ruleId": "motion-reduced-motion-gate"' "$tmp_dir/design/ios-design.json"
 
 grep -q '"intent": "shipguard-evaluation"' "$tmp_dir/game-design/ios-design.json"
+grep -q '"mode": "shareable"' "$tmp_dir/game-design/ios-design.json"
+grep -q '"localAbsolutePathsIncluded": false' "$tmp_dir/game-design/ios-design.json"
+grep -q '"root": "."' "$tmp_dir/game-design/ios-design.json"
+grep -q '"path": "<preview-out>"' "$tmp_dir/game-design/ios-design.json"
 grep -q '"shipguardOnly": true' "$tmp_dir/game-design/ios-design.json"
 grep -q '"value": "game"' "$tmp_dir/game-design/ios-design.json"
 grep -q '"override": "game"' "$tmp_dir/game-design/ios-design.json"
@@ -117,6 +122,17 @@ grep -q 'Report Quality Questions' "$tmp_dir/game-design/ios-design.md"
 grep -q 'App Icon ImageGen Brief' "$tmp_dir/game-design/ios-design.md"
 grep -q 'ChatGPT ImageGen' "$tmp_dir/game-design/app-icon-imagegen-brief.md"
 grep -q 'ShipGuard does not create CSS or SVG icon art' "$tmp_dir/game-design/app-icon-imagegen-brief.md"
+if grep -R -F -q "$tmp_dir" "$tmp_dir/game-design"; then
+  echo "shareable ios design output must not include local absolute fixture paths" >&2
+  exit 1
+fi
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/game-design" \
+  --out "$tmp_dir/game-design-quality" >/dev/null
+if grep -q 'local-path-shareability-warning' "$tmp_dir/game-design-quality/ios-report-quality.json"; then
+  echo "shareable ios design output should not trigger local-path shareability warnings" >&2
+  exit 1
+fi
 if find "$tmp_dir/game-design" \( -name '*.svg' -o -name '*.css' \) | grep -q .; then
   echo "ios design should not create CSS or SVG icon art" >&2
   exit 1
