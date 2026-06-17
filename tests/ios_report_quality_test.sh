@@ -75,6 +75,65 @@ if grep -q 'local-path-shareability-warning' "$tmp_dir/shareable-quality/ios-rep
   exit 1
 fi
 
+local_contract_reports="$tmp_dir/local-contract-reports"
+./bin/shipguard ios modernize \
+  --focus swift \
+  --path fixtures/demo-ios-repo \
+  --out "$local_contract_reports/modernize" \
+  --shipguard-eval >/dev/null
+./bin/shipguard ios report-quality \
+  --reports "$local_contract_reports/modernize" \
+  --out "$tmp_dir/local-contract-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/local-contract-quality/ios-report-quality.json"
+grep -q '"ruleId": "declared-shareability-local-mode"' "$tmp_dir/local-contract-quality/ios-report-quality.json"
+
+missing_contract_dir="$tmp_dir/missing-contract"
+mkdir -p "$missing_contract_dir"
+cat > "$missing_contract_dir/ios-ai-readiness.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard ios ai-readiness",
+  "intent": "shipguard-evaluation",
+  "generatedAt": "2026-06-17T00:00:00Z",
+  "status": "review",
+  "scanScope": {
+    "skippedDirectoryCount": 0,
+    "skippedDirectories": []
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "findings": [
+    {
+      "ruleId": "ai-demo",
+      "severity": "review",
+      "evidence": "Demo AI signal",
+      "recommendation": "Keep the fixture path-safe.",
+      "proofGuidance": "Run report-quality in shareable mode."
+    }
+  ],
+  "reportQualityQuestions": [
+    "Does report-quality catch missing declared shareability metadata?"
+  ]
+}
+JSON
+cat > "$missing_contract_dir/ios-ai-readiness.md" <<'MD'
+# Missing Contract Report
+
+## ShipGuard Evaluation Boundary
+
+This fixture is intentionally missing shareability metadata.
+MD
+
+./bin/shipguard ios report-quality \
+  --reports "$missing_contract_dir" \
+  --out "$tmp_dir/missing-contract-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-contract-quality/ios-report-quality.json"
+grep -q '"ruleId": "declared-shareability-missing"' "$tmp_dir/missing-contract-quality/ios-report-quality.json"
+
 bad_dir="$tmp_dir/bad"
 mkdir -p "$bad_dir"
 cat > "$bad_dir/ios-performance.json" <<'JSON'

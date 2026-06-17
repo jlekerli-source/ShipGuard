@@ -21,6 +21,9 @@ SOURCE_SCANNER_TOOLS = {
     "shipguard ios app-intelligence",
     "shipguard ios ai-readiness",
 }
+DECLARED_SHAREABILITY_TOOLS = SOURCE_SCANNER_TOOLS | {
+    "shipguard ios devspace-check",
+}
 REPORT_QUALITY_TOOL = "shipguard ios report-quality"
 TOKEN_RISK_PATTERNS = {
     "bearer-token": re.compile(r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{12,}"),
@@ -146,6 +149,32 @@ def has_local_path(text: str) -> bool:
 
 def token_risk_labels(text: str) -> list[str]:
     return sorted(label for label, pattern in TOKEN_RISK_PATTERNS.items() if pattern.search(text))
+
+
+def declared_shareability_issues(report: dict[str, Any], *, path_name: str) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    shareability = report.get("shareability")
+    if not isinstance(shareability, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="declared-shareability-missing",
+            evidence=f"{path_name} has no shareability metadata",
+            recommendation="Regenerate the source report with --shareable before report-quality scoring or external planning.",
+        )
+        return issues
+
+    mode = shareability.get("mode")
+    includes_local_paths = shareability.get("localAbsolutePathsIncluded")
+    if mode != "shareable" or includes_local_paths is not False:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="declared-shareability-local-mode",
+            evidence=f"{path_name} declares shareability mode={mode or 'missing'} localAbsolutePathsIncluded={includes_local_paths!r}",
+            recommendation="Regenerate the source report with --shareable so path-safe intent is explicit before sharing or scoring.",
+        )
+    return issues
 
 
 def report_questions(report: dict[str, Any], *, report_path: str, tool: str) -> list[dict[str, str]]:
@@ -372,6 +401,9 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
                 evidence=f"{path.name} has skipped directories in JSON but not Markdown",
                 recommendation="Surface scan-scope exclusions in Markdown for human review.",
             )
+
+    if shareable and tool in DECLARED_SHAREABILITY_TOOLS:
+        issues.extend(declared_shareability_issues(loaded, path_name=path.name))
 
     findings = loaded.get("findings")
     if isinstance(findings, list) and len(findings) > 30 and not loaded.get("ruleSummary"):

@@ -4,6 +4,11 @@
   "intent": "shipguard-evaluation",
   "generatedAt": "2026-06-17T00:00:00Z",
   "status": "review",
+  "shareability": {
+    "mode": "shareable",
+    "localAbsolutePathsIncluded": false,
+    "note": "Fixture report is path-safe for report-quality scoring."
+  },
   "scopeBoundary": {
     "shipguardOnly": true,
     "targetAppsReadOnly": true
