@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-17T20:24:27Z
+- Generated: 2026-06-17T20:44:04Z
 - Current toolkit version: 3.59.0
-- Target release: v3.65.0
-- Title: Performance Evidence Justification Gate
+- Target release: v3.66.0
+- Title: Performance Proof Guidance Boundary Gate
 
 ## Slash Plan
 
 ```text
-/plan v3.65.0 Performance Evidence Justification Gate for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make ios performance explain why high findings are high in JSON and Markdown, and make ios report-quality fail high performance findings that lack severity reasons or hide them from Markdown.
+/plan v3.66.0 Performance Proof Guidance Boundary Gate for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Split ios performance proof guidance into Codex-local and manual/device proof in JSON and Markdown, make ios report-quality fail missing proof boundaries, and fix iOS ShipGuard skill CLI resolution so app checkouts can use an installed ShipGuard CLI instead of requiring app-local ./bin/shipguard.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.65.0 Performance Evidence Justification Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make ios performance explain why high findings are high in JSON and Markdown, and make ios report-quality fail high performance findings that lack severity reasons or hide them from Markdown, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.66.0 Performance Proof Guidance Boundary Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Split ios performance proof guidance into Codex-local and manual/device proof in JSON and Markdown, make ios report-quality fail missing proof boundaries, and fix iOS ShipGuard skill CLI resolution so app checkouts can use an installed ShipGuard CLI instead of requiring app-local ./bin/shipguard, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make ios performance explain why high findings are high in JSON and Markdown, and make ios report-quality fail high performance findings that lack severity reasons or hide them from Markdown.
+Split ios performance proof guidance into Codex-local and manual/device proof in JSON and Markdown, make ios report-quality fail missing proof boundaries, and fix iOS ShipGuard skill CLI resolution so app checkouts can use an installed ShipGuard CLI instead of requiring app-local ./bin/shipguard.
 
 ## Completion Receipt
 
-- Completed scope: Make ios performance explain why high findings are high in JSON and Markdown, and make ios report-quality fail high performance findings that lack severity reasons or hide them from Markdown.
-- Evidence: A public read-only high-evidence fixture produced 5 high performance findings. Before the change, those findings had source evidence and impact text but no explicit reason for severity high. After the change, ios performance emitted severityReason with concrete cadence and @MainActor context, Markdown rendered Why severity in Grouped Next Actions and Top Findings, and ios report-quality passed with zero findings. The priorityAction advanced to 'Did proof guidance name what Codex can verify locally and what remains device/manual proof?'. Validated with python3 -m py_compile scripts/ios_performance.py scripts/ios_report_quality.py; ./tests/ios_performance_test.sh; ./tests/ios_report_quality_test.sh; git diff --check; ./tests/ios_spec_workflow_test.sh; ./tests/ios_shipguard_eval_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v365; ./bin/shipguard ios eval --cases evals/ios_shipguard_cases.jsonl --out /tmp/ios-shipguard-eval-v365; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/next_goal_test.sh; ./tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; and ./bin/shipguard codex status --strict.
+- Completed scope: Split ios performance proof guidance into Codex-local and manual/device proof in JSON and Markdown, make ios report-quality fail missing proof boundaries, and fix iOS ShipGuard skill CLI resolution so app checkouts can use an installed ShipGuard CLI instead of requiring app-local ./bin/shipguard.
+- Evidence: A public read-only performance report over fixtures/demo-ios-repo showed findings only had one blended proof sentence and report-quality prioritized 'Did proof guidance name what Codex can verify locally and what remains device/manual proof?'. After the change, ios performance emitted localProof and manualProof for each finding, Markdown rendered Codex local proof and Manual/device proof, ios report-quality passed with zero findings, and priorityAction advanced to 'Did grouped next actions name the smallest first experiment before broad refactors?'. The screenshot-reported CLI issue was reproduced conceptually: the installed plugin cache only had skills/assets and no bin/shipguard, while target app checkouts may not have ./bin/shipguard. The iOS skill now resolves SHIPGUARD_CLI from app-local ./bin/shipguard, installed shipguard, or $HOME/.local/bin/shipguard; the CLI was installed to $HOME/.local/bin/shipguard and proven from /tmp with no app-local bin by running version and ios performance. Validated with python3 -m py_compile scripts/ios_performance.py scripts/ios_report_quality.py; ./tests/ios_performance_test.sh; ./tests/ios_report_quality_test.sh; git diff --check; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v366; ./bin/shipguard ios eval --cases evals/ios_shipguard_cases.jsonl --out /tmp/ios-shipguard-eval-v366; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/package_release_test.sh; ./tests/ios_spec_workflow_test.sh; ./tests/next_goal_test.sh; ./tests/ios_shipguard_eval_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict; and installed-cache grep for SHIPGUARD_CLI plus performance-proof-boundary guidance.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.66.0 Performance Proof Guidance Boundary Gate for jlekerli-source/ShipGuard:
+/plan v3.67.0 Performance First Experiment Gate for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Make ios performance explain why high findings are high in JSON and Markdown, an
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.66.0 Performance Proof Guidance Boundary Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.67.0 Performance First Experiment Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.66.0 --title "Performance Proof Guidance Boundary Gate" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.67.0 --title "Performance First Experiment Gate" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -131,12 +131,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.65.0.
+1. Open or update the tracking issue for v3.66.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.65.0` and upload `dist/shipguard-v3.65.0.tar.gz`.
+6. Create release `v3.66.0` and upload `dist/shipguard-v3.66.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
