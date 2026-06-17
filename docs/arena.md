@@ -49,7 +49,9 @@ The importer:
 
 - requires `run.md` in every case directory
 - copies only `run.md`, `task.md`, `diff.patch`, and `tests.log`
-- writes `PACK.md` with source, import time, and case IDs
+- rejects unsupported files, nested directories, and symlinked fixture entries
+- rejects overlapping source and output directories
+- writes `PACK.md` with the source basename, import time, and case IDs
 - refuses to overwrite existing cases unless `--force` is passed
 - rejects obvious local machine paths and secret-looking strings
 

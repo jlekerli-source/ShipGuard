@@ -176,7 +176,7 @@ Import an external fixture pack before running it:
   --pack-name "external-pack"
 ```
 
-The import command copies supported fixture files, writes `PACK.md`, and rejects obvious local paths or secret-looking values.
+The import command copies only supported fixture files, writes `PACK.md` with the source basename, rejects overlapping source/output directories, and blocks unsupported files, nested directories, symlinks, obvious local paths, or secret-looking values.
 
 Sign and verify fixture-pack metadata:
 

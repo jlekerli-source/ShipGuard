@@ -359,6 +359,11 @@ grep -q '"id" : "frontend-async-state-regression"' "$tmp_dir/package-arena-compa
   --out "$tmp_dir/package-imported-arena" \
   --pack-name "package-imported" >/dev/null
 grep -q 'Pack: package-imported' "$tmp_dir/package-imported-arena/PACK.md"
+grep -q 'Source: external-arena-pack' "$tmp_dir/package-imported-arena/PACK.md"
+if grep -q "$package_root" "$tmp_dir/package-imported-arena/PACK.md"; then
+  echo "package imported PACK.md should not include local package path" >&2
+  exit 1
+fi
 "$package_root/bin/shipguard" arena run \
   --fixture "$tmp_dir/package-imported-arena" \
   --out "$tmp_dir/package-imported-results" >/dev/null

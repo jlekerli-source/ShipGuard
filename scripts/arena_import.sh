@@ -30,6 +30,38 @@ safe_case_id() {
   [[ "$1" =~ ^[A-Za-z0-9._-]+$ ]]
 }
 
+normalize_path() {
+  local path="$1"
+  local target="$path"
+  local suffix=""
+
+  while [[ ! -e "$target" ]]; do
+    local base
+    base="$(basename "$target")"
+    [[ "$base" != "." && "$base" != "/" ]] || return 1
+    if [[ -n "$suffix" ]]; then
+      suffix="$base/$suffix"
+    else
+      suffix="$base"
+    fi
+    target="$(dirname "$target")"
+  done
+
+  local base_abs
+  base_abs="$(cd "$target" 2>/dev/null && pwd -P)" || return 1
+  if [[ -n "$suffix" ]]; then
+    printf '%s/%s\n' "$base_abs" "$suffix"
+  else
+    printf '%s\n' "$base_abs"
+  fi
+}
+
+is_parent_or_same() {
+  local parent="${1%/}"
+  local child="${2%/}"
+  [[ "$child" == "$parent" || "$child" == "$parent"/* ]]
+}
+
 scan_safe_content() {
   local file="$1"
   local users_path="/""Users/"
@@ -40,6 +72,17 @@ scan_safe_content() {
   if grep -IEq "$users_path|$home_path|$ghp_pattern|$sk_pattern|$private_key_pattern" "$file"; then
     fail "unsafe local path or secret-looking value in $file"
   fi
+}
+
+supported_case_file() {
+  case "$1" in
+    run.md|task.md|diff.patch|tests.log)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
 }
 
 source_dir=""
@@ -83,14 +126,23 @@ done
 [[ -d "$source_dir" ]] || fail "source fixture directory not found: $source_dir"
 [[ "$source_dir" != "$out_dir" ]] || fail "--source and --out must be different directories"
 
+source_abs="$(normalize_path "$source_dir")" || fail "source fixture directory cannot be resolved: $source_dir"
+out_abs="$(normalize_path "$out_dir")" || fail "output fixture directory cannot be resolved: $out_dir"
+if is_parent_or_same "$source_abs" "$out_abs" || is_parent_or_same "$out_abs" "$source_abs"; then
+  fail "--source and --out must not overlap"
+fi
+
 case_dirs=()
-while IFS= read -r case_dir; do
-  case_dirs+=("$case_dir")
-done < <(find "$source_dir" -mindepth 1 -maxdepth 1 -type d | sort)
+while IFS= read -r entry; do
+  entry_name="$(basename "$entry")"
+  [[ ! -L "$entry" ]] || fail "unsupported symlink in fixture pack: $entry_name"
+  [[ -d "$entry" ]] || fail "unsupported fixture pack entry: $entry_name"
+  safe_case_id "$entry_name" || fail "unsafe case id: $entry_name"
+  case_dirs+=("$entry")
+done < <(find "$source_dir" -mindepth 1 -maxdepth 1 | sort)
 
 [[ "${#case_dirs[@]}" -gt 0 ]] || fail "source fixture directory has no case subdirectories: $source_dir"
 
-mkdir -p "$out_dir"
 generated_at="${SHIPGUARD_GENERATED_AT:-${CODEX_MAINTAINER_GENERATED_AT:-$(date -u '+%Y-%m-%dT%H:%M:%SZ')}}"
 [[ -n "$pack_name" ]] || pack_name="$(basename "$source_dir")"
 
@@ -100,6 +152,15 @@ imported_cases=()
 for case_dir in "${case_dirs[@]}"; do
   case_id="$(basename "$case_dir")"
   safe_case_id "$case_id" || fail "unsafe case id: $case_id"
+
+  while IFS= read -r entry; do
+    entry_name="$(basename "$entry")"
+    [[ ! -L "$entry" ]] || fail "unsupported symlink in fixture case: $case_id/$entry_name"
+    [[ ! -d "$entry" ]] || fail "unsupported nested directory in fixture case: $case_id/$entry_name"
+    [[ -f "$entry" ]] || fail "unsupported fixture case entry: $case_id/$entry_name"
+    supported_case_file "$entry_name" || fail "unsupported fixture case file: $case_id/$entry_name"
+  done < <(find "$case_dir" -mindepth 1 -maxdepth 1 | sort)
+
   [[ -f "$case_dir/run.md" ]] || fail "missing required case run file: $case_dir/run.md"
 
   dest_case="$out_dir/$case_id"
@@ -107,17 +168,28 @@ for case_dir in "${case_dirs[@]}"; do
     fail "destination case exists, use --force to overwrite: $dest_case"
   fi
 
+  for file_name in "${supported_files[@]}"; do
+    source_file="$case_dir/$file_name"
+    [[ -f "$source_file" ]] || continue
+    scan_safe_content "$source_file"
+  done
+
+  imported_cases+=("$case_id")
+done
+
+mkdir -p "$out_dir"
+
+for case_dir in "${case_dirs[@]}"; do
+  case_id="$(basename "$case_dir")"
+  dest_case="$out_dir/$case_id"
   rm -rf "$dest_case"
   mkdir -p "$dest_case"
 
   for file_name in "${supported_files[@]}"; do
     source_file="$case_dir/$file_name"
     [[ -f "$source_file" ]] || continue
-    scan_safe_content "$source_file"
     cp "$source_file" "$dest_case/$file_name"
   done
-
-  imported_cases+=("$case_id")
 done
 
 {
@@ -125,7 +197,7 @@ done
   echo
   echo "- Pack: $pack_name"
   echo "- Imported: $generated_at"
-  echo "- Source: $source_dir"
+  echo "- Source: $(basename "$source_dir")"
   echo "- Cases: ${#imported_cases[@]}"
   echo
   echo "## Case IDs"

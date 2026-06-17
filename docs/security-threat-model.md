@@ -34,7 +34,7 @@ High-value assets:
 | Devspace HTTP/MCP bridge to browser clients | loopback process and bearer token | browser widgets, event payloads, screenshot requests | require loopback binding, bounded payloads, screenshot view tokens when auth is enabled |
 | CLI artifact writes to filesystem | explicit output directories | arbitrary paths, symlink surprises, cleanup commands | use safe output path checks before destructive cleanup |
 | GitHub Actions to repository state | pinned action source and reviewed workflow inputs | user-supplied tags, release URLs, and artifact paths | verify release manifests, digests, and replay output before claims |
-| Arena/imported fixtures to benchmark output | reviewed fixture packs | externally supplied fixture paths and run text | import only supported files and reject obvious local paths or secret-looking strings |
+| Arena/imported fixtures to benchmark output | reviewed fixture packs | externally supplied fixture paths and run text | import only supported files, reject nested entries and symlinks, keep source metadata path-free, and reject obvious local paths or secret-looking strings |
 
 ## Threats And Controls
 
@@ -45,7 +45,7 @@ High-value assets:
 | Devspace screenshot or event leak | private app UI or local path exposure | loopback default, optional bearer token, screenshot proxy token, bounded event payloads | test authenticated screenshot access before external tunnels |
 | Release proof overclaim | false release readiness or security claim | release manifest, release replay, release consume, autopsy risky-claim and release-trust-gap findings | keep App Store/TestFlight claims blocked without external evidence |
 | Unsafe artifact deletion | user data loss outside intended output dirs | `scripts/lib/safe_paths.sh`, Autopsy unsafe-cleanup findings, and package tests | use safe path helpers in new cleanup commands |
-| Untrusted fixture pack hides local paths or secrets | benchmark artifact leaks private data | arena import allowlist and rejection checks | expand negative fixture coverage |
+| Untrusted fixture pack hides local paths or secrets | benchmark artifact leaks private data | arena import allowlist, overlap checks, symlink/nested-entry rejection, and source-basename metadata | keep importer and pack-signing checks aligned |
 | GitHub token overuse in local posting commands | unintended issue, check-run, or release mutation | dry-run options, explicit payload files, `gh auth status` visibility, Autopsy token-scope and network-mutation findings | keep mutation paths disabled by default |
 | MCP prompt injection through preview events | Codex follows untrusted UI notes as instructions | handoff text treats events as evidence, not authority | keep target resolution semantic and require user approval for execution |
 
