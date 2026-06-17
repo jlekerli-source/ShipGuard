@@ -87,6 +87,8 @@ The next read-only performance pass showed `ios performance --shipguard-eval` st
 
 The next remaining-shareability pass over modernize, app-intelligence, and AI-readiness showed no local path leaks in real-app reports, but those reports had no explicit shareability contract. `ios modernize --shareable`, `ios app-intelligence --shareable`, and `ios ai-readiness --shareable` now record shareability metadata and Markdown mode lines so report-quality passes are intentional rather than accidental.
 
+The next declared-shareability pass showed `ios report-quality --shareable` still passed local-mode source reports when their contents happened not to leak paths. Report-quality now emits `declared-shareability-missing` for source reports without shareability metadata and `declared-shareability-local-mode` for reports that explicitly declare local mode, while regenerated shareable Ringly/Ilmify reports continue to pass.
+
 The installed Codex cache now has `ios-shipguard` metadata version `0.2.0+codex.20260617011237`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
 
 ## Verdict
@@ -209,6 +211,7 @@ Status: started.
 - Added a public report-quality actionability fixture and aggregated `Actionability Questions` output after full Ringly/Ilmify read-only evals showed useful source questions were not surfaced in the quality artifact.
 - Added `ios performance --shareable` after read-only Ringly/Ilmify performance evals showed otherwise useful source reports still carried local project roots before report-quality scoring.
 - Added `ios modernize --shareable`, `ios app-intelligence --shareable`, and `ios ai-readiness --shareable` after read-only Ringly/Ilmify checks showed those path-safe reports still lacked an explicit shareability contract.
+- Added declared-shareability report-quality findings after read-only Ringly/Ilmify local-mode reports showed shareable scoring could pass reports that were path-clean but not explicitly generated for sharing.
 - Added modernization rule summaries and capped Markdown for modernize, app-intelligence, and AI-readiness reports so private-app findings stay useful for improving ShipGuard without becoming app remediation tasks.
 - Improved first-run adoption docs around CLI versus plugin usage.
 - Upgraded `shipguard next-goal` so the next improvement loop emits a reviewable `/plan` before the `/goal`, and can now carry bounded scope, completion evidence, and the following `/goal` handoff.
