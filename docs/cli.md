@@ -302,6 +302,22 @@ Check Markdown files for broken local links:
 
 External URLs and in-page anchors are ignored. The command writes `docs-check.json` and `docs-check.md` when `--out` is provided. See `docs-check.md`.
 
+## Codex Status
+
+Check whether the local Codex plugin cache has a ShipGuard-related plugin install and whether it looks current:
+
+```bash
+./bin/shipguard codex status
+```
+
+Use `--cache` for fixture caches or non-default Codex plugin locations, and `--strict` when stale or missing installs should fail the command:
+
+```bash
+./bin/shipguard codex status --cache /tmp/codex-plugin-cache --strict
+```
+
+The command is read-only. It reports installed `ios-shipguard` plugin metadata, old repository URLs, old `Shipguard` casing, old `codex-maintainer` guidance, and whether tracked plugin source exists in the checkout. See `codex-status.md`.
+
 ## Leaderboard
 
 Build a stable public leaderboard JSON file from arena results:

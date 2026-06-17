@@ -7,6 +7,7 @@
 | Install workflow kit | `init ios`, `init web`, `init backend`, `init cli` | Starter workflow files |
 | Check workflow kit | `validate` | Validation pass/fail |
 | Check target repo setup | `doctor ios`, `doctor web`, `doctor backend`, `doctor cli` | Missing file report |
+| Check local Codex plugin install | `codex status` | Installed plugin metadata, stale branding, and missing-source report |
 | Configure project policy | `policy init`, `policy show` | Plain policy file |
 | Audit one AI run | `autopsy` | Markdown and JSON report |
 | Export CI evidence | `sarif` | SARIF 2.1.0 results |

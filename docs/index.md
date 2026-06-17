@@ -16,11 +16,13 @@ Start here:
 - [Check Run Payload](check-run.md)
 - [CI Gate Mode](ci-gate.md)
 - [CI Step Summary](ci-summary.md)
+- [Codex Status](codex-status.md)
 - [Command Matrix](command-matrix.md)
 - [Demo Reports](demo-reports.md)
 - [Docs Check](docs-check.md)
 - [Maintainer Reliability OS](maintainer-reliability-os.md)
 - [Next Goal Generator](next-goal.md)
+- [ShipGuard Evaluation](oss-evaluation.md)
 - [Policy Configuration](policy.md)
 - [PR Review Bot Mode](pr-review-bot.md)
 - [Release Checklist](release-checklist.md)
@@ -73,32 +75,33 @@ Start here:
 10. Run `./bin/shipguard ci-summary --gate /tmp/codex-gate/gate.json --out /tmp/codex-gate/summary.md` after a gate run.
 11. Run `./bin/shipguard check-run --gate /tmp/codex-gate/gate.json --head-sha "$GITHUB_SHA" --out /tmp/codex-gate/check-run/payload.json` after a gate run.
 12. Run `./bin/shipguard check-run post --payload /tmp/codex-gate/check-run/payload.json --repo "$GITHUB_REPOSITORY" --out /tmp/codex-gate/check-run/response.json --dry-run` before enabling real posting.
-13. Run `./bin/shipguard arena run --fixture fixtures/arena --out /tmp/arena`.
-14. Run `./bin/shipguard arena import --source fixtures/external-arena-pack --out /tmp/imported-arena`.
-15. Run `./bin/shipguard arena compare --left /tmp/arena-old/results.json --right /tmp/arena/results.json --out /tmp/arena-compare`.
-16. Use `jlekerli-source/ShipGuard/actions/arena-compare@v3.38.0` when the same comparison should run in GitHub Actions.
-17. Run `./bin/shipguard arena sign --fixture /tmp/imported-arena --out /tmp/imported-arena/PACK.json --signer "Example Maintainers" --signer-url "https://github.com/example/repo"`.
-18. Run `./bin/shipguard arena verify --fixture /tmp/imported-arena --manifest /tmp/imported-arena/PACK.json`.
-19. Run `./bin/shipguard leaderboard build --arena-results /tmp/arena/results.json --out /tmp/leaderboard.json`.
-20. Run `./bin/shipguard release-manifest --tarball dist/shipguard-v3.38.0.tar.gz --out /tmp/shipguard-release-proof` after packaging.
-21. Run `./bin/shipguard release-index build --manifest /tmp/shipguard-release-proof/release-manifest.json --out /tmp/shipguard-release-index`.
-22. Run `./bin/shipguard release-replay verify --manifest /tmp/shipguard-release-proof/release-manifest.json --tarball dist/shipguard-v3.38.0.tar.gz --index /tmp/shipguard-release-index/release-index.json --ledger /tmp/shipguard-release-proof/proof-ledger.md --out /tmp/shipguard-release-replay`.
-23. Run `./bin/shipguard release-attest build --manifest /tmp/shipguard-release-proof/release-manifest.json --replay /tmp/shipguard-release-replay/replay-report.json --out /tmp/shipguard-release-attestation`.
-24. Run `./bin/shipguard release-proof build --out /tmp/shipguard-release-proof-bundle --release-url https://github.com/owner/repo/releases/tag/v3.38.0`.
-25. Run `./bin/shipguard release-consume verify --dir /tmp/shipguard-v3.38.0 --out /tmp/shipguard-v3.38.0/consumer-proof --version 3.38.0` after downloading published assets.
-26. Use `jlekerli-source/ShipGuard/actions/release-consume@v3.38.0` when the same verification should run in GitHub Actions.
-27. Run `./bin/shipguard release-diff compare --left /tmp/shipguard-old --right /tmp/shipguard-v3.38.0 --out /tmp/shipguard-release-diff`.
-28. Use `jlekerli-source/ShipGuard/actions/release-diff@v3.38.0` when the same diff should run in GitHub Actions.
-29. Run `./bin/shipguard release-evidence site --consume /tmp/shipguard-v3.38.0/consumer-proof --diff /tmp/shipguard-release-diff --out /tmp/shipguard-release-site`.
-30. Run `./bin/shipguard release-evidence index --site /tmp/shipguard-release-site --out /tmp/shipguard-release-history`.
-31. Run `./bin/shipguard release-evidence bundle --assets /tmp/shipguard-v3.38.0 --left /tmp/shipguard-old --out /tmp/shipguard-release-evidence-bundle --version 3.38.0`.
-32. Use `jlekerli-source/ShipGuard/actions/release-evidence@v3.38.0` when the same evidence export should run in GitHub Actions.
-33. Run `./bin/shipguard release-evidence verify --dir /tmp/shipguard-release-evidence --out /tmp/shipguard-release-evidence-verify --require-diff true --require-index true` after downloading an evidence artifact.
-34. Use `jlekerli-source/ShipGuard/actions/release-evidence-verify@v3.38.0` when the evidence artifact verification should run in GitHub Actions.
-35. Run `./bin/shipguard release-evidence negative-index --fixture fixtures/release-evidence/negative --out /tmp/shipguard-negative-evidence`.
-36. Use `jlekerli-source/ShipGuard/actions/release-evidence-negative-index@v3.38.0` when the same negative fixture index should run in GitHub Actions.
-37. Use `jlekerli-source/ShipGuard/actions/transcript-verify@v3.38.0` when redacted transcripts should be checked in GitHub Actions.
-38. Run `./bin/shipguard transcript corpus --source fixtures/transcripts --out /tmp/transcript-corpus --require-report true` before publishing transcript examples.
-39. Use `jlekerli-source/ShipGuard/actions/transcript-corpus@v3.38.0` when transcript corpus checks should run in GitHub Actions.
-40. Run `./bin/shipguard self-audit --out /tmp/shipguard-self-audit`.
-41. Run `./bin/shipguard next-goal --out /tmp/NEXT_GOAL.md`.
+13. Run `./bin/shipguard codex status` to inspect the local Codex plugin install state.
+14. Run `./bin/shipguard arena run --fixture fixtures/arena --out /tmp/arena`.
+15. Run `./bin/shipguard arena import --source fixtures/external-arena-pack --out /tmp/imported-arena`.
+16. Run `./bin/shipguard arena compare --left /tmp/arena-old/results.json --right /tmp/arena/results.json --out /tmp/arena-compare`.
+17. Use `jlekerli-source/ShipGuard/actions/arena-compare@v3.38.0` when the same comparison should run in GitHub Actions.
+18. Run `./bin/shipguard arena sign --fixture /tmp/imported-arena --out /tmp/imported-arena/PACK.json --signer "Example Maintainers" --signer-url "https://github.com/example/repo"`.
+19. Run `./bin/shipguard arena verify --fixture /tmp/imported-arena --manifest /tmp/imported-arena/PACK.json`.
+20. Run `./bin/shipguard leaderboard build --arena-results /tmp/arena/results.json --out /tmp/leaderboard.json`.
+21. Run `./bin/shipguard release-manifest --tarball dist/shipguard-v3.38.0.tar.gz --out /tmp/shipguard-release-proof` after packaging.
+22. Run `./bin/shipguard release-index build --manifest /tmp/shipguard-release-proof/release-manifest.json --out /tmp/shipguard-release-index`.
+23. Run `./bin/shipguard release-replay verify --manifest /tmp/shipguard-release-proof/release-manifest.json --tarball dist/shipguard-v3.38.0.tar.gz --index /tmp/shipguard-release-index/release-index.json --ledger /tmp/shipguard-release-proof/proof-ledger.md --out /tmp/shipguard-release-replay`.
+24. Run `./bin/shipguard release-attest build --manifest /tmp/shipguard-release-proof/release-manifest.json --replay /tmp/shipguard-release-replay/replay-report.json --out /tmp/shipguard-release-attestation`.
+25. Run `./bin/shipguard release-proof build --out /tmp/shipguard-release-proof-bundle --release-url https://github.com/owner/repo/releases/tag/v3.38.0`.
+26. Run `./bin/shipguard release-consume verify --dir /tmp/shipguard-v3.38.0 --out /tmp/shipguard-v3.38.0/consumer-proof --version 3.38.0` after downloading published assets.
+27. Use `jlekerli-source/ShipGuard/actions/release-consume@v3.38.0` when the same verification should run in GitHub Actions.
+28. Run `./bin/shipguard release-diff compare --left /tmp/shipguard-old --right /tmp/shipguard-v3.38.0 --out /tmp/shipguard-release-diff`.
+29. Use `jlekerli-source/ShipGuard/actions/release-diff@v3.38.0` when the same diff should run in GitHub Actions.
+30. Run `./bin/shipguard release-evidence site --consume /tmp/shipguard-v3.38.0/consumer-proof --diff /tmp/shipguard-release-diff --out /tmp/shipguard-release-site`.
+31. Run `./bin/shipguard release-evidence index --site /tmp/shipguard-release-site --out /tmp/shipguard-release-history`.
+32. Run `./bin/shipguard release-evidence bundle --assets /tmp/shipguard-v3.38.0 --left /tmp/shipguard-old --out /tmp/shipguard-release-evidence-bundle --version 3.38.0`.
+33. Use `jlekerli-source/ShipGuard/actions/release-evidence@v3.38.0` when the same evidence export should run in GitHub Actions.
+34. Run `./bin/shipguard release-evidence verify --dir /tmp/shipguard-release-evidence --out /tmp/shipguard-release-evidence-verify --require-diff true --require-index true` after downloading an evidence artifact.
+35. Use `jlekerli-source/ShipGuard/actions/release-evidence-verify@v3.38.0` when the evidence artifact verification should run in GitHub Actions.
+36. Run `./bin/shipguard release-evidence negative-index --fixture fixtures/release-evidence/negative --out /tmp/shipguard-negative-evidence`.
+37. Use `jlekerli-source/ShipGuard/actions/release-evidence-negative-index@v3.38.0` when the same negative fixture index should run in GitHub Actions.
+38. Use `jlekerli-source/ShipGuard/actions/transcript-verify@v3.38.0` when redacted transcripts should be checked in GitHub Actions.
+39. Run `./bin/shipguard transcript corpus --source fixtures/transcripts --out /tmp/transcript-corpus --require-report true` before publishing transcript examples.
+40. Use `jlekerli-source/ShipGuard/actions/transcript-corpus@v3.38.0` when transcript corpus checks should run in GitHub Actions.
+41. Run `./bin/shipguard self-audit --out /tmp/shipguard-self-audit`.
+42. Run `./bin/shipguard next-goal --out /tmp/NEXT_GOAL.md`.

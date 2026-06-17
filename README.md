@@ -36,11 +36,13 @@ Read the guided setup first:
 - `docs/check-run.md`: GitHub Checks API payloads from gate JSON.
 - `docs/ci-gate.md`: CI gate command and GitHub Action for policy enforcement.
 - `docs/ci-summary.md`: GitHub Actions step-summary output from gate JSON.
+- `docs/codex-status.md`: local Codex plugin install-state check.
 - `docs/command-matrix.md`: one-page map from maintainer jobs to CLI commands.
 - `docs/demo-reports.md`: checked-in demo reports generated from public fixtures.
 - `docs/docs-check.md`: local Markdown link audit for docs-heavy releases.
 - `docs/maintainer-reliability-os.md`: the full policy-to-self-audit evidence loop.
 - `docs/next-goal.md`: generate the next slash-goal release plan.
+- `docs/oss-evaluation.md`: current usefulness, refinement, and plugin evaluation.
 - `docs/policy.md`: configure protected paths, risky claims, and scope limits.
 - `docs/pr-review-bot.md`: generate PR-ready review comments and badge JSON from autopsy reports.
 - `docs/release-checklist.md`: release proof commands and publishing checks.
