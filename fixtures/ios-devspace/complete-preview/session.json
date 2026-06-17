@@ -1,0 +1,19 @@
+{
+  "captureMode": "fixture",
+  "device": "fixture",
+  "eventLog": "fixtures/ios-devspace/complete-preview/preview-events.jsonl",
+  "handoff": [
+    "Open the preview URL in Codex's in-app browser or with @Browser.",
+    "Read preview-events.jsonl before editing SwiftUI code.",
+    "Read handoff.json or handoff.md for the latest Codex/XcodeBuildMCP action plan.",
+    "Use XcodeBuildMCP semantic element refs or focused UI tests for simulator actions."
+  ],
+  "handoffJson": "fixtures/ios-devspace/complete-preview/handoff.json",
+  "handoffMarkdown": "fixtures/ios-devspace/complete-preview/handoff.md",
+  "lastScreenshot": "fixtures/ios-devspace/complete-preview/last-screenshot.png",
+  "previewUrl": "http://127.0.0.1:8765",
+  "refreshMs": 1000,
+  "sessionJson": "fixtures/ios-devspace/complete-preview/session.json",
+  "tool": "shipguard ios preview",
+  "url": "http://127.0.0.1:8765"
+}

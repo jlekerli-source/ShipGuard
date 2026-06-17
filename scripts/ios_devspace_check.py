@@ -62,6 +62,32 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="ignore")
 
 
+def read_json_optional(path: Path) -> dict[str, Any] | None:
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return loaded if isinstance(loaded, dict) else None
+
+
+def read_jsonl_objects(path: Path) -> list[dict[str, Any]]:
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return []
+    rows: list[dict[str, Any]] = []
+    for line in lines:
+        if not line.strip():
+            continue
+        try:
+            loaded = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(loaded, dict):
+            rows.append(loaded)
+    return rows
+
+
 def source_bundle(root: Path) -> tuple[dict[str, str], list[str]]:
     texts: dict[str, str] = {}
     missing: list[str] = []
@@ -168,18 +194,20 @@ def preview_evidence(raw_path: str | None, findings: list[dict[str, Any]]) -> di
             category="preview",
             evidence="No --preview-out directory was supplied.",
             recommendation="Run shipguard ios preview first when grading a real ChatGPT visual-planning flow.",
-            proof="Pass --preview-out <dir> containing session.json, handoff.md, and preview-events.jsonl.",
+            proof="Pass --preview-out <dir> containing session.json, handoff.json, handoff.md, and preview-events.jsonl.",
         )
         return {
             "provided": False,
             "status": "not-provided",
+            "handoffQualityStatus": "not-checked",
             "recommendation": "Run shipguard ios preview --out <dir> before live visual-planning checks.",
         }
 
     path = Path(raw_path).expanduser().resolve()
-    expected = ["session.json", "handoff.md", "preview-events.jsonl"]
+    expected = ["session.json", "handoff.json", "handoff.md", "preview-events.jsonl"]
     present = [name for name in expected if (path / name).is_file()]
     missing = [name for name in expected if name not in present]
+    preview_finding_start = len(findings)
     if missing:
         add_finding(
             findings,
@@ -190,12 +218,129 @@ def preview_evidence(raw_path: str | None, findings: list[dict[str, Any]]) -> di
             recommendation="Use a complete ios preview output before claiming visual-planning readiness.",
             proof="Regenerate preview evidence with shipguard ios preview --out <dir> and record at least one event.",
         )
+
+    session = read_json_optional(path / "session.json") if (path / "session.json").is_file() else None
+    handoff = read_json_optional(path / "handoff.json") if (path / "handoff.json").is_file() else None
+    events = read_jsonl_objects(path / "preview-events.jsonl") if (path / "preview-events.jsonl").is_file() else []
+    handoff_markdown = read_text(path / "handoff.md") if (path / "handoff.md").is_file() else ""
+    latest_event = handoff.get("latestEvent") if isinstance(handoff, dict) and isinstance(handoff.get("latestEvent"), dict) else None
+    if latest_event is None and events:
+        latest_event = events[-1]
+    target = handoff.get("targetResolution") if isinstance(handoff, dict) and isinstance(handoff.get("targetResolution"), dict) else None
+    xcode = target.get("xcodeBuildMCP") if isinstance(target, dict) and isinstance(target.get("xcodeBuildMCP"), dict) else {}
+    latest_event_type = str(latest_event.get("type") or "") if isinstance(latest_event, dict) else ""
+    latest_event_action = str(latest_event.get("action") or "") if isinstance(latest_event, dict) else ""
+
+    if "handoff.json" in present and handoff is None:
+        add_finding(
+            findings,
+            severity="review",
+            rule_id="preview-handoff-json-invalid",
+            category="preview",
+            evidence="handoff.json is present but is not parseable as a JSON object.",
+            recommendation="Keep preview handoff JSON machine-readable so Devspace can grade target-resolution safety.",
+            proof="Regenerate preview evidence with shipguard ios preview and rerun devspace-check.",
+        )
+    if "preview-events.jsonl" in present and not events:
+        add_finding(
+            findings,
+            severity="review",
+            rule_id="preview-events-empty",
+            category="preview",
+            evidence="preview-events.jsonl has no parseable event receipts.",
+            recommendation="Record at least one click, context-menu, copy-change, visual-bug, or note receipt before using Devspace as visual proof.",
+            proof="Record a preview event, then confirm preview-events.jsonl contains JSONL receipts.",
+        )
+    if handoff is not None and target is None:
+        add_finding(
+            findings,
+            severity="review",
+            rule_id="preview-handoff-target-resolution-missing",
+            category="preview",
+            evidence="handoff.json does not include targetResolution.",
+            recommendation="Keep preview handoffs explicit about semantic target resolution and raw-coordinate safety.",
+            proof="Regenerate handoff.json and confirm targetResolution.rawCoordinateTapAllowed is false.",
+        )
+    if isinstance(target, dict) and target.get("rawCoordinateTapAllowed") is True:
+        add_finding(
+            findings,
+            severity="high",
+            rule_id="preview-handoff-raw-coordinate-tap-enabled",
+            category="preview",
+            evidence="handoff.json allows raw coordinate taps.",
+            recommendation="Never let browser coordinates become simulator input; require semantic XcodeBuildMCP elementRef matching first.",
+            proof="Set targetResolution.rawCoordinateTapAllowed to false and rerun devspace-check --strict.",
+        )
+    if latest_event_type in {"tap-request", "navigate-request"} and xcode.get("elementRefRequiredBeforeTouch") is not True:
+        add_finding(
+            findings,
+            severity="high",
+            rule_id="preview-handoff-element-ref-not-required",
+            category="preview",
+            evidence=f"{latest_event_type} handoff does not require elementRef before touch.",
+            recommendation="Require semantic elementRef proof before simulator touch for tap or navigation events.",
+            proof="Confirm targetResolution.xcodeBuildMCP.elementRefRequiredBeforeTouch is true.",
+        )
+    safety_markdown_present = (
+        "Raw coordinate tap allowed" in handoff_markdown
+        and "Do not use browser coordinates as simulator taps" in handoff_markdown
+    )
+    if "handoff.md" in present and not safety_markdown_present:
+        add_finding(
+            findings,
+            severity="review",
+            rule_id="preview-handoff-safety-markdown-missing",
+            category="preview",
+            evidence="handoff.md does not include raw-coordinate and semantic-target safety language.",
+            recommendation="Keep the Markdown handoff safe to paste into ChatGPT or Codex without reconstructing safety rules.",
+            proof="Confirm handoff.md includes raw-coordinate and semantic elementRef requirements.",
+        )
+
+    preview_findings = findings[preview_finding_start:]
+    if any(item["severity"] == "high" for item in preview_findings):
+        handoff_status = "blocked"
+    elif any(item["severity"] == "review" for item in preview_findings):
+        handoff_status = "review"
+    elif missing:
+        handoff_status = "incomplete"
+    else:
+        handoff_status = "pass"
+
     return {
         "provided": True,
         "path": str(path),
         "status": "complete" if not missing else "incomplete",
+        "handoffQualityStatus": handoff_status,
         "present": present,
         "missing": missing,
+        "eventCount": len(events),
+        "latestEvent": {
+            "type": latest_event_type or None,
+            "source": latest_event.get("source") if isinstance(latest_event, dict) else None,
+            "action": latest_event_action or None,
+            "hasNote": bool(latest_event.get("note")) if isinstance(latest_event, dict) else False,
+            "hasCoordinates": bool(
+                isinstance(latest_event, dict)
+                and ("normalizedX" in latest_event or "normalizedY" in latest_event or "pixelX" in latest_event or "pixelY" in latest_event)
+            ),
+        },
+        "targetResolution": {
+            "status": target.get("status") if isinstance(target, dict) else None,
+            "intent": target.get("intent") if isinstance(target, dict) else None,
+            "rawCoordinateTapAllowed": target.get("rawCoordinateTapAllowed") if isinstance(target, dict) else None,
+            "xcodeNextTool": xcode.get("nextTool") if isinstance(xcode, dict) else None,
+            "elementRefRequiredBeforeTouch": xcode.get("elementRefRequiredBeforeTouch") if isinstance(xcode, dict) else None,
+        },
+        "handoff": {
+            "jsonPresent": handoff is not None,
+            "markdownPresent": bool(handoff_markdown.strip()),
+            "promptPresent": bool(handoff.get("prompt")) if isinstance(handoff, dict) else False,
+            "safetyMarkdownPresent": safety_markdown_present,
+        },
+        "session": {
+            "tool": session.get("tool") if isinstance(session, dict) else None,
+            "hasPreviewUrl": bool(session.get("previewUrl") or session.get("url")) if isinstance(session, dict) else False,
+        },
     }
 
 
@@ -530,6 +675,7 @@ def render_markdown(report: dict[str, Any]) -> str:
 
     public_url = report["inputs"]["publicUrl"]
     preview = report["inputs"]["previewEvidence"]
+    target = preview.get("targetResolution") if isinstance(preview.get("targetResolution"), dict) else {}
     lines.extend(
         [
             "",
@@ -537,6 +683,20 @@ def render_markdown(report: dict[str, Any]) -> str:
             "",
             f"- Public URL status: {public_url['status']}",
             f"- Preview evidence status: {preview['status']}",
+            f"- Preview handoff quality: {preview.get('handoffQualityStatus', 'not-checked')}",
+            f"- Preview event count: {preview.get('eventCount', 0)}",
+        ]
+    )
+    if target:
+        lines.extend(
+            [
+                f"- Target status: {target.get('status') or 'unknown'}",
+                f"- Raw coordinate tap allowed: {str(target.get('rawCoordinateTapAllowed') is True).lower()}",
+                f"- Element ref required before touch: {str(target.get('elementRefRequiredBeforeTouch') is True).lower()}",
+            ]
+        )
+    lines.extend(
+        [
             "",
             "## CodexPro-Inspired ShipGuard Signals",
             "",

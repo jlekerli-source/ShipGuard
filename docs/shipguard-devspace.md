@@ -131,9 +131,11 @@ Run the static checker before sharing a tunneled Devspace URL, refreshing the pl
 
 `ios devspace-check` inspects ShipGuard's own Devspace source, docs, and plugin guidance without starting the server or reading private app code. It checks loopback defaults, bearer auth support, widget URI and `text/html;profile=mcp-app` metadata, `openai/outputTemplate` routing, screenshot view-token handling, semantic target-resolution boundaries, Codex handoff execution boundaries, `production_readiness`, redaction guidance, and the ChatGPT model-choice boundary.
 
-When `--public-url` is supplied, the report verifies HTTPS, refuses token-like URL query parameters, and requires `--bearer-token-env` without reading or printing the token value. When `--preview-out` is supplied, it verifies that preview evidence includes `session.json`, `handoff.md`, and `preview-events.jsonl`.
+When `--public-url` is supplied, the report verifies HTTPS, refuses token-like URL query parameters, and requires `--bearer-token-env` without reading or printing the token value. When `--preview-out` is supplied, it verifies that preview evidence includes `session.json`, `handoff.json`, `handoff.md`, and `preview-events.jsonl`, then grades whether the handoff keeps raw coordinate taps disabled, records event receipts, includes target-resolution guidance, and carries paste-safe safety language.
 
 The output is `ios-devspace-check.json` and `ios-devspace-check.md`. Treat it as ShipGuard product QA: improve the connector, docs, tests, or fixtures from the findings, but do not convert private app observations into app work.
+
+A public complete-preview fixture lives in `fixtures/ios-devspace/complete-preview` so checker behavior can be tested without depending on Ringly, Ilmify, a booted Simulator, or private screenshots.
 
 ## Codex Handoff
 

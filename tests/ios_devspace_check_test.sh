@@ -10,11 +10,7 @@ cd "$repo_root"
 
 ./bin/shipguard ios devspace-check --help >/dev/null
 
-preview_out="$tmp_dir/preview"
-mkdir -p "$preview_out"
-printf '{"tool":"shipguard ios preview","status":"running"}\n' > "$preview_out/session.json"
-printf '# Handoff\n\nUse semantic targets before simulator input.\n' > "$preview_out/handoff.md"
-printf '{"source":"preview","action":"tap-request"}\n' > "$preview_out/preview-events.jsonl"
+preview_out="fixtures/ios-devspace/complete-preview"
 
 ./bin/shipguard ios devspace-check \
   --path . \
@@ -33,6 +29,10 @@ grep -q '"ruleId": "devspace-bearer-auth-supported"' "$tmp_dir/check/ios-devspac
 grep -q '"ruleId": "devspace-widget-contract"' "$tmp_dir/check/ios-devspace-check.json"
 grep -q '"ruleId": "devspace-codex-handoff-not-auto-executed"' "$tmp_dir/check/ios-devspace-check.json"
 grep -q '"status": "complete"' "$tmp_dir/check/ios-devspace-check.json"
+grep -q '"handoffQualityStatus": "pass"' "$tmp_dir/check/ios-devspace-check.json"
+grep -q '"eventCount": 1' "$tmp_dir/check/ios-devspace-check.json"
+grep -q '"status": "source-edit-target"' "$tmp_dir/check/ios-devspace-check.json"
+grep -q '"safetyMarkdownPresent": true' "$tmp_dir/check/ios-devspace-check.json"
 grep -q '# iOS Devspace Connector Readiness' "$tmp_dir/check/ios-devspace-check.md"
 grep -q 'local MCP bridge with conservative safety defaults' "$tmp_dir/check/ios-devspace-check.md"
 
@@ -69,5 +69,37 @@ printf '{"tool":"shipguard ios preview"}\n' > "$incomplete_preview/session.json"
   --out "$tmp_dir/incomplete" >/dev/null
 grep -q '"status": "review"' "$tmp_dir/incomplete/ios-devspace-check.json"
 grep -q '"ruleId": "preview-evidence-incomplete"' "$tmp_dir/incomplete/ios-devspace-check.json"
+
+unsafe_preview="$tmp_dir/unsafe-preview"
+mkdir -p "$unsafe_preview"
+printf '{"tool":"shipguard ios preview","previewUrl":"http://127.0.0.1:8765"}\n' > "$unsafe_preview/session.json"
+printf '{"type":"tap-request","action":"tap","source":"preview","note":"Tap Settings"}\n' > "$unsafe_preview/preview-events.jsonl"
+cat > "$unsafe_preview/handoff.json" <<'JSON'
+{
+  "latestEvent": {
+    "action": "tap",
+    "source": "preview",
+    "type": "tap-request"
+  },
+  "prompt": "Tap the Settings button from the preview coordinates.",
+  "targetResolution": {
+    "rawCoordinateTapAllowed": true,
+    "status": "needs-semantic-target",
+    "xcodeBuildMCP": {
+      "elementRefRequiredBeforeTouch": false,
+      "nextTool": "tap"
+    }
+  }
+}
+JSON
+printf '# Handoff\n\nRaw coordinate tap allowed: `true`\n' > "$unsafe_preview/handoff.md"
+./bin/shipguard ios devspace-check \
+  --path . \
+  --preview-out "$unsafe_preview" \
+  --out "$tmp_dir/unsafe-preview-report" >/dev/null
+grep -q '"status": "blocked"' "$tmp_dir/unsafe-preview-report/ios-devspace-check.json"
+grep -q '"handoffQualityStatus": "blocked"' "$tmp_dir/unsafe-preview-report/ios-devspace-check.json"
+grep -q '"ruleId": "preview-handoff-raw-coordinate-tap-enabled"' "$tmp_dir/unsafe-preview-report/ios-devspace-check.json"
+grep -q '"ruleId": "preview-handoff-element-ref-not-required"' "$tmp_dir/unsafe-preview-report/ios-devspace-check.json"
 
 echo "ios devspace-check tests passed"

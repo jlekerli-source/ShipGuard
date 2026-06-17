@@ -211,7 +211,7 @@ Before sharing a tunneled URL or evaluating the connector itself, run:
   --out /tmp/ios-shipguard-devspace-check
 ```
 
-`ios devspace-check` is ShipGuard-only product QA. It statically grades loopback defaults, bearer auth, MCP widget metadata, screenshot-token handling, semantic target-resolution, Codex handoff execution boundaries, production-readiness guidance, redaction routing, and model-choice honesty without grading or editing a target app.
+`ios devspace-check` is ShipGuard-only product QA. It statically grades loopback defaults, bearer auth, MCP widget metadata, screenshot-token handling, semantic target-resolution, Codex handoff execution boundaries, production-readiness guidance, redaction routing, and model-choice honesty without grading or editing a target app. With `--preview-out`, it also parses `handoff.json`, `handoff.md`, and `preview-events.jsonl` to verify event receipts, raw-coordinate safety, and paste-safe handoff guidance.
 
 See `docs/shipguard-devspace.md`.
 
@@ -298,6 +298,18 @@ Start the loop:
   --state .shipguard/goals.json \
   --out NEXT_SHIPGUARD_GOAL.md
 ```
+
+Bootstrap the loop from already-proven shipped work when the checkout has moved ahead of the catalog:
+
+```bash
+./bin/shipguard ios goals init \
+  --state .shipguard/goals.json \
+  --completed-through shipguard-devspace-mcp \
+  --completion-evidence ./release-proof/current-upgrade.md \
+  --out NEXT_SHIPGUARD_GOAL.md
+```
+
+`--completed-through` records evidence receipts for all catalog goals up to the named goal and emits the next pending `/goal`. Use it only when the proof receipt exists; it is for keeping the loop aligned with the current ShipGuard direction, not for skipping validation.
 
 Print the current goal:
 
