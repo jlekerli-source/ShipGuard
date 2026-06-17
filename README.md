@@ -146,6 +146,7 @@ To publish the negative fixture index in GitHub Actions, use `jlekerli-source/Sh
 - `PLANS.md`: a planning template that forces objective, scope, risks, tests, and rollback thinking.
 - `SUBAGENTS.md`: inspector, implementer, tester, and reviewer roles for larger Codex tasks.
 - `.agents/skills/`: reusable Codex skills for alarm testing, notification permissions, UI polish, release checklists, and bug triage.
+- `plugins/ios-shipguard/`: Codex plugin source for the iOS ShipGuard skill and MCP metadata.
 - `scripts/`: release handoff, bug triage, alarm validation, packaging, and autopsy report generation.
 - `bin/shipguard`: a dependency-light CLI for profile init, validation, doctor checks, run scoring, autopsy reports, Arena comparison, transcript redaction, verification, corpus indexing, CI artifacts, and release-loop proof.
 - `bin/codex-maintainer`: compatibility wrapper for older automation.

@@ -22,6 +22,11 @@ required_files=(
   "LICENSE"
   "bin/shipguard"
   "bin/codex-maintainer"
+  "plugins/ios-shipguard/.codex-plugin/plugin.json"
+  "plugins/ios-shipguard/.mcp.json"
+  "plugins/ios-shipguard/skills/ios-shipguard/SKILL.md"
+  "plugins/ios-shipguard/skills/ios-shipguard/agents/openai.yaml"
+  "plugins/ios-shipguard/skills/ios-shipguard/references/modes.md"
   ".github/workflows/autopsy-artifact.yml"
   "actions/ci-gate/action.yml"
   "actions/arena-compare/action.yml"
@@ -264,6 +269,22 @@ if ! grep -qxE '[0-9]+\.[0-9]+\.[0-9]+' VERSION; then
 fi
 
 for skill in .agents/skills/*/SKILL.md; do
+  delimiter_count=$(grep -c '^---$' "$skill")
+  if [[ "$delimiter_count" -ne 2 ]]; then
+    echo "expected exactly two frontmatter delimiters: $skill" >&2
+    exit 1
+  fi
+  if [[ "$(grep -c '^name: ' "$skill")" -ne 1 ]]; then
+    echo "missing skill name: $skill" >&2
+    exit 1
+  fi
+  if [[ "$(grep -c '^description: ' "$skill")" -ne 1 ]]; then
+    echo "missing skill description: $skill" >&2
+    exit 1
+  fi
+done
+
+for skill in plugins/*/skills/*/SKILL.md; do
   delimiter_count=$(grep -c '^---$' "$skill")
   if [[ "$delimiter_count" -ne 2 ]]; then
     echo "expected exactly two frontmatter delimiters: $skill" >&2

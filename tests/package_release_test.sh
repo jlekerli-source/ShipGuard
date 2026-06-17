@@ -22,6 +22,11 @@ tar -tzf "$tarball" > "$tar_list"
 grep -q "^$package_name/bin/shipguard$" "$tar_list"
 grep -q "^$package_name/bin/codex-maintainer$" "$tar_list"
 grep -q "^$package_name/AGENTS.md$" "$tar_list"
+grep -q "^$package_name/plugins/ios-shipguard/.codex-plugin/plugin.json$" "$tar_list"
+grep -q "^$package_name/plugins/ios-shipguard/.mcp.json$" "$tar_list"
+grep -q "^$package_name/plugins/ios-shipguard/skills/ios-shipguard/SKILL.md$" "$tar_list"
+grep -q "^$package_name/plugins/ios-shipguard/skills/ios-shipguard/agents/openai.yaml$" "$tar_list"
+grep -q "^$package_name/plugins/ios-shipguard/skills/ios-shipguard/references/modes.md$" "$tar_list"
 grep -q "^$package_name/.github/workflows/autopsy-artifact.yml$" "$tar_list"
 grep -q "^$package_name/actions/arena-compare/action.yml$" "$tar_list"
 grep -q "^$package_name/actions/ci-gate/action.yml$" "$tar_list"
@@ -317,6 +322,17 @@ grep -q '| Status | pass |' "$tmp_dir/package-gate/summary.md"
 grep -q '"status" : "pass"' "$tmp_dir/package-docs-check/docs-check.json"
 grep -q '"broken_count" : 0' "$tmp_dir/package-docs-check/docs-check.json"
 "$package_root/bin/shipguard" codex status --cache "$tmp_dir/empty-codex-cache" >/dev/null
+package_plugin_version="$(python3 - "$package_root/plugins/ios-shipguard/.codex-plugin/plugin.json" <<'PY'
+import json
+import sys
+with open(sys.argv[1], "r", encoding="utf-8") as handle:
+    print(json.load(handle)["version"])
+PY
+)"
+package_plugin_cache="$tmp_dir/package-codex-cache/shipguard/ios-shipguard/$package_plugin_version"
+mkdir -p "$(dirname "$package_plugin_cache")"
+cp -R "$package_root/plugins/ios-shipguard" "$package_plugin_cache"
+"$package_root/bin/shipguard" codex status --cache "$tmp_dir/package-codex-cache" --strict >/dev/null
 "$package_root/bin/shipguard" ci-summary \
   --gate "$tmp_dir/package-gate/gate.json" \
   --out "$tmp_dir/package-summary.md" >/dev/null
@@ -563,6 +579,11 @@ grep -q '| shipguard release-evidence verify --help | pass |' "$tmp_dir/package-
 grep -q '| shipguard release-evidence negative-index --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard docs-check --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard codex status --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| plugins/ios-shipguard/.codex-plugin/plugin.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| plugins/ios-shipguard/.mcp.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| plugins/ios-shipguard/skills/ios-shipguard/SKILL.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| plugins/ios-shipguard/skills/ios-shipguard/agents/openai.yaml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| plugins/ios-shipguard/skills/ios-shipguard/references/modes.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| actions/release-consume/action.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| actions/release-diff/action.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| actions/release-evidence/action.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"

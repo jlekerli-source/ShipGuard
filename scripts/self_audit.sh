@@ -103,6 +103,11 @@ done
 required_artifacts=(
   "templates/policy/default.conf"
   "actions/arena-compare/action.yml"
+  "plugins/ios-shipguard/.codex-plugin/plugin.json"
+  "plugins/ios-shipguard/.mcp.json"
+  "plugins/ios-shipguard/skills/ios-shipguard/SKILL.md"
+  "plugins/ios-shipguard/skills/ios-shipguard/agents/openai.yaml"
+  "plugins/ios-shipguard/skills/ios-shipguard/references/modes.md"
   "actions/ci-gate/action.yml"
   "actions/release-consume/action.yml"
   "actions/release-diff/action.yml"

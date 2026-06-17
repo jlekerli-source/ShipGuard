@@ -38,6 +38,7 @@ paths=(
   "_config.yml"
   "actions"
   "bin"
+  "plugins"
   "scripts"
   ".agents"
   "templates"

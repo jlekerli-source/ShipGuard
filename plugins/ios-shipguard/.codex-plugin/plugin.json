@@ -1,0 +1,42 @@
+{
+  "name": "ios-shipguard",
+  "version": "0.2.0+codex.20260617003813",
+  "description": "ShipGuard guardrails and live-preview handoffs for solo iOS developers shipping permission-heavy apps.",
+  "author": {
+    "name": "ShipGuard",
+    "url": "https://github.com/jlekerli-source/ShipGuard"
+  },
+  "homepage": "https://github.com/jlekerli-source/ShipGuard",
+  "repository": "https://github.com/jlekerli-source/ShipGuard",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "ios",
+    "swift",
+    "permissions",
+    "release-proof",
+    "simulator-preview",
+    "evals"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "iOS ShipGuard",
+    "shortDescription": "Guardrails and preview handoffs for iOS Codex work.",
+    "longDescription": "iOS ShipGuard helps Codex classify risky iOS work, inventory permissions and runtime surfaces, ask required product questions before editing, preview a simulator screen through Devspace, run clean first-run demos and deterministic evals, and route simulator, StoreKit, widget, notification, Codex handoff, privacy, and release proof through the right validation loop.",
+    "developerName": "ShipGuard",
+    "category": "Developer",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Interactive"
+    ],
+    "defaultPrompt": [
+      "Use $ios-shipguard before risky iOS edits.",
+      "Run a first ShipGuard demo from this checkout.",
+      "Open ShipGuard Devspace for my simulator.",
+      "Send the latest preview event to Codex."
+    ],
+    "brandColor": "#2563EB"
+  }
+}

@@ -40,7 +40,6 @@ YAML
 status_output="$(./bin/shipguard codex status --cache "$tmp_dir/cache")"
 printf '%s\n' "$status_output" | grep -q '# ShipGuard Codex Status'
 printf '%s\n' "$status_output" | grep -q 'Overall status: stale'
-printf '%s\n' "$status_output" | grep -q 'missing_source'
 printf '%s\n' "$status_output" | grep -q 'stale_metadata'
 printf '%s\n' "$status_output" | grep -q 'stale_skill_text'
 
@@ -52,5 +51,19 @@ fi
 empty_output="$(./bin/shipguard codex status --cache "$tmp_dir/empty-cache")"
 printf '%s\n' "$empty_output" | grep -q 'Overall status: missing'
 printf '%s\n' "$empty_output" | grep -q 'missing_install'
+
+fresh_cache="$tmp_dir/fresh-cache/shipguard/ios-shipguard/$(python3 - <<'PY'
+import json
+with open("plugins/ios-shipguard/.codex-plugin/plugin.json", "r", encoding="utf-8") as handle:
+    print(json.load(handle)["version"])
+PY
+)"
+mkdir -p "$(dirname "$fresh_cache")"
+cp -R plugins/ios-shipguard "$fresh_cache"
+
+fresh_output="$(./bin/shipguard codex status --cache "$tmp_dir/fresh-cache" --strict)"
+printf '%s\n' "$fresh_output" | grep -q 'Overall status: pass'
+printf '%s\n' "$fresh_output" | grep -q 'Tracked plugin source: present'
+printf '%s\n' "$fresh_output" | grep -q 'iOS ShipGuard'
 
 echo "codex status tests passed"
