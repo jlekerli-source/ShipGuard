@@ -17,6 +17,10 @@ fi
 rm -rf "$lib_dir"
 mkdir -p "$lib_dir"
 tar -C "$package_root" -cf - . | tar -C "$lib_dir" -xf -
+find "$lib_dir" \
+  \( -name '.git' -o -name 'dist' -o -name '.DS_Store' -o -name '.cache' -o -name 'DerivedData' -o -name '__pycache__' \) \
+  -prune -exec rm -rf {} +
+find "$lib_dir" -type f -name '*.pyc' -delete
 
 mkdir -p "$bin_dir"
 cat > "$target" <<WRAPPER

@@ -1,3 +1,7 @@
 dist/
 *.tmp
 .DS_Store
+.cache/
+DerivedData/
+__pycache__/
+*.pyc

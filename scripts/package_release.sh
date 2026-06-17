@@ -54,8 +54,9 @@ for path in "${paths[@]}"; do
 done
 
 find "$package_root" \
-  \( -name '.git' -o -name 'dist' -o -name '.DS_Store' -o -name '.cache' -o -name 'DerivedData' \) \
+  \( -name '.git' -o -name 'dist' -o -name '.DS_Store' -o -name '.cache' -o -name 'DerivedData' -o -name '__pycache__' \) \
   -prune -exec rm -rf {} +
+find "$package_root" -type f -name '*.pyc' -delete
 
 tarball="$dist_dir/$package_name.tar.gz"
 tar -C "$work_dir" -czf "$tarball" "$package_name"

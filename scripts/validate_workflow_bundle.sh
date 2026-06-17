@@ -424,7 +424,13 @@ else
 fi
 
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  if git ls-files | grep -Eq '(^|/)(dist|DerivedData|\.cache|__pycache__)(/|$)|\.pyc$'; then
+    echo "tracked generated/cache artifacts are not allowed" >&2
+    git ls-files | grep -E '(^|/)(dist|DerivedData|\.cache|__pycache__)(/|$)|\.pyc$' >&2
+    exit 1
+  fi
   git diff --check
+  git diff --cached --check
 else
   echo "not inside a git worktree; skipping git diff --check"
 fi

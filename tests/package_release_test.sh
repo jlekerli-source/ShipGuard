@@ -4,9 +4,22 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 tmp_dir="$(mktemp -d)"
-trap 'rm -rf "$tmp_dir"' EXIT
+cleanup() {
+  rm -rf "$tmp_dir"
+  rm -rf "$repo_root/scripts/__pycache__"
+  rm -f "$repo_root/.cache/shipguard-package-test.tmp"
+  rmdir "$repo_root/.cache" >/dev/null 2>&1 || true
+  rm -f "$repo_root/DerivedData/shipguard-package-test.tmp"
+  rmdir "$repo_root/DerivedData" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
 
 cd "$repo_root"
+
+mkdir -p scripts/__pycache__ .cache DerivedData
+printf 'bytecode sentinel\n' > scripts/__pycache__/shipguard_package_test.pyc
+printf 'cache sentinel\n' > .cache/shipguard-package-test.tmp
+printf 'derived data sentinel\n' > DerivedData/shipguard-package-test.tmp
 
 tarball="$(./scripts/package_release.sh)"
 version="$(sed -n '1p' VERSION)"
@@ -304,7 +317,7 @@ grep -q "^$package_name/evals/cases.jsonl$" "$tar_list"
 grep -q "^$package_name/evals/ios_shipguard_cases.jsonl$" "$tar_list"
 grep -q "^$package_name/evals/run_local.py$" "$tar_list"
 
-if grep -Eq '(^|/)(\\.git|dist|DerivedData|\\.cache)(/|$)' "$tar_list"; then
+if grep -Eq '(^|/)(\\.git|dist|DerivedData|\\.cache|__pycache__)(/|$)|\\.pyc$' "$tar_list"; then
   echo "package includes forbidden generated or VCS paths" >&2
   exit 1
 fi
@@ -858,8 +871,18 @@ grep -q 'following /plan above' "$tmp_dir/package-scoped-next-goal.md"
 grep -q './bin/shipguard next-goal --release 2.7.0 --title "Package Followup Two" --out NEXT_GOAL.md' "$tmp_dir/package-scoped-next-goal.md"
 
 install_prefix="$tmp_dir/install"
+mkdir -p "$package_root/scripts/__pycache__" "$package_root/dist" "$package_root/.git"
+printf 'bytecode sentinel\n' > "$package_root/scripts/__pycache__/install_sentinel.pyc"
+printf 'dist sentinel\n' > "$package_root/dist/install-sentinel.tmp"
+printf 'git sentinel\n' > "$package_root/.git/HEAD"
 PREFIX="$install_prefix" "$package_root/scripts/install.sh" >/dev/null
 test "$("$install_prefix/bin/shipguard" version)" = "$version"
 test "$("$install_prefix/bin/codex-maintainer" version)" = "$version"
+if find "$install_prefix/lib/shipguard" \
+  \( -name '.git' -o -name 'dist' -o -name '.DS_Store' -o -name '.cache' -o -name 'DerivedData' -o -name '__pycache__' -o -name '*.pyc' \) \
+  -print -quit | grep -q .; then
+  echo "installed toolkit includes forbidden generated or VCS paths" >&2
+  exit 1
+fi
 
 echo "package release tests passed"
