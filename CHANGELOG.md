@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed iOS ShipGuard skill CLI routing for app checkouts by resolving `SHIPGUARD_CLI` from app-local `./bin/shipguard`, installed `shipguard`, or `$HOME/.local/bin/shipguard` instead of assuming every target app repo contains ShipGuard's source tree.
+- Split `ios performance` proof guidance into `localProof` and `manualProof`, render Codex-local versus manual/device proof in Markdown, and let `ios report-quality` flag performance reports that keep proof guidance vague or hidden from Markdown.
 - Added high-severity justification for `ios performance` findings so high findings explain the threshold, actor context, or source signal behind severity, render that reason in Markdown, and let `ios report-quality` flag missing JSON or Markdown severity explanations.
 - Added grouped performance next actions so `ios performance` summarizes repeated rule clusters before individual findings, caps repeated high rows in Markdown, and lets `ios report-quality` flag repeated performance reports that lack `groupedActionPlan` or a visible `Grouped Next Actions` section.
 - Added a performance finding explanation gate so `ios report-quality` flags `ios performance` findings that omit an `impact`/`whyItMatters` explanation or hide that explanation from Markdown, and adjusted performance product-QA questions so completed explanation coverage no longer remains the top next action.

@@ -29,6 +29,14 @@ PREFIX="$HOME/.local" ./scripts/install.sh
 ./bin/shipguard validate
 ```
 
+When you are inside your own app repo, use the installed command instead of `./bin/shipguard`:
+
+```bash
+shipguard ios inventory --path . --out /tmp/ios-shipguard-inventory
+# or, if ~/.local/bin is not on PATH:
+"$HOME/.local/bin/shipguard" ios inventory --path . --out /tmp/ios-shipguard-inventory
+```
+
 Copy a starter workflow into your app:
 
 ```bash

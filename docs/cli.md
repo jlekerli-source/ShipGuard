@@ -1,6 +1,6 @@
 # CLI
 
-`bin/shipguard` is a dependency-light helper for validating and reusing this workflow kit.
+`bin/shipguard` is a dependency-light helper for validating and reusing this workflow kit. Inside the ShipGuard source checkout, examples use `./bin/shipguard`. Inside an app checkout, install the CLI once with `PREFIX="$HOME/.local" ./scripts/install.sh` from the ShipGuard source or release package, then run `shipguard` or `$HOME/.local/bin/shipguard`.
 
 ## Validate
 
@@ -113,11 +113,11 @@ The iOS namespace also includes:
 - `ios target-match`: rank visual preview events against XcodeBuildMCP UI snapshots.
 - `ios codex-handoff`: prepare a guarded Codex app-server handoff.
 - `ios plan --mode performance-audit`: route FPS, hitches, launch/scroll stutter, profiler fallback, and device-vs-simulator proof gaps.
-- `ios performance`: scan Swift source for ranked app-side performance hotspots before Codex edits; findings include impact/why-it-matters explanations, high-severity reasons, and grouped next actions for repeated rule clusters in JSON and Markdown. Add `--shareable` when performance reports will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or report-quality scoring.
+- `ios performance`: scan Swift source for ranked app-side performance hotspots before Codex edits; findings include impact/why-it-matters explanations, high-severity reasons, local/manual proof boundaries, and grouped next actions for repeated rule clusters in JSON and Markdown. Add `--shareable` when performance reports will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or report-quality scoring.
 - `ios design`: audit app-type-specific UI/UX coherence, motion, haptics, preview routing, and ImageGen app-icon handoff before visual work; add `--shareable` when design reports will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or report-quality scoring.
 - iOS source scanners skip generated/proof/cache directories such as build output, release artifacts, scratch folders, web assets, and plugin/editor caches; reports include a scan-scope summary so private-app product QA stays auditable.
 - `--shipguard-eval`: mark `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, or `ios ai-readiness` as ShipGuard product QA only, so findings improve ShipGuard rather than becoming target-app work; add `--shareable` before those reports move into report-quality scoring or external planning.
-- `ios report-quality`: grade ShipGuard report usefulness across read-only product-QA outputs; it evaluates report structure, boundaries, proof guidance, scan scope, performance finding impact explanations, high-severity reasons, repeated performance grouping, declared shareability, token/path shareability, redaction handoff, aggregated actionability questions, and a prioritized next action, not target-app quality. Add `--shareable` when the report-quality artifact itself will move into ChatGPT, GitHub, docs, benchmark fixtures, or release evidence.
+- `ios report-quality`: grade ShipGuard report usefulness across read-only product-QA outputs; it evaluates report structure, boundaries, proof guidance, scan scope, performance finding impact explanations, high-severity reasons, local/manual proof boundaries, repeated performance grouping, declared shareability, token/path shareability, redaction handoff, aggregated actionability questions, and a prioritized next action, not target-app quality. Add `--shareable` when the report-quality artifact itself will move into ChatGPT, GitHub, docs, benchmark fixtures, or release evidence.
 - `ios modernize`: audit Swift, SwiftUI, Observation, accessibility, localization, and availability risks; add `--shareable` before report-quality scoring or external sharing.
 - `ios app-intelligence`: audit App Intents, shortcuts, widgets, Spotlight, controls, and system exposure; add `--shareable` before report-quality scoring or external sharing.
 - `ios ai-readiness`: compare on-device, cloud, Core ML, and no-AI options before model work; add `--shareable` before report-quality scoring or external sharing.

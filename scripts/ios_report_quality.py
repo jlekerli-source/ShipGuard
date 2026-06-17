@@ -541,6 +541,40 @@ def performance_high_severity_issues(report: dict[str, Any], *, markdown: str, p
     return issues
 
 
+def performance_proof_boundary_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    findings = report.get("findings")
+    if not isinstance(findings, list) or not findings:
+        return issues
+    for index, item in enumerate(findings[:20], start=1):
+        if not isinstance(item, dict):
+            continue
+        missing = [field for field in ("localProof", "manualProof") if not item.get(field)]
+        if missing:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="performance-proof-boundary-missing",
+                evidence=f"{path_name} finding #{index} missing {', '.join(missing)}",
+                recommendation="Split performance proof guidance into what Codex can verify locally and what still needs device, account, or manual proof.",
+            )
+    if issues:
+        return issues
+    boundary_markdown_visible = bool(
+        ("Codex local proof" in markdown or "Local proof" in markdown)
+        and "Manual/device proof" in markdown
+    )
+    if not boundary_markdown_visible:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-markdown-proof-boundary-missing",
+            evidence=f"{path_name} has performance findings but Markdown does not separate local proof from manual/device proof",
+            recommendation="Show Codex-local proof and manual/device proof separately in Markdown so report readers know what can be verified in the current thread.",
+        )
+    return issues
+
+
 def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     inputs = report.get("reportInputs")
@@ -1076,6 +1110,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
         issues.extend(performance_finding_explanation_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_grouping_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_high_severity_issues(loaded, markdown=markdown, path_name=path.name))
+        issues.extend(performance_proof_boundary_issues(loaded, markdown=markdown, path_name=path.name))
 
     if has_local_path(raw_text):
         add_issue(

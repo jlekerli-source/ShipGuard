@@ -152,8 +152,10 @@ def make_finding(
     severity_reason: str,
     impact: str,
     recommendation: str,
-    proof: str,
+    local_proof: str,
+    manual_proof: str,
 ) -> dict[str, Any]:
+    proof = f"Local proof: {local_proof} Manual/device proof: {manual_proof}"
     return {
         "ruleId": rule_id,
         "severity": severity,
@@ -165,6 +167,8 @@ def make_finding(
         "severityReason": severity_reason,
         "impact": impact,
         "recommendation": recommendation,
+        "localProof": local_proof,
+        "manualProof": manual_proof,
         "proof": proof,
     }
 
@@ -210,7 +214,8 @@ def scan_file(path: Path, root: Path, findings: list[dict[str, Any]], metrics: d
                     severity_reason=severity_reason,
                     impact="Frequent TimelineView updates can redraw the view tree even when the visual change is small.",
                     recommendation="Use the slowest cadence that preserves the user-visible state; disable or lower cadence for Reduce Motion, inactive state, and non-critical ambience.",
-                    proof="Compare CPU/frame behavior before and after with Animation Hitches, Time Profiler, or a symbolicated sample fallback.",
+                    local_proof="Compare the same route before and after in Simulator with Animation Hitches, Time Profiler, or a symbolicated sample fallback; verify inactive and Reduce Motion gates from source.",
+                    manual_proof="Use physical-device Instruments before claiming 10/10 smoothness, touch latency, ProMotion behavior, thermal behavior, or display-specific performance.",
                 ),
             )
 
@@ -228,7 +233,8 @@ def scan_file(path: Path, root: Path, findings: list[dict[str, Any]], metrics: d
                     severity_reason="Review because repeatForever animation keeps the render loop active until gated by view visibility, user value, or Reduce Motion.",
                     impact="Always-on animations keep the renderer active and can combine poorly with large gradients, blur, material, or tab backgrounds.",
                     recommendation="Gate decorative motion behind Reduce Motion, active screen visibility, and measurable value; prefer static states for background ambience.",
-                    proof="Record the affected screen at rest and during interaction, then compare sampled CPU/GPU pressure after reducing or removing the animation.",
+                    local_proof="Record the affected screen at rest and during interaction, then compare sampled CPU/GPU pressure after reducing or gating the animation.",
+                    manual_proof="Use physical-device Instruments before claiming battery, thermal, touch-latency, or ProMotion smoothness improvements.",
                 ),
             )
 
@@ -249,7 +255,8 @@ def scan_file(path: Path, root: Path, findings: list[dict[str, Any]], metrics: d
                         severity_reason=f"Review because blur radius {radius:g} can create offscreen composition cost when repeated, animated, or used under large surfaces.",
                         impact="Large blur radii can increase offscreen rendering and composition cost, especially when animated or repeated under tab shells.",
                         recommendation="Prefer precomposed assets, static gradients, smaller radii, or one shared background layer per screen.",
-                        proof="Capture before/after screenshots and a profiler/sample run on the exact screen being optimized.",
+                        local_proof="Capture before/after screenshots and a profiler or sample run on the exact screen being optimized.",
+                        manual_proof="Use physical-device GPU or Instruments proof before claiming device-class, thermal, or ProMotion smoothness wins.",
                     ),
                 )
 
@@ -270,7 +277,8 @@ def scan_file(path: Path, root: Path, findings: list[dict[str, Any]], metrics: d
                         severity_reason="Opportunity because three shadows were detected within a short source window; confirm whether they sit on the same repeated or scrolling surface.",
                         impact="Multiple shadows close together can create extra offscreen rendering cost and make scrolling surfaces heavier.",
                         recommendation="Keep only shadows that materially improve hierarchy; flatten repeated card shadows into a shared style.",
-                        proof="Use screenshots plus a sampled scroll/interaction run to confirm the simplified style preserves hierarchy.",
+                        local_proof="Use screenshots plus a sampled scroll or interaction run to confirm the simplified style preserves hierarchy and lowers local work.",
+                        manual_proof="Use device scroll or Instruments proof before claiming production scroll smoothness on real hardware.",
                     ),
                 )
 
@@ -290,7 +298,8 @@ def scan_file(path: Path, root: Path, findings: list[dict[str, Any]], metrics: d
                         severity_reason="Review because formatter construction appears inside a SwiftUI view path rather than a static or lazy cache.",
                         impact="Formatter creation in SwiftUI view paths can add repeated work during redraws.",
                         recommendation="Move stable formatters to static cached helpers or pass formatted values from the model layer.",
-                        proof="Run the relevant view flow and confirm output formatting remains unchanged.",
+                        local_proof="Run the relevant view flow or tests locally and confirm formatted output remains unchanged; sample the view if redraw cost is the concern.",
+                        manual_proof="Manual/device proof is usually not required unless this is tied to a launch, scroll, or device-level smoothness claim.",
                     ),
                 )
 
@@ -308,7 +317,8 @@ def scan_file(path: Path, root: Path, findings: list[dict[str, Any]], metrics: d
                     severity_reason="Review because image data decoding was detected on a source line that may execute during UI updates or interaction.",
                     impact="Decoding image data during view updates or interaction can cause hitches, memory pressure, or scroll stalls.",
                     recommendation="Cache decoded images, downsample large assets, and move decoding off hot SwiftUI body/update paths.",
-                    proof="Use a sample trace during the image-heavy screen and compare memory/CPU after caching or downsampling.",
+                    local_proof="Use a sample trace during the image-heavy screen and compare local memory and CPU after caching or downsampling.",
+                    manual_proof="Use physical-device memory, thermal, and scroll proof before claiming production image-performance gains.",
                 ),
             )
 
@@ -333,7 +343,8 @@ def scan_file(path: Path, root: Path, findings: list[dict[str, Any]], metrics: d
                     severity_reason=severity_reason,
                     impact="UNUserNotificationCenter removal may synchronously wait on the notification service; if called from MainActor or launch/UI tasks it can feel like jank.",
                     recommendation="Keep notification cleanup off user-interaction hot paths where product semantics allow it, and preserve alarm/permission correctness when moving work.",
-                    proof="Symbolicate sampled stacks before editing; after editing, rerun launch/tab interaction samples and the relevant notification/alarm validation lane.",
+                    local_proof="Symbolicate sampled stacks before editing; after editing, rerun launch/tab interaction samples and the relevant notification or alarm validation lane.",
+                    manual_proof="Use physical-device proof for wake paths, locked/background/killed delivery, notification timing, TestFlight behavior, or release claims.",
                 ),
             )
 
@@ -390,10 +401,8 @@ def shipguard_eval_boundary() -> dict[str, Any]:
 
 def shipguard_eval_questions() -> list[str]:
     return [
-        "Did proof guidance name what Codex can verify locally and what remains device/manual proof?",
-        "Were finding impact explanations specific enough to make prioritization obvious without private app context?",
-        "Did grouped next actions make repeated rules scannable without hiding full JSON evidence?",
-        "Did high severity reasons cite concrete thresholds, actor context, or source signals rather than broad suspicion?",
+        "Did grouped next actions name the smallest first experiment before broad refactors?",
+        "Did report wording keep target-app remediation separate from ShipGuard product QA next steps?",
         "Which observation should become a public fixture or eval case before changing the rule again?",
     ]
 
@@ -456,6 +465,8 @@ def grouped_action_plan(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "severityReason": first["severityReason"],
                 "whyThisGroupMatters": first["impact"],
                 "recommendedFirstMove": first["recommendation"],
+                "localProof": first["localProof"],
+                "manualProof": first["manualProof"],
                 "proofGuidance": first["proof"],
             }
         )
@@ -623,14 +634,14 @@ def markdown_report(report: dict[str, Any]) -> str:
                 "",
                 "Start with rule groups, not individual duplicate rows. Inspect the first locations, prove the group on the slow screen, then decide whether the pattern is real before broad refactors.",
                 "",
-                "| Rule | Count | First Locations | Why severity | Why this group matters | First move | Proof |",
-                "| --- | ---: | --- | --- | --- | --- | --- |",
+                "| Rule | Count | First Locations | Why severity | Why this group matters | First move | Codex local proof | Manual/device proof |",
+                "| --- | ---: | --- | --- | --- | --- | --- | --- |",
             ]
         )
         for group in report["groupedActionPlan"]:
             locations = "<br>".join(f"`{location}`" for location in group["firstLocations"])
             lines.append(
-                f"| `{group['ruleId']}` | {group['count']} | {locations} | {table_cell(group['severityReason'])} | {table_cell(group['whyThisGroupMatters'])} | {table_cell(group['recommendedFirstMove'])} | {table_cell(group['proofGuidance'])} |"
+                f"| `{group['ruleId']}` | {group['count']} | {locations} | {table_cell(group['severityReason'])} | {table_cell(group['whyThisGroupMatters'])} | {table_cell(group['recommendedFirstMove'])} | {table_cell(group['localProof'])} | {table_cell(group['manualProof'])} |"
             )
 
     selected_findings = select_markdown_findings(report["findings"])
@@ -653,6 +664,22 @@ def markdown_report(report: dict[str, Any]) -> str:
     hidden_count = len(report["findings"]) - len(selected_findings)
     if hidden_count > 0:
         lines.append(f"| ... | ... | ... | ... | ... | ... | ... | {hidden_count} more findings in JSON |")
+
+    if selected_findings:
+        lines.extend(
+            [
+                "",
+                "## Proof Boundaries",
+                "",
+                "| Severity | Rule | Location | Codex local proof | Manual/device proof |",
+                "| --- | --- | --- | --- | --- |",
+            ]
+        )
+        for finding in selected_findings:
+            location = f"`{finding['file']}:{finding['line']}`"
+            lines.append(
+                f"| {finding['severity']} | `{finding['ruleId']}` | {location} | {table_cell(finding['localProof'])} | {table_cell(finding['manualProof'])} |"
+            )
 
     if report["reportQualityQuestions"]:
         lines.extend(["", "## Report Quality Questions", ""])

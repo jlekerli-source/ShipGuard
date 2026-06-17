@@ -77,6 +77,8 @@ grep -q '"ruleId": "swiftui-periodic-timeline"' "$tmp_dir/performance/ios-perfor
 grep -q '"ruleId": "notification-removal-ui-stall"' "$tmp_dir/performance/ios-performance.json"
 grep -q '"ruleId": "formatter-created-in-view"' "$tmp_dir/performance/ios-performance.json"
 grep -q '"severityReason":' "$tmp_dir/performance/ios-performance.json"
+grep -q '"localProof":' "$tmp_dir/performance/ios-performance.json"
+grep -q '"manualProof":' "$tmp_dir/performance/ios-performance.json"
 grep -q '"impact":' "$tmp_dir/performance/ios-performance.json"
 grep -q '"groupedActionPlan":' "$tmp_dir/performance/ios-performance.json"
 grep -q '"scanScope"' "$tmp_dir/performance/ios-performance.json"
@@ -86,6 +88,9 @@ grep -q 'release-artifacts' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Why severity' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Why it matters' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Grouped Next Actions' "$tmp_dir/performance/ios-performance.md"
+grep -q 'Proof Boundaries' "$tmp_dir/performance/ios-performance.md"
+grep -q 'Codex local proof' "$tmp_dir/performance/ios-performance.md"
+grep -q 'Manual/device proof' "$tmp_dir/performance/ios-performance.md"
 if grep -q 'GeneratedPerformanceNoise.swift' "$tmp_dir/performance/ios-performance.json"; then
   echo "ios performance should skip generated proof artifacts" >&2
   exit 1
@@ -100,12 +105,12 @@ groups = {item["ruleId"]: item for item in report["groupedActionPlan"]}
 for rule_id in ("swiftui-periodic-timeline", "notification-removal-ui-stall"):
     if groups.get(rule_id, {}).get("count", 0) <= 3:
         raise SystemExit(f"expected repeated group for {rule_id}: {groups.get(rule_id)}")
-    for field in ("firstLocations", "severityReason", "whyThisGroupMatters", "recommendedFirstMove", "proofGuidance"):
+    for field in ("firstLocations", "severityReason", "whyThisGroupMatters", "recommendedFirstMove", "localProof", "manualProof", "proofGuidance"):
         if not groups[rule_id].get(field):
             raise SystemExit(f"group {rule_id} missing {field}: {groups[rule_id]}")
 
 markdown = Path(sys.argv[2]).read_text(encoding="utf-8")
-top = markdown.split("## Top Findings", 1)[1].split("## Report Quality Questions", 1)[0]
+top = markdown.split("## Top Findings", 1)[1].split("## Proof Boundaries", 1)[0]
 if top.count("`swiftui-periodic-timeline`") > 3:
     raise SystemExit("top findings should cap repeated timeline rows after grouped actions")
 PY
@@ -116,13 +121,24 @@ grep -q '"shipguardOnly": true' "$tmp_dir/eval-performance/ios-performance.json"
 grep -q 'ShipGuard Evaluation Boundary' "$tmp_dir/eval-performance/ios-performance.md"
 grep -q 'Do not edit the scanned app' "$tmp_dir/eval-performance/ios-performance.md"
 grep -q 'Report Quality Questions' "$tmp_dir/eval-performance/ios-performance.md"
-grep -q 'Did proof guidance name what Codex can verify locally and what remains device/manual proof?' "$tmp_dir/eval-performance/ios-performance.json"
-grep -q 'Did high severity reasons cite concrete thresholds, actor context, or source signals rather than broad suspicion?' "$tmp_dir/eval-performance/ios-performance.json"
+grep -q 'Did grouped next actions name the smallest first experiment before broad refactors?' "$tmp_dir/eval-performance/ios-performance.json"
+grep -q 'Did report wording keep target-app remediation separate from ShipGuard product QA next steps?' "$tmp_dir/eval-performance/ios-performance.json"
+if grep -q 'Did proof guidance name what Codex can verify locally and what remains device/manual proof?' "$tmp_dir/eval-performance/ios-performance.json"; then
+  echo "ios performance should not keep a satisfied proof-boundary gate as the first actionability question" >&2
+  exit 1
+fi
+if grep -q 'Did high severity reasons cite concrete thresholds, actor context, or source signals rather than broad suspicion?' "$tmp_dir/eval-performance/ios-performance.json"; then
+  echo "ios performance should not keep a satisfied high-severity gate as the first actionability question" >&2
+  exit 1
+fi
 if grep -q 'Were high findings justified by evidence instead of broad suspicion?' "$tmp_dir/eval-performance/ios-performance.json"; then
   echo "ios performance should not keep a satisfied high-evidence gate as the first actionability question" >&2
   exit 1
 fi
-grep -q 'Did grouped next actions make repeated rules scannable without hiding full JSON evidence?' "$tmp_dir/eval-performance/ios-performance.json"
+if grep -q 'Did grouped next actions make repeated rules scannable without hiding full JSON evidence?' "$tmp_dir/eval-performance/ios-performance.json"; then
+  echo "ios performance should not keep a satisfied grouping-action gate as the first actionability question" >&2
+  exit 1
+fi
 if grep -q 'Were repeated rules grouped enough to stay scannable?' "$tmp_dir/eval-performance/ios-performance.json"; then
   echo "ios performance should not keep a satisfied grouping gate as the first actionability question" >&2
   exit 1

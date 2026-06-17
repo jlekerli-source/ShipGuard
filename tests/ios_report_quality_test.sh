@@ -152,6 +152,8 @@ cat > "$priority_fixture/ios-performance.json" <<'JSON'
       "severityReason": "High because this fixture intentionally represents a blocked performance source report.",
       "impact": "This fixture should stay first because blocked performance reports should outrank lower-status source reports.",
       "recommendation": "Prioritize blocked performance report questions.",
+      "localProof": "Run report-quality on the fixture locally.",
+      "manualProof": "No manual proof is required for this synthetic priority fixture.",
       "proofGuidance": "Run report-quality on the fixture."
     }
   ],
@@ -176,6 +178,12 @@ No skipped directories.
 | Severity | Rule | Why severity | Why it matters |
 | --- | --- | --- | --- |
 | high | `performance-higher-priority` | High because this fixture intentionally represents a blocked performance source report. | This fixture should stay first because blocked performance reports should outrank lower-status source reports. |
+
+## Proof Boundaries
+
+| Severity | Rule | Codex local proof | Manual/device proof |
+| --- | --- | --- | --- |
+| high | `performance-higher-priority` | Run report-quality on the fixture locally. | No manual proof is required for this synthetic priority fixture. |
 MD
 ./bin/shipguard ios report-quality \
   --reports "$priority_fixture" \
@@ -430,6 +438,136 @@ MD
   --shareable >/dev/null
 grep -q '"status": "review"' "$tmp_dir/missing-markdown-severity-quality/ios-report-quality.json"
 grep -q '"ruleId": "performance-markdown-severity-reason-missing"' "$tmp_dir/missing-markdown-severity-quality/ios-report-quality.json"
+
+missing_proof_boundary_dir="$tmp_dir/missing-proof-boundary"
+mkdir -p "$missing_proof_boundary_dir"
+cat > "$missing_proof_boundary_dir/ios-performance.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard ios performance",
+  "intent": "shipguard-evaluation",
+  "generatedAt": "2026-06-17T00:00:00Z",
+  "status": "review",
+  "shareability": {
+    "mode": "shareable",
+    "localAbsolutePathsIncluded": false
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "scanScope": {
+    "skippedDirectoryCount": 0,
+    "skippedDirectories": []
+  },
+  "findings": [
+    {
+      "ruleId": "performance-unsplit-proof",
+      "severity": "review",
+      "evidence": "Performance fixture has only a generic proof sentence.",
+      "severityReason": "Review because this fixture represents a performance source signal.",
+      "impact": "Proof guidance needs a local/manual boundary.",
+      "recommendation": "Split proof guidance into local and manual proof fields.",
+      "proof": "Run a profiler and device proof if needed."
+    }
+  ],
+  "reportQualityQuestions": [
+    "Does report-quality enforce split performance proof boundaries?"
+  ]
+}
+JSON
+cat > "$missing_proof_boundary_dir/ios-performance.md" <<'MD'
+# Missing Proof Boundary Fixture
+
+## ShipGuard Evaluation Boundary
+
+This fixture is ShipGuard product QA only.
+
+## Scan Scope
+
+No skipped directories.
+
+## Top Findings
+
+| Severity | Rule | Why severity | Why it matters |
+| --- | --- | --- | --- |
+| review | `performance-unsplit-proof` | Review because this fixture represents a performance source signal. | Proof guidance needs a local/manual boundary. |
+
+## Proof Boundaries
+
+| Severity | Rule | Codex local proof | Manual/device proof |
+| --- | --- | --- | --- |
+| review | `performance-unsplit-proof` | Missing in JSON. | Missing in JSON. |
+MD
+./bin/shipguard ios report-quality \
+  --reports "$missing_proof_boundary_dir" \
+  --out "$tmp_dir/missing-proof-boundary-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-proof-boundary-quality/ios-report-quality.json"
+grep -q '"ruleId": "performance-proof-boundary-missing"' "$tmp_dir/missing-proof-boundary-quality/ios-report-quality.json"
+
+missing_markdown_proof_boundary_dir="$tmp_dir/missing-markdown-proof-boundary"
+mkdir -p "$missing_markdown_proof_boundary_dir"
+cat > "$missing_markdown_proof_boundary_dir/ios-performance.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard ios performance",
+  "intent": "shipguard-evaluation",
+  "generatedAt": "2026-06-17T00:00:00Z",
+  "status": "review",
+  "shareability": {
+    "mode": "shareable",
+    "localAbsolutePathsIncluded": false
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "scanScope": {
+    "skippedDirectoryCount": 0,
+    "skippedDirectories": []
+  },
+  "findings": [
+    {
+      "ruleId": "performance-hidden-proof-boundary",
+      "severity": "review",
+      "evidence": "Performance fixture hides split proof guidance from Markdown.",
+      "severityReason": "Review because this fixture represents a performance source signal.",
+      "impact": "Reviewers need local and manual proof boundaries in Markdown too.",
+      "recommendation": "Show split proof guidance in Markdown.",
+      "localProof": "Run local report-quality and simulator proof.",
+      "manualProof": "Use device proof for hardware claims.",
+      "proof": "Local proof: Run local report-quality and simulator proof. Manual/device proof: Use device proof for hardware claims."
+    }
+  ],
+  "reportQualityQuestions": [
+    "Does report-quality enforce Markdown proof boundary visibility?"
+  ]
+}
+JSON
+cat > "$missing_markdown_proof_boundary_dir/ios-performance.md" <<'MD'
+# Hidden Proof Boundary Fixture
+
+## ShipGuard Evaluation Boundary
+
+This fixture is ShipGuard product QA only.
+
+## Scan Scope
+
+No skipped directories.
+
+## Top Findings
+
+| Severity | Rule | Why severity | Why it matters |
+| --- | --- | --- | --- |
+| review | `performance-hidden-proof-boundary` | Review because this fixture represents a performance source signal. | Reviewers need local and manual proof boundaries in Markdown too. |
+MD
+./bin/shipguard ios report-quality \
+  --reports "$missing_markdown_proof_boundary_dir" \
+  --out "$tmp_dir/missing-markdown-proof-boundary-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-markdown-proof-boundary-quality/ios-report-quality.json"
+grep -q '"ruleId": "performance-markdown-proof-boundary-missing"' "$tmp_dir/missing-markdown-proof-boundary-quality/ios-report-quality.json"
 
 missing_grouping_dir="$tmp_dir/missing-grouping"
 mkdir -p "$missing_grouping_dir"

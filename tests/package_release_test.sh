@@ -30,6 +30,8 @@ grep -q "^$package_name/plugins/ios-shipguard/assets/composer-icon.png$" "$tar_l
 grep -q "^$package_name/plugins/ios-shipguard/skills/ios-shipguard/SKILL.md$" "$tar_list"
 grep -q "^$package_name/plugins/ios-shipguard/skills/ios-shipguard/agents/openai.yaml$" "$tar_list"
 grep -q "^$package_name/plugins/ios-shipguard/skills/ios-shipguard/references/modes.md$" "$tar_list"
+grep -q 'SHIPGUARD_CLI' plugins/ios-shipguard/skills/ios-shipguard/SKILL.md
+grep -q 'command -v shipguard' plugins/ios-shipguard/skills/ios-shipguard/SKILL.md
 grep -q "^$package_name/.github/workflows/autopsy-artifact.yml$" "$tar_list"
 grep -q "^$package_name/actions/arena-compare/action.yml$" "$tar_list"
 grep -q "^$package_name/actions/ci-gate/action.yml$" "$tar_list"
