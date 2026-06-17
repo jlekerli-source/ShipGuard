@@ -36,6 +36,27 @@ grep -q '"safetyMarkdownPresent": true' "$tmp_dir/check/ios-devspace-check.json"
 grep -q '# iOS Devspace Connector Readiness' "$tmp_dir/check/ios-devspace-check.md"
 grep -q 'local MCP bridge with conservative safety defaults' "$tmp_dir/check/ios-devspace-check.md"
 
+abs_preview_out="$(cd "$preview_out" && pwd)"
+./bin/shipguard ios devspace-check \
+  --path . \
+  --preview-out "$abs_preview_out" \
+  --shareable \
+  --out "$tmp_dir/shareable" >/dev/null
+grep -q '"mode": "shareable"' "$tmp_dir/shareable/ios-devspace-check.json"
+grep -q '"localAbsolutePathsIncluded": false' "$tmp_dir/shareable/ios-devspace-check.json"
+grep -q '"path": "fixtures/ios-devspace/complete-preview"' "$tmp_dir/shareable/ios-devspace-check.json"
+if grep -R -F -q "$repo_root" "$tmp_dir/shareable"; then
+  echo "shareable devspace-check output must not include repo absolute paths" >&2
+  exit 1
+fi
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/shareable" \
+  --out "$tmp_dir/shareable-quality" >/dev/null
+if grep -q 'local-path-shareability-warning' "$tmp_dir/shareable-quality/ios-report-quality.json"; then
+  echo "shareable devspace-check output should not trigger local-path shareability warnings" >&2
+  exit 1
+fi
+
 json_stdout="$(./bin/shipguard ios devspace-check --path . --json)"
 printf '%s\n' "$json_stdout" | grep -q '"tool": "shipguard ios devspace-check"'
 printf '%s\n' "$json_stdout" | grep -q '"ruleId": "preview-evidence-not-provided"'

@@ -52,6 +52,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--preview-out", help="Existing shipguard ios preview output directory to summarize")
     parser.add_argument("--public-url", help="Tunneled/public Devspace MCP URL planned for ChatGPT Developer Mode")
     parser.add_argument("--bearer-token-env", help="Environment variable name that will hold the Devspace bearer token")
+    parser.add_argument(
+        "--shareable",
+        action="store_true",
+        help="Omit local absolute paths from JSON and Markdown so the report can be scored or shared without redaction.",
+    )
     parser.add_argument("--strict", action="store_true", help="Exit non-zero when status is not pass")
     parser.add_argument("--json", action="store_true", help="Print JSON to stdout")
     parser.add_argument("--markdown", action="store_true", help="Print Markdown to stdout")
@@ -60,6 +65,16 @@ def parse_args() -> argparse.Namespace:
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="ignore")
+
+
+def report_path(path: Path, *, root: Path, shareable: bool, placeholder: str) -> str:
+    if not shareable:
+        return str(path)
+    try:
+        rel = path.relative_to(root)
+        return rel.as_posix() or "."
+    except ValueError:
+        return f"<{placeholder}>"
 
 
 def read_json_optional(path: Path) -> dict[str, Any] | None:
@@ -185,7 +200,7 @@ def status_for(findings: list[dict[str, Any]]) -> str:
     return "pass"
 
 
-def preview_evidence(raw_path: str | None, findings: list[dict[str, Any]]) -> dict[str, Any]:
+def preview_evidence(raw_path: str | None, findings: list[dict[str, Any]], *, root: Path, shareable: bool) -> dict[str, Any]:
     if not raw_path:
         add_finding(
             findings,
@@ -308,7 +323,7 @@ def preview_evidence(raw_path: str | None, findings: list[dict[str, Any]]) -> di
 
     return {
         "provided": True,
-        "path": str(path),
+        "path": report_path(path, root=root, shareable=shareable, placeholder="preview-out"),
         "status": "complete" if not missing else "incomplete",
         "handoffQualityStatus": handoff_status,
         "present": present,
@@ -564,7 +579,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     )
 
     findings = findings_from_checks(checks)
-    preview = preview_evidence(args.preview_out, findings)
+    preview = preview_evidence(args.preview_out, findings, root=root, shareable=bool(args.shareable))
     public_url = public_url_check(args.public_url, args.bearer_token_env, findings)
     status = status_for(findings)
     pass_count = sum(1 for item in checks if item["status"] == "pass")
@@ -575,7 +590,14 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "generatedAt": utc_now(),
         "status": status,
         "shipguardOnly": True,
-        "path": str(root),
+        "path": report_path(root, root=root, shareable=bool(args.shareable), placeholder="shipguard-repo"),
+        "shareability": {
+            "mode": "shareable" if args.shareable else "local",
+            "localAbsolutePathsIncluded": not bool(args.shareable),
+            "note": "Use --shareable before moving this report into ChatGPT, GitHub, docs, benchmark fixtures, or release evidence."
+            if not args.shareable
+            else "Local absolute paths are omitted from report fields; still run report-quality before public sharing.",
+        },
         "summary": {
             "checksPassed": pass_count,
             "checksTotal": len(checks),
@@ -623,7 +645,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             },
         ],
         "recommendedCommands": [
-            "./bin/shipguard ios devspace-check --out /tmp/ios-shipguard-devspace-check",
+            "./bin/shipguard ios devspace-check --shareable --out /tmp/ios-shipguard-devspace-check",
             "./tests/shipguard_devspace_mcp_test.sh",
             "./bin/shipguard ios report-quality --reports <devspace-report-dir> --out <quality-dir>",
             "./bin/shipguard ios redact --in <devspace-report-dir> --out <redacted-dir>",
@@ -645,6 +667,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Status: {report['status']}",
         f"- Checks: {report['summary']['checksPassed']}/{report['summary']['checksTotal']} passed",
         f"- Findings: {report['summary']['findings']}",
+        f"- Shareability mode: {report.get('shareability', {}).get('mode', 'local')}",
         f"- Purpose: {report['scopeBoundary']['purpose']}",
         "",
         "## Findings",

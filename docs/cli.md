@@ -108,7 +108,7 @@ The iOS namespace also includes:
 
 - `ios preview`: serve a local simulator screenshot preview for the Codex in-app browser.
 - `ios devspace`: expose the preview bridge as a local MCP/App surface.
-- `ios devspace-check`: statically grade ShipGuard Devspace connector readiness, public URL safety, widget metadata, handoff boundaries, and preview evidence without starting the server or grading a target app.
+- `ios devspace-check`: statically grade ShipGuard Devspace connector readiness, public URL safety, widget metadata, handoff boundaries, and preview evidence without starting the server or grading a target app; add `--shareable` to omit local absolute paths before external sharing.
 - `ios target-match`: rank visual preview events against XcodeBuildMCP UI snapshots.
 - `ios codex-handoff`: prepare a guarded Codex app-server handoff.
 - `ios plan --mode performance-audit`: route FPS, hitches, launch/scroll stutter, profiler fallback, and device-vs-simulator proof gaps.

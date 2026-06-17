@@ -193,6 +193,7 @@ Status: started.
 - Added `shipguard ios report-quality` so Ringly/Ilmify-style read-only reports can be graded as ShipGuard product QA before any finding becomes a ShipGuard rule, doc, or fixture.
 - Added `shipguard ios devspace-check` after connector/plugin trials showed Devspace needed a first-class readiness report instead of relying on scattered docs and live MCP tests.
 - Added a public `fixtures/ios-devspace/complete-preview` handoff so Devspace-check can test event receipts and target-resolution quality without private app code.
+- Added `ios devspace-check --shareable` after report-quality showed otherwise-clean Devspace-check reports still needed local-path redaction before external sharing.
 - Added modernization rule summaries and capped Markdown for modernize, app-intelligence, and AI-readiness reports so private-app findings stay useful for improving ShipGuard without becoming app remediation tasks.
 - Improved first-run adoption docs around CLI versus plugin usage.
 - Upgraded `shipguard next-goal` so the next improvement loop emits a reviewable `/plan` before the `/goal`, and can now carry bounded scope, completion evidence, and the following `/goal` handoff.

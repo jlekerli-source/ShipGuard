@@ -144,7 +144,7 @@ Proof:
 - Add `--preview-out <dir>` when phone-shaped preview receipts already exist
 - Add `--icon-brief` when app icon direction is in scope, then use ChatGPT ImageGen for bitmap candidates
 - `shipguard ios preview --out /tmp/ios-shipguard-preview` for phone-shaped visual proof
-- `shipguard ios devspace-check --path . --preview-out /tmp/ios-shipguard-preview --out /tmp/ios-shipguard-devspace-check` before judging connector readiness or sharing a tunneled endpoint
+- `shipguard ios devspace-check --path . --preview-out /tmp/ios-shipguard-preview --shareable --out /tmp/ios-shipguard-devspace-check` before judging connector readiness or sharing a tunneled endpoint
 - `shipguard ios devspace --port 8787 --preview-out /tmp/ios-shipguard-preview --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN` when ChatGPT should plan from the preview widget; model choice happens in ChatGPT, not ShipGuard
 - physical-device proof before claiming haptic quality
 - do not treat local CSS, SVG, or placeholder drawings as production app icon output
@@ -180,7 +180,7 @@ Ask:
 
 Proof:
 
-- `shipguard ios devspace-check --path . --preview-out /tmp/ios-shipguard-preview --out /tmp/ios-shipguard-devspace-check` records loopback, auth, widget, preview, redaction, handoff, and model-boundary readiness before tunneled use
+- `shipguard ios devspace-check --path . --preview-out /tmp/ios-shipguard-preview --shareable --out /tmp/ios-shipguard-devspace-check` records loopback, auth, widget, preview, redaction, handoff, and model-boundary readiness before tunneled use without local absolute paths
 - `shipguard ios devspace --port 8787 --preview-out /tmp/ios-shipguard-preview`
 - `/mcp` responds to `initialize`, `tools/list`, and `resources/read`
 - `render_preview_widget` returns `ui://widget/shipguard-preview-v2.html`

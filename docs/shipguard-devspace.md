@@ -126,6 +126,7 @@ Run the static checker before sharing a tunneled Devspace URL, refreshing the pl
   --preview-out /tmp/ios-shipguard-preview \
   --public-url https://your-tunnel.example/mcp \
   --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN \
+  --shareable \
   --out /tmp/ios-shipguard-devspace-check
 ```
 
@@ -133,7 +134,7 @@ Run the static checker before sharing a tunneled Devspace URL, refreshing the pl
 
 When `--public-url` is supplied, the report verifies HTTPS, refuses token-like URL query parameters, and requires `--bearer-token-env` without reading or printing the token value. When `--preview-out` is supplied, it verifies that preview evidence includes `session.json`, `handoff.json`, `handoff.md`, and `preview-events.jsonl`, then grades whether the handoff keeps raw coordinate taps disabled, records event receipts, includes target-resolution guidance, and carries paste-safe safety language.
 
-The output is `ios-devspace-check.json` and `ios-devspace-check.md`. Treat it as ShipGuard product QA: improve the connector, docs, tests, or fixtures from the findings, but do not convert private app observations into app work.
+The output is `ios-devspace-check.json` and `ios-devspace-check.md`. Use `--shareable` when a report will move into ChatGPT, GitHub, docs, benchmark fixtures, or release evidence; it omits local absolute paths while keeping target-resolution, event-count, and safety fields. Treat the report as ShipGuard product QA: improve the connector, docs, tests, or fixtures from the findings, but do not convert private app observations into app work.
 
 A public complete-preview fixture lives in `fixtures/ios-devspace/complete-preview` so checker behavior can be tested without depending on Ringly, Ilmify, a booted Simulator, or private screenshots.
 

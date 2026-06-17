@@ -38,7 +38,7 @@ Usage:
   shipguard ios inventory [--path <ios-project>] [--doctor <ios-doctor.json>] [--out <dir>] [--json|--markdown]
   shipguard ios preview --out <dir> [--device booted] [--host 127.0.0.1] [--port 8765]
   shipguard ios devspace [--host 127.0.0.1] [--port 8787] [--preview-url <url>] [--bearer-token-env <env>]
-  shipguard ios devspace-check [--path <shipguard-repo>] [--out <dir>] [--preview-out <dir>] [--public-url <url>] [--bearer-token-env <env>] [--strict] [--json|--markdown]
+  shipguard ios devspace-check [--path <shipguard-repo>] [--out <dir>] [--preview-out <dir>] [--public-url <url>] [--bearer-token-env <env>] [--shareable] [--strict] [--json|--markdown]
   shipguard ios target-match --handoff <handoff.json> --snapshot <ui.json> [--out <dir>]
   shipguard ios codex-handoff --prompt-file <file>|--prompt <text> --out <dir> [--execute]
   shipguard ios plan --mode <mode> --inventory <ios-inventory.json> --out <file-or-dir>

@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-17T15:17:32Z
+- Generated: 2026-06-17T15:27:30Z
 - Current toolkit version: 3.38.0
-- Target release: v3.43.0
-- Title: Devspace Handoff Fixture Expansion
+- Target release: v3.44.0
+- Title: Devspace Report Shareability Refinement
 
 ## Slash Plan
 
 ```text
-/plan v3.43.0 Devspace Handoff Fixture Expansion for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add a public Devspace complete-preview fixture and extend shipguard ios devspace-check so it parses preview event receipts, handoff.json, handoff.md, target-resolution safety, raw-coordinate tap boundaries, and paste-safe handoff Markdown without depending on private app code.
+/plan v3.44.0 Devspace Report Shareability Refinement for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add ios devspace-check --shareable so connector-readiness reports can omit local absolute paths before report-quality scoring or external sharing while preserving local default reports.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.43.0 Devspace Handoff Fixture Expansion for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add a public Devspace complete-preview fixture and extend shipguard ios devspace-check so it parses preview event receipts, handoff.json, handoff.md, target-resolution safety, raw-coordinate tap boundaries, and paste-safe handoff Markdown without depending on private app code, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.44.0 Devspace Report Shareability Refinement for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add ios devspace-check --shareable so connector-readiness reports can omit local absolute paths before report-quality scoring or external sharing while preserving local default reports, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add a public Devspace complete-preview fixture and extend shipguard ios devspace-check so it parses preview event receipts, handoff.json, handoff.md, target-resolution safety, raw-coordinate tap boundaries, and paste-safe handoff Markdown without depending on private app code.
+Add ios devspace-check --shareable so connector-readiness reports can omit local absolute paths before report-quality scoring or external sharing while preserving local default reports.
 
 ## Completion Receipt
 
-- Completed scope: Add a public Devspace complete-preview fixture and extend shipguard ios devspace-check so it parses preview event receipts, handoff.json, handoff.md, target-resolution safety, raw-coordinate tap boundaries, and paste-safe handoff Markdown without depending on private app code.
-- Evidence: validated with git diff --check; python3 -m py_compile scripts/ios_devspace_check.py; ./tests/ios_devspace_check_test.sh; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v343; ./tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict
+- Completed scope: Add ios devspace-check --shareable so connector-readiness reports can omit local absolute paths before report-quality scoring or external sharing while preserving local default reports.
+- Evidence: Read-only product-QA baseline found local-path-shareability-warning in Devspace-check report-quality scoring; validated fix with python3 -m py_compile scripts/ios_devspace_check.py; ./tests/ios_devspace_check_test.sh; shareable devspace-check plus report-quality proof in /tmp/shipguard-v344-readonly; git diff --check; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v344; ./tests/next_goal_test.sh; ./tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict. Remote push remains blocked by GitHub repository rules: protected main cannot be updated directly and new branch creation is restricted.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.44.0 Devspace Report Shareability Refinement for jlekerli-source/ShipGuard:
+/plan v3.45.0 Devspace Shareability Fixture Expansion for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add a public Devspace complete-preview fixture and extend shipguard ios devspace
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.44.0 Devspace Report Shareability Refinement for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.45.0 Devspace Shareability Fixture Expansion for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.44.0 --title "Devspace Report Shareability Refinement" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.45.0 --title "Devspace Shareability Fixture Expansion" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -130,12 +130,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.43.0.
+1. Open or update the tracking issue for v3.44.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.43.0` and upload `dist/shipguard-v3.43.0.tar.gz`.
+6. Create release `v3.44.0` and upload `dist/shipguard-v3.44.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

@@ -208,10 +208,11 @@ Before sharing a tunneled URL or evaluating the connector itself, run:
   --preview-out /tmp/ios-shipguard-preview \
   --public-url https://your-tunnel.example/mcp \
   --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN \
+  --shareable \
   --out /tmp/ios-shipguard-devspace-check
 ```
 
-`ios devspace-check` is ShipGuard-only product QA. It statically grades loopback defaults, bearer auth, MCP widget metadata, screenshot-token handling, semantic target-resolution, Codex handoff execution boundaries, production-readiness guidance, redaction routing, and model-choice honesty without grading or editing a target app. With `--preview-out`, it also parses `handoff.json`, `handoff.md`, and `preview-events.jsonl` to verify event receipts, raw-coordinate safety, and paste-safe handoff guidance.
+`ios devspace-check` is ShipGuard-only product QA. It statically grades loopback defaults, bearer auth, MCP widget metadata, screenshot-token handling, semantic target-resolution, Codex handoff execution boundaries, production-readiness guidance, redaction routing, and model-choice honesty without grading or editing a target app. With `--preview-out`, it also parses `handoff.json`, `handoff.md`, and `preview-events.jsonl` to verify event receipts, raw-coordinate safety, and paste-safe handoff guidance. Add `--shareable` before moving the report outside local proof space so local absolute paths are omitted.
 
 See `docs/shipguard-devspace.md`.
 
