@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-17T18:59:51Z
+- Generated: 2026-06-17T19:18:24Z
 - Current toolkit version: 3.59.0
-- Target release: v3.60.0
-- Title: Spec Workflow Slash Handoff Coverage Gate
+- Target release: v3.61.0
+- Title: Spec Workflow Deduplicated Question Preservation Gate
 
 ## Slash Plan
 
 ```text
-/plan v3.60.0 Spec Workflow Slash Handoff Coverage Gate for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make ios report-quality flag spec-workflow bundles whose slashPlan, slashGoal, or ios-spec-workflow.md drops the next-loop slash handoff.
+/plan v3.61.0 Spec Workflow Deduplicated Question Preservation Gate for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make ios spec-workflow preserve the first unique report-quality actionability questions in clarifying questions and task inputs, even when source reports repeat a question before the cap.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.60.0 Spec Workflow Slash Handoff Coverage Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make ios report-quality flag spec-workflow bundles whose slashPlan, slashGoal, or ios-spec-workflow.md drops the next-loop slash handoff, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.61.0 Spec Workflow Deduplicated Question Preservation Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make ios spec-workflow preserve the first unique report-quality actionability questions in clarifying questions and task inputs, even when source reports repeat a question before the cap, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make ios report-quality flag spec-workflow bundles whose slashPlan, slashGoal, or ios-spec-workflow.md drops the next-loop slash handoff.
+Make ios spec-workflow preserve the first unique report-quality actionability questions in clarifying questions and task inputs, even when source reports repeat a question before the cap.
 
 ## Completion Receipt
 
-- Completed scope: Make ios report-quality flag spec-workflow bundles whose slashPlan, slashGoal, or ios-spec-workflow.md drops the next-loop slash handoff.
-- Evidence: A public demo-ios-repo read-only ShipGuard product-QA probe generated shareable design and performance reports, passed report-quality for the clean report-grounded spec workflow, then showed a degraded bundle with non-empty generic slashPlan/slashGoal and Markdown 'plan later' placeholders still passed report-quality. After the change, the complete bundle remains pass while the degraded bundle reports spec-workflow-slash-handoff-incomplete, and tests also cover Markdown that drops the JSON slash handoff via spec-workflow-slash-handoff-artifact-missing. Validated with python3 -m py_compile scripts/ios_report_quality.py scripts/ios_spec_workflow.py; git diff --check; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v360-slash; ./bin/shipguard ios eval --cases evals/ios_shipguard_cases.jsonl --out /tmp/ios-shipguard-eval-v360; ./tests/ios_spec_workflow_test.sh; ./tests/ios_report_quality_test.sh; ./tests/ios_shipguard_eval_test.sh; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/package_release_test.sh; and the read-only public fixture slash-handoff degradation probe.
+- Completed scope: Make ios spec-workflow preserve the first unique report-quality actionability questions in clarifying questions and task inputs, even when source reports repeat a question before the cap.
+- Evidence: A public demo-ios-repo read-only ShipGuard product-QA run generated shareable design, performance, modernize, app-intelligence, and ai-readiness reports, then report-quality plus spec-workflow reproduced spec-workflow-question-coverage-missing and spec-workflow-question-artifact-missing because duplicate actionability questions consumed the first-eight clarifying-question cap. After the change, the same spec-quality pass returns pass. Added a synthetic public duplicate-question fixture in ios_spec_workflow_test.sh to prove reportInputs, featureSpec.clarifyingQuestions, Markdown, and report-quality all preserve the first unique questions. Validated with git diff --check; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v361; ./bin/shipguard ios eval --cases evals/ios_shipguard_cases.jsonl --out /tmp/ios-shipguard-eval-v361; ./tests/ios_spec_workflow_test.sh; ./tests/ios_report_quality_test.sh; ./tests/ios_shipguard_eval_test.sh; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/next_goal_test.sh; ./tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; and ./bin/shipguard codex status --strict.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.61.0 Spec Workflow Deduplicated Question Preservation Gate for jlekerli-source/ShipGuard:
+/plan v3.62.0 Report Quality Prioritized Next-Action Gate for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Make ios report-quality flag spec-workflow bundles whose slashPlan, slashGoal, o
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.61.0 Spec Workflow Deduplicated Question Preservation Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.62.0 Report Quality Prioritized Next-Action Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.61.0 --title "Spec Workflow Deduplicated Question Preservation Gate" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.62.0 --title "Report Quality Prioritized Next-Action Gate" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -131,12 +131,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.60.0.
+1. Open or update the tracking issue for v3.61.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.60.0` and upload `dist/shipguard-v3.60.0.tar.gz`.
+6. Create release `v3.61.0` and upload `dist/shipguard-v3.61.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
