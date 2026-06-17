@@ -43,6 +43,7 @@ paths=(
   ".agents"
   "templates"
   "docs"
+  "evals"
   "examples"
   "fixtures"
   "tests"

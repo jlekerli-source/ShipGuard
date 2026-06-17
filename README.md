@@ -40,9 +40,12 @@ Read the guided setup first:
 - `docs/command-matrix.md`: one-page map from maintainer jobs to CLI commands.
 - `docs/demo-reports.md`: checked-in demo reports generated from public fixtures.
 - `docs/docs-check.md`: local Markdown link audit for docs-heavy releases.
+- `docs/ios-shipguard.md`: Codex plugin, skill, and CLI workflow for risky iOS app maintenance.
+- `docs/ios-preview.md`: local simulator preview bridge for Codex browser comments and event receipts.
 - `docs/maintainer-reliability-os.md`: the full policy-to-self-audit evidence loop.
 - `docs/next-goal.md`: generate the next slash-goal release plan.
 - `docs/oss-evaluation.md`: current usefulness, refinement, and plugin evaluation.
+- `docs/shipguard-devspace.md`: MCP/App bridge for ShipGuard preview, target matching, and Codex handoff preparation.
 - `docs/policy.md`: configure protected paths, risky claims, and scope limits.
 - `docs/pr-review-bot.md`: generate PR-ready review comments and badge JSON from autopsy reports.
 - `docs/release-checklist.md`: release proof commands and publishing checks.
@@ -120,6 +123,9 @@ For docs-heavy releases, run `./bin/shipguard docs-check . --out /tmp/shipguard-
 For workflow-run summaries, run `./bin/shipguard ci-summary --gate /tmp/codex-gate/gate.json --out /tmp/codex-gate/summary.md`.
 For Check Run payloads, run `./bin/shipguard check-run --gate /tmp/codex-gate/gate.json --head-sha "$GITHUB_SHA" --out /tmp/codex-gate/check-run/payload.json`.
 To post a Check Run after reviewing the payload, run `./bin/shipguard check-run post --payload /tmp/codex-gate/check-run/payload.json --repo "$GITHUB_REPOSITORY" --out /tmp/codex-gate/check-run/response.json`.
+For risky iOS work, run `./bin/shipguard ios doctor --path . --out /tmp/ios-shipguard-doctor`, then `./bin/shipguard ios inventory --path . --out /tmp/ios-shipguard-inventory`.
+For a clean iOS plugin demo, run `./bin/shipguard ios demo --out /tmp/ios-shipguard-first-run`.
+To install the local Codex plugin from this checkout, run `codex plugin marketplace add .`, then `codex plugin add ios-shipguard@shipguard`, then start a new Codex thread so the refreshed skill metadata loads.
 For release proof files, run `./bin/shipguard release-manifest --tarball dist/shipguard-v3.38.0.tar.gz --out /tmp/release-proof`.
 To verify release proof files, run `./bin/shipguard release-manifest verify --manifest /tmp/release-proof/release-manifest.json --tarball dist/shipguard-v3.38.0.tar.gz`.
 To catalog release proof files, run `./bin/shipguard release-index build --manifest /tmp/release-proof/release-manifest.json --out /tmp/release-index`.
@@ -146,9 +152,11 @@ To publish the negative fixture index in GitHub Actions, use `jlekerli-source/Sh
 - `PLANS.md`: a planning template that forces objective, scope, risks, tests, and rollback thinking.
 - `SUBAGENTS.md`: inspector, implementer, tester, and reviewer roles for larger Codex tasks.
 - `.agents/skills/`: reusable Codex skills for alarm testing, notification permissions, UI polish, release checklists, and bug triage.
+- `.agents/plugins/`: local Codex plugin marketplace entry for installing `ios-shipguard` from this checkout.
 - `plugins/ios-shipguard/`: Codex plugin source for the iOS ShipGuard skill and MCP metadata.
+- `evals/`: deterministic ShipGuard behavior eval cases plus the optional live runner.
 - `scripts/`: release handoff, bug triage, alarm validation, packaging, and autopsy report generation.
-- `bin/shipguard`: a dependency-light CLI for profile init, validation, doctor checks, run scoring, autopsy reports, Arena comparison, transcript redaction, verification, corpus indexing, CI artifacts, and release-loop proof.
+- `bin/shipguard`: a dependency-light CLI for profile init, validation, doctor checks, iOS ShipGuard helpers, run scoring, autopsy reports, Arena comparison, transcript redaction, verification, corpus indexing, CI artifacts, and release-loop proof.
 - `bin/codex-maintainer`: compatibility wrapper for older automation.
 - `VERSION`: the release version used by the CLI and package script.
 - `actions/validate/`: a reusable GitHub composite action for workflow-bundle validation.

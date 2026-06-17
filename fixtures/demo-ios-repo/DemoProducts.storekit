@@ -1,0 +1,21 @@
+{
+  "identifier": "dev.codexmaintainer.demo.storekit",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayName": "Demo Premium",
+      "familyShareable": false,
+      "internalID": "demo-premium",
+      "localizations": [],
+      "productID": "dev.codexmaintainer.demo.premium",
+      "referenceName": "Demo Premium",
+      "type": "NonConsumable"
+    }
+  ],
+  "settings": {},
+  "subscriptionGroups": [],
+  "version": {
+    "major": 4,
+    "minor": 0
+  }
+}

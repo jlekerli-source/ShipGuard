@@ -4,6 +4,26 @@
 
 It does not install, remove, or edit anything under `~/.codex`.
 
+## Update Model
+
+Updating the Git repository does not automatically update a running Codex thread.
+
+ShipGuard has three separate states:
+
+1. Repository source: GitHub has the latest `plugins/ios-shipguard`, `.agents/plugins/marketplace.json`, docs, tests, and CLI source after a commit is pushed.
+2. Local Codex plugin cache: Codex installs plugin bundles under `~/.codex/plugins/cache/...`; refresh or reinstall the plugin from the updated marketplace/source when the cache should change.
+3. Current Codex thread: skill metadata is loaded when a thread starts, so start a new Codex thread after refreshing the plugin cache.
+
+For this checkout, the local install flow is:
+
+```bash
+codex plugin marketplace add .
+codex plugin add ios-shipguard@shipguard
+./bin/shipguard codex status --strict
+```
+
+Then start a new Codex thread before relying on refreshed skill instructions.
+
 ## Usage
 
 ```bash
@@ -26,6 +46,7 @@ Use `--strict` in local proof scripts when a missing or stale install should fai
 
 - the ShipGuard toolkit version from `VERSION`
 - whether tracked `plugins/ios-shipguard` source exists in this checkout
+- whether `.agents/plugins/marketplace.json` exposes `ios-shipguard@shipguard` from `./plugins/ios-shipguard`
 - installed `ios-shipguard` plugin metadata under the Codex plugin cache
 - stale repository URLs that still point at `ringly-codex-workflows`
 - old `Shipguard` display casing in plugin and agent metadata

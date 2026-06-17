@@ -2,7 +2,7 @@
 
 Use this reference when a task touches multiple iOS trust surfaces or when the primary proof path is unclear.
 
-The `shipguard ios ...` proof commands apply only in checkouts that include those iOS helper subcommands. If `./bin/shipguard ios <subcommand> --help` fails, do not claim that proof path. Use source inspection, XcodeBuildMCP, existing project tests, and explicit manual blockers instead.
+The `shipguard ios ...` proof commands are part of this ShipGuard checkout. If a target app repo only copied starter files and does not include the ShipGuard CLI, run the commands from a ShipGuard checkout against that target path, or fall back to source inspection, XcodeBuildMCP, existing project tests, and explicit manual blockers.
 
 ## permission-audit
 

@@ -10,13 +10,13 @@ Use this skill to make Codex behave like a careful iOS release assistant instead
 ## Start Here
 
 1. Read the nearest `AGENTS.md`.
-2. If this repo includes `bin/shipguard` and `./bin/shipguard ios inventory --help` succeeds, run an inventory before editing:
+2. If this repo includes `bin/shipguard`, run an inventory before editing:
 
 ```bash
 ./bin/shipguard ios inventory --path . --out /tmp/ios-shipguard-inventory
 ```
 
-3. If the `shipguard ios` subcommands are unavailable in this checkout, do not invent iOS CLI proof. Continue with source inspection, `AGENTS.md`, XcodeBuildMCP, and the validation ladder entries that do not require `shipguard ios`.
+3. If the inventory command fails because this is not a ShipGuard checkout, do not invent iOS CLI proof. Continue with source inspection, `AGENTS.md`, XcodeBuildMCP, and explicit manual blockers.
 4. Read `/tmp/ios-shipguard-inventory/ios-inventory.md` if it exists.
 5. Classify exactly one primary mode:
    - `permission-audit`
@@ -64,7 +64,7 @@ Do not turn a missing answer into an assumption. Ask one short question, wait, t
 
 Use the smallest proof that matches the mode:
 
-- Source-only permission inventory when available: `./bin/shipguard ios inventory --path . --out /tmp/ios-shipguard-inventory`
+- Source-only permission inventory: `./bin/shipguard ios inventory --path . --out /tmp/ios-shipguard-inventory`
 - Existing Xcode project: use XcodeBuildMCP to confirm project/workspace, scheme, and simulator before building or running.
 - Guided plan: run `./bin/shipguard ios plan --mode <mode> --inventory <ios-inventory.json> --out <file-or-dir>` to generate the Codex brief, owner files, blocked questions, and proof route.
 - Proof route: run `./bin/shipguard ios prove --plan <ios-plan.json> --out <dir>` to record source, simulator, StoreKit, release, privacy, preview, and blocked-manual evidence lanes before claiming proof.

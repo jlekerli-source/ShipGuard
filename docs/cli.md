@@ -85,6 +85,33 @@ Check whether a target repo has the starter workflow files:
 
 `doctor` without a profile defaults to `ios` for compatibility with older releases.
 
+## iOS ShipGuard
+
+Run iOS-specific topology, inventory, planning, proof, preview, and privacy helpers before risky Codex edits:
+
+```bash
+./bin/shipguard ios doctor --path ../my-ios-app --out /tmp/ios-shipguard-doctor
+./bin/shipguard ios inventory --path ../my-ios-app --out /tmp/ios-shipguard-inventory
+./bin/shipguard ios plan --mode permission-audit --inventory /tmp/ios-shipguard-inventory/ios-inventory.json --out /tmp/ios-shipguard-plan
+./bin/shipguard ios prove --plan /tmp/ios-shipguard-plan/ios-plan.json --out /tmp/ios-shipguard-proof
+```
+
+The iOS namespace also includes:
+
+- `ios preview`: serve a local simulator screenshot preview for the Codex in-app browser.
+- `ios devspace`: expose the preview bridge as a local MCP/App surface.
+- `ios target-match`: rank visual preview events against XcodeBuildMCP UI snapshots.
+- `ios codex-handoff`: prepare a guarded Codex app-server handoff.
+- `ios modernize`: audit Swift, SwiftUI, Observation, accessibility, localization, and availability risks.
+- `ios app-intelligence`: audit App Intents, shortcuts, widgets, Spotlight, controls, and system exposure.
+- `ios ai-readiness`: compare on-device, cloud, Core ML, and no-AI options before model work.
+- `ios redact`: redact local iOS reports before sharing.
+- `ios eval`: run deterministic ShipGuard behavior evals.
+- `ios demo`: run the clean first-run iOS ShipGuard loop without Xcode, Simulator, credentials, or an API key.
+- `ios goals`: emit and complete evidence-gated ShipGuard slash-goals.
+
+See `ios-shipguard.md`, `ios-preview.md`, and `shipguard-devspace.md`.
+
 ## Score
 
 Score a Codex run markdown file:

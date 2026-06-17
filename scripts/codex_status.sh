@@ -85,14 +85,56 @@ done
 
 toolkit_version="$(sed -n '1p' "$tool_root/VERSION")"
 source_plugin_json="$tool_root/plugins/ios-shipguard/.codex-plugin/plugin.json"
+marketplace_json="$tool_root/.agents/plugins/marketplace.json"
 source_status="missing"
 source_version=""
 source_repository=""
+marketplace_status="missing"
+marketplace_name=""
+marketplace_plugin_name=""
+marketplace_plugin_path=""
 
 if [[ -f "$source_plugin_json" ]]; then
   source_status="present"
   source_version="$(json_field "$source_plugin_json" "version")"
   source_repository="$(json_field "$source_plugin_json" "repository")"
+fi
+
+if [[ -f "$marketplace_json" ]]; then
+  marketplace_status="present"
+  marketplace_name="$(json_field "$marketplace_json" "name")"
+  marketplace_plugin_name="$(python3 - "$marketplace_json" <<'PY'
+import json
+import sys
+
+try:
+    with open(sys.argv[1], "r", encoding="utf-8") as handle:
+        marketplace = json.load(handle)
+except Exception:
+    sys.exit(0)
+
+for plugin in marketplace.get("plugins", []):
+    if plugin.get("name") == "ios-shipguard":
+        print(plugin.get("name", ""))
+        break
+PY
+)"
+  marketplace_plugin_path="$(python3 - "$marketplace_json" <<'PY'
+import json
+import sys
+
+try:
+    with open(sys.argv[1], "r", encoding="utf-8") as handle:
+        marketplace = json.load(handle)
+except Exception:
+    sys.exit(0)
+
+for plugin in marketplace.get("plugins", []):
+    if plugin.get("name") == "ios-shipguard":
+        print(plugin.get("source", {}).get("path", ""))
+        break
+PY
+)"
 fi
 
 plugin_jsons=()
@@ -118,6 +160,14 @@ add_finding() {
 if [[ "$source_status" != "present" ]]; then
   status="stale"
   add_finding "missing_source: tracked plugin source is absent at plugins/ios-shipguard/.codex-plugin/plugin.json, so the expected Codex install cannot be rebuilt or verified from source."
+fi
+
+if [[ "$marketplace_status" != "present" ]]; then
+  status="stale"
+  add_finding "missing_marketplace: local plugin marketplace is absent at .agents/plugins/marketplace.json, so the plugin cannot be installed from this checkout through the marketplace flow."
+elif [[ "$marketplace_name" != "shipguard" || "$marketplace_plugin_name" != "ios-shipguard" || "$marketplace_plugin_path" != "./plugins/ios-shipguard" ]]; then
+  status="stale"
+  add_finding "stale_marketplace: local plugin marketplace should expose ios-shipguard@shipguard from ./plugins/ios-shipguard."
 fi
 
 if [[ "$plugin_count" -eq 0 ]]; then
@@ -181,6 +231,14 @@ done
     echo "- Tracked plugin repository: ${source_repository:-unknown}"
   else
     echo "- Tracked plugin source: missing"
+  fi
+  if [[ "$marketplace_status" == "present" ]]; then
+    echo "- Local marketplace: present"
+    echo "- Local marketplace id: ${marketplace_name:-unknown}"
+    echo "- Local marketplace plugin: ${marketplace_plugin_name:-unknown}"
+    echo "- Local marketplace plugin path: ${marketplace_plugin_path:-unknown}"
+  else
+    echo "- Local marketplace: missing"
   fi
   echo "- Codex plugin cache: $cache_dir"
   echo "- Installed ios-shipguard plugins: $plugin_count"

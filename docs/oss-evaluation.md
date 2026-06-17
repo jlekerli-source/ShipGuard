@@ -35,13 +35,13 @@ Codex install check from this machine:
 # Overall status: pass
 ```
 
-The installed Codex cache now has `ios-shipguard` metadata version `0.2.0+codex.20260617003813`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
+The installed Codex cache now has `ios-shipguard` metadata version `0.2.0+codex.20260617011237`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
 
 ## Verdict
 
 ShipGuard is useful as a CLI and workflow bundle today. It validates itself, produces release proof, checks docs, scores agent runs, exports GitHub Action artifacts, and catches dangerous proof claims in benchmark fixtures.
 
-The Codex plugin source and local cache are now clean enough for local use. The remaining plugin gap is distribution: this is still a direct cache refresh, not a marketplace-backed reinstall flow.
+The Codex plugin source and local cache are now clean enough for local use. The checkout also includes a local marketplace entry under `.agents/plugins/marketplace.json`; after installing or refreshing that plugin source, Codex still needs a new thread before refreshed skill metadata is loaded.
 
 ## Keep
 
@@ -55,8 +55,8 @@ The Codex plugin source and local cache are now clean enough for local use. The 
 
 - Keep Codex plugin source first-class and tracked under `plugins/ios-shipguard`.
 - Keep plugin metadata on `ShipGuard` casing and repository/homepage URLs on `jlekerli-source/ShipGuard`.
-- Keep installed skill guidance honest about `shipguard ios` helper availability.
-- Add a marketplace-backed reinstall flow instead of relying on direct cache sync.
+- Keep installed skill guidance on the restored `shipguard ios` helper surface.
+- Keep the marketplace-backed reinstall flow documented so direct cache sync is not the only path.
 - Add regression-awareness benchmark cases because the Arena average is held down partly by weak regression detection.
 - Tighten docs around when to use the CLI versus when to install the Codex plugin.
 
@@ -65,7 +65,7 @@ The Codex plugin source and local cache are now clean enough for local use. The 
 - `shipguard codex status` for local Codex install-state proof.
 - A marketplace source entry for `ios-shipguard`.
 - A plugin install or refresh handoff that says exactly when Codex must be restarted or cache-cleared.
-- Restore or intentionally retire the `shipguard ios` helper commands. The plugin now treats them as optional because this public checkout does not currently expose them.
+- Keep the restored `shipguard ios` helper commands covered by tests, docs, package proof, and plugin guidance.
 - A repository threat model artifact before running a full Codex Security scan.
 - More Arena fixtures for security-sensitive workflows: credentials, untrusted paths, generated artifacts, network posting, GitHub token scope, and release asset trust.
 - Optional OpenAI Agents SDK evaluation only if ShipGuard becomes a runnable agent service. Do not add OpenAI API dependencies to the CLI without that product decision.
@@ -99,19 +99,20 @@ Status: done.
 
 ### Phase 2: iOS Helper Decision
 
-Status: next.
+Status: done.
 
-- Decide whether the public ShipGuard CLI should restore the `shipguard ios ...` helper commands from the last private package or retire them from public plugin guidance.
-- If restoring, bring back the Python helper scripts, fixtures, docs, and tests as a single validated slice.
-- If retiring, simplify the plugin around XcodeBuildMCP, AGENTS routing, and source inspection.
+- Restored the public `shipguard ios ...` helper commands from the last package as the chosen direction.
+- Restored the Python helper scripts, demo iOS fixture, eval cases, docs, and tests as one validated slice.
+- Normalized the restored surface to `shipguard` and `ShipGuard` naming while keeping `bin/codex-maintainer` as a compatibility wrapper.
 
 ### Phase 3: Marketplace-Backed Install
 
-Status: next.
+Status: done locally.
 
-- Add a local marketplace entry for `ios-shipguard`.
-- Use the Codex plugin cachebuster/reinstall flow instead of direct cache sync.
-- Document the new-thread boundary required for Codex to load refreshed skill metadata.
+- Added `.agents/plugins/marketplace.json` with marketplace id `shipguard` and plugin id `ios-shipguard`.
+- Documented the local install flow: `codex plugin marketplace add .`, then `codex plugin add ios-shipguard@shipguard`.
+- Documented the new-thread boundary required for Codex to load refreshed skill metadata.
+- Remaining distribution work is a real external marketplace/release install path beyond the local checkout.
 
 ### Phase 4: Security Evaluation
 

@@ -3,12 +3,13 @@
 import PackageDescription
 
 let package = Package(
-    name: "DemoCodexMaintainerApp",
+    name: "DemoShipGuardApp",
     platforms: [.iOS(.v17)],
     products: [
-        .library(name: "DemoCodexMaintainerApp", targets: ["DemoCodexMaintainerApp"])
+        .library(name: "DemoShipGuardApp", targets: ["DemoShipGuardApp"])
     ],
     targets: [
-        .target(name: "DemoCodexMaintainerApp")
+        .target(name: "DemoShipGuardApp"),
+        .testTarget(name: "DemoShipGuardAppTests", dependencies: ["DemoShipGuardApp"])
     ]
 )

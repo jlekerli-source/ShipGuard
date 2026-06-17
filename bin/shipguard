@@ -34,6 +34,21 @@ Usage:
   shipguard check-run post --payload <payload.json> --repo <owner/repo> --out <response.json> [--api-url <url>] [--token <token>] [--dry-run]
   shipguard sarif --report <report.json> --out <results.sarif>
   shipguard docs-check [path] [--out <dir>]
+  shipguard ios doctor [--path <ios-project>] [--out <dir>] [--json|--markdown]
+  shipguard ios inventory [--path <ios-project>] [--doctor <ios-doctor.json>] [--out <dir>] [--json|--markdown]
+  shipguard ios preview --out <dir> [--device booted] [--host 127.0.0.1] [--port 8765]
+  shipguard ios devspace [--host 127.0.0.1] [--port 8787] [--preview-url <url>] [--bearer-token-env <env>]
+  shipguard ios target-match --handoff <handoff.json> --snapshot <ui.json> [--out <dir>]
+  shipguard ios codex-handoff --prompt-file <file>|--prompt <text> --out <dir> [--execute]
+  shipguard ios plan --mode <mode> --inventory <ios-inventory.json> --out <file-or-dir>
+  shipguard ios prove --plan <ios-plan.json> --out <dir>
+  shipguard ios modernize --focus swift --path <repo> --out <dir>
+  shipguard ios app-intelligence --path <repo> --out <dir>
+  shipguard ios ai-readiness --path <repo> --out <dir>
+  shipguard ios redact --in <file-or-dir> --out <file-or-dir> [--report <report.json>] [--private-term <text> ...]
+  shipguard ios eval [--cases <cases.jsonl>] [--out <dir>] [--json|--markdown]
+  shipguard ios demo --out <dir> [--fixture <repo>] [--cases <cases.jsonl>]
+  shipguard ios goals init|status|next|emit|complete [options]
   shipguard codex status [--cache <dir>] [--strict]
   shipguard leaderboard build --arena-results <results.json> --out <leaderboard.json>
   shipguard release-manifest --tarball <release.tar.gz> --out <dir> [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--release-url <url>] [--issue-url <url>]
@@ -70,6 +85,7 @@ Commands:
   check-run   Generate or optionally post GitHub Checks API payloads from gate JSON.
   sarif       Convert an autopsy report JSON file into SARIF 2.1.0.
   docs-check  Check Markdown files for broken local links.
+  ios         iOS-focused Codex planning helpers for permission, preview, and runtime surfaces.
   codex      Check local Codex plugin install status for ShipGuard.
   leaderboard Build a stable leaderboard JSON file from arena results.
   release-manifest
@@ -352,6 +368,59 @@ cmd_docs_check() {
   "$tool_root/scripts/docs_check.sh" "$@"
 }
 
+cmd_ios() {
+  local subcommand="${1:-}"
+  [[ "$subcommand" == "doctor" || "$subcommand" == "inventory" || "$subcommand" == "preview" || "$subcommand" == "devspace" || "$subcommand" == "target-match" || "$subcommand" == "codex-handoff" || "$subcommand" == "plan" || "$subcommand" == "prove" || "$subcommand" == "modernize" || "$subcommand" == "app-intelligence" || "$subcommand" == "ai-readiness" || "$subcommand" == "redact" || "$subcommand" == "eval" || "$subcommand" == "demo" || "$subcommand" == "goals" ]] || fail "ios requires subcommand: doctor, inventory, preview, devspace, target-match, codex-handoff, plan, prove, modernize, app-intelligence, ai-readiness, redact, eval, demo, or goals"
+  shift || true
+  case "$subcommand" in
+    doctor)
+      "$tool_root/scripts/ios_doctor.py" "$@"
+      ;;
+    inventory)
+      "$tool_root/scripts/ios_inventory.py" "$@"
+      ;;
+    preview)
+      "$tool_root/scripts/ios_preview.py" "$@"
+      ;;
+    devspace)
+      "$tool_root/scripts/shipguard_devspace_mcp.py" --repo-root "$tool_root" "$@"
+      ;;
+    target-match)
+      "$tool_root/scripts/ios_target_match.py" "$@"
+      ;;
+    codex-handoff)
+      "$tool_root/scripts/ios_codex_handoff.py" "$@"
+      ;;
+    plan)
+      "$tool_root/scripts/ios_plan.py" "$@"
+      ;;
+    prove)
+      "$tool_root/scripts/ios_prove.py" "$@"
+      ;;
+    modernize)
+      "$tool_root/scripts/ios_modernize.py" "$@"
+      ;;
+    app-intelligence)
+      "$tool_root/scripts/ios_app_intelligence.py" "$@"
+      ;;
+    ai-readiness)
+      "$tool_root/scripts/ios_ai_readiness.py" "$@"
+      ;;
+    redact)
+      "$tool_root/scripts/ios_redaction.py" "$@"
+      ;;
+    eval)
+      "$tool_root/scripts/ios_shipguard_eval.py" "$@"
+      ;;
+    demo)
+      "$tool_root/scripts/ios_shipguard_demo.py" "$@"
+      ;;
+    goals)
+      "$tool_root/scripts/ios_goal_loop.py" "$@"
+      ;;
+  esac
+}
+
 cmd_codex() {
   local subcommand="${1:-}"
   [[ "$subcommand" == "status" ]] || fail "codex requires subcommand: status"
@@ -461,6 +530,9 @@ main() {
       ;;
     docs-check)
       cmd_docs_check "$@"
+      ;;
+    ios)
+      cmd_ios "$@"
       ;;
     codex)
       cmd_codex "$@"

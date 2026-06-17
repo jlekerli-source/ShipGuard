@@ -25,6 +25,21 @@ test "$(./bin/codex-maintainer version)" = "$(sed -n '1p' VERSION)"
 ./bin/shipguard check-run post --help >/dev/null
 ./bin/shipguard sarif --help >/dev/null
 ./bin/shipguard docs-check --help >/dev/null
+./bin/shipguard ios doctor --help >/dev/null
+./bin/shipguard ios inventory --help >/dev/null
+./bin/shipguard ios preview --help >/dev/null
+./bin/shipguard ios devspace --help >/dev/null
+./bin/shipguard ios target-match --help >/dev/null
+./bin/shipguard ios codex-handoff --help >/dev/null
+./bin/shipguard ios plan --help >/dev/null
+./bin/shipguard ios prove --help >/dev/null
+./bin/shipguard ios modernize --help >/dev/null
+./bin/shipguard ios app-intelligence --help >/dev/null
+./bin/shipguard ios ai-readiness --help >/dev/null
+./bin/shipguard ios redact --help >/dev/null
+./bin/shipguard ios eval --help >/dev/null
+./bin/shipguard ios demo --help >/dev/null
+./bin/shipguard ios goals --help >/dev/null
 ./bin/shipguard codex status --help >/dev/null
 ./bin/shipguard leaderboard build --help >/dev/null
 ./bin/shipguard release-attest build --help >/dev/null

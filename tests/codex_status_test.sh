@@ -40,6 +40,7 @@ YAML
 status_output="$(./bin/shipguard codex status --cache "$tmp_dir/cache")"
 printf '%s\n' "$status_output" | grep -q '# ShipGuard Codex Status'
 printf '%s\n' "$status_output" | grep -q 'Overall status: stale'
+printf '%s\n' "$status_output" | grep -q 'Local marketplace id: shipguard'
 printf '%s\n' "$status_output" | grep -q 'stale_metadata'
 printf '%s\n' "$status_output" | grep -q 'stale_skill_text'
 
@@ -64,6 +65,7 @@ cp -R plugins/ios-shipguard "$fresh_cache"
 fresh_output="$(./bin/shipguard codex status --cache "$tmp_dir/fresh-cache" --strict)"
 printf '%s\n' "$fresh_output" | grep -q 'Overall status: pass'
 printf '%s\n' "$fresh_output" | grep -q 'Tracked plugin source: present'
+printf '%s\n' "$fresh_output" | grep -q 'Local marketplace plugin path: ./plugins/ios-shipguard'
 printf '%s\n' "$fresh_output" | grep -q 'iOS ShipGuard'
 
 echo "codex status tests passed"

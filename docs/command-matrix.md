@@ -7,7 +7,17 @@
 | Install workflow kit | `init ios`, `init web`, `init backend`, `init cli` | Starter workflow files |
 | Check workflow kit | `validate` | Validation pass/fail |
 | Check target repo setup | `doctor ios`, `doctor web`, `doctor backend`, `doctor cli` | Missing file report |
+| Install local Codex plugin source | `codex plugin marketplace add .`, `codex plugin add ios-shipguard@shipguard` | Local plugin cache entry; new Codex thread required to load refreshed skill text |
 | Check local Codex plugin install | `codex status` | Installed plugin metadata, stale branding, and missing-source report |
+| Inspect iOS app topology | `ios doctor` | Xcode, SwiftPM, scheme, target, StoreKit, privacy manifest, and proof-readiness report |
+| Inventory risky iOS surfaces | `ios inventory` | Permission, entitlement, target risk, modernization, and ask-before-editing report |
+| Generate Codex iOS brief | `ios plan` | Mode, owner files, blocked questions, proof route, and task brief |
+| Route iOS proof claims | `ios prove` | Source, simulator, StoreKit, privacy, release, and blocked-manual evidence lane |
+| Run iOS preview bridge | `ios preview`, `ios target-match` | Local phone preview, visual event receipts, and semantic target matching |
+| Run ShipGuard Devspace | `ios devspace`, `ios codex-handoff` | MCP/App bridge, preview widget, and guarded Codex handoff bundle |
+| Audit iOS modernization and system exposure | `ios modernize`, `ios app-intelligence`, `ios ai-readiness` | Swift modernization, App Intents/system-surface, and AI capability reports |
+| Redact or evaluate iOS reports | `ios redact`, `ios eval`, `ios demo` | Redacted local reports, deterministic behavior evals, and clean first-run demo |
+| Continue iOS ShipGuard goals | `ios goals` | Evidence-gated slash-goal state and next-goal output |
 | Configure project policy | `policy init`, `policy show` | Plain policy file |
 | Audit one AI run | `autopsy` | Markdown and JSON report |
 | Export CI evidence | `sarif` | SARIF 2.1.0 results |
