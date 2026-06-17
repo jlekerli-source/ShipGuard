@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-17T19:34:07Z
+- Generated: 2026-06-17T19:53:30Z
 - Current toolkit version: 3.59.0
-- Target release: v3.62.0
-- Title: Report Quality Prioritized Next-Action Gate
+- Target release: v3.63.0
+- Title: Performance Finding Explanation Gate
 
 ## Slash Plan
 
 ```text
-/plan v3.62.0 Report Quality Prioritized Next-Action Gate for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make ios report-quality emit a priorityAction and prioritizedActionabilityQuestions so clean read-only product-QA reports identify the first concrete ShipGuard improvement instead of leaving developers with an unranked checklist.
+/plan v3.63.0 Performance Finding Explanation Gate for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make ios report-quality enforce that ios performance findings explain why they matter in JSON and Markdown, and move performance product-QA priority questions past the already-satisfied explanation gate.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.62.0 Report Quality Prioritized Next-Action Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make ios report-quality emit a priorityAction and prioritizedActionabilityQuestions so clean read-only product-QA reports identify the first concrete ShipGuard improvement instead of leaving developers with an unranked checklist, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.63.0 Performance Finding Explanation Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make ios report-quality enforce that ios performance findings explain why they matter in JSON and Markdown, and move performance product-QA priority questions past the already-satisfied explanation gate, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make ios report-quality emit a priorityAction and prioritizedActionabilityQuestions so clean read-only product-QA reports identify the first concrete ShipGuard improvement instead of leaving developers with an unranked checklist.
+Make ios report-quality enforce that ios performance findings explain why they matter in JSON and Markdown, and move performance product-QA priority questions past the already-satisfied explanation gate.
 
 ## Completion Receipt
 
-- Completed scope: Make ios report-quality emit a priorityAction and prioritizedActionabilityQuestions so clean read-only product-QA reports identify the first concrete ShipGuard improvement instead of leaving developers with an unranked checklist.
-- Evidence: A public demo-ios-repo read-only ShipGuard product-QA run generated shareable design, performance, modernize, app-intelligence, and ai-readiness reports. Report-quality passed with 5 reports, 100.0 average score, zero findings, and 21 actionability questions, but its nextActions were generic and started with fixing high report-quality issues even though no findings existed. After the change, ios report-quality emits priorityAction and prioritizedActionabilityQuestions, ranks report-quality findings before questions, and otherwise ranks questions from blocked/review source reports before lower-risk output. The same read-only quality pass now prioritizes the blocked performance report question 'Did the report explain why each finding matters without requiring private app context?' Added a focused fixture proving blocked performance outranks lower-priority AI readiness. Validated with python3 -m py_compile scripts/ios_report_quality.py; git diff --check; ./tests/ios_report_quality_test.sh; ./tests/ios_spec_workflow_test.sh; ./tests/ios_shipguard_eval_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v362; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/next_goal_test.sh; ./tests/package_release_test.sh; ./bin/shipguard ios eval --cases evals/ios_shipguard_cases.jsonl --out /tmp/ios-shipguard-eval-v362; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; and ./bin/shipguard codex status --strict.
+- Completed scope: Make ios report-quality enforce that ios performance findings explain why they matter in JSON and Markdown, and move performance product-QA priority questions past the already-satisfied explanation gate.
+- Evidence: A fresh read-only public demo-ios-repo product-QA run generated ios performance with impact explanations and report-quality passed at 100.0 with zero findings. The priority action advanced from the old explanation question to 'Were repeated rules grouped enough to stay scannable?'. Added report-quality fixtures for missing performance impact fields and missing Markdown explanation visibility. Validated with python3 -m py_compile scripts/ios_report_quality.py scripts/ios_performance.py; git diff --check; ./tests/ios_performance_test.sh; ./tests/ios_report_quality_test.sh; ./tests/ios_spec_workflow_test.sh; ./tests/ios_shipguard_eval_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v363; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/next_goal_test.sh; ./tests/package_release_test.sh; ./bin/shipguard ios eval --cases evals/ios_shipguard_cases.jsonl --out /tmp/ios-shipguard-eval-v363; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; and ./bin/shipguard codex status --strict.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.63.0 Performance Finding Explanation Gate for jlekerli-source/ShipGuard:
+/plan v3.64.0 Performance Finding Grouping Gate for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Make ios report-quality emit a priorityAction and prioritizedActionabilityQuesti
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.63.0 Performance Finding Explanation Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.64.0 Performance Finding Grouping Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.63.0 --title "Performance Finding Explanation Gate" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.64.0 --title "Performance Finding Grouping Gate" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -131,12 +131,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.62.0.
+1. Open or update the tracking issue for v3.63.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.62.0` and upload `dist/shipguard-v3.62.0.tar.gz`.
+6. Create release `v3.63.0` and upload `dist/shipguard-v3.63.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
