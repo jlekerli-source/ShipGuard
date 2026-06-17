@@ -27,6 +27,15 @@ DECLARED_SHAREABILITY_TOOLS = SOURCE_SCANNER_TOOLS | {
 }
 REPORT_QUALITY_TOOL = "shipguard ios report-quality"
 SPEC_WORKFLOW_TOOL = "shipguard ios spec-workflow"
+SPEC_WORKFLOW_REQUIRED_ARTIFACTS = {
+    "constitution",
+    "spec",
+    "plan",
+    "tasks",
+    "devspaceGuardrails",
+    "json",
+    "markdown",
+}
 TOKEN_RISK_PATTERNS = {
     "bearer-token": re.compile(r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{12,}"),
     "query-token": re.compile(
@@ -290,7 +299,7 @@ def finding_quality_issues(report: dict[str, Any]) -> list[dict[str, str]]:
     return issues
 
 
-def spec_workflow_quality_issues(report: dict[str, Any], *, path_name: str) -> list[dict[str, str]]:
+def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     inputs = report.get("reportInputs")
     if not isinstance(inputs, dict):
@@ -323,7 +332,6 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path_name: str) -> l
         )
 
     artifacts = report.get("artifacts")
-    required_artifacts = {"constitution", "spec", "plan", "tasks", "devspaceGuardrails", "json", "markdown"}
     if not isinstance(artifacts, dict):
         add_issue(
             issues,
@@ -333,7 +341,7 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path_name: str) -> l
             recommendation="Emit a complete artifacts map so downstream users know which generated files to review.",
         )
     else:
-        missing = sorted(required_artifacts - set(artifacts))
+        missing = sorted(SPEC_WORKFLOW_REQUIRED_ARTIFACTS - set(artifacts))
         if missing:
             add_issue(
                 issues,
@@ -342,6 +350,50 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path_name: str) -> l
                 evidence=f"{path_name} artifacts missing: {', '.join(missing)}",
                 recommendation="Keep every spec workflow output self-describing: constitution, spec, plan, tasks, Devspace guardrails, JSON, and Markdown.",
             )
+        base_dir = path.parent
+        for artifact_name in sorted(SPEC_WORKFLOW_REQUIRED_ARTIFACTS & set(artifacts)):
+            raw_value = artifacts.get(artifact_name)
+            if not isinstance(raw_value, str) or not raw_value.strip():
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="spec-workflow-artifact-path-invalid",
+                    evidence=f"{path_name} artifact {artifact_name} has no usable file path",
+                    recommendation="Emit relative file paths for every generated spec-workflow artifact.",
+                )
+                continue
+            artifact_path = Path(raw_value)
+            if artifact_path.is_absolute() or ".." in artifact_path.parts:
+                add_issue(
+                    issues,
+                    severity="high",
+                    rule_id="spec-workflow-artifact-path-unsafe",
+                    evidence=f"{path_name} artifact {artifact_name} uses an absolute or parent-relative path",
+                    recommendation="Keep spec-workflow artifact paths relative to the report directory before sharing or scoring.",
+                )
+                continue
+            local_artifact_path = base_dir / artifact_path
+            if not local_artifact_path.is_file():
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="spec-workflow-artifact-file-missing",
+                    evidence=f"{path_name} artifact {artifact_name} missing file {raw_value}",
+                    recommendation="Regenerate or copy the complete spec workflow bundle before report-quality scoring.",
+                )
+                continue
+            try:
+                artifact_size = local_artifact_path.stat().st_size
+            except OSError:
+                artifact_size = 0
+            if artifact_size == 0:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="spec-workflow-artifact-file-empty",
+                    evidence=f"{path_name} artifact {artifact_name} is empty: {raw_value}",
+                    recommendation="Regenerate spec-workflow artifacts so every declared file contains reviewable content.",
+                )
 
     section_checks = [
         ("constitution", "spec-workflow-constitution-missing"),
@@ -491,7 +543,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
         issues.extend(declared_shareability_issues(loaded, path_name=path.name))
 
     if tool == SPEC_WORKFLOW_TOOL:
-        issues.extend(spec_workflow_quality_issues(loaded, path_name=path.name))
+        issues.extend(spec_workflow_quality_issues(loaded, path=path, path_name=path.name))
 
     findings = loaded.get("findings")
     if isinstance(findings, list) and len(findings) > 30 and not loaded.get("ruleSummary"):

@@ -125,6 +125,7 @@ Proof:
 - Use the report-quality Actionability Questions to choose the next ShipGuard rule, fixture, report section, or docs improvement
 - Run `shipguard ios spec-workflow --path <private-app-or-shipguard-repo> --feature <improvement> --from-report <quality-dir> --shipguard-eval --shareable --out <spec-dir>` when those questions need to become a proof-gated ShipGuard plan rather than target-app work
 - If report-quality emits `spec-workflow-report-context-missing` or `spec-workflow-actionability-missing`, regenerate the spec workflow with `--from-report <quality-dir>` so the plan is grounded in observed ShipGuard output
+- If report-quality emits `spec-workflow-artifact-file-missing` or `spec-workflow-artifact-file-empty`, regenerate or copy the complete spec-workflow bundle before treating it as proof
 - If report-quality emits `declared-shareability-missing` or `declared-shareability-local-mode`, regenerate the source report with `--shareable` before scoring or sharing
 - If report-quality emits token/path shareability findings, run the generated `shipguard ios redact` command before moving artifacts into ChatGPT, GitHub, docs, or release evidence
 - Keep generated private-app reports local unless the user approves redaction and sharing

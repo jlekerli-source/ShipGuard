@@ -180,7 +180,7 @@ The command is read-only against `--path` and writes only to `--out`. It creates
 
 Add `--from-report` for `ios report-quality` output or any source-scanner report so actionability questions become clarifying questions instead of app-remediation tasks. Add `--shipguard-eval` when the scanned repo is Ringly, Ilmify, or another private app used only as ShipGuard product QA. Add `--shareable` before moving the generated spec workflow into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or another `ios report-quality` pass.
 
-`ios report-quality --shareable` checks spec-workflow adoption quality. A spec workflow with no `--from-report` evidence or no actionability questions receives `spec-workflow-report-context-missing` or `spec-workflow-actionability-missing`, because otherwise the generated plan can look polished without being grounded in an observed ShipGuard report weakness.
+`ios report-quality --shareable` checks spec-workflow adoption quality. A spec workflow with no `--from-report` evidence or no actionability questions receives `spec-workflow-report-context-missing` or `spec-workflow-actionability-missing`, because otherwise the generated plan can look polished without being grounded in an observed ShipGuard report weakness. It also verifies that declared spec-workflow artifact files exist and are non-empty beside `ios-spec-workflow.json`; missing bundle files receive `spec-workflow-artifact-file-missing` without exposing local absolute paths.
 
 ## Design QA Audit
 

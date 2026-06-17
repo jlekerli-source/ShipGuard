@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-17T17:12:52Z
+- Generated: 2026-06-17T17:25:35Z
 - Current toolkit version: 3.38.0
-- Target release: v3.52.0
-- Title: Spec Workflow Adoption Quality Gate
+- Target release: v3.53.0
+- Title: Spec Workflow Artifact Completeness Gate
 
 ## Slash Plan
 
 ```text
-/plan v3.52.0 Spec Workflow Adoption Quality Gate for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make ios report-quality flag shareable ios spec-workflow artifacts that were generated without report input or actionability questions, so polished standalone plans do not pass adoption scoring unless they are grounded in observed ShipGuard output.
+/plan v3.53.0 Spec Workflow Artifact Completeness Gate for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make ios report-quality dereference ios spec-workflow artifact manifests and flag missing, empty, or unsafe generated files so incomplete spec bundles do not pass adoption scoring.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.52.0 Spec Workflow Adoption Quality Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make ios report-quality flag shareable ios spec-workflow artifacts that were generated without report input or actionability questions, so polished standalone plans do not pass adoption scoring unless they are grounded in observed ShipGuard output, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.53.0 Spec Workflow Artifact Completeness Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make ios report-quality dereference ios spec-workflow artifact manifests and flag missing, empty, or unsafe generated files so incomplete spec bundles do not pass adoption scoring, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make ios report-quality flag shareable ios spec-workflow artifacts that were generated without report input or actionability questions, so polished standalone plans do not pass adoption scoring unless they are grounded in observed ShipGuard output.
+Make ios report-quality dereference ios spec-workflow artifact manifests and flag missing, empty, or unsafe generated files so incomplete spec bundles do not pass adoption scoring.
 
 ## Completion Receipt
 
-- Completed scope: Make ios report-quality flag shareable ios spec-workflow artifacts that were generated without report input or actionability questions, so polished standalone plans do not pass adoption scoring unless they are grounded in observed ShipGuard output.
-- Evidence: A misuse probe showed ios spec-workflow --shareable without --from-report produced a polished artifact that passed ios report-quality. After the change, that same artifact scores review with spec-workflow-report-context-missing and spec-workflow-actionability-missing. A read-only Ringly/Ilmify pass still produced 18 actionability questions, generated a report-grounded spec workflow, and passed ios report-quality --shareable with status pass and no local path leaks. Validated with python3 -m py_compile scripts/ios_report_quality.py scripts/ios_spec_workflow.py; ./tests/ios_spec_workflow_test.sh; ./tests/ios_report_quality_test.sh; and the read-only Ringly/Ilmify spec-workflow product-QA loop.
+- Completed scope: Make ios report-quality dereference ios spec-workflow artifact manifests and flag missing, empty, or unsafe generated files so incomplete spec bundles do not pass adoption scoring.
+- Evidence: A fixture misuse probe deleted tasks.md from a valid spec-workflow bundle; before the change, ios report-quality returned pass, and after the change it returns review with spec-workflow-artifact-file-missing and no temp path leak. A read-only Ringly/Ilmify ShipGuard product-QA loop produced shareable design/performance reports, generated a report-grounded spec workflow, passed report-quality for the complete bundle, and flagged the intentionally incomplete bundle without leaking private app paths. Validated with python3 -m py_compile scripts/ios_report_quality.py scripts/ios_spec_workflow.py; ./tests/ios_spec_workflow_test.sh; ./tests/ios_report_quality_test.sh; and the read-only Ringly/Ilmify spec-workflow artifact completeness loop.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.53.0 Spec Workflow Artifact Completeness Gate for jlekerli-source/ShipGuard:
+/plan v3.54.0 Spec Workflow Artifact Content Quality Gate for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Make ios report-quality flag shareable ios spec-workflow artifacts that were gen
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.53.0 Spec Workflow Artifact Completeness Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.54.0 Spec Workflow Artifact Content Quality Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.53.0 --title "Spec Workflow Artifact Completeness Gate" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.54.0 --title "Spec Workflow Artifact Content Quality Gate" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -131,12 +131,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.52.0.
+1. Open or update the tracking issue for v3.53.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.52.0` and upload `dist/shipguard-v3.52.0.tar.gz`.
+6. Create release `v3.53.0` and upload `dist/shipguard-v3.53.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

@@ -70,6 +70,20 @@ fi
   --shareable >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/spec-quality/ios-report-quality.json"
 
+cp -R "$tmp_dir/spec" "$tmp_dir/missing-artifact-spec"
+rm "$tmp_dir/missing-artifact-spec/tasks.md"
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/missing-artifact-spec" \
+  --out "$tmp_dir/missing-artifact-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-artifact-quality/ios-report-quality.json"
+grep -q '"ruleId": "spec-workflow-artifact-file-missing"' "$tmp_dir/missing-artifact-quality/ios-report-quality.json"
+grep -q 'tasks.md' "$tmp_dir/missing-artifact-quality/ios-report-quality.json"
+if grep -R -F -q "$tmp_dir" "$tmp_dir/missing-artifact-quality"; then
+  echo "shareable artifact-missing quality output must not include temp absolute paths" >&2
+  exit 1
+fi
+
 ./bin/shipguard ios spec-workflow \
   --path fixtures/demo-ios-repo \
   --feature "No report context spec" \
