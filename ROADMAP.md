@@ -76,6 +76,6 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 
 ## Later
 
-- Publish a small collection of anonymized maintainer workflows from real Ringly work.
+- Publish a small collection of anonymized maintainer workflows from real production app work.
 - Add stricter markdown linting and shell linting when dependency cost is justified.
 - Build a comparison matrix against other agent-workflow formats.
