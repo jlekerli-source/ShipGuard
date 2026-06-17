@@ -364,10 +364,10 @@ def shipguard_eval_boundary() -> dict[str, Any]:
 
 def shipguard_eval_questions() -> list[str]:
     return [
-        "Were repeated rules grouped enough to stay scannable?",
         "Were high findings justified by evidence instead of broad suspicion?",
         "Did proof guidance name what Codex can verify locally and what remains device/manual proof?",
         "Were finding impact explanations specific enough to make prioritization obvious without private app context?",
+        "Did grouped next actions make repeated rules scannable without hiding full JSON evidence?",
         "Which observation should become a public fixture or eval case before changing the rule again?",
     ]
 
@@ -398,6 +398,45 @@ def summarize_rules(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
         grouped.values(),
         key=lambda item: (
             SEVERITY_RANK["high"] if item["high"] else SEVERITY_RANK["review"] if item["review"] else SEVERITY_RANK["opportunity"],
+            -int(item["count"]),
+            str(item["ruleId"]),
+        ),
+    )
+
+
+def grouped_action_plan(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_rule: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for finding in findings:
+        by_rule[str(finding["ruleId"])].append(finding)
+
+    groups: list[dict[str, Any]] = []
+    for rule_id, items in by_rule.items():
+        first = items[0]
+        severity_mix = {
+            "high": sum(1 for item in items if item["severity"] == "high"),
+            "review": sum(1 for item in items if item["severity"] == "review"),
+            "opportunity": sum(1 for item in items if item["severity"] == "opportunity"),
+        }
+        groups.append(
+            {
+                "ruleId": rule_id,
+                "category": first["category"],
+                "title": first["title"],
+                "count": len(items),
+                "severity": first["severity"],
+                "severityMix": severity_mix,
+                "firstLocations": [f"{item['file']}:{item['line']}" for item in items[:3]],
+                "exampleEvidence": first["evidence"],
+                "whyThisGroupMatters": first["impact"],
+                "recommendedFirstMove": first["recommendation"],
+                "proofGuidance": first["proof"],
+            }
+        )
+
+    return sorted(
+        groups,
+        key=lambda item: (
+            SEVERITY_RANK.get(str(item["severity"]), 99),
             -int(item["count"]),
             str(item["ruleId"]),
         ),
@@ -458,6 +497,7 @@ def build_report(root: Path, *, shipguard_eval: bool = False, shareable: bool = 
         "scopeBoundary": shipguard_eval_boundary() if shipguard_eval else None,
         "reportQualityQuestions": shipguard_eval_questions() if shipguard_eval else [],
         "ruleSummary": summarize_rules(findings),
+        "groupedActionPlan": grouped_action_plan(findings),
         "findings": findings,
         "nextSteps": shipguard_eval_next_steps() if shipguard_eval else app_development_next_steps(),
     }
@@ -470,12 +510,12 @@ def table_cell(value: object, limit: int = 120) -> str:
     return text[: limit - 1].rstrip() + "..."
 
 
-def select_markdown_findings(findings: list[dict[str, Any]], limit: int = 40, per_rule: int = 5) -> list[dict[str, Any]]:
+def select_markdown_findings(findings: list[dict[str, Any]], limit: int = 40, per_rule: int = 3) -> list[dict[str, Any]]:
     selected: list[dict[str, Any]] = []
     rule_counts: dict[str, int] = defaultdict(int)
     for finding in findings:
         rule_id = str(finding["ruleId"])
-        if finding["severity"] == "high" or rule_counts[rule_id] < per_rule:
+        if rule_counts[rule_id] < per_rule:
             selected.append(finding)
             rule_counts[rule_id] += 1
         if len(selected) >= limit:
@@ -548,13 +588,31 @@ def markdown_report(report: dict[str, Any]) -> str:
         locations = "<br>".join(f"`{location}`" for location in summary["firstLocations"])
         lines.append(f"| `{summary['ruleId']}` | {summary['count']} | {severity_mix} | {locations} |")
 
+    if report["groupedActionPlan"]:
+        lines.extend(
+            [
+                "",
+                "## Grouped Next Actions",
+                "",
+                "Start with rule groups, not individual duplicate rows. Inspect the first locations, prove the group on the slow screen, then decide whether the pattern is real before broad refactors.",
+                "",
+                "| Rule | Count | First Locations | Why this group matters | First move | Proof |",
+                "| --- | ---: | --- | --- | --- | --- |",
+            ]
+        )
+        for group in report["groupedActionPlan"]:
+            locations = "<br>".join(f"`{location}`" for location in group["firstLocations"])
+            lines.append(
+                f"| `{group['ruleId']}` | {group['count']} | {locations} | {table_cell(group['whyThisGroupMatters'])} | {table_cell(group['recommendedFirstMove'])} | {table_cell(group['proofGuidance'])} |"
+            )
+
     selected_findings = select_markdown_findings(report["findings"])
     lines.extend(
         [
             "",
             "## Top Findings",
             "",
-            "Repeated rules are capped here so the Markdown stays scannable; the JSON report contains every finding.",
+            "Repeated rules are capped here after the grouped action plan so the Markdown stays scannable; the JSON report contains every finding.",
             "",
             "| Severity | Rule | Location | Finding | Evidence | Why it matters | Recommendation |",
             "| --- | --- | --- | --- | --- | --- | --- |",

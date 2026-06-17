@@ -22,6 +22,33 @@ struct GeneratedPerformanceNoise: View {
     }
 }
 SWIFT
+cat > "$fixture/Sources/DemoShipGuardApp/RepeatedPerformanceFindings.swift" <<'SWIFT'
+import SwiftUI
+import UserNotifications
+
+struct RepeatedPerformanceFindings: View {
+    var body: some View {
+        VStack {
+            TimelineView(.periodic(from: .now, by: 0.01)) { _ in Text("A") }
+            TimelineView(.periodic(from: .now, by: 0.01)) { _ in Text("B") }
+            TimelineView(.periodic(from: .now, by: 0.01)) { _ in Text("C") }
+            TimelineView(.periodic(from: .now, by: 0.01)) { _ in Text("D") }
+            TimelineView(.periodic(from: .now, by: 0.01)) { _ in Text("E") }
+            TimelineView(.periodic(from: .now, by: 0.01)) { _ in Text("F") }
+        }
+    }
+}
+
+@MainActor
+final class RepeatedNotificationCleanup {
+    func cleanup() {
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["a"])
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["b"])
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["c"])
+    }
+}
+SWIFT
 
 ./bin/shipguard ios performance --help >/dev/null
 ./bin/shipguard ios performance \
@@ -50,15 +77,36 @@ grep -q '"ruleId": "swiftui-periodic-timeline"' "$tmp_dir/performance/ios-perfor
 grep -q '"ruleId": "notification-removal-ui-stall"' "$tmp_dir/performance/ios-performance.json"
 grep -q '"ruleId": "formatter-created-in-view"' "$tmp_dir/performance/ios-performance.json"
 grep -q '"impact":' "$tmp_dir/performance/ios-performance.json"
+grep -q '"groupedActionPlan":' "$tmp_dir/performance/ios-performance.json"
 grep -q '"scanScope"' "$tmp_dir/performance/ios-performance.json"
 grep -q '"release-artifacts"' "$tmp_dir/performance/ios-performance.json"
 grep -q 'Scan Scope' "$tmp_dir/performance/ios-performance.md"
 grep -q 'release-artifacts' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Why it matters' "$tmp_dir/performance/ios-performance.md"
+grep -q 'Grouped Next Actions' "$tmp_dir/performance/ios-performance.md"
 if grep -q 'GeneratedPerformanceNoise.swift' "$tmp_dir/performance/ios-performance.json"; then
   echo "ios performance should skip generated proof artifacts" >&2
   exit 1
 fi
+python3 - <<'PY' "$tmp_dir/performance/ios-performance.json" "$tmp_dir/performance/ios-performance.md"
+import json
+import sys
+from pathlib import Path
+
+report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+groups = {item["ruleId"]: item for item in report["groupedActionPlan"]}
+for rule_id in ("swiftui-periodic-timeline", "notification-removal-ui-stall"):
+    if groups.get(rule_id, {}).get("count", 0) <= 3:
+        raise SystemExit(f"expected repeated group for {rule_id}: {groups.get(rule_id)}")
+    for field in ("firstLocations", "whyThisGroupMatters", "recommendedFirstMove", "proofGuidance"):
+        if not groups[rule_id].get(field):
+            raise SystemExit(f"group {rule_id} missing {field}: {groups[rule_id]}")
+
+markdown = Path(sys.argv[2]).read_text(encoding="utf-8")
+top = markdown.split("## Top Findings", 1)[1].split("## Report Quality Questions", 1)[0]
+if top.count("`swiftui-periodic-timeline`") > 3:
+    raise SystemExit("top findings should cap repeated timeline rows after grouped actions")
+PY
 grep -q 'physical-device smoothness' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Animation Hitches' "$tmp_dir/performance/ios-performance.md"
 grep -q '"intent": "shipguard-evaluation"' "$tmp_dir/eval-performance/ios-performance.json"
@@ -66,7 +114,12 @@ grep -q '"shipguardOnly": true' "$tmp_dir/eval-performance/ios-performance.json"
 grep -q 'ShipGuard Evaluation Boundary' "$tmp_dir/eval-performance/ios-performance.md"
 grep -q 'Do not edit the scanned app' "$tmp_dir/eval-performance/ios-performance.md"
 grep -q 'Report Quality Questions' "$tmp_dir/eval-performance/ios-performance.md"
-grep -q 'Were repeated rules grouped enough to stay scannable?' "$tmp_dir/eval-performance/ios-performance.json"
+grep -q 'Were high findings justified by evidence instead of broad suspicion?' "$tmp_dir/eval-performance/ios-performance.json"
+grep -q 'Did grouped next actions make repeated rules scannable without hiding full JSON evidence?' "$tmp_dir/eval-performance/ios-performance.json"
+if grep -q 'Were repeated rules grouped enough to stay scannable?' "$tmp_dir/eval-performance/ios-performance.json"; then
+  echo "ios performance should not keep a satisfied grouping gate as the first actionability question" >&2
+  exit 1
+fi
 if grep -q 'Did the report explain why each finding matters without requiring private app context?' "$tmp_dir/eval-performance/ios-performance.json"; then
   echo "ios performance should not keep a satisfied explanation gate as the first actionability question" >&2
   exit 1

@@ -449,6 +449,59 @@ def performance_finding_explanation_issues(report: dict[str, Any], *, markdown: 
     return issues
 
 
+def performance_grouping_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    findings = report.get("findings")
+    if not isinstance(findings, list) or not findings:
+        return issues
+    rule_counts: dict[str, int] = {}
+    for item in findings:
+        if not isinstance(item, dict):
+            continue
+        rule_id = str(item.get("ruleId") or "")
+        if not rule_id:
+            continue
+        rule_counts[rule_id] = rule_counts.get(rule_id, 0) + 1
+    repeated_rules = sorted(rule_id for rule_id, count in rule_counts.items() if count > 3)
+    if not repeated_rules:
+        return issues
+
+    grouped = report.get("groupedActionPlan")
+    if not isinstance(grouped, list) or not grouped:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-grouped-action-plan-missing",
+            evidence=f"{path_name} has repeated performance rules without groupedActionPlan",
+            recommendation="Emit groupedActionPlan so repeated findings become rule-level next actions instead of duplicate rows.",
+        )
+        return issues
+
+    grouped_ids = {
+        str(item.get("ruleId") or "")
+        for item in grouped
+        if isinstance(item, dict)
+    }
+    missing_groups = [rule_id for rule_id in repeated_rules if rule_id not in grouped_ids]
+    if missing_groups:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-grouped-action-plan-incomplete",
+            evidence=f"{path_name} groupedActionPlan missing repeated rules: {', '.join(missing_groups[:5])}",
+            recommendation="Include every repeated performance rule in groupedActionPlan with count, first locations, recommendation, and proof guidance.",
+        )
+    if "Grouped Next Actions" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-markdown-grouping-missing",
+            evidence=f"{path_name} has repeated performance rules but Markdown does not show Grouped Next Actions",
+            recommendation="Surface grouped next actions in Markdown so reviewers can start from rule groups before reading duplicate findings.",
+        )
+    return issues
+
+
 def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     inputs = report.get("reportInputs")
@@ -982,6 +1035,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     issues.extend(finding_quality_issues(loaded))
     if tool == "shipguard ios performance":
         issues.extend(performance_finding_explanation_issues(loaded, markdown=markdown, path_name=path.name))
+        issues.extend(performance_grouping_issues(loaded, markdown=markdown, path_name=path.name))
 
     if has_local_path(raw_text):
         add_issue(

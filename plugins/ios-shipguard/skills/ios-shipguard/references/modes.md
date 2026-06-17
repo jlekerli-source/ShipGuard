@@ -134,6 +134,7 @@ Proof:
 - If report-quality emits `spec-workflow-artifact-file-missing` or `spec-workflow-artifact-file-empty`, regenerate or copy the complete spec-workflow bundle before treating it as proof
 - If report-quality emits `spec-workflow-artifact-content-incomplete` or `spec-workflow-artifact-placeholder-content`, regenerate the spec workflow so the bundle contains real headings, task IDs, proof cues, and Devspace guardrails
 - If report-quality emits `performance-finding-impact-missing` or `performance-markdown-impact-missing`, improve `ios performance` explanation fields or Markdown so findings explain why they matter without private app context
+- If report-quality emits `performance-grouped-action-plan-missing`, `performance-grouped-action-plan-incomplete`, or `performance-markdown-grouping-missing`, improve `ios performance` grouping fields or Markdown so repeated rules become rule-level next actions before duplicate rows
 - If report-quality emits `declared-shareability-missing` or `declared-shareability-local-mode`, regenerate the source report with `--shareable` before scoring or sharing
 - If report-quality emits token/path shareability findings, run the generated `shipguard ios redact` command before moving artifacts into ChatGPT, GitHub, docs, or release evidence
 - Keep generated private-app reports local unless the user approves redaction and sharing

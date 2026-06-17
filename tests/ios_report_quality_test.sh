@@ -309,6 +309,123 @@ MD
 grep -q '"status": "review"' "$tmp_dir/missing-markdown-impact-quality/ios-report-quality.json"
 grep -q '"ruleId": "performance-markdown-impact-missing"' "$tmp_dir/missing-markdown-impact-quality/ios-report-quality.json"
 
+missing_grouping_dir="$tmp_dir/missing-grouping"
+mkdir -p "$missing_grouping_dir"
+cat > "$missing_grouping_dir/ios-performance.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard ios performance",
+  "intent": "shipguard-evaluation",
+  "generatedAt": "2026-06-17T00:00:00Z",
+  "status": "blocked",
+  "shareability": {
+    "mode": "shareable",
+    "localAbsolutePathsIncluded": false
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "scanScope": {
+    "skippedDirectoryCount": 0,
+    "skippedDirectories": []
+  },
+  "findings": [
+    {
+      "ruleId": "performance-repeated-rule",
+      "severity": "high",
+      "evidence": "Repeated performance evidence 1.",
+      "impact": "Repeated rows are noisy without grouped action guidance.",
+      "recommendation": "Group repeated rules.",
+      "proof": "Run report-quality on the fixture."
+    },
+    {
+      "ruleId": "performance-repeated-rule",
+      "severity": "high",
+      "evidence": "Repeated performance evidence 2.",
+      "impact": "Repeated rows are noisy without grouped action guidance.",
+      "recommendation": "Group repeated rules.",
+      "proof": "Run report-quality on the fixture."
+    },
+    {
+      "ruleId": "performance-repeated-rule",
+      "severity": "high",
+      "evidence": "Repeated performance evidence 3.",
+      "impact": "Repeated rows are noisy without grouped action guidance.",
+      "recommendation": "Group repeated rules.",
+      "proof": "Run report-quality on the fixture."
+    },
+    {
+      "ruleId": "performance-repeated-rule",
+      "severity": "high",
+      "evidence": "Repeated performance evidence 4.",
+      "impact": "Repeated rows are noisy without grouped action guidance.",
+      "recommendation": "Group repeated rules.",
+      "proof": "Run report-quality on the fixture."
+    }
+  ],
+  "reportQualityQuestions": [
+    "Does report-quality enforce grouping for repeated performance rules?"
+  ]
+}
+JSON
+cat > "$missing_grouping_dir/ios-performance.md" <<'MD'
+# Missing Grouping Performance Fixture
+
+## ShipGuard Evaluation Boundary
+
+This fixture is ShipGuard product QA only.
+
+## Scan Scope
+
+No skipped directories.
+
+## Top Findings
+
+| Severity | Rule | Why it matters |
+| --- | --- | --- |
+| high | `performance-repeated-rule` | Repeated rows are noisy without grouped action guidance. |
+MD
+./bin/shipguard ios report-quality \
+  --reports "$missing_grouping_dir" \
+  --out "$tmp_dir/missing-grouping-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-grouping-quality/ios-report-quality.json"
+grep -q '"ruleId": "performance-grouped-action-plan-missing"' "$tmp_dir/missing-grouping-quality/ios-report-quality.json"
+
+missing_markdown_grouping_dir="$tmp_dir/missing-markdown-grouping"
+mkdir -p "$missing_markdown_grouping_dir"
+cp "$missing_grouping_dir/ios-performance.json" "$missing_markdown_grouping_dir/ios-performance.json"
+python3 - <<'PY' "$missing_markdown_grouping_dir/ios-performance.json"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data["groupedActionPlan"] = [
+    {
+        "ruleId": "performance-repeated-rule",
+        "category": "SwiftUI Rendering",
+        "title": "Repeated performance rule",
+        "count": 4,
+        "severity": "high",
+        "firstLocations": ["Demo.swift:1"],
+        "whyThisGroupMatters": "Repeated rows are noisy without grouped action guidance.",
+        "recommendedFirstMove": "Group repeated rules.",
+        "proofGuidance": "Run report-quality on the fixture."
+    }
+]
+path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+PY
+cp "$missing_grouping_dir/ios-performance.md" "$missing_markdown_grouping_dir/ios-performance.md"
+./bin/shipguard ios report-quality \
+  --reports "$missing_markdown_grouping_dir" \
+  --out "$tmp_dir/missing-markdown-grouping-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-markdown-grouping-quality/ios-report-quality.json"
+grep -q '"ruleId": "performance-markdown-grouping-missing"' "$tmp_dir/missing-markdown-grouping-quality/ios-report-quality.json"
+
 local_contract_reports="$tmp_dir/local-contract-reports"
 ./bin/shipguard ios modernize \
   --focus swift \
