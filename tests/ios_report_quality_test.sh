@@ -677,6 +677,7 @@ data["groupedActionPlan"] = [
         "firstLocations": ["Demo.swift:1"],
         "severityReason": "High because this repeated fixture represents a concrete high source signal.",
         "whyThisGroupMatters": "Repeated rows are noisy without grouped action guidance.",
+        "firstExperiment": "Change one repeated fixture location, rerun report-quality, and stop if the grouped action is not clearer.",
         "recommendedFirstMove": "Group repeated rules.",
         "proofGuidance": "Run report-quality on the fixture."
     }
@@ -690,6 +691,41 @@ cp "$missing_grouping_dir/ios-performance.md" "$missing_markdown_grouping_dir/io
   --shareable >/dev/null
 grep -q '"status": "review"' "$tmp_dir/missing-markdown-grouping-quality/ios-report-quality.json"
 grep -q '"ruleId": "performance-markdown-grouping-missing"' "$tmp_dir/missing-markdown-grouping-quality/ios-report-quality.json"
+
+missing_first_experiment_dir="$tmp_dir/missing-first-experiment"
+mkdir -p "$missing_first_experiment_dir"
+cp "$missing_markdown_grouping_dir/ios-performance.json" "$missing_first_experiment_dir/ios-performance.json"
+python3 - <<'PY' "$missing_first_experiment_dir/ios-performance.json"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+for group in data["groupedActionPlan"]:
+    group.pop("firstExperiment", None)
+path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+PY
+cat > "$missing_first_experiment_dir/ios-performance.md" <<'MD'
+# Missing First Experiment Performance Fixture
+
+## ShipGuard Evaluation Boundary
+
+This fixture is ShipGuard product QA only.
+
+## Grouped Next Actions
+
+| Rule | Count | First Locations | Why severity | Why this group matters | First move |
+| --- | ---: | --- | --- | --- | --- |
+| `performance-repeated-rule` | 4 | `Demo.swift:1` | High because this repeated fixture represents a concrete high source signal. | Repeated rows are noisy without grouped action guidance. | Group repeated rules. |
+MD
+./bin/shipguard ios report-quality \
+  --reports "$missing_first_experiment_dir" \
+  --out "$tmp_dir/missing-first-experiment-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-first-experiment-quality/ios-report-quality.json"
+grep -q '"ruleId": "performance-grouped-first-experiment-missing"' "$tmp_dir/missing-first-experiment-quality/ios-report-quality.json"
+grep -q '"ruleId": "performance-markdown-first-experiment-missing"' "$tmp_dir/missing-first-experiment-quality/ios-report-quality.json"
 
 local_contract_reports="$tmp_dir/local-contract-reports"
 ./bin/shipguard ios modernize \

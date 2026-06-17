@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added `firstExperiment` to grouped `ios performance` actions so reports name one reversible proof step before broad refactors, and let `ios report-quality` flag grouped performance output that hides the first experiment from JSON or Markdown.
 - Hardened release packaging and prefix installation so dirty local `__pycache__`, `*.pyc`, `.cache`, `DerivedData`, `dist`, and `.git` artifacts cannot leak into published or installed ShipGuard payloads.
 - Fixed iOS ShipGuard skill CLI routing for app checkouts by resolving `SHIPGUARD_CLI` from app-local `./bin/shipguard`, installed `shipguard`, or `$HOME/.local/bin/shipguard` instead of assuming every target app repo contains ShipGuard's source tree.
 - Split `ios performance` proof guidance into `localProof` and `manualProof`, render Codex-local versus manual/device proof in Markdown, and let `ios report-quality` flag performance reports that keep proof guidance vague or hidden from Markdown.

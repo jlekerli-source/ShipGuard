@@ -91,6 +91,8 @@ The following high-evidence pass showed high findings had source snippets and im
 
 The next proof-boundary pass showed performance findings still used one blended proof sentence. `ios performance` now emits `localProof` and `manualProof`, renders `Codex local proof` and `Manual/device proof` in Markdown, and `ios report-quality` flags performance reports that omit those split fields or hide them from Markdown. The next product-QA priority moved to whether grouped actions name the smallest first experiment before broad refactors.
 
+A public read-only full-report pass then showed report-quality still prioritized that first-experiment question because grouped performance actions had only broad `recommendedFirstMove` text. `ios performance` now emits a `firstExperiment` for each grouped action, Markdown renders a `First experiment` column before broader first-move advice, and `ios report-quality` emits `performance-grouped-first-experiment-missing` or `performance-markdown-first-experiment-missing` when grouped actions hide the smallest reversible proof step.
+
 A real plugin run from an app checkout showed the iOS skill tried the app-local `./bin/shipguard` path and then fell back to source inspection because the Codex plugin bundle does not install the CLI into every target repo. The skill now resolves `SHIPGUARD_CLI` from app-local `./bin/shipguard`, installed `shipguard`, or `$HOME/.local/bin/shipguard`, and the docs clarify that plugin install loads skill metadata while CLI install provides the executable.
 
 The next read-only performance pass showed `ios performance --shipguard-eval` still carried absolute local project roots, so report-quality correctly raised a local-path shareability warning. `ios performance --shareable` now omits local absolute project paths from JSON and Markdown before report-quality scoring or external planning, while default local reports keep operator paths.
@@ -234,6 +236,7 @@ Status: started.
 - Added `shipguard ios performance` after real-app read-only checks showed the previous `performance-audit` route produced proof guidance but not enough concrete source findings.
 - Added `--shipguard-eval` so private Ringly/Ilmify-style checks are explicitly ShipGuard-only QA, not target-app remediation work.
 - Changed the performance report shape to include rule summaries, capped repeated rules in Markdown, exact evidence snippets, and full JSON findings for deeper follow-up.
+- Added grouped performance `firstExperiment` output after report-quality kept prioritizing whether grouped actions named the smallest reversible proof step before broad refactors.
 - Extended `--shipguard-eval` to design, modernization, app-intelligence, and AI-readiness reports after read-only Ringly/Ilmify evidence showed the product-QA boundary was needed beyond performance.
 - Added `shipguard ios design` so real-app design findings become ShipGuard report-quality evidence, public fixtures, and eval cases instead of private app remediation tasks.
 - Added shared iOS scan-scope exclusions and design app-type signal weighting after read-only Ringly/Ilmify evidence showed generated artifacts and repeated instruction docs could distort report quality.

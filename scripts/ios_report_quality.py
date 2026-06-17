@@ -462,11 +462,33 @@ def performance_grouping_issues(report: dict[str, Any], *, markdown: str, path_n
         if not rule_id:
             continue
         rule_counts[rule_id] = rule_counts.get(rule_id, 0) + 1
+    grouped = report.get("groupedActionPlan")
+    if isinstance(grouped, list) and grouped:
+        missing_first_experiment = [
+            str(item.get("ruleId") or "<unknown>")
+            for item in grouped
+            if isinstance(item, dict) and not item.get("firstExperiment")
+        ]
+        if missing_first_experiment:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="performance-grouped-first-experiment-missing",
+                evidence=f"{path_name} groupedActionPlan missing firstExperiment for: {', '.join(missing_first_experiment[:5])}",
+                recommendation="Add a tiny reversible firstExperiment to each grouped performance action before broader refactor advice.",
+            )
+        if "First experiment" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="performance-markdown-first-experiment-missing",
+                evidence=f"{path_name} groupedActionPlan includes next actions but Markdown does not show a First experiment column",
+                recommendation="Show the smallest first experiment in Markdown so reviewers can start with a narrow proof step.",
+            )
     repeated_rules = sorted(rule_id for rule_id, count in rule_counts.items() if count > 3)
     if not repeated_rules:
         return issues
 
-    grouped = report.get("groupedActionPlan")
     if not isinstance(grouped, list) or not grouped:
         add_issue(
             issues,
