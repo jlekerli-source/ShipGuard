@@ -1425,6 +1425,102 @@ def build_next_actions(priority_action: dict[str, Any], ranked_questions: list[d
     ]
 
 
+def slugify(value: object, *, limit: int = 72) -> str:
+    text = re.sub(r"[^a-z0-9]+", "-", str(value).lower()).strip("-")
+    return (text[:limit].strip("-") or "report-quality-fixture")
+
+
+def fixture_type_for_question(question: str, tool: str) -> str:
+    text = normalized_question_text(f"{tool} {question}")
+    question_text = normalized_question_text(question)
+    if "private-app" in question_text or "private app" in question_text or "target-app" in question_text or "target app" in question_text:
+        return "shipguard-eval-boundary-fixture"
+    if "grouped performance" in text or "performance" in text:
+        return "ios-performance-report-quality-fixture"
+    if "preview" in text or "devspace" in text or "visual proof" in text:
+        return "ios-preview-devspace-routing-fixture"
+    if "design" in text or "app type" in text or "coherence" in text:
+        return "ios-design-report-quality-fixture"
+    if "evidence" in text or "source suspicion" in text:
+        return "report-evidence-promotion-fixture"
+    return "report-quality-actionability-fixture"
+
+
+def should_create_fixture_candidate(question: str) -> bool:
+    text = normalized_question_text(question)
+    return any(
+        token in text
+        for token in (
+            "fixture",
+            "eval case",
+            "public",
+            "private-app",
+            "private app",
+            "target-app",
+            "target app",
+            "grouped performance",
+            "devspace",
+            "preview",
+            "app type",
+            "evidence would promote",
+        )
+    )
+
+
+def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str, Any]:
+    question = str(row.get("question") or "")
+    tool = str(row.get("tool") or "unknown")
+    fixture_type = fixture_type_for_question(question, tool)
+    candidate_id = f"{index:02d}-{slugify(f'{tool} {question}', limit=64)}"
+    source_reports = [str(row.get("report") or "<unknown-report>")]
+    for report in row.get("duplicateReports") or []:
+        if isinstance(report, str) and report not in source_reports:
+            source_reports.append(report)
+    return {
+        "priority": index,
+        "candidateId": candidate_id,
+        "fixtureType": fixture_type,
+        "sourceTool": tool,
+        "sourceReports": source_reports[:8],
+        "sourceQuestion": question,
+        "duplicateCount": int(row.get("duplicateCount") or 1),
+        "publicFixturePath": f"fixtures/ios-report-quality/{candidate_id}",
+        "publicFixtureRecipe": (
+            "Create a minimal synthetic ShipGuard report pair that reproduces this report-quality question without private app code, "
+            "local paths, screenshots, customer data, app names, or proprietary source snippets."
+        ),
+        "expectedAssertions": [
+            "report-quality preserves the actionability question in JSON and Markdown",
+            "report-quality emits a fixtureCandidates entry for the public synthetic case",
+            "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+            "shareable output contains no local absolute paths or private app identifiers",
+        ],
+        "validationCommands": [
+            "./bin/shipguard ios report-quality --reports <fixture-dir> --out <quality-dir> --shareable",
+            "./tests/ios_report_quality_test.sh",
+        ],
+        "privateDataPolicy": "Use the private app report only to choose the shape of the public fixture. Do not copy private code, local paths, screenshots, app-specific identifiers, or proprietary text into the fixture.",
+    }
+
+
+def build_fixture_candidates(ranked_questions: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    candidates: list[dict[str, Any]] = []
+    seen_types: set[str] = set()
+    for row in ranked_questions:
+        question = str(row.get("question") or "")
+        if not should_create_fixture_candidate(question):
+            continue
+        fixture_type = fixture_type_for_question(question, str(row.get("tool") or "unknown"))
+        # Keep the list compact, but allow repeated fixture-focused questions to surface when they cover different report types.
+        if fixture_type in seen_types and len(candidates) >= 5:
+            continue
+        seen_types.add(fixture_type)
+        candidates.append(fixture_candidate_for_question(row, len(candidates) + 1))
+        if len(candidates) >= 8:
+            break
+    return candidates
+
+
 def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any]:
     paths = report_json_files(inputs)
     input_paths = resolved_input_paths(inputs)
@@ -1444,6 +1540,7 @@ def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any
         status = "review"
     actionability_questions = dedupe_question_rows(actionability_questions)
     ranked_questions = ranked_actionability_questions(graded)
+    fixture_candidates = build_fixture_candidates(ranked_questions)
     priority_action = build_priority_action(issues, ranked_questions)
     return {
         "schemaVersion": SCHEMA_VERSION,
@@ -1469,6 +1566,7 @@ def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any
         "findings": issues,
         "actionabilityQuestions": actionability_questions[:30],
         "prioritizedActionabilityQuestions": ranked_questions[:30],
+        "fixtureCandidates": fixture_candidates,
         "priorityAction": priority_action,
         "nextActions": build_next_actions(priority_action, ranked_questions),
         "redactionPlan": build_redaction_plan(inputs, issues, input_paths=input_paths, shareable=shareable, cwd=cwd),
@@ -1527,6 +1625,21 @@ def render_markdown(report: dict[str, Any]) -> str:
             )
     else:
         lines.append("No report-quality questions were found in the input reports.")
+
+    lines.extend(["", "## Fixture Candidates", ""])
+    fixture_candidates = report.get("fixtureCandidates") or []
+    if fixture_candidates:
+        lines.extend(["| Priority | Type | Public Fixture Path | Source Question |", "| ---: | --- | --- | --- |"])
+        for item in fixture_candidates:
+            lines.append(
+                f"| {item.get('priority') or '-'} | `{table_cell(item.get('fixtureType') or 'unknown', 48)}` | `{table_cell(item.get('publicFixturePath') or '-', 72)}` | {table_cell(item.get('sourceQuestion') or '-', 160)} |"
+            )
+        lines.extend(["", "Fixture candidate rules:", ""])
+        lines.append("- Build synthetic public fixtures from the report shape, not from private app code or screenshots.")
+        lines.append("- Keep `scopeBoundary.shipguardOnly` and `targetAppsReadOnly` explicit in every fixture report.")
+        lines.append("- Validate with `./bin/shipguard ios report-quality --reports <fixture-dir> --out <quality-dir> --shareable` and `./tests/ios_report_quality_test.sh`.")
+    else:
+        lines.append("No fixture candidates were generated from the current actionability questions.")
 
     plan = report["redactionPlan"]
     lines.extend(["", "## Redaction Plan", ""])

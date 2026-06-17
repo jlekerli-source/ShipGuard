@@ -30,10 +30,12 @@ grep -q '"tool": "shipguard ios report-quality"' "$tmp_dir/quality/ios-report-qu
 grep -q '"reportCount": 2' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"purpose": "Grade ShipGuard report usefulness; do not convert target-app findings into app work."' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"actionabilityQuestions":' "$tmp_dir/quality/ios-report-quality.json"
+grep -q '"fixtureCandidates":' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '# iOS ShipGuard Report Quality' "$tmp_dir/quality/ios-report-quality.md"
 grep -q 'shipguard ios performance' "$tmp_dir/quality/ios-report-quality.md"
 grep -q 'shipguard ios design' "$tmp_dir/quality/ios-report-quality.md"
 grep -q 'Actionability Questions' "$tmp_dir/quality/ios-report-quality.md"
+grep -q 'Fixture Candidates' "$tmp_dir/quality/ios-report-quality.md"
 grep -q 'local-path-shareability-warning' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"redactionPlan":' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'Redaction Plan' "$tmp_dir/quality/ios-report-quality.md"
@@ -175,7 +177,26 @@ if shared_row.get("duplicateCount") != 2:
 questions = [item["question"] for item in data["actionabilityQuestions"]]
 if questions.count(shared) != 1:
     raise SystemExit(f"raw actionabilityQuestions were not deduped: {questions!r}")
+fixture_candidates = data.get("fixtureCandidates") or []
+if not fixture_candidates:
+    raise SystemExit("expected fixture candidates for fixture-focused questions")
+candidate_questions = [item["sourceQuestion"] for item in fixture_candidates]
+if "Which grouped performance observation should become a public fixture?" not in candidate_questions:
+    raise SystemExit(f"missing performance fixture candidate: {candidate_questions!r}")
+if "Should design DNA evidence include enough app-type context for a public fixture?" not in candidate_questions:
+    raise SystemExit(f"missing design fixture candidate: {candidate_questions!r}")
+for candidate in fixture_candidates:
+    if not str(candidate.get("publicFixturePath", "")).startswith("fixtures/ios-report-quality/"):
+        raise SystemExit(f"unexpected public fixture path: {candidate!r}")
+    if "private app report only to choose the shape" not in candidate.get("privateDataPolicy", ""):
+        raise SystemExit(f"missing private data policy: {candidate!r}")
 PY
+grep -q 'Fixture Candidates' "$tmp_dir/dedupe-quality/ios-report-quality.md"
+grep -q 'fixtures/ios-report-quality/' "$tmp_dir/dedupe-quality/ios-report-quality.md"
+if grep -R -F -q "$tmp_dir" "$tmp_dir/dedupe-quality"; then
+  echo "shareable fixture-candidate output must not include local absolute temp paths" >&2
+  exit 1
+fi
 if grep -q 'local-path-shareability-warning' "$tmp_dir/shareable-quality/ios-report-quality.json"; then
   echo "shareable report-quality output should not add local-path warnings for shareable inputs" >&2
   exit 1
