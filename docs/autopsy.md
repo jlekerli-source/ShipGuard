@@ -44,6 +44,7 @@ The first version detects evidence gaps that are common in agent handoffs:
 - failure language inside a provided test log
 - weak test logs that do not contain a clear pass signal
 - high-assurance claims such as production-ready, secure, proven, or live
+- unredacted local home paths, secret-looking tokens, bearer values, or secret assignments in the run, task, diff, or test evidence
 - diffs that touch more than three files
 - protected-area touches such as secrets, credentials, alarms, or StoreKit
 - implementation claims without a provided diff
@@ -61,6 +62,7 @@ The repository ships three public fixtures:
 - `fixtures/autopsy/good-run/`: narrow change, test proof, score `11/12`, no findings.
 - `fixtures/autopsy/weak-run/`: partial score and validation claim without test output.
 - `fixtures/autopsy/dangerous-run/`: release-ready and secure claims with no tests and protected-area diff touches.
+- `tests/autopsy_test.sh` also builds a temporary leak fixture and verifies that the report flags the leak without echoing the secret or local path.
 
 Run all fixture checks:
 

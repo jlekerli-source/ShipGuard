@@ -40,7 +40,7 @@ High-value assets:
 
 | Threat | Impact | Current controls | Next check |
 | --- | --- | --- | --- |
-| Secret or token printed into a public report | credential exposure and account takeover | transcript redaction, iOS redaction, safe fixture import checks | keep adding Arena cases for token and path leakage |
+| Secret or token printed into a public report | credential exposure and account takeover | transcript redaction, iOS redaction, Autopsy `sensitive_data_leak`, safe fixture import checks | keep adding Arena cases for token and path leakage |
 | Stale plugin cache with old branding or guidance | Codex executes outdated workflow instructions | `shipguard codex status --strict`, marketplace-backed install docs | require fresh thread after plugin refresh |
 | Devspace screenshot or event leak | private app UI or local path exposure | loopback default, optional bearer token, screenshot proxy token, bounded event payloads | test authenticated screenshot access before external tunnels |
 | Release proof overclaim | false release readiness or security claim | release manifest, release replay, release consume, autopsy risky-claim findings | keep App Store/TestFlight claims blocked without external evidence |
@@ -67,4 +67,4 @@ The current proof command is:
 ./bin/shipguard arena run --fixture fixtures/arena --out /tmp/shipguard-security-arena
 ```
 
-The fixture `fixtures/arena/security-token-leakage` is intentionally a bad run. It should remain low-scoring and produce high-risk findings until ShipGuard's scoring model has a stronger, explicit secret-leak detector.
+The fixture `fixtures/arena/security-token-leakage` is intentionally a bad run. It should remain low-scoring and produce high-risk findings. Autopsy now also has a dedicated `sensitive_data_leak` finding for unredacted local paths, secret-looking tokens, bearer values, and secret assignments in run, task, diff, or test evidence.

@@ -120,6 +120,7 @@ Status: started.
 
 - Added `docs/security-threat-model.md` before any full scan.
 - Added `fixtures/arena/security-token-leakage` for token, local path, and overclaim failure pressure.
+- Added an Autopsy `sensitive_data_leak` finding for unredacted local paths, secret-looking tokens, bearer values, and secret assignments without echoing the sensitive value into reports.
 - Only run the full Codex Security repository scan with explicit subagent authorization.
 
 ### Phase 5: Benchmark And Product Polish

@@ -56,6 +56,32 @@ verdict_for_total() {
   fi
 }
 
+sensitive_evidence() {
+  local label="$1"
+  local file="$2"
+  perl -CS - "$label" "$file" <<'PERL'
+use strict;
+use warnings;
+
+my ($label, $file) = @ARGV;
+open my $fh, '<:encoding(UTF-8)', $file or exit 0;
+while (my $line = <$fh>) {
+  if ($line =~ m{/(?:Users|home)/(?!\[redacted-user\])[A-Za-z0-9._-]+}) {
+    print "$label contains an unredacted local home path near line $.\n";
+    exit 0;
+  }
+  if ($line =~ /\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|Bearer\s+(?!\[redacted-secret\])[A-Za-z0-9._~+\/=-]{16,})\b/) {
+    print "$label contains a secret-looking token near line $.\n";
+    exit 0;
+  }
+  if ($line =~ /\b[A-Za-z_][A-Za-z0-9_]*(?:TOKEN|SECRET|KEY|PASSWORD)[A-Za-z0-9_]*=(?!\[redacted-secret\])\S+/i) {
+    print "$label contains a secret-looking assignment near line $.\n";
+    exit 0;
+  }
+}
+PERL
+}
+
 run_file=""
 diff_file=""
 tests_file=""
@@ -213,6 +239,30 @@ fi
 if grep -Eiq "$risky_claim_pattern" "$run_file"; then
   add_finding "high_assurance_claim" "high" "Run makes a release, security, or reliability claim that requires explicit maintainer proof." "$(grep -Ei "$risky_claim_pattern" "$run_file" | head -n 1)"
 fi
+
+input_labels=("run summary")
+input_paths=("$run_file")
+if [[ -n "$task_file" ]]; then
+  input_labels+=("task file")
+  input_paths+=("$task_file")
+fi
+if [[ -n "$diff_file" ]]; then
+  input_labels+=("diff file")
+  input_paths+=("$diff_file")
+fi
+if [[ -n "$tests_file" ]]; then
+  input_labels+=("test log")
+  input_paths+=("$tests_file")
+fi
+
+for input_index in "${!input_labels[@]}"; do
+  input_label="${input_labels[$input_index]}"
+  input_path="${input_paths[$input_index]}"
+  sensitive_line="$(sensitive_evidence "$input_label" "$input_path" || true)"
+  if [[ -n "$sensitive_line" ]]; then
+    add_finding "sensitive_data_leak" "high" "Input evidence contains an unredacted local path or secret-looking value; redact before sharing or merging." "$sensitive_line"
+  fi
+done
 
 changed_files=0
 if [[ -n "$diff_file" ]]; then
