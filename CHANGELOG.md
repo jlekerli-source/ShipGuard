@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Added spec-workflow slash handoff coverage so report-quality flags bundles whose `slashPlan`, `slashGoal`, or `ios-spec-workflow.md` drops the copy-ready `/plan` and `/goal` next-loop handoff.
+- Fixed spec-workflow actionability question preservation so repeated report-quality questions are deduplicated before clarifying-question and task caps are applied.
 
 ## v3.59.0 - iOS Product QA and Spec Workflow Gates
 

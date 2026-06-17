@@ -79,6 +79,76 @@ fi
   --shareable >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/spec-quality/ios-report-quality.json"
 
+mkdir -p "$tmp_dir/duplicate-question-quality"
+python3 - <<'PY' "$tmp_dir/duplicate-question-quality/ios-report-quality.json"
+import json
+import sys
+
+questions = [
+    "Did the report expose source evidence for every recommendation?",
+    "Did the report rank the next ShipGuard rule before examples?",
+    "Did the report keep private app details as evaluation evidence only?",
+    "Which observation should become a public fixture or eval case before changing the rule again?",
+    "Did the report name the proof command for the next patch?",
+    "Did the report distinguish scanner noise from product-critical gaps?",
+    "Did the report preserve shareability metadata before planning?",
+    "Which observation should become a public fixture or eval case before changing the rule again?",
+    "Did the report keep the first unique questions in clarifying questions?",
+    "Did the report leave a next slash goal after validation?",
+]
+data = {
+    "schemaVersion": 1,
+    "tool": "shipguard ios report-quality",
+    "status": "pass",
+    "shareability": {"mode": "shareable", "localAbsolutePathsIncluded": False},
+    "reports": [{"path": "<fixture>/ios-design.json", "tool": "shipguard ios design", "status": "pass"}],
+    "actionabilityQuestions": [
+        {"tool": "shipguard ios design", "report": "<fixture>/ios-design.json", "question": question}
+        for question in questions
+    ],
+}
+open(sys.argv[1], "w", encoding="utf-8").write(json.dumps(data, indent=2, sort_keys=True) + "\n")
+PY
+./bin/shipguard ios spec-workflow \
+  --path fixtures/demo-ios-repo \
+  --feature "Deduplicate repeated report-quality questions" \
+  --from-report "$tmp_dir/duplicate-question-quality" \
+  --shipguard-eval \
+  --shareable \
+  --out "$tmp_dir/duplicate-question-spec" >/dev/null
+python3 - <<'PY' "$tmp_dir/duplicate-question-spec/ios-spec-workflow.json" "$tmp_dir/duplicate-question-spec/ios-spec-workflow.md"
+import json
+from pathlib import Path
+import sys
+
+expected = [
+    "Did the report expose source evidence for every recommendation?",
+    "Did the report rank the next ShipGuard rule before examples?",
+    "Did the report keep private app details as evaluation evidence only?",
+    "Which observation should become a public fixture or eval case before changing the rule again?",
+    "Did the report name the proof command for the next patch?",
+    "Did the report distinguish scanner noise from product-critical gaps?",
+    "Did the report preserve shareability metadata before planning?",
+    "Did the report keep the first unique questions in clarifying questions?",
+]
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+clarifying = data["featureSpec"]["clarifyingQuestions"]
+if clarifying != expected:
+    raise SystemExit(f"clarifying questions were not first-eight unique questions: {clarifying!r}")
+input_questions = [item["question"] for item in data["reportInputs"]["actionabilityQuestions"]]
+if input_questions[:8] != expected:
+    raise SystemExit(f"reportInputs questions were not deduplicated before cap: {input_questions!r}")
+markdown = Path(sys.argv[2]).read_text(encoding="utf-8")
+for question in expected:
+    if question not in markdown:
+        raise SystemExit(f"missing expected question in markdown: {question}")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/duplicate-question-spec" \
+  --out "$tmp_dir/duplicate-question-spec-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/duplicate-question-spec-quality/ios-report-quality.json"
+
 cp -R "$tmp_dir/spec" "$tmp_dir/missing-artifact-spec"
 rm "$tmp_dir/missing-artifact-spec/tasks.md"
 ./bin/shipguard ios report-quality \

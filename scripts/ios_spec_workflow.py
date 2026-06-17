@@ -225,6 +225,7 @@ def collect_report_context(inputs: list[str], *, shareable: bool) -> dict[str, A
     cwd = Path.cwd().resolve()
     reports: list[dict[str, Any]] = []
     questions: list[dict[str, str]] = []
+    seen_questions: set[str] = set()
     findings: list[dict[str, str]] = []
     for path in files:
         loaded = read_json(path)
@@ -252,8 +253,10 @@ def collect_report_context(inputs: list[str], *, shareable: bool) -> dict[str, A
                 else:
                     question = str(item).strip()
                     source_tool = tool
-                if question and len(questions) < 16:
+                key = normalized_actionability_question(question)
+                if question and key and key not in seen_questions and len(questions) < 16:
                     questions.append({"tool": source_tool, "report": label, "question": question})
+                    seen_questions.add(key)
     return {
         "inputs": [report_input_label(path, input_paths=input_paths, cwd=cwd, shareable=shareable) for path in input_paths],
         "reports": reports,
@@ -265,6 +268,24 @@ def collect_report_context(inputs: list[str], *, shareable: bool) -> dict[str, A
 def slugify(text: str) -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
     return slug[:60] or "shipguard-feature"
+
+
+def normalized_actionability_question(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip().lower()
+
+
+def unique_actionability_questions(questions: list[dict[str, str]], *, limit: int) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for item in questions:
+        question = str(item.get("question") or "").strip()
+        key = normalized_actionability_question(question)
+        if question and key and key not in seen:
+            result.append(question)
+            seen.add(key)
+            if len(result) >= limit:
+                break
+    return result
 
 
 def constitution() -> list[dict[str, str]]:
@@ -329,21 +350,14 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
 
     slug = slugify(feature)
     questions = report_context["actionabilityQuestions"]
-    clarify_questions = [item["question"] for item in questions[:8]]
+    task_questions = unique_actionability_questions(questions, limit=16)
+    clarify_questions = task_questions[:8]
     if not clarify_questions:
         clarify_questions = [
             "Which user or maintainer outcome proves this feature is useful?",
             "Which evidence is required before Codex can claim the work is complete?",
             "Which private-app observations must stay examples instead of implementation tasks?",
         ]
-    task_questions: list[str] = []
-    seen_task_questions: set[str] = set()
-    for item in questions[:16]:
-        question = item["question"].strip()
-        key = re.sub(r"\s+", " ", question).strip().lower()
-        if question and key not in seen_task_questions:
-            task_questions.append(question)
-            seen_task_questions.add(key)
     acceptance_criteria = [
         "The generated plan includes constitution, spec, checklist, tasks, analysis gates, and Devspace guardrails.",
         "Each task names a validation or proof lane.",
