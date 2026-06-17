@@ -245,6 +245,12 @@ def normalized_question_text(value: object) -> str:
     return re.sub(r"\s+", " ", str(value)).strip().lower()
 
 
+def markdown_section_text(markdown: str, heading: str) -> str:
+    pattern = re.compile(rf"(?ims)^##\s+{re.escape(heading)}\s*$([\s\S]*?)(?=^##\s+|\Z)")
+    match = pattern.search(markdown)
+    return match.group(1) if match else ""
+
+
 def spec_workflow_expected_questions(inputs: dict[str, Any], limit: int = 8) -> list[str]:
     raw_questions = inputs.get("actionabilityQuestions")
     if not isinstance(raw_questions, list):
@@ -417,6 +423,26 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                 ),
                 recommendation="Regenerate the spec workflow so taskPlan includes proof-gated tasks for each report-quality question.",
             )
+        feature_spec = report.get("featureSpec")
+        acceptance_criteria = feature_spec.get("acceptanceCriteria") if isinstance(feature_spec, dict) else None
+        criteria_text = ""
+        if isinstance(acceptance_criteria, list):
+            criteria_text = "\n".join(str(item) for item in acceptance_criteria if isinstance(item, str))
+        normalized_criteria_text = normalized_question_text(criteria_text)
+        missing_acceptance_count = sum(
+            1 for question in expected_task_questions if normalized_question_text(question) not in normalized_criteria_text
+        )
+        if missing_acceptance_count:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="spec-workflow-acceptance-coverage-missing",
+                evidence=(
+                    f"{path_name} featureSpec.acceptanceCriteria missing "
+                    f"{missing_acceptance_count} of {len(expected_task_questions)} report actionability questions"
+                ),
+                recommendation="Regenerate the spec workflow so acceptance criteria state how each report-quality question will be answered.",
+            )
 
     artifacts = report.get("artifacts")
     if not isinstance(artifacts, dict):
@@ -485,8 +511,9 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
             markers = SPEC_WORKFLOW_ARTIFACT_MARKERS.get(artifact_name, [])
             needs_question_coverage = artifact_name in {"markdown", "spec"} and bool(expected_questions)
             needs_task_coverage = artifact_name == "tasks" and bool(expected_task_questions)
+            needs_acceptance_coverage = artifact_name == "spec" and bool(expected_task_questions)
             artifact_text = ""
-            if markers or needs_question_coverage or needs_task_coverage:
+            if markers or needs_question_coverage or needs_task_coverage or needs_acceptance_coverage:
                 artifact_text = local_artifact_path.read_text(encoding="utf-8", errors="ignore")
             if markers:
                 missing_markers = [marker for marker in markers if marker not in artifact_text]
@@ -540,6 +567,23 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                             f"{missing_task_count} of {len(expected_task_questions)} report actionability questions in {raw_value}"
                         ),
                         recommendation="Regenerate the spec workflow so tasks.md includes proof-gated tasks for the report-quality questions.",
+                    )
+            if needs_acceptance_coverage:
+                acceptance_text = markdown_section_text(artifact_text, "Acceptance Criteria")
+                normalized_artifact_text = normalized_question_text(acceptance_text)
+                missing_acceptance_count = sum(
+                    1 for question in expected_task_questions if normalized_question_text(question) not in normalized_artifact_text
+                )
+                if missing_acceptance_count:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="spec-workflow-acceptance-artifact-missing",
+                        evidence=(
+                            f"{path_name} artifact {artifact_name} missing "
+                            f"{missing_acceptance_count} of {len(expected_task_questions)} report actionability questions in {raw_value}"
+                        ),
+                        recommendation="Regenerate the spec workflow so feature-spec.md acceptance criteria preserve the report-quality questions.",
                     )
 
     section_checks = [

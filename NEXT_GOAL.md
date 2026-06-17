@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-17T17:54:47Z
+- Generated: 2026-06-17T18:07:13Z
 - Current toolkit version: 3.38.0
-- Target release: v3.56.0
-- Title: Spec Workflow Task Coverage Gate
+- Target release: v3.57.0
+- Title: Spec Workflow Acceptance Criteria Coverage Gate
 
 ## Slash Plan
 
 ```text
-/plan v3.56.0 Spec Workflow Task Coverage Gate for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make ios spec-workflow create proof-gated taskPlan entries for report-quality actionability questions and make ios report-quality flag bundles whose taskPlan or tasks.md drops those question-driven tasks.
+/plan v3.57.0 Spec Workflow Acceptance Criteria Coverage Gate for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make ios spec-workflow create acceptance criteria for report-quality actionability questions and make ios report-quality flag bundles whose featureSpec.acceptanceCriteria or feature-spec.md drops those criteria.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.56.0 Spec Workflow Task Coverage Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make ios spec-workflow create proof-gated taskPlan entries for report-quality actionability questions and make ios report-quality flag bundles whose taskPlan or tasks.md drops those question-driven tasks, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.57.0 Spec Workflow Acceptance Criteria Coverage Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make ios spec-workflow create acceptance criteria for report-quality actionability questions and make ios report-quality flag bundles whose featureSpec.acceptanceCriteria or feature-spec.md drops those criteria, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make ios spec-workflow create proof-gated taskPlan entries for report-quality actionability questions and make ios report-quality flag bundles whose taskPlan or tasks.md drops those question-driven tasks.
+Make ios spec-workflow create acceptance criteria for report-quality actionability questions and make ios report-quality flag bundles whose featureSpec.acceptanceCriteria or feature-spec.md drops those criteria.
 
 ## Completion Receipt
 
-- Completed scope: Make ios spec-workflow create proof-gated taskPlan entries for report-quality actionability questions and make ios report-quality flag bundles whose taskPlan or tasks.md drops those question-driven tasks.
-- Evidence: A fixture product-QA probe showed a report-grounded spec workflow could pass report-quality while covering 0 of 4 source actionability questions in taskPlan. After the change, generated spec workflows create S007+ proof-gated tasks for deduplicated actionability questions, and report-quality emits spec-workflow-task-coverage-missing plus spec-workflow-task-artifact-missing when those tasks are stripped. A read-only Ringly/Ilmify ShipGuard product-QA loop produced shareable design/performance reports, generated a report-grounded spec workflow, passed report-quality for the complete bundle with 9 of 9 unique questions covered in taskPlan, and flagged the intentionally task-stripped bundle without leaking private app paths. Validated with python3 -m py_compile scripts/ios_report_quality.py scripts/ios_spec_workflow.py; ./tests/ios_spec_workflow_test.sh; ./tests/ios_report_quality_test.sh; and the read-only Ringly/Ilmify spec-workflow task coverage loop.
+- Completed scope: Make ios spec-workflow create acceptance criteria for report-quality actionability questions and make ios report-quality flag bundles whose featureSpec.acceptanceCriteria or feature-spec.md drops those criteria.
+- Evidence: A fixture product-QA probe showed a report-grounded spec workflow could pass report-quality while covering 0 of 4 source actionability questions in featureSpec.acceptanceCriteria. After the change, generated spec workflows add acceptance criteria for deduplicated report-quality questions, and report-quality emits spec-workflow-acceptance-coverage-missing plus spec-workflow-acceptance-artifact-missing when those criteria are stripped from JSON or feature-spec.md. A read-only Ringly/Ilmify ShipGuard product-QA loop produced shareable design/performance reports, generated a report-grounded spec workflow, passed report-quality for the complete bundle with 9 of 9 unique questions covered in acceptance criteria, and flagged the intentionally acceptance-stripped bundle without leaking private app paths. Validated with python3 -m py_compile scripts/ios_report_quality.py scripts/ios_spec_workflow.py; ./tests/ios_spec_workflow_test.sh; ./tests/ios_report_quality_test.sh; and the read-only Ringly/Ilmify spec-workflow acceptance coverage loop.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.57.0 Spec Workflow Acceptance Criteria Coverage Gate for jlekerli-source/ShipGuard:
+/plan v3.58.0 Spec Workflow Validation Command Coverage Gate for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Make ios spec-workflow create proof-gated taskPlan entries for report-quality ac
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.57.0 Spec Workflow Acceptance Criteria Coverage Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.58.0 Spec Workflow Validation Command Coverage Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.57.0 --title "Spec Workflow Acceptance Criteria Coverage Gate" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.58.0 --title "Spec Workflow Validation Command Coverage Gate" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -131,12 +131,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.56.0.
+1. Open or update the tracking issue for v3.57.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.56.0` and upload `dist/shipguard-v3.56.0.tar.gz`.
+6. Create release `v3.57.0` and upload `dist/shipguard-v3.57.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

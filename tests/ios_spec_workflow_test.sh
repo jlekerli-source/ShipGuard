@@ -50,6 +50,8 @@ grep -q 'Did the report tailor advice to the app type' "$tmp_dir/spec/ios-spec-w
 grep -q '# ShipGuard Constitution' "$tmp_dir/spec/shipguard-constitution.md"
 grep -q 'Devspace is a planning bridge' "$tmp_dir/spec/shipguard-constitution.md"
 grep -q '# Feature Spec' "$tmp_dir/spec/feature-spec.md"
+grep -q 'The ShipGuard change answers report-quality actionability question:' "$tmp_dir/spec/feature-spec.md"
+grep -q 'The ShipGuard change answers report-quality actionability question:' "$tmp_dir/spec/ios-spec-workflow.json"
 grep -q '# Implementation Plan' "$tmp_dir/spec/implementation-plan.md"
 grep -q '# Tasks' "$tmp_dir/spec/tasks.md"
 grep -q '`S007` Resolve report-quality actionability question:' "$tmp_dir/spec/tasks.md"
@@ -137,6 +139,50 @@ grep -q '"ruleId": "spec-workflow-task-coverage-missing"' "$tmp_dir/missing-task
 grep -q '"ruleId": "spec-workflow-task-artifact-missing"' "$tmp_dir/missing-task-coverage-quality/ios-report-quality.json"
 if grep -R -F -q "$tmp_dir" "$tmp_dir/missing-task-coverage-quality"; then
   echo "shareable missing-task-coverage quality output must not include temp absolute paths" >&2
+  exit 1
+fi
+
+cp -R "$tmp_dir/spec" "$tmp_dir/missing-acceptance-coverage-spec"
+python3 - <<'PY' "$tmp_dir/missing-acceptance-coverage-spec/ios-spec-workflow.json"
+import json
+import sys
+path = sys.argv[1]
+data = json.load(open(path, encoding="utf-8"))
+data["featureSpec"]["acceptanceCriteria"] = [
+    "The generated plan includes constitution, spec, checklist, tasks, analysis gates, and Devspace guardrails.",
+    "Each task names a validation or proof lane.",
+    "Shareable output avoids local absolute paths and passes ios report-quality.",
+]
+open(path, "w", encoding="utf-8").write(json.dumps(data, indent=2, sort_keys=True) + "\n")
+PY
+python3 - <<'PY' "$tmp_dir/missing-acceptance-coverage-spec/feature-spec.md"
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+before, rest = text.split("## Acceptance Criteria", 1)
+_, after = rest.split("## Clarifying Questions", 1)
+path.write_text(
+    before
+    + "## Acceptance Criteria\n\n"
+    + "- The generated plan includes constitution, spec, checklist, tasks, analysis gates, and Devspace guardrails.\n"
+    + "- Each task names a validation or proof lane.\n"
+    + "- Shareable output avoids local absolute paths and passes ios report-quality.\n\n"
+    + "## Clarifying Questions"
+    + after,
+    encoding="utf-8",
+)
+PY
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/missing-acceptance-coverage-spec" \
+  --out "$tmp_dir/missing-acceptance-coverage-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-acceptance-coverage-quality/ios-report-quality.json"
+grep -q '"ruleId": "spec-workflow-acceptance-coverage-missing"' "$tmp_dir/missing-acceptance-coverage-quality/ios-report-quality.json"
+grep -q '"ruleId": "spec-workflow-acceptance-artifact-missing"' "$tmp_dir/missing-acceptance-coverage-quality/ios-report-quality.json"
+if grep -R -F -q "$tmp_dir" "$tmp_dir/missing-acceptance-coverage-quality"; then
+  echo "shareable missing-acceptance-coverage quality output must not include temp absolute paths" >&2
   exit 1
 fi
 

@@ -344,6 +344,13 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         if question and key not in seen_task_questions:
             task_questions.append(question)
             seen_task_questions.add(key)
+    acceptance_criteria = [
+        "The generated plan includes constitution, spec, checklist, tasks, analysis gates, and Devspace guardrails.",
+        "Each task names a validation or proof lane.",
+        "Shareable output avoids local absolute paths and passes ios report-quality.",
+    ]
+    for question in task_questions:
+        acceptance_criteria.append(f"The ShipGuard change answers report-quality actionability question: {question}")
     task_plan = [
         {"id": "S001", "task": "Record the ShipGuard constitution and non-goals for this feature.", "proof": "shipguard-constitution.md exists."},
         {"id": "S002", "task": "Write the feature spec with user outcomes, non-goals, acceptance criteria, and clarifying questions.", "proof": "feature-spec.md exists."},
@@ -399,11 +406,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 "Do not edit private target apps from product-QA evidence.",
                 "Do not claim ChatGPT model access, production hosting readiness, or device proof from static reports.",
             ],
-            "acceptanceCriteria": [
-                "The generated plan includes constitution, spec, checklist, tasks, analysis gates, and Devspace guardrails.",
-                "Each task names a validation or proof lane.",
-                "Shareable output avoids local absolute paths and passes ios report-quality.",
-            ],
+            "acceptanceCriteria": acceptance_criteria,
             "clarifyingQuestions": clarify_questions,
         },
         "technicalPlan": {

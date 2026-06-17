@@ -22,6 +22,7 @@
 - Added spec-workflow artifact content findings so report-quality flags placeholder-only or structurally weak generated spec files.
 - Added spec-workflow question coverage findings so report-quality flags spec bundles that drop report-quality actionability questions from JSON or Markdown clarifying sections.
 - Added spec-workflow task coverage findings so report-quality flags spec bundles whose task plan does not answer the source actionability questions.
+- Added spec-workflow acceptance-criteria coverage so Spec Kit-style specs answer report-quality actionability questions in acceptance criteria, not only in clarifying questions or tasks.
 - Extended `--shipguard-eval` product-QA boundaries to `ios modernize`, `ios app-intelligence`, and `ios ai-readiness`, with summarized/capped Markdown output where real-app read-only checks showed noisy reports.
 - Refined iOS read-only scanners to skip generated/proof/cache directories, disclose scan-scope exclusions in reports, and weight design app-type inference toward app/project source instead of repeated instruction-document tokens.
 
