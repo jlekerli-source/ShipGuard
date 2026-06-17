@@ -122,6 +122,7 @@ Proof:
 
 - Run the selected command with `--shipguard-eval`: `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness`
 - Run `shipguard ios report-quality --reports <eval-output-dir> --out <quality-dir>` to grade ShipGuard report usefulness, not target-app quality
+- If report-quality emits token/path shareability findings, run the generated `shipguard ios redact` command before moving artifacts into ChatGPT, GitHub, docs, or release evidence
 - Keep generated private-app reports local unless the user approves redaction and sharing
 - Convert useful observations into ShipGuard rules, report shape, docs, or public fixtures only
 - Do not edit the scanned app or present its findings as the active app-work target

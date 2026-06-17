@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-17T14:38:33Z
+- Generated: 2026-06-17T14:46:41Z
 - Current toolkit version: 3.38.0
-- Target release: v3.40.0
-- Title: ShipGuard Report Quality Scorer
+- Target release: v3.41.0
+- Title: Report Quality Fixture Expansion
 
 ## Slash Plan
 
 ```text
-/plan v3.40.0 ShipGuard Report Quality Scorer for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add shipguard ios report-quality to grade ShipGuard reports from read-only app runs, fix proof-guidance gaps in AI-readiness and app-intelligence reports, and route weak output into public tests and docs instead of app remediation.
+/plan v3.41.0 Report Quality Fixture Expansion for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add a public report-quality token-shareability fixture, block token-bearing connector/auth report artifacts without echoing token values, and emit explicit ios redact handoff commands for path/token shareability risks.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.40.0 ShipGuard Report Quality Scorer for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add shipguard ios report-quality to grade ShipGuard reports from read-only app runs, fix proof-guidance gaps in AI-readiness and app-intelligence reports, and route weak output into public tests and docs instead of app remediation, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.41.0 Report Quality Fixture Expansion for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add a public report-quality token-shareability fixture, block token-bearing connector/auth report artifacts without echoing token values, and emit explicit ios redact handoff commands for path/token shareability risks, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add shipguard ios report-quality to grade ShipGuard reports from read-only app runs, fix proof-guidance gaps in AI-readiness and app-intelligence reports, and route weak output into public tests and docs instead of app remediation.
+Add a public report-quality token-shareability fixture, block token-bearing connector/auth report artifacts without echoing token values, and emit explicit ios redact handoff commands for path/token shareability risks.
 
 ## Completion Receipt
 
-- Completed scope: Add shipguard ios report-quality to grade ShipGuard reports from read-only app runs, fix proof-guidance gaps in AI-readiness and app-intelligence reports, and route weak output into public tests and docs instead of app remediation.
-- Evidence: git diff --check; ios_report_quality/design/performance/modernize/app-intelligence/ai-readiness tests; ios_shipguard_eval_test; cli_smoke; self_audit; next_goal_test; package_release_test; shipguard validate; docs-check; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; shipguard codex status --strict; read-only Ringly and Ilmify report-quality rescored pass at /tmp/shipguard-readonly-loop/report-quality
+- Completed scope: Add a public report-quality token-shareability fixture, block token-bearing connector/auth report artifacts without echoing token values, and emit explicit ios redact handoff commands for path/token shareability risks.
+- Evidence: git diff --check; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v341; ./tests/ios_report_quality_test.sh; ./tests/ios_redaction_test.sh; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict; read-only Ringly and Ilmify report-quality remains pass at /tmp/shipguard-readonly-loop/report-quality-current-2
 
 ## Following Slash Plan
 
 ```text
-/plan v3.41.0 Report Quality Fixture Expansion for jlekerli-source/ShipGuard:
+/plan v3.42.0 Devspace Connector Readiness Checks for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add shipguard ios report-quality to grade ShipGuard reports from read-only app r
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.41.0 Report Quality Fixture Expansion for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.42.0 Devspace Connector Readiness Checks for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.41.0 --title "Report Quality Fixture Expansion" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.42.0 --title "Devspace Connector Readiness Checks" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -129,12 +129,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.40.0.
+1. Open or update the tracking issue for v3.41.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.40.0` and upload `dist/shipguard-v3.40.0.tar.gz`.
+6. Create release `v3.41.0` and upload `dist/shipguard-v3.41.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

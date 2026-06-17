@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "tool": "shipguard ios devspace",
+  "generatedAt": "2026-06-17T00:00:00Z",
+  "status": "review",
+  "previewUrl": "https://example.invalid/mcp?codexpro_token=fixtureconnector1234567890",
+  "summary": {
+    "purpose": "Public fixture for token-bearing connector URL shareability checks."
+  }
+}

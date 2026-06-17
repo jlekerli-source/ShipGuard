@@ -33,6 +33,8 @@ grep -q '# iOS ShipGuard Report Quality' "$tmp_dir/quality/ios-report-quality.md
 grep -q 'shipguard ios performance' "$tmp_dir/quality/ios-report-quality.md"
 grep -q 'shipguard ios design' "$tmp_dir/quality/ios-report-quality.md"
 grep -q 'local-path-shareability-warning' "$tmp_dir/quality/ios-report-quality.json"
+grep -q '"redactionPlan":' "$tmp_dir/quality/ios-report-quality.json"
+grep -q 'Redaction Plan' "$tmp_dir/quality/ios-report-quality.md"
 
 bad_dir="$tmp_dir/bad"
 mkdir -p "$bad_dir"
@@ -67,6 +69,19 @@ grep -q '"ruleId": "scan-scope-missing"' "$tmp_dir/bad-quality/ios-report-qualit
 grep -q '"ruleId": "finding-proof-guidance-missing"' "$tmp_dir/bad-quality/ios-report-quality.json"
 if ./bin/shipguard ios report-quality --reports "$bad_dir" --strict >/dev/null 2>&1; then
   echo "strict report-quality should fail for blocked report quality" >&2
+  exit 1
+fi
+
+token_fixture="fixtures/ios-report-quality/token-shareability"
+./bin/shipguard ios report-quality \
+  --reports "$token_fixture" \
+  --out "$tmp_dir/token-quality" >/dev/null
+grep -q '"status": "blocked"' "$tmp_dir/token-quality/ios-report-quality.json"
+grep -q '"ruleId": "token-shareability-risk"' "$tmp_dir/token-quality/ios-report-quality.json"
+grep -q '"blockedUntilRedacted": true' "$tmp_dir/token-quality/ios-report-quality.json"
+grep -q 'shipguard ios redact' "$tmp_dir/token-quality/ios-report-quality.md"
+if grep -R -q 'fixtureconnector1234567890' "$tmp_dir/token-quality"; then
+  echo "report-quality output must not echo token-like fixture values" >&2
   exit 1
 fi
 

@@ -114,7 +114,7 @@ The iOS namespace also includes:
 - `ios design`: audit app-type-specific UI/UX coherence, motion, haptics, preview routing, and ImageGen app-icon handoff before visual work.
 - iOS source scanners skip generated/proof/cache directories such as build output, release artifacts, scratch folders, web assets, and plugin/editor caches; reports include a scan-scope summary so private-app product QA stays auditable.
 - `--shipguard-eval`: mark `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, or `ios ai-readiness` as ShipGuard product QA only, so findings improve ShipGuard rather than becoming target-app work.
-- `ios report-quality`: grade ShipGuard report usefulness across read-only product-QA outputs; it evaluates report structure, boundaries, proof guidance, scan scope, and shareability, not target-app quality.
+- `ios report-quality`: grade ShipGuard report usefulness across read-only product-QA outputs; it evaluates report structure, boundaries, proof guidance, scan scope, token/path shareability, and redaction handoff, not target-app quality.
 - `ios modernize`: audit Swift, SwiftUI, Observation, accessibility, localization, and availability risks.
 - `ios app-intelligence`: audit App Intents, shortcuts, widgets, Spotlight, controls, and system exposure.
 - `ios ai-readiness`: compare on-device, cloud, Core ML, and no-AI options before model work.

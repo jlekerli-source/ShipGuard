@@ -7,6 +7,7 @@ import argparse
 import datetime as dt
 import json
 import re
+import shlex
 import sys
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,16 @@ SOURCE_SCANNER_TOOLS = {
     "shipguard ios ai-readiness",
 }
 REPORT_QUALITY_TOOL = "shipguard ios report-quality"
+TOKEN_RISK_PATTERNS = {
+    "bearer-token": re.compile(r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{12,}"),
+    "query-token": re.compile(
+        r"(?i)[?&](?:codexpro_token|shipguard_token|token|access_token|bearer_token)=[A-Za-z0-9._~%+-]{12,}"
+    ),
+    "secret-assignment": re.compile(
+        r"(?i)\b(?:SHIPGUARD_DEVSPACE_TOKEN|OPENAI_API_KEY|CODEXPRO_HTTP_TOKEN|CLOUDFLARE_TOKEN|NGROK_AUTHTOKEN)\s*[:=]\s*['\"]?[A-Za-z0-9._~+/=-]{12,}"
+    ),
+    "known-token": re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,})\b"),
+}
 
 
 def utc_now() -> str:
@@ -104,6 +115,10 @@ def find_scan_scope(report: dict[str, Any]) -> dict[str, Any] | None:
 
 def has_local_path(text: str) -> bool:
     return bool(re.search(r"(?<![A-Za-z0-9_])/(?:Users|private/tmp|var/folders)/", text))
+
+
+def token_risk_labels(text: str) -> list[str]:
+    return sorted(label for label, pattern in TOKEN_RISK_PATTERNS.items() if pattern.search(text))
 
 
 def add_issue(
@@ -325,6 +340,16 @@ def grade_report(path: Path) -> dict[str, Any]:
             recommendation="Keep this report local or run shipguard ios redact before sharing externally.",
         )
 
+    token_labels = token_risk_labels(raw_text)
+    if token_labels:
+        add_issue(
+            issues,
+            severity="high",
+            rule_id="token-shareability-risk",
+            evidence=f"{path.name} contains token-like connector or auth content ({', '.join(token_labels)})",
+            recommendation="Remove token-bearing URLs or run shipguard ios redact before sharing the report outside the local loop.",
+        )
+
     score = score_for(issues)
     return {
         "path": path.as_posix(),
@@ -336,6 +361,33 @@ def grade_report(path: Path) -> dict[str, Any]:
         "status": report_status(issues),
         "issues": issues,
         "issueCount": len(issues),
+    }
+
+
+def build_redaction_plan(inputs: list[str], issues: list[dict[str, Any]]) -> dict[str, Any]:
+    shareability_rules = {"local-path-shareability-warning", "token-shareability-risk"}
+    matching = [issue for issue in issues if issue["ruleId"] in shareability_rules]
+    input_paths = [Path(item).expanduser().resolve() for item in inputs]
+    commands = []
+    for index, path in enumerate(input_paths, start=1):
+        suffix = "" if len(input_paths) == 1 else f"-{index}"
+        commands.append(
+            {
+                "input": path.as_posix(),
+                "output": f"/tmp/ios-shipguard-redacted-report-quality{suffix}",
+                "command": (
+                    "./bin/shipguard ios redact "
+                    f"--in {shlex.quote(path.as_posix())} "
+                    f"--out /tmp/ios-shipguard-redacted-report-quality{suffix}"
+                ),
+            }
+        )
+    return {
+        "needed": bool(matching),
+        "blockedUntilRedacted": any(issue["ruleId"] == "token-shareability-risk" for issue in matching),
+        "rules": sorted({issue["ruleId"] for issue in matching}),
+        "commands": commands if matching else [],
+        "note": "Run redaction before sharing report-quality inputs externally; keep unredacted private-app reports local.",
     }
 
 
@@ -373,6 +425,7 @@ def build_report(inputs: list[str]) -> dict[str, Any]:
             "Run private-app reports with --shipguard-eval and keep unredacted reports local.",
             "Use shipguard ios redact before sharing reports outside the local development loop.",
         ],
+        "redactionPlan": build_redaction_plan(inputs, issues),
     }
 
 
@@ -404,6 +457,18 @@ def render_markdown(report: dict[str, Any]) -> str:
             )
     else:
         lines.append("No report-quality issues were detected.")
+
+    plan = report["redactionPlan"]
+    lines.extend(["", "## Redaction Plan", ""])
+    if plan["needed"]:
+        lines.append(f"- Needed before external sharing: `yes`")
+        lines.append(f"- Blocked until redacted: `{'yes' if plan['blockedUntilRedacted'] else 'no'}`")
+        lines.append(f"- Rules: {', '.join(f'`{rule}`' for rule in plan['rules'])}")
+        lines.append("")
+        for command in plan["commands"]:
+            lines.append(f"- `{command['command']}`")
+    else:
+        lines.append("No redaction-required shareability issues were detected.")
 
     lines.extend(["", "## Next Actions", ""])
     for action in report["nextActions"]:
