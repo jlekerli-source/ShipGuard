@@ -42,4 +42,15 @@ printf '%s\n' "$json_stdout" | grep -q '"mode": "permission-audit"'
 test -f "$tmp_dir/auto-plan/ios-plan.md"
 test -f "$tmp_dir/auto-plan/ios-plan.json"
 
+./bin/shipguard ios plan \
+  --mode performance-audit \
+  --inventory "$tmp_dir/inventory/ios-inventory.json" \
+  --out "$tmp_dir/performance-plan" >/dev/null
+
+grep -q '"mode": "performance-audit"' "$tmp_dir/performance-plan/ios-plan.json"
+grep -q '"lane": "performance"' "$tmp_dir/performance-plan/ios-plan.json"
+grep -q 'sample <app-pid> <seconds>' "$tmp_dir/performance-plan/ios-plan.md"
+grep -q 'physical-device Instruments trace' "$tmp_dir/performance-plan/ios-plan.md"
+grep -q 'profiler support/failures' "$tmp_dir/performance-plan/ios-plan.md"
+
 echo "ios plan tests passed"

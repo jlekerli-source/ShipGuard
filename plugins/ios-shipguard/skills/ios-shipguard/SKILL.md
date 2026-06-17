@@ -1,6 +1,6 @@
 ---
 name: ios-shipguard
-description: Solo iOS development workflow for Codex. Use when planning, implementing, reviewing, or validating iOS app changes that touch permissions, notifications, AlarmKit, widgets, App Intents, StoreKit, background modes, Live Activities, simulator proof, release readiness, or any risky user-trust surface.
+description: Solo iOS development workflow for Codex. Use when planning, implementing, reviewing, or validating iOS app changes that touch permissions, notifications, AlarmKit, widgets, App Intents, StoreKit, background modes, Live Activities, UI/UX, motion, haptics, app icons, simulator proof, release readiness, or any risky user-trust surface.
 ---
 
 # iOS ShipGuard
@@ -24,6 +24,8 @@ Use this skill to make Codex behave like a careful iOS release assistant instead
    - `release-proof`
    - `storekit-commerce`
    - `widgets-intents-shared-store`
+   - `performance-audit`
+   - `design-audit`
    - `preview-bridge`
    - `preview-devspace`
    - `privacy-security`
@@ -42,6 +44,8 @@ Default routing:
 - `release-proof`: TestFlight/App Store handoff, physical device evidence, release claims.
 - `storekit-commerce`: product IDs, purchases, restore, current entitlements, sandbox account proof.
 - `widgets-intents-shared-store`: WidgetKit, App Intents, app groups, stale data, shared persistence.
+- `performance-audit`: FPS, hitches, launch or scroll stutter, Instruments traces, sampled stacks, thermal pressure, and device-vs-simulator proof gaps.
+- `design-audit`: UI/UX coherence, app-type fit, motion, haptics, app icon direction, visual DNA, and preview/Devspace proof routing.
 - `preview-bridge`: Codex in-app-browser preview loop for a booted simulator screenshot, visual comments, and event receipts.
 - `preview-devspace`: ChatGPT Apps / MCP connector loop for the preview bridge, widget resource, and Codex handoff tools.
 - `privacy-security`: iOS report redaction, Devspace trust boundaries, screenshot/token handling, and shareability review.
@@ -68,6 +72,9 @@ Use the smallest proof that matches the mode:
 - Existing Xcode project: use XcodeBuildMCP to confirm project/workspace, scheme, and simulator before building or running.
 - Guided plan: run `./bin/shipguard ios plan --mode <mode> --inventory <ios-inventory.json> --out <file-or-dir>` to generate the Codex brief, owner files, blocked questions, and proof route.
 - Proof route: run `./bin/shipguard ios prove --plan <ios-plan.json> --out <dir>` to record source, simulator, StoreKit, release, privacy, preview, and blocked-manual evidence lanes before claiming proof.
+- Performance audit: run `./bin/shipguard ios performance --path . --out /tmp/ios-shipguard-performance`, then use `performance-audit` mode, build/run the same route, try Animation Hitches or Time Profiler, fall back to `sample`/logs when xctrace is unavailable, symbolicate app frames, compare before/after, and require physical-device Instruments proof for 10/10 smoothness, touch latency, ProMotion, thermal, display, sensor, audio, or wake-path claims.
+- Design audit: run `./bin/shipguard ios design --path . --out /tmp/ios-shipguard-design`; add `--app-type <type>` when genre inference is wrong, `--preview-out <dir>` when preview evidence exists, and `--icon-brief` when app icon direction is in scope. Use ChatGPT ImageGen for bitmap icon candidates; ShipGuard only writes the handoff brief.
+- ShipGuard product QA: when Ringly, Ilmify, or another private app is only a read-only sample for improving ShipGuard, add `--shipguard-eval` to `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, or `ios ai-readiness`; do not edit that app or turn findings into app remediation tasks.
 - Preview loop: run `./bin/shipguard ios preview --out /tmp/ios-shipguard-preview`, open the printed URL with `@Browser`, and read `handoff.md`, `preview-events.jsonl`, or `/api/handoff.md` target resolution before editing. If you have XcodeBuildMCP UI JSON, run `ios target-match` to rank semantic targets.
 - Devspace loop: run `./bin/shipguard ios devspace --port 8787 --preview-out /tmp/ios-shipguard-preview --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN`, connect ChatGPT Developer Mode to `/mcp` through an HTTPS tunnel, and use `production_readiness`, `preview_handoff_markdown`, `preview_target_resolution`, `preview_match_target`, plus `codex_prepare_handoff` before asking Codex to edit.
 - Codex handoff supervisor: run `./bin/shipguard ios codex-handoff --prompt-file <file> --out <dir>` to prepare app-server artifacts; add `--execute` only after explicit local approval.

@@ -21,6 +21,16 @@ MODE_COMMANDS = {
     "release-proof": ["shipguard ios inventory --path . --out /tmp/ios-shipguard-inventory"],
     "storekit-commerce": ["shipguard ios inventory --path . --out /tmp/ios-shipguard-inventory"],
     "widgets-intents-shared-store": ["shipguard ios inventory --path . --out /tmp/ios-shipguard-inventory"],
+    "performance-audit": [
+        "XcodeBuildMCP session_show_defaults",
+        "XcodeBuildMCP build/run",
+        "xcrun xctrace record when supported, otherwise sample/top/log evidence",
+    ],
+    "design-audit": [
+        "shipguard ios design --path . --out /tmp/ios-shipguard-design",
+        "shipguard ios preview --out /tmp/ios-shipguard-preview",
+        "shipguard ios devspace --port 8787 --preview-out /tmp/ios-shipguard-preview --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN",
+    ],
     "preview-bridge": [
         "shipguard ios preview --out /tmp/ios-shipguard-preview",
         "shipguard ios target-match --handoff <handoff.json> --snapshot <ui.json> --out <dir>",
@@ -56,6 +66,20 @@ MODE_PROOF = {
         "shared container and entitlement review",
         "app plus extension state checks",
         "migration rehearsal when payload shape changes",
+    ],
+    "performance-audit": [
+        "build and launch the same route being measured",
+        "Animation Hitches or Time Profiler trace when supported",
+        "sampled stacks plus symbolication when profiler templates are unavailable",
+        "before/after comparison on the same build, device state, and seed data",
+        "physical-device Instruments trace for smoothness claims",
+    ],
+    "design-audit": [
+        "app-type inference or --app-type override",
+        "design DNA, motion, haptics, and icon brief review",
+        "ios preview evidence for visual claims",
+        "Devspace handoff when ChatGPT should plan from the phone widget",
+        "physical-device proof for haptic quality claims",
     ],
     "preview-bridge": [
         "preview-events.jsonl receipt",
@@ -142,6 +166,8 @@ def classify_mode(text: str) -> str:
         return "privacy-security"
     if contains_any(text, ["chatgpt", "gpt-5.5", "devspace", "mcp", "developer mode", "widget resource"]):
         return "preview-devspace"
+    if contains_any(text, ["ui/ux", "design coherence", "design dna", "app icon", "imagegen", "haptic", "haptics", "motion", "animation blueprint", "visual dna", "app-type", "genre-aware"]):
+        return "design-audit"
     if contains_any(text, ["preview", "right-click", "clicked", "handoff", "visual event", "tap-request"]):
         return "preview-bridge"
     if contains_any(text, ["testflight", "app store", "release", "approval", "app store connect", "binary", "shipping"]):
@@ -150,6 +176,8 @@ def classify_mode(text: str) -> str:
         return "storekit-commerce"
     if contains_any(text, ["widget", "app intent", "shortcut", "spotlight", "siri", "app group", "shared container", "extension"]):
         return "widgets-intents-shared-store"
+    if contains_any(text, ["fps", "frame", "hitch", "smooth", "stutter", "lag", "slow", "thermal", "proMotion", "instruments", "xctrace", "performance"]):
+        return "performance-audit"
     if contains_any(text, ["permission", "camera", "microphone", "location", "photos", "healthkit", "usage description", "authorization"]):
         return "permission-audit"
     if contains_any(text, ["layout", "copy", "accessibility", "dynamic type", "localization", "voiceover", "polish"]):
@@ -184,6 +212,16 @@ def questions_for(mode: str, text: str) -> list[str]:
             "Which target writes the data and which app, widget, intent, watch, or shared container target reads it?",
             "What stale-data behavior and migration path are acceptable for existing users?",
         ]
+    if mode == "performance-audit":
+        return [
+            "Which screen, gesture, launch path, or device behavior feels slow?",
+            "Which device, display refresh rate, thermal state, power mode, seed data, and build configuration must be measured?",
+        ]
+    if mode == "design-audit":
+        return [
+            "Is the inferred app type correct, or should --app-type override it?",
+            "Is there an ios preview output directory, or should ShipGuard start the phone-shaped preview first?",
+        ]
     if mode == "preview-bridge":
         return [
             "Which simulator, scheme, and app state should be previewed?",
@@ -217,6 +255,10 @@ def claim_boundaries_for(mode: str, text: str) -> list[str]:
         claims.append("Do not claim release approval without App Store Connect, TestFlight, device, or human tester evidence.")
     if mode == "storekit-commerce":
         claims.append("Do not claim purchase verification without StoreKit config, sandbox, TestFlight sandbox, or live-account evidence.")
+    if mode == "performance-audit":
+        claims.append("Do not claim 10/10 smoothness from source review alone; name profiler output, sampled stacks, before/after proof, and device-only gaps.")
+    if mode == "design-audit":
+        claims.append("Do not claim visual coherence, app icon quality, or haptic quality without preview, ImageGen review, or physical-device evidence as applicable.")
     if mode in {"preview-bridge", "preview-devspace"}:
         claims.append("Do not use raw coordinates as simulator proof or run Codex automatically from the preview.")
     if mode == "privacy-security":

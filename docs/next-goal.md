@@ -16,6 +16,7 @@ The generated file includes:
 - an optional following `/goal` handoff after completion evidence is supplied
 - release constraints
 - required proof commands
+- the iOS report-quality proof lane for `ios performance`, `ios design`, modernize, app-intelligence, AI-readiness, eval, demo, and goal-loop helpers
 - the publish-and-verify loop
 - the command to generate the following goal
 

@@ -33,6 +33,8 @@ test "$(./bin/codex-maintainer version)" = "$(sed -n '1p' VERSION)"
 ./bin/shipguard ios codex-handoff --help >/dev/null
 ./bin/shipguard ios plan --help >/dev/null
 ./bin/shipguard ios prove --help >/dev/null
+./bin/shipguard ios performance --help >/dev/null
+./bin/shipguard ios design --help >/dev/null
 ./bin/shipguard ios modernize --help >/dev/null
 ./bin/shipguard ios app-intelligence --help >/dev/null
 ./bin/shipguard ios ai-readiness --help >/dev/null

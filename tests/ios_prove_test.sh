@@ -46,4 +46,17 @@ grep -q 'Do not claim App Store, TestFlight, purchase, physical-device, or relea
 json_stdout="$(./bin/shipguard ios prove --plan "$tmp_dir/release-plan/ios-plan.json" --out "$tmp_dir/release-proof-json" --json)"
 printf '%s\n' "$json_stdout" | grep -q '"status": "blocked-manual"'
 
+./bin/shipguard ios plan \
+  --mode performance-audit \
+  --inventory "$tmp_dir/inventory/ios-inventory.json" \
+  --out "$tmp_dir/performance-plan" >/dev/null
+./bin/shipguard ios prove \
+  --plan "$tmp_dir/performance-plan/ios-plan.json" \
+  --out "$tmp_dir/performance-proof" >/dev/null
+
+grep -q '"planMode": "performance-audit"' "$tmp_dir/performance-proof/ios-proof.json"
+grep -q '"proofLane": "performance"' "$tmp_dir/performance-proof/ios-proof.json"
+grep -q 'symbolicate sampled app frames' "$tmp_dir/performance-proof/ios-proof.md"
+grep -q 'physical-device smoothness claims need an Instruments trace' "$tmp_dir/performance-proof/ios-proof.md"
+
 echo "ios prove tests passed"

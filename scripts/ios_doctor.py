@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import ios_scan_scope
 
 SCHEMA_VERSION = 1
 
@@ -45,39 +46,15 @@ def read_text(path: Path) -> str:
 
 
 def should_skip_dir(path: Path) -> bool:
-    return path.name in {
-        ".git",
-        ".build",
-        ".swiftpm",
-        "DerivedData",
-        "build",
-        "Carthage",
-        "Pods",
-        "node_modules",
-        "dist",
-    }
+    return ios_scan_scope.should_skip_dir(path)
 
 
 def iter_files(root: Path) -> list[Path]:
-    files: list[Path] = []
-    for dirpath, dirnames, filenames in os.walk(root):
-        current = Path(dirpath)
-        dirnames[:] = [name for name in dirnames if not should_skip_dir(current / name)]
-        for filename in filenames:
-            files.append(current / filename)
-    return sorted(files, key=lambda item: rel(item, root))
+    return ios_scan_scope.iter_files(root).files
 
 
 def iter_dirs(root: Path, suffix: str) -> list[Path]:
-    matches: list[Path] = []
-    for dirpath, dirnames, _filenames in os.walk(root):
-        current = Path(dirpath)
-        dirnames[:] = [name for name in dirnames if not should_skip_dir(current / name)]
-        for dirname in dirnames:
-            candidate = current / dirname
-            if candidate.name.endswith(suffix):
-                matches.append(candidate)
-    return sorted(matches, key=lambda item: rel(item, root))
+    return ios_scan_scope.iter_dirs(root, suffix).files
 
 
 def load_plist(path: Path) -> Any | None:

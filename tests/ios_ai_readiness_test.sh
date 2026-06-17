@@ -30,9 +30,15 @@ touch "$fixture/Sources/DemoShipGuardApp/DemoClassifier.mlmodel"
 ./bin/shipguard ios ai-readiness \
   --path "$fixture" \
   --out "$tmp_dir/ai-readiness" >/dev/null
+./bin/shipguard ios ai-readiness \
+  --path "$fixture" \
+  --out "$tmp_dir/eval-ai-readiness" \
+  --shipguard-eval >/dev/null
 
 test -f "$tmp_dir/ai-readiness/ios-ai-readiness.md"
 test -f "$tmp_dir/ai-readiness/ios-ai-readiness.json"
+test -f "$tmp_dir/eval-ai-readiness/ios-ai-readiness.md"
+test -f "$tmp_dir/eval-ai-readiness/ios-ai-readiness.json"
 
 python3 -m json.tool "$tmp_dir/ai-readiness/ios-ai-readiness.json" >/dev/null
 grep -q '# iOS AI Readiness Audit' "$tmp_dir/ai-readiness/ios-ai-readiness.md"
@@ -43,15 +49,22 @@ grep -q 'OpenAI API' "$tmp_dir/ai-readiness/ios-ai-readiness.md"
 grep -q 'server-side API key handling' "$tmp_dir/ai-readiness/ios-ai-readiness.md"
 grep -q 'DemoAI.swift' "$tmp_dir/ai-readiness/ios-ai-readiness.md"
 grep -q '"tool": "shipguard ios ai-readiness"' "$tmp_dir/ai-readiness/ios-ai-readiness.json"
+grep -q '"intent": "app-development"' "$tmp_dir/ai-readiness/ios-ai-readiness.json"
 grep -q '"foundationModels":' "$tmp_dir/ai-readiness/ios-ai-readiness.json"
 grep -q '"openAIAPI":' "$tmp_dir/ai-readiness/ios-ai-readiness.json"
 grep -q '"ruleId": "openai-api-cloud-privacy-gate"' "$tmp_dir/ai-readiness/ios-ai-readiness.json"
 grep -q '"ruleId": "foundation-models-availability-gate"' "$tmp_dir/ai-readiness/ios-ai-readiness.json"
 grep -q '"ruleId": "core-ml-performance-gate"' "$tmp_dir/ai-readiness/ios-ai-readiness.json"
 grep -q '"option": "No AI"' "$tmp_dir/ai-readiness/ios-ai-readiness.json"
+grep -q '"intent": "shipguard-evaluation"' "$tmp_dir/eval-ai-readiness/ios-ai-readiness.json"
+grep -q '"shipguardOnly": true' "$tmp_dir/eval-ai-readiness/ios-ai-readiness.json"
+grep -q 'ShipGuard Evaluation Boundary' "$tmp_dir/eval-ai-readiness/ios-ai-readiness.md"
+grep -q 'Report Quality Questions' "$tmp_dir/eval-ai-readiness/ios-ai-readiness.md"
 
 json_stdout="$(./bin/shipguard ios ai-readiness --path "$fixture" --json)"
 printf '%s\n' "$json_stdout" | python3 -m json.tool >/dev/null
 printf '%s\n' "$json_stdout" | grep -q '"tool": "shipguard ios ai-readiness"'
+eval_json_stdout="$(./bin/shipguard ios ai-readiness --path "$fixture" --shipguard-eval --json)"
+printf '%s\n' "$eval_json_stdout" | grep -q '"intent": "shipguard-evaluation"'
 
 echo "ios ai readiness tests passed"

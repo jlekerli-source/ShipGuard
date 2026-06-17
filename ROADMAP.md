@@ -28,6 +28,10 @@ This roadmap keeps the repo useful without pretending it is a finished framework
 - Keep fixture-pack integrity and optional signer metadata deterministic and verifiable.
 - Keep self-audit output stable enough to prove release readiness from source and extracted packages.
 - Keep next-goal output deterministic enough to restart the improvement loop after each release, including scoped plans, completion receipts, and following-goal handoffs when evidence is supplied.
+- Keep iOS performance-audit routing, `ios performance` findings, and `--shipguard-eval` product-QA boundaries strict about profiler evidence, fallback samples, symbolication, before/after comparison, protected boundaries, ranked source hotspots, private-app read-only use, and physical-device proof gaps.
+- Keep iOS source scanners fast and honest about scope: skip generated/proof/cache directories, report those exclusions, and keep private-app scans read-only.
+- Keep `ios design` genre-aware so UI/UX, motion, haptics, preview, Devspace, and app-icon guidance changes with utility, game, health, fitness, commerce, creative, and SaaS app context; app-type inference should prefer app/project source over repeated instruction-document wording.
+- Keep `--shipguard-eval` supported across `ios modernize`, `ios app-intelligence`, and `ios ai-readiness` so private-app learning improves ShipGuard report quality and public fixtures without becoming target-app work.
 - Keep iOS, web, backend, and CLI starter profiles stable for external repository adoption.
 - Keep release packaging and installer scripts reproducible.
 - Keep release manifests and proof ledgers reproducible from local release artifacts.

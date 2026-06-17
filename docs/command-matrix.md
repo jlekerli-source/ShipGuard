@@ -12,10 +12,12 @@
 | Inspect iOS app topology | `ios doctor` | Xcode, SwiftPM, scheme, target, StoreKit, privacy manifest, and proof-readiness report |
 | Inventory risky iOS surfaces | `ios inventory` | Permission, entitlement, target risk, modernization, and ask-before-editing report |
 | Generate Codex iOS brief | `ios plan` | Mode, owner files, blocked questions, proof route, and task brief |
-| Route iOS proof claims | `ios prove` | Source, simulator, StoreKit, privacy, release, and blocked-manual evidence lane |
+| Route iOS proof claims | `ios prove` | Source, simulator, performance, StoreKit, privacy, release, and blocked-manual evidence lane |
+| Audit iOS performance hotspots | `ios performance` | Ranked SwiftUI, body-work, GPU composition, image decoding, notification-cleanup findings, and optional ShipGuard-only eval boundary |
+| Audit iOS design quality | `ios design` | App-type inference, design DNA, motion, haptics, preview routing, and ImageGen icon handoff |
 | Run iOS preview bridge | `ios preview`, `ios target-match` | Local phone preview, visual event receipts, and semantic target matching |
 | Run ShipGuard Devspace | `ios devspace`, `ios codex-handoff` | MCP/App bridge, preview widget, and guarded Codex handoff bundle |
-| Audit iOS modernization and system exposure | `ios modernize`, `ios app-intelligence`, `ios ai-readiness` | Swift modernization, App Intents/system-surface, and AI capability reports |
+| Audit iOS modernization and system exposure | `ios modernize`, `ios app-intelligence`, `ios ai-readiness` | Swift modernization, App Intents/system-surface, and AI capability reports with optional ShipGuard-only eval boundaries |
 | Redact or evaluate iOS reports | `ios redact`, `ios eval`, `ios demo` | Redacted local reports, deterministic behavior evals, and clean first-run demo |
 | Continue iOS ShipGuard goals | `ios goals` | Evidence-gated slash-goal state and next-goal output |
 | Configure project policy | `policy init`, `policy show` | Plain policy file |

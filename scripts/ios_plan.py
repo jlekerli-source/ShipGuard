@@ -20,6 +20,7 @@ MODES = {
     "release-proof",
     "storekit-commerce",
     "widgets-intents-shared-store",
+    "performance-audit",
     "preview-bridge",
     "preview-devspace",
     "privacy-security",
@@ -32,6 +33,7 @@ MODE_LABELS = {
     "release-proof": "Release Proof",
     "storekit-commerce": "StoreKit Commerce",
     "widgets-intents-shared-store": "Widgets, Intents, And Shared Store",
+    "performance-audit": "Performance Audit",
     "preview-bridge": "Preview Bridge",
     "preview-devspace": "Preview Devspace",
     "privacy-security": "Privacy Security",
@@ -125,6 +127,10 @@ def mode_questions(mode: str) -> list[str]:
             "Which target writes the data and which app, widget, intent, watch, or shared container target reads it?",
             "What stale-data behavior and migration path are acceptable for existing users?",
         ],
+        "performance-audit": [
+            "Which screen, gesture, launch path, or device behavior feels slow?",
+            "Which device, display refresh rate, thermal state, power mode, seed data, and build configuration must be measured?",
+        ],
         "preview-bridge": [
             "Which simulator, scheme, and app state should be previewed?",
             "Should the visual event become a source edit, semantic elementRef tap, or blocked release-proof claim?",
@@ -173,6 +179,20 @@ def proof_route_for(mode: str) -> dict[str, Any]:
             "lane": "app-extension",
             "commands": ["shared container review", "app plus extension/widget state checks"],
             "manualEvidence": ["migration proof when persisted shared payloads change"],
+        },
+        "performance-audit": {
+            "lane": "performance",
+            "commands": [
+                "XcodeBuildMCP session_show_defaults",
+                "XcodeBuildMCP build_run_sim",
+                "xcrun xctrace record --template 'Animation Hitches' or 'Time Profiler' when supported",
+                "sample <app-pid> <seconds> -file <sample.txt> when xctrace is unavailable",
+                "symbolicate sampled app frames with dSYM/atos when needed",
+            ],
+            "manualEvidence": [
+                "physical-device Instruments trace for touch latency, ProMotion refresh, thermal pressure, replacement displays, audio, sensors, or wake-path timing",
+                "before/after comparison on the same build configuration, route, seed data, and device state",
+            ],
         },
         "preview-bridge": {
             "lane": "preview",
@@ -242,6 +262,8 @@ def selected_surfaces_for_mode(inventory: dict[str, Any], mode: str) -> list[dic
         return [s for s in surfaces if s.get("surface") in wanted or s.get("kind") in {"extension", "system-integration"}]
     if mode == "release-proof":
         return surfaces
+    if mode == "performance-audit":
+        return surfaces
     if mode == "privacy-security":
         return [s for s in surfaces if s.get("risk") == "high" or s.get("status") == "needs-user-answer"]
     return surfaces
@@ -309,6 +331,7 @@ def build_plan(title: str, mode: str, inventory_path: Path, inventory: dict[str,
                 "Read AGENTS.md before editing.",
                 "Use the owner files and target summary as the initial edit boundary.",
                 "Ask blocked questions before edits when status is needs-user-answer.",
+                "For performance work, report profiler support/failures, sampled stacks, before/after validation, and device-only proof gaps.",
                 "Do not claim release, purchase, device, App Store, or preview proof without the required evidence.",
             ],
             "validation": route["commands"],

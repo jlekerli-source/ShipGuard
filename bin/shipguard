@@ -42,9 +42,11 @@ Usage:
   shipguard ios codex-handoff --prompt-file <file>|--prompt <text> --out <dir> [--execute]
   shipguard ios plan --mode <mode> --inventory <ios-inventory.json> --out <file-or-dir>
   shipguard ios prove --plan <ios-plan.json> --out <dir>
-  shipguard ios modernize --focus swift --path <repo> --out <dir>
-  shipguard ios app-intelligence --path <repo> --out <dir>
-  shipguard ios ai-readiness --path <repo> --out <dir>
+  shipguard ios performance --path <repo> --out <dir> [--shipguard-eval]
+  shipguard ios design --path <repo> --out <dir> [--app-type auto|utility|game|fitness|health|education|kids|creative|commerce|social|finance|saas] [--preview-out <dir>] [--icon-brief] [--shipguard-eval]
+  shipguard ios modernize --focus swift --path <repo> --out <dir> [--shipguard-eval]
+  shipguard ios app-intelligence --path <repo> --out <dir> [--shipguard-eval]
+  shipguard ios ai-readiness --path <repo> --out <dir> [--shipguard-eval]
   shipguard ios redact --in <file-or-dir> --out <file-or-dir> [--report <report.json>] [--private-term <text> ...]
   shipguard ios eval [--cases <cases.jsonl>] [--out <dir>] [--json|--markdown]
   shipguard ios demo --out <dir> [--fixture <repo>] [--cases <cases.jsonl>]
@@ -85,7 +87,7 @@ Commands:
   check-run   Generate or optionally post GitHub Checks API payloads from gate JSON.
   sarif       Convert an autopsy report JSON file into SARIF 2.1.0.
   docs-check  Check Markdown files for broken local links.
-  ios         iOS-focused Codex planning helpers for permission, preview, and runtime surfaces.
+  ios         iOS-focused Codex planning helpers for permission, preview, performance, and runtime surfaces.
   codex      Check local Codex plugin install status for ShipGuard.
   leaderboard Build a stable leaderboard JSON file from arena results.
   release-manifest
@@ -370,7 +372,7 @@ cmd_docs_check() {
 
 cmd_ios() {
   local subcommand="${1:-}"
-  [[ "$subcommand" == "doctor" || "$subcommand" == "inventory" || "$subcommand" == "preview" || "$subcommand" == "devspace" || "$subcommand" == "target-match" || "$subcommand" == "codex-handoff" || "$subcommand" == "plan" || "$subcommand" == "prove" || "$subcommand" == "modernize" || "$subcommand" == "app-intelligence" || "$subcommand" == "ai-readiness" || "$subcommand" == "redact" || "$subcommand" == "eval" || "$subcommand" == "demo" || "$subcommand" == "goals" ]] || fail "ios requires subcommand: doctor, inventory, preview, devspace, target-match, codex-handoff, plan, prove, modernize, app-intelligence, ai-readiness, redact, eval, demo, or goals"
+  [[ "$subcommand" == "doctor" || "$subcommand" == "inventory" || "$subcommand" == "preview" || "$subcommand" == "devspace" || "$subcommand" == "target-match" || "$subcommand" == "codex-handoff" || "$subcommand" == "plan" || "$subcommand" == "prove" || "$subcommand" == "performance" || "$subcommand" == "design" || "$subcommand" == "modernize" || "$subcommand" == "app-intelligence" || "$subcommand" == "ai-readiness" || "$subcommand" == "redact" || "$subcommand" == "eval" || "$subcommand" == "demo" || "$subcommand" == "goals" ]] || fail "ios requires subcommand: doctor, inventory, preview, devspace, target-match, codex-handoff, plan, prove, performance, design, modernize, app-intelligence, ai-readiness, redact, eval, demo, or goals"
   shift || true
   case "$subcommand" in
     doctor)
@@ -396,6 +398,12 @@ cmd_ios() {
       ;;
     prove)
       "$tool_root/scripts/ios_prove.py" "$@"
+      ;;
+    performance)
+      "$tool_root/scripts/ios_performance.py" "$@"
+      ;;
+    design)
+      "$tool_root/scripts/ios_design.py" "$@"
       ;;
     modernize)
       "$tool_root/scripts/ios_modernize.py" "$@"

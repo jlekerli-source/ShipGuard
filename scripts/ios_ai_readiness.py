@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import ios_doctor
+import ios_scan_scope
 
 
 SCHEMA_VERSION = 1
@@ -33,6 +34,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--path", default=".", help="iOS project or package root to scan")
     parser.add_argument("--out", help="Output directory for ios-ai-readiness.md and ios-ai-readiness.json")
+    parser.add_argument(
+        "--shipguard-eval",
+        action="store_true",
+        help="Mark this scan as ShipGuard product QA only; findings must not become target-app work.",
+    )
     parser.add_argument("--json", action="store_true", help="Print JSON to stdout instead of Markdown")
     parser.add_argument("--markdown", action="store_true", help="Print Markdown to stdout")
     return parser.parse_args()
@@ -50,27 +56,11 @@ def rel(path: Path, root: Path) -> str:
 
 
 def should_skip_dir(path: Path) -> bool:
-    return path.name in {
-        ".git",
-        ".build",
-        ".swiftpm",
-        "DerivedData",
-        "build",
-        "Carthage",
-        "Pods",
-        "node_modules",
-        "dist",
-    }
+    return ios_scan_scope.should_skip_dir(path)
 
 
 def iter_files(root: Path) -> list[Path]:
-    files: list[Path] = []
-    for dirpath, dirnames, filenames in os.walk(root):
-        current = Path(dirpath)
-        dirnames[:] = [name for name in dirnames if not should_skip_dir(current / name)]
-        for filename in filenames:
-            files.append(current / filename)
-    return sorted(files, key=lambda item: rel(item, root))
+    return ios_scan_scope.iter_files(root).files
 
 
 def unique_sorted(values: list[str]) -> list[str]:
@@ -330,12 +320,39 @@ def choose_summary(counts: dict[str, int]) -> str:
     return "No AI implementation tokens detected; choose no AI until product value and data boundaries justify model use."
 
 
-def build_report(root: Path) -> dict[str, Any]:
+def shipguard_eval_boundary() -> dict[str, Any]:
+    return {
+        "targetAppsReadOnly": True,
+        "shipguardOnly": True,
+        "allowedUses": [
+            "Evaluate ShipGuard AI-readiness report quality.",
+            "Identify noisy AI-token detection, missing fallback guidance, or unclear model-choice tradeoffs.",
+            "Create redacted public fixtures or eval cases in ShipGuard.",
+        ],
+        "forbiddenUses": [
+            "Do not edit the scanned app from this run.",
+            "Do not create app-specific AI, Core ML, Foundation Models, or OpenAI implementation tasks from this run.",
+            "Do not present target-app findings as the active development goal.",
+        ],
+    }
+
+
+def shipguard_eval_questions() -> list[str]:
+    return [
+        "Did the report distinguish real runtime usage from planning, tests, and blocked-boundary references?",
+        "Were model-choice tradeoffs concrete enough for a solo developer to decide no-AI versus on-device versus cloud?",
+        "Was the detections table capped enough to stay readable while preserving full JSON evidence?",
+        "Which observation should become a public fixture or eval case before changing the rule again?",
+    ]
+
+
+def build_report(root: Path, *, shipguard_eval: bool = False) -> dict[str, Any]:
     if not root.exists():
         fail(f"path not found: {root}")
     if not root.is_dir():
         fail(f"path must be a directory: {root}")
-    files = iter_files(root)
+    scan_scope = ios_scan_scope.iter_files(root)
+    files = scan_scope.files
     scan = scan_files(root, files)
     facts = collect_doctor_facts(root)
     counts = scan["counts"]
@@ -346,6 +363,7 @@ def build_report(root: Path) -> dict[str, Any]:
     return {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard ios ai-readiness",
+        "intent": "shipguard-evaluation" if shipguard_eval else "app-development",
         "generatedAt": utc_now(),
         "status": status,
         "recommendationSummary": choose_summary(counts),
@@ -360,9 +378,12 @@ def build_report(root: Path) -> dict[str, Any]:
             "modelAssets": len(scan["modelAssets"]),
             "privacyManifests": len(facts["privacyManifests"]),
         },
+        "scanScope": ios_scan_scope.summary(scan_scope),
         "detections": scan["detections"],
         "modelAssets": scan["modelAssets"],
         "decisionMatrix": matrix,
+        "scopeBoundary": shipguard_eval_boundary() if shipguard_eval else None,
+        "reportQualityQuestions": shipguard_eval_questions() if shipguard_eval else [],
         "findings": findings,
         "blockedQuestions": questions,
         "doctorFacts": facts,
@@ -392,17 +413,48 @@ def render_markdown(report: dict[str, Any]) -> str:
         "# iOS AI Readiness Audit",
         "",
         f"- Status: `{report['status']}`",
+        f"- Intent: `{report['intent']}`",
         f"- Recommendation: {report['recommendationSummary']}",
+        f"- Source files: {summary['sourceFiles']}",
         f"- AI detections: {summary['detections']}",
         f"- Foundation Models tokens: {summary['foundationModels']}",
         f"- Core ML tokens/assets: {summary['coreML'] + summary['modelAssets']}",
         f"- OpenAI API tokens: {summary['openAIAPI']}",
+        f"- Skipped generated/proof/cache directories: {report['scanScope']['skippedDirectoryCount']}",
         "",
+    ]
+    if report["intent"] == "shipguard-evaluation":
+        boundary = report["scopeBoundary"]
+        lines.extend(
+            [
+                "## ShipGuard Evaluation Boundary",
+                "",
+                "- This scan is ShipGuard product QA only.",
+                "- The scanned app is a read-only input; do not edit it from this run.",
+                "- Use findings to improve ShipGuard AI-readiness rules, docs, report shape, or eval fixtures.",
+                "- Do not turn findings into target-app AI implementation tasks unless a separate app-work request explicitly authorizes it.",
+                "",
+                "Allowed uses: " + "; ".join(boundary["allowedUses"]),
+                "",
+                "Forbidden uses: " + "; ".join(boundary["forbiddenUses"]),
+                "",
+            ]
+        )
+    if report["scanScope"]["skippedDirectories"]:
+        lines.extend(["## Scan Scope", ""])
+        for directory in report["scanScope"]["skippedDirectories"][:8]:
+            lines.append(f"- Skipped `{directory}`")
+        if report["scanScope"]["skippedDirectoryListTruncated"]:
+            lines.append("- Additional skipped directories are listed in JSON.")
+        lines.append("")
+    lines.extend(
+        [
         "## On-Device Versus Cloud Decision Matrix",
         "",
         "| Option | Status | Best For | Privacy | Latency | Cost | Fallback | Proof |",
         "| --- | --- | --- | --- | --- | --- | --- | --- |",
-    ]
+        ]
+    )
     for item in report["decisionMatrix"]:
         lines.append(
             f"| {item['option']} | {item['status']} | {item['bestFor']} | {item['privacy']} | {item['latency']} | {item['cost']} | {item['fallback']} | {item['proof']} |"
@@ -410,9 +462,16 @@ def render_markdown(report: dict[str, Any]) -> str:
 
     lines.extend(["", "## Detections", ""])
     if report["detections"]:
+        selected_detections = report["detections"][:60]
+        if len(report["detections"]) > len(selected_detections):
+            lines.append("Detections are capped here so the Markdown stays scannable; the JSON report contains every detection.")
+            lines.append("")
         lines.extend(["| Capability | Token | Location | Evidence |", "| --- | --- | --- | --- |"])
-        for item in report["detections"]:
+        for item in selected_detections:
             lines.append(f"| {item['capability']} | `{item['token']}` | `{item['file']}:{item['line']}` | `{item['evidence']}` |")
+        hidden_count = len(report["detections"]) - len(selected_detections)
+        if hidden_count > 0:
+            lines.append(f"| ... | ... | ... | {hidden_count} more detections in JSON |")
     else:
         lines.append("No AI capability tokens or model assets were detected.")
 
@@ -423,6 +482,11 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"| {item['severity']} | `{item['ruleId']}` | {item['title']} | {item['recommendation']} |")
     else:
         lines.append("No AI readiness findings were detected.")
+
+    if report["reportQualityQuestions"]:
+        lines.extend(["", "## Report Quality Questions", ""])
+        for question in report["reportQualityQuestions"]:
+            lines.append(f"- {question}")
 
     lines.extend(["", "## Blocked Questions", ""])
     for question in report["blockedQuestions"]:
@@ -447,7 +511,7 @@ def write_outputs(report: dict[str, Any], out_dir: Path) -> None:
 def main() -> int:
     args = parse_args()
     root = Path(args.path).expanduser().resolve()
-    report = build_report(root)
+    report = build_report(root, shipguard_eval=args.shipguard_eval)
     if args.out:
         write_outputs(report, Path(args.out).expanduser().resolve())
     elif args.json:

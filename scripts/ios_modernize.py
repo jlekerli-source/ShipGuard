@@ -9,14 +9,21 @@ import json
 import os
 import re
 import sys
+from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
 import ios_doctor
+import ios_scan_scope
 
 
 SCHEMA_VERSION = 1
 MAX_FINDINGS_PER_RULE = 12
+SEVERITY_RANK = {
+    "high": 0,
+    "review": 1,
+    "opportunity": 2,
+}
 
 
 def utc_now() -> str:
@@ -35,6 +42,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--path", default=".", help="iOS project or package root to scan")
     parser.add_argument("--out", help="Output directory for ios-modernize.md and ios-modernize.json")
     parser.add_argument("--focus", choices=["swift"], default="swift", help="Modernization focus. Default: swift")
+    parser.add_argument(
+        "--shipguard-eval",
+        action="store_true",
+        help="Mark this scan as ShipGuard product QA only; findings must not become target-app work.",
+    )
     parser.add_argument("--json", action="store_true", help="Print JSON to stdout instead of Markdown")
     parser.add_argument("--markdown", action="store_true", help="Print Markdown to stdout")
     return parser.parse_args()
@@ -52,27 +64,11 @@ def rel(path: Path, root: Path) -> str:
 
 
 def should_skip_dir(path: Path) -> bool:
-    return path.name in {
-        ".git",
-        ".build",
-        ".swiftpm",
-        "DerivedData",
-        "build",
-        "Carthage",
-        "Pods",
-        "node_modules",
-        "dist",
-    }
+    return ios_scan_scope.should_skip_dir(path)
 
 
 def iter_files(root: Path) -> list[Path]:
-    files: list[Path] = []
-    for dirpath, dirnames, filenames in os.walk(root):
-        current = Path(dirpath)
-        dirnames[:] = [name for name in dirnames if not should_skip_dir(current / name)]
-        for filename in filenames:
-            files.append(current / filename)
-    return sorted(files, key=lambda item: rel(item, root))
+    return ios_scan_scope.iter_files(root).files
 
 
 def unique_sorted(values: list[str]) -> list[str]:
@@ -175,6 +171,78 @@ def finding(
         "codexMode": codex_mode,
         "proof": proof,
     }
+
+
+def shipguard_eval_boundary() -> dict[str, Any]:
+    return {
+        "targetAppsReadOnly": True,
+        "shipguardOnly": True,
+        "allowedUses": [
+            "Evaluate ShipGuard modernization-report quality.",
+            "Identify noisy, generic, or poorly grouped modernization rules.",
+            "Create redacted public fixtures or eval cases in ShipGuard.",
+        ],
+        "forbiddenUses": [
+            "Do not edit the scanned app from this run.",
+            "Do not create app-specific modernization tasks from this run.",
+            "Do not present target-app findings as the active development goal.",
+        ],
+    }
+
+
+def shipguard_eval_questions() -> list[str]:
+    return [
+        "Did repeated availability, concurrency, or accessibility findings collapse into a scannable rule mix?",
+        "Are high findings justified by specific source evidence?",
+        "Does the report separate ShipGuard rule-quality issues from target-app remediation?",
+        "Which private-app observation should become a public fixture or eval case?",
+    ]
+
+
+def summarize_rules(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[str, dict[str, Any]] = {}
+    for item in findings:
+        rule_id = str(item["ruleId"])
+        group = grouped.setdefault(
+            rule_id,
+            {
+                "ruleId": rule_id,
+                "category": item["category"],
+                "count": 0,
+                "high": 0,
+                "review": 0,
+                "opportunity": 0,
+                "firstLocations": [],
+            },
+        )
+        group["count"] += 1
+        group[item["severity"]] += 1
+        if len(group["firstLocations"]) < 3:
+            location = item["file"] or "repo"
+            if item.get("line"):
+                location = f"{location}:{item['line']}"
+            group["firstLocations"].append(location)
+    return sorted(
+        grouped.values(),
+        key=lambda item: (
+            SEVERITY_RANK["high"] if item["high"] else SEVERITY_RANK["review"] if item["review"] else SEVERITY_RANK["opportunity"],
+            -int(item["count"]),
+            str(item["ruleId"]),
+        ),
+    )
+
+
+def select_markdown_findings(findings: list[dict[str, Any]], limit: int = 40, per_rule: int = 5) -> list[dict[str, Any]]:
+    selected: list[dict[str, Any]] = []
+    rule_counts: dict[str, int] = defaultdict(int)
+    for item in findings:
+        rule_id = str(item["ruleId"])
+        if item["severity"] == "high" or rule_counts[rule_id] < per_rule:
+            selected.append(item)
+            rule_counts[rule_id] += 1
+        if len(selected) >= limit:
+            break
+    return selected
 
 
 def scan_swift_file(path: Path, root: Path, findings: list[dict[str, Any]], metrics: dict[str, int]) -> None:
@@ -397,13 +465,14 @@ def build_checks(facts: dict[str, Any], metrics: dict[str, int], findings: list[
     ]
 
 
-def build_report(root: Path, focus: str) -> dict[str, Any]:
+def build_report(root: Path, focus: str, *, shipguard_eval: bool = False) -> dict[str, Any]:
     if not root.exists():
         fail(f"path not found: {root}")
     if not root.is_dir():
         fail(f"path must be a directory: {root}")
 
-    files = iter_files(root)
+    scan = ios_scan_scope.iter_files(root)
+    files = scan.files
     swift_files = [path for path in files if path.suffix == ".swift"]
     facts = collect_doctor_facts(root)
     metrics = {
@@ -432,6 +501,7 @@ def build_report(root: Path, focus: str) -> dict[str, Any]:
     return {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard ios modernize",
+        "intent": "shipguard-evaluation" if shipguard_eval else "app-development",
         "generatedAt": utc_now(),
         "focus": focus,
         "status": status,
@@ -443,8 +513,12 @@ def build_report(root: Path, focus: str) -> dict[str, Any]:
             "deploymentTargets": facts["deploymentTargets"],
             "targets": len(facts["targets"]),
         },
+        "scanScope": ios_scan_scope.summary(scan),
         "checks": checks,
         "targets": facts["targets"],
+        "scopeBoundary": shipguard_eval_boundary() if shipguard_eval else None,
+        "reportQualityQuestions": shipguard_eval_questions() if shipguard_eval else [],
+        "ruleSummary": summarize_rules(findings),
         "findings": findings,
         "guidance": [
             "Treat findings as a Codex planning input, not proof that a modernization is safe.",
@@ -461,33 +535,88 @@ def render_markdown(report: dict[str, Any]) -> str:
         "# iOS Swift Modernization Audit",
         "",
         f"- Status: `{report['status']}`",
+        f"- Intent: `{report['intent']}`",
         f"- Focus: `{report['focus']}`",
         f"- Swift files: {summary['swiftFiles']}",
         f"- SwiftUI files: {summary['swiftuiFiles']}",
         f"- Findings: {summary['findings']}",
+        f"- Skipped generated/proof/cache directories: {report['scanScope']['skippedDirectoryCount']}",
         f"- Swift versions: {', '.join(summary['swiftVersions']) if summary['swiftVersions'] else 'unknown'}",
         f"- Deployment targets: {', '.join(summary['deploymentTargets']) if summary['deploymentTargets'] else 'unknown'}",
         "",
+    ]
+    if report["intent"] == "shipguard-evaluation":
+        boundary = report["scopeBoundary"]
+        lines.extend(
+            [
+                "## ShipGuard Evaluation Boundary",
+                "",
+                "- This scan is ShipGuard product QA only.",
+                "- The scanned app is a read-only input; do not edit it from this run.",
+                "- Use findings to improve ShipGuard rules, grouping, report shape, docs, or eval fixtures.",
+                "- Do not turn findings into target-app remediation tasks unless a separate app-work request explicitly authorizes it.",
+                "",
+                "Allowed uses: " + "; ".join(boundary["allowedUses"]),
+                "",
+                "Forbidden uses: " + "; ".join(boundary["forbiddenUses"]),
+                "",
+            ]
+        )
+    lines.extend(
+        [
         "## Checks",
         "",
         "| Check | Status | Summary |",
         "| --- | --- | --- |",
-    ]
+        ]
+    )
     for check in report["checks"]:
         lines.append(f"| {check['id']} | {check['status']} | {check['summary']} |")
 
+    if report["scanScope"]["skippedDirectories"]:
+        lines.extend(["", "## Scan Scope", ""])
+        for directory in report["scanScope"]["skippedDirectories"][:8]:
+            lines.append(f"- Skipped `{directory}`")
+        if report["scanScope"]["skippedDirectoryListTruncated"]:
+            lines.append("- Additional skipped directories are listed in JSON.")
+
+    lines.extend(
+        [
+            "",
+            "## Finding Mix",
+            "",
+            "| Rule | Count | Severity Mix | First Locations |",
+            "| --- | ---: | --- | --- |",
+        ]
+    )
+    for summary_item in report["ruleSummary"]:
+        severity_mix = f"{summary_item['high']} high, {summary_item['review']} review, {summary_item['opportunity']} opportunity"
+        locations = "<br>".join(f"`{location}`" for location in summary_item["firstLocations"])
+        lines.append(f"| `{summary_item['ruleId']}` | {summary_item['count']} | {severity_mix} | {locations} |")
+
     lines.extend(["", "## Findings", ""])
     if report["findings"]:
+        selected_findings = select_markdown_findings(report["findings"])
+        lines.append("Repeated rules are capped here so the Markdown stays scannable; the JSON report contains every finding.")
+        lines.append("")
         lines.extend(["| Severity | Category | Location | Finding | Recommendation |", "| --- | --- | --- | --- | --- |"])
-        for item in report["findings"]:
+        for item in selected_findings:
             location = item["file"] or "repo"
             if item.get("line"):
                 location = f"{location}:{item['line']}"
             lines.append(
                 f"| {item['severity']} | {item['category']} | `{location}` | {item['title']} | {item['recommendation']} |"
             )
+        hidden_count = len(report["findings"]) - len(selected_findings)
+        if hidden_count > 0:
+            lines.append(f"| ... | ... | ... | ... | {hidden_count} more findings in JSON |")
     else:
         lines.append("No modernization findings were detected.")
+
+    if report["reportQualityQuestions"]:
+        lines.extend(["", "## Report Quality Questions", ""])
+        for question in report["reportQualityQuestions"]:
+            lines.append(f"- {question}")
 
     lines.extend(["", "## Availability And Proof Guidance", ""])
     for item in report["guidance"]:
@@ -508,7 +637,7 @@ def write_outputs(report: dict[str, Any], out_dir: Path) -> None:
 def main() -> int:
     args = parse_args()
     root = Path(args.path).expanduser().resolve()
-    report = build_report(root, args.focus)
+    report = build_report(root, args.focus, shipguard_eval=args.shipguard_eval)
 
     if args.out:
         write_outputs(report, Path(args.out).expanduser().resolve())

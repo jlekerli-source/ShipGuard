@@ -13,9 +13,14 @@ from pathlib import Path
 from typing import Any
 
 import ios_doctor
+import ios_scan_scope
 
 
 SCHEMA_VERSION = 1
+MARKDOWN_TYPE_LIMIT = 40
+MARKDOWN_ACTION_LIMIT = 20
+MARKDOWN_ENTITY_LIMIT = 20
+MARKDOWN_FINDING_LIMIT = 20
 
 
 def utc_now() -> str:
@@ -33,6 +38,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--path", default=".", help="iOS project or package root to scan")
     parser.add_argument("--out", help="Output directory for ios-app-intelligence.md and ios-app-intelligence.json")
+    parser.add_argument(
+        "--shipguard-eval",
+        action="store_true",
+        help="Mark this scan as ShipGuard product QA only; findings must not become target-app work.",
+    )
     parser.add_argument("--json", action="store_true", help="Print JSON to stdout instead of Markdown")
     parser.add_argument("--markdown", action="store_true", help="Print Markdown to stdout")
     return parser.parse_args()
@@ -50,27 +60,11 @@ def rel(path: Path, root: Path) -> str:
 
 
 def should_skip_dir(path: Path) -> bool:
-    return path.name in {
-        ".git",
-        ".build",
-        ".swiftpm",
-        "DerivedData",
-        "build",
-        "Carthage",
-        "Pods",
-        "node_modules",
-        "dist",
-    }
+    return ios_scan_scope.should_skip_dir(path)
 
 
 def iter_files(root: Path) -> list[Path]:
-    files: list[Path] = []
-    for dirpath, dirnames, filenames in os.walk(root):
-        current = Path(dirpath)
-        dirnames[:] = [name for name in dirnames if not should_skip_dir(current / name)]
-        for filename in filenames:
-            files.append(current / filename)
-    return sorted(files, key=lambda item: rel(item, root))
+    return ios_scan_scope.iter_files(root).files
 
 
 def unique_sorted(values: list[str]) -> list[str]:
@@ -449,13 +443,44 @@ def blocked_questions(counters: dict[str, int], candidate_entities: list[dict[st
     return questions
 
 
-def build_report(root: Path) -> dict[str, Any]:
+def shipguard_eval_boundary() -> dict[str, Any]:
+    return {
+        "targetAppsReadOnly": True,
+        "shipguardOnly": True,
+        "allowedUses": [
+            "Evaluate ShipGuard app-intelligence report quality.",
+            "Identify missing or noisy system-surface guidance.",
+            "Create redacted public fixtures or eval cases in ShipGuard.",
+        ],
+        "forbiddenUses": [
+            "Do not edit the scanned app from this run.",
+            "Do not create app-specific App Intents, widget, Siri, Spotlight, or controls tasks from this run.",
+            "Do not present target-app findings as the active development goal.",
+        ],
+    }
+
+
+def shipguard_eval_questions() -> list[str]:
+    return [
+        "Did the report distinguish existing system surfaces from optional opportunity areas?",
+        "Were candidate actions and entities specific enough to improve ShipGuard fixtures without private app context?",
+        "Did privacy guidance prevent overexposing account, purchase, notification, or private content?",
+        "Which observation should become a public fixture or eval case before changing the rule again?",
+    ]
+
+
+def capped_items(items: list[dict[str, Any]], limit: int) -> tuple[list[dict[str, Any]], int]:
+    return items[:limit], max(0, len(items) - limit)
+
+
+def build_report(root: Path, *, shipguard_eval: bool = False) -> dict[str, Any]:
     if not root.exists():
         fail(f"path not found: {root}")
     if not root.is_dir():
         fail(f"path must be a directory: {root}")
 
-    files = iter_files(root)
+    scan = ios_scan_scope.iter_files(root)
+    files = scan.files
     swift_files = [path for path in files if path.suffix == ".swift"]
     scanned = scan_swift_files(root, swift_files)
     facts = collect_doctor_facts(root)
@@ -472,6 +497,7 @@ def build_report(root: Path) -> dict[str, Any]:
     return {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard ios app-intelligence",
+        "intent": "shipguard-evaluation" if shipguard_eval else "app-development",
         "generatedAt": utc_now(),
         "status": status,
         "summary": {
@@ -485,11 +511,14 @@ def build_report(root: Path) -> dict[str, Any]:
             "assistantSchemaCount": counters["assistantSchemaCount"],
             "targetCount": len(facts["targetNames"]),
         },
+        "scanScope": ios_scan_scope.summary(scan),
         "types": types,
         "detections": detections,
         "candidateActions": actions,
         "candidateEntities": candidate_entities,
         "systemSurfaceMatrix": surface_matrix,
+        "scopeBoundary": shipguard_eval_boundary() if shipguard_eval else None,
+        "reportQualityQuestions": shipguard_eval_questions() if shipguard_eval else [],
         "findings": findings,
         "blockedQuestions": questions,
         "privacyReview": [
@@ -507,19 +536,52 @@ def render_markdown(report: dict[str, Any]) -> str:
         "# iOS App Intelligence Audit",
         "",
         f"- Status: `{report['status']}`",
+        f"- Intent: `{report['intent']}`",
         f"- Swift files: {summary['swiftFiles']}",
         f"- App Intents: {summary['intentCount']}",
         f"- App Entities: {summary['entityCount']}",
         f"- App Shortcuts providers: {summary['shortcutsProviderCount']}",
         f"- Widgets: {summary['widgetCount']}",
-        "",
-        "## App Intents And Entities",
+        f"- Skipped generated/proof/cache directories: {report['scanScope']['skippedDirectoryCount']}",
         "",
     ]
+    if report["intent"] == "shipguard-evaluation":
+        boundary = report["scopeBoundary"]
+        lines.extend(
+            [
+                "## ShipGuard Evaluation Boundary",
+                "",
+                "- This scan is ShipGuard product QA only.",
+                "- The scanned app is a read-only input; do not edit it from this run.",
+                "- Use findings to improve ShipGuard system-surface rules, docs, report shape, or eval fixtures.",
+                "- Do not turn findings into target-app App Intents, widget, Siri, Spotlight, or controls tasks without a separate app-work request.",
+                "",
+                "Allowed uses: " + "; ".join(boundary["allowedUses"]),
+                "",
+                "Forbidden uses: " + "; ".join(boundary["forbiddenUses"]),
+                "",
+            ]
+        )
+    if report["scanScope"]["skippedDirectories"]:
+        lines.extend(["## Scan Scope", ""])
+        for directory in report["scanScope"]["skippedDirectories"][:8]:
+            lines.append(f"- Skipped `{directory}`")
+        if report["scanScope"]["skippedDirectoryListTruncated"]:
+            lines.append("- Additional skipped directories are listed in JSON.")
+        lines.append("")
+    lines.extend(
+        [
+        "## App Intents And Entities",
+        "",
+        ]
+    )
     if report["types"]:
         lines.extend(["| Kind | Name | Location |", "| --- | --- | --- |"])
-        for item in report["types"]:
+        visible_types, hidden_types = capped_items(report["types"], MARKDOWN_TYPE_LIMIT)
+        for item in visible_types:
             lines.append(f"| {item['kind']} | `{item['name']}` | `{item['file']}:{item['line']}` |")
+        if hidden_types:
+            lines.append(f"| note | `{hidden_types} more type(s) hidden from Markdown` | See ios-app-intelligence.json for the full list. |")
     else:
         lines.append("No App Intents, App Entities, App Enums, or App Shortcuts providers were detected.")
 
@@ -529,25 +591,39 @@ def render_markdown(report: dict[str, Any]) -> str:
 
     lines.extend(["", "## Candidate Actions", ""])
     if report["candidateActions"]:
-        for item in report["candidateActions"]:
+        visible_actions, hidden_actions = capped_items(report["candidateActions"], MARKDOWN_ACTION_LIMIT)
+        for item in visible_actions:
             lines.append(f"- `{item['name']}` from {item['source']}: {item['recommendation']}")
+        if hidden_actions:
+            lines.append(f"- {hidden_actions} more candidate action(s) hidden from Markdown; see ios-app-intelligence.json for the full list.")
     else:
         lines.append("- No candidate actions were inferred from App Intents or widgets.")
 
     lines.extend(["", "## Candidate Entities", ""])
     if report["candidateEntities"]:
-        for item in report["candidateEntities"]:
+        visible_entities, hidden_entities = capped_items(report["candidateEntities"], MARKDOWN_ENTITY_LIMIT)
+        for item in visible_entities:
             lines.append(f"- {item['name']}: {item['reason']}")
+        if hidden_entities:
+            lines.append(f"- {hidden_entities} more candidate entity record(s) hidden from Markdown; see ios-app-intelligence.json for the full list.")
     else:
         lines.append("- Existing AppEntity coverage was detected; review the JSON report for type locations.")
 
     lines.extend(["", "## Findings", ""])
     if report["findings"]:
         lines.extend(["| Severity | Rule | Finding | Recommendation |", "| --- | --- | --- | --- |"])
-        for item in report["findings"]:
+        visible_findings, hidden_findings = capped_items(report["findings"], MARKDOWN_FINDING_LIMIT)
+        for item in visible_findings:
             lines.append(f"| {item['severity']} | `{item['ruleId']}` | {item['title']} | {item['recommendation']} |")
+        if hidden_findings:
+            lines.append(f"| note | `markdown-cap` | {hidden_findings} more finding(s) hidden from Markdown | See ios-app-intelligence.json for the full list. |")
     else:
         lines.append("No app-intelligence findings were detected.")
+
+    if report["reportQualityQuestions"]:
+        lines.extend(["", "## Report Quality Questions", ""])
+        for question in report["reportQualityQuestions"]:
+            lines.append(f"- {question}")
 
     lines.extend(["", "## Blocked Questions", ""])
     for question in report["blockedQuestions"]:
@@ -575,7 +651,7 @@ def write_outputs(report: dict[str, Any], out_dir: Path) -> None:
 def main() -> int:
     args = parse_args()
     root = Path(args.path).expanduser().resolve()
-    report = build_report(root)
+    report = build_report(root, shipguard_eval=args.shipguard_eval)
     if args.out:
         write_outputs(report, Path(args.out).expanduser().resolve())
     elif args.json:

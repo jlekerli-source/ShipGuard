@@ -2,6 +2,7 @@ import ActivityKit
 import AlarmKit
 import AppIntents
 import CoreLocation
+import Foundation
 import StoreKit
 import SwiftUI
 import UserNotifications
@@ -42,4 +43,22 @@ struct DemoProvider: TimelineProvider {
 
 struct DemoEntry: TimelineEntry {
     let date = Date()
+}
+
+@MainActor
+struct DemoPerformanceHotspots: View {
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1.0 / 30.0)) { timeline in
+            let formatter = DateFormatter()
+            Text(formatter.string(from: timeline.date))
+                .blur(radius: 30)
+                .shadow(color: .black.opacity(0.2), radius: 8)
+                .shadow(color: .blue.opacity(0.2), radius: 12)
+                .shadow(color: .purple.opacity(0.2), radius: 16)
+                .onAppear {
+                    withAnimation(.easeInOut(duration: 2).repeatForever()) {}
+                    UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["demo"])
+                }
+        }
+    }
 }

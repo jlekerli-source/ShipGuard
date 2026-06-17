@@ -125,6 +125,10 @@ For workflow-run summaries, run `./bin/shipguard ci-summary --gate /tmp/codex-ga
 For Check Run payloads, run `./bin/shipguard check-run --gate /tmp/codex-gate/gate.json --head-sha "$GITHUB_SHA" --out /tmp/codex-gate/check-run/payload.json`.
 To post a Check Run after reviewing the payload, run `./bin/shipguard check-run post --payload /tmp/codex-gate/check-run/payload.json --repo "$GITHUB_REPOSITORY" --out /tmp/codex-gate/check-run/response.json`.
 For risky iOS work, run `./bin/shipguard ios doctor --path . --out /tmp/ios-shipguard-doctor`, then `./bin/shipguard ios inventory --path . --out /tmp/ios-shipguard-inventory`.
+For iOS FPS, hitch, launch, scroll, or touch-latency work, run `./bin/shipguard ios performance --path . --out /tmp/ios-shipguard-performance` before choosing edits.
+For iOS UI/UX, design coherence, motion, haptics, preview routing, or app icon direction, run `./bin/shipguard ios design --path . --out /tmp/ios-shipguard-design`.
+The iOS scanners skip generated/proof/cache directories and list those scan-scope exclusions in JSON and Markdown reports.
+When a private app is only being used to improve ShipGuard itself, add `--shipguard-eval` to `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, or `ios ai-readiness` and treat the report as ShipGuard product QA, not an app work backlog.
 For a clean iOS plugin demo, run `./bin/shipguard ios demo --out /tmp/ios-shipguard-first-run`.
 To install the local Codex plugin from this checkout, run `codex plugin marketplace add .`, then `codex plugin add ios-shipguard@shipguard`, then start a new Codex thread so the refreshed skill metadata loads.
 For release proof files, run `./bin/shipguard release-manifest --tarball dist/shipguard-v3.38.0.tar.gz --out /tmp/release-proof`.
@@ -157,7 +161,7 @@ To publish the negative fixture index in GitHub Actions, use `jlekerli-source/Sh
 - `plugins/ios-shipguard/`: Codex plugin source for the iOS ShipGuard skill and MCP metadata.
 - `evals/`: deterministic ShipGuard behavior eval cases plus the optional live runner.
 - `scripts/`: release handoff, bug triage, alarm validation, packaging, and autopsy report generation.
-- `bin/shipguard`: a dependency-light CLI for profile init, validation, doctor checks, iOS ShipGuard helpers, run scoring, autopsy reports, Arena comparison, transcript redaction, verification, corpus indexing, CI artifacts, and release-loop proof.
+- `bin/shipguard`: a dependency-light CLI for profile init, validation, doctor checks, iOS ShipGuard topology, inventory, performance, design, preview, and proof helpers, run scoring, autopsy reports, Arena comparison, transcript redaction, verification, corpus indexing, CI artifacts, and release-loop proof.
 - Legacy command wrappers are documented in `docs/compatibility.md`.
 - `VERSION`: the release version used by the CLI and package script.
 - `actions/validate/`: a reusable GitHub composite action for workflow-bundle validation.

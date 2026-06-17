@@ -92,6 +92,77 @@ Route proof from a generated plan:
 
 The proof report records the smallest honest evidence lane and names any manual blockers. It does not execute builds, simulator actions, StoreKit purchases, TestFlight checks, App Store Connect checks, or device proof. It tells Codex which proof is still required before a claim can be made.
 
+## Performance Audit Mode
+
+Use `performance-audit` when the user reports FPS drops, hitches, slow launch, laggy scrolling, touch latency, thermal pressure, or device-specific smoothness problems:
+
+```bash
+./bin/shipguard ios performance \
+  --path . \
+  --out /tmp/ios-shipguard-performance
+./bin/shipguard ios plan \
+  --mode performance-audit \
+  --inventory /tmp/ios-shipguard-demo/ios-inventory.json \
+  --out /tmp/ios-shipguard-performance-plan
+./bin/shipguard ios prove \
+  --plan /tmp/ios-shipguard-performance-plan/ios-plan.json \
+  --out /tmp/ios-shipguard-performance-proof
+```
+
+The `ios performance` report is read-only. It scans Swift source for ranked hotspots such as high-frequency `TimelineView`, continuous `repeatForever` animation, large blur/shadow composition, formatter allocation in SwiftUI paths, image decoding in UI paths, and notification cleanup that may block launch or interaction. iOS source scanners skip generated/proof/cache directories and list those scan-scope exclusions in JSON and Markdown so large app workspaces do not turn release artifacts or scratch files into product findings.
+
+The plan tells Codex to build and launch the same route being measured, try Animation Hitches or Time Profiler when supported, fall back to `sample`, logs, screenshots, and symbolication when `xctrace` is unavailable, and keep protected runtime boundaries explicit. It also blocks device-level smoothness claims until a physical-device Instruments trace exists for touch latency, ProMotion refresh, thermal pressure, replacement displays, sensors, audio, or wake timing.
+
+## ShipGuard Report-Quality Eval Mode
+
+Use `--shipguard-eval` only when a real app is acting as a private read-only sample for improving ShipGuard itself:
+
+```bash
+./bin/shipguard ios performance \
+  --path <private-ios-app> \
+  --out /tmp/ios-shipguard-performance-eval \
+  --shipguard-eval
+./bin/shipguard ios design \
+  --path <private-ios-app> \
+  --out /tmp/ios-shipguard-design-eval \
+  --shipguard-eval
+./bin/shipguard ios modernize \
+  --focus swift \
+  --path <private-ios-app> \
+  --out /tmp/ios-shipguard-modernize-eval \
+  --shipguard-eval
+./bin/shipguard ios app-intelligence \
+  --path <private-ios-app> \
+  --out /tmp/ios-shipguard-app-intelligence-eval \
+  --shipguard-eval
+./bin/shipguard ios ai-readiness \
+  --path <private-ios-app> \
+  --out /tmp/ios-shipguard-ai-readiness-eval \
+  --shipguard-eval
+```
+
+Those reports add a ShipGuard evaluation boundary. Findings from those runs must be used to improve ShipGuard rules, report shape, docs, or public fixtures; they must not become target-app remediation tasks without a separate explicit app-work request. Markdown output may be grouped or capped to stay reviewable; JSON keeps the full finding list for deeper ShipGuard product QA.
+
+## Design QA Audit
+
+Run a genre-aware UI/UX and design-coherence audit before asking Codex to redesign screens, tune motion, add haptics, judge visual DNA, or create an app icon direction:
+
+```bash
+./bin/shipguard ios design \
+  --path . \
+  --out /tmp/ios-shipguard-design
+./bin/shipguard ios design \
+  --path . \
+  --app-type game \
+  --preview-out /tmp/ios-shipguard-preview \
+  --icon-brief \
+  --out /tmp/ios-shipguard-design-game
+```
+
+The report infers app type, records design DNA signals, applies motion guidance from the Design Motion Principles frequency gate, emits an iOS haptics blueprint, and tells Codex when `ios preview` or `ios devspace` should be used. App-type inference weights app/project source above repeated docs or agent-instruction wording; use `--app-type` when the automatic genre inference is wrong or the user has already named the product category.
+
+Use `--icon-brief` for app-icon work. ShipGuard writes `app-icon-imagegen-brief.md` for ChatGPT ImageGen and an App Store asset checklist; it does not generate CSS, SVG, or local placeholder icon art.
+
 ## Preview Bridge
 
 ShipGuard can serve a local phone-shaped preview page for Codex's in-app browser:
@@ -118,7 +189,7 @@ export SHIPGUARD_DEVSPACE_TOKEN="$(openssl rand -hex 32)"
   --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN
 ```
 
-Use this when the user wants ChatGPT or GPT-5.5 Pro to plan from a live phone widget and then prepare a Codex handoff. Devspace serves `/mcp`, registers `ui://widget/shipguard-preview-v2.html`, proxies screenshots, records preview events, and prepares a scoped Codex app-server prompt without spawning Codex automatically. Use bearer auth whenever HTTP mode is exposed through a tunnel.
+Use this when the user wants ChatGPT or GPT-5.5 Pro to plan from a live phone widget and then prepare a Codex handoff. Devspace serves `/mcp`, registers `ui://widget/shipguard-preview-v2.html`, proxies screenshots, records preview events, and prepares a scoped Codex app-server prompt without spawning Codex automatically. Model selection happens in ChatGPT; ShipGuard exposes the MCP/App bridge but cannot force which ChatGPT model is used. Use bearer auth whenever HTTP mode is exposed through a tunnel.
 
 See `docs/shipguard-devspace.md`.
 
@@ -264,6 +335,7 @@ ShipGuard routes work into one primary mode:
 - `preview-bridge`: Codex in-app-browser preview, typed click/right-click/note receipts, and simulator screenshot handoff.
 - `preview-devspace`: ChatGPT Apps / MCP connector, phone widget, and Codex handoff preparation.
 - `privacy-security`: iOS report redaction, ShipGuard Devspace trust boundaries, screenshot/token handling, and shareability review.
+- `design-audit`: app-type-specific UI/UX coherence, design DNA, motion, haptics, preview routing, and ImageGen app-icon handoff.
 - `ui-polish`: SwiftUI layout, copy, accessibility, Dynamic Type, localization.
 
 The skill lives at `plugins/ios-shipguard/skills/ios-shipguard/SKILL.md`.

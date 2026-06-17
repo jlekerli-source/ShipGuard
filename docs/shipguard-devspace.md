@@ -1,6 +1,6 @@
 # ShipGuard Devspace
 
-`shipguard ios devspace` turns the local iOS preview bridge into a ChatGPT Apps / MCP connector surface. It is the path for using ChatGPT as the planning and visual feedback layer while Codex remains the local implementation and proof agent.
+`shipguard ios devspace` turns the local iOS preview bridge into a ChatGPT Apps / MCP connector surface. It is the path for using ChatGPT as the planning and visual feedback layer while Codex remains the local implementation and proof agent. Model choice happens in ChatGPT; ShipGuard exposes the connector and widget but cannot force a specific ChatGPT model.
 
 ## Architecture
 

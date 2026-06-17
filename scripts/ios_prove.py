@@ -62,6 +62,8 @@ def blocker_text(plan: dict[str, Any]) -> list[str]:
         blockers.append("Release claims need build identity plus TestFlight, App Store Connect, physical-device, or human tester evidence.")
     if mode == "storekit-commerce":
         blockers.append("Purchase claims need StoreKit config, sandbox, TestFlight sandbox, or live-account evidence.")
+    if mode == "performance-audit":
+        blockers.append("Simulator traces can identify app-side work, but physical-device smoothness claims need an Instruments trace on the target device.")
     if mode in {"preview-bridge", "preview-devspace"}:
         blockers.append("Preview click coordinates are visual intent only; simulator input needs semantic elementRef proof.")
     if mode == "privacy-security":
@@ -94,7 +96,7 @@ def checklist_for(plan: dict[str, Any]) -> list[dict[str, str]]:
                 "evidence": "Answer blocked questions before claiming implementation or proof completion.",
             }
         )
-    if mode in {"permission-audit", "simulator-debug", "ui-polish", "preview-bridge"}:
+    if mode in {"permission-audit", "simulator-debug", "performance-audit", "ui-polish", "preview-bridge"}:
         simulator_evidence = (
             "Use XcodeBuildMCP build/run, UI snapshot, screenshot, logs, or reproduction proof when UI/runtime behavior changes."
         )
@@ -102,11 +104,23 @@ def checklist_for(plan: dict[str, Any]) -> list[dict[str, str]]:
             simulator_evidence = (
                 "Use XcodeBuildMCP build/run plus a simulator permission-state walkthrough when permission UI copy changes."
             )
+        if mode == "performance-audit":
+            simulator_evidence = (
+                "Use XcodeBuildMCP build/run plus xctrace when supported; otherwise record sample/top/log evidence and symbolicate sampled app frames."
+            )
         items.append(
             {
                 "lane": "simulator",
                 "status": "required",
                 "evidence": simulator_evidence,
+            }
+        )
+    if mode == "performance-audit":
+        items.append(
+            {
+                "lane": "device-performance",
+                "status": "blocked-manual",
+                "evidence": "Record a physical-device Instruments trace for touch latency, ProMotion, thermal pressure, sensors, audio, or display-specific smoothness claims.",
             }
         )
     if mode == "storekit-commerce":

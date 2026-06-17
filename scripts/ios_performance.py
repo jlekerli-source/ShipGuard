@@ -1,0 +1,581 @@
+#!/usr/bin/env python3
+"""Scan iOS Swift projects for common app-side performance risks."""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import datetime as dt
+import json
+import os
+import re
+import sys
+from collections import defaultdict
+from pathlib import Path
+from typing import Any
+
+import ios_doctor
+import ios_scan_scope
+
+
+SCHEMA_VERSION = 1
+MAX_FINDINGS_PER_RULE = 20
+
+SEVERITY_RANK = {
+    "high": 0,
+    "review": 1,
+    "opportunity": 2,
+}
+NUMERIC_BINOPS = {
+    ast.Add: lambda left, right: left + right,
+    ast.Sub: lambda left, right: left - right,
+    ast.Mult: lambda left, right: left * right,
+    ast.Div: lambda left, right: left / right,
+}
+
+
+def utc_now() -> str:
+    return dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def fail(message: str) -> None:
+    print(f"ios-performance: {message}", file=sys.stderr)
+    raise SystemExit(1)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Audit SwiftUI and runtime performance hotspots before Codex edits an iOS app."
+    )
+    parser.add_argument("--path", default=".", help="iOS project or package root to scan")
+    parser.add_argument("--out", help="Output directory for ios-performance.md and ios-performance.json")
+    parser.add_argument(
+        "--shipguard-eval",
+        action="store_true",
+        help="Mark this scan as ShipGuard product QA only; findings must not become target-app work.",
+    )
+    parser.add_argument("--json", action="store_true", help="Print JSON report to stdout")
+    parser.add_argument("--markdown", action="store_true", help="Print Markdown report to stdout")
+    return parser.parse_args()
+
+
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="ignore")
+
+
+def rel(path: Path, root: Path) -> str:
+    try:
+        return path.relative_to(root).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def eval_numeric_ast(node: ast.AST) -> float:
+    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+        return float(node.value)
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+        value = eval_numeric_ast(node.operand)
+        return value if isinstance(node.op, ast.UAdd) else -value
+    if isinstance(node, ast.BinOp):
+        op = NUMERIC_BINOPS.get(type(node.op))
+        if op is None:
+            raise ValueError("unsupported operator")
+        return float(op(eval_numeric_ast(node.left), eval_numeric_ast(node.right)))
+    raise ValueError("unsupported numeric expression")
+
+
+def numeric_interval(expression: str) -> float | None:
+    cleaned = expression.strip()
+    if not re.fullmatch(r"[0-9. /\t+\-*]+", cleaned):
+        return None
+    try:
+        value = eval_numeric_ast(ast.parse(cleaned, mode="eval").body)
+    except Exception:
+        return None
+    if value > 0:
+        return value
+    return None
+
+
+def severity_for_interval(interval: float | None) -> str:
+    if interval is None:
+        return "review"
+    if interval <= 1.0 / 30.0:
+        return "high"
+    if interval < 1.0:
+        return "review"
+    return "opportunity"
+
+
+def add_finding(findings: list[dict[str, Any]], finding: dict[str, Any]) -> None:
+    rule_count = sum(1 for item in findings if item["ruleId"] == finding["ruleId"])
+    if rule_count >= MAX_FINDINGS_PER_RULE:
+        return
+    findings.append(finding)
+
+
+def make_finding(
+    *,
+    rule_id: str,
+    severity: str,
+    category: str,
+    title: str,
+    file: str,
+    line: int,
+    evidence: str,
+    impact: str,
+    recommendation: str,
+    proof: str,
+) -> dict[str, Any]:
+    return {
+        "ruleId": rule_id,
+        "severity": severity,
+        "category": category,
+        "title": title,
+        "file": file,
+        "line": line,
+        "evidence": evidence.strip(),
+        "impact": impact,
+        "recommendation": recommendation,
+        "proof": proof,
+    }
+
+
+def nearby_contains(lines: list[str], index: int, pattern: str, before: int = 8) -> bool:
+    start = max(0, index - before)
+    text = "\n".join(lines[start : index + 1])
+    return re.search(pattern, text) is not None
+
+
+def scan_file(path: Path, root: Path, findings: list[dict[str, Any]], metrics: dict[str, int]) -> None:
+    text = read_text(path)
+    lines = text.splitlines()
+    rel_path = rel(path, root)
+    imports_swiftui = bool(re.search(r"^\s*import\s+SwiftUI\b", text, re.M))
+    has_swiftui_view = imports_swiftui and bool(
+        re.search(r":\s*View\b|var\s+body\s*:\s*some\s+View\b|@ViewBuilder\b|->\s*some\s+View\b", text)
+    )
+
+    if imports_swiftui:
+        metrics["swiftuiFiles"] += 1
+
+    shadow_window: list[int] = []
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        line_number = index + 1
+
+        timeline_match = re.search(r"TimelineView\s*\(\s*\.periodic\s*\([^)]*\bby:\s*([^,)]+)", line)
+        if timeline_match:
+            interval = numeric_interval(timeline_match.group(1))
+            severity = severity_for_interval(interval)
+            add_finding(
+                findings,
+                make_finding(
+                    rule_id="swiftui-periodic-timeline",
+                    severity=severity,
+                    category="SwiftUI Rendering",
+                    title="Review periodic TimelineView redraw cadence",
+                    file=rel_path,
+                    line=line_number,
+                    evidence=stripped,
+                    impact="Frequent TimelineView updates can redraw the view tree even when the visual change is small.",
+                    recommendation="Use the slowest cadence that preserves the user-visible state; disable or lower cadence for Reduce Motion, inactive state, and non-critical ambience.",
+                    proof="Compare CPU/frame behavior before and after with Animation Hitches, Time Profiler, or a symbolicated sample fallback.",
+                ),
+            )
+
+        if ".repeatForever" in line:
+            add_finding(
+                findings,
+                make_finding(
+                    rule_id="swiftui-repeat-forever-animation",
+                    severity="review",
+                    category="SwiftUI Rendering",
+                    title="Review continuous repeatForever animation",
+                    file=rel_path,
+                    line=line_number,
+                    evidence=stripped,
+                    impact="Always-on animations keep the renderer active and can combine poorly with large gradients, blur, material, or tab backgrounds.",
+                    recommendation="Gate decorative motion behind Reduce Motion, active screen visibility, and measurable value; prefer static states for background ambience.",
+                    proof="Record the affected screen at rest and during interaction, then compare sampled CPU/GPU pressure after reducing or removing the animation.",
+                ),
+            )
+
+        blur_match = re.search(r"\.blur\s*\(\s*radius:\s*([0-9.]+)", line)
+        if blur_match:
+            radius = float(blur_match.group(1))
+            if radius >= 20:
+                add_finding(
+                    findings,
+                    make_finding(
+                        rule_id="swiftui-large-blur",
+                        severity="review",
+                        category="GPU Composition",
+                        title="Large blur may be expensive on scrolling or animated surfaces",
+                        file=rel_path,
+                        line=line_number,
+                        evidence=stripped,
+                        impact="Large blur radii can increase offscreen rendering and composition cost, especially when animated or repeated under tab shells.",
+                        recommendation="Prefer precomposed assets, static gradients, smaller radii, or one shared background layer per screen.",
+                        proof="Capture before/after screenshots and a profiler/sample run on the exact screen being optimized.",
+                    ),
+                )
+
+        if ".shadow(" in line:
+            shadow_window = [item for item in shadow_window if line_number - item <= 12]
+            shadow_window.append(line_number)
+            if len(shadow_window) == 3:
+                add_finding(
+                    findings,
+                    make_finding(
+                        rule_id="swiftui-shadow-stack",
+                        severity="opportunity",
+                        category="GPU Composition",
+                        title="Stacked shadows can increase composition work",
+                        file=rel_path,
+                        line=line_number,
+                        evidence=stripped,
+                        impact="Multiple shadows close together can create extra offscreen rendering cost and make scrolling surfaces heavier.",
+                        recommendation="Keep only shadows that materially improve hierarchy; flatten repeated card shadows into a shared style.",
+                        proof="Use screenshots plus a sampled scroll/interaction run to confirm the simplified style preserves hierarchy.",
+                    ),
+                )
+
+        if re.search(r"\b(DateFormatter|NumberFormatter|MeasurementFormatter)\s*\(", line):
+            static_context = nearby_contains(lines, index, r"\bstatic\s+(let|var)\b|\blazy\s+var\b", before=4)
+            if has_swiftui_view and not static_context:
+                add_finding(
+                    findings,
+                    make_finding(
+                        rule_id="formatter-created-in-view",
+                        severity="review",
+                        category="Body Work",
+                        title="Formatter allocation should usually be cached",
+                        file=rel_path,
+                        line=line_number,
+                        evidence=stripped,
+                        impact="Formatter creation in SwiftUI view paths can add repeated work during redraws.",
+                        recommendation="Move stable formatters to static cached helpers or pass formatted values from the model layer.",
+                        proof="Run the relevant view flow and confirm output formatting remains unchanged.",
+                    ),
+                )
+
+        if "UIImage(data:" in line:
+            add_finding(
+                findings,
+                make_finding(
+                    rule_id="image-decoding-in-view-path",
+                    severity="review" if imports_swiftui else "opportunity",
+                    category="Image Decoding",
+                    title="Review image decoding on UI paths",
+                    file=rel_path,
+                    line=line_number,
+                    evidence=stripped,
+                    impact="Decoding image data during view updates or interaction can cause hitches, memory pressure, or scroll stalls.",
+                    recommendation="Cache decoded images, downsample large assets, and move decoding off hot SwiftUI body/update paths.",
+                    proof="Use a sample trace during the image-heavy screen and compare memory/CPU after caching or downsampling.",
+                ),
+            )
+
+        if "removePendingNotificationRequests" in line or "removeAllPendingNotificationRequests" in line:
+            main_actor_context = nearby_contains(lines, index, r"@MainActor", before=12)
+            add_finding(
+                findings,
+                make_finding(
+                    rule_id="notification-removal-ui-stall",
+                    severity="high" if main_actor_context else "review",
+                    category="Main Thread Blocking",
+                    title="Notification request removal can block UI work",
+                    file=rel_path,
+                    line=line_number,
+                    evidence=stripped,
+                    impact="UNUserNotificationCenter removal may synchronously wait on the notification service; if called from MainActor or launch/UI tasks it can feel like jank.",
+                    recommendation="Keep notification cleanup off user-interaction hot paths where product semantics allow it, and preserve alarm/permission correctness when moving work.",
+                    proof="Symbolicate sampled stacks before editing; after editing, rerun launch/tab interaction samples and the relevant notification/alarm validation lane.",
+                ),
+            )
+
+
+def collect_guardrails(root: Path) -> list[dict[str, str]]:
+    guardrails: list[dict[str, str]] = []
+    for relative in ("AGENTS.md", "BEST_PRACTICES.md", "docs/validation-commands.md"):
+        if (root / relative).is_file():
+            guardrails.append({"kind": "repo-guidance", "path": relative})
+    if (root / "scripts" / "check_alarm_runtime_freeze.sh").is_file():
+        guardrails.append(
+            {
+                "kind": "protected-boundary",
+                "path": "scripts/check_alarm_runtime_freeze.sh",
+            }
+        )
+    return guardrails
+
+
+def app_development_next_steps() -> list[str]:
+    return [
+        "Start with high findings on the exact slow screen or launch path; do not refactor every listed surface.",
+        "Run xctrace Animation Hitches or Time Profiler when available; record sample/top/log fallback when profiler templates fail.",
+        "Symbolicate sampled app frames before changing runtime or notification code.",
+        "Treat physical-device smoothness, touch latency, ProMotion, thermal, audio, sensors, and wake-path timing as device-proof claims.",
+    ]
+
+
+def shipguard_eval_next_steps() -> list[str]:
+    return [
+        "Use this scan only to judge ShipGuard report usefulness, prioritization, noise, and missing guidance.",
+        "Do not edit the scanned app, open app remediation tasks, or present findings as an app improvement backlog.",
+        "Convert useful private-app observations into redacted public fixtures or deterministic ShipGuard eval cases.",
+        "Improve ShipGuard wording, rule ranking, grouping, proof guidance, or docs when the report is generic, noisy, or hard to act on.",
+    ]
+
+
+def shipguard_eval_boundary() -> dict[str, Any]:
+    return {
+        "targetAppsReadOnly": True,
+        "shipguardOnly": True,
+        "allowedUses": [
+            "Evaluate ShipGuard report quality.",
+            "Identify missing or noisy ShipGuard rules.",
+            "Create redacted public fixtures or eval cases in ShipGuard.",
+        ],
+        "forbiddenUses": [
+            "Do not edit the scanned app from this run.",
+            "Do not create app-specific remediation tasks from this run.",
+            "Do not present target-app findings as the active development goal.",
+        ],
+    }
+
+
+def shipguard_eval_questions() -> list[str]:
+    return [
+        "Did the report explain why each finding matters without requiring private app context?",
+        "Were repeated rules grouped enough to stay scannable?",
+        "Were high findings justified by evidence instead of broad suspicion?",
+        "Did proof guidance name what Codex can verify locally and what remains device/manual proof?",
+        "Which observation should become a public fixture or eval case before changing the rule again?",
+    ]
+
+
+def summarize_rules(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[str, dict[str, Any]] = {}
+    for finding in findings:
+        rule_id = str(finding["ruleId"])
+        group = grouped.setdefault(
+            rule_id,
+            {
+                "ruleId": rule_id,
+                "category": finding["category"],
+                "title": finding["title"],
+                "count": 0,
+                "high": 0,
+                "review": 0,
+                "opportunity": 0,
+                "firstLocations": [],
+            },
+        )
+        group["count"] += 1
+        group[finding["severity"]] += 1
+        if len(group["firstLocations"]) < 3:
+            group["firstLocations"].append(f"{finding['file']}:{finding['line']}")
+
+    return sorted(
+        grouped.values(),
+        key=lambda item: (
+            SEVERITY_RANK["high"] if item["high"] else SEVERITY_RANK["review"] if item["review"] else SEVERITY_RANK["opportunity"],
+            -int(item["count"]),
+            str(item["ruleId"]),
+        ),
+    )
+
+
+def build_report(root: Path, *, shipguard_eval: bool = False) -> dict[str, Any]:
+    if not root.exists():
+        fail(f"path not found: {root}")
+    root = root.resolve()
+    doctor = ios_doctor.build_report(root)
+    findings: list[dict[str, Any]] = []
+    metrics = {
+        "swiftFiles": 0,
+        "swiftuiFiles": 0,
+    }
+    scan = ios_scan_scope.iter_files(root, {".swift"})
+    files = scan.files
+    metrics["swiftFiles"] = len(files)
+    for path in files:
+        scan_file(path, root, findings, metrics)
+
+    findings.sort(
+        key=lambda item: (
+            SEVERITY_RANK.get(str(item.get("severity")), 99),
+            str(item.get("file")),
+            int(item.get("line") or 0),
+        )
+    )
+    high_count = sum(1 for item in findings if item["severity"] == "high")
+    review_count = sum(1 for item in findings if item["severity"] == "review")
+    status = "blocked" if high_count else "review" if review_count else "pass"
+    return {
+        "schemaVersion": SCHEMA_VERSION,
+        "tool": "shipguard ios performance",
+        "intent": "shipguard-evaluation" if shipguard_eval else "app-development",
+        "generatedAt": utc_now(),
+        "project": str(root),
+        "status": status,
+        "metrics": {
+            **metrics,
+            "xcodeProjects": len(doctor.get("xcode_projects", [])),
+            "swiftPackages": len(doctor.get("swift_packages", [])),
+            "findings": len(findings),
+            "high": high_count,
+            "review": review_count,
+            "opportunity": sum(1 for item in findings if item["severity"] == "opportunity"),
+        },
+        "scanScope": ios_scan_scope.summary(scan),
+        "guardrails": collect_guardrails(root),
+        "scopeBoundary": shipguard_eval_boundary() if shipguard_eval else None,
+        "reportQualityQuestions": shipguard_eval_questions() if shipguard_eval else [],
+        "ruleSummary": summarize_rules(findings),
+        "findings": findings,
+        "nextSteps": shipguard_eval_next_steps() if shipguard_eval else app_development_next_steps(),
+    }
+
+
+def table_cell(value: object, limit: int = 120) -> str:
+    text = str(value).replace("\n", " ").replace("|", "\\|").strip()
+    if len(text) <= limit:
+        return text
+    return text[: limit - 1].rstrip() + "..."
+
+
+def select_markdown_findings(findings: list[dict[str, Any]], limit: int = 40, per_rule: int = 5) -> list[dict[str, Any]]:
+    selected: list[dict[str, Any]] = []
+    rule_counts: dict[str, int] = defaultdict(int)
+    for finding in findings:
+        rule_id = str(finding["ruleId"])
+        if finding["severity"] == "high" or rule_counts[rule_id] < per_rule:
+            selected.append(finding)
+            rule_counts[rule_id] += 1
+        if len(selected) >= limit:
+            break
+    return selected
+
+
+def markdown_report(report: dict[str, Any]) -> str:
+    metrics = report["metrics"]
+    lines = [
+        "# iOS Performance Audit",
+        "",
+        f"- Status: `{report['status']}`",
+        f"- Intent: `{report['intent']}`",
+        f"- Project: `{report['project']}`",
+        f"- Swift files: {metrics['swiftFiles']}",
+        f"- SwiftUI files: {metrics['swiftuiFiles']}",
+        f"- Findings: {metrics['findings']} ({metrics['high']} high, {metrics['review']} review, {metrics['opportunity']} opportunity)",
+        f"- Skipped generated/proof/cache directories: {report['scanScope']['skippedDirectoryCount']}",
+        "",
+    ]
+    if report["intent"] == "shipguard-evaluation":
+        boundary = report["scopeBoundary"]
+        lines.extend(
+            [
+                "## ShipGuard Evaluation Boundary",
+                "",
+                "- This scan is ShipGuard product QA only.",
+                "- The scanned app is a read-only input; do not edit it from this run.",
+                "- Use findings to improve ShipGuard rules, report shape, docs, or eval fixtures.",
+                "- Do not turn findings into target-app remediation tasks unless a separate app-work request explicitly authorizes it.",
+                "",
+                "Allowed uses: " + "; ".join(boundary["allowedUses"]),
+                "",
+                "Forbidden uses: " + "; ".join(boundary["forbiddenUses"]),
+                "",
+            ]
+        )
+    lines.extend(
+        [
+        "## Guardrails Detected",
+        "",
+        ]
+    )
+    if report["guardrails"]:
+        for guardrail in report["guardrails"]:
+            lines.append(f"- `{guardrail['path']}` ({guardrail['kind']})")
+    else:
+        lines.append("- None detected.")
+
+    if report["scanScope"]["skippedDirectories"]:
+        lines.extend(["", "## Scan Scope", ""])
+        for directory in report["scanScope"]["skippedDirectories"][:8]:
+            lines.append(f"- Skipped `{directory}`")
+        if report["scanScope"]["skippedDirectoryListTruncated"]:
+            lines.append("- Additional skipped directories are listed in JSON.")
+
+    lines.extend(
+        [
+            "",
+            "## Finding Mix",
+            "",
+            "| Rule | Count | Severity Mix | First Locations |",
+            "| --- | ---: | --- | --- |",
+        ]
+    )
+    for summary in report["ruleSummary"]:
+        severity_mix = f"{summary['high']} high, {summary['review']} review, {summary['opportunity']} opportunity"
+        locations = "<br>".join(f"`{location}`" for location in summary["firstLocations"])
+        lines.append(f"| `{summary['ruleId']}` | {summary['count']} | {severity_mix} | {locations} |")
+
+    selected_findings = select_markdown_findings(report["findings"])
+    lines.extend(
+        [
+            "",
+            "## Top Findings",
+            "",
+            "Repeated rules are capped here so the Markdown stays scannable; the JSON report contains every finding.",
+            "",
+            "| Severity | Rule | Location | Finding | Evidence | Why it matters | Recommendation |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
+        ]
+    )
+    for finding in selected_findings:
+        location = f"`{finding['file']}:{finding['line']}`"
+        lines.append(
+            f"| {finding['severity']} | `{finding['ruleId']}` | {location} | {table_cell(finding['title'])} | `{table_cell(finding['evidence'], 90)}` | {table_cell(finding['impact'])} | {table_cell(finding['recommendation'])} |"
+        )
+    hidden_count = len(report["findings"]) - len(selected_findings)
+    if hidden_count > 0:
+        lines.append(f"| ... | ... | ... | ... | ... | ... | {hidden_count} more findings in JSON |")
+
+    if report["reportQualityQuestions"]:
+        lines.extend(["", "## Report Quality Questions", ""])
+        for question in report["reportQualityQuestions"]:
+            lines.append(f"- {question}")
+
+    lines.extend(["", "## Proof Guidance", ""])
+    for step in report["nextSteps"]:
+        lines.append(f"- {step}")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def main() -> None:
+    args = parse_args()
+    report = build_report(Path(args.path), shipguard_eval=args.shipguard_eval)
+    markdown = markdown_report(report)
+    if args.out:
+        out_dir = Path(args.out)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        json_path = out_dir / "ios-performance.json"
+        md_path = out_dir / "ios-performance.md"
+        json_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        md_path.write_text(markdown, encoding="utf-8")
+        print(f"wrote: {json_path}")
+        print(f"wrote: {md_path}")
+        print(f"status: {report['status']}")
+    if args.json:
+        print(json.dumps(report, indent=2, sort_keys=True))
+    elif args.markdown or not args.out:
+        print(markdown)
+
+
+if __name__ == "__main__":
+    main()

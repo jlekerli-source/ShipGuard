@@ -37,6 +37,9 @@
       "Open ShipGuard Devspace for my simulator.",
       "Send the latest preview event to Codex."
     ],
-    "brandColor": "#2563EB"
+    "brandColor": "#4F46E5",
+    "composerIcon": "./assets/composer-icon.png",
+    "logo": "./assets/app-icon.png",
+    "screenshots": []
   }
 }

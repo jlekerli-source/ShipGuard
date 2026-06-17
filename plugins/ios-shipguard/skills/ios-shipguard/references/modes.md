@@ -86,6 +86,66 @@ Proof:
 - app plus extension state checks
 - migration rehearsal when payload shape changes
 
+## performance-audit
+
+Use for FPS drops, animation hitches, scroll or launch stutter, slow tab switches, touch latency, thermal pressure, high CPU/GPU suspicion, and device-specific smoothness problems.
+
+Ask:
+
+- Which screen, gesture, launch path, or device behavior feels slow?
+- Which device, display refresh rate, thermal state, Low Power Mode, build configuration, seed data, and route should be measured?
+- Is the claim app-side only, or does it involve physical hardware such as replacement displays, touch, ProMotion, sensors, audio, or wake timing?
+
+Proof:
+
+- `shipguard ios performance --path . --out <dir>` for ranked source hotspots before choosing edits
+- Add `--shipguard-eval` to `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness` when a private app is only a read-only sample for improving ShipGuard itself
+- XcodeBuildMCP project/scheme/simulator selection before build/run
+- build and launch the same route being measured
+- Animation Hitches or Time Profiler trace when the simulator/device supports it
+- fallback `sample`, `top`, logs, screenshots, and symbolicated app frames when xctrace is unavailable or hangs
+- source audit for continuous redraw, expensive body work, formatter/image decoding, large blur/shadow/material layers, main-actor blocking work, and protected-runtime boundaries
+- before/after comparison using the same build configuration, seed data, route, and device state
+- physical-device Instruments trace before claiming 10/10 smoothness, touch latency, ProMotion behavior, thermal behavior, display-specific behavior, sensors, audio, or wake-path timing
+
+## ShipGuard product QA
+
+Use when Ringly, Ilmify, or another private app is only a read-only sample for improving ShipGuard itself.
+
+Ask:
+
+- Which ShipGuard report is being judged: performance, design, modernization, app intelligence, or AI readiness?
+- Is the target app explicitly out of scope for edits and remediation planning?
+- Which noisy, generic, missing, or hard-to-act-on report behavior should become a public fixture or eval case?
+
+Proof:
+
+- Run the selected command with `--shipguard-eval`: `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness`
+- Keep generated private-app reports local unless the user approves redaction and sharing
+- Convert useful observations into ShipGuard rules, report shape, docs, or public fixtures only
+- Do not edit the scanned app or present its findings as the active app-work target
+
+## design-audit
+
+Use for UI/UX coherence, app-type fit, motion, haptics, visual DNA, app icon direction, preview routing, and design proof planning.
+
+Ask:
+
+- Is the inferred app type correct, or should `--app-type` override it?
+- Is the work about design evaluation, app icon direction, motion/haptics, or implementation?
+- Is there an existing `ios preview` output directory or should the preview be started first?
+
+Proof:
+
+- `shipguard ios design --path . --out /tmp/ios-shipguard-design`
+- Add `--app-type <type>` when the app genre is known or the inference is wrong
+- Add `--preview-out <dir>` when phone-shaped preview receipts already exist
+- Add `--icon-brief` when app icon direction is in scope, then use ChatGPT ImageGen for bitmap candidates
+- `shipguard ios preview --out /tmp/ios-shipguard-preview` for phone-shaped visual proof
+- `shipguard ios devspace --port 8787 --preview-out /tmp/ios-shipguard-preview --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN` when ChatGPT should plan from the preview widget; model choice happens in ChatGPT, not ShipGuard
+- physical-device proof before claiming haptic quality
+- do not treat local CSS, SVG, or placeholder drawings as production app icon output
+
 ## preview-bridge
 
 Use when the user wants an in-Codex visual preview loop for the current iOS Simulator screen, browser comments on a phone-shaped preview, or typed click/right-click/note receipts that should guide a SwiftUI edit.
