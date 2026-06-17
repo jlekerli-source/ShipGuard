@@ -263,6 +263,69 @@ if grep -R -F -q "$tmp_dir" "$tmp_dir/missing-analysis-coverage-quality"; then
   exit 1
 fi
 
+cp -R "$tmp_dir/spec" "$tmp_dir/weak-slash-handoff-spec"
+python3 - <<'PY' "$tmp_dir/weak-slash-handoff-spec/ios-spec-workflow.json"
+import json
+import sys
+path = sys.argv[1]
+data = json.load(open(path, encoding="utf-8"))
+data["slashPlan"] = "Plan later after maintainer selection."
+data["slashGoal"] = "Goal later after maintainer selection."
+open(path, "w", encoding="utf-8").write(json.dumps(data, indent=2, sort_keys=True) + "\n")
+PY
+python3 - <<'PY' "$tmp_dir/weak-slash-handoff-spec/ios-spec-workflow.md"
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+head = path.read_text(encoding="utf-8").split("## Slash Plan", 1)[0]
+path.write_text(
+    head
+    + "## Slash Plan\n\n"
+    + "```text\nPlan later after maintainer selection.\n```\n\n"
+    + "## Slash Goal\n\n"
+    + "```text\nGoal later after maintainer selection.\n```\n",
+    encoding="utf-8",
+)
+PY
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/weak-slash-handoff-spec" \
+  --out "$tmp_dir/weak-slash-handoff-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/weak-slash-handoff-quality/ios-report-quality.json"
+grep -q '"ruleId": "spec-workflow-slash-handoff-incomplete"' "$tmp_dir/weak-slash-handoff-quality/ios-report-quality.json"
+if grep -R -F -q "$tmp_dir" "$tmp_dir/weak-slash-handoff-quality"; then
+  echo "shareable weak-slash-handoff quality output must not include temp absolute paths" >&2
+  exit 1
+fi
+
+cp -R "$tmp_dir/spec" "$tmp_dir/missing-slash-artifact-spec"
+python3 - <<'PY' "$tmp_dir/missing-slash-artifact-spec/ios-spec-workflow.md"
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+head = path.read_text(encoding="utf-8").split("## Slash Plan", 1)[0]
+path.write_text(
+    head
+    + "## Slash Plan\n\n"
+    + "```text\nPlan later after maintainer selection.\n```\n\n"
+    + "## Slash Goal\n\n"
+    + "```text\nGoal later after maintainer selection.\n```\n",
+    encoding="utf-8",
+)
+PY
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/missing-slash-artifact-spec" \
+  --out "$tmp_dir/missing-slash-artifact-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-slash-artifact-quality/ios-report-quality.json"
+grep -q '"ruleId": "spec-workflow-slash-handoff-artifact-missing"' "$tmp_dir/missing-slash-artifact-quality/ios-report-quality.json"
+if grep -R -F -q "$tmp_dir" "$tmp_dir/missing-slash-artifact-quality"; then
+  echo "shareable missing-slash-artifact quality output must not include temp absolute paths" >&2
+  exit 1
+fi
+
 cp -R "$tmp_dir/spec" "$tmp_dir/missing-questions-spec"
 python3 - <<'PY' "$tmp_dir/missing-questions-spec/ios-spec-workflow.json"
 import json

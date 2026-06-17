@@ -286,6 +286,40 @@ def spec_workflow_expected_questions(inputs: dict[str, Any], limit: int = 8) -> 
     return questions
 
 
+def spec_workflow_feature_title(report: dict[str, Any]) -> str:
+    feature = report.get("feature")
+    if isinstance(feature, dict):
+        return str(feature.get("title") or "").strip()
+    return ""
+
+
+def spec_workflow_slash_handoff_gaps(report: dict[str, Any]) -> list[str]:
+    feature_title = spec_workflow_feature_title(report)
+    feature_key = normalized_question_text(feature_title)
+    checks = [
+        ("slashPlan", "/plan", "plan"),
+        ("slashGoal", "/goal", "goal"),
+    ]
+    gaps: list[str] = []
+    for field, prefix, label in checks:
+        text = str(report.get(field) or "").strip()
+        normalized = normalized_question_text(text)
+        if not text:
+            gaps.append(f"{field} is missing")
+            continue
+        if not text.startswith(prefix + " "):
+            gaps.append(f"{field} is not a {prefix} command")
+        if feature_key and feature_key not in normalized:
+            gaps.append(f"{field} does not name the feature")
+        if "validate" not in normalized:
+            gaps.append(f"{field} does not preserve validation proof guidance")
+        if "next" not in normalized or "goal" not in normalized:
+            gaps.append(f"{field} does not preserve the next-goal handoff")
+        if label == "goal" and "plan" not in normalized:
+            gaps.append(f"{field} does not preserve the next slash-plan handoff")
+    return gaps
+
+
 def score_for(issues: list[dict[str, str]]) -> int:
     score = 100
     for issue in issues:
@@ -506,6 +540,16 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
             recommendation="Regenerate the spec workflow so analysisGates preserve the checks needed before implementation.",
         )
 
+    slash_gaps = spec_workflow_slash_handoff_gaps(report)
+    if slash_gaps:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="spec-workflow-slash-handoff-incomplete",
+            evidence=f"{path_name} slash handoff is incomplete: {', '.join(slash_gaps[:4])}",
+            recommendation="Regenerate the spec workflow so slashPlan and slashGoal are copy-ready /plan and /goal commands with validation and next-goal handoff guidance.",
+        )
+
     artifacts = report.get("artifacts")
     if not isinstance(artifacts, dict):
         add_issue(
@@ -576,6 +620,7 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
             needs_acceptance_coverage = artifact_name == "spec" and bool(expected_task_questions)
             needs_validation_coverage = artifact_name == "plan"
             needs_analysis_coverage = artifact_name == "plan"
+            needs_slash_handoff_coverage = artifact_name == "markdown"
             artifact_text = ""
             if (
                 markers
@@ -584,6 +629,7 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                 or needs_acceptance_coverage
                 or needs_validation_coverage
                 or needs_analysis_coverage
+                or needs_slash_handoff_coverage
             ):
                 artifact_text = local_artifact_path.read_text(encoding="utf-8", errors="ignore")
             if markers:
@@ -693,6 +739,27 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
                             f"{len(missing_analysis_gates)} of {len(SPEC_WORKFLOW_REQUIRED_ANALYSIS_GATES)} analysis gates in {raw_value}"
                         ),
                         recommendation="Regenerate the spec workflow so implementation-plan.md lists the required analysis gates.",
+                    )
+            if needs_slash_handoff_coverage:
+                plan_section = markdown_section_text(artifact_text, "Slash Plan")
+                goal_section = markdown_section_text(artifact_text, "Slash Goal")
+                missing_slash_sections: list[str] = []
+                slash_plan = str(report.get("slashPlan") or "").strip()
+                slash_goal = str(report.get("slashGoal") or "").strip()
+                if slash_plan and normalized_question_text(slash_plan) not in normalized_question_text(plan_section):
+                    missing_slash_sections.append("slashPlan")
+                if slash_goal and normalized_question_text(slash_goal) not in normalized_question_text(goal_section):
+                    missing_slash_sections.append("slashGoal")
+                if missing_slash_sections:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="spec-workflow-slash-handoff-artifact-missing",
+                        evidence=(
+                            f"{path_name} artifact {artifact_name} missing "
+                            f"{', '.join(missing_slash_sections)} in {raw_value}"
+                        ),
+                        recommendation="Regenerate the spec workflow so ios-spec-workflow.md preserves the exact JSON slashPlan and slashGoal handoff text.",
                     )
 
     section_checks = [
