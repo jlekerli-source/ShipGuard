@@ -32,6 +32,11 @@ mkdir -p "$cap_fixture/Sources/CapApp"
 ./bin/shipguard ios app-intelligence \
   --path "$cap_fixture" \
   --out "$tmp_dir/cap-app-intelligence" >/dev/null
+./bin/shipguard ios app-intelligence \
+  --path "$cap_fixture" \
+  --out "$tmp_dir/shareable-app-intelligence" \
+  --shipguard-eval \
+  --shareable >/dev/null
 
 test -f "$tmp_dir/app-intelligence/ios-app-intelligence.md"
 test -f "$tmp_dir/app-intelligence/ios-app-intelligence.json"
@@ -39,6 +44,8 @@ test -f "$tmp_dir/eval-app-intelligence/ios-app-intelligence.md"
 test -f "$tmp_dir/eval-app-intelligence/ios-app-intelligence.json"
 test -f "$tmp_dir/cap-app-intelligence/ios-app-intelligence.md"
 test -f "$tmp_dir/cap-app-intelligence/ios-app-intelligence.json"
+test -f "$tmp_dir/shareable-app-intelligence/ios-app-intelligence.md"
+test -f "$tmp_dir/shareable-app-intelligence/ios-app-intelligence.json"
 
 python3 -m json.tool "$tmp_dir/app-intelligence/ios-app-intelligence.json" >/dev/null
 grep -q '# iOS App Intelligence Audit' "$tmp_dir/app-intelligence/ios-app-intelligence.md"
@@ -68,6 +75,21 @@ grep -q 'more type(s) hidden from Markdown' "$tmp_dir/cap-app-intelligence/ios-a
 grep -q 'more candidate action(s) hidden from Markdown' "$tmp_dir/cap-app-intelligence/ios-app-intelligence.md"
 grep -q '"BulkIntent45"' "$tmp_dir/cap-app-intelligence/ios-app-intelligence.json"
 grep -q '"intentCount": 45' "$tmp_dir/cap-app-intelligence/ios-app-intelligence.json"
+grep -q '"mode": "shareable"' "$tmp_dir/shareable-app-intelligence/ios-app-intelligence.json"
+grep -q '"localAbsolutePathsIncluded": false' "$tmp_dir/shareable-app-intelligence/ios-app-intelligence.json"
+grep -q 'Shareability mode: `shareable`' "$tmp_dir/shareable-app-intelligence/ios-app-intelligence.md"
+if grep -R -F -q "$tmp_dir" "$tmp_dir/shareable-app-intelligence"; then
+  echo "ios app-intelligence --shareable should not leak local temp paths" >&2
+  exit 1
+fi
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/shareable-app-intelligence" \
+  --out "$tmp_dir/shareable-app-intelligence-quality" \
+  --shareable >/dev/null
+if grep -q 'local-path-shareability-warning' "$tmp_dir/shareable-app-intelligence-quality/ios-report-quality.json"; then
+  echo "shareable ios app-intelligence should not trigger report-quality local-path warning" >&2
+  exit 1
+fi
 
 json_stdout="$(./bin/shipguard ios app-intelligence --path fixtures/demo-ios-repo --json)"
 printf '%s\n' "$json_stdout" | python3 -m json.tool >/dev/null

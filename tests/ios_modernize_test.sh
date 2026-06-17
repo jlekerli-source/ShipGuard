@@ -18,11 +18,19 @@ cd "$repo_root"
   --path fixtures/demo-ios-repo \
   --out "$tmp_dir/eval-modernize" \
   --shipguard-eval >/dev/null
+./bin/shipguard ios modernize \
+  --focus swift \
+  --path fixtures/demo-ios-repo \
+  --out "$tmp_dir/shareable-modernize" \
+  --shipguard-eval \
+  --shareable >/dev/null
 
 test -f "$tmp_dir/modernize/ios-modernize.md"
 test -f "$tmp_dir/modernize/ios-modernize.json"
 test -f "$tmp_dir/eval-modernize/ios-modernize.md"
 test -f "$tmp_dir/eval-modernize/ios-modernize.json"
+test -f "$tmp_dir/shareable-modernize/ios-modernize.md"
+test -f "$tmp_dir/shareable-modernize/ios-modernize.json"
 
 python3 -m json.tool "$tmp_dir/modernize/ios-modernize.json" >/dev/null
 grep -q '# iOS Swift Modernization Audit' "$tmp_dir/modernize/ios-modernize.md"
@@ -45,6 +53,21 @@ grep -q '"shipguardOnly": true' "$tmp_dir/eval-modernize/ios-modernize.json"
 grep -q 'ShipGuard Evaluation Boundary' "$tmp_dir/eval-modernize/ios-modernize.md"
 grep -q 'Finding Mix' "$tmp_dir/eval-modernize/ios-modernize.md"
 grep -q 'Report Quality Questions' "$tmp_dir/eval-modernize/ios-modernize.md"
+grep -q '"mode": "shareable"' "$tmp_dir/shareable-modernize/ios-modernize.json"
+grep -q '"localAbsolutePathsIncluded": false' "$tmp_dir/shareable-modernize/ios-modernize.json"
+grep -q 'Shareability mode: `shareable`' "$tmp_dir/shareable-modernize/ios-modernize.md"
+if grep -R -F -q "$tmp_dir" "$tmp_dir/shareable-modernize"; then
+  echo "ios modernize --shareable should not leak local temp paths" >&2
+  exit 1
+fi
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/shareable-modernize" \
+  --out "$tmp_dir/shareable-modernize-quality" \
+  --shareable >/dev/null
+if grep -q 'local-path-shareability-warning' "$tmp_dir/shareable-modernize-quality/ios-report-quality.json"; then
+  echo "shareable ios modernize should not trigger report-quality local-path warning" >&2
+  exit 1
+fi
 
 json_stdout="$(./bin/shipguard ios modernize --focus swift --path fixtures/demo-ios-repo --json)"
 printf '%s\n' "$json_stdout" | python3 -m json.tool >/dev/null

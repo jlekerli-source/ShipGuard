@@ -34,11 +34,18 @@ touch "$fixture/Sources/DemoShipGuardApp/DemoClassifier.mlmodel"
   --path "$fixture" \
   --out "$tmp_dir/eval-ai-readiness" \
   --shipguard-eval >/dev/null
+./bin/shipguard ios ai-readiness \
+  --path "$fixture" \
+  --out "$tmp_dir/shareable-ai-readiness" \
+  --shipguard-eval \
+  --shareable >/dev/null
 
 test -f "$tmp_dir/ai-readiness/ios-ai-readiness.md"
 test -f "$tmp_dir/ai-readiness/ios-ai-readiness.json"
 test -f "$tmp_dir/eval-ai-readiness/ios-ai-readiness.md"
 test -f "$tmp_dir/eval-ai-readiness/ios-ai-readiness.json"
+test -f "$tmp_dir/shareable-ai-readiness/ios-ai-readiness.md"
+test -f "$tmp_dir/shareable-ai-readiness/ios-ai-readiness.json"
 
 python3 -m json.tool "$tmp_dir/ai-readiness/ios-ai-readiness.json" >/dev/null
 grep -q '# iOS AI Readiness Audit' "$tmp_dir/ai-readiness/ios-ai-readiness.md"
@@ -62,6 +69,21 @@ grep -q '"intent": "shipguard-evaluation"' "$tmp_dir/eval-ai-readiness/ios-ai-re
 grep -q '"shipguardOnly": true' "$tmp_dir/eval-ai-readiness/ios-ai-readiness.json"
 grep -q 'ShipGuard Evaluation Boundary' "$tmp_dir/eval-ai-readiness/ios-ai-readiness.md"
 grep -q 'Report Quality Questions' "$tmp_dir/eval-ai-readiness/ios-ai-readiness.md"
+grep -q '"mode": "shareable"' "$tmp_dir/shareable-ai-readiness/ios-ai-readiness.json"
+grep -q '"localAbsolutePathsIncluded": false' "$tmp_dir/shareable-ai-readiness/ios-ai-readiness.json"
+grep -q 'Shareability mode: `shareable`' "$tmp_dir/shareable-ai-readiness/ios-ai-readiness.md"
+if grep -R -F -q "$tmp_dir" "$tmp_dir/shareable-ai-readiness"; then
+  echo "ios ai-readiness --shareable should not leak local temp paths" >&2
+  exit 1
+fi
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/shareable-ai-readiness" \
+  --out "$tmp_dir/shareable-ai-readiness-quality" \
+  --shareable >/dev/null
+if grep -q 'local-path-shareability-warning' "$tmp_dir/shareable-ai-readiness-quality/ios-report-quality.json"; then
+  echo "shareable ios ai-readiness should not trigger report-quality local-path warning" >&2
+  exit 1
+fi
 
 json_stdout="$(./bin/shipguard ios ai-readiness --path "$fixture" --json)"
 printf '%s\n' "$json_stdout" | python3 -m json.tool >/dev/null

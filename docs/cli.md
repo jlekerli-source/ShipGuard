@@ -97,9 +97,9 @@ Run iOS-specific topology, inventory, planning, proof, preview, and privacy help
 ./bin/shipguard ios design --path ../my-ios-app --out /tmp/ios-shipguard-design --icon-brief
 ./bin/shipguard ios performance --path ../my-ios-app --out /tmp/ios-shipguard-performance-eval --shipguard-eval --shareable
 ./bin/shipguard ios design --path ../my-ios-app --out /tmp/ios-shipguard-design-eval --shipguard-eval --shareable
-./bin/shipguard ios modernize --focus swift --path ../my-ios-app --out /tmp/ios-shipguard-modernize-eval --shipguard-eval
-./bin/shipguard ios app-intelligence --path ../my-ios-app --out /tmp/ios-shipguard-app-intelligence-eval --shipguard-eval
-./bin/shipguard ios ai-readiness --path ../my-ios-app --out /tmp/ios-shipguard-ai-readiness-eval --shipguard-eval
+./bin/shipguard ios modernize --focus swift --path ../my-ios-app --out /tmp/ios-shipguard-modernize-eval --shipguard-eval --shareable
+./bin/shipguard ios app-intelligence --path ../my-ios-app --out /tmp/ios-shipguard-app-intelligence-eval --shipguard-eval --shareable
+./bin/shipguard ios ai-readiness --path ../my-ios-app --out /tmp/ios-shipguard-ai-readiness-eval --shipguard-eval --shareable
 ./bin/shipguard ios report-quality --reports /tmp/ios-shipguard-performance-eval --reports /tmp/ios-shipguard-design-eval --out /tmp/ios-shipguard-report-quality --shareable
 ./bin/shipguard ios devspace-check --path . --preview-out /tmp/ios-shipguard-preview --out /tmp/ios-shipguard-devspace-check
 ```
@@ -115,11 +115,11 @@ The iOS namespace also includes:
 - `ios performance`: scan Swift source for ranked app-side performance hotspots before Codex edits; add `--shareable` when performance reports will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or report-quality scoring.
 - `ios design`: audit app-type-specific UI/UX coherence, motion, haptics, preview routing, and ImageGen app-icon handoff before visual work; add `--shareable` when design reports will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or report-quality scoring.
 - iOS source scanners skip generated/proof/cache directories such as build output, release artifacts, scratch folders, web assets, and plugin/editor caches; reports include a scan-scope summary so private-app product QA stays auditable.
-- `--shipguard-eval`: mark `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, or `ios ai-readiness` as ShipGuard product QA only, so findings improve ShipGuard rather than becoming target-app work.
+- `--shipguard-eval`: mark `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, or `ios ai-readiness` as ShipGuard product QA only, so findings improve ShipGuard rather than becoming target-app work; add `--shareable` before those reports move into report-quality scoring or external planning.
 - `ios report-quality`: grade ShipGuard report usefulness across read-only product-QA outputs; it evaluates report structure, boundaries, proof guidance, scan scope, token/path shareability, redaction handoff, and aggregated actionability questions, not target-app quality. Add `--shareable` when the report-quality artifact itself will move into ChatGPT, GitHub, docs, benchmark fixtures, or release evidence.
-- `ios modernize`: audit Swift, SwiftUI, Observation, accessibility, localization, and availability risks.
-- `ios app-intelligence`: audit App Intents, shortcuts, widgets, Spotlight, controls, and system exposure.
-- `ios ai-readiness`: compare on-device, cloud, Core ML, and no-AI options before model work.
+- `ios modernize`: audit Swift, SwiftUI, Observation, accessibility, localization, and availability risks; add `--shareable` before report-quality scoring or external sharing.
+- `ios app-intelligence`: audit App Intents, shortcuts, widgets, Spotlight, controls, and system exposure; add `--shareable` before report-quality scoring or external sharing.
+- `ios ai-readiness`: compare on-device, cloud, Core ML, and no-AI options before model work; add `--shareable` before report-quality scoring or external sharing.
 - `ios redact`: redact local iOS reports before sharing.
 - `ios eval`: run deterministic ShipGuard behavior evals.
 - `ios demo`: run the clean first-run iOS ShipGuard loop without Xcode, Simulator, credentials, or an API key.

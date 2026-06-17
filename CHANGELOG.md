@@ -13,6 +13,7 @@
 - Added `ios design --shareable` so design QA reports can omit local absolute app and preview paths before report-quality scoring or external planning.
 - Added `ios report-quality --shareable` so the report-quality artifact itself can omit local input/report paths before external sharing.
 - Added `ios performance --shareable` so performance/source-hotspot reports can omit local absolute project paths before report-quality scoring or external sharing.
+- Added `ios modernize --shareable`, `ios app-intelligence --shareable`, and `ios ai-readiness --shareable` so modernization and system-exposure reports carry an explicit shareability contract before scoring or external sharing.
 - Added report-quality actionability aggregation so input `reportQualityQuestions` become a public, shareable checklist for the next ShipGuard rule, fixture, report section, or docs improvement.
 - Extended `--shipguard-eval` product-QA boundaries to `ios modernize`, `ios app-intelligence`, and `ios ai-readiness`, with summarized/capped Markdown output where real-app read-only checks showed noisy reports.
 - Refined iOS read-only scanners to skip generated/proof/cache directories, disclose scan-scope exclusions in reports, and weight design app-type inference toward app/project source instead of repeated instruction-document tokens.

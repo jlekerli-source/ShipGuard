@@ -45,9 +45,9 @@ Usage:
   shipguard ios prove --plan <ios-plan.json> --out <dir>
   shipguard ios performance --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard ios design --path <repo> --out <dir> [--app-type auto|utility|game|fitness|health|education|kids|creative|commerce|social|finance|saas] [--preview-out <dir>] [--icon-brief] [--shipguard-eval] [--shareable] [--json|--markdown]
-  shipguard ios modernize --focus swift --path <repo> --out <dir> [--shipguard-eval] [--json|--markdown]
-  shipguard ios app-intelligence --path <repo> --out <dir> [--shipguard-eval] [--json|--markdown]
-  shipguard ios ai-readiness --path <repo> --out <dir> [--shipguard-eval] [--json|--markdown]
+  shipguard ios modernize --focus swift --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard ios app-intelligence --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard ios ai-readiness --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard ios report-quality --reports <file-or-dir> [--reports <file-or-dir> ...] [--out <dir>] [--shareable] [--strict] [--json|--markdown]
   shipguard ios redact --in <file-or-dir> --out <file-or-dir> [--report <report.json>] [--private-term <text> ...]
   shipguard ios eval [--cases <cases.jsonl>] [--out <dir>] [--json|--markdown]

@@ -47,6 +47,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Mark this scan as ShipGuard product QA only; findings must not become target-app work.",
     )
+    parser.add_argument(
+        "--shareable",
+        action="store_true",
+        help="Mark output as path-safe for ChatGPT, GitHub, docs, benchmarks, release evidence, or report-quality scoring.",
+    )
     parser.add_argument("--json", action="store_true", help="Print JSON to stdout instead of Markdown")
     parser.add_argument("--markdown", action="store_true", help="Print Markdown to stdout")
     return parser.parse_args()
@@ -61,6 +66,16 @@ def rel(path: Path, root: Path) -> str:
         return path.relative_to(root).as_posix()
     except ValueError:
         return path.as_posix()
+
+
+def shareability_block(shareable: bool) -> dict[str, Any]:
+    return {
+        "mode": "shareable" if shareable else "local",
+        "localAbsolutePathsIncluded": not shareable,
+        "note": "Use --shareable before moving this modernization report into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or report-quality scoring."
+        if not shareable
+        else "Report fields are intended to avoid local absolute paths for external sharing.",
+    }
 
 
 def should_skip_dir(path: Path) -> bool:
@@ -465,7 +480,7 @@ def build_checks(facts: dict[str, Any], metrics: dict[str, int], findings: list[
     ]
 
 
-def build_report(root: Path, focus: str, *, shipguard_eval: bool = False) -> dict[str, Any]:
+def build_report(root: Path, focus: str, *, shipguard_eval: bool = False, shareable: bool = False) -> dict[str, Any]:
     if not root.exists():
         fail(f"path not found: {root}")
     if not root.is_dir():
@@ -504,6 +519,7 @@ def build_report(root: Path, focus: str, *, shipguard_eval: bool = False) -> dic
         "intent": "shipguard-evaluation" if shipguard_eval else "app-development",
         "generatedAt": utc_now(),
         "focus": focus,
+        "shareability": shareability_block(shareable),
         "status": status,
         "summary": {
             **metrics,
@@ -537,6 +553,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Status: `{report['status']}`",
         f"- Intent: `{report['intent']}`",
         f"- Focus: `{report['focus']}`",
+        f"- Shareability mode: `{report['shareability']['mode']}`",
         f"- Swift files: {summary['swiftFiles']}",
         f"- SwiftUI files: {summary['swiftuiFiles']}",
         f"- Findings: {summary['findings']}",
@@ -637,7 +654,7 @@ def write_outputs(report: dict[str, Any], out_dir: Path) -> None:
 def main() -> int:
     args = parse_args()
     root = Path(args.path).expanduser().resolve()
-    report = build_report(root, args.focus, shipguard_eval=args.shipguard_eval)
+    report = build_report(root, args.focus, shipguard_eval=args.shipguard_eval, shareable=args.shareable)
 
     if args.out:
         write_outputs(report, Path(args.out).expanduser().resolve())

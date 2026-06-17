@@ -134,15 +134,18 @@ Use `--shipguard-eval` only when a real app is acting as a private read-only sam
   --focus swift \
   --path <private-ios-app> \
   --out /tmp/ios-shipguard-modernize-eval \
-  --shipguard-eval
+  --shipguard-eval \
+  --shareable
 ./bin/shipguard ios app-intelligence \
   --path <private-ios-app> \
   --out /tmp/ios-shipguard-app-intelligence-eval \
-  --shipguard-eval
+  --shipguard-eval \
+  --shareable
 ./bin/shipguard ios ai-readiness \
   --path <private-ios-app> \
   --out /tmp/ios-shipguard-ai-readiness-eval \
-  --shipguard-eval
+  --shipguard-eval \
+  --shareable
 ./bin/shipguard ios report-quality \
   --reports /tmp/ios-shipguard-performance-eval \
   --reports /tmp/ios-shipguard-design-eval \
@@ -153,7 +156,7 @@ Use `--shipguard-eval` only when a real app is acting as a private read-only sam
   --shareable
 ```
 
-Those reports add a ShipGuard evaluation boundary. Findings from those runs must be used to improve ShipGuard rules, report shape, docs, or public fixtures; they must not become target-app remediation tasks without a separate explicit app-work request. Markdown output may be grouped or capped to stay reviewable; JSON keeps the full finding list for deeper ShipGuard product QA. Use `--shareable` for performance and design evals before report-quality scoring or external planning so local absolute app paths are omitted.
+Those reports add a ShipGuard evaluation boundary. Findings from those runs must be used to improve ShipGuard rules, report shape, docs, or public fixtures; they must not become target-app remediation tasks without a separate explicit app-work request. Markdown output may be grouped or capped to stay reviewable; JSON keeps the full finding list for deeper ShipGuard product QA. Use `--shareable` on every report that will move into report-quality scoring or external planning so the shareability contract is explicit.
 
 `ios report-quality` then grades ShipGuard's output quality, not the scanned app. It checks whether the reports are parseable, scoped to read-only product QA, paired with Markdown, honest about skipped scan scope, useful in finding evidence/recommendation/proof guidance, and safe to share or redact. It also aggregates each input report's `reportQualityQuestions` into an actionability checklist so the next ShipGuard rule, fixture, report section, or docs improvement is explicit. Token-like connector URLs or auth strings are detected without echoing token values, then a redaction plan with `shipguard ios redact` commands is emitted for any report set that should not be shared raw. Add `--shareable` when the report-quality artifact itself will move into ChatGPT, GitHub, docs, benchmark fixtures, or release evidence; default local output keeps absolute input/report paths for operator debugging.
 
@@ -237,6 +240,8 @@ Run a local Swift and SwiftUI modernization audit before asking Codex to change 
 
 The report flags Swift concurrency hotspots, SwiftUI/Observation migration opportunities, WidgetKit callback surfaces, accessibility/localization review points, and availability fallback requirements for newer APIs such as Liquid Glass-specific styling. Treat the output as planning evidence; it is not proof that a migration is safe until the relevant build, simulator, or UI checks pass.
 
+Use `--shareable` when a modernization report will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or `ios report-quality`.
+
 ## App Intelligence Audit
 
 Run an App Intents and system-surface audit before exposing app actions to Shortcuts, Siri, Spotlight, widgets, controls, or Apple Intelligence:
@@ -249,6 +254,8 @@ Run an App Intents and system-surface audit before exposing app actions to Short
 
 The report maps App Intent, AppEntity, App Shortcuts provider, WidgetKit, Spotlight, Siri, controls, and runtime handoff coverage. It also records candidate actions/entities and blocked privacy questions so Codex does not invent broad system exposure without a product decision.
 
+Use `--shareable` when an app-intelligence report will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or `ios report-quality`.
+
 ## AI Readiness Audit
 
 Run an AI capability audit before choosing Foundation Models, Core AI, Core ML, OpenAI API, or no AI:
@@ -260,6 +267,8 @@ Run an AI capability audit before choosing Foundation Models, Core AI, Core ML, 
 ```
 
 The report scans local source and model assets for AI capability signals, then produces an on-device versus cloud matrix. It forces privacy, latency, cost, fallback, and proof questions before Codex implements model behavior or adds cloud data flow.
+
+Use `--shareable` when an AI-readiness report will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or `ios report-quality`.
 
 ## iOS Report Redaction
 

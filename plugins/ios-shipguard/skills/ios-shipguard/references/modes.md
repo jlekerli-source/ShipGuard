@@ -99,7 +99,7 @@ Ask:
 Proof:
 
 - `shipguard ios performance --path . --out <dir>` for ranked source hotspots before choosing edits; add `--shareable` before report-quality scoring or external planning
-- Add `--shipguard-eval` to `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness` when a private app is only a read-only sample for improving ShipGuard itself; add `--shareable` to performance or design evals that will be scored or shared
+- Add `--shipguard-eval` to `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness` when a private app is only a read-only sample for improving ShipGuard itself; add `--shareable` to any report that will be scored or shared
 - XcodeBuildMCP project/scheme/simulator selection before build/run
 - build and launch the same route being measured
 - Animation Hitches or Time Profiler trace when the simulator/device supports it
@@ -120,7 +120,7 @@ Ask:
 
 Proof:
 
-- Run the selected command with `--shipguard-eval`: `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness`; use `shipguard ios performance --shareable` or `shipguard ios design --shareable` when that report will leave local proof space
+- Run the selected command with `--shipguard-eval`: `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness`; use `--shareable` when that report will leave local proof space
 - Run `shipguard ios report-quality --reports <eval-output-dir> --out <quality-dir> --shareable` to grade ShipGuard report usefulness, not target-app quality, when the quality artifact will leave local proof space
 - Use the report-quality Actionability Questions to choose the next ShipGuard rule, fixture, report section, or docs improvement
 - If report-quality emits token/path shareability findings, run the generated `shipguard ios redact` command before moving artifacts into ChatGPT, GitHub, docs, or release evidence
@@ -193,11 +193,11 @@ Proof:
 - `production_readiness` reports Developer Mode readiness and production-hosting blockers before non-local exposure is discussed
 - `codex_prepare_handoff` produces a scoped Codex prompt from the Markdown handoff when available
 - `shipguard ios codex-handoff --prompt-file <file> --out <dir>` prepares the trusted app-server handoff bundle when execution should move from ChatGPT planning into Codex
-- `shipguard ios modernize --focus swift --path . --out <dir>` records Swift concurrency, SwiftUI, Observation, accessibility/localization, and availability fallback findings before modernization work
+- `shipguard ios modernize --focus swift --path . --out <dir>` records Swift concurrency, SwiftUI, Observation, accessibility/localization, and availability fallback findings before modernization work; add `--shareable` before scoring or sharing the report
 - `shipguard ios plan --mode <mode> --inventory <ios-inventory.json> --out <file-or-dir>` turns inventory into owner files, blocked questions, target summary, proof route, and a Codex-ready brief
 - `shipguard ios prove --plan <ios-plan.json> --out <dir>` records the smallest honest proof lane and manual blockers before proof claims
-- `shipguard ios app-intelligence --path . --out <dir>` records App Intent, AppEntity, Shortcuts, Siri, Spotlight, widget, controls, Apple Intelligence, and privacy-readiness gaps before system exposure work
-- `shipguard ios ai-readiness --path . --out <dir>` records Foundation Models, Core AI, Core ML, OpenAI API, no-AI, privacy, latency, cost, and fallback tradeoffs before model work
+- `shipguard ios app-intelligence --path . --out <dir>` records App Intent, AppEntity, Shortcuts, Siri, Spotlight, widget, controls, Apple Intelligence, and privacy-readiness gaps before system exposure work; add `--shareable` before scoring or sharing the report
+- `shipguard ios ai-readiness --path . --out <dir>` records Foundation Models, Core AI, Core ML, OpenAI API, no-AI, privacy, latency, cost, and fallback tradeoffs before model work; add `--shareable` before scoring or sharing the report
 - `shipguard ios redact --in <file-or-dir> --out <file-or-dir>` redacts local paths, Apple team IDs, bundle IDs, tokens, accounts, emails, device IDs, and private terms before reports leave local proof space
 - `shipguard ios eval --cases evals/ios_shipguard_cases.jsonl --out <dir>` grades mode routing, missing-question handling, proof honesty, and Codex brief quality before plugin guidance changes
 - `shipguard ios demo --out <dir>` proves the clean static first-run path with doctor, inventory, plan, proof, modernization, intelligence, AI readiness, eval, and redaction reports
