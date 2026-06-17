@@ -123,6 +123,7 @@ Proof:
 - Run the selected command with `--shipguard-eval`: `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness`; use `--shareable` when that report will leave local proof space
 - Run `shipguard ios report-quality --reports <eval-output-dir> --out <quality-dir> --shareable` to grade ShipGuard report usefulness, not target-app quality, when the quality artifact will leave local proof space
 - Use the report-quality Actionability Questions to choose the next ShipGuard rule, fixture, report section, or docs improvement
+- Run `shipguard ios spec-workflow --path <private-app-or-shipguard-repo> --feature <improvement> --from-report <quality-dir> --shipguard-eval --shareable --out <spec-dir>` when those questions need to become a proof-gated ShipGuard plan rather than target-app work
 - If report-quality emits `declared-shareability-missing` or `declared-shareability-local-mode`, regenerate the source report with `--shareable` before scoring or sharing
 - If report-quality emits token/path shareability findings, run the generated `shipguard ios redact` command before moving artifacts into ChatGPT, GitHub, docs, or release evidence
 - Keep generated private-app reports local unless the user approves redaction and sharing
@@ -194,6 +195,7 @@ Proof:
 - `production_readiness` reports Developer Mode readiness and production-hosting blockers before non-local exposure is discussed
 - `codex_prepare_handoff` produces a scoped Codex prompt from the Markdown handoff when available
 - `shipguard ios codex-handoff --prompt-file <file> --out <dir>` prepares the trusted app-server handoff bundle when execution should move from ChatGPT planning into Codex
+- `shipguard ios spec-workflow --path . --feature <feature-or-improvement> --from-report <report-dir> --shareable --out <dir>` turns Devspace or report-quality findings into ShipGuard-owned constitution/spec/plan/tasks/analysis artifacts before implementation
 - `shipguard ios modernize --focus swift --path . --out <dir>` records Swift concurrency, SwiftUI, Observation, accessibility/localization, and availability fallback findings before modernization work; add `--shareable` before scoring or sharing the report
 - `shipguard ios plan --mode <mode> --inventory <ios-inventory.json> --out <file-or-dir>` turns inventory into owner files, blocked questions, target summary, proof route, and a Codex-ready brief
 - `shipguard ios prove --plan <ios-plan.json> --out <dir>` records the smallest honest proof lane and manual blockers before proof claims

@@ -162,6 +162,24 @@ Those reports add a ShipGuard evaluation boundary. Findings from those runs must
 
 In `--shareable` report-quality mode, supported source reports that are missing `shareability` metadata receive `declared-shareability-missing`, and reports that declare `mode=local` or `localAbsolutePathsIncluded=true` receive `declared-shareability-local-mode`. Regenerate those source reports with `--shareable`; redaction remains the right path only for actual token or local-path findings.
 
+## Spec Workflow
+
+Use `ios spec-workflow` when a ShipGuard report-quality pass has useful actionability questions but the next implementation still needs a governed spec, plan, and task breakdown:
+
+```bash
+./bin/shipguard ios spec-workflow \
+  --path <private-ios-app-or-shipguard-repo> \
+  --feature "Improve report actionability" \
+  --from-report /tmp/ios-shipguard-report-quality \
+  --shipguard-eval \
+  --shareable \
+  --out /tmp/ios-shipguard-spec
+```
+
+The command is read-only against `--path` and writes only to `--out`. It creates `ios-spec-workflow.json`, `ios-spec-workflow.md`, `shipguard-constitution.md`, `feature-spec.md`, `implementation-plan.md`, `tasks.md`, and `devspace-guardrails.md`. The workflow adapts the useful parts of Spec Kit-style constitution/spec/plan/tasks/analyze sequencing and CodexPro-style MCP bridge guardrails into ShipGuard-owned artifacts; it does not install, vendor, or depend on either project.
+
+Add `--from-report` for `ios report-quality` output or any source-scanner report so actionability questions become clarifying questions instead of app-remediation tasks. Add `--shipguard-eval` when the scanned repo is Ringly, Ilmify, or another private app used only as ShipGuard product QA. Add `--shareable` before moving the generated spec workflow into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or another `ios report-quality` pass.
+
 ## Design QA Audit
 
 Run a genre-aware UI/UX and design-coherence audit before asking Codex to redesign screens, tune motion, add haptics, judge visual DNA, or create an app icon direction:

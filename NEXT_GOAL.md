@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-17T16:42:57Z
+- Generated: 2026-06-17T17:03:00Z
 - Current toolkit version: 3.38.0
-- Target release: v3.50.0
-- Title: Report-Quality Declared Shareability Gate
+- Target release: v3.51.0
+- Title: Spec-Driven Devspace Workflow Integration
 
 ## Slash Plan
 
 ```text
-/plan v3.50.0 Report-Quality Declared Shareability Gate for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make ios report-quality --shareable require supported source reports to explicitly declare shareability.mode=shareable, so path-clean local-mode reports no longer pass external-sharing scoring by accident.
+/plan v3.51.0 Spec-Driven Devspace Workflow Integration for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add shipguard ios spec-workflow so report-quality actionability questions become ShipGuard-owned constitution, feature spec, implementation plan, tasks, analysis gates, slash plan/goal, and Devspace guardrails without vendoring Spec Kit or CodexPro or turning private-app evidence into app work.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.50.0 Report-Quality Declared Shareability Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make ios report-quality --shareable require supported source reports to explicitly declare shareability.mode=shareable, so path-clean local-mode reports no longer pass external-sharing scoring by accident, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.51.0 Spec-Driven Devspace Workflow Integration for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add shipguard ios spec-workflow so report-quality actionability questions become ShipGuard-owned constitution, feature spec, implementation plan, tasks, analysis gates, slash plan/goal, and Devspace guardrails without vendoring Spec Kit or CodexPro or turning private-app evidence into app work, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make ios report-quality --shareable require supported source reports to explicitly declare shareability.mode=shareable, so path-clean local-mode reports no longer pass external-sharing scoring by accident.
+Add shipguard ios spec-workflow so report-quality actionability questions become ShipGuard-owned constitution, feature spec, implementation plan, tasks, analysis gates, slash plan/goal, and Devspace guardrails without vendoring Spec Kit or CodexPro or turning private-app evidence into app work.
 
 ## Completion Receipt
 
-- Completed scope: Make ios report-quality --shareable require supported source reports to explicitly declare shareability.mode=shareable, so path-clean local-mode reports no longer pass external-sharing scoring by accident.
-- Evidence: Read-only ShipGuard product-QA on Ringly and Ilmify showed ios report-quality --shareable passed local-mode modernize, app-intelligence, and ai-readiness reports when their contents happened not to leak paths, even though each source report declared shareability.mode local and localAbsolutePathsIncluded true. After the change, local-mode Ringly and Ilmify source reports score review with declared-shareability-local-mode, missing-contract fixtures score review with declared-shareability-missing, and regenerated shareable Ringly/Ilmify source reports continue to pass with no token or local-path warnings. Validated with python3 -m py_compile scripts/ios_report_quality.py; ./tests/ios_report_quality_test.sh; git diff --check; read-only Ringly and Ilmify local-mode reports plus ios report-quality --shareable; read-only Ringly and Ilmify shareable reports plus ios report-quality --shareable; artifact scan for local paths and shareability warnings; ./tests/ios_shipguard_eval_test.sh; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v350; ./tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict. Remote publication uses the protected-branch ruleset handoff: temporarily adjust ruleset 17767518, push main, verify GitHub Actions, then restore protection.
+- Completed scope: Add shipguard ios spec-workflow so report-quality actionability questions become ShipGuard-owned constitution, feature spec, implementation plan, tasks, analysis gates, slash plan/goal, and Devspace guardrails without vendoring Spec Kit or CodexPro or turning private-app evidence into app work.
+- Evidence: Read-only Ringly and Ilmify design/performance reports passed report-quality with 18 actionability questions; ios spec-workflow generated ShipGuard-owned constitution/spec/plan/tasks/devspace artifacts from that quality report; the generated spec workflow passed ios report-quality --shareable with status pass and no local path leaks. Validated with python3 -m py_compile scripts/ios_spec_workflow.py scripts/ios_report_quality.py scripts/ios_shipguard_demo.py scripts/ios_shipguard_eval.py; ./tests/ios_spec_workflow_test.sh; ./tests/ios_shipguard_eval_test.sh; ./tests/ios_shipguard_demo_test.sh; ./tests/next_goal_test.sh; and the read-only Ringly/Ilmify spec-workflow product-QA loop.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.51.0 Spec-Driven Devspace Workflow Integration for jlekerli-source/ShipGuard:
+/plan v3.52.0 Spec Workflow Adoption Quality Gate for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Make ios report-quality --shareable require supported source reports to explicit
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.51.0 Spec-Driven Devspace Workflow Integration for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.52.0 Spec Workflow Adoption Quality Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.51.0 --title "Spec-Driven Devspace Workflow Integration" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.52.0 --title "Spec Workflow Adoption Quality Gate" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -94,6 +94,7 @@ Generate that follow-up file with:
 ./tests/ios_modernize_test.sh
 ./tests/ios_app_intelligence_test.sh
 ./tests/ios_ai_readiness_test.sh
+./tests/ios_spec_workflow_test.sh
 ./tests/ios_report_quality_test.sh
 ./tests/ios_redaction_test.sh
 ./tests/ios_shipguard_eval_test.sh
@@ -130,12 +131,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.50.0.
+1. Open or update the tracking issue for v3.51.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.50.0` and upload `dist/shipguard-v3.50.0.tar.gz`.
+6. Create release `v3.51.0` and upload `dist/shipguard-v3.51.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

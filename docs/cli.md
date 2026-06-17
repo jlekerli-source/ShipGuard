@@ -101,6 +101,7 @@ Run iOS-specific topology, inventory, planning, proof, preview, and privacy help
 ./bin/shipguard ios app-intelligence --path ../my-ios-app --out /tmp/ios-shipguard-app-intelligence-eval --shipguard-eval --shareable
 ./bin/shipguard ios ai-readiness --path ../my-ios-app --out /tmp/ios-shipguard-ai-readiness-eval --shipguard-eval --shareable
 ./bin/shipguard ios report-quality --reports /tmp/ios-shipguard-performance-eval --reports /tmp/ios-shipguard-design-eval --out /tmp/ios-shipguard-report-quality --shareable
+./bin/shipguard ios spec-workflow --path ../my-ios-app --feature "Improve report actionability" --from-report /tmp/ios-shipguard-report-quality --out /tmp/ios-shipguard-spec --shipguard-eval --shareable
 ./bin/shipguard ios devspace-check --path . --preview-out /tmp/ios-shipguard-preview --out /tmp/ios-shipguard-devspace-check
 ```
 
@@ -120,6 +121,7 @@ The iOS namespace also includes:
 - `ios modernize`: audit Swift, SwiftUI, Observation, accessibility, localization, and availability risks; add `--shareable` before report-quality scoring or external sharing.
 - `ios app-intelligence`: audit App Intents, shortcuts, widgets, Spotlight, controls, and system exposure; add `--shareable` before report-quality scoring or external sharing.
 - `ios ai-readiness`: compare on-device, cloud, Core ML, and no-AI options before model work; add `--shareable` before report-quality scoring or external sharing.
+- `ios spec-workflow`: convert a feature idea or report-quality actionability questions into ShipGuard-owned constitution, spec, plan, tasks, analysis gates, slash plan/goal, and Devspace guardrails; add `--shareable` before report-quality scoring or external planning.
 - `ios redact`: redact local iOS reports before sharing.
 - `ios eval`: run deterministic ShipGuard behavior evals.
 - `ios demo`: run the clean first-run iOS ShipGuard loop without Xcode, Simulator, credentials, or an API key.

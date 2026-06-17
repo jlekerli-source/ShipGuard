@@ -36,6 +36,7 @@ MODE_COMMANDS = {
         "shipguard ios target-match --handoff <handoff.json> --snapshot <ui.json> --out <dir>",
     ],
     "preview-devspace": [
+        "shipguard ios spec-workflow --path . --feature <feature-or-improvement> --from-report <report-dir> --shareable --out /tmp/ios-shipguard-spec",
         "shipguard ios devspace --port 8787 --preview-out /tmp/ios-shipguard-preview --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN",
         "production_readiness",
         "codex_prepare_handoff",
@@ -88,6 +89,7 @@ MODE_PROOF = {
         "raw coordinate taps are not proof",
     ],
     "preview-devspace": [
+        "constitution/spec/plan/tasks/analysis artifacts before implementation",
         "/mcp initialize and tools/list",
         "preview_handoff_markdown",
         "preview_match_target",
@@ -162,6 +164,8 @@ def contains_any(text: str, terms: list[str]) -> bool:
 
 
 def classify_mode(text: str) -> str:
+    if contains_any(text, ["spec-workflow", "spec workflow", "spec-driven", "constitution", "feature spec", "tasks.md", "report-quality questions", "actionability questions"]):
+        return "preview-devspace"
     if contains_any(text, ["redact", "public issue", "share the", "token", "team id", "bundle id", "local path", "privacy leak"]):
         return "privacy-security"
     if contains_any(text, ["chatgpt", "gpt-5.5", "devspace", "mcp", "developer mode", "widget resource"]):

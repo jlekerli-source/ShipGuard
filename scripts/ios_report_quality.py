@@ -20,6 +20,7 @@ SOURCE_SCANNER_TOOLS = {
     "shipguard ios modernize",
     "shipguard ios app-intelligence",
     "shipguard ios ai-readiness",
+    "shipguard ios spec-workflow",
 }
 DECLARED_SHAREABILITY_TOOLS = SOURCE_SCANNER_TOOLS | {
     "shipguard ios devspace-check",

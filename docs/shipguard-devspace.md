@@ -138,6 +138,19 @@ The output is `ios-devspace-check.json` and `ios-devspace-check.md`. Use `--shar
 
 A public complete-preview fixture lives in `fixtures/ios-devspace/complete-preview` so checker behavior can be tested without depending on Ringly, Ilmify, a booted Simulator, or private screenshots.
 
+When Devspace or report-quality findings need to become implementation work, generate a ShipGuard-owned spec workflow first:
+
+```bash
+./bin/shipguard ios spec-workflow \
+  --path . \
+  --feature "Improve Devspace planning safety" \
+  --from-report /tmp/ios-shipguard-devspace-check \
+  --shareable \
+  --out /tmp/ios-shipguard-spec
+```
+
+This creates constitution, spec, plan, tasks, analysis gates, slash plan/goal, and Devspace guardrail artifacts. It borrows the structure of spec-driven development and MCP bridge safety patterns without vendoring external code or turning Devspace into a remote shell.
+
 ## Codex Handoff
 
 `codex_prepare_handoff` prepares the prompt that should be sent into Codex. When an active preview exposes `handoff.md`, this tool uses that Markdown as the default prompt; otherwise it falls back to the JSON handoff prompt plus target-resolution summary. It does not spawn Codex automatically. That guard is intentional: Codex app-server execution should run through a trusted local supervisor or explicit user action because it can edit code and run tools.
