@@ -60,10 +60,19 @@ cat > "$tmp_dir/codexpro/LICENSE" <<'EOF_CODEXPRO_LICENSE'
 MIT License
 EOF_CODEXPRO_LICENSE
 
+mkdir -p "$tmp_dir/design-motion-principles/references"
+cat > "$tmp_dir/design-motion-principles/SKILL.md" <<'EOF_MOTION_SKILL'
+# Design Motion Principles
+
+Motion and interaction design expert using The Frequency Gate, Emil Kowalski, Jakub Krehel, Jhey Tompkins, prefers-reduced-motion, Motion Gap Analysis, and AI-Slop Motion Patterns.
+This file intentionally talks about easing several times, but it is not Expo and should not match EAS inside easing.
+EOF_MOTION_SKILL
+
 ./bin/shipguard ios external-audit \
   --path . \
   --source-path "$tmp_dir/spec-kit" \
   --source-path "$tmp_dir/codexpro" \
+  --source-path "$tmp_dir/design-motion-principles" \
   --source-url https://github.com/expo/expo \
   --source-url https://x.com/example/status/1234567890 \
   --out "$tmp_dir/audit" \
@@ -80,7 +89,11 @@ grep -q '"localAbsolutePathsIncluded": false' "$tmp_dir/audit/ios-external-audit
 grep -q '"shipguardOnly": true' "$tmp_dir/audit/ios-external-audit.json"
 grep -q '"displayName": "GitHub Spec Kit"' "$tmp_dir/audit/ios-external-audit.json"
 grep -q '"displayName": "CodexPro"' "$tmp_dir/audit/ios-external-audit.json"
+grep -q '"displayName": "Design Motion Principles"' "$tmp_dir/audit/ios-external-audit.json"
 grep -q '"displayName": "Expo"' "$tmp_dir/audit/ios-external-audit.json"
+grep -q '"sourceKey": "design-motion-principles"' "$tmp_dir/audit/ios-external-audit.json"
+grep -q '"capabilityId": "motion-frequency-context-gate"' "$tmp_dir/audit/ios-external-audit.json"
+grep -q '"capabilityId": "motion-anti-slop-audit"' "$tmp_dir/audit/ios-external-audit.json"
 grep -q '"decision": "replace-weaker-guidance"' "$tmp_dir/audit/ios-external-audit.json"
 grep -q '"decision": "extend-native"' "$tmp_dir/audit/ios-external-audit.json"
 grep -q '"decision": "defer-with-native-plan"' "$tmp_dir/audit/ios-external-audit.json"

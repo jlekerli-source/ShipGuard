@@ -527,6 +527,71 @@ def motion_blueprint(app_type: str) -> dict[str, Any]:
     }
 
 
+def motion_quality_gates(app_type: str) -> dict[str, Any]:
+    if app_type in {"game", "kids", "creative", "education"}:
+        context = {
+            "primaryLens": "production-polish",
+            "secondaryLens": "delight-and-experimentation",
+            "selectiveLens": "restraint for repeated controls",
+            "rationale": "Expressive motion can be part of the product value, but repeated controls still need speed, accessibility, and pause/reduce behavior.",
+        }
+        duration = "Context-dependent: reward, onboarding, and creative moments may run longer; repeated controls should stay under roughly 250ms or become instant."
+    elif app_type in {"health", "fitness", "finance", "commerce"}:
+        context = {
+            "primaryLens": "production-polish",
+            "secondaryLens": "trust-preserving-restraint",
+            "selectiveLens": "delight only for completion moments",
+            "rationale": "Trust, legibility, and confidence matter more than expressive motion on sensitive or transactional screens.",
+        }
+        duration = "Prefer calm 180-350ms transitions; avoid looping or nervous motion around sensitive states."
+    else:
+        context = {
+            "primaryLens": "restraint-and-speed",
+            "secondaryLens": "production-polish",
+            "selectiveLens": "delight for onboarding and rare empty states",
+            "rationale": "Utility and SaaS-style workflows are used repeatedly, so motion should mostly improve orientation and feedback without becoming noticeable.",
+        }
+        duration = "Frequent interactions should be instant to 180ms; occasional state changes can sit around 180-250ms."
+    return {
+        "source": "ShipGuard-native motion quality gates for iOS app design work.",
+        "contextLens": context,
+        "frequencyGate": {
+            "rare": "Delightful or expressive motion is allowed when it serves the moment.",
+            "daily": "Use subtle, fast transitions that improve feedback or continuity.",
+            "frequent": "Prefer no animation or nearly instant feedback.",
+            "keyboardInitiated": "Do not animate keyboard-initiated actions.",
+        },
+        "purposeGate": [
+            "Motion must explain state, continuity, causality, feedback, or hierarchy.",
+            "Decorative motion needs an app-type reason, not a generic polish reason.",
+            "If the user notices the animation more than the outcome, reduce it unless the app category explicitly values delight.",
+        ],
+        "accessibilityGate": [
+            "Every motion path needs Reduce Motion behavior.",
+            "Avoid vestibular triggers such as full-screen zoom, spin, parallax, and unpausable loops.",
+            "Functional motion needs a non-motion alternative; decorative motion can be removed.",
+        ],
+        "antiSlopGate": [
+            "Flag pulsing status indicators, glow loops, and breathing CTAs unless there is one explicit product reason.",
+            "Flag blur-everywhere entrances and uniform fade-up on static text.",
+            "Flag hover/scale/stagger/bouncy patterns copied across unrelated controls.",
+            "Flag motion-on-mount for text or navigation that should be readable immediately.",
+        ],
+        "performanceGate": [
+            "Prefer transform and opacity over layout properties.",
+            "Use will-change sparingly and only around animated elements.",
+            "Avoid continuous animation without pause, Reduce Motion, and profiler/device proof.",
+        ],
+        "durationGuidance": duration,
+        "proof": [
+            "Run ios design with --shareable and report-quality before using findings as ShipGuard product evidence.",
+            "Capture ios preview evidence for visual claims.",
+            "Test Reduce Motion before approving motion polish.",
+            "Use physical-device proof for haptics and always-active motion quality claims.",
+        ],
+    }
+
+
 def haptics_blueprint(app_type: str) -> dict[str, Any]:
     if app_type in {"game", "kids", "creative"}:
         tone = "expressive but still sparse"
@@ -712,6 +777,7 @@ def build_report(
         "designDNA": dna,
         "findings": findings,
         "motionBlueprint": motion_blueprint(app_type["value"]),
+        "motionQualityGates": motion_quality_gates(app_type["value"]),
         "hapticsBlueprint": haptics_blueprint(app_type["value"]),
         "previewEvidence": preview,
         "iconBrief": icon,
@@ -755,6 +821,7 @@ def render_markdown(report: dict[str, Any]) -> str:
     app_type = report["appType"]
     dna = report["designDNA"]
     motion = report["motionBlueprint"]
+    motion_gates = report["motionQualityGates"]
     haptics = report["hapticsBlueprint"]
     preview = report["previewEvidence"]
     lines = [
@@ -847,6 +914,42 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.append("")
     lines.append("Rules:")
     for item in motion["rules"]:
+        lines.append(f"- {item}")
+
+    lines.extend(
+        [
+            "",
+            "## Motion Quality Gates",
+            "",
+            f"- Native source: {motion_gates['source']}",
+            f"- Context lens: {motion_gates['contextLens']['primaryLens']} / {motion_gates['contextLens']['secondaryLens']} / {motion_gates['contextLens']['selectiveLens']}",
+            f"- Rationale: {motion_gates['contextLens']['rationale']}",
+            f"- Duration guidance: {motion_gates['durationGuidance']}",
+            "",
+            "Frequency gate:",
+        ]
+    )
+    for key, value in motion_gates["frequencyGate"].items():
+        lines.append(f"- {key}: {value}")
+    lines.append("")
+    lines.append("Purpose gate:")
+    for item in motion_gates["purposeGate"]:
+        lines.append(f"- {item}")
+    lines.append("")
+    lines.append("Accessibility gate:")
+    for item in motion_gates["accessibilityGate"]:
+        lines.append(f"- {item}")
+    lines.append("")
+    lines.append("AI-slop motion gate:")
+    for item in motion_gates["antiSlopGate"]:
+        lines.append(f"- {item}")
+    lines.append("")
+    lines.append("Performance gate:")
+    for item in motion_gates["performanceGate"]:
+        lines.append(f"- {item}")
+    lines.append("")
+    lines.append("Proof:")
+    for item in motion_gates["proof"]:
         lines.append(f"- {item}")
 
     lines.extend(["", "## Haptics Blueprint", "", f"- Tone: {haptics['tone']}", "- Device proof required: true", ""])

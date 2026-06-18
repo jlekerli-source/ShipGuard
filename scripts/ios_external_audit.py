@@ -120,7 +120,7 @@ SOURCE_PROFILES: dict[str, dict[str, Any]] = {
         "displayName": "Expo",
         "canonicalUrl": "https://github.com/expo/expo",
         "license": "MIT",
-        "signals": ["expo", "EAS", "packages", "templates", "docs.expo.dev", "universal native apps"],
+        "signals": ["expo", "Expo Application Services", "EAS", "packages", "templates", "docs.expo.dev", "universal native apps"],
         "capabilities": [
             {
                 "id": "expo-oss-product-surface",
@@ -133,6 +133,26 @@ SOURCE_PROFILES: dict[str, dict[str, Any]] = {
                 "validation": "./tests/package_release_test.sh && ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check",
             },
             {
+                "id": "expo-docs-community-surface",
+                "name": "Documentation and community surface",
+                "externalSignal": "central docs, getting-started links, support/community routing, contribution guide, license, and security surfaces",
+                "currentShipGuardSurface": "docs/index.md, docs/open-source.md, CONTRIBUTING.md, SUPPORT.md, SECURITY.md, issue templates, command matrix",
+                "decision": "extend-native",
+                "replacement": "Make ShipGuard approachable as a public tool instead of a private workflow dump.",
+                "nativeAction": "Keep docs, support, contribution, security, and command discovery surfaces complete and package-validated.",
+                "validation": "./bin/shipguard docs-check . --out /tmp/shipguard-docs-check && ./tests/self_audit_test.sh",
+            },
+            {
+                "id": "expo-build-ship-iterate-loop",
+                "name": "Build, ship, and iterate loop",
+                "externalSignal": "open-source tools plus integrated hosted services for building, shipping, and iterating",
+                "currentShipGuardSurface": "release proof, release evidence, package release tests, codex status, next-goal loop",
+                "decision": "integrate-by-routing",
+                "replacement": "Do not create hosted services; route ShipGuard-native release proof and plugin refresh through local CLI evidence.",
+                "nativeAction": "Keep release/package/plugin proof as the ShipGuard equivalent of a build/ship/iterate loop for Codex workflows.",
+                "validation": "./tests/package_release_test.sh && ./bin/shipguard codex status --strict",
+            },
+            {
                 "id": "expo-template-and-module-ecosystem",
                 "name": "Template and module ecosystem",
                 "externalSignal": "templates, packages, app examples, and native module contribution paths",
@@ -141,6 +161,53 @@ SOURCE_PROFILES: dict[str, dict[str, Any]] = {
                 "replacement": "Do not adopt React Native monorepo/package architecture; build ShipGuard-native iOS proof packs instead.",
                 "nativeAction": "Use Expo as an OSS maturity benchmark, not as ShipGuard's architecture.",
                 "validation": "Future: package fixture that installs a ShipGuard iOS proof pack from source.",
+            },
+        ],
+    },
+    "design-motion-principles": {
+        "displayName": "Design Motion Principles",
+        "canonicalUrl": "local Codex skill: design-motion-principles",
+        "license": "local skill instructions; attribution required for named influences",
+        "signals": [
+            "design-motion-principles",
+            "The Frequency Gate",
+            "Emil Kowalski",
+            "Jakub Krehel",
+            "Jhey Tompkins",
+            "prefers-reduced-motion",
+            "AI-Slop Motion Patterns",
+            "Motion Gap Analysis",
+        ],
+        "capabilities": [
+            {
+                "id": "motion-frequency-context-gate",
+                "name": "Context-weighted frequency gate",
+                "externalSignal": "rare interactions may delight; frequent and keyboard-triggered interactions should be instant or restrained",
+                "currentShipGuardSurface": "ios design motionBlueprint and motionQualityGates",
+                "decision": "replace-weaker-guidance",
+                "replacement": "Replace generic animation tips with app-type-weighted motion doctrine inside ios design.",
+                "nativeAction": "Emit ShipGuard-native frequency, purpose, keyboard, reduced-motion, performance, and anti-slop gates by app type.",
+                "validation": "./tests/ios_design_test.sh && ./tests/ios_external_audit_test.sh",
+            },
+            {
+                "id": "motion-anti-slop-audit",
+                "name": "AI-slop motion audit",
+                "externalSignal": "flag pulsing indicators, blur-everywhere entrances, hover/scale spam, stagger spam, bounce on utility controls, and static-content entrance motion",
+                "currentShipGuardSurface": "ios design findings, performance scanner repeated-animation rules, report-quality fixture candidates",
+                "decision": "extend-native",
+                "replacement": "Keep the taxonomy but express findings as ShipGuard report data instead of a separate branded HTML audit.",
+                "nativeAction": "Surface anti-slop checks as motion quality gates and future public iOS fixture cases.",
+                "validation": "./tests/ios_design_test.sh && ./tests/ios_report_quality_test.sh",
+            },
+            {
+                "id": "motion-accessibility-performance-gates",
+                "name": "Motion accessibility and performance gates",
+                "externalSignal": "prefers-reduced-motion is mandatory; transform/opacity preferred; will-change must be sparse; looping motion needs pause/proof",
+                "currentShipGuardSurface": "ios design reduced-motion findings, ios performance continuous-animation rules, local/manual proof fields",
+                "decision": "extend-native",
+                "replacement": "Make accessibility and performance proof part of ShipGuard reports rather than optional design advice.",
+                "nativeAction": "Require reduced-motion evidence, physical-device haptic proof, and profiler/device proof before motion quality claims.",
+                "validation": "./tests/ios_design_test.sh && ./tests/ios_performance_test.sh",
             },
         ],
     },
@@ -248,17 +315,29 @@ def slug(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-") or "external-source"
 
 
+def signal_present(haystack: str, signal: str) -> bool:
+    needle = signal.lower()
+    if not needle:
+        return False
+    if not re.search(r"[a-z0-9]", needle):
+        return needle in haystack
+    if re.fullmatch(r"[a-z0-9][a-z0-9 _.-]*[a-z0-9]", needle):
+        pattern = re.escape(needle).replace(r"\ ", r"\s+")
+        return re.search(rf"(?<![a-z0-9]){pattern}(?![a-z0-9])", haystack) is not None
+    return needle in haystack
+
+
 def detect_profile(text: str, path: Path | None = None, url: str = "") -> str:
     haystack = f"{url}\n{path.name if path else ''}\n{text}".lower()
     scores: dict[str, int] = {}
     for key, profile in SOURCE_PROFILES.items():
         score = 0
         for signal in profile["signals"]:
-            if signal.lower() in haystack:
+            if signal_present(haystack, str(signal)):
                 score += 2
-        if key in haystack:
+        if signal_present(haystack, key):
             score += 3
-        if profile["displayName"].lower() in haystack:
+        if signal_present(haystack, str(profile["displayName"])):
             score += 3
         scores[key] = score
     best, best_score = sorted(scores.items(), key=lambda item: (-item[1], item[0]))[0]
@@ -340,7 +419,7 @@ def matched_signals(text: str, profile_key: str) -> list[str]:
     if not profile:
         return []
     lowered = text.lower()
-    matches = [signal for signal in profile["signals"] if signal.lower() in lowered]
+    matches = [signal for signal in profile["signals"] if signal_present(lowered, str(signal))]
     return matches[:10]
 
 

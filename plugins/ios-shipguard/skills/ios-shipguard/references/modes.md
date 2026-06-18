@@ -131,7 +131,7 @@ Proof:
 
 ## external-source-audit
 
-Use when the user points ShipGuard at Spec Kit, CodexPro, Expo, X posts, plugins, skills, or another workflow/tooling project and asks to integrate it into ShipGuard.
+Use when the user points ShipGuard at Spec Kit, CodexPro, Expo, Design Motion Principles, X posts, plugins, skills, or another workflow/tooling project and asks to integrate it into ShipGuard.
 
 Ask:
 
@@ -150,7 +150,7 @@ Proof:
 
 ## design-audit
 
-Use for UI/UX coherence, app-type fit, motion, haptics, visual DNA, app icon direction, preview routing, and design proof planning.
+Use for UI/UX coherence, app-type fit, ShipGuard-native motion quality gates, haptics, visual DNA, app icon direction, preview routing, and design proof planning.
 
 Ask:
 
@@ -164,6 +164,7 @@ Proof:
 - Add `--app-type <type>` when the app genre is known or the inference is wrong
 - Add `--preview-out <dir>` when phone-shaped preview receipts already exist
 - Add `--icon-brief` when app icon direction is in scope, then use ChatGPT ImageGen for bitmap candidates
+- Check `motionQualityGates` before approving animation, especially frequency, keyboard-triggered actions, Reduce Motion, AI-slop, continuous animation, and device/profiler proof
 - Add `--shareable` when design reports will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or report-quality scoring
 - `shipguard ios preview --out /tmp/ios-shipguard-preview` for phone-shaped visual proof
 - `shipguard ios devspace-check --path . --preview-out /tmp/ios-shipguard-preview --shareable --out /tmp/ios-shipguard-devspace-check` before judging connector readiness or sharing a tunneled endpoint

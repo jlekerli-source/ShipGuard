@@ -219,7 +219,7 @@ Run a genre-aware UI/UX and design-coherence audit before asking Codex to redesi
   --out /tmp/ios-shipguard-design-game
 ```
 
-The report infers app type, records design DNA signals, applies motion guidance from the Design Motion Principles frequency gate, emits an iOS haptics blueprint, and tells Codex when `ios preview` or `ios devspace` should be used. App-type inference weights app/project source above repeated docs or agent-instruction wording; use `--app-type` when the automatic genre inference is wrong or the user has already named the product category.
+The report infers app type, records design DNA signals, emits a ShipGuard-native motion blueprint and `motionQualityGates`, emits an iOS haptics blueprint, and tells Codex when `ios preview` or `ios devspace` should be used. Frequency, purpose, keyboard, Reduce Motion, AI-slop, and performance gates are weighted by app type as ShipGuard report data. App-type inference weights app/project source above repeated docs or agent-instruction wording; use `--app-type` when the automatic genre inference is wrong or the user has already named the product category.
 
 Use `--shareable` when a design report will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or `ios report-quality`; default local reports keep absolute roots for operator debugging.
 
