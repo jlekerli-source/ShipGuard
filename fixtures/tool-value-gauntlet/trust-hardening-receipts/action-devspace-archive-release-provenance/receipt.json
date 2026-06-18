@@ -1,0 +1,208 @@
+{
+  "id": "action-devspace-archive-release-provenance",
+  "kind": "trust-hardening-receipt",
+  "surface": "ShipGuard trust hardening",
+  "selectedMode": "value-gauntlet trust-hardening receipts",
+  "trigger": "Prove that ShipGuard's trust boundaries have public regression receipts: composite action input handoff, Devspace public URL safety, response caps, unsafe archive extraction, and release provenance.",
+  "sourcePaths": [
+    "actions/arena-compare/action.yml",
+    "actions/ci-gate/action.yml",
+    "actions/release-proof/action.yml",
+    "actions/release-consume/action.yml",
+    "actions/release-diff/action.yml",
+    "actions/release-evidence/action.yml",
+    "actions/release-evidence-verify/action.yml",
+    "actions/release-evidence-negative-index/action.yml",
+    "actions/review-comment/action.yml",
+    "actions/transcript-corpus/action.yml",
+    "actions/transcript-verify/action.yml",
+    "actions/validate/action.yml",
+    "scripts/ios_devspace_check.py",
+    "scripts/shipguard_devspace_mcp.py",
+    "scripts/tool_value_gauntlet.py",
+    "scripts/release_proof.sh",
+    "scripts/release_replay.sh",
+    "docs/product-strategy.md",
+    "docs/oss-evaluation.md"
+  ],
+  "expectedSourcePhrases": [
+    "INPUT_RELEASE_URL",
+    "INPUT_OUT",
+    "public-devspace-token-in-url",
+    "public-devspace-missing-bearer-env",
+    "MAX_NOTE_CHARS",
+    "MAX_EVENT_BYTES",
+    "response.read(limit + 1)",
+    "safe_extract_tarball",
+    "relative_to(extract_dir.resolve())",
+    "--release-url must end with /releases/tag/$tag",
+    "public proof urls",
+    "release provenance"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppsUsed": false,
+    "inputs": [
+      "ShipGuard composite action source",
+      "ShipGuard Devspace checker source",
+      "synthetic unsafe public Devspace URL",
+      "synthetic unsafe tarball",
+      "synthetic release provenance commands"
+    ]
+  },
+  "actionRunInputInterpolation": {
+    "paths": [
+      "actions/arena-compare/action.yml",
+      "actions/ci-gate/action.yml",
+      "actions/release-proof/action.yml",
+      "actions/release-consume/action.yml",
+      "actions/release-diff/action.yml",
+      "actions/release-evidence/action.yml",
+      "actions/release-evidence-verify/action.yml",
+      "actions/release-evidence-negative-index/action.yml",
+      "actions/review-comment/action.yml",
+      "actions/transcript-corpus/action.yml",
+      "actions/transcript-verify/action.yml",
+      "actions/validate/action.yml"
+    ]
+  },
+  "unsafeArchiveExtraction": true,
+  "commands": [
+    {
+      "id": "devspace-token-in-url-blocked",
+      "display": "./bin/shipguard ios devspace-check --path . --public-url <token-url> --out <out>/devspace-token --shareable",
+      "args": [
+        "ios",
+        "devspace-check",
+        "--path",
+        ".",
+        "--public-url",
+        "https://shipguard-devspace.example.test/mcp?token=super-secret-token-value",
+        "--out",
+        "{out}/devspace-token",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "devspace-token/ios-devspace-check.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "findings", "inputs", "scopeBoundary"],
+          "requiredNonEmptyJsonPaths": ["findings", "inputs.publicUrl"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard ios devspace-check"},
+            {"path": "status", "equals": "blocked"}
+          ]
+        },
+        {
+          "path": "devspace-token/ios-devspace-check.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# iOS Devspace Connector Readiness",
+            "public-devspace-token-in-url",
+            "public-devspace-missing-bearer-env",
+            "Token values are never read"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "release-proof-bad-host-blocked",
+      "display": "./bin/shipguard release-proof build --out <out>/release-proof-bad-host --version 9.9.9 --tag v9.9.9 --release-url https://example.com/releases/tag/v9.9.9",
+      "args": [
+        "release-proof",
+        "build",
+        "--out",
+        "{out}/release-proof-bad-host",
+        "--version",
+        "9.9.9",
+        "--tag",
+        "v9.9.9",
+        "--release-url",
+        "https://example.com/releases/tag/v9.9.9"
+      ],
+      "expectedExitCode": "nonzero",
+      "expectedOutputPhrases": ["GitHub release tag URL"]
+    },
+    {
+      "id": "release-proof-tag-mismatch-blocked",
+      "display": "./bin/shipguard release-proof build --out <out>/release-proof-tag-mismatch --version 9.9.9 --tag v9.9.9 --release-url https://github.com/example/repo/releases/tag/v9.9.8",
+      "args": [
+        "release-proof",
+        "build",
+        "--out",
+        "{out}/release-proof-tag-mismatch",
+        "--version",
+        "9.9.9",
+        "--tag",
+        "v9.9.9",
+        "--release-url",
+        "https://github.com/example/repo/releases/tag/v9.9.8"
+      ],
+      "expectedExitCode": "nonzero",
+      "expectedOutputPhrases": ["must end with /releases/tag/v9.9.9"]
+    },
+    {
+      "id": "release-manifest-provenance-output",
+      "display": "./bin/shipguard release-manifest --tarball <out>/release/shipguard-v9.9.9.tar.gz --out <out>/release-manifest --version 9.9.9 --tag v9.9.9 --ci-run-url <github-run> --release-url <github-release>",
+      "args": [
+        "release-manifest",
+        "--tarball",
+        "{out}/release/shipguard-v9.9.9.tar.gz",
+        "--out",
+        "{out}/release-manifest",
+        "--version",
+        "9.9.9",
+        "--tag",
+        "v9.9.9",
+        "--commit",
+        "0123456789abcdef0123456789abcdef01234567",
+        "--ci-run-url",
+        "https://github.com/example/repo/actions/runs/123",
+        "--release-url",
+        "https://github.com/example/repo/releases/tag/v9.9.9",
+        "--issue-url",
+        "https://github.com/example/repo/issues/99",
+        "--notes",
+        "trust hardening provenance fixture"
+      ],
+      "prepareTarballs": [
+        {
+          "path": "release/shipguard-v9.9.9.tar.gz",
+          "entries": [
+            {"path": "VERSION", "text": "9.9.9\n"},
+            {"path": "README.md", "text": "# Synthetic Trust Release\n"}
+          ]
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "release-manifest/release-manifest.json",
+          "type": "json",
+          "requiredJsonKeys": ["schema_version", "version", "tag", "commit", "artifact", "proofs", "notes"],
+          "requiredNonEmptyJsonPaths": ["artifact.sha256", "proofs.release_url", "proofs.ci_run_url", "proofs.issue_url"],
+          "requiredValues": [
+            {"path": "version", "equals": "9.9.9"},
+            {"path": "tag", "equals": "v9.9.9"},
+            {"path": "proofs.release_url", "equals": "https://github.com/example/repo/releases/tag/v9.9.9"},
+            {"path": "proofs.ci_run_url", "equals": "https://github.com/example/repo/actions/runs/123"},
+            {"path": "proofs.issue_url", "equals": "https://github.com/example/repo/issues/99"}
+          ]
+        },
+        {
+          "path": "release-manifest/proof-ledger.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# Release Proof Ledger",
+            "Artifact SHA-256",
+            "CI run",
+            "Release",
+            "Required Release Proof"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}

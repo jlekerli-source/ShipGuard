@@ -50,14 +50,19 @@ runs:
     - name: Build release evidence negative fixture index
       id: negative-index
       shell: bash
+      env:
+        INPUT_FIXTURE: ${{ inputs.fixture }}
+        INPUT_OUT: ${{ inputs.out }}
+        INPUT_TITLE: ${{ inputs.title }}
+        INPUT_MODE: ${{ inputs.mode }}
       run: |
         set -euo pipefail
 
         root="${{ github.action_path }}/../.."
-        fixture="${{ inputs.fixture }}"
-        out="${{ inputs.out }}"
-        title="${{ inputs.title }}"
-        mode="${{ inputs.mode }}"
+        fixture="$INPUT_FIXTURE"
+        out="$INPUT_OUT"
+        title="$INPUT_TITLE"
+        mode="$INPUT_MODE"
 
         if [[ "$mode" != "fail" && "$mode" != "warn" ]]; then
           echo "::error::mode must be fail or warn"

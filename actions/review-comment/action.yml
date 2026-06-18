@@ -35,12 +35,20 @@ runs:
   steps:
     - name: Generate review comment
       shell: bash
+      env:
+        INPUT_REPORT: ${{ inputs.report }}
+        INPUT_OUT: ${{ inputs.out }}
+        INPUT_BADGE: ${{ inputs.badge }}
+        INPUT_ARTIFACT_DIR: ${{ inputs.artifact-dir }}
+        INPUT_MODE: ${{ inputs.mode }}
+        INPUT_WARN_BELOW: ${{ inputs.warn-below }}
+        INPUT_FAIL_BELOW: ${{ inputs.fail-below }}
       run: |
         "${{ github.action_path }}/../../bin/shipguard" review-comment \
-          --report "${{ inputs.report }}" \
-          --out "${{ inputs.out }}" \
-          --badge "${{ inputs.badge }}" \
-          --artifact-dir "${{ inputs.artifact-dir }}" \
-          --mode "${{ inputs.mode }}" \
-          --warn-below "${{ inputs.warn-below }}" \
-          --fail-below "${{ inputs.fail-below }}"
+          --report "$INPUT_REPORT" \
+          --out "$INPUT_OUT" \
+          --badge "$INPUT_BADGE" \
+          --artifact-dir "$INPUT_ARTIFACT_DIR" \
+          --mode "$INPUT_MODE" \
+          --warn-below "$INPUT_WARN_BELOW" \
+          --fail-below "$INPUT_FAIL_BELOW"

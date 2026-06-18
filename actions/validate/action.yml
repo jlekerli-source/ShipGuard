@@ -12,5 +12,7 @@ runs:
   steps:
     - name: Validate workflow bundle
       shell: bash
+      env:
+        INPUT_PATH: ${{ inputs.path }}
       run: |
-        "${{ github.action_path }}/../../bin/shipguard" validate "${{ inputs.path }}"
+        "${{ github.action_path }}/../../bin/shipguard" validate "$INPUT_PATH"

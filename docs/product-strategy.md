@@ -129,8 +129,8 @@ Run the device notification proof checklist and attach the resulting receipt.
 3. Evaluation as a permanent parallel track:
    every feature needs gold fixtures, negative fixtures, mutation cases, human or expert labels when appropriate, model critique, actionability scoring, and regression gates.
 
-4. Trust hardening:
-   GitHub Action input handling, Devspace URL and response boundaries, archive extraction, deletion safety, and release provenance need public regression receipts.
+4. Proof-gated task contract:
+   after the trust-hardening receipts, the next architecture step is the durable object that connects allowed files, protected boundaries, validation, evidence, agent claims, exact next action, and verdict.
 
 ## What To Delay
 
@@ -213,9 +213,7 @@ The valuable assets are:
 ### Phase A: Trustworthy Foundation
 
 - Separate maintainer templates from user starter templates.
-- Fix GitHub Action input handling.
-- Harden Devspace URL and response boundaries.
-- Harden filesystem deletion and archive extraction.
+- Keep GitHub Action input handling, Devspace URL boundaries, archive extraction safety, and release provenance covered by public regression receipts.
 - Introduce one canonical configuration format.
 - Create the persistent task object.
 - Freeze new public commands unless tied to the proof-gated loop.

@@ -65,31 +65,42 @@ runs:
     - name: Build release proof bundle
       id: release-proof
       shell: bash
+      env:
+        INPUT_OUT: ${{ inputs.out }}
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_TAG: ${{ inputs.tag }}
+        INPUT_COMMIT: ${{ inputs.commit }}
+        INPUT_CI_RUN_URL: ${{ inputs.ci-run-url }}
+        INPUT_RELEASE_URL: ${{ inputs.release-url }}
+        INPUT_ISSUE_URL: ${{ inputs.issue-url }}
+        INPUT_NOTES: ${{ inputs.notes }}
+        DEFAULT_COMMIT: ${{ github.sha }}
+        DEFAULT_CI_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       run: |
         set -euo pipefail
 
         root="${{ github.action_path }}/../.."
-        out="${{ inputs.out }}"
+        out="$INPUT_OUT"
         mkdir -p "$out"
 
-        version="${{ inputs.version }}"
+        version="$INPUT_VERSION"
         if [[ -z "$version" ]]; then
           version="$(sed -n '1p' "$root/VERSION")"
         fi
 
-        tag="${{ inputs.tag }}"
+        tag="$INPUT_TAG"
         if [[ -z "$tag" ]]; then
           tag="v$version"
         fi
 
-        commit="${{ inputs.commit }}"
+        commit="$INPUT_COMMIT"
         if [[ -z "$commit" ]]; then
-          commit="${{ github.sha }}"
+          commit="$DEFAULT_COMMIT"
         fi
 
-        ci_run_url="${{ inputs.ci-run-url }}"
+        ci_run_url="$INPUT_CI_RUN_URL"
         if [[ -z "$ci_run_url" ]]; then
-          ci_run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          ci_run_url="$DEFAULT_CI_RUN_URL"
         fi
 
         tarball="$("$root/scripts/package_release.sh")"
@@ -108,9 +119,9 @@ runs:
           --tag "$tag" \
           --commit "$commit" \
           --ci-run-url "$ci_run_url" \
-          --release-url "${{ inputs.release-url }}" \
-          --issue-url "${{ inputs.issue-url }}" \
-          --notes "${{ inputs.notes }}"
+          --release-url "$INPUT_RELEASE_URL" \
+          --issue-url "$INPUT_ISSUE_URL" \
+          --notes "$INPUT_NOTES"
 
         "$root/bin/shipguard" release-manifest verify \
           --manifest "$proof_dir/release-manifest.json" \

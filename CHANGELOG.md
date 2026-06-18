@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added `trustHardeningReceipts` to `shipguard value-gauntlet`: the public receipt fixture now proves composite GitHub Actions do not interpolate raw inputs inside shell bodies, Devspace blocks token-bearing public URLs, unsafe archive extraction is rejected, and release provenance rejects bad or mismatched release URLs. With those receipts green, the lowest-value probe now advances to the persistent proof-gated task contract.
 - Added `docs/product-strategy.md` from the 5.5 Pro roadmap critique: ShipGuard's product center is now the proof-gated Codex change loop with a persistent task object, `prepare`/`verify` direction, iOS notification/permission wedge, trust-hardening priority, and a narrower public-command expansion rule.
 - Packaged `NEXT_GOAL.md` and added it to validation/self-audit proof so extracted release packages preserve the same value-gauntlet doc surface as the source checkout.
 - Added `commandFamilyRuntimeOutputReceipts` to `shipguard value-gauntlet`: a public major-family receipt now runs Brand Deck, DockCheck, VibeCheck, WebScan, WebForge, LinkSweep, and ManifestForge against public/synthetic inputs, verifies useful JSON/Markdown artifacts beyond `--help`, and advances the next priority to trust-hardening receipts for GitHub Actions, Devspace, archive/deletion safety, and release provenance.

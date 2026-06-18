@@ -45,6 +45,7 @@ grep -q '"profileNativeValidationReceipts":' "$tmp_dir/gauntlet/tool-value-gaunt
 grep -q '"profileNativeValidationRerunReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"profileNativeProofHandoffReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"commandFamilyRuntimeOutputReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"trustHardeningReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"priorityActions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"reportQualityQuestions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard score"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -85,8 +86,9 @@ grep -q 'Profile-Native Validation Receipts' "$tmp_dir/gauntlet/tool-value-gaunt
 grep -q 'Profile-Native Validation Rerun Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Profile-Native Proof Handoff Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Command-Family Runtime Output Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Trust-Hardening Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Report Quality Questions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
-grep -q 'trust-hardening receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'proof-gated task contract' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
 import sys
@@ -111,16 +113,17 @@ profile_validation = data.get("profileNativeValidationReceipts") or {}
 profile_validation_rerun = data.get("profileNativeValidationRerunReceipts") or {}
 profile_proof_handoff = data.get("profileNativeProofHandoffReceipts") or {}
 command_family_output = data.get("commandFamilyRuntimeOutputReceipts") or {}
+trust_hardening = data.get("trustHardeningReceipts") or {}
 if probe.get("question") != "Which ShipGuard command, skill, plugin, or action has the lowest developer-value score and should be upgraded next?":
     raise SystemExit(f"unexpected probe question: {probe!r}")
 for key in ("surfaceType", "identifier", "name", "baseScore", "depthScore", "depthChecks", "recommendation", "proofGuidance", "reason"):
     if key not in answer:
         raise SystemExit(f"probe answer missing {key}: {answer!r}")
-if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard trust-hardening action-input-devspace-release-receipts":
-    raise SystemExit(f"passing command-family runtime-output receipts should escalate to trust-hardening receipts: {answer!r}")
-if "runtimeTrustHardeningReceipts" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"trust-hardening receipt gap should be explicit: {answer!r}")
-for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts"):
+if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard prepare-verify proof-gated-task-contract":
+    raise SystemExit(f"passing trust-hardening receipts should escalate to proof-gated task contract: {answer!r}")
+if "runtimeProofGatedTaskContract" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"proof-gated task contract gap should be explicit: {answer!r}")
+for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts"):
     if retired_signal in answer.get("missingDepthSignals", []):
         raise SystemExit(f"{retired_signal} should no longer be missing after fixture proof: {answer!r}")
 if not isinstance(probe.get("rankedSurfaces"), list) or not probe["rankedSurfaces"]:
@@ -532,6 +535,35 @@ for item in command_family_output.get("receipts") or []:
     for command in item.get("commands") or []:
         if command.get("status") != "pass" or command.get("missing"):
             raise SystemExit(f"command-family runtime-output command should pass without missing checks: {command!r}")
+if trust_hardening.get("status") != "pass":
+    raise SystemExit(f"trust-hardening receipts should pass: {trust_hardening!r}")
+if trust_hardening.get("receiptCount") != 1 or trust_hardening.get("passedReceiptCount") != 1 or trust_hardening.get("commandCount") != 4:
+    raise SystemExit(f"expected one trust-hardening receipt and four commands: {trust_hardening!r}")
+trust_hardening_ids = {item.get("id") for item in trust_hardening.get("receipts") or []}
+if trust_hardening_ids != {"action-devspace-archive-release-provenance"}:
+    raise SystemExit(f"unexpected trust-hardening receipt fixtures: {trust_hardening_ids!r}")
+for item in trust_hardening.get("receipts") or []:
+    if item.get("status") != "pass" or item.get("missing"):
+        raise SystemExit(f"trust-hardening receipt should pass without missing checks: {item!r}")
+    trust_checks = item.get("trustChecks") or {}
+    action_check = trust_checks.get("actionRunInputInterpolation") or {}
+    if action_check.get("status") != "pass" or action_check.get("violationCount") != 0:
+        raise SystemExit(f"action input interpolation should have no shell-block violations: {action_check!r}")
+    archive_check = trust_checks.get("unsafeArchiveExtraction") or {}
+    if archive_check.get("status") != "pass":
+        raise SystemExit(f"unsafe archive extraction should be rejected: {archive_check!r}")
+    command_ids = {command.get("id") for command in item.get("commands") or []}
+    expected_commands = {
+        "devspace-token-in-url-blocked",
+        "release-proof-bad-host-blocked",
+        "release-proof-tag-mismatch-blocked",
+        "release-manifest-provenance-output",
+    }
+    if command_ids != expected_commands:
+        raise SystemExit(f"unexpected trust-hardening command set: {command_ids!r}")
+    for command in item.get("commands") or []:
+        if command.get("status") != "pass" or command.get("missing"):
+            raise SystemExit(f"trust-hardening command should pass without missing checks: {command!r}")
 if "Which ShipGuard command" in data.get("reportQualityQuestions", []):
     raise SystemExit("the answered lowest-value question should not remain a report-quality question")
 retired_phrases = (
@@ -552,11 +584,12 @@ retired_phrases = (
     "profile-native validation rerun receipts so repaired web, backend, and CLI plans",
     "profile-native proof handoff receipts so repaired web, backend, and CLI plans",
     "command-family runtime-output receipts so every major public family",
+    "trust-hardening receipts for GitHub Action input interpolation",
 )
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
     raise SystemExit(f"answered runtime receipt questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
-if not any("trust-hardening receipts" in question for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"expected trust-hardening quality question: {data.get('reportQualityQuestions')!r}")
+if not any("proof-gated task contract" in question for question in data.get("reportQualityQuestions", [])):
+    raise SystemExit(f"expected proof-gated task contract quality question: {data.get('reportQualityQuestions')!r}")
 PY
 
 json_stdout="$(./bin/shipguard value-gauntlet --path . --json)"
@@ -573,6 +606,6 @@ grep -q '# ShipGuard Tool Value Gauntlet' <<<"$markdown_stdout"
 grep -q '"tool": "shipguard ios report-quality"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/quality/ios-report-quality.md"
-grep -q 'trust-hardening receipts' "$tmp_dir/quality/ios-report-quality.md"
+grep -q 'proof-gated task contract' "$tmp_dir/quality/ios-report-quality.md"
 
 echo "tool value gauntlet tests passed"

@@ -83,7 +83,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add trust-hardening receipts for GitHub Action input interpolation, Devspace URL and response caps, deletion/archive extraction, and release provenance?",
+    "Should ShipGuard add a persistent proof-gated task contract that connects prepare, verify, scope, evidence, and verdict?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -165,6 +165,7 @@ PROFILE_NATIVE_VALIDATION_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet
 PROFILE_NATIVE_VALIDATION_RERUN_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "profile-native-validation-rerun-receipts"
 PROFILE_NATIVE_PROOF_HANDOFF_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "profile-native-proof-handoff-receipts"
 COMMAND_FAMILY_RUNTIME_OUTPUT_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "command-family-runtime-output-receipts"
+TRUST_HARDENING_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "trust-hardening-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -854,6 +855,18 @@ def load_profile_native_proof_handoff_receipts(root: Path) -> list[tuple[Path, d
 
 def load_command_family_runtime_output_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / COMMAND_FAMILY_RUNTIME_OUTPUT_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_trust_hardening_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / TRUST_HARDENING_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -1963,6 +1976,140 @@ def command_family_runtime_output_receipt_probe(root: Path) -> dict[str, Any]:
     }
 
 
+def action_run_input_interpolation_violations(root: Path, action_paths: list[str]) -> list[dict[str, Any]]:
+    violations: list[dict[str, Any]] = []
+    for raw_path in action_paths:
+        relative = safe_receipt_relative_path(raw_path)
+        if relative is None:
+            violations.append({"path": str(raw_path), "line": 0, "text": "action path must be relative"})
+            continue
+        path = root / relative
+        if not path.is_file():
+            violations.append({"path": relative.as_posix(), "line": 0, "text": "action file missing"})
+            continue
+        in_run = False
+        run_indent = -1
+        for line_number, line in enumerate(read_text(path).splitlines(), start=1):
+            stripped = line.lstrip(" ")
+            indent = len(line) - len(stripped)
+            if in_run:
+                if stripped and indent <= run_indent and not stripped.startswith("#"):
+                    in_run = False
+                    run_indent = -1
+                elif "${{ inputs." in line:
+                    violations.append({"path": relative.as_posix(), "line": line_number, "text": stripped.strip()})
+            if not in_run and stripped.startswith("run: |"):
+                in_run = True
+                run_indent = indent
+    return violations
+
+
+def unsafe_archive_extraction_checks() -> list[dict[str, Any]]:
+    checks: list[dict[str, Any]] = []
+    with tempfile.TemporaryDirectory(prefix="shipguard-trust-archive-") as tmp:
+        tmp_dir = Path(tmp)
+        tarball = tmp_dir / "unsafe.tar.gz"
+        extract_dir = tmp_dir / "extract"
+        escape_path = tmp_dir / "escape.txt"
+        with tarfile.open(tarball, "w:gz") as archive:
+            payload = b"should not extract\n"
+            info = tarfile.TarInfo("../escape.txt")
+            info.size = len(payload)
+            info.mode = 0o644
+            info.mtime = 0
+            archive.addfile(info, io.BytesIO(payload))
+        extracted, evidence = safe_extract_tarball(tarball, extract_dir)
+        checks.append(
+            runtime_probe_check(
+                "unsafeArchiveExtractionRejected",
+                not extracted,
+                evidence if not extracted else "unsafe archive unexpectedly extracted",
+            )
+        )
+        checks.append(
+            runtime_probe_check(
+                "unsafeArchiveDidNotEscape",
+                not escape_path.exists(),
+                "no file escaped extraction root" if not escape_path.exists() else "unsafe archive wrote outside extraction root",
+            )
+        )
+    return checks
+
+
+def trust_hardening_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts: list[dict[str, Any]] = []
+    for fixture_dir, meta in load_trust_hardening_receipts(root):
+        receipt = run_skill_plugin_receipt(root, fixture_dir, meta)
+        extra_checks: list[dict[str, Any]] = []
+        trust_checks: dict[str, Any] = {}
+
+        action_paths = [str(path) for path in (meta.get("actionRunInputInterpolation") or {}).get("paths") or []]
+        if action_paths:
+            violations = action_run_input_interpolation_violations(root, action_paths)
+            trust_checks["actionRunInputInterpolation"] = {
+                "status": "pass" if not violations else "blocked",
+                "checkedPathCount": len(action_paths),
+                "violationCount": len(violations),
+                "violations": violations[:20],
+            }
+            extra_checks.append(
+                runtime_probe_check(
+                    "actionRunInputInterpolation",
+                    not violations,
+                    f"{len(action_paths)} action shell block(s) checked; {len(violations)} direct input interpolation violation(s)",
+                )
+            )
+
+        if meta.get("unsafeArchiveExtraction") is True:
+            archive_checks = unsafe_archive_extraction_checks()
+            trust_checks["unsafeArchiveExtraction"] = {
+                "status": "pass" if all(check["passed"] for check in archive_checks) else "blocked",
+                "checks": archive_checks,
+            }
+            extra_checks.extend(archive_checks)
+
+        checks = list(receipt.get("checks") or []) + extra_checks
+        score = score_from_checks(checks)
+        missing = [check["id"] for check in checks if not check["passed"]]
+        blocked = receipt.get("status") == "blocked" or bool(missing)
+        review = receipt.get("status") == "review"
+        receipt.update(
+            {
+                "score": score,
+                "status": "blocked" if blocked else "review" if review or score < 100 else "pass",
+                "checks": checks,
+                "missing": missing,
+                "trustChecks": trust_checks,
+            }
+        )
+        receipts.append(receipt)
+
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public trust-hardening receipts for GitHub Action shell input handling, Devspace public URL boundaries, Devspace response caps, unsafe archive extraction, and release provenance.",
+        "fixtureRoot": TRUST_HARDENING_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public trust-hardening receipt fixtures", "ShipGuard composite actions", "Devspace checker", "synthetic unsafe archives", "synthetic release provenance commands"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Add the proof-gated task contract so prepare/verify can share one durable task object instead of disconnected reports."
+            if status == "pass"
+            else "Fix trust-hardening receipts before expanding the proof-gated task contract."
+        ),
+    }
+
+
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
     slug = command_slug(command)
     tokens = command_tokens(command)
@@ -2470,6 +2617,7 @@ def lowest_value_surface_probe(
     profile_native_validation_rerun_receipts: dict[str, Any],
     profile_native_proof_handoff_receipts: dict[str, Any],
     command_family_runtime_output_receipts: dict[str, Any],
+    trust_hardening_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -3016,6 +3164,40 @@ def lowest_value_surface_probe(
             )
     else:
         answer = ranked[0] if ranked else {}
+    if (
+        answer
+        and answer.get("identifier") == "shipguard trust-hardening action-input-devspace-release-receipts"
+        and trust_hardening_receipts.get("status") == "pass"
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeTrustHardeningReceipts":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeTrustHardeningReceipts",
+                        True,
+                        f"{trust_hardening_receipts.get('passedReceiptCount') or 0}/{trust_hardening_receipts.get('receiptCount') or 0} trust-hardening receipts executed",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeProofGatedTaskContract",
+                False,
+                "prepare/verify still need a durable local task object that connects repo context, risk, authorized scope, evidence, and verdict",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="cross-cutting",
+            identifier="shipguard prepare-verify proof-gated-task-contract",
+            name="Proof-gated task contract",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Add a persistent proof-gated task contract so prepare/verify share one durable object instead of disconnected reports.",
+            proof="Run value-gauntlet plus focused task-contract receipts that prove repo context, risk, authorized scope, validation, evidence, and verdict survive one end-to-end loop.",
+        )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
         answer = {
@@ -3091,6 +3273,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     profile_native_validation_rerun_receipts = profile_native_validation_rerun_receipt_probe(root)
     profile_native_proof_handoff_receipts = profile_native_proof_handoff_receipt_probe(root)
     command_family_runtime_output_receipts = command_family_runtime_output_receipt_probe(root)
+    trust_hardening_receipts = trust_hardening_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -3116,6 +3299,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         profile_native_validation_rerun_receipts=profile_native_validation_rerun_receipts,
         profile_native_proof_handoff_receipts=profile_native_proof_handoff_receipts,
         command_family_runtime_output_receipts=command_family_runtime_output_receipts,
+        trust_hardening_receipts=trust_hardening_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -3167,6 +3351,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "profileNativeValidationRerunReceipts": profile_native_validation_rerun_receipts,
         "profileNativeProofHandoffReceipts": profile_native_proof_handoff_receipts,
         "commandFamilyRuntimeOutputReceipts": command_family_runtime_output_receipts,
+        "trustHardeningReceipts": trust_hardening_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -3630,6 +3815,30 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_command_family_output_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_command_family_output_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+    trust_hardening_receipts = report.get("trustHardeningReceipts") or {}
+    lines.extend(["", "## Trust-Hardening Receipts", ""])
+    lines.append(f"- Status: {trust_hardening_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {trust_hardening_receipts.get('passedReceiptCount', 0)}/{trust_hardening_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {trust_hardening_receipts.get('commandCount', 0)}")
+    if trust_hardening_receipts.get("nextAction"):
+        lines.append(f"- Next action: {trust_hardening_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in trust_hardening_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 44)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_trust_commands = [
+        (receipt, command)
+        for receipt in trust_hardening_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_trust_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_trust_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

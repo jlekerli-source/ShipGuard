@@ -55,19 +55,29 @@ runs:
   steps:
     - name: Run CI gate
       shell: bash
+      env:
+        INPUT_RUN: ${{ inputs.run }}
+        INPUT_OUT: ${{ inputs.out }}
+        INPUT_MODE: ${{ inputs.mode }}
+        INPUT_DIFF: ${{ inputs.diff }}
+        INPUT_TESTS: ${{ inputs.tests }}
+        INPUT_TASK: ${{ inputs.task }}
+        INPUT_POLICY: ${{ inputs.policy }}
       run: |
-        args=(--run "${{ inputs.run }}" --out "${{ inputs.out }}" --mode "${{ inputs.mode }}")
-        if [[ -n "${{ inputs.diff }}" ]]; then args+=(--diff "${{ inputs.diff }}"); fi
-        if [[ -n "${{ inputs.tests }}" ]]; then args+=(--tests "${{ inputs.tests }}"); fi
-        if [[ -n "${{ inputs.task }}" ]]; then args+=(--task "${{ inputs.task }}"); fi
-        if [[ -n "${{ inputs.policy }}" ]]; then args+=(--policy "${{ inputs.policy }}"); fi
+        args=(--run "$INPUT_RUN" --out "$INPUT_OUT" --mode "$INPUT_MODE")
+        if [[ -n "$INPUT_DIFF" ]]; then args+=(--diff "$INPUT_DIFF"); fi
+        if [[ -n "$INPUT_TESTS" ]]; then args+=(--tests "$INPUT_TESTS"); fi
+        if [[ -n "$INPUT_TASK" ]]; then args+=(--task "$INPUT_TASK"); fi
+        if [[ -n "$INPUT_POLICY" ]]; then args+=(--policy "$INPUT_POLICY"); fi
         "${{ github.action_path }}/../../bin/shipguard" ci-gate "${args[@]}"
 
     - name: Append CI gate step summary
       if: ${{ always() }}
       shell: bash
+      env:
+        INPUT_OUT: ${{ inputs.out }}
       run: |
-        summary="${{ inputs.out }}/summary.md"
+        summary="$INPUT_OUT/summary.md"
         if [[ -n "${GITHUB_STEP_SUMMARY:-}" && -f "$summary" ]]; then
           cat "$summary" >> "$GITHUB_STEP_SUMMARY"
         fi
@@ -75,11 +85,13 @@ runs:
     - name: Generate check-run payload
       if: ${{ always() }}
       shell: bash
+      env:
+        INPUT_OUT: ${{ inputs.out }}
       run: |
         "${{ github.action_path }}/../../bin/shipguard" check-run \
-          --gate "${{ inputs.out }}/gate.json" \
+          --gate "$INPUT_OUT/gate.json" \
           --head-sha "${{ github.sha }}" \
-          --out "${{ inputs.out }}/check-run/payload.json"
+          --out "$INPUT_OUT/check-run/payload.json"
 
     - name: Post check run
       if: ${{ always() && inputs.post-check-run == 'true' }}
@@ -88,15 +100,17 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         GITHUB_API_URL: ${{ inputs.check-run-api-url }}
         DEFAULT_CHECK_RUN_REPOSITORY: ${{ github.repository }}
+        INPUT_CHECK_RUN_REPOSITORY: ${{ inputs.check-run-repository }}
+        INPUT_OUT: ${{ inputs.out }}
       run: |
-        repo="${{ inputs.check-run-repository }}"
+        repo="$INPUT_CHECK_RUN_REPOSITORY"
         if [[ -z "$repo" ]]; then
           repo="$DEFAULT_CHECK_RUN_REPOSITORY"
         fi
         "${{ github.action_path }}/../../bin/shipguard" check-run post \
-          --payload "${{ inputs.out }}/check-run/payload.json" \
+          --payload "$INPUT_OUT/check-run/payload.json" \
           --repo "$repo" \
-          --out "${{ inputs.out }}/check-run/response.json"
+          --out "$INPUT_OUT/check-run/response.json"
 
     - name: Upload CI gate artifact
       if: ${{ always() }}

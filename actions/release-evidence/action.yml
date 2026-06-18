@@ -110,27 +110,45 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        INPUT_RUN: ${{ inputs.run }}
+        INPUT_REPO: ${{ inputs.repo }}
+        INPUT_RELEASE_TAG: ${{ inputs.release-tag }}
+        INPUT_PREVIOUS_TAG: ${{ inputs.previous-tag }}
+        INPUT_DOWNLOAD_ASSETS: ${{ inputs.download-assets }}
+        INPUT_CONSUME_DIR: ${{ inputs.consume-dir }}
+        INPUT_DIFF_DIR: ${{ inputs.diff-dir }}
+        INPUT_OUT: ${{ inputs.out }}
+        INPUT_ASSETS_DIR: ${{ inputs.assets-dir }}
+        INPUT_LEFT_ASSETS_DIR: ${{ inputs.left-assets-dir }}
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_TITLE: ${{ inputs.title }}
+        INPUT_INCLUDE_DIFF: ${{ inputs.include-diff }}
+        INPUT_BUILD_INDEX: ${{ inputs.build-index }}
+        INPUT_INDEX_TITLE: ${{ inputs.index-title }}
+        INPUT_EXTRA_INDEX_SITES: ${{ inputs.extra-index-sites }}
+        INPUT_MODE: ${{ inputs.mode }}
+        DEFAULT_REPOSITORY: ${{ github.repository }}
       run: |
         set -euo pipefail
 
         root="${{ github.action_path }}/../.."
-        run_mode="${{ inputs.run }}"
-        repo="${{ inputs.repo }}"
-        release_tag="${{ inputs.release-tag }}"
-        previous_tag="${{ inputs.previous-tag }}"
-        download_assets="${{ inputs.download-assets }}"
-        consume_dir="${{ inputs.consume-dir }}"
-        diff_dir="${{ inputs.diff-dir }}"
-        out="${{ inputs.out }}"
-        assets_dir="${{ inputs.assets-dir }}"
-        left_assets_dir="${{ inputs.left-assets-dir }}"
-        version="${{ inputs.version }}"
-        title="${{ inputs.title }}"
-        include_diff="${{ inputs.include-diff }}"
-        build_index="${{ inputs.build-index }}"
-        index_title="${{ inputs.index-title }}"
-        extra_index_sites="${{ inputs.extra-index-sites }}"
-        mode="${{ inputs.mode }}"
+        run_mode="$INPUT_RUN"
+        repo="$INPUT_REPO"
+        release_tag="$INPUT_RELEASE_TAG"
+        previous_tag="$INPUT_PREVIOUS_TAG"
+        download_assets="$INPUT_DOWNLOAD_ASSETS"
+        consume_dir="$INPUT_CONSUME_DIR"
+        diff_dir="$INPUT_DIFF_DIR"
+        out="$INPUT_OUT"
+        assets_dir="$INPUT_ASSETS_DIR"
+        left_assets_dir="$INPUT_LEFT_ASSETS_DIR"
+        version="$INPUT_VERSION"
+        title="$INPUT_TITLE"
+        include_diff="$INPUT_INCLUDE_DIFF"
+        build_index="$INPUT_BUILD_INDEX"
+        index_title="$INPUT_INDEX_TITLE"
+        extra_index_sites="$INPUT_EXTRA_INDEX_SITES"
+        mode="$INPUT_MODE"
 
         if [[ "$mode" != "fail" && "$mode" != "warn" ]]; then
           echo "::error::mode must be fail or warn"
@@ -138,7 +156,7 @@ runs:
         fi
 
         if [[ -z "$repo" ]]; then
-          repo="${{ github.repository }}"
+          repo="$DEFAULT_REPOSITORY"
         fi
 
         if [[ "$run_mode" != "reports" && "$run_mode" != "bundle" ]]; then

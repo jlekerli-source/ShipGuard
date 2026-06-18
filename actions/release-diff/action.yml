@@ -60,18 +60,27 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        INPUT_LEFT_TAG: ${{ inputs.left-tag }}
+        INPUT_RIGHT_TAG: ${{ inputs.right-tag }}
+        INPUT_REPO: ${{ inputs.repo }}
+        INPUT_LEFT_ASSETS_DIR: ${{ inputs.left-assets-dir }}
+        INPUT_RIGHT_ASSETS_DIR: ${{ inputs.right-assets-dir }}
+        INPUT_OUT: ${{ inputs.out }}
+        INPUT_DOWNLOAD_ASSETS: ${{ inputs.download-assets }}
+        INPUT_MODE: ${{ inputs.mode }}
+        DEFAULT_REPOSITORY: ${{ github.repository }}
       run: |
         set -euo pipefail
 
         root="${{ github.action_path }}/../.."
-        left_tag="${{ inputs.left-tag }}"
-        right_tag="${{ inputs.right-tag }}"
-        repo="${{ inputs.repo }}"
-        left_assets_dir="${{ inputs.left-assets-dir }}"
-        right_assets_dir="${{ inputs.right-assets-dir }}"
-        out="${{ inputs.out }}"
-        download_assets="${{ inputs.download-assets }}"
-        mode="${{ inputs.mode }}"
+        left_tag="$INPUT_LEFT_TAG"
+        right_tag="$INPUT_RIGHT_TAG"
+        repo="$INPUT_REPO"
+        left_assets_dir="$INPUT_LEFT_ASSETS_DIR"
+        right_assets_dir="$INPUT_RIGHT_ASSETS_DIR"
+        out="$INPUT_OUT"
+        download_assets="$INPUT_DOWNLOAD_ASSETS"
+        mode="$INPUT_MODE"
 
         if [[ -z "$left_tag" || -z "$right_tag" ]]; then
           echo "::error::left-tag and right-tag are required"
@@ -79,7 +88,7 @@ runs:
         fi
 
         if [[ -z "$repo" ]]; then
-          repo="${{ github.repository }}"
+          repo="$DEFAULT_REPOSITORY"
         fi
 
         if [[ "$mode" != "fail" && "$mode" != "warn" ]]; then

@@ -46,14 +46,19 @@ runs:
     - name: Verify transcript corpus
       id: transcript-corpus
       shell: bash
+      env:
+        INPUT_SOURCE: ${{ inputs.source }}
+        INPUT_OUT: ${{ inputs.out }}
+        INPUT_REQUIRE_REPORT: ${{ inputs.require-report }}
+        INPUT_MODE: ${{ inputs.mode }}
       run: |
         set -euo pipefail
 
         root="${{ github.action_path }}/../.."
-        source="${{ inputs.source }}"
-        out="${{ inputs.out }}"
-        require_report="${{ inputs.require-report }}"
-        mode="${{ inputs.mode }}"
+        source="$INPUT_SOURCE"
+        out="$INPUT_OUT"
+        require_report="$INPUT_REQUIRE_REPORT"
+        mode="$INPUT_MODE"
 
         if [[ -z "$source" ]]; then
           echo "::error::source is required"

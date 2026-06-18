@@ -66,16 +66,23 @@ runs:
     - name: Verify release evidence artifact
       id: verify-evidence
       shell: bash
+      env:
+        INPUT_DIR: ${{ inputs.dir }}
+        INPUT_OUT: ${{ inputs.out }}
+        INPUT_REQUIRE_DIFF: ${{ inputs.require-diff }}
+        INPUT_REQUIRE_INDEX: ${{ inputs.require-index }}
+        INPUT_DOWNLOAD_ARTIFACT: ${{ inputs.download-artifact }}
+        INPUT_MODE: ${{ inputs.mode }}
       run: |
         set -euo pipefail
 
         root="${{ github.action_path }}/../.."
-        evidence_dir="${{ inputs.dir }}"
-        out="${{ inputs.out }}"
-        require_diff="${{ inputs.require-diff }}"
-        require_index="${{ inputs.require-index }}"
-        download_artifact="${{ inputs.download-artifact }}"
-        mode="${{ inputs.mode }}"
+        evidence_dir="$INPUT_DIR"
+        out="$INPUT_OUT"
+        require_diff="$INPUT_REQUIRE_DIFF"
+        require_index="$INPUT_REQUIRE_INDEX"
+        download_artifact="$INPUT_DOWNLOAD_ARTIFACT"
+        mode="$INPUT_MODE"
 
         if [[ "$mode" != "fail" && "$mode" != "warn" ]]; then
           echo "::error::mode must be fail or warn"

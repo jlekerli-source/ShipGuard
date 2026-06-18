@@ -3,7 +3,7 @@ description: Download and verify ShipGuard release proof assets with consumer re
 
 inputs:
   release-tag:
-    description: Release tag to verify, such as v3.105.0.
+    description: Release tag to verify, such as v3.106.0.
     required: true
   repo:
     description: GitHub repository containing the release assets.
@@ -69,17 +69,25 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        INPUT_RELEASE_TAG: ${{ inputs.release-tag }}
+        INPUT_REPO: ${{ inputs.repo }}
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_ASSETS_DIR: ${{ inputs.assets-dir }}
+        INPUT_OUT: ${{ inputs.out }}
+        INPUT_DOWNLOAD_ASSETS: ${{ inputs.download-assets }}
+        INPUT_MODE: ${{ inputs.mode }}
+        DEFAULT_REPOSITORY: ${{ github.repository }}
       run: |
         set -euo pipefail
 
         root="${{ github.action_path }}/../.."
-        tag="${{ inputs.release-tag }}"
-        repo="${{ inputs.repo }}"
-        version="${{ inputs.version }}"
-        assets_dir="${{ inputs.assets-dir }}"
-        out="${{ inputs.out }}"
-        download_assets="${{ inputs.download-assets }}"
-        mode="${{ inputs.mode }}"
+        tag="$INPUT_RELEASE_TAG"
+        repo="$INPUT_REPO"
+        version="$INPUT_VERSION"
+        assets_dir="$INPUT_ASSETS_DIR"
+        out="$INPUT_OUT"
+        download_assets="$INPUT_DOWNLOAD_ASSETS"
+        mode="$INPUT_MODE"
 
         if [[ -z "$version" ]]; then
           version="${tag#v}"
@@ -91,7 +99,7 @@ runs:
         fi
 
         if [[ -z "$repo" ]]; then
-          repo="${{ github.repository }}"
+          repo="$DEFAULT_REPOSITORY"
         fi
 
         if [[ "$mode" != "fail" && "$mode" != "warn" ]]; then

@@ -46,15 +46,21 @@ runs:
     - name: Compare Arena results
       id: arena-compare
       shell: bash
+      env:
+        INPUT_LEFT_RESULTS: ${{ inputs.left-results }}
+        INPUT_RIGHT_RESULTS: ${{ inputs.right-results }}
+        INPUT_OUT: ${{ inputs.out }}
+        INPUT_TITLE: ${{ inputs.title }}
+        INPUT_MODE: ${{ inputs.mode }}
       run: |
         set -euo pipefail
 
         root="${{ github.action_path }}/../.."
-        left_results="${{ inputs.left-results }}"
-        right_results="${{ inputs.right-results }}"
-        out="${{ inputs.out }}"
-        title="${{ inputs.title }}"
-        mode="${{ inputs.mode }}"
+        left_results="$INPUT_LEFT_RESULTS"
+        right_results="$INPUT_RIGHT_RESULTS"
+        out="$INPUT_OUT"
+        title="$INPUT_TITLE"
+        mode="$INPUT_MODE"
 
         if [[ -z "$left_results" || -z "$right_results" ]]; then
           echo "::error::left-results and right-results are required"

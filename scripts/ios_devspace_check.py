@@ -710,6 +710,8 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"- Preview event count: {preview.get('eventCount', 0)}",
         ]
     )
+    if public_url.get("note"):
+        lines.append(f"- Public URL secret handling: {public_url['note']}")
     if target:
         lines.extend(
             [

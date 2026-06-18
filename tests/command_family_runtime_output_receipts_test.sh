@@ -17,7 +17,8 @@ test -f "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 grep -q '"commandFamilyRuntimeOutputReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q 'Command-Family Runtime Output Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
-grep -q 'trust-hardening receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q '"trustHardeningReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q 'Trust-Hardening Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
@@ -25,6 +26,7 @@ import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 receipts = data.get("commandFamilyRuntimeOutputReceipts") or {}
+trust_receipts = data.get("trustHardeningReceipts") or {}
 probe = data.get("lowestValueSurfaceProbe") or {}
 answer = probe.get("answer") or {}
 
@@ -57,12 +59,16 @@ for command in receipt.get("commands") or []:
     if command.get("status") != "pass" or command.get("missing"):
         raise SystemExit(f"receipt command should pass without missing checks: {command!r}")
 
-if answer.get("identifier") != "shipguard trust-hardening action-input-devspace-release-receipts":
-    raise SystemExit(f"passing command-family receipts should escalate to trust-hardening receipts: {answer!r}")
-if "runtimeTrustHardeningReceipts" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"trust-hardening receipt gap should be explicit: {answer!r}")
+if trust_receipts.get("status") != "pass":
+    raise SystemExit(f"trust-hardening receipts should also pass in the full gauntlet: {trust_receipts!r}")
+if answer.get("identifier") != "shipguard prepare-verify proof-gated-task-contract":
+    raise SystemExit(f"passing command-family and trust receipts should escalate to proof-gated task contract: {answer!r}")
+if "runtimeProofGatedTaskContract" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"proof-gated task contract gap should be explicit: {answer!r}")
 if "runtimeCommandFamilyOutputReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"command-family output receipts should no longer be missing: {answer!r}")
+if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"trust-hardening receipts should no longer be missing: {answer!r}")
 PY
 
 echo "command-family runtime-output receipt tests passed"

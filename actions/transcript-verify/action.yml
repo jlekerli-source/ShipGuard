@@ -46,14 +46,19 @@ runs:
     - name: Verify transcript
       id: transcript-verify
       shell: bash
+      env:
+        INPUT_TRANSCRIPT: ${{ inputs.transcript }}
+        INPUT_REPORT: ${{ inputs.report }}
+        INPUT_OUT: ${{ inputs.out }}
+        INPUT_MODE: ${{ inputs.mode }}
       run: |
         set -euo pipefail
 
         root="${{ github.action_path }}/../.."
-        transcript="${{ inputs.transcript }}"
-        report="${{ inputs.report }}"
-        out="${{ inputs.out }}"
-        mode="${{ inputs.mode }}"
+        transcript="$INPUT_TRANSCRIPT"
+        report="$INPUT_REPORT"
+        out="$INPUT_OUT"
+        mode="$INPUT_MODE"
 
         if [[ -z "$transcript" ]]; then
           echo "::error::transcript is required"
