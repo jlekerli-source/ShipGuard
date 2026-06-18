@@ -73,7 +73,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should the runtime output probe include negative fixtures for decorative but low-value reports so output scoring cannot become ceremonial?",
+    "Should runtime output probing expand into a broader command-family matrix so every major ShipGuard surface gets executed over time?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -88,6 +88,7 @@ RUNTIME_OUTPUT_SPECS: list[dict[str, Any]] = [
         "jsonPath": "brand/ios-branding.json",
         "markdownPath": "brand/ios-branding.md",
         "requiredJsonKeys": ["tool", "status", "surface", "reportQualityQuestions"],
+        "requiredNonEmptyJsonPaths": ["reportQualityQuestions", "surfaces"],
         "markdownPhrases": ["# ShipGuard", "Report Quality Questions"],
         "usefulnessSignals": ["ShipGuard", "proof", "question", "command"],
     },
@@ -99,6 +100,7 @@ RUNTIME_OUTPUT_SPECS: list[dict[str, Any]] = [
         "jsonPath": "doctor/ios-doctor.json",
         "markdownPath": "doctor/ios-doctor.md",
         "requiredJsonKeys": ["status", "projects", "packages", "schemes"],
+        "requiredNonEmptyJsonPaths": ["projects", "packages", "schemes"],
         "markdownPhrases": ["# iOS Doctor", "Status:"],
         "usefulnessSignals": ["project", "scheme", "package", "validation"],
     },
@@ -110,6 +112,7 @@ RUNTIME_OUTPUT_SPECS: list[dict[str, Any]] = [
         "jsonPath": "design/ios-design.json",
         "markdownPath": "design/ios-design.md",
         "requiredJsonKeys": ["tool", "status", "appType", "designDNA", "findings", "reportQualityQuestions"],
+        "requiredNonEmptyJsonPaths": ["appType", "designDNA", "findings", "reportQualityQuestions"],
         "markdownPhrases": ["# iOS Design QA", "Report Quality Questions"],
         "usefulnessSignals": ["motion", "haptics", "proof", "recommendation"],
         "expectShipGuardBoundary": True,
@@ -130,11 +133,14 @@ RUNTIME_OUTPUT_SPECS: list[dict[str, Any]] = [
         "jsonPath": "quality/ios-report-quality.json",
         "markdownPath": "quality/ios-report-quality.md",
         "requiredJsonKeys": ["tool", "status", "priorityAction", "actionabilityQuestions", "fixtureCoverage"],
+        "requiredNonEmptyJsonPaths": ["priorityAction", "actionabilityQuestions", "fixtureCoverage"],
         "markdownPhrases": ["# iOS ShipGuard Report Quality", "Priority Action", "Fixture Coverage"],
         "usefulnessSignals": ["priority", "actionability", "fixture", "proof"],
         "expectShipGuardBoundary": True,
     },
 ]
+
+RUNTIME_NEGATIVE_FIXTURE_ROOT = Path("fixtures") / "tool-value-gauntlet" / "runtime-output"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -296,35 +302,44 @@ def value_at_path(data: dict[str, Any], path: str) -> Any:
     return current
 
 
-def run_runtime_output_spec(root: Path, probe_root: Path, spec: dict[str, Any]) -> dict[str, Any]:
-    command_args = [str(part).format(out=probe_root.as_posix()) for part in spec["args"]]
-    command = [str(root / "bin" / "shipguard"), *command_args]
-    started = time.monotonic()
-    try:
-        completed = subprocess.run(
-            command,
-            cwd=root,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=60,
-            check=False,
-        )
-        exit_code: int | str = completed.returncode
-        stdout = completed.stdout or ""
-        stderr = completed.stderr or ""
-        timed_out = False
-    except subprocess.TimeoutExpired as exc:
-        exit_code = "timeout"
-        stdout = exc.stdout if isinstance(exc.stdout, str) else ""
-        stderr = exc.stderr if isinstance(exc.stderr, str) else ""
-        timed_out = True
-    duration_ms = round((time.monotonic() - started) * 1000)
+def is_meaningful_value(value: Any) -> bool:
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, (list, dict, set, tuple)):
+        return bool(value)
+    return True
 
-    json_path = probe_root / str(spec["jsonPath"])
-    markdown_path = probe_root / str(spec["markdownPath"])
-    loaded = load_json(json_path)
-    markdown = read_text(markdown_path)
+
+def runtime_status_for_checks(checks: list[dict[str, Any]], score: int, *, exit_code: int | str, timed_out: bool) -> str:
+    critical_missing = any(
+        (not check["passed"])
+        and (
+            check["id"] in {"exitZero", "jsonArtifact", "markdownArtifact", "machineStatus", "shipguardBoundary"}
+            or str(check["id"]).startswith("json:")
+            or str(check["id"]).startswith("jsonNonEmpty:")
+        )
+        for check in checks
+    )
+    if timed_out or exit_code != 0:
+        return "blocked"
+    if score >= 85 and not critical_missing:
+        return "pass"
+    return "review"
+
+
+def score_runtime_output_artifacts(
+    spec: dict[str, Any],
+    *,
+    loaded: dict[str, Any],
+    markdown: str,
+    exit_code: int | str,
+    timed_out: bool,
+    duration_ms: int,
+    stdout: str = "",
+    stderr: str = "",
+) -> dict[str, Any]:
     combined = (json.dumps(loaded, sort_keys=True) + "\n" + markdown).lower()
 
     checks = [
@@ -343,6 +358,15 @@ def run_runtime_output_spec(root: Path, probe_root: Path, spec: dict[str, Any]) 
                 f"json:{key}",
                 value_at_path(loaded, str(key)) is not None,
                 f"{key} present" if value_at_path(loaded, str(key)) is not None else f"{key} missing",
+            )
+        )
+    for key in spec.get("requiredNonEmptyJsonPaths", []):
+        value = value_at_path(loaded, str(key))
+        checks.append(
+            runtime_probe_check(
+                f"jsonNonEmpty:{key}",
+                is_meaningful_value(value),
+                f"{key} has meaningful content" if is_meaningful_value(value) else f"{key} empty or missing",
             )
         )
     for phrase in spec.get("markdownPhrases", []):
@@ -373,6 +397,7 @@ def run_runtime_output_spec(root: Path, probe_root: Path, spec: dict[str, Any]) 
 
     score = score_from_checks(checks)
     missing = [check["id"] for check in checks if not check["passed"]]
+    status = runtime_status_for_checks(checks, score, exit_code=exit_code, timed_out=timed_out)
     return {
         "id": spec["id"],
         "surface": spec["surface"],
@@ -381,7 +406,7 @@ def run_runtime_output_spec(root: Path, probe_root: Path, spec: dict[str, Any]) 
         "exitCode": exit_code,
         "timedOut": timed_out,
         "score": score,
-        "status": "pass" if score >= 85 and not timed_out and exit_code == 0 else "review" if exit_code == 0 else "blocked",
+        "status": status,
         "checks": checks,
         "missing": missing,
         "artifacts": {
@@ -392,6 +417,47 @@ def run_runtime_output_spec(root: Path, probe_root: Path, spec: dict[str, Any]) 
         "stderrLineCount": len(stderr.splitlines()),
         "errorSummary": compact_error(stderr or stdout) if exit_code != 0 or timed_out else "",
     }
+
+
+def run_runtime_output_spec(root: Path, probe_root: Path, spec: dict[str, Any]) -> dict[str, Any]:
+    command_args = [str(part).format(out=probe_root.as_posix()) for part in spec["args"]]
+    command = [str(root / "bin" / "shipguard"), *command_args]
+    started = time.monotonic()
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=root,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=60,
+            check=False,
+        )
+        exit_code: int | str = completed.returncode
+        stdout = completed.stdout or ""
+        stderr = completed.stderr or ""
+        timed_out = False
+    except subprocess.TimeoutExpired as exc:
+        exit_code = "timeout"
+        stdout = exc.stdout if isinstance(exc.stdout, str) else ""
+        stderr = exc.stderr if isinstance(exc.stderr, str) else ""
+        timed_out = True
+    duration_ms = round((time.monotonic() - started) * 1000)
+
+    json_path = probe_root / str(spec["jsonPath"])
+    markdown_path = probe_root / str(spec["markdownPath"])
+    loaded = load_json(json_path)
+    markdown = read_text(markdown_path)
+    return score_runtime_output_artifacts(
+        spec,
+        loaded=loaded,
+        markdown=markdown,
+        exit_code=exit_code,
+        timed_out=timed_out,
+        duration_ms=duration_ms,
+        stdout=stdout,
+        stderr=stderr,
+    )
 
 
 def runtime_output_probe(root: Path) -> dict[str, Any]:
@@ -419,6 +485,82 @@ def runtime_output_probe(root: Path) -> dict[str, Any]:
             "Add negative runtime-output fixtures that prove decorative but low-value reports fail the probe."
             if status == "pass"
             else f"Improve runtime output for `{lowest.get('id') or 'unknown'}` before expanding the probe."
+        ),
+    }
+
+
+def load_runtime_negative_fixtures(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / RUNTIME_NEGATIVE_FIXTURE_ROOT
+    fixtures: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return fixtures
+    for meta_path in sorted(fixture_root.glob("*/fixture.json")):
+        meta = load_json(meta_path)
+        if meta:
+            fixtures.append((meta_path.parent, meta))
+    return fixtures
+
+
+def run_runtime_negative_fixture(root: Path, fixture_dir: Path, meta: dict[str, Any]) -> dict[str, Any]:
+    spec = {
+        "id": str(meta.get("id") or fixture_dir.name),
+        "surface": str(meta.get("surface") or "Synthetic runtime-output fixture"),
+        "displayCommand": str(meta.get("displayCommand") or f"<fixture>/{rel(fixture_dir, root)}"),
+        "jsonPath": str(Path(rel(fixture_dir, root)) / str(meta.get("jsonFile") or "report.json")),
+        "markdownPath": str(Path(rel(fixture_dir, root)) / str(meta.get("markdownFile") or "report.md")),
+        "requiredJsonKeys": list(meta.get("requiredJsonKeys") or []),
+        "requiredNonEmptyJsonPaths": list(meta.get("requiredNonEmptyJsonPaths") or []),
+        "markdownPhrases": list(meta.get("markdownPhrases") or []),
+        "usefulnessSignals": list(meta.get("usefulnessSignals") or []),
+        "expectShipGuardBoundary": bool(meta.get("expectShipGuardBoundary")),
+    }
+    started = time.monotonic()
+    result = score_runtime_output_artifacts(
+        spec,
+        loaded=load_json(fixture_dir / str(meta.get("jsonFile") or "report.json")),
+        markdown=read_text(fixture_dir / str(meta.get("markdownFile") or "report.md")),
+        exit_code=0,
+        timed_out=False,
+        duration_ms=round((time.monotonic() - started) * 1000),
+    )
+    expected_missing = [str(item) for item in meta.get("expectedMissing") or []]
+    expected_max_score = int(meta.get("expectedMaxScore") or 84)
+    fixture_passed = (
+        result["status"] != "pass"
+        and int(result["score"]) <= expected_max_score
+        and all(item in result["missing"] for item in expected_missing)
+    )
+    return {
+        **result,
+        "fixturePath": rel(fixture_dir, root),
+        "fixturePassed": fixture_passed,
+        "expectedStatus": "not-pass",
+        "expectedMaxScore": expected_max_score,
+        "expectedMissing": expected_missing,
+        "description": str(meta.get("description") or ""),
+    }
+
+
+def runtime_negative_fixture_probe(root: Path) -> dict[str, Any]:
+    cases = [run_runtime_negative_fixture(root, fixture_dir, meta) for fixture_dir, meta in load_runtime_negative_fixtures(root)]
+    passed = sum(1 for case in cases if case["fixturePassed"])
+    status = "pass" if cases and passed == len(cases) else "review"
+    return {
+        "status": status,
+        "fixtureCount": len(cases),
+        "passedFixtureCount": passed,
+        "purpose": "Run synthetic public negative fixtures that should fail runtime-output scoring when reports are decorative, boundaryless, empty, or not action-oriented.",
+        "fixtureRoot": RUNTIME_NEGATIVE_FIXTURE_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public synthetic runtime-output fixtures"],
+        },
+        "cases": cases,
+        "nextAction": (
+            "Expand runtimeOutputProbe from representative command samples into broader command-family execution coverage."
+            if cases and passed == len(cases)
+            else "Fix runtime-output scoring or fixture expectations so decorative reports cannot pass."
         ),
     }
 
@@ -914,6 +1056,7 @@ def lowest_value_surface_probe(
     actions: list[dict[str, Any]],
     docs: list[dict[str, Any]],
     runtime_probe: dict[str, Any],
+    negative_fixture_probe: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -937,24 +1080,54 @@ def lowest_value_surface_probe(
     if all_static_green:
         runtime_passed = runtime_probe.get("status") == "pass"
         if runtime_passed:
-            answer = surface_probe_row(
-                surface_type="cross-cutting",
-                identifier="shipguard value-gauntlet runtime-regression-fixtures",
-                name="Runtime output regression fixtures",
-                base_score=100,
-                base_status="pass",
-                depth_checks=[
-                    depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
-                    depth_check(
-                        "runtimeOutputProbe",
-                        True,
-                        f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100",
-                    ),
-                    depth_check("runtimeRegressionFixtures", False, "negative fixtures for decorative but low-value reports are not present yet"),
-                ],
-                recommendation="Add negative runtime-output fixtures that prove decorative but low-value reports fail the probe before the probe is treated as mature.",
-                proof="Run value-gauntlet, ios report-quality, and a focused runtime-output fixture test after adding the negative cases.",
-            )
+            negative_fixtures_passed = negative_fixture_probe.get("status") == "pass"
+            if negative_fixtures_passed:
+                answer = surface_probe_row(
+                    surface_type="cross-cutting",
+                    identifier="shipguard value-gauntlet runtime-command-coverage",
+                    name="Runtime command-family coverage",
+                    base_score=100,
+                    base_status="pass",
+                    depth_checks=[
+                        depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
+                        depth_check(
+                            "runtimeOutputProbe",
+                            True,
+                            f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100",
+                        ),
+                        depth_check(
+                            "runtimeRegressionFixtures",
+                            True,
+                            f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output",
+                        ),
+                        depth_check("runtimeCommandCoverage", False, "runtime output probing still covers only a representative sample, not every major command family"),
+                    ],
+                    recommendation="Expand runtimeOutputProbe into a broader command-family matrix so every major ShipGuard surface is executed over time, not only statically scored.",
+                    proof="Run value-gauntlet, report-quality, and focused command-family probe tests after adding the next command family.",
+                )
+            else:
+                answer = surface_probe_row(
+                    surface_type="cross-cutting",
+                    identifier="shipguard value-gauntlet runtime-regression-fixtures",
+                    name="Runtime output regression fixtures",
+                    base_score=100,
+                    base_status="pass",
+                    depth_checks=[
+                        depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
+                        depth_check(
+                            "runtimeOutputProbe",
+                            True,
+                            f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100",
+                        ),
+                        depth_check(
+                            "runtimeRegressionFixtures",
+                            False,
+                            f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures passed",
+                        ),
+                    ],
+                    recommendation="Add negative runtime-output fixtures that prove decorative but low-value reports fail the probe before the probe is treated as mature.",
+                    proof="Run value-gauntlet, ios report-quality, and a focused runtime-output fixture test after adding the negative cases.",
+                )
         else:
             lowest_runtime = runtime_probe.get("lowestScoringCommand") if isinstance(runtime_probe.get("lowestScoringCommand"), dict) else {}
             answer = surface_probe_row(
@@ -1035,6 +1208,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     actions = evaluate_actions(root, text_index, findings)
     docs = evaluate_docs(root, findings)
     runtime_probe = runtime_output_probe(root)
+    negative_fixture_probe = runtime_negative_fixture_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -1044,6 +1218,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         actions=actions,
         docs=docs,
         runtime_probe=runtime_probe,
+        negative_fixture_probe=negative_fixture_probe,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -1079,6 +1254,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "actions": actions,
         "docs": docs,
         "runtimeOutputProbe": runtime_probe,
+        "runtimeOutputNegativeFixtures": negative_fixture_probe,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -1149,6 +1325,17 @@ def render_markdown(report: dict[str, Any]) -> str:
         artifact_text = ", ".join(value for value in (artifacts.get("json"), artifacts.get("markdown")) if value)
         lines.append(
             f"| {item.get('score')} | {item.get('status')} | `{table_cell(item.get('command'), 82)}` | {table_cell(artifact_text or '-', 90)} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    negative_probe = report.get("runtimeOutputNegativeFixtures") or {}
+    lines.extend(["", "## Runtime Output Negative Fixtures", ""])
+    lines.append(f"- Status: {negative_probe.get('status') or 'unknown'}")
+    lines.append(f"- Fixtures: {negative_probe.get('passedFixtureCount', 0)}/{negative_probe.get('fixtureCount', 0)} rejected as expected")
+    if negative_probe.get("nextAction"):
+        lines.append(f"- Next action: {negative_probe['nextAction']}")
+    lines.extend(["", "| Fixture | Score | Status | Passed | Expected Missing | Actual Missing |", "| --- | ---: | --- | --- | --- | --- |"])
+    for item in negative_probe.get("cases", []):
+        lines.append(
+            f"| `{table_cell(item.get('fixturePath'), 64)}` | {item.get('score')} | {item.get('status')} | {str(item.get('fixturePassed')).lower()} | {table_cell(', '.join(item.get('expectedMissing') or []) or '-', 90)} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
         )
     lines.extend(
         [

@@ -1,0 +1,11 @@
+{
+  "actionabilityQuestions": [],
+  "fixtureCoverage": [],
+  "priorityAction": {},
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "status": "pass",
+  "tool": "shipguard ios report-quality"
+}

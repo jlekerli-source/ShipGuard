@@ -3,19 +3,19 @@
 `shipguard release-replay verify` verifies downloaded release assets against the release proof files that were published with them.
 
 ```bash
-gh release download v3.89.0 \
-  --pattern 'shipguard-v3.89.0.tar.gz' \
+gh release download v3.90.0 \
+  --pattern 'shipguard-v3.90.0.tar.gz' \
   --pattern 'release-manifest.json' \
   --pattern 'release-index.json' \
   --pattern 'proof-ledger.md' \
-  --dir /tmp/shipguard-v3.89.0
+  --dir /tmp/shipguard-v3.90.0
 
 ./bin/shipguard release-replay verify \
-  --manifest /tmp/shipguard-v3.89.0/release-manifest.json \
-  --tarball /tmp/shipguard-v3.89.0/shipguard-v3.89.0.tar.gz \
-  --index /tmp/shipguard-v3.89.0/release-index.json \
-  --ledger /tmp/shipguard-v3.89.0/proof-ledger.md \
-  --out /tmp/shipguard-v3.89.0/replay
+  --manifest /tmp/shipguard-v3.90.0/release-manifest.json \
+  --tarball /tmp/shipguard-v3.90.0/shipguard-v3.90.0.tar.gz \
+  --index /tmp/shipguard-v3.90.0/release-index.json \
+  --ledger /tmp/shipguard-v3.90.0/proof-ledger.md \
+  --out /tmp/shipguard-v3.90.0/replay
 ```
 
 Outputs:

@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Added `runtimeOutputProbe` to `shipguard value-gauntlet`: it now runs representative ShipGuard commands on public/demo inputs, scores their JSON/Markdown artifacts for machine-readable usefulness, tightens Brand Deck and DockCheck report shape, and moves the next priority to negative runtime-output fixtures instead of asking for command execution again.
+- Added `runtimeOutputNegativeFixtures` to `shipguard value-gauntlet`: synthetic public bad-output fixtures now prove decorative empty reports and boundaryless design reports are rejected, and the next priority advances to broader command-family runtime execution.
+- Added `runtimeOutputProbe` to `shipguard value-gauntlet`: it runs representative ShipGuard commands on public/demo inputs, scores their JSON/Markdown artifacts for machine-readable usefulness, tightens Brand Deck and DockCheck report shape, and retired the old "just run representative commands" next step.
 - Added a Lowest-Value Surface Probe to `shipguard value-gauntlet`: after command/skill/plugin/action/doc coverage passes, it ranks deeper evidence signals, upgrades thin starter-skill QA hooks, and escalates all-green static coverage into a runtime-output usefulness probe instead of pretending the ShipYard is finished.
 - Added report-quality fixture coverage detection so questions already covered by promoted public fixtures under `fixtures/ios-report-quality` keep their actionability evidence, suppress duplicate fixtureCandidates, render a `Fixture Coverage` section, and move the priority action to the next uncovered question.
 - Fixed `release-proof build` so optional proof links like `--issue-url` and `--ci-run-url` are only forwarded when present, matching the documented release command and allowing proof bundles without a tracking issue URL.

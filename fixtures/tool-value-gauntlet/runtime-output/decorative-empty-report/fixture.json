@@ -1,0 +1,38 @@
+{
+  "description": "A report-shaped artifact with headings and a pass status but empty machine-readable actionability.",
+  "displayCommand": "<fixture>/decorative-empty-report",
+  "expectedMaxScore": 84,
+  "expectedMissing": [
+    "jsonNonEmpty:priorityAction",
+    "jsonNonEmpty:actionabilityQuestions",
+    "jsonNonEmpty:fixtureCoverage"
+  ],
+  "expectShipGuardBoundary": true,
+  "id": "decorative-empty-report",
+  "jsonFile": "report.json",
+  "markdownFile": "report.md",
+  "markdownPhrases": [
+    "# iOS ShipGuard Report Quality",
+    "Priority Action",
+    "Fixture Coverage"
+  ],
+  "requiredJsonKeys": [
+    "tool",
+    "status",
+    "priorityAction",
+    "actionabilityQuestions",
+    "fixtureCoverage"
+  ],
+  "requiredNonEmptyJsonPaths": [
+    "priorityAction",
+    "actionabilityQuestions",
+    "fixtureCoverage"
+  ],
+  "surface": "ShipGuard QualityRadar",
+  "usefulnessSignals": [
+    "priority",
+    "actionability",
+    "fixture",
+    "proof"
+  ]
+}

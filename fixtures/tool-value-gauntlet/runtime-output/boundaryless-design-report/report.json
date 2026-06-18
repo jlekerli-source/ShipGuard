@@ -1,0 +1,38 @@
+{
+  "appType": {
+    "confidence": 0.91,
+    "inferred": "utility",
+    "signals": [
+      "settings",
+      "toolbar",
+      "task"
+    ]
+  },
+  "designDNA": {
+    "color": [
+      "blue",
+      "white"
+    ],
+    "motion": [
+      "short transitions"
+    ],
+    "typography": [
+      "system"
+    ]
+  },
+  "findings": [
+    {
+      "category": "motion",
+      "evidence": "Decorative animation is mentioned without device proof.",
+      "proofGuidance": "Run preview or device proof before claiming smoothness.",
+      "recommendation": "Add a reduced-motion check and one concrete validation command.",
+      "ruleId": "motion-proof-missing",
+      "severity": "review"
+    }
+  ],
+  "reportQualityQuestions": [
+    "Does the report separate ShipGuard product QA from target-app remediation?"
+  ],
+  "status": "review",
+  "tool": "shipguard ios design"
+}

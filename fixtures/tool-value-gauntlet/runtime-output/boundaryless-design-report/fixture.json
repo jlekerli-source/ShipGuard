@@ -1,0 +1,37 @@
+{
+  "description": "A plausible design report that has content but omits the ShipGuard-only boundary, making it unsafe as product-QA evidence.",
+  "displayCommand": "<fixture>/boundaryless-design-report",
+  "expectedMaxScore": 100,
+  "expectedMissing": [
+    "shipguardBoundary"
+  ],
+  "expectShipGuardBoundary": true,
+  "id": "boundaryless-design-report",
+  "jsonFile": "report.json",
+  "markdownFile": "report.md",
+  "markdownPhrases": [
+    "# iOS Design QA",
+    "Report Quality Questions"
+  ],
+  "requiredJsonKeys": [
+    "tool",
+    "status",
+    "appType",
+    "designDNA",
+    "findings",
+    "reportQualityQuestions"
+  ],
+  "requiredNonEmptyJsonPaths": [
+    "appType",
+    "designDNA",
+    "findings",
+    "reportQualityQuestions"
+  ],
+  "surface": "ShipGuard VibeCheck",
+  "usefulnessSignals": [
+    "motion",
+    "haptics",
+    "proof",
+    "recommendation"
+  ]
+}
