@@ -1,125 +1,80 @@
-# AGENTS.md Template for Ringly-Style App Work
+# ShipGuard Maintainer Instructions
 
-Use this as a public starter template for a Swift/iOS app where reliability, permissions, and release proof matter. Replace project names and commands with your own, but keep the same discipline: route the task, keep edits narrow, validate the smallest thing that proves the change, and do not make release claims without evidence.
+ShipGuard is a Codex workflow kit for evidence-based app maintenance. It packages starter profiles, CLI reports, Codex skill guidance, validation routing, release proof, and product-quality evals so AI-assisted coding is repeatable, reviewable, and honest about proof.
 
 ## Project Overview
 
-- Product: Ringly, an iPhone alarm app where alarm trust comes before polish, premium upsell, or growth work.
-- Primary app stack: Swift, SwiftUI, XCTest, XCUITest, AlarmKit, UserNotifications, WidgetKit, ActivityKit, StoreKit, and first-party analytics.
-- Main project: `Ringly.xcodeproj`.
-- App source: `Ringly/`.
-- Widgets: `RinglyWidgets/`.
-- Website and analytics endpoints: `Website/`.
-- Release evidence and proof packets: `release-artifacts/` and `scratch/`.
+- Product: ShipGuard.
+- Core surfaces: `bin/shipguard`, `scripts/`, `templates/`, `plugins/ios-shipguard/`, `docs/`, `fixtures/`, `tests/`, `.github/workflows/`, and release proof tooling.
+- First-class domain: iOS development, with web, backend, and CLI starter profiles as expanding surfaces.
+- Product QA inputs may include private app checkouts, but ShipGuard work must improve ShipGuard itself unless the user explicitly authorizes app edits.
 
 ## Startup Routine
 
-1. Read the nearest `AGENTS.md`.
-2. Route the task through `docs/change-review-matrix.md`.
-3. Use `docs/validation-commands.md` as command truth.
-4. If editing a nested area, read that area's narrower `AGENTS.md`.
-5. Before touching alarm runtime files, run:
+1. Read this file before changing the repository.
+2. Route the task through `docs/command-matrix.md`, `docs/cli.md`, and the nearest focused docs for the command being changed.
+3. Inspect existing tests and fixtures before adding behavior.
+4. Keep public CLI behavior stable unless the task explicitly asks for a new or breaking interface.
+5. For product-quality runs on private apps, keep the target read-only and convert observations into public ShipGuard fixtures or rules.
+
+## Validation Commands
+
+Use the smallest lane that proves the change:
 
 ```bash
-./scripts/check_alarm_runtime_freeze.sh --print-protected-files
-```
-
-Do not edit protected alarm-runtime files unless the active task explicitly carries an `Alarm runtime unlock:` note and the required proof route is clear.
-
-## Build And Test Commands
-
-Use the smallest command that proves the change.
-
-```bash
-./scripts/install_git_hooks.sh
 git diff --check
-./scripts/ci_validate.sh fast
-./scripts/run_onboarding_validation.sh
-./scripts/run_alarm_ui_batches.sh onboarding-surfaces
-./scripts/run_alarm_ui_batches.sh alarm-home-smoke
-./scripts/run_alarm_ui_batches.sh premium-surfaces
-./scripts/run_alarm_ui_batches.sh alarm-authoring-first-tap
-./scripts/run_alarm_ui_batches.sh all
-./scripts/run_alarm_ui_batches.sh release-ui-gates
+python3 -m py_compile scripts/<changed-script>.py
+./tests/<focused-test>.sh
+./bin/shipguard validate
+./bin/shipguard docs-check . --out /tmp/shipguard-docs-check
+./tests/self_audit_test.sh
+./tests/cli_smoke_test.sh
+./tests/package_release_test.sh
+./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet
+./bin/shipguard codex status --strict
 ```
 
-Specialized checks:
+Run broader tests when editing shared routing, package contents, release proof, plugin metadata, or report-quality logic. A timed-out, interrupted, blocked, or infrastructure-failed command is not a pass.
 
-```bash
-./scripts/check_storekit_mapping.sh
-./scripts/check_shared_store_integrity.sh
-./scripts/run_shared_store_migration_rehearsal.sh --seed
-./scripts/run_shared_store_migration_rehearsal.sh --verify
-./scripts/check_alarmkit_readiness.sh
-./scripts/check_alarm_runtime_freeze.sh
-./scripts/check_alarm_runtime_test_proof.sh
-python3 ./scripts/check_localization_coverage.py
-npm --prefix Website run validate
-npm --prefix Website run analytics:contract
-```
+## High-Risk Areas
 
-## Validation Routing
+- `bin/shipguard`: public command routing and compatibility.
+- `scripts/shipguard_devspace_mcp.py`: local browser/widget bridge, URL handling, response size, and preview boundaries.
+- `scripts/profile_audit.py`, `scripts/profile_fix_plan.py`, and `scripts/tool_value_gauntlet.py`: product-quality scoring and evidence routing.
+- `.github/workflows/`: repository permissions, action inputs, release artifacts, and token handling.
+- `scripts/release_*`, `scripts/package_release*`, and `tests/package_release_test.sh`: release provenance and install proof.
+- `plugins/ios-shipguard/`: installed Codex behavior and skill routing.
 
-- Docs/process-only: `git diff --check` plus targeted stale-wording scans. Do not run simulator batches.
-- Onboarding-only: `./scripts/run_onboarding_validation.sh`.
-- Alarm home/add/edit/settings UI: `./scripts/ci_validate.sh fast` plus `./scripts/run_alarm_ui_batches.sh alarm-home-smoke`.
-- Premium UI/status only: `./scripts/ci_validate.sh fast` plus `./scripts/run_alarm_ui_batches.sh premium-surfaces`.
-- Wake path/runtime/recovery/challenges: `./scripts/ci_validate.sh fast` plus `./scripts/run_alarm_ui_batches.sh all`.
-- Shared store, widgets, intents, or migrations: `./scripts/ci_validate.sh fast` plus `./scripts/check_shared_store_integrity.sh`; add migration rehearsal when payload shape changes.
-- Website/analytics: use the Website npm validation lane, not simulator tests.
+## Product QA Boundaries
 
-Blocked, timed-out, interrupted, or infrastructure-failed commands are not passes.
+- Do not edit private app checkouts while evaluating ShipGuard unless the user explicitly changes the task to app work.
+- Do not copy private paths, screenshots, source snippets, tokens, or app identifiers into public fixtures or docs.
+- Say "real-app evidence showed a ShipGuard weakness" rather than turning that evidence into target-app remediation.
+- ShipGuard-generated starter files are profile-health evidence, not target-app validation or risk evidence.
 
-## Release Procedures
+## Public Interface Rules
 
-Read `docs/release-gate.md`, `docs/release-checklist.md`, and `docs/validation-commands.md` before release work.
+- Prefer improving existing commands before adding a new public command.
+- New public commands need docs, help output, tests, package inclusion, plugin guidance when relevant, and a value-gauntlet or report-quality path.
+- Output JSON should stay machine-readable, include scope boundaries, and distinguish local proof, manual proof, and blocked proof.
+- Markdown should be useful to a solo developer without pretending that recommendations are completed work.
 
-Operator and evidence commands:
+## Release Procedure
 
-```bash
-./scripts/print_release_operator_handoff.sh
-./scripts/print_release_status.sh
-./scripts/print_testflight_handoff.sh
-./scripts/run_release_preflight.sh --with-fast-gate
-./scripts/run_release_preflight.sh --with-fast-gate --with-ui-gates
-./scripts/begin_device_release_pass.sh --device <udid-or-name>
-./scripts/print_premium_upload_handoff.sh
-./scripts/create_premium_live_proof_notes.sh
-```
+Before claiming a release is ready:
 
-Stop and record the exact operator action when blocked by TestFlight install, App Store Connect credentials, live StoreKit accounts, privacy/legal review, physical-device access, or human tester feedback.
-
-## Notification And Alarm Edge Cases
-
-Always check the state the user will rely on, not only the state the code intended.
-
-- AlarmKit full access vs normal notification fallback.
-- Notification denied, not determined, provisional, or fallback-only states.
-- App states: foreground, inactive, background, locked, killed, and reopened from an alarm.
-- Selected sound vs AlarmKit carrier sound vs default fallback sound.
-- Hardware volume-down while alarm is active.
-- Focus, mute switch, Bluetooth/AirPods, speaker routing, and low output volume.
-- Dynamic Island and Live Activity cleanup after mission completion.
-- Repeating alarms, Daily Shift, stale duplicate fires, and disabled-off cases.
-- Mission enforcement, fallback missions, and recovery from pending wake/mission state.
-- Shared-store consistency across app, widgets, intents, and watch surfaces.
-
-## Do Not Touch Without Explicit Scope
-
-- Protected files from `./scripts/check_alarm_runtime_freeze.sh --print-protected-files`.
-- Alarm runtime and scheduling code.
-- Root app shell and lifecycle coordination.
-- App Intents and shared persistence models.
-- Widgets, Live Activities, and project build settings.
-- Historical audits, previous worktrees, and release proof packets, unless the task explicitly asks for historical comparison or proof entry.
+1. Bump versioned files intentionally.
+2. Run focused tests plus bundle, self-audit, and package proof lanes.
+3. Refresh the local CLI and Codex plugin cache when plugin behavior changed.
+4. Push `main` only after validation passes.
+5. Watch GitHub Actions for the pushed commit.
+6. Create release proof artifacts and verify consumer install/proof checks before announcing the release.
 
 ## Completion Checklist
 
-Before claiming completion:
-
-1. The requested artifact exists.
-2. Only scoped files were changed.
-3. Protected runtime areas were not touched without unlock.
-4. The narrowest routed validation ran, or the blocker is stated exactly.
-5. Release or proof claims cite real evidence, not intention.
-6. Any manual action needed is written as a concrete next step.
+1. The requested ShipGuard artifact or behavior exists.
+2. Private-app checkouts were not modified without explicit authorization.
+3. Generated reports separate target evidence from ShipGuard starter evidence.
+4. Tests or validation commands prove the actual changed behavior.
+5. Docs and plugin guidance match the current command behavior.
+6. Any remaining blocker is stated as a concrete command, missing permission, or external dependency.

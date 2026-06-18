@@ -170,7 +170,7 @@ cat >> "$out_file" <<EOF
 ## Constraints
 
 - Keep implementation dependency-light unless a dependency is clearly justified.
-- Do not publish private Ringly, Ilmify, or other product source.
+- Do not publish private app source, paths, screenshots, app identifiers, or secrets.
 - Do not fake adoption, stars, downloads, benchmark results, or security findings.
 - Prefer release-tarball proof over source-only proof.
 
@@ -202,6 +202,7 @@ cat >> "$out_file" <<EOF
 ./tests/profile_fix_plan_test.sh
 ./tests/profile_validation_receipts_test.sh
 ./tests/profile_validation_rerun_receipts_test.sh
+./tests/profile_proof_handoff_receipts_test.sh
 ./tests/tool_value_gauntlet_test.sh
 ./tests/ios_doctor_test.sh
 ./tests/ios_inventory_test.sh

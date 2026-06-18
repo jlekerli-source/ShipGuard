@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T11:48:06Z
-- Current toolkit version: 3.103.0
-- Target release: v3.103.0
-- Title: ShipGuard Profile-Native Validation Rerun Receipts
+- Generated: 2026-06-18T12:45:00Z
+- Current toolkit version: 3.104.0
+- Target release: v3.104.0
+- Title: ShipGuard Profile-Native Proof Handoffs And Starter Evidence Guard
 
 ## Slash Plan
 
 ```text
-/plan v3.103.0 ShipGuard Profile-Native Validation Rerun Receipts for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add validationRerunReceipts to web/backend/CLI plan reports, add public profileNativeValidationRerunReceipts value-gauntlet proof, and move the next priority to profile-native proof handoff receipts.
+/plan v3.104.0 ShipGuard Profile-Native Proof Handoffs And Starter Evidence Guard for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add proofHandoff to web/backend/CLI plans, add public profileNativeProofHandoffReceipts value-gauntlet proof, stop profile audits from counting ShipGuard starter files as target evidence, replace root sample-app operating notes with ShipGuard maintainer instructions, and move the next priority to command-family runtime-output receipts.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.103.0 ShipGuard Profile-Native Validation Rerun Receipts for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add validationRerunReceipts to web/backend/CLI plan reports, add public profileNativeValidationRerunReceipts value-gauntlet proof, and move the next priority to profile-native proof handoff receipts, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.104.0 ShipGuard Profile-Native Proof Handoffs And Starter Evidence Guard for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add proofHandoff to web/backend/CLI plans, add public profileNativeProofHandoffReceipts value-gauntlet proof, stop profile audits from counting ShipGuard starter files as target evidence, replace root sample-app operating notes with ShipGuard maintainer instructions, and move the next priority to command-family runtime-output receipts, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add validationRerunReceipts to web/backend/CLI plan reports, add public profileNativeValidationRerunReceipts value-gauntlet proof, and move the next priority to profile-native proof handoff receipts.
+Add proofHandoff to web/backend/CLI plans, add public profileNativeProofHandoffReceipts value-gauntlet proof, stop profile audits from counting ShipGuard starter files as target evidence, replace root sample-app operating notes with ShipGuard maintainer instructions, and move the next priority to command-family runtime-output receipts.
 
 ## Completion Receipt
 
-- Completed scope: Add validationRerunReceipts to web/backend/CLI plan reports, add public profileNativeValidationRerunReceipts value-gauntlet proof, and move the next priority to profile-native proof handoff receipts.
-- Evidence: Implemented validationRerunReceipts in scripts/profile_fix_plan.py; added tests/profile_validation_rerun_receipts_test.sh and fixtures/tool-value-gauntlet/profile-native-validation-rerun-receipts/web-backend-cli-validation-rerun-receipts/receipt.json; value-gauntlet status pass shows profileNativeValidationRerunReceipts pass 1/1 with nine commands, three repair/rerun pairs, and lowestValueSurfaceProbe now escalates to shipguard value-gauntlet profile-native-proof-handoff-receipts.
+- Completed scope: Add proofHandoff to web/backend/CLI plans, add public profileNativeProofHandoffReceipts value-gauntlet proof, stop profile audits from counting ShipGuard starter files as target evidence, replace root sample-app operating notes with ShipGuard maintainer instructions, and move the next priority to command-family runtime-output receipts.
+- Evidence: Implemented proofHandoff in scripts/profile_fix_plan.py; added tests/profile_proof_handoff_receipts_test.sh and fixtures/tool-value-gauntlet/profile-native-proof-handoff-receipts/web-backend-cli-proof-handoffs/receipt.json; hardened scripts/profile_audit.py with scan transparency and starter-file exclusion; updated AGENTS.md and PLANS.md to be ShipGuard-native; value-gauntlet status pass shows profileNativeProofHandoffReceipts pass 1/1 with three commands and lowestValueSurfaceProbe now escalates to shipguard value-gauntlet command-family-runtime-output-receipts.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.104.0 ShipGuard Profile-Native Proof Handoff Receipts for jlekerli-source/ShipGuard:
+/plan v3.105.0 ShipGuard Command-Family Runtime Output Receipts for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,19 +44,19 @@ Add validationRerunReceipts to web/backend/CLI plan reports, add public profileN
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.104.0 ShipGuard Profile-Native Proof Handoff Receipts for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.105.0 ShipGuard Command-Family Runtime Output Receipts for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.104.0 --title "ShipGuard Profile-Native Proof Handoff Receipts" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.105.0 --title "ShipGuard Command-Family Runtime Output Receipts" --out NEXT_GOAL.md
 ```
 
 ## Constraints
 
 - Keep implementation dependency-light unless a dependency is clearly justified.
-- Do not publish private Ringly, Ilmify, or other product source.
+- Do not publish private app source, paths, screenshots, app identifiers, or secrets.
 - Do not fake adoption, stars, downloads, benchmark results, or security findings.
 - Prefer release-tarball proof over source-only proof.
 
@@ -88,6 +88,7 @@ Generate that follow-up file with:
 ./tests/profile_fix_plan_test.sh
 ./tests/profile_validation_receipts_test.sh
 ./tests/profile_validation_rerun_receipts_test.sh
+./tests/profile_proof_handoff_receipts_test.sh
 ./tests/tool_value_gauntlet_test.sh
 ./tests/ios_doctor_test.sh
 ./tests/ios_inventory_test.sh
@@ -140,12 +141,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.103.0.
+1. Open or update the tracking issue for v3.104.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.103.0` and upload `dist/shipguard-v3.103.0.tar.gz`.
+6. Create release `v3.104.0` and upload `dist/shipguard-v3.104.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

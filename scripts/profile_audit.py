@@ -71,6 +71,36 @@ PROFILE_CONFIG: dict[str, dict[str, Any]] = {
 
 TEXT_SUFFIXES = {".md", ".txt", ".json", ".yml", ".yaml", ".toml", ".js", ".ts", ".tsx", ".jsx", ".py", ".go", ".rs", ".sh"}
 SKIP_DIRS = {".git", ".cache", ".next", "node_modules", "dist", "build", "DerivedData", "__pycache__"}
+SHIPGUARD_STARTER_FILES = {
+    "AGENTS.md",
+    "SHIPGUARD_PROFILE.md",
+    "PLANS.md",
+    "SUBAGENTS.md",
+    "SCORECARD.md",
+    "CODEX_TASK_TEMPLATE.md",
+}
+SHIPGUARD_STARTER_DIRS = {".agents", ".shipguard", "shipguard-reports", "release-artifacts", "scratch"}
+TARGET_CONFIG_FILES = {
+    "package.json",
+    "pyproject.toml",
+    "go.mod",
+    "Cargo.toml",
+    "requirements.txt",
+    "Dockerfile",
+    "Makefile",
+    "setup.py",
+    "tsconfig.json",
+    "vite.config.js",
+    "vite.config.ts",
+    "next.config.js",
+    "next.config.mjs",
+    "nuxt.config.ts",
+    "svelte.config.js",
+    "astro.config.mjs",
+    "remix.config.js",
+}
+TARGET_SOURCE_DIRS = {"src", "app", "api", "routes", "services", "workers", "jobs", "components", "pages", "cmd", "lib", "bin"}
+TARGET_TEST_DIRS = {"test", "tests", "__tests__", "spec", "specs"}
 
 
 def utc_now() -> str:
@@ -119,6 +149,47 @@ def iter_repo_files(root: Path, limit: int = 350) -> list[Path]:
     return files
 
 
+def starter_exclusion_reason(root: Path, path: Path) -> str | None:
+    relative = Path(rel(path, root))
+    parts = relative.parts
+    if not parts:
+        return None
+    if parts[-1] in SHIPGUARD_STARTER_FILES:
+        return "shipguard-starter-file"
+    if len(parts) >= 2 and parts[0] == "scripts" and parts[1] == "bug-triage":
+        return "shipguard-starter-dir"
+    if any(part in SHIPGUARD_STARTER_DIRS for part in parts[:-1]):
+        return "shipguard-starter-dir"
+    return None
+
+
+def source_kind(root: Path, path: Path) -> str:
+    relative = Path(rel(path, root))
+    parts = set(relative.parts)
+    name = relative.name
+    if name in TARGET_CONFIG_FILES or name.endswith((".config.js", ".config.ts", ".config.mjs")):
+        return "target-config"
+    if parts & TARGET_TEST_DIRS:
+        return "target-test"
+    if parts & TARGET_SOURCE_DIRS:
+        return "target-source"
+    if path.suffix == ".md":
+        return "target-doc"
+    return "target-file"
+
+
+def signal_scan_scope(root: Path, files: list[Path]) -> tuple[list[Path], list[dict[str, str]]]:
+    scanned: list[Path] = []
+    excluded: list[dict[str, str]] = []
+    for path in files:
+        reason = starter_exclusion_reason(root, path)
+        if reason:
+            excluded.append({"path": rel(path, root), "reason": reason})
+            continue
+        scanned.append(path)
+    return scanned, excluded
+
+
 def signal_hits(root: Path, files: list[Path], signals: list[str]) -> list[dict[str, str]]:
     hits: list[dict[str, str]] = []
     lower_signals = [signal.lower() for signal in signals]
@@ -127,8 +198,19 @@ def signal_hits(root: Path, files: list[Path], signals: list[str]) -> list[dict[
         path_text = relative.lower()
         content = read_text(path).lower() if path.stat().st_size <= 200_000 else ""
         for raw, signal in zip(signals, lower_signals):
-            if signal in path_text or signal in content:
-                hits.append({"signal": raw, "path": relative})
+            path_match = signal in path_text
+            content_match = signal in content
+            if path_match or content_match:
+                hits.append(
+                    {
+                        "signal": raw,
+                        "path": relative,
+                        "sourceKind": source_kind(root, path),
+                        "evidenceType": "target-source-heuristic",
+                        "matchLocation": "path" if path_match else "content",
+                        "confidence": "high" if path_match or source_kind(root, path) == "target-config" else "medium",
+                    }
+                )
                 break
     return hits[:20]
 
@@ -162,8 +244,8 @@ def validation_lane_findings(profile: str, grouped: dict[str, list[dict[str, str
                 "severity": "review",
                 "category": "validation",
                 "ruleId": "no-validation-signals",
-                "evidence": "No obvious validation scripts, test frameworks, or contract checks were detected in the scanned files.",
-                "recommendation": "Add real validation commands to AGENTS.md and keep the first audit from claiming proof until they run.",
+                "evidence": "No obvious validation scripts, test frameworks, or contract checks were detected in target source/config files outside ShipGuard starter handoffs.",
+                "recommendation": "Add real validation commands in target config, scripts, tests, or docs outside generated ShipGuard starter files before treating the repo as proof-ready.",
                 "proofGuidance": "Rerun the audit after adding the narrowest validation commands for this repo.",
             }
         )
@@ -173,8 +255,8 @@ def validation_lane_findings(profile: str, grouped: dict[str, list[dict[str, str
                 "severity": "info",
                 "category": "risk-map",
                 "ruleId": "risk-signals-not-yet-specific",
-                "evidence": "The first audit did not detect profile-specific risk terms.",
-                "recommendation": "Customize AGENTS.md with protected areas, rollout notes, and proof boundaries for the actual product.",
+                "evidence": "The first audit did not detect profile-specific risk terms in target source/config files outside ShipGuard starter handoffs.",
+                "recommendation": "Add or document real protected surfaces, rollout notes, and proof boundaries in target-owned files before relying on risk routing.",
                 "proofGuidance": "Rerun the audit and confirm the risk section names the real protected surfaces.",
             }
         )
@@ -187,7 +269,8 @@ def build_report(profile: str, target: Path, *, shareable: bool, shipguard_eval:
     if not root.is_dir():
         fail(f"--path is not a directory: {target}")
     files = iter_repo_files(root)
-    grouped = {name: signal_hits(root, files, signals) for name, signals in config["signalGroups"].items()}
+    signal_files, excluded_starter_files = signal_scan_scope(root, files)
+    grouped = {name: signal_hits(root, signal_files, signals) for name, signals in config["signalGroups"].items()}
     profile_files = profile_files_status(root)
     findings = validation_lane_findings(profile, grouped, profile_files)
     status = "review" if any(item["severity"] == "review" for item in findings) else "pass"
@@ -206,7 +289,14 @@ def build_report(profile: str, target: Path, *, shareable: bool, shipguard_eval:
         "profile": profile,
         "generatedAt": utc_now(),
         "status": status,
-        "target": {"root": display_root, "fileCountScanned": len(files)},
+        "target": {"root": display_root, "fileCountScanned": len(signal_files), "fileCountDiscovered": len(files)},
+        "scan": {
+            "filesDiscovered": len(files),
+            "filesConsideredForSignals": len(signal_files),
+            "excludedShipGuardFileCount": len(excluded_starter_files),
+            "excludedShipGuardFiles": excluded_starter_files[:40],
+            "starterEvidencePolicy": "ShipGuard-generated starter files are tracked for profile health but excluded from target framework, validation, and risk signals.",
+        },
         "scopeBoundary": {
             "shipguardOnly": bool(shipguard_eval),
             "targetAppsReadOnly": True,
@@ -232,6 +322,13 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Target: {report['target']['root']}",
         f"- Files scanned: {report['target']['fileCountScanned']}",
         "",
+        "## Scan Transparency",
+        "",
+        f"- Files discovered: {report['scan']['filesDiscovered']}",
+        f"- Files considered for target signals: {report['scan']['filesConsideredForSignals']}",
+        f"- ShipGuard starter files excluded from target signals: {report['scan']['excludedShipGuardFileCount']}",
+        f"- Policy: {report['scan']['starterEvidencePolicy']}",
+        "",
         "## Starter Profile",
         "",
         "| File | Present |",
@@ -244,7 +341,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append(f"### {group.title()}")
         if hits:
             for hit in hits[:8]:
-                lines.append(f"- `{hit['signal']}` in `{hit['path']}`")
+                lines.append(f"- `{hit['signal']}` in `{hit['path']}` ({hit['sourceKind']}, {hit['matchLocation']})")
         else:
             lines.append("- No signals detected.")
         lines.append("")

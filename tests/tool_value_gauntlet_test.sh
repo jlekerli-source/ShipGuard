@@ -43,6 +43,7 @@ grep -q '"profileNativeFirstAuditReceipts":' "$tmp_dir/gauntlet/tool-value-gaunt
 grep -q '"profileNativeFixPlanReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"profileNativeValidationReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"profileNativeValidationRerunReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"profileNativeProofHandoffReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"priorityActions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"reportQualityQuestions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard score"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -81,8 +82,9 @@ grep -q 'Profile-Native First-Audit Receipts' "$tmp_dir/gauntlet/tool-value-gaun
 grep -q 'Profile-Native Fix-Plan Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Profile-Native Validation Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Profile-Native Validation Rerun Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Profile-Native Proof Handoff Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Report Quality Questions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
-grep -q 'profile-native proof handoff receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'command-family runtime-output receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
 import sys
@@ -105,16 +107,17 @@ profile_native = data.get("profileNativeFirstAuditReceipts") or {}
 profile_fix = data.get("profileNativeFixPlanReceipts") or {}
 profile_validation = data.get("profileNativeValidationReceipts") or {}
 profile_validation_rerun = data.get("profileNativeValidationRerunReceipts") or {}
+profile_proof_handoff = data.get("profileNativeProofHandoffReceipts") or {}
 if probe.get("question") != "Which ShipGuard command, skill, plugin, or action has the lowest developer-value score and should be upgraded next?":
     raise SystemExit(f"unexpected probe question: {probe!r}")
 for key in ("surfaceType", "identifier", "name", "baseScore", "depthScore", "depthChecks", "recommendation", "proofGuidance", "reason"):
     if key not in answer:
         raise SystemExit(f"probe answer missing {key}: {answer!r}")
-if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard value-gauntlet profile-native-proof-handoff-receipts":
-    raise SystemExit(f"passing profile-native validation rerun receipts should escalate to proof handoff receipts: {answer!r}")
-if "runtimeProfileNativeProofHandoffReceipts" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"profile-native proof handoff receipt gap should be explicit: {answer!r}")
-for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts"):
+if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard value-gauntlet command-family-runtime-output-receipts":
+    raise SystemExit(f"passing profile-native proof handoff receipts should escalate to command-family runtime-output receipts: {answer!r}")
+if "runtimeCommandFamilyOutputReceipts" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"command-family runtime-output receipt gap should be explicit: {answer!r}")
+for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts"):
     if retired_signal in answer.get("missingDepthSignals", []):
         raise SystemExit(f"{retired_signal} should no longer be missing after fixture proof: {answer!r}")
 if not isinstance(probe.get("rankedSurfaces"), list) or not probe["rankedSurfaces"]:
@@ -480,6 +483,27 @@ for item in profile_validation_rerun.get("receipts") or []:
     for command in item.get("commands") or []:
         if command.get("status") != "pass" or command.get("missing"):
             raise SystemExit(f"profile-native validation rerun command should pass without missing checks: {command!r}")
+if profile_proof_handoff.get("status") != "pass":
+    raise SystemExit(f"profile-native proof handoff receipts should pass: {profile_proof_handoff!r}")
+if profile_proof_handoff.get("receiptCount") != 1 or profile_proof_handoff.get("passedReceiptCount") != 1 or profile_proof_handoff.get("commandCount") != 3:
+    raise SystemExit(f"expected one profile-native proof handoff receipt and three commands: {profile_proof_handoff!r}")
+profile_proof_handoff_ids = {item.get("id") for item in profile_proof_handoff.get("receipts") or []}
+if profile_proof_handoff_ids != {"web-backend-cli-proof-handoffs"}:
+    raise SystemExit(f"unexpected profile-native proof handoff receipt fixtures: {profile_proof_handoff_ids!r}")
+for item in profile_proof_handoff.get("receipts") or []:
+    if item.get("status") != "pass" or item.get("missing"):
+        raise SystemExit(f"profile-native proof handoff receipt should pass without missing checks: {item!r}")
+    command_ids = {command.get("id") for command in item.get("commands") or []}
+    expected_commands = {
+        "web-copy-ready-proof-handoff",
+        "backend-copy-ready-proof-handoff",
+        "cli-copy-ready-proof-handoff",
+    }
+    if command_ids != expected_commands:
+        raise SystemExit(f"unexpected profile-native proof handoff command set: {command_ids!r}")
+    for command in item.get("commands") or []:
+        if command.get("status") != "pass" or command.get("missing"):
+            raise SystemExit(f"profile-native proof handoff command should pass without missing checks: {command!r}")
 if "Which ShipGuard command" in data.get("reportQualityQuestions", []):
     raise SystemExit("the answered lowest-value question should not remain a report-quality question")
 retired_phrases = (
@@ -498,11 +522,12 @@ retired_phrases = (
     "profile-native fix-plan receipts so web, backend, and CLI first audits",
     "profile-native validation receipts so web, backend, and CLI fix plans",
     "profile-native validation rerun receipts so repaired web, backend, and CLI plans",
+    "profile-native proof handoff receipts so repaired web, backend, and CLI plans",
 )
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
     raise SystemExit(f"runtime-output, negative-fixture, command-family, skill/plugin receipt, workflow-chain, scenario-matrix, scenario-failure, scenario-remediation, adoption, target-onboarding, and multi-profile onboarding questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
-if not any("profile-native proof handoff receipts" in question for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"expected profile-native proof handoff quality question: {data.get('reportQualityQuestions')!r}")
+if not any("command-family runtime-output receipts" in question for question in data.get("reportQualityQuestions", [])):
+    raise SystemExit(f"expected command-family runtime-output quality question: {data.get('reportQualityQuestions')!r}")
 PY
 
 json_stdout="$(./bin/shipguard value-gauntlet --path . --json)"
@@ -519,6 +544,6 @@ grep -q '# ShipGuard Tool Value Gauntlet' <<<"$markdown_stdout"
 grep -q '"tool": "shipguard ios report-quality"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/quality/ios-report-quality.md"
-grep -q 'profile-native proof handoff receipts' "$tmp_dir/quality/ios-report-quality.md"
+grep -q 'command-family runtime-output receipts' "$tmp_dir/quality/ios-report-quality.md"
 
 echo "tool value gauntlet tests passed"

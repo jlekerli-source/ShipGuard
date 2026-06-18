@@ -607,6 +607,16 @@ def rerun_plan_command(profile: str, audit_path: Path, target: Path | None, *, s
     return " ".join(parts)
 
 
+def shareable_handoff_text(value: str, profile: str, *, shareable: bool) -> str:
+    if not shareable:
+        return value
+    text = re.sub(r"/tmp/shipguard-[^\s`|)]+", f"<{profile}-proof-out>", value)
+    text = re.sub(r"/tmp/[^\s`|)]+", "<proof-out>", text)
+    macos_user_root = "/" + "Users/"
+    text = re.sub(re.escape(macos_user_root) + r"[^\s`|)]+", "<local-path>", text)
+    return text
+
+
 def build_validation_rerun_receipts(
     profile: str,
     validation_receipts: dict[str, Any],
@@ -664,6 +674,158 @@ def build_validation_rerun_receipts(
     }
 
 
+def proof_handoff_markdown(packet: dict[str, Any]) -> str:
+    lines = [
+        f"# {packet['title']}",
+        "",
+        f"- Status: {packet['status']}",
+        f"- Profile: {packet['profile']}",
+        f"- Copy-ready: {str(packet['copyReady']).lower()}",
+        f"- Implementation authorized: {str(packet['scopeBoundary']['implementationAuthorized']).lower()}",
+        f"- Target repos read-only: {str(packet['scopeBoundary']['targetAppsReadOnly']).lower()}",
+        "",
+        "## Evidence Summary",
+        "",
+    ]
+    for item in packet["evidenceSummary"]:
+        lines.append(f"- {item}")
+    blockers = packet.get("blockers") or []
+    if blockers:
+        lines.extend(["", "## Blockers", ""])
+        for item in blockers:
+            lines.append(f"- {item}")
+    lines.extend(["", "## Validation Receipts", ""])
+    status = packet["validationStatus"]
+    lines.append(
+        f"- Runnable: {status['runnableCount']}; Manual: {status['manualCount']}; "
+        f"Blocked: {status['blockedCount']}; Not checked: {status['notCheckedCount']}"
+    )
+    lines.extend(["", "## Commands To Capture", ""])
+    if packet["commandsToCapture"]:
+        for item in packet["commandsToCapture"]:
+            lines.append(f"- `{item['command']}` ({item['receiptStatus']}): {item['proofGuidance']}")
+    else:
+        lines.append("- No validation command is ready to capture yet; clear blockers first.")
+    lines.extend(["", "## Attachments", ""])
+    for item in packet["artifactsToAttach"]:
+        lines.append(f"- `{item}`")
+    lines.extend(
+        [
+            "",
+            "## Next Action",
+            "",
+            packet["nextAction"],
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def build_proof_handoff(
+    profile: str,
+    config: dict[str, Any],
+    audit: dict[str, Any],
+    audit_path: Path,
+    tasks: list[dict[str, Any]],
+    validation_receipts: dict[str, Any],
+    validation_rerun_receipts: dict[str, Any],
+    *,
+    shareable: bool,
+    shipguard_eval: bool,
+) -> dict[str, Any]:
+    checked = validation_receipts.get("checked") is True
+    blocked_count = int(validation_receipts.get("blockedCount") or 0)
+    not_checked_count = int(validation_receipts.get("notCheckedCount") or 0)
+    manual_count = int(validation_receipts.get("manualCount") or 0)
+    runnable_count = int(validation_receipts.get("runnableCount") or 0)
+    blockers: list[str] = []
+    if not checked:
+        blockers.append("Validation command availability was not checked against a target checkout.")
+    if blocked_count:
+        blockers.append(f"{blocked_count} validation lane(s) are blocked and need the smallest repair before proof can be claimed.")
+    if not_checked_count:
+        blockers.append(f"{not_checked_count} validation lane(s) are not checked; provide a target-backed receipt before sharing proof.")
+    copy_ready = checked and blocked_count == 0 and not_checked_count == 0
+    status = "copy_ready" if copy_ready else "blocked_until_validation_ready"
+    commands_to_capture: list[dict[str, Any]] = []
+    for item in validation_receipts.get("receipts") or []:
+        receipt_status = str(item.get("status") or "")
+        if receipt_status not in {"runnable", "manual"}:
+            continue
+        command = shareable_handoff_text(str(item.get("suggestedCommand") or item.get("command") or ""), profile, shareable=shareable)
+        proof = shareable_handoff_text(str(item.get("proofGuidance") or "Capture stdout, stderr, exit code, and generated artifacts."), profile, shareable=shareable)
+        commands_to_capture.append(
+            {
+                "command": command,
+                "sourceCommand": str(item.get("command") or ""),
+                "receiptStatus": receipt_status,
+                "proofGuidance": proof,
+                "executionAuthorized": False,
+            }
+        )
+    source_path = display_report_path(audit_path, shareable=shareable, profile=profile)
+    packet: dict[str, Any] = {
+        "status": status,
+        "copyReady": copy_ready,
+        "title": f"{config['surface']} Proof Handoff",
+        "profile": profile,
+        "audience": ["Codex", "maintainer"],
+        "mode": "copy-ready proof packet when validation blockers are clear; no target commands were executed",
+        "sourceAudit": {
+            "tool": audit.get("tool"),
+            "surface": audit.get("surface"),
+            "status": audit.get("status"),
+            "path": source_path,
+        },
+        "sourcePlan": {
+            "tool": config["tool"],
+            "surface": config["surface"],
+            "json": str(config["json"]),
+            "markdown": str(config["markdown"]),
+        },
+        "scopeBoundary": {
+            "shipguardOnly": bool(shipguard_eval),
+            "targetAppsReadOnly": True,
+            "implementationAuthorized": False,
+            "validationExecutionAuthorized": False,
+            "shareable": shareable,
+        },
+        "validationStatus": {
+            "checked": checked,
+            "runnableCount": runnable_count,
+            "manualCount": manual_count,
+            "blockedCount": blocked_count,
+            "notCheckedCount": not_checked_count,
+            "repairRerunPairCount": int(validation_rerun_receipts.get("pairCount") or 0),
+        },
+        "taskSummary": {
+            "taskCount": len(tasks),
+            "reviewTaskCount": sum(1 for item in tasks if item.get("severity") == "review"),
+        },
+        "evidenceSummary": [
+            f"{config['surface']} was generated from {audit.get('surface') or config['auditSurface']} status {audit.get('status') or 'unknown'}.",
+            f"Validation receipts are target-backed: {str(checked).lower()}; commands were classified but not executed.",
+            f"Runnable lanes: {runnable_count}; manual lanes: {manual_count}; blocked lanes: {blocked_count}; not checked lanes: {not_checked_count}.",
+            f"Repair/rerun guidance pairs: {validation_rerun_receipts.get('pairCount') or 0}.",
+        ],
+        "blockers": blockers,
+        "commandsToCapture": commands_to_capture,
+        "artifactsToAttach": [
+            str(config["json"]),
+            str(config["markdown"]),
+            source_path,
+            shareable_handoff_text(str(config["qualityCommand"]), profile, shareable=shareable),
+        ],
+        "nextAction": (
+            "Attach this packet to the Codex or maintainer handoff, then run the listed validation commands only when target implementation work is authorized."
+            if copy_ready
+            else "Do not share this as completion proof yet; clear validation blockers, rerun the plan, and require proofHandoff.copyReady=true."
+        ),
+    }
+    packet["handoffMarkdown"] = proof_handoff_markdown(packet)
+    return packet
+
+
 def build_report(profile: str, report_path: Path, *, target_path: str | None, shareable: bool, shipguard_eval: bool) -> dict[str, Any]:
     config = PLAN_CONFIG[profile]
     audit_path = resolve_report(report_path, profile)
@@ -684,11 +846,23 @@ def build_report(profile: str, report_path: Path, *, target_path: str | None, sh
         shareable=shareable,
         shipguard_eval=shipguard_eval,
     )
+    proof_handoff = build_proof_handoff(
+        profile,
+        config,
+        audit,
+        audit_path,
+        tasks,
+        validation_receipts,
+        validation_rerun_receipts,
+        shareable=shareable,
+        shipguard_eval=shipguard_eval,
+    )
     status = "review" if audit.get("status") != "pass" or any(task["severity"] == "review" for task in tasks) else "pass"
     questions = [
         f"Does {config['surface']} turn {config['auditSurface']} findings into scoped tasks with validation commands?",
         f"Do validation receipts distinguish runnable {profile} commands from blockers without executing arbitrary target commands?",
         f"Do validation rerun receipts show the smallest repair and rerun path for blocked {profile} validation lanes?",
+        f"Does the proof handoff become copy-ready only after blocked {profile} validation lanes are clear?",
         f"Are the {profile} plan tasks concrete enough for a solo developer to execute without guessing?",
         f"Does the {profile} plan keep target-app work read-only until a separate implementation task is authorized?",
     ]
@@ -725,10 +899,12 @@ def build_report(profile: str, report_path: Path, *, target_path: str | None, sh
         "validationCommands": validation,
         "validationReceipts": validation_receipts,
         "validationRerunReceipts": validation_rerun_receipts,
+        "proofHandoff": proof_handoff,
         "stopConditions": [
             "Stop before editing the target repo unless the user explicitly changes the task from ShipGuard product QA to app implementation.",
             "Stop if validation receipts mark a command blocked or not_checked; record the exact blocker instead of claiming proof.",
             "Stop if validation rerun receipts do not show the smallest repair and a rerun command for a blocked lane.",
+            "Stop if proofHandoff.copyReady is false; a polished plan is not completion proof until validation blockers clear.",
             "Stop if report-quality flags missing scope boundary, local path leakage, or generic recommendations.",
         ],
         "reportQualityQuestions": questions,
@@ -813,6 +989,34 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"| {item['status']} | `{item['blockedCommand']}` | {item['smallestRepair']} | `{item['rerunCommand']}` |")
     else:
         lines.append("| pass | - | No blocked or unchecked validation lanes were detected. | - |")
+    handoff = report["proofHandoff"]
+    lines.extend(
+        [
+            "",
+            "## Proof Handoff Packet",
+            "",
+            f"- Status: {handoff['status']}",
+            f"- Copy-ready: {str(handoff['copyReady']).lower()}",
+            f"- Mode: {handoff['mode']}",
+            f"- Next action: {handoff['nextAction']}",
+            "",
+            "### Evidence Summary",
+            "",
+        ]
+    )
+    for item in handoff["evidenceSummary"]:
+        lines.append(f"- {item}")
+    if handoff["blockers"]:
+        lines.extend(["", "### Blockers", ""])
+        for item in handoff["blockers"]:
+            lines.append(f"- {item}")
+    lines.extend(["", "### Commands To Capture", ""])
+    if handoff["commandsToCapture"]:
+        for item in handoff["commandsToCapture"]:
+            lines.append(f"- `{item['command']}` ({item['receiptStatus']}): {item['proofGuidance']}")
+    else:
+        lines.append("- No validation command is ready to capture yet; clear blockers first.")
+    lines.extend(["", "### Copy-Ready Markdown", "", "```markdown", handoff["handoffMarkdown"], "```"])
     lines.extend(["", "## Stop Conditions", ""])
     for condition in report["stopConditions"]:
         lines.append(f"- {condition}")

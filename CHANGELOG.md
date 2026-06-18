@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added `proofHandoff` to `shipguard web plan`, `shipguard backend plan`, and `shipguard cli plan`: repaired WebForge, ServiceForge, and CommandForge plans now emit copy-ready evidence packets with validation status, commands to capture, attachment guidance, local-path-safe Markdown, and explicit no-implementation/no-validation-authorization boundaries.
+- Added `profileNativeProofHandoffReceipts` to `shipguard value-gauntlet`: a public web/backend/CLI receipt now proves repaired plans produce shareable copy-ready proof handoffs, then advances the next priority to command-family runtime-output receipts so ShipGuard keeps moving from help-path coverage toward real output proof for every major family.
+- Fixed profile-native first audits so ShipGuard starter files are profile-health evidence only: WebScan, ServiceRadar, and CommandLens now exclude generated starter handoffs from target framework, validation, and risk signals, expose scan-transparency metadata, and require real target source/config/test evidence before reporting proof readiness.
+- Replaced the root maintainer instructions and plan template with ShipGuard-native operating guidance so public package users no longer see private app or sample-app instructions at the repository root.
 - Added `validationRerunReceipts` to `shipguard web plan`, `shipguard backend plan`, and `shipguard cli plan`: WebForge, ServiceForge, and CommandForge now show the smallest repair plus rerun command for blocked or unchecked validation lanes while keeping target repos read-only.
 - Added `profileNativeValidationRerunReceipts` to `shipguard value-gauntlet`: a public web/backend/CLI receipt now starts with blocked validation lanes, applies fixture-local smallest repairs, reruns the plans, proves the blockers clear, and advances the next priority to profile-native proof handoff receipts.
 - Added `--target <repo>` validation receipts to `shipguard web plan`, `shipguard backend plan`, and `shipguard cli plan`: WebForge, ServiceForge, and CommandForge now classify validation lanes as runnable, blocked, manual, or not checked without executing arbitrary target commands.

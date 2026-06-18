@@ -1,20 +1,26 @@
-# PLANS.md Template
+# ShipGuard Plan Template
 
-Use this before large changes, risky refactors, release work, or any task that touches alarm runtime, shared persistence, StoreKit, widgets, intents, localization exposure, or project configuration.
+Use this before broad changes, public command changes, plugin behavior changes, release work, or any task that touches validation, packaging, security, or report-quality logic.
 
 ## Objective
 
-- What user-visible outcome should change?
-- What is explicitly out of scope?
-- What proof will make the result acceptable?
+- User-visible ShipGuard outcome:
+- Explicitly out of scope:
+- Proof required before completion:
 
-## Affected Files
+## Product Boundary
 
-- App/source files:
-- Tests:
-- Scripts:
-- Docs/status files:
-- Protected or high-risk files:
+- Target of the change:
+- Read-only evaluation inputs, if any:
+- Private details that must stay out of docs, fixtures, and release artifacts:
+- Public fixtures or eval cases to add:
+
+## Public Surface
+
+- CLI commands affected:
+- JSON or Markdown schema changes:
+- Skill or plugin guidance changes:
+- Compatibility or migration notes:
 
 ## Current Behavior
 
@@ -28,29 +34,30 @@ Use this before large changes, risky refactors, release work, or any task that t
 1. First change:
 2. Second change:
 3. Test or fixture update:
-4. Documentation or proof update, if needed:
+4. Documentation or release proof update:
 
 ## Risks
 
-- Alarm trust risk:
-- Data or migration risk:
-- StoreKit/release risk:
-- UI/accessibility/localization risk:
+- CLI compatibility risk:
+- Security or privacy risk:
+- Report-quality or eval false-positive risk:
+- Package/release risk:
+- Plugin/cache behavior risk:
 - Test infrastructure risk:
 
 ## Tests
 
 - Static checks:
-- Unit tests:
-- UI tests:
-- Device/manual proof:
+- Focused tests:
+- Bundle/package checks:
+- Codex plugin checks:
 - Commands not run, with reason:
 
 ## Rollback
 
 - Files to revert:
-- Data or migration cleanup:
-- Release/TestFlight cleanup:
+- Generated artifacts to remove:
+- Release or plugin cleanup:
 - How to restore previous behavior:
 
 ## Handoff

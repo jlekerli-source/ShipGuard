@@ -46,6 +46,33 @@ grep -q '"targetAppsReadOnly": true' "$tmp_dir/web-audit/web-audit.json"
 grep -q 'ShipGuard WebScan' "$tmp_dir/web-audit/web-audit.md"
 grep -q 'Recommended First Commands' "$tmp_dir/web-audit/web-audit.md"
 grep -q 'shipguard web audit --path .' "$tmp_dir/web-audit/web-audit.md"
+grep -q 'Scan Transparency' "$tmp_dir/web-audit/web-audit.md"
+grep -q 'target-config' "$tmp_dir/web-audit/web-audit.md"
+
+./bin/shipguard init web "$tmp_dir/starter-only-web" >/dev/null
+./bin/shipguard web audit \
+  --path "$tmp_dir/starter-only-web" \
+  --out "$tmp_dir/starter-only-web-audit" \
+  --shipguard-eval \
+  --shareable >/dev/null
+python3 - "$tmp_dir/starter-only-web-audit/web-audit.json" <<'PY'
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+scan = data.get("scan") or {}
+signals = data.get("signals") or {}
+if data.get("profileFiles", {}).get("presentCount", 0) < 5:
+    raise SystemExit(f"starter profile files should still be tracked: {data.get('profileFiles')!r}")
+if scan.get("excludedShipGuardFileCount", 0) < 6:
+    raise SystemExit(f"starter-generated files should be excluded from target signals: {scan!r}")
+if any(signals.get(group) for group in ("framework", "source", "validation", "risk")):
+    raise SystemExit(f"starter-only repo must not get target signals from ShipGuard templates: {signals!r}")
+if data.get("target", {}).get("fileCountScanned") != 0:
+    raise SystemExit(f"starter-only repo should have zero target signal files: {data.get('target')!r}")
+if not any(item.get("ruleId") == "no-validation-signals" for item in data.get("findings", [])):
+    raise SystemExit(f"starter-only audit should require real validation evidence: {data.get('findings')!r}")
+PY
 
 ./bin/shipguard init backend "$tmp_dir/backend-app" >/dev/null
 mkdir -p "$tmp_dir/backend-app/app/routes" "$tmp_dir/backend-app/tests"

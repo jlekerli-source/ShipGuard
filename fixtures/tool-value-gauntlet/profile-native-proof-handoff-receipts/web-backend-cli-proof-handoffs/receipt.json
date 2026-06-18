@@ -1,0 +1,276 @@
+{
+  "id": "web-backend-cli-proof-handoffs",
+  "kind": "profile-native-proof-handoff-receipt",
+  "surface": "ShipGuard profile-native proof handoff packets",
+  "selectedSkill": "ios-shipguard",
+  "selectedMode": "profile-native-proof-handoff-receipts",
+  "trigger": "User asks whether repaired ShipGuard web, backend, and CLI plans become copy-ready evidence packets for Codex and maintainers without editing private apps.",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/profile_fix_plan.py",
+    "scripts/tool_value_gauntlet.py",
+    "docs/template-profiles.md",
+    "docs/command-matrix.md",
+    "docs/cli.md",
+    "tests/profile_proof_handoff_receipts_test.sh",
+    "tests/tool_value_gauntlet_test.sh"
+  ],
+  "expectedSourcePhrases": [
+    "proofHandoff",
+    "Proof Handoff Packet",
+    "profile-native proof handoff receipts"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppDetailsAllowed": false,
+    "commandsExecuted": false,
+    "repairsAreFixtureLocal": true
+  },
+  "commands": [
+    {
+      "id": "web-copy-ready-proof-handoff",
+      "display": "./bin/shipguard web plan --report <web-audit> --target <repaired-web-target> --out <receipt-out>/web-plan-ready --shipguard-eval --shareable",
+      "prepareFiles": [
+        {
+          "path": "target-web/package.json",
+          "text": "{\n  \"scripts\": {\"lint\": \"eslint .\"},\n  \"dependencies\": {\"next\": \"latest\"}\n}\n"
+        },
+        {
+          "path": "web-audit/web-audit.json",
+          "text": "{\n  \"schemaVersion\": 1,\n  \"tool\": \"shipguard web audit\",\n  \"surface\": \"ShipGuard WebScan\",\n  \"profile\": \"web\",\n  \"generatedAt\": \"2026-06-18T00:00:00Z\",\n  \"status\": \"pass\",\n  \"target\": {\"root\": \"<target-repo>\", \"fileCountScanned\": 2},\n  \"recommendedFirstCommands\": [\"shipguard web audit --path . --out /tmp/shipguard-web-audit\"],\n  \"recommendedValidation\": [\"npm run lint\"],\n  \"findings\": [],\n  \"reportQualityQuestions\": [\"Does ShipGuard web plan produce a copy-ready proof handoff after validation blockers clear?\"]\n}\n"
+        }
+      ],
+      "args": [
+        "web",
+        "plan",
+        "--report",
+        "{out}/web-audit",
+        "--out",
+        "{out}/web-plan-ready",
+        "--target",
+        "{out}/target-web",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "web-plan-ready/web-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "profile",
+            "validationReceipts",
+            "validationRerunReceipts",
+            "proofHandoff"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "proofHandoff.commandsToCapture",
+            "proofHandoff.handoffMarkdown"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard web plan"
+            },
+            {
+              "path": "validationReceipts.blockedCount",
+              "equals": 0
+            },
+            {
+              "path": "validationRerunReceipts.pairCount",
+              "equals": 0
+            },
+            {
+              "path": "proofHandoff.status",
+              "equals": "copy_ready"
+            },
+            {
+              "path": "proofHandoff.copyReady",
+              "equals": true
+            },
+            {
+              "path": "proofHandoff.scopeBoundary.implementationAuthorized",
+              "equals": false
+            }
+          ]
+        },
+        {
+          "path": "web-plan-ready/web-plan.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "Proof Handoff Packet",
+            "Copy-ready: true",
+            "Copy-Ready Markdown",
+            "npm run lint"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "backend-copy-ready-proof-handoff",
+      "display": "./bin/shipguard backend plan --report <backend-audit> --target <repaired-backend-target> --out <receipt-out>/backend-plan-ready --shipguard-eval --shareable",
+      "prepareFiles": [
+        {
+          "path": "target-backend/pyproject.toml",
+          "text": "[project]\nname = \"demo-service\"\n\n[tool.ruff]\nline-length = 120\n"
+        },
+        {
+          "path": "backend-audit/backend-audit.json",
+          "text": "{\n  \"schemaVersion\": 1,\n  \"tool\": \"shipguard backend audit\",\n  \"surface\": \"ShipGuard ServiceRadar\",\n  \"profile\": \"backend\",\n  \"generatedAt\": \"2026-06-18T00:00:00Z\",\n  \"status\": \"pass\",\n  \"target\": {\"root\": \"<target-repo>\", \"fileCountScanned\": 2},\n  \"recommendedFirstCommands\": [\"shipguard backend audit --path . --out /tmp/shipguard-backend-audit\"],\n  \"recommendedValidation\": [\"lint/typecheck\"],\n  \"findings\": [],\n  \"reportQualityQuestions\": [\"Does ShipGuard backend plan produce a copy-ready proof handoff after validation blockers clear?\"]\n}\n"
+        }
+      ],
+      "args": [
+        "backend",
+        "plan",
+        "--report",
+        "{out}/backend-audit",
+        "--out",
+        "{out}/backend-plan-ready",
+        "--target",
+        "{out}/target-backend",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "backend-plan-ready/backend-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "profile",
+            "validationReceipts",
+            "validationRerunReceipts",
+            "proofHandoff"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "proofHandoff.commandsToCapture",
+            "proofHandoff.handoffMarkdown"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard backend plan"
+            },
+            {
+              "path": "validationReceipts.blockedCount",
+              "equals": 0
+            },
+            {
+              "path": "validationRerunReceipts.pairCount",
+              "equals": 0
+            },
+            {
+              "path": "proofHandoff.status",
+              "equals": "copy_ready"
+            },
+            {
+              "path": "proofHandoff.copyReady",
+              "equals": true
+            },
+            {
+              "path": "proofHandoff.scopeBoundary.implementationAuthorized",
+              "equals": false
+            }
+          ]
+        },
+        {
+          "path": "backend-plan-ready/backend-plan.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "Proof Handoff Packet",
+            "Copy-ready: true",
+            "Copy-Ready Markdown",
+            "lint/typecheck"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "cli-copy-ready-proof-handoff",
+      "display": "./bin/shipguard cli plan --report <cli-audit> --target <repaired-cli-target> --out <receipt-out>/cli-plan-ready --shipguard-eval --shareable",
+      "prepareFiles": [
+        {
+          "path": "target-cli/package.json",
+          "text": "{\n  \"name\": \"demo-cli\",\n  \"bin\": {\"demo-cli\": \"bin/demo-cli.js\"},\n  \"scripts\": {\"test\": \"node --test\"}\n}\n"
+        },
+        {
+          "path": "target-cli/bin/demo-cli.js",
+          "text": "#!/usr/bin/env node\nconsole.log('demo-cli help')\n"
+        },
+        {
+          "path": "cli-audit/cli-audit.json",
+          "text": "{\n  \"schemaVersion\": 1,\n  \"tool\": \"shipguard cli audit\",\n  \"surface\": \"ShipGuard CommandLens\",\n  \"profile\": \"cli\",\n  \"generatedAt\": \"2026-06-18T00:00:00Z\",\n  \"status\": \"pass\",\n  \"target\": {\"root\": \"<target-repo>\", \"fileCountScanned\": 2},\n  \"recommendedFirstCommands\": [\"shipguard cli audit --path . --out /tmp/shipguard-cli-audit\"],\n  \"recommendedValidation\": [\"--help smoke test\"],\n  \"findings\": [],\n  \"reportQualityQuestions\": [\"Does ShipGuard cli plan produce a copy-ready proof handoff after validation blockers clear?\"]\n}\n"
+        }
+      ],
+      "args": [
+        "cli",
+        "plan",
+        "--report",
+        "{out}/cli-audit",
+        "--out",
+        "{out}/cli-plan-ready",
+        "--target",
+        "{out}/target-cli",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "cli-plan-ready/cli-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "profile",
+            "validationReceipts",
+            "validationRerunReceipts",
+            "proofHandoff"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "proofHandoff.commandsToCapture",
+            "proofHandoff.handoffMarkdown"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard cli plan"
+            },
+            {
+              "path": "validationReceipts.blockedCount",
+              "equals": 0
+            },
+            {
+              "path": "validationRerunReceipts.pairCount",
+              "equals": 0
+            },
+            {
+              "path": "proofHandoff.status",
+              "equals": "copy_ready"
+            },
+            {
+              "path": "proofHandoff.copyReady",
+              "equals": true
+            },
+            {
+              "path": "proofHandoff.scopeBoundary.implementationAuthorized",
+              "equals": false
+            }
+          ]
+        },
+        {
+          "path": "cli-plan-ready/cli-plan.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "Proof Handoff Packet",
+            "Copy-ready: true",
+            "Copy-Ready Markdown",
+            "demo-cli --help"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}
