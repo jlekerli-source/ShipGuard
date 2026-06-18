@@ -1,0 +1,33 @@
+{
+  "candidateId": "materialized-external-audit",
+  "duplicateCount": 1,
+  "expectedAssertions": [
+    "report-quality preserves the actionability question in JSON and Markdown",
+    "report-quality does not emit recursive fixtureCandidates for an already-materialized synthetic fixture",
+    "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+    "shareable output contains no local absolute paths or private app identifiers"
+  ],
+  "fixtureType": "report-quality-actionability-fixture",
+  "materialization": {
+    "files": [
+      "README.md",
+      "fixture-candidate.json",
+      "fixture-report.json",
+      "fixture-report.md"
+    ],
+    "safeSyntheticOnly": true,
+    "writeCommand": "./bin/shipguard ios report-quality --reports <report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>"
+  },
+  "priority": 1,
+  "privateDataPolicy": "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
+  "publicFixturePath": "fixtures/ios-report-quality/materialized-external-audit",
+  "publicFixtureRecipe": "Create a minimal synthetic ShipGuard report pair that reproduces this report-quality question without private app code, local paths, screenshots, customer data, app names, or proprietary source snippets.",
+  "sourceQuestion": "Which deferred external capability should become a public fixture before ShipGuard adopts it?",
+  "sourceReportCount": 1,
+  "sourceReportsRedacted": true,
+  "sourceTool": "shipguard ios external-audit",
+  "validationCommands": [
+    "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/materialized-external-audit --out <quality-dir> --shareable",
+    "./tests/ios_report_quality_test.sh"
+  ]
+}

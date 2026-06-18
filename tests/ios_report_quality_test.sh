@@ -219,6 +219,19 @@ grep -q 'Synthetic Report-Quality Fixture' "$materialized_candidate_dir/fixture-
   --out "$tmp_dir/materialized-quality" \
   --shareable >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/materialized-quality/ios-report-quality.json"
+python3 - <<'PY' "$tmp_dir/materialized-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"materialized synthetic fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+if not questions:
+    raise SystemExit("materialized synthetic fixture should still preserve actionability questions")
+if questions[0].get("sourceMaterializedFixture") is not True:
+    raise SystemExit(f"materialized source flag missing: {questions[0]!r}")
+PY
 if grep -R -F -q "$tmp_dir" "$tmp_dir/dedupe-quality"; then
   echo "shareable fixture-candidate output must not include local absolute temp paths" >&2
   exit 1
@@ -233,6 +246,29 @@ if grep -R -E -q 'Ringly|Ilmify|InweFi' "$tmp_dir/materialized-fixtures"; then
 fi
 if grep -q 'local-path-shareability-warning' "$tmp_dir/shareable-quality/ios-report-quality.json"; then
   echo "shareable report-quality output should not add local-path warnings for shareable inputs" >&2
+  exit 1
+fi
+
+materialized_public_fixture="fixtures/ios-report-quality/materialized-external-audit"
+./bin/shipguard ios report-quality \
+  --reports "$materialized_public_fixture" \
+  --out "$tmp_dir/materialized-public-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/materialized-public-quality/ios-report-quality.json"
+grep -q 'Which deferred external capability should become a public fixture before ShipGuard adopts it?' "$tmp_dir/materialized-public-quality/ios-report-quality.md"
+python3 - <<'PY' "$tmp_dir/materialized-public-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"public materialized fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+if not questions or questions[0].get("sourceMaterializedFixture") is not True:
+    raise SystemExit(f"public materialized fixture should retain sourceMaterializedFixture question evidence: {questions!r}")
+PY
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$materialized_public_fixture"; then
+  echo "public materialized fixture must not include local paths or private app identifiers" >&2
   exit 1
 fi
 

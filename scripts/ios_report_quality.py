@@ -257,24 +257,39 @@ def declared_shareability_issues(report: dict[str, Any], *, path_name: str) -> l
     return issues
 
 
-def report_questions(report: dict[str, Any], *, report_path: str, tool: str) -> list[dict[str, str]]:
+def is_materialized_fixture_report(report: dict[str, Any]) -> bool:
+    candidate = report.get("fixtureCandidate")
+    if not isinstance(candidate, dict):
+        return False
+    scope = report.get("scopeBoundary")
+    return (
+        candidate.get("sourceReportsRedacted") is True
+        and isinstance(scope, dict)
+        and scope.get("shipguardOnly") is True
+        and scope.get("targetAppsReadOnly") is True
+    )
+
+
+def report_questions(report: dict[str, Any], *, report_path: str, tool: str) -> list[dict[str, Any]]:
     questions = report.get("reportQualityQuestions")
     if not isinstance(questions, list):
         return []
-    rows: list[dict[str, str]] = []
+    materialized_fixture = is_materialized_fixture_report(report)
+    rows: list[dict[str, Any]] = []
     for question in questions[:8]:
         if not isinstance(question, str):
             continue
         text = question.strip()
         if not text:
             continue
-        rows.append(
-            {
-                "tool": tool,
-                "report": report_path,
-                "question": text,
-            }
-        )
+        row = {
+            "tool": tool,
+            "report": report_path,
+            "question": text,
+        }
+        if materialized_fixture:
+            row["sourceMaterializedFixture"] = True
+        rows.append(row)
     return rows
 
 
@@ -311,6 +326,8 @@ def dedupe_question_rows(rows: list[dict[str, Any]], *, annotate_duplicates: boo
             if annotate_duplicates:
                 existing = seen[key]
                 existing["duplicateCount"] = int(existing.get("duplicateCount") or 1) + 1
+                if row.get("sourceMaterializedFixture"):
+                    existing["sourceMaterializedFixture"] = True
                 report = str(row.get("report") or "").strip()
                 if report and report != existing.get("report"):
                     duplicate_reports = existing.setdefault("duplicateReports", [])
@@ -1325,6 +1342,7 @@ def ranked_actionability_questions(graded: list[dict[str, Any]]) -> list[dict[st
                 "sourceStatus": report.get("reportStatus") or "unknown",
                 "reportQualityStatus": report.get("status") or "unknown",
                 "score": report.get("score"),
+                "sourceMaterializedFixture": bool(question.get("sourceMaterializedFixture")),
                 "_reportIndex": report_index,
                 "_questionIndex": question_index,
             }
@@ -1525,6 +1543,8 @@ def build_fixture_candidates(ranked_questions: list[dict[str, Any]]) -> list[dic
     candidates: list[dict[str, Any]] = []
     seen_types: set[str] = set()
     for row in ranked_questions:
+        if row.get("sourceMaterializedFixture"):
+            continue
         question = str(row.get("question") or "")
         if not should_create_fixture_candidate(question):
             continue
