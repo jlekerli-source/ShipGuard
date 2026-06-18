@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T01:25:07Z
+- Generated: 2026-06-18T01:41:24Z
 - Current toolkit version: 3.70.1
-- Target release: v3.77.0
-- Title: Report Quality Fixture Promotion Workflow
+- Target release: v3.78.0
+- Title: Report Quality Promotion Manifest Consumption
 
 ## Slash Plan
 
 ```text
-/plan v3.77.0 Report Quality Fixture Promotion Workflow for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add a promotion manifest and guide to report-quality materialized fixture output so public-safe synthetic fixtures have suggested repo-relative fixture paths, placeholder copy commands, validation commands, and a review checklist without auto-writing into the repository or copying private app details.
+/plan v3.78.0 Report Quality Promotion Manifest Consumption for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Consume report-quality fixture promotion manifests as materialized-fixture metadata instead of grading them as source reports, validate promotion paths, copy placeholders, validation commands, review checklist coverage, guide synchronization, and materialized files, and keep generated outputs path-safe and ShipGuard-only.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.77.0 Report Quality Fixture Promotion Workflow for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add a promotion manifest and guide to report-quality materialized fixture output so public-safe synthetic fixtures have suggested repo-relative fixture paths, placeholder copy commands, validation commands, and a review checklist without auto-writing into the repository or copying private app details, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.78.0 Report Quality Promotion Manifest Consumption for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Consume report-quality fixture promotion manifests as materialized-fixture metadata instead of grading them as source reports, validate promotion paths, copy placeholders, validation commands, review checklist coverage, guide synchronization, and materialized files, and keep generated outputs path-safe and ShipGuard-only, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add a promotion manifest and guide to report-quality materialized fixture output so public-safe synthetic fixtures have suggested repo-relative fixture paths, placeholder copy commands, validation commands, and a review checklist without auto-writing into the repository or copying private app details.
+Consume report-quality fixture promotion manifests as materialized-fixture metadata instead of grading them as source reports, validate promotion paths, copy placeholders, validation commands, review checklist coverage, guide synchronization, and materialized files, and keep generated outputs path-safe and ShipGuard-only.
 
 ## Completion Receipt
 
-- Completed scope: Add a promotion manifest and guide to report-quality materialized fixture output so public-safe synthetic fixtures have suggested repo-relative fixture paths, placeholder copy commands, validation commands, and a review checklist without auto-writing into the repository or copying private app details.
-- Evidence: A fresh read-only external-audit over local Spec Kit, CodexPro, and Design Motion Principles inputs plus the Expo URL passed; report-quality materialized clean synthetic fixtures and scoring them passed with no recursive fixture candidates, but the materialized output still only listed directories/files and left promotion into fixtures/ios-report-quality as manual guesswork. Added fixture-promotion-manifest.json, PROMOTION.md, and per-candidate promotion metadata with repo-relative suggested paths, placeholder copy commands, validation commands, and privacy/review checklist; tests assert no local paths or private app names leak into generated promotion artifacts.
+- Completed scope: Consume report-quality fixture promotion manifests as materialized-fixture metadata instead of grading them as source reports, validate promotion paths, copy placeholders, validation commands, review checklist coverage, guide synchronization, and materialized files, and keep generated outputs path-safe and ShipGuard-only.
+- Evidence: A fresh read-only external-audit over ShipGuard plus the Expo URL and Design Motion Principles source generated materialized report-quality fixtures. Scoring the full materialized fixture root exposed that fixture-promotion-manifest.json was being graded as an ordinary report-quality source report, producing false self-report-skipped and markdown-companion-missing findings. Report-quality now excludes promotion manifests from source report discovery, consumes them under fixturePromotionManifests, renders a Fixture Promotion Manifests Markdown section, passes clean materialized roots, and flags broken manifest metadata such as unsafe suggestedFixturePath or missing copy placeholders with fixture-promotion-* findings. Focused tests, clean-root proof, broken-manifest proof, docs check, bundle validation, CLI smoke, self-audit, Codex status, and package release proof passed.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.78.0 Report Quality Promotion Manifest Consumption for jlekerli-source/ShipGuard:
+/plan v3.79.0 Build iOS Apps Native Integration for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add a promotion manifest and guide to report-quality materialized fixture output
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.78.0 Report Quality Promotion Manifest Consumption for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.79.0 Build iOS Apps Native Integration for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.78.0 --title "Report Quality Promotion Manifest Consumption" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.79.0 --title "Build iOS Apps Native Integration" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -131,12 +131,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.77.0.
+1. Open or update the tracking issue for v3.78.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.77.0` and upload `dist/shipguard-v3.77.0.tar.gz`.
+6. Create release `v3.78.0` and upload `dist/shipguard-v3.78.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

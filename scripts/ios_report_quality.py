@@ -156,6 +156,14 @@ def read_json(path: Path) -> dict[str, Any] | None:
     return loaded if isinstance(loaded, dict) else None
 
 
+SOURCE_REPORT_SKIP_NAMES = {
+    "ios-report-quality.json",
+    "fixture-candidate.json",
+    "fixture-candidates-index.json",
+    "fixture-promotion-manifest.json",
+}
+
+
 def report_json_files(inputs: list[str]) -> list[Path]:
     paths: list[Path] = []
     for raw in inputs:
@@ -163,16 +171,32 @@ def report_json_files(inputs: list[str]) -> list[Path]:
         if not path.exists():
             fail(f"report path not found: {path}")
         if path.is_file():
+            if path.name in SOURCE_REPORT_SKIP_NAMES:
+                continue
             paths.append(path)
             continue
         for candidate in sorted(path.rglob("*.json")):
-            if candidate.name in {"ios-report-quality.json", "fixture-candidate.json", "fixture-candidates-index.json"}:
+            if candidate.name in SOURCE_REPORT_SKIP_NAMES:
                 continue
             paths.append(candidate)
     unique = sorted({path for path in paths})
     if not unique:
         fail("no report JSON files found")
     return unique
+
+
+def fixture_promotion_manifest_files(inputs: list[str]) -> list[Path]:
+    paths: list[Path] = []
+    for raw in inputs:
+        path = Path(raw).expanduser().resolve()
+        if not path.exists():
+            continue
+        if path.is_file():
+            if path.name == "fixture-promotion-manifest.json":
+                paths.append(path)
+            continue
+        paths.extend(sorted(path.rglob("fixture-promotion-manifest.json")))
+    return sorted({path for path in paths})
 
 
 def resolved_input_paths(inputs: list[str]) -> list[Path]:
@@ -1285,6 +1309,178 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     }
 
 
+def promotion_manifest_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: Path) -> dict[str, Any]:
+    loaded = read_json(path)
+    display_path = path_label(path, input_paths=input_paths, shareable=shareable, cwd=cwd)
+    guide_path = path.with_name("PROMOTION.md")
+    guide_text = guide_path.read_text(encoding="utf-8", errors="ignore") if guide_path.is_file() else ""
+    issues: list[dict[str, str]] = []
+
+    if loaded is None:
+        add_issue(
+            issues,
+            severity="high",
+            rule_id="fixture-promotion-manifest-invalid",
+            evidence=f"{Path(display_path).name} is not valid JSON",
+            recommendation="Rewrite the promotion manifest as parseable JSON before using it as fixture-promotion evidence.",
+        )
+        return {
+            "path": display_path,
+            "status": report_status(issues),
+            "candidateCount": 0,
+            "issues": issues,
+            "issueCount": len(issues),
+        }
+
+    candidates = loaded.get("candidates")
+    candidate_count = loaded.get("candidateCount")
+    if not isinstance(candidates, list):
+        add_issue(
+            issues,
+            severity="high",
+            rule_id="fixture-promotion-candidates-missing",
+            evidence=f"{Path(display_path).name} has no candidates list",
+            recommendation="Emit a candidates list so report-quality can validate every materialized fixture promotion path.",
+        )
+        candidates = []
+    if not isinstance(candidate_count, int) or candidate_count != len(candidates):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="fixture-promotion-count-mismatch",
+            evidence=f"{Path(display_path).name} candidateCount does not match the candidates list",
+            recommendation="Keep candidateCount synchronized with candidates so generated promotion guides are machine-checkable.",
+        )
+
+    if not guide_path.is_file():
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="fixture-promotion-guide-missing",
+            evidence=f"{Path(display_path).name} has no paired PROMOTION.md",
+            recommendation="Write PROMOTION.md beside the manifest so humans see the copy, validation, and review steps.",
+        )
+
+    for index, item in enumerate(candidates[:20], start=1):
+        if not isinstance(item, dict):
+            add_issue(
+                issues,
+                severity="high",
+                rule_id="fixture-promotion-candidate-invalid",
+                evidence=f"{Path(display_path).name} candidate #{index} is not an object",
+                recommendation="Emit each promotion candidate as an object with candidateId, suggestedFixturePath, files, copyCommands, validationCommands, and reviewChecklist.",
+            )
+            continue
+        candidate_id = str(item.get("candidateId") or "").strip()
+        suggested_path = str(item.get("suggestedFixturePath") or "").strip()
+        if not candidate_id:
+            add_issue(
+                issues,
+                severity="high",
+                rule_id="fixture-promotion-candidate-id-missing",
+                evidence=f"{Path(display_path).name} candidate #{index} has no candidateId",
+                recommendation="Keep candidateId stable so generated directories and suggested fixture paths can be reconciled.",
+            )
+        if not suggested_path.startswith("fixtures/ios-report-quality/") or has_local_path(suggested_path) or ".." in Path(suggested_path).parts:
+            add_issue(
+                issues,
+                severity="high",
+                rule_id="fixture-promotion-path-unsafe",
+                evidence=f"{Path(display_path).name} candidate {candidate_id or index} has an unsafe suggestedFixturePath",
+                recommendation="Use a repo-relative fixtures/ios-report-quality/<candidate-id> path and never local absolute paths or parent traversal.",
+            )
+        elif candidate_id and not suggested_path.endswith(candidate_id):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="fixture-promotion-path-mismatch",
+                evidence=f"{Path(display_path).name} candidate {candidate_id} path does not end with the candidate id",
+                recommendation="Keep suggestedFixturePath aligned with candidateId so promotion stays deterministic.",
+            )
+
+        expected_files = item.get("files")
+        if not isinstance(expected_files, list) or not expected_files:
+            expected_files = ["README.md", "fixture-candidate.json", "fixture-report.json", "fixture-report.md"]
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="fixture-promotion-files-missing",
+                evidence=f"{Path(display_path).name} candidate {candidate_id or index} has no files list",
+                recommendation="Declare the materialized files so promotion can be reviewed before copying.",
+            )
+        candidate_dir = path.parent / candidate_id if candidate_id else None
+        if candidate_dir is not None:
+            for name in expected_files:
+                if not isinstance(name, str):
+                    continue
+                if not (candidate_dir / name).is_file():
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="fixture-promotion-file-missing",
+                        evidence=f"{Path(display_path).name} candidate {candidate_id} is missing {name}",
+                        recommendation="Keep the manifest synchronized with the materialized candidate directory before promotion.",
+                    )
+                    break
+
+        source_directory = str(item.get("sourceDirectory") or "")
+        copy_commands = item.get("copyCommands")
+        validation_commands = item.get("validationCommands")
+        review_checklist = item.get("reviewChecklist")
+        command_text = "\n".join(str(command) for command in copy_commands) if isinstance(copy_commands, list) else ""
+        manifest_text = json.dumps(item, sort_keys=True)
+        if has_local_path(source_directory) or has_local_path(command_text) or token_risk_labels(manifest_text):
+            add_issue(
+                issues,
+                severity="high",
+                rule_id="fixture-promotion-private-data-risk",
+                evidence=f"{Path(display_path).name} candidate {candidate_id or index} contains local-path or token-like promotion metadata",
+                recommendation="Keep promotion metadata placeholder-based and public-safe before sharing or committing generated fixtures.",
+            )
+        if not isinstance(copy_commands, list) or not any("<materialized-candidate-dir>" in str(command) for command in copy_commands):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="fixture-promotion-copy-placeholder-missing",
+                evidence=f"{Path(display_path).name} candidate {candidate_id or index} copy commands do not use <materialized-candidate-dir>",
+                recommendation="Use placeholder copy commands so generated promotion docs do not leak local output directories.",
+            )
+        validation_text = "\n".join(str(command) for command in validation_commands) if isinstance(validation_commands, list) else ""
+        if "ios report-quality" not in validation_text or "./tests/ios_report_quality_test.sh" not in validation_text:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="fixture-promotion-validation-missing",
+                evidence=f"{Path(display_path).name} candidate {candidate_id or index} lacks report-quality promotion validation commands",
+                recommendation="Include ios report-quality and ios_report_quality_test.sh validation before a fixture is promoted into the repo.",
+            )
+        checklist_text = " ".join(str(item) for item in review_checklist) if isinstance(review_checklist, list) else ""
+        if "private app code" not in checklist_text.lower() or "scopeboundary" not in checklist_text.lower():
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="fixture-promotion-review-checklist-incomplete",
+                evidence=f"{Path(display_path).name} candidate {candidate_id or index} review checklist is missing privacy or scope-boundary checks",
+                recommendation="Require review of private app leakage and scopeBoundary before promoting generated fixtures.",
+            )
+        if guide_text and suggested_path and suggested_path not in guide_text:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="fixture-promotion-guide-path-missing",
+                evidence=f"PROMOTION.md does not mention candidate {candidate_id or index}'s suggested fixture path",
+                recommendation="Keep the human promotion guide synchronized with the machine manifest.",
+            )
+
+    return {
+        "path": display_path,
+        "status": report_status(issues),
+        "candidateCount": len(candidates),
+        "issues": issues,
+        "issueCount": len(issues),
+    }
+
+
 def build_redaction_plan(
     inputs: list[str],
     issues: list[dict[str, Any]],
@@ -1561,21 +1757,25 @@ def build_fixture_candidates(ranked_questions: list[dict[str, Any]]) -> list[dic
 
 def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any]:
     paths = report_json_files(inputs)
+    promotion_manifest_paths = fixture_promotion_manifest_files(inputs)
     input_paths = resolved_input_paths(inputs)
     cwd = Path.cwd().resolve()
     graded = [grade_report(path, input_paths=input_paths, shareable=shareable, cwd=cwd) for path in paths]
+    promotion_manifests = [
+        promotion_manifest_report(path, input_paths=input_paths, shareable=shareable, cwd=cwd)
+        for path in promotion_manifest_paths
+    ]
     issues = []
     actionability_questions = []
     for item in graded:
         for issue in item["issues"]:
             issues.append({**issue, "report": item["path"], "tool": item.get("tool")})
         actionability_questions.extend(item.get("actionabilityQuestions", []))
+    for item in promotion_manifests:
+        for issue in item["issues"]:
+            issues.append({**issue, "report": item["path"], "tool": REPORT_QUALITY_TOOL})
     average = round(sum(item["score"] for item in graded) / len(graded), 1)
-    status = "pass"
-    if any(item["status"] == "blocked" for item in graded):
-        status = "blocked"
-    elif any(item["status"] == "review" for item in graded):
-        status = "review"
+    status = report_status(issues)
     actionability_questions = dedupe_question_rows(actionability_questions)
     ranked_questions = ranked_actionability_questions(graded)
     fixture_candidates = build_fixture_candidates(ranked_questions)
@@ -1601,6 +1801,7 @@ def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any
             "purpose": "Grade ShipGuard report usefulness; do not convert target-app findings into app work.",
         },
         "reports": graded,
+        "fixturePromotionManifests": promotion_manifests,
         "findings": issues,
         "actionabilityQuestions": actionability_questions[:30],
         "prioritizedActionabilityQuestions": ranked_questions[:30],
@@ -1693,6 +1894,15 @@ def render_markdown(report: dict[str, Any]) -> str:
                 lines.append(
                     f"| `{table_cell(item.get('candidateId') or 'unknown', 48)}` | `{table_cell(item.get('directory') or '-', 72)}` | {files} |"
                 )
+
+    promotion_manifests = report.get("fixturePromotionManifests") or []
+    if promotion_manifests:
+        lines.extend(["", "## Fixture Promotion Manifests", ""])
+        lines.extend(["| Status | Manifest | Candidates | Issues |", "| --- | --- | ---: | ---: |"])
+        for item in promotion_manifests:
+            lines.append(
+                f"| {item.get('status') or 'unknown'} | `{Path(item.get('path') or '').name}` | {item.get('candidateCount') or 0} | {item.get('issueCount') or 0} |"
+            )
 
     plan = report["redactionPlan"]
     lines.extend(["", "## Redaction Plan", ""])

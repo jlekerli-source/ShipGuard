@@ -263,6 +263,52 @@ if not questions:
 if questions[0].get("sourceMaterializedFixture") is not True:
     raise SystemExit(f"materialized source flag missing: {questions[0]!r}")
 PY
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/materialized-fixtures" \
+  --out "$tmp_dir/materialized-root-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/materialized-root-quality/ios-report-quality.json"
+grep -q '"fixturePromotionManifests":' "$tmp_dir/materialized-root-quality/ios-report-quality.json"
+grep -q '"path": "<report-input-1>/fixture-promotion-manifest.json"' "$tmp_dir/materialized-root-quality/ios-report-quality.json"
+grep -q 'Fixture Promotion Manifests' "$tmp_dir/materialized-root-quality/ios-report-quality.md"
+if grep -q 'self-report-skipped' "$tmp_dir/materialized-root-quality/ios-report-quality.json"; then
+  echo "promotion manifests must be consumed as metadata, not graded as report-quality reports" >&2
+  exit 1
+fi
+python3 - <<'PY' "$tmp_dir/materialized-root-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+manifest_rows = data.get("fixturePromotionManifests") or []
+if not manifest_rows:
+    raise SystemExit("expected fixturePromotionManifests metadata")
+if manifest_rows[0].get("status") != "pass":
+    raise SystemExit(f"expected clean promotion manifest to pass: {manifest_rows!r}")
+if manifest_rows[0].get("issueCount") != 0:
+    raise SystemExit(f"unexpected promotion manifest issues: {manifest_rows!r}")
+if any(report.get("tool") == "shipguard ios report-quality" for report in data.get("reports", [])):
+    raise SystemExit(f"promotion manifest was graded as a source report: {data.get('reports')!r}")
+PY
+broken_materialized="$tmp_dir/broken-materialized-fixtures"
+cp -R "$tmp_dir/materialized-fixtures" "$broken_materialized"
+python3 - <<'PY' "$broken_materialized/fixture-promotion-manifest.json"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data["candidates"][0]["suggestedFixturePath"] = "../unsafe-fixture"
+path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$broken_materialized" \
+  --out "$tmp_dir/broken-materialized-quality" \
+  --shareable >/dev/null
+grep -q '"status": "blocked"' "$tmp_dir/broken-materialized-quality/ios-report-quality.json"
+grep -q '"ruleId": "fixture-promotion-path-unsafe"' "$tmp_dir/broken-materialized-quality/ios-report-quality.json"
+grep -q 'Fixture Promotion Manifests' "$tmp_dir/broken-materialized-quality/ios-report-quality.md"
 if grep -R -F -q "$tmp_dir" "$tmp_dir/dedupe-quality"; then
   echo "shareable fixture-candidate output must not include local absolute temp paths" >&2
   exit 1
