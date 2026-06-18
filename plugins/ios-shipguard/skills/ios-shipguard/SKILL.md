@@ -32,7 +32,7 @@ fi
 
 4. If `SHIPGUARD_CLI` is empty, say that the ShipGuard CLI is not installed in this Codex environment, do not invent iOS CLI proof, and continue with source inspection, `AGENTS.md`, XcodeBuildMCP, and explicit manual blockers. The fix is to install ShipGuard from a release/source checkout with `PREFIX="$HOME/.local" ./scripts/install.sh`, then start a new Codex thread.
 5. Read `/tmp/ios-shipguard-inventory/ios-inventory.md` if it exists.
-6. Classify exactly one primary mode: `permission-audit`, `simulator-debug`, `launchdeck`, `release-proof`, `storekit-commerce`, `widgets-intents-shared-store`, `performance-audit`, `design-audit`, `external-source-audit`, `preview-bridge`, `preview-devspace`, `privacy-security`, or `ui-polish`.
+6. Classify exactly one primary mode: `permission-audit`, `simulator-debug`, `brand-audit`, `launchdeck`, `release-proof`, `storekit-commerce`, `widgets-intents-shared-store`, `performance-audit`, `design-audit`, `external-source-audit`, `preview-bridge`, `preview-devspace`, `privacy-security`, or `ui-polish`.
 7. If the inventory says `needs-user-answer`, stop and ask the required question before editing.
 8. Prefer Codex-native features for execution: XcodeBuildMCP for simulator driving, the LaunchDeck `ios-simulator-browser` skill for in-app browser mirroring, SwiftUI previews, and package-backed hot reload when available, built-in Git diff comments for requested changes, worktrees for experiments, and computer use only when a GUI path cannot be verified from files or structured tools. Use ShipGuard preview/Devspace when you need typed visual receipts, target-resolution handoff, report-quality evidence, ChatGPT planning, redaction, or release-proof boundaries. Do not claim hot reload proof unless the launcher output and a browser-visible frame prove the updated UI rendered.
 
@@ -44,6 +44,7 @@ Default routing:
 
 - `permission-audit`: Info.plist usage descriptions, entitlements, authorization copy, denied states.
 - `simulator-debug`: UI reproduction, navigation bugs, screenshots, logs, UI hierarchy, LLDB.
+- `brand-audit`: ShipGuard Brand Deck naming scheme, branded surface labels, active-doc wording, and future naming contract.
 - `launchdeck`: ShipGuard-native routing into LaunchDeck for XcodeBuildMCP build/run, debugger/log capture, simulator browser, SwiftUI preview hot reload, and profiler proof.
 - `release-proof`: TestFlight/App Store handoff, physical device evidence, release claims.
 - `storekit-commerce`: product IDs, purchases, restore, current entitlements, sandbox account proof.
@@ -74,6 +75,7 @@ Do not turn a missing answer into an assumption. Ask one short question, wait, t
 Use the smallest proof that matches the mode:
 
 - Inventory/plan/proof: run `ios inventory`, then `ios plan`, then `ios prove` for blocked questions, owner files, proof routes, and honest local-vs-manual evidence.
+- Brand Deck: run `ios brand --path . --out /tmp/ios-shipguard-brand --strict` before adding or renaming public ShipGuard surfaces. Keep literal CLI commands stable, make branded names visible beside plain purpose and proof boundaries, and update docs/tests/package proof before claiming a naming scheme is complete.
 - LaunchDeck: run `ios launchdeck --path . --out /tmp/ios-shipguard-launchdeck` before build/run/debug/preview/performance investigation when the route is unclear. Add `--workflow build-run|debug|preview|performance` when the user already named the lane. After Codex executes the LaunchDeck route or XcodeBuildMCP tools, rerun with `--receipt <proof-file-or-dir>` so ShipGuard grades whether build/run, UI, preview, log, or profiler proof is actually present. Add `--shipguard-eval --shareable` when a private app is only a read-only sample for improving ShipGuard.
 - Existing Xcode project: use the `ios launchdeck` report to choose XcodeBuildMCP defaults, then use XcodeBuildMCP to confirm project/workspace, scheme, and simulator before building or running.
 - Source reports: use `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, or `ios ai-readiness` before related work. Add `--shareable` before report-quality scoring or external planning. Performance smoothness still needs matching route proof and physical-device Instruments evidence before 10/10 claims.

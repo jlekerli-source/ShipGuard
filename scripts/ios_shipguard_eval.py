@@ -18,6 +18,11 @@ DEFAULT_CASES = ROOT / "evals" / "ios_shipguard_cases.jsonl"
 MODE_COMMANDS = {
     "permission-audit": ["shipguard ios inventory --path . --out /tmp/ios-shipguard-inventory"],
     "simulator-debug": ["XcodeBuildMCP session_show_defaults", "XcodeBuildMCP build/run and UI snapshot proof"],
+    "brand-audit": [
+        "shipguard ios brand --path . --out /tmp/ios-shipguard-brand --strict",
+        "Update docs/shipguard-naming.md, docs/command-matrix.md, and plugin skill routing for new public surfaces",
+        "Run tests/ios_branding_test.sh, CLI smoke, self-audit, package proof, and docs-check before claiming the naming scheme is complete",
+    ],
     "launchdeck": [
         "shipguard ios launchdeck --path . --out /tmp/ios-shipguard-launchdeck",
         "XcodeBuildMCP session_show_defaults and build_run_sim from the LaunchDeck report",
@@ -62,6 +67,11 @@ MODE_PROOF = {
         "simulator permission-state walkthrough when UI copy changes",
     ],
     "simulator-debug": ["build and launch", "UI hierarchy, screenshot, logs, or LLDB evidence", "rerun reproduction path"],
+    "brand-audit": [
+        "ShipGuard Brand Deck report with registered surfaces, plain purposes, proof boundaries, and active-doc coverage",
+        "docs and skill guidance updated for the branded surface names",
+        "focused branding test plus package, self-audit, CLI smoke, and docs-check coverage",
+    ],
     "launchdeck": [
         "ShipGuard ios launchdeck report with discovered project/workspace, scheme, and recommended workflow",
         "XcodeBuildMCP build_run_sim proof when build/run is claimed",
@@ -191,6 +201,26 @@ def classify_mode(text: str) -> str:
     if contains_any(
         text,
         [
+            "naming scheme",
+            "rename scheme",
+            "renaming scheme",
+            "rename everything",
+            "brand deck",
+            "brand audit",
+            "branded surface",
+            "surface name",
+            "surface names",
+            "vibey",
+            "funny",
+            "techy",
+            "naming contract",
+            "future naming",
+        ],
+    ):
+        return "brand-audit"
+    if contains_any(
+        text,
+        [
             "build ios apps",
             "xcodebuildmcp",
             "build_run_sim",
@@ -267,6 +297,11 @@ def questions_for(mode: str, text: str) -> list[str]:
             "Is the lane build/run, debugger/log investigation, live simulator browser preview, SwiftUI preview hot reload, or performance profiling?",
             "Which scheme, simulator, app state, or route should be used if the LaunchDeck report finds more than one option?",
         ]
+    if mode == "brand-audit":
+        return [
+            "Is this only ShipGuard product naming, or should any target app code be renamed too?",
+            "Should stable CLI commands remain script-safe while branded names appear in report headings, docs, skills, and aliases?",
+        ]
     if mode == "release-proof":
         return [
             "Which binary, version, build, commit, and release channel are being proven?",
@@ -334,6 +369,9 @@ def claim_boundaries_for(mode: str, text: str) -> list[str]:
         claims.append("Do not claim 10/10 smoothness from source review alone; name profiler output, sampled stacks, before/after proof, and device-only gaps.")
     if mode == "launchdeck":
         claims.append("Do not claim a simulator build, live preview, debugger session, or profiler capture unless the corresponding LaunchDeck or XcodeBuildMCP proof ran.")
+    if mode == "brand-audit":
+        claims.append("Do not rename stable public CLI commands only for flavor; keep commands automation-safe and put personality in surface names, report headings, section labels, docs, and aliases.")
+        claims.append("Do not claim the naming scheme is complete without Brand Deck strict proof plus docs, skill, eval, package, and self-audit coverage.")
     if mode == "design-audit":
         claims.append("Do not claim visual coherence, app icon quality, or haptic quality without preview, ImageGen review, or physical-device evidence as applicable.")
     if mode == "external-source-audit":

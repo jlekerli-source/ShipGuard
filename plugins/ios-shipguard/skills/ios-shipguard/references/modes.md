@@ -37,6 +37,24 @@ Proof:
 - UI hierarchy, screenshot, logs, or LLDB evidence
 - rerun of the reproduction path after the fix
 
+## brand-audit
+
+Use when the user asks to rename ShipGuard surfaces, make the tool more vibey/funny/techy, clean up stale public wording, or keep future feature names coherent.
+
+Ask:
+
+- Is this only ShipGuard product naming, or should any target app code be renamed too?
+- Should stable CLI command names remain script-safe while report/docs surfaces get branded names?
+- Which new or renamed surface needs a plain-purpose and proof-boundary line?
+
+Proof:
+
+- `shipguard ios brand --path . --out /tmp/ios-shipguard-brand --strict`
+- active docs and skill guidance mention the branded surface names
+- focused test such as `tests/ios_branding_test.sh`
+- package, self-audit, CLI smoke, and docs-check coverage before claiming the naming scheme is complete
+- do not rename stable public commands only for flavor; keep automation-safe commands and put personality in surface names, report headings, section labels, docs, and aliases
+
 ## release-proof
 
 Use for release readiness, TestFlight, App Store review, proof packets, privacy-sensitive claims, and final merge/shipping gates.

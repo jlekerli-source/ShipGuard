@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added `shipguard ios brand` as ShipGuard Brand Deck: a strict naming-contract audit that registers the full branded surface scheme, future naming checklist, stale active wording checks, docs coverage, package proof, self-audit coverage, and routing eval support for brand/naming requests.
 - Renamed the iOS build/debug/preview/profiler front door to `shipguard ios launchdeck`, with `ios-launchdeck.*` outputs, LaunchDeck receipt rules, LaunchDeck report-quality fixtures, and LaunchDeck routing eval modes replacing the previous generic naming.
 - Added report-quality source-finding visibility: source report findings now appear in `sourceFindings`, `sourceIssueVisibility`, and a Markdown `Source Report Findings` section, while report-quality's own `findings` still only represent report-quality defects.
 - Promoted LaunchDeck receipt gaps into first-class report-quality fixture work: weak `ios launchdeck` receipt reports now prioritize receipt-specific actionability questions and materialize `ios-launchdeck-receipt-quality-fixture` starter fixtures instead of generic performance/preview candidates.

@@ -11,6 +11,8 @@ It gives AI-assisted development a repeatable operating loop:
 
 ShipGuard is not tied to any single app. This repo ships reusable CLI commands, Codex skills, plugin metadata, fixtures, tests, and GitHub Actions for developers who want agent work to be reviewable instead of vague.
 
+The naming style is intentional: stable commands stay literal, while product surfaces get branded names like ShipGuard LaunchDeck, ShipGuard PulseRadar, ShipGuard VibeCheck, ShipGuard UpgradeForge, ShipGuard SourceScout, and ShipGuard ReleaseDock. See `docs/shipguard-naming.md` or run `./bin/shipguard ios brand --strict` before adding new surfaces.
+
 ## Who This Is For
 
 - Solo developers and small teams using Codex on production apps.
@@ -57,6 +59,7 @@ Start with these docs:
 - `docs/command-matrix.md`: map maintainer jobs to CLI commands.
 - `docs/ios-shipguard.md`: iOS plugin, skill, and CLI workflow.
 - `docs/shipguard-devspace.md`: ChatGPT visual-planning bridge from the iPhone preview.
+- `docs/shipguard-naming.md`: branded naming scheme and future naming contract.
 - `docs/open-source.md`: ShipGuard's native open-source operating model.
 - `docs/privacy.md`: local-first privacy boundary for reports, previews, and plugin use.
 - `docs/oss-evaluation.md`: how read-only app evidence becomes ShipGuard product improvements.
@@ -69,6 +72,7 @@ Common loops:
 | --- | --- |
 | Audit an AI coding run | `./bin/shipguard autopsy --help` |
 | Inspect risky iOS surfaces | `./bin/shipguard ios doctor --help` |
+| Check the branded naming scheme | `./bin/shipguard ios brand --help` |
 | Route and grade iOS build, debug, preview, and profiler proof | `./bin/shipguard ios launchdeck --help` |
 | Review iOS performance evidence | `./bin/shipguard ios performance --help` |
 | Review UI/UX, motion, haptics, and icon direction | `./bin/shipguard ios design --help` |

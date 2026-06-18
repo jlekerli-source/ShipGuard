@@ -56,6 +56,7 @@ grep -q "^$package_name/plugins/ios-shipguard/skills/ios-shipguard/references/mo
 grep -q 'SHIPGUARD_CLI' plugins/ios-shipguard/skills/ios-shipguard/SKILL.md
 grep -q 'command -v shipguard' plugins/ios-shipguard/skills/ios-shipguard/SKILL.md
 grep -q 'LaunchDeck' plugins/ios-shipguard/skills/ios-shipguard/SKILL.md
+grep -q 'Brand Deck' plugins/ios-shipguard/skills/ios-shipguard/SKILL.md
 grep -q 'hot reload' docs/ios-preview.md
 python3 - <<'PY'
 import json
@@ -107,6 +108,7 @@ grep -q "^$package_name/docs/compatibility.md$" "$tar_list"
 grep -q "^$package_name/docs/command-matrix.md$" "$tar_list"
 grep -q "^$package_name/docs/demo-reports.md$" "$tar_list"
 grep -q "^$package_name/docs/docs-check.md$" "$tar_list"
+grep -q "^$package_name/docs/shipguard-naming.md$" "$tar_list"
 grep -q "^$package_name/docs/ios-preview.md$" "$tar_list"
 grep -q "^$package_name/docs/ios-shipguard.md$" "$tar_list"
 grep -q "^$package_name/docs/shipguard-devspace.md$" "$tar_list"
@@ -159,6 +161,7 @@ grep -q "^$package_name/scripts/ci_summary.sh$" "$tar_list"
 grep -q "^$package_name/scripts/docs_check.sh$" "$tar_list"
 grep -q "^$package_name/scripts/ios_ai_readiness.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_app_intelligence.py$" "$tar_list"
+grep -q "^$package_name/scripts/ios_branding.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_launchdeck.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_codex_handoff.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_devspace_check.py$" "$tar_list"
@@ -211,6 +214,7 @@ grep -q "^$package_name/tests/codex_status_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/docs_check_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ios_ai_readiness_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ios_app_intelligence_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/ios_branding_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ios_launchdeck_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ios_codex_handoff_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ios_devspace_check_test.sh$" "$tar_list"
@@ -387,6 +391,10 @@ grep -q 'CLI Tool ShipGuard Instructions' "$tmp_dir/cli-target/AGENTS.md"
 grep -q '"tool": "shipguard ios demo"' "$tmp_dir/package-ios-demo/shipguard-demo.json"
 grep -q '"status": "pass"' "$tmp_dir/package-ios-demo/shipguard-demo.json"
 grep -q 'codex plugin add ios-shipguard@shipguard' "$tmp_dir/package-ios-demo/README.md"
+"$package_root/bin/shipguard" ios brand --path "$package_root" --out "$tmp_dir/package-brand" --strict >/dev/null
+grep -q '"tool": "shipguard ios brand"' "$tmp_dir/package-brand/ios-branding.json"
+grep -q '"status": "pass"' "$tmp_dir/package-brand/ios-branding.json"
+grep -q 'ShipGuard VibeCheck' "$tmp_dir/package-brand/ios-branding.md"
 "$package_root/bin/shipguard" autopsy \
   --run "$package_root/fixtures/autopsy/good-run/run.md" \
   --task "$package_root/fixtures/autopsy/good-run/task.md" \
