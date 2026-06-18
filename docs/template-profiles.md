@@ -2,6 +2,8 @@
 
 `shipguard init` supports workflow starter profiles for different app types.
 
+Every profile writes a target-repo `SHIPGUARD_PROFILE.md` next to `AGENTS.md`. That file is the developer-facing handoff for the selected starter profile: first commands, profile intent, and the next local customization work before using Codex on production code.
+
 ## iOS
 
 ```bash
@@ -26,7 +28,7 @@ The iOS profile includes alarm, notification, release, bug-triage, and UI-polish
 ./bin/shipguard doctor web ../my-web-app
 ```
 
-The web profile copies the shared maintainer workflow files and a web-specific `AGENTS.md` that covers routing, auth, payments, migrations, browser validation, and build proof.
+The web profile copies the shared maintainer workflow files, `SHIPGUARD_PROFILE.md`, and a web-specific `AGENTS.md` that covers routing, auth, payments, migrations, browser validation, and build proof.
 
 ## Backend
 
@@ -35,7 +37,7 @@ The web profile copies the shared maintainer workflow files and a web-specific `
 ./bin/shipguard doctor backend ../my-service
 ```
 
-The backend profile covers API endpoints, auth boundaries, migrations, queues, jobs, webhooks, observability, rollout risk, and operational proof.
+The backend profile writes `SHIPGUARD_PROFILE.md` and covers API endpoints, auth boundaries, migrations, queues, jobs, webhooks, observability, rollout risk, and operational proof.
 
 ## CLI
 
@@ -44,7 +46,7 @@ The backend profile covers API endpoints, auth boundaries, migrations, queues, j
 ./bin/shipguard doctor cli ../my-tool
 ```
 
-The CLI profile covers command dispatch, argument parsing, file safety, stdout and stderr contracts, exit codes, token redaction, cross-platform behavior, and package proof.
+The CLI profile writes `SHIPGUARD_PROFILE.md` and covers command dispatch, argument parsing, file safety, stdout and stderr contracts, exit codes, token redaction, cross-platform behavior, and package proof.
 
 ## Compatibility
 

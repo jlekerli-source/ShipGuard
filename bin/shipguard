@@ -170,6 +170,9 @@ copy_profile() {
   [[ -d "$tool_root/templates/$profile" ]] || fail "unknown init profile: $profile"
   mkdir -p "$target"
   copy_file "$tool_root/templates/$profile/AGENTS.md" "$target/AGENTS.md" "$force"
+  if [[ -f "$tool_root/templates/$profile/README.md" ]]; then
+    copy_file "$tool_root/templates/$profile/README.md" "$target/SHIPGUARD_PROFILE.md" "$force"
+  fi
   copy_file "$tool_root/PLANS.md" "$target/PLANS.md" "$force"
   copy_file "$tool_root/SUBAGENTS.md" "$target/SUBAGENTS.md" "$force"
   copy_file "$tool_root/SCORECARD.md" "$target/SCORECARD.md" "$force"

@@ -1264,8 +1264,8 @@ for candidate in data.get("fixtureCandidates") or []:
 priority = data.get("priorityAction") or {}
 if priority.get("question") == covered_question:
     raise SystemExit(f"covered value-gauntlet question should not remain the priority action: {priority!r}")
-if "multi-profile onboarding receipts" not in priority.get("question", ""):
-    raise SystemExit(f"expected next uncovered multi-profile onboarding receipt value-gauntlet question as priority: {priority!r}")
+if "profile-native first-audit receipts" not in priority.get("question", ""):
+    raise SystemExit(f"expected next uncovered profile-native first-audit value-gauntlet question as priority: {priority!r}")
 PY
 
 json_stdout="$(./bin/shipguard ios report-quality --reports "$reports" --json)"

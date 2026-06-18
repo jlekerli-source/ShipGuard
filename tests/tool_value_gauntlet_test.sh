@@ -38,6 +38,7 @@ grep -q '"scenarioFailureReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json
 grep -q '"scenarioRemediationReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"adoptionReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"targetOnboardingReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"multiProfileOnboardingReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"priorityActions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"reportQualityQuestions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard score"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -71,8 +72,9 @@ grep -q 'Scenario Failure Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Scenario Remediation Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Fresh-User Adoption Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Target Onboarding Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Multi-Profile Onboarding Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Report Quality Questions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
-grep -q 'multi-profile onboarding receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'profile-native first-audit receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
 import sys
@@ -90,16 +92,17 @@ scenario_failure = data.get("scenarioFailureReceipts") or {}
 scenario_remediation = data.get("scenarioRemediationReceipts") or {}
 adoption = data.get("adoptionReceipts") or {}
 target_onboarding = data.get("targetOnboardingReceipts") or {}
+multi_profile = data.get("multiProfileOnboardingReceipts") or {}
 if probe.get("question") != "Which ShipGuard command, skill, plugin, or action has the lowest developer-value score and should be upgraded next?":
     raise SystemExit(f"unexpected probe question: {probe!r}")
 for key in ("surfaceType", "identifier", "name", "baseScore", "depthScore", "depthChecks", "recommendation", "proofGuidance", "reason"):
     if key not in answer:
         raise SystemExit(f"probe answer missing {key}: {answer!r}")
-if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard value-gauntlet multi-profile-onboarding-receipts":
-    raise SystemExit(f"passing target-onboarding receipts should escalate to multi-profile onboarding receipts: {answer!r}")
-if "runtimeMultiProfileOnboardingReceipts" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"multi-profile onboarding receipt gap should be explicit: {answer!r}")
-for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts"):
+if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard value-gauntlet profile-native-first-audit-receipts":
+    raise SystemExit(f"passing multi-profile onboarding receipts should escalate to profile-native first-audit receipts: {answer!r}")
+if "runtimeProfileNativeFirstAuditReceipts" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"profile-native first-audit receipt gap should be explicit: {answer!r}")
+for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts"):
     if retired_signal in answer.get("missingDepthSignals", []):
         raise SystemExit(f"{retired_signal} should no longer be missing after fixture proof: {answer!r}")
 if not isinstance(probe.get("rankedSurfaces"), list) or not probe["rankedSurfaces"]:
@@ -327,6 +330,33 @@ for item in target_onboarding.get("receipts") or []:
     for command in item.get("commands") or []:
         if command.get("status") != "pass" or command.get("missing"):
             raise SystemExit(f"target-onboarding command should pass without missing checks: {command!r}")
+if multi_profile.get("status") != "pass":
+    raise SystemExit(f"multi-profile onboarding receipts should pass: {multi_profile!r}")
+if multi_profile.get("receiptCount") != 1 or multi_profile.get("passedReceiptCount") != 1 or multi_profile.get("commandCount") != 9:
+    raise SystemExit(f"expected one multi-profile onboarding receipt and nine commands: {multi_profile!r}")
+multi_profile_ids = {item.get("id") for item in multi_profile.get("receipts") or []}
+if multi_profile_ids != {"all-starter-profiles-init-doctor"}:
+    raise SystemExit(f"unexpected multi-profile onboarding receipt fixtures: {multi_profile_ids!r}")
+for item in multi_profile.get("receipts") or []:
+    if item.get("status") != "pass" or item.get("missing"):
+        raise SystemExit(f"multi-profile onboarding receipt should pass without missing checks: {item!r}")
+    command_ids = {command.get("id") for command in item.get("commands") or []}
+    expected_commands = {
+        "init-ios-starter",
+        "doctor-ios-starter",
+        "init-web-starter",
+        "doctor-web-starter",
+        "init-backend-starter",
+        "doctor-backend-starter",
+        "init-cli-starter",
+        "doctor-cli-starter",
+        "toolkit-validate",
+    }
+    if command_ids != expected_commands:
+        raise SystemExit(f"unexpected multi-profile onboarding command set: {command_ids!r}")
+    for command in item.get("commands") or []:
+        if command.get("status") != "pass" or command.get("missing"):
+            raise SystemExit(f"multi-profile onboarding command should pass without missing checks: {command!r}")
 if "Which ShipGuard command" in data.get("reportQualityQuestions", []):
     raise SystemExit("the answered lowest-value question should not remain a report-quality question")
 retired_phrases = (
@@ -340,11 +370,12 @@ retired_phrases = (
     "scenario-remediation receipts that pair each blocked developer journey",
     "adoption receipts that prove a fresh user can install",
     "target-onboarding receipts that prove a fresh app repo",
+    "multi-profile onboarding receipts that prove",
 )
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"runtime-output, negative-fixture, command-family, skill/plugin receipt, workflow-chain, scenario-matrix, scenario-failure, scenario-remediation, adoption, and target-onboarding questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
-if not any("multi-profile onboarding receipts" in question for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"expected multi-profile onboarding receipt quality question: {data.get('reportQualityQuestions')!r}")
+    raise SystemExit(f"runtime-output, negative-fixture, command-family, skill/plugin receipt, workflow-chain, scenario-matrix, scenario-failure, scenario-remediation, adoption, target-onboarding, and multi-profile onboarding questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
+if not any("profile-native first-audit receipts" in question for question in data.get("reportQualityQuestions", [])):
+    raise SystemExit(f"expected profile-native first-audit quality question: {data.get('reportQualityQuestions')!r}")
 PY
 
 json_stdout="$(./bin/shipguard value-gauntlet --path . --json)"
@@ -361,6 +392,6 @@ grep -q '# ShipGuard Tool Value Gauntlet' <<<"$markdown_stdout"
 grep -q '"tool": "shipguard ios report-quality"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/quality/ios-report-quality.md"
-grep -q 'multi-profile onboarding receipts' "$tmp_dir/quality/ios-report-quality.md"
+grep -q 'profile-native first-audit receipts' "$tmp_dir/quality/ios-report-quality.md"
 
 echo "tool value gauntlet tests passed"

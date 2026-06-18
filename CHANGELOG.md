@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `multiProfileOnboardingReceipts` to `shipguard value-gauntlet`: a public all-starter-profiles receipt now runs `shipguard init` and `shipguard doctor` for iOS, web, backend, and CLI fresh target repos, verifies each target receives `SHIPGUARD_PROFILE.md`, and advances the next priority to profile-native first-audit receipts for non-iOS profiles.
+- Added `SHIPGUARD_PROFILE.md` copying to `shipguard init` so every starter profile leaves a profile-specific next-command guide inside the target repo without requiring maintainer context.
 - Added `targetOnboardingReceipts` to `shipguard value-gauntlet`: a public fresh iOS target receipt now copies `fixtures/demo-ios-repo` into a temporary app repo, runs `shipguard init ios`, starter `doctor`, toolkit `validate`, iOS doctor, iOS inventory, and the first permission-audit plan, then advances the next priority to multi-profile onboarding receipts.
 - Added `adoptionReceipts` to `shipguard value-gauntlet`: a public fresh-package receipt now builds from a temporary checkout copy, installs the extracted package into a temporary prefix, verifies a fresh Codex plugin cache with `codex status --strict`, runs the first Brand Deck audit from the installed CLI, scores that audit with report-quality, and advances the next priority to target-repo onboarding receipts.
 - Added `scenarioRemediationReceipts` to `shipguard value-gauntlet`: a public blocked-to-repaired receipt now proves unsafe transcripts, broken docs, stale Codex plugin cache metadata, and incomplete release proof first block with evidence, then recover through the smallest repair step and a successful rerun before the next priority advances to fresh-user adoption receipts.

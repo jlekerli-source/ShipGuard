@@ -22,8 +22,8 @@ This walkthrough proves the toolkit without private Ringly code.
 ## From A Release Package
 
 ```bash
-tar -xzf shipguard-v3.98.0.tar.gz
-cd shipguard-v3.98.0
+tar -xzf shipguard-v3.99.0.tar.gz
+cd shipguard-v3.99.0
 ./bin/shipguard version
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" init ios /tmp/demo-ios-repo

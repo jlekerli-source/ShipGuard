@@ -6,6 +6,13 @@ Copy these files into an iOS app repo when you want Codex to work inside explici
 
 - `AGENTS.md`: root operating instructions for Codex.
 
+## First Commands
+
+```bash
+shipguard init ios ../my-ios-app
+shipguard doctor ios ../my-ios-app
+```
+
 ## Adaptation Checklist
 
 1. Replace `[APP_NAME]`, `[XCODE_PROJECT]`, and placeholder command names.

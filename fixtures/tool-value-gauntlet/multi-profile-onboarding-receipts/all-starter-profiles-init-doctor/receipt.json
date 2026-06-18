@@ -1,0 +1,239 @@
+{
+  "id": "all-starter-profiles-init-doctor",
+  "kind": "multi-profile-onboarding",
+  "surface": "ShipGuard multi-profile starter onboarding path",
+  "selectedSkill": "ios-shipguard",
+  "selectedMode": "multi-profile-onboarding",
+  "trigger": "User asks whether every ShipGuard starter profile is genuinely useful, not only named.",
+  "sourcePaths": [
+    "bin/shipguard",
+    "templates/ios/README.md",
+    "templates/web/README.md",
+    "templates/backend/README.md",
+    "templates/cli/README.md",
+    "templates/ios/AGENTS.md",
+    "templates/web/AGENTS.md",
+    "templates/backend/AGENTS.md",
+    "templates/cli/AGENTS.md",
+    "docs/template-profiles.md",
+    "scripts/tool_value_gauntlet.py"
+  ],
+  "expectedSourcePhrases": [
+    "init ios",
+    "init web",
+    "init backend",
+    "init cli",
+    "doctor ios",
+    "doctor web",
+    "doctor backend",
+    "doctor cli",
+    "multi-profile"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppDetailsAllowed": false,
+    "freshTargetRequired": true
+  },
+  "commands": [
+    {
+      "id": "init-ios-starter",
+      "display": "./bin/shipguard init ios <fresh-ios-target> --force",
+      "args": [
+        "init",
+        "ios",
+        "{out}/target-ios",
+        "--force"
+      ],
+      "expectedOutputPhrases": [
+        "initialized ios Codex workflow starter"
+      ],
+      "artifacts": [
+        {
+          "path": "target-ios/AGENTS.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "AGENTS.md Template For iOS App Work",
+            "Validation Commands"
+          ]
+        },
+        {
+          "path": "target-ios/SHIPGUARD_PROFILE.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "iOS Codex Workflow Starter",
+            "shipguard init ios",
+            "shipguard doctor ios",
+            "Recommended Next Copies"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "doctor-ios-starter",
+      "display": "./bin/shipguard doctor ios <fresh-ios-target>",
+      "args": [
+        "doctor",
+        "ios",
+        "{out}/target-ios"
+      ],
+      "expectedOutputPhrases": [
+        "doctor passed for ios",
+        "ok: AGENTS.md",
+        "ok: .agents/skills/ui-polish/SKILL.md"
+      ]
+    },
+    {
+      "id": "init-web-starter",
+      "display": "./bin/shipguard init web <fresh-web-target> --force",
+      "args": [
+        "init",
+        "web",
+        "{out}/target-web",
+        "--force"
+      ],
+      "expectedOutputPhrases": [
+        "initialized web Codex workflow starter"
+      ],
+      "artifacts": [
+        {
+          "path": "target-web/AGENTS.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "Web ShipGuard Instructions",
+            "Validation Lanes",
+            "Handoff Rule"
+          ]
+        },
+        {
+          "path": "target-web/SHIPGUARD_PROFILE.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "Web Workflow Starter",
+            "shipguard init web",
+            "shipguard doctor web"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "doctor-web-starter",
+      "display": "./bin/shipguard doctor web <fresh-web-target>",
+      "args": [
+        "doctor",
+        "web",
+        "{out}/target-web"
+      ],
+      "expectedOutputPhrases": [
+        "doctor passed for web",
+        "ok: AGENTS.md",
+        "ok: PLANS.md"
+      ]
+    },
+    {
+      "id": "init-backend-starter",
+      "display": "./bin/shipguard init backend <fresh-backend-target> --force",
+      "args": [
+        "init",
+        "backend",
+        "{out}/target-backend",
+        "--force"
+      ],
+      "expectedOutputPhrases": [
+        "initialized backend Codex workflow starter"
+      ],
+      "artifacts": [
+        {
+          "path": "target-backend/AGENTS.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "Backend Service ShipGuard Instructions",
+            "Validation Lanes",
+            "Handoff Rule"
+          ]
+        },
+        {
+          "path": "target-backend/SHIPGUARD_PROFILE.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "Backend Profile",
+            "shipguard init backend",
+            "shipguard doctor backend"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "doctor-backend-starter",
+      "display": "./bin/shipguard doctor backend <fresh-backend-target>",
+      "args": [
+        "doctor",
+        "backend",
+        "{out}/target-backend"
+      ],
+      "expectedOutputPhrases": [
+        "doctor passed for backend",
+        "ok: AGENTS.md",
+        "ok: PLANS.md"
+      ]
+    },
+    {
+      "id": "init-cli-starter",
+      "display": "./bin/shipguard init cli <fresh-cli-target> --force",
+      "args": [
+        "init",
+        "cli",
+        "{out}/target-cli",
+        "--force"
+      ],
+      "expectedOutputPhrases": [
+        "initialized cli Codex workflow starter"
+      ],
+      "artifacts": [
+        {
+          "path": "target-cli/AGENTS.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "CLI Tool ShipGuard Instructions",
+            "Validation Lanes",
+            "Handoff Rule"
+          ]
+        },
+        {
+          "path": "target-cli/SHIPGUARD_PROFILE.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "CLI Profile",
+            "shipguard init cli",
+            "shipguard doctor cli"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "doctor-cli-starter",
+      "display": "./bin/shipguard doctor cli <fresh-cli-target>",
+      "args": [
+        "doctor",
+        "cli",
+        "{out}/target-cli"
+      ],
+      "expectedOutputPhrases": [
+        "doctor passed for cli",
+        "ok: AGENTS.md",
+        "ok: PLANS.md"
+      ]
+    },
+    {
+      "id": "toolkit-validate",
+      "display": "./bin/shipguard validate <shipguard-root>",
+      "args": [
+        "validate",
+        "."
+      ],
+      "expectedOutputPhrases": [
+        "workflow bundle validation passed"
+      ]
+    }
+  ]
+}

@@ -7,6 +7,7 @@ It is intentionally framework-neutral. Replace placeholder paths with the actual
 After initializing:
 
 ```bash
+shipguard init web ../my-web-app
 shipguard doctor web .
 ```
 

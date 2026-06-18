@@ -12,6 +12,8 @@ cd "$repo_root"
 ./bin/shipguard doctor ios "$tmp_dir/ios-app" >/dev/null
 ./bin/shipguard doctor "$tmp_dir/ios-app" >/dev/null
 grep -q 'AGENTS.md Template For iOS App Work' "$tmp_dir/ios-app/AGENTS.md"
+grep -q 'iOS Codex Workflow Starter' "$tmp_dir/ios-app/SHIPGUARD_PROFILE.md"
+grep -q 'shipguard doctor ios' "$tmp_dir/ios-app/SHIPGUARD_PROFILE.md"
 test -f "$tmp_dir/ios-app/scripts/bug-triage/prompts.md"
 if rg -n 'Ringly' "$tmp_dir/ios-app/.agents/skills" "$tmp_dir/ios-app/scripts/bug-triage" >/dev/null; then
   echo "starter skills must not leak Ringly-specific branding" >&2
@@ -22,22 +24,29 @@ fi
 ./bin/shipguard doctor web "$tmp_dir/web-app" >/dev/null
 grep -q 'Web ShipGuard Instructions' "$tmp_dir/web-app/AGENTS.md"
 grep -q 'auth, payments, migrations' "$tmp_dir/web-app/AGENTS.md"
+grep -q 'Web Workflow Starter' "$tmp_dir/web-app/SHIPGUARD_PROFILE.md"
+grep -q 'shipguard doctor web' "$tmp_dir/web-app/SHIPGUARD_PROFILE.md"
 
 printf 'custom\n' > "$tmp_dir/web-app/AGENTS.md"
 ./bin/shipguard init web "$tmp_dir/web-app" >/dev/null
 grep -qx 'custom' "$tmp_dir/web-app/AGENTS.md"
 ./bin/shipguard init web "$tmp_dir/web-app" --force >/dev/null
 grep -q 'Web ShipGuard Instructions' "$tmp_dir/web-app/AGENTS.md"
+grep -q 'shipguard init web' "$tmp_dir/web-app/SHIPGUARD_PROFILE.md"
 
 ./bin/shipguard init backend "$tmp_dir/backend-app" >/dev/null
 ./bin/shipguard doctor backend "$tmp_dir/backend-app" >/dev/null
 grep -q 'Backend Service ShipGuard Instructions' "$tmp_dir/backend-app/AGENTS.md"
 grep -q 'queues, schedulers, retries' "$tmp_dir/backend-app/AGENTS.md"
+grep -q 'Backend Profile' "$tmp_dir/backend-app/SHIPGUARD_PROFILE.md"
+grep -q 'shipguard doctor backend' "$tmp_dir/backend-app/SHIPGUARD_PROFILE.md"
 
 ./bin/shipguard init cli "$tmp_dir/cli-tool" >/dev/null
 ./bin/shipguard doctor cli "$tmp_dir/cli-tool" >/dev/null
 grep -q 'CLI Tool ShipGuard Instructions' "$tmp_dir/cli-tool/AGENTS.md"
 grep -q 'stdout, stderr, exit codes' "$tmp_dir/cli-tool/AGENTS.md"
+grep -q 'CLI Profile' "$tmp_dir/cli-tool/SHIPGUARD_PROFILE.md"
+grep -q 'shipguard doctor cli' "$tmp_dir/cli-tool/SHIPGUARD_PROFILE.md"
 
 if ./bin/shipguard init desktop "$tmp_dir/desktop-app" >/dev/null 2>&1; then
   echo "expected unknown init profile to fail" >&2

@@ -77,7 +77,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add multi-profile onboarding receipts that prove iOS, web, backend, and CLI starter profiles each install, pass doctor, and name first useful commands without maintainer context?",
+    "Should ShipGuard add profile-native first-audit receipts so web, backend, and CLI targets get real report commands beyond init/doctor starter files?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -152,6 +152,7 @@ SCENARIO_FAILURE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "scen
 SCENARIO_REMEDIATION_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "scenario-remediation-receipts"
 ADOPTION_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "adoption-receipts"
 TARGET_ONBOARDING_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "target-onboarding-receipts"
+MULTI_PROFILE_ONBOARDING_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "multi-profile-onboarding-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -757,6 +758,18 @@ def load_adoption_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
 
 def load_target_onboarding_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / TARGET_ONBOARDING_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_multi_profile_onboarding_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / MULTI_PROFILE_ONBOARDING_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -1615,9 +1628,37 @@ def target_onboarding_receipt_probe(root: Path) -> dict[str, Any]:
         },
         "receipts": receipts,
         "nextAction": (
-            "Add multi-profile onboarding receipts that prove iOS, web, backend, and CLI starter profiles each install, pass doctor, and name first useful commands without maintainer context."
+            "Target onboarding is passing; inspect multiProfileOnboardingReceipts for starter-profile breadth before expanding into profile-native first audits."
             if status == "pass"
             else "Fix target-onboarding receipts so fresh app onboarding proves starter install, doctor/validate, and first scoped plan."
+        ),
+    }
+
+
+def multi_profile_onboarding_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [run_skill_plugin_receipt(root, fixture_dir, meta) for fixture_dir, meta in load_multi_profile_onboarding_receipts(root)]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public multi-profile onboarding receipts that prove iOS, web, backend, and CLI starter profiles each install, pass doctor, and expose first useful commands without maintainer context.",
+        "fixtureRoot": MULTI_PROFILE_ONBOARDING_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public multi-profile onboarding receipt fixtures", "starter profile templates", "temporary fresh target repos"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Add profile-native first-audit receipts so web, backend, and CLI targets get useful ShipGuard reports beyond init/doctor starter files."
+            if status == "pass"
+            else "Fix multi-profile onboarding receipts so every starter profile proves init, doctor, and first useful commands from a fresh target repo."
         ),
     }
 
@@ -2122,6 +2163,7 @@ def lowest_value_surface_probe(
     scenario_remediation_receipts: dict[str, Any],
     adoption_receipts: dict[str, Any],
     target_onboarding_receipts: dict[str, Any],
+    multi_profile_onboarding_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -2163,29 +2205,56 @@ def lowest_value_surface_probe(
                                         if adoption_receipts_passed:
                                             target_onboarding_receipts_passed = target_onboarding_receipts.get("status") == "pass"
                                             if target_onboarding_receipts_passed:
-                                                answer = surface_probe_row(
-                                                    surface_type="cross-cutting",
-                                                    identifier="shipguard value-gauntlet multi-profile-onboarding-receipts",
-                                                    name="Multi-profile onboarding receipts",
-                                                    base_score=100,
-                                                    base_status="pass",
-                                                    depth_checks=[
-                                                        depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
-                                                        depth_check("runtimeOutputProbe", True, f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100"),
-                                                        depth_check("runtimeRegressionFixtures", True, f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output"),
-                                                        depth_check("runtimeCommandCoverage", True, f"{command_family_probe.get('passedCommandCount') or 0}/{command_family_probe.get('commandCount') or 0} public command help paths executed"),
-                                                        depth_check("runtimeSkillPluginReceipts", True, f"{skill_plugin_receipts.get('passedReceiptCount') or 0}/{skill_plugin_receipts.get('receiptCount') or 0} skill/plugin receipts executed"),
-                                                        depth_check("runtimeWorkflowChainReceipts", True, f"{workflow_chain_receipts.get('passedReceiptCount') or 0}/{workflow_chain_receipts.get('receiptCount') or 0} workflow-chain receipts executed"),
-                                                        depth_check("runtimeScenarioMatrixReceipts", True, f"{scenario_matrix_receipts.get('passedReceiptCount') or 0}/{scenario_matrix_receipts.get('receiptCount') or 0} scenario-matrix receipts executed"),
-                                                        depth_check("runtimeScenarioFailureReceipts", True, f"{scenario_failure_receipts.get('passedReceiptCount') or 0}/{scenario_failure_receipts.get('receiptCount') or 0} scenario-failure receipts executed"),
-                                                        depth_check("runtimeScenarioRemediationReceipts", True, f"{scenario_remediation_receipts.get('passedRemediationPairCount') or 0}/{scenario_remediation_receipts.get('remediationPairCount') or 0} remediation pairs executed"),
-                                                        depth_check("runtimeAdoptionReceipts", True, f"{adoption_receipts.get('passedReceiptCount') or 0}/{adoption_receipts.get('receiptCount') or 0} fresh-user adoption receipts executed"),
-                                                        depth_check("runtimeTargetOnboardingReceipts", True, f"{target_onboarding_receipts.get('passedReceiptCount') or 0}/{target_onboarding_receipts.get('receiptCount') or 0} target-onboarding receipts executed"),
-                                                        depth_check("runtimeMultiProfileOnboardingReceipts", False, "iOS, web, backend, and CLI starter profiles are not yet proven through one multi-profile onboarding receipt set"),
-                                                    ],
-                                                    recommendation="Add multi-profile onboarding receipts that prove iOS, web, backend, and CLI starter profiles each install, pass doctor, and name first useful commands without maintainer context.",
-                                                    proof="Run value-gauntlet plus focused multi-profile onboarding receipts across public synthetic target repos and starter profiles.",
-                                                )
+                                                multi_profile_onboarding_receipts_passed = multi_profile_onboarding_receipts.get("status") == "pass"
+                                                if multi_profile_onboarding_receipts_passed:
+                                                    answer = surface_probe_row(
+                                                        surface_type="cross-cutting",
+                                                        identifier="shipguard value-gauntlet profile-native-first-audit-receipts",
+                                                        name="Profile-native first-audit receipts",
+                                                        base_score=100,
+                                                        base_status="pass",
+                                                        depth_checks=[
+                                                            depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
+                                                            depth_check("runtimeOutputProbe", True, f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100"),
+                                                            depth_check("runtimeRegressionFixtures", True, f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output"),
+                                                            depth_check("runtimeCommandCoverage", True, f"{command_family_probe.get('passedCommandCount') or 0}/{command_family_probe.get('commandCount') or 0} public command help paths executed"),
+                                                            depth_check("runtimeSkillPluginReceipts", True, f"{skill_plugin_receipts.get('passedReceiptCount') or 0}/{skill_plugin_receipts.get('receiptCount') or 0} skill/plugin receipts executed"),
+                                                            depth_check("runtimeWorkflowChainReceipts", True, f"{workflow_chain_receipts.get('passedReceiptCount') or 0}/{workflow_chain_receipts.get('receiptCount') or 0} workflow-chain receipts executed"),
+                                                            depth_check("runtimeScenarioMatrixReceipts", True, f"{scenario_matrix_receipts.get('passedReceiptCount') or 0}/{scenario_matrix_receipts.get('receiptCount') or 0} scenario-matrix receipts executed"),
+                                                            depth_check("runtimeScenarioFailureReceipts", True, f"{scenario_failure_receipts.get('passedReceiptCount') or 0}/{scenario_failure_receipts.get('receiptCount') or 0} scenario-failure receipts executed"),
+                                                            depth_check("runtimeScenarioRemediationReceipts", True, f"{scenario_remediation_receipts.get('passedRemediationPairCount') or 0}/{scenario_remediation_receipts.get('remediationPairCount') or 0} remediation pairs executed"),
+                                                            depth_check("runtimeAdoptionReceipts", True, f"{adoption_receipts.get('passedReceiptCount') or 0}/{adoption_receipts.get('receiptCount') or 0} fresh-user adoption receipts executed"),
+                                                            depth_check("runtimeTargetOnboardingReceipts", True, f"{target_onboarding_receipts.get('passedReceiptCount') or 0}/{target_onboarding_receipts.get('receiptCount') or 0} target-onboarding receipts executed"),
+                                                            depth_check("runtimeMultiProfileOnboardingReceipts", True, f"{multi_profile_onboarding_receipts.get('passedReceiptCount') or 0}/{multi_profile_onboarding_receipts.get('receiptCount') or 0} multi-profile onboarding receipts executed"),
+                                                            depth_check("runtimeProfileNativeFirstAuditReceipts", False, "web, backend, and CLI targets still rely on starter init/doctor proof instead of native first-audit reports"),
+                                                        ],
+                                                        recommendation="Add profile-native first-audit receipts so web, backend, and CLI targets get useful ShipGuard reports beyond init/doctor starter files.",
+                                                        proof="Run value-gauntlet plus focused profile-native first-audit receipts for web, backend, and CLI synthetic target repos.",
+                                                    )
+                                                else:
+                                                    answer = surface_probe_row(
+                                                        surface_type="cross-cutting",
+                                                        identifier="shipguard value-gauntlet multi-profile-onboarding-receipts",
+                                                        name="Multi-profile onboarding receipts",
+                                                        base_score=100,
+                                                        base_status="pass",
+                                                        depth_checks=[
+                                                            depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
+                                                            depth_check("runtimeOutputProbe", True, f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100"),
+                                                            depth_check("runtimeRegressionFixtures", True, f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output"),
+                                                            depth_check("runtimeCommandCoverage", True, f"{command_family_probe.get('passedCommandCount') or 0}/{command_family_probe.get('commandCount') or 0} public command help paths executed"),
+                                                            depth_check("runtimeSkillPluginReceipts", True, f"{skill_plugin_receipts.get('passedReceiptCount') or 0}/{skill_plugin_receipts.get('receiptCount') or 0} skill/plugin receipts executed"),
+                                                            depth_check("runtimeWorkflowChainReceipts", True, f"{workflow_chain_receipts.get('passedReceiptCount') or 0}/{workflow_chain_receipts.get('receiptCount') or 0} workflow-chain receipts executed"),
+                                                            depth_check("runtimeScenarioMatrixReceipts", True, f"{scenario_matrix_receipts.get('passedReceiptCount') or 0}/{scenario_matrix_receipts.get('receiptCount') or 0} scenario-matrix receipts executed"),
+                                                            depth_check("runtimeScenarioFailureReceipts", True, f"{scenario_failure_receipts.get('passedReceiptCount') or 0}/{scenario_failure_receipts.get('receiptCount') or 0} scenario-failure receipts executed"),
+                                                            depth_check("runtimeScenarioRemediationReceipts", True, f"{scenario_remediation_receipts.get('passedRemediationPairCount') or 0}/{scenario_remediation_receipts.get('remediationPairCount') or 0} remediation pairs executed"),
+                                                            depth_check("runtimeAdoptionReceipts", True, f"{adoption_receipts.get('passedReceiptCount') or 0}/{adoption_receipts.get('receiptCount') or 0} fresh-user adoption receipts executed"),
+                                                            depth_check("runtimeTargetOnboardingReceipts", True, f"{target_onboarding_receipts.get('passedReceiptCount') or 0}/{target_onboarding_receipts.get('receiptCount') or 0} target-onboarding receipts executed"),
+                                                            depth_check("runtimeMultiProfileOnboardingReceipts", False, f"{multi_profile_onboarding_receipts.get('passedReceiptCount') or 0}/{multi_profile_onboarding_receipts.get('receiptCount') or 0} multi-profile onboarding receipts passed"),
+                                                        ],
+                                                        recommendation="Add multi-profile onboarding receipts that prove iOS, web, backend, and CLI starter profiles each install, pass doctor, and name first useful commands without maintainer context.",
+                                                        proof="Run value-gauntlet plus focused multi-profile onboarding receipts across public synthetic target repos and starter profiles.",
+                                                    )
                                             else:
                                                 answer = surface_probe_row(
                                                     surface_type="cross-cutting",
@@ -2526,6 +2595,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     scenario_remediation_receipts = scenario_remediation_receipt_probe(root)
     adoption_receipts = adoption_receipt_probe(root)
     target_onboarding_receipts = target_onboarding_receipt_probe(root)
+    multi_profile_onboarding_receipts = multi_profile_onboarding_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -2544,6 +2614,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         scenario_remediation_receipts=scenario_remediation_receipts,
         adoption_receipts=adoption_receipts,
         target_onboarding_receipts=target_onboarding_receipts,
+        multi_profile_onboarding_receipts=multi_profile_onboarding_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -2588,6 +2659,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "scenarioRemediationReceipts": scenario_remediation_receipts,
         "adoptionReceipts": adoption_receipts,
         "targetOnboardingReceipts": target_onboarding_receipts,
+        "multiProfileOnboardingReceipts": multi_profile_onboarding_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -2869,6 +2941,30 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_target_onboarding_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_target_onboarding_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+    multi_profile_onboarding_receipts = report.get("multiProfileOnboardingReceipts") or {}
+    lines.extend(["", "## Multi-Profile Onboarding Receipts", ""])
+    lines.append(f"- Status: {multi_profile_onboarding_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {multi_profile_onboarding_receipts.get('passedReceiptCount', 0)}/{multi_profile_onboarding_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {multi_profile_onboarding_receipts.get('commandCount', 0)}")
+    if multi_profile_onboarding_receipts.get("nextAction"):
+        lines.append(f"- Next action: {multi_profile_onboarding_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in multi_profile_onboarding_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 32)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_multi_profile_onboarding_commands = [
+        (receipt, command)
+        for receipt in multi_profile_onboarding_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_multi_profile_onboarding_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_multi_profile_onboarding_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

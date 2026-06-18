@@ -245,6 +245,7 @@ required_artifacts=(
   "fixtures/tool-value-gauntlet/scenario-remediation-receipts/blocked-to-repaired-loop/receipt.json"
   "fixtures/tool-value-gauntlet/adoption-receipts/fresh-package-first-audit/receipt.json"
   "fixtures/tool-value-gauntlet/target-onboarding-receipts/fresh-ios-target-first-plan/receipt.json"
+  "fixtures/tool-value-gauntlet/multi-profile-onboarding-receipts/all-starter-profiles-init-doctor/receipt.json"
   "fixtures/demo-ios-repo/DemoShipGuardApp.xcodeproj/project.pbxproj"
   "fixtures/demo-ios-repo/DemoShipGuardApp.xcodeproj/xcshareddata/xcschemes/DemoShipGuardApp.xcscheme"
   "fixtures/demo-ios-repo/DemoShipGuardApp.xctestplan"

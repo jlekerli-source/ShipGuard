@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T09:08:13Z
-- Current toolkit version: 3.98.0
-- Target release: v3.98.0
-- Title: ShipGuard Target Onboarding Receipts
+- Generated: 2026-06-18T09:30:58Z
+- Current toolkit version: 3.99.0
+- Target release: v3.99.0
+- Title: ShipGuard Multi-Profile Onboarding Receipts
 
 ## Slash Plan
 
 ```text
-/plan v3.98.0 ShipGuard Target Onboarding Receipts for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add targetOnboardingReceipts to value-gauntlet, add a public fresh-ios-target-first-plan receipt that proves a fresh iOS app repo can receive starter files, pass starter doctor, validate ShipGuard, run iOS doctor/inventory, get the first scoped permission-audit plan, and move the next priority to multi-profile onboarding receipts.
+/plan v3.99.0 ShipGuard Multi-Profile Onboarding Receipts for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add multiProfileOnboardingReceipts to value-gauntlet, add a public all-starter-profiles-init-doctor receipt that proves iOS, web, backend, and CLI starter profiles each install into fresh target repos, pass doctor, and leave SHIPGUARD_PROFILE.md next-command guides, then move the next priority to profile-native first-audit receipts.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.98.0 ShipGuard Target Onboarding Receipts for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add targetOnboardingReceipts to value-gauntlet, add a public fresh-ios-target-first-plan receipt that proves a fresh iOS app repo can receive starter files, pass starter doctor, validate ShipGuard, run iOS doctor/inventory, get the first scoped permission-audit plan, and move the next priority to multi-profile onboarding receipts, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.99.0 ShipGuard Multi-Profile Onboarding Receipts for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add multiProfileOnboardingReceipts to value-gauntlet, add a public all-starter-profiles-init-doctor receipt that proves iOS, web, backend, and CLI starter profiles each install into fresh target repos, pass doctor, and leave SHIPGUARD_PROFILE.md next-command guides, then move the next priority to profile-native first-audit receipts, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add targetOnboardingReceipts to value-gauntlet, add a public fresh-ios-target-first-plan receipt that proves a fresh iOS app repo can receive starter files, pass starter doctor, validate ShipGuard, run iOS doctor/inventory, get the first scoped permission-audit plan, and move the next priority to multi-profile onboarding receipts.
+Add multiProfileOnboardingReceipts to value-gauntlet, add a public all-starter-profiles-init-doctor receipt that proves iOS, web, backend, and CLI starter profiles each install into fresh target repos, pass doctor, and leave SHIPGUARD_PROFILE.md next-command guides, then move the next priority to profile-native first-audit receipts.
 
 ## Completion Receipt
 
-- Completed scope: Add targetOnboardingReceipts to value-gauntlet, add a public fresh-ios-target-first-plan receipt that proves a fresh iOS app repo can receive starter files, pass starter doctor, validate ShipGuard, run iOS doctor/inventory, get the first scoped permission-audit plan, and move the next priority to multi-profile onboarding receipts.
-- Evidence: Implemented targetOnboardingReceipts with fixtures/tool-value-gauntlet/target-onboarding-receipts/fresh-ios-target-first-plan/receipt.json; value-gauntlet probe shows targetOnboardingReceipts status pass, 1/1 receipts, six commands, and lowestValueSurfaceProbe now escalates to shipguard value-gauntlet multi-profile-onboarding-receipts.
+- Completed scope: Add multiProfileOnboardingReceipts to value-gauntlet, add a public all-starter-profiles-init-doctor receipt that proves iOS, web, backend, and CLI starter profiles each install into fresh target repos, pass doctor, and leave SHIPGUARD_PROFILE.md next-command guides, then move the next priority to profile-native first-audit receipts.
+- Evidence: Implemented multiProfileOnboardingReceipts with fixtures/tool-value-gauntlet/multi-profile-onboarding-receipts/all-starter-profiles-init-doctor/receipt.json; value-gauntlet shows multiProfileOnboardingReceipts status pass, 1/1 receipts, nine commands, and lowestValueSurfaceProbe now escalates to shipguard value-gauntlet profile-native-first-audit-receipts.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.99.0 ShipGuard Multi-Profile Onboarding Receipts for jlekerli-source/ShipGuard:
+/plan v3.100.0 ShipGuard Profile-Native First-Audit Receipts for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add targetOnboardingReceipts to value-gauntlet, add a public fresh-ios-target-fi
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.99.0 ShipGuard Multi-Profile Onboarding Receipts for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.100.0 ShipGuard Profile-Native First-Audit Receipts for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.99.0 --title "ShipGuard Multi-Profile Onboarding Receipts" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.100.0 --title "ShipGuard Profile-Native First-Audit Receipts" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -136,12 +136,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.98.0.
+1. Open or update the tracking issue for v3.99.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.98.0` and upload `dist/shipguard-v3.98.0.tar.gz`.
+6. Create release `v3.99.0` and upload `dist/shipguard-v3.99.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
