@@ -109,6 +109,8 @@ TOKEN_RISK_PATTERNS = {
     ),
     "known-token": re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,})\b"),
 }
+LOCAL_PATH_VALUE_RE = re.compile(r"(?<![A-Za-z0-9_])/(?:Users|private/tmp|var/folders)/[^\s`'\"),]+")
+PRIVATE_EVAL_APP_RE = re.compile(r"(?i)\b(?:Ringly|Ilmify|InweFi)\b")
 
 
 def utc_now() -> str:
@@ -136,6 +138,10 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Omit local absolute input/report paths from JSON and Markdown before external sharing.",
     )
+    parser.add_argument(
+        "--write-fixture-candidates",
+        help="Write public-safe synthetic fixture starter directories for generated fixtureCandidates.",
+    )
     parser.add_argument("--strict", action="store_true", help="Exit non-zero when report-quality status is not pass")
     parser.add_argument("--json", action="store_true", help="Print JSON to stdout")
     parser.add_argument("--markdown", action="store_true", help="Print Markdown to stdout")
@@ -160,7 +166,7 @@ def report_json_files(inputs: list[str]) -> list[Path]:
             paths.append(path)
             continue
         for candidate in sorted(path.rglob("*.json")):
-            if candidate.name == "ios-report-quality.json":
+            if candidate.name in {"ios-report-quality.json", "fixture-candidate.json", "fixture-candidates-index.json"}:
                 continue
             paths.append(candidate)
     unique = sorted({path for path in paths})
@@ -1501,6 +1507,16 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
             "./bin/shipguard ios report-quality --reports <fixture-dir> --out <quality-dir> --shareable",
             "./tests/ios_report_quality_test.sh",
         ],
+        "materialization": {
+            "safeSyntheticOnly": True,
+            "writeCommand": "./bin/shipguard ios report-quality --reports <report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
+            "files": [
+                "README.md",
+                "fixture-candidate.json",
+                "fixture-report.json",
+                "fixture-report.md",
+            ],
+        },
         "privateDataPolicy": "Use the private app report only to choose the shape of the public fixture. Do not copy private code, local paths, screenshots, app-specific identifiers, or proprietary text into the fixture.",
     }
 
@@ -1640,8 +1656,23 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append("- Build synthetic public fixtures from the report shape, not from private app code or screenshots.")
         lines.append("- Keep `scopeBoundary.shipguardOnly` and `targetAppsReadOnly` explicit in every fixture report.")
         lines.append("- Validate with `./bin/shipguard ios report-quality --reports <fixture-dir> --out <quality-dir> --shareable` and `./tests/ios_report_quality_test.sh`.")
+        lines.append("- Materialize starter fixtures with `--write-fixture-candidates <fixture-output-dir>` when the next loop needs concrete files.")
     else:
         lines.append("No fixture candidates were generated from the current actionability questions.")
+
+    materialized = report.get("fixtureMaterialization") or {}
+    if materialized:
+        lines.extend(["", "## Fixture Materialization", ""])
+        lines.append(f"- Status: `{materialized.get('status') or 'unknown'}`")
+        lines.append(f"- Output: `{materialized.get('output') or '<fixture-output-dir>'}`")
+        entries = materialized.get("candidates") or []
+        if entries:
+            lines.extend(["", "| Candidate | Directory | Files |", "| --- | --- | --- |"])
+            for item in entries:
+                files = ", ".join(f"`{name}`" for name in item.get("files", []))
+                lines.append(
+                    f"| `{table_cell(item.get('candidateId') or 'unknown', 48)}` | `{table_cell(item.get('directory') or '-', 72)}` | {files} |"
+                )
 
     plan = report["redactionPlan"]
     lines.extend(["", "## Redaction Plan", ""])
@@ -1671,9 +1702,195 @@ def write_outputs(report: dict[str, Any], out_dir: Path) -> None:
     print(f"status: {report['status']}")
 
 
+def safe_candidate_metadata(candidate: dict[str, Any]) -> dict[str, Any]:
+    metadata = dict(candidate)
+    source_reports = metadata.pop("sourceReports", [])
+    candidate_id = materialized_candidate_id(candidate)
+    if "sourceQuestion" in metadata:
+        metadata["sourceQuestion"] = materialized_source_question(candidate)
+    for text_key in ("fixtureType", "sourceTool"):
+        if text_key in metadata:
+            metadata[text_key] = sanitize_materialized_text(metadata[text_key])
+    metadata["candidateId"] = candidate_id
+    metadata["publicFixturePath"] = f"fixtures/ios-report-quality/{candidate_id}"
+    metadata["sourceReportCount"] = len(source_reports) if isinstance(source_reports, list) else 0
+    metadata["sourceReportsRedacted"] = True
+    metadata["privateDataPolicy"] = (
+        "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy "
+        "private app code, local paths, screenshots, app-specific identifiers, or proprietary text."
+    )
+    return metadata
+
+
+def sanitize_materialized_text(value: object) -> str:
+    text = re.sub(r"\s+", " ", str(value or "")).strip()
+    if not text:
+        return ""
+    text = LOCAL_PATH_VALUE_RE.sub("<local-path>", text)
+    for pattern in TOKEN_RISK_PATTERNS.values():
+        text = pattern.sub("<token-like-value>", text)
+    text = PRIVATE_EVAL_APP_RE.sub("<private-app>", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def materialized_source_question(candidate: dict[str, Any]) -> str:
+    question = sanitize_materialized_text(candidate.get("sourceQuestion"))
+    if question:
+        return question
+    fixture_type = sanitize_materialized_text(candidate.get("fixtureType")) or "report-quality-actionability-fixture"
+    return f"Which ShipGuard report-quality behavior should this {fixture_type} cover?"
+
+
+def materialized_candidate_id(candidate: dict[str, Any]) -> str:
+    try:
+        priority = int(candidate.get("priority") or 0)
+    except (TypeError, ValueError):
+        priority = 0
+    prefix = f"{priority:02d}" if priority > 0 else "00"
+    fixture_type = sanitize_materialized_text(candidate.get("fixtureType")) or "report-quality-actionability-fixture"
+    return slugify(f"{prefix}-{fixture_type}", limit=96)
+
+
+def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
+    question = materialized_source_question(candidate)
+    source_tool = sanitize_materialized_text(candidate.get("sourceTool")) or "shipguard ios report-quality"
+    return {
+        "schemaVersion": 1,
+        "tool": source_tool,
+        "intent": "shipguard-evaluation",
+        "generatedAt": utc_now(),
+        "status": "pass",
+        "shareability": {
+            "mode": "shareable",
+            "localAbsolutePathsIncluded": False,
+        },
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "purpose": "Synthetic public fixture for ShipGuard report-quality behavior.",
+        },
+        "scanScope": {
+            "skippedDirectoryCount": 0,
+            "skippedDirectories": [],
+            "note": "Synthetic fixture; no private source tree was scanned.",
+        },
+        "findings": [],
+        "reportQualityQuestions": [question],
+        "fixtureCandidate": safe_candidate_metadata(candidate),
+    }
+
+
+def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
+    question = materialized_source_question(candidate)
+    fixture_type = sanitize_materialized_text(candidate.get("fixtureType")) or "report-quality-actionability-fixture"
+    return "\n".join(
+        [
+            "# Synthetic Report-Quality Fixture",
+            "",
+            "## ShipGuard Evaluation Boundary",
+            "",
+            "This is a public synthetic ShipGuard fixture. It is not copied from a private app report.",
+            "",
+            "## Scan Scope",
+            "",
+            "No private source tree was scanned. The fixture exists to exercise report-quality behavior.",
+            "",
+            "## Fixture Intent",
+            "",
+            f"- Type: `{fixture_type}`",
+            f"- Source question: {question}",
+            "",
+        ]
+    )
+
+
+def fixture_readme(candidate: dict[str, Any]) -> str:
+    candidate_id = materialized_candidate_id(candidate)
+    validation = candidate.get("validationCommands") if isinstance(candidate.get("validationCommands"), list) else []
+    lines = [
+        f"# {candidate_id}",
+        "",
+        "Public synthetic fixture starter generated by `shipguard ios report-quality --write-fixture-candidates`.",
+        "",
+        "## Boundary",
+        "",
+        "- Synthetic report shape only.",
+        "- No private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
+        "- Keep `scopeBoundary.shipguardOnly` and `targetAppsReadOnly` explicit.",
+        "",
+        "## Files",
+        "",
+        "- `fixture-candidate.json`: public-safe candidate metadata.",
+        "- `fixture-report.json`: minimal synthetic source report.",
+        "- `fixture-report.md`: paired Markdown report for report-quality checks.",
+        "",
+        "## Validation",
+        "",
+    ]
+    if validation:
+        lines.extend(f"- `{command}`" for command in validation)
+    else:
+        lines.append("- `./bin/shipguard ios report-quality --reports <fixture-dir> --out <quality-dir> --shareable`")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def write_fixture_candidate_files(report: dict[str, Any], output_dir: Path) -> dict[str, Any]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    entries: list[dict[str, Any]] = []
+    for candidate in report.get("fixtureCandidates") or []:
+        if not isinstance(candidate, dict):
+            continue
+        candidate_id = materialized_candidate_id(candidate)
+        candidate_dir = output_dir / candidate_id
+        candidate_dir.mkdir(parents=True, exist_ok=True)
+        files = {
+            "README.md": fixture_readme(candidate),
+            "fixture-candidate.json": json.dumps(safe_candidate_metadata(candidate), indent=2, sort_keys=True) + "\n",
+            "fixture-report.json": json.dumps(synthetic_fixture_report(candidate), indent=2, sort_keys=True) + "\n",
+            "fixture-report.md": synthetic_fixture_markdown(candidate),
+        }
+        for name, content in files.items():
+            (candidate_dir / name).write_text(content, encoding="utf-8")
+        entries.append(
+            {
+                "candidateId": candidate_id,
+                "directory": candidate_id,
+                "files": sorted(files),
+            }
+        )
+    index = {
+        "schemaVersion": SCHEMA_VERSION,
+        "tool": REPORT_QUALITY_TOOL,
+        "generatedAt": utc_now(),
+        "status": "pass",
+        "output": "<fixture-output-dir>",
+        "candidateCount": len(entries),
+        "candidates": entries,
+        "privateDataPolicy": "Generated fixtures are synthetic and path-safe. Source reports are not copied into fixture files.",
+    }
+    (output_dir / "fixture-candidates-index.json").write_text(json.dumps(index, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    index_lines = [
+        "# Fixture Candidates Index",
+        "",
+        "Synthetic public fixture starters generated from report-quality fixtureCandidates.",
+        "",
+        "| Candidate | Directory |",
+        "| --- | --- |",
+    ]
+    for item in entries:
+        index_lines.append(f"| `{item['candidateId']}` | `{item['directory']}` |")
+    index_lines.append("")
+    (output_dir / "README.md").write_text("\n".join(index_lines), encoding="utf-8")
+    return index
+
+
 def main() -> int:
     args = parse_args()
     report = build_report(args.reports, shareable=args.shareable)
+    if args.write_fixture_candidates:
+        materialization = write_fixture_candidate_files(report, Path(args.write_fixture_candidates).expanduser().resolve())
+        report["fixtureMaterialization"] = materialization
     if args.out:
         write_outputs(report, Path(args.out).expanduser().resolve())
     if args.json:

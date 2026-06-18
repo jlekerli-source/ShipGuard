@@ -138,7 +138,8 @@ cat > "$dedupe_fixture/ios-design.json" <<'JSON'
   "findings": [],
   "reportQualityQuestions": [
     "Did report wording keep target-app remediation separate from ShipGuard product QA next steps?",
-    "Should design DNA evidence include enough app-type context for a public fixture?"
+    "Should design DNA evidence include enough app-type context for a public fixture?",
+    "Should Ringly private app evidence become a public fixture?"
   ]
 }
 JSON
@@ -156,6 +157,7 @@ MD
 ./bin/shipguard ios report-quality \
   --reports "$dedupe_fixture" \
   --out "$tmp_dir/dedupe-quality" \
+  --write-fixture-candidates "$tmp_dir/materialized-fixtures" \
   --shareable >/dev/null
 python3 - <<'PY' "$tmp_dir/dedupe-quality/ios-report-quality.json"
 import json
@@ -188,13 +190,45 @@ if "Should design DNA evidence include enough app-type context for a public fixt
 for candidate in fixture_candidates:
     if not str(candidate.get("publicFixturePath", "")).startswith("fixtures/ios-report-quality/"):
         raise SystemExit(f"unexpected public fixture path: {candidate!r}")
+    materialization = candidate.get("materialization") or {}
+    if materialization.get("safeSyntheticOnly") is not True:
+        raise SystemExit(f"missing safe materialization flag: {candidate!r}")
+    if "fixture-report.json" not in materialization.get("files", []):
+        raise SystemExit(f"missing materialized fixture file list: {candidate!r}")
     if "private app report only to choose the shape" not in candidate.get("privateDataPolicy", ""):
         raise SystemExit(f"missing private data policy: {candidate!r}")
 PY
 grep -q 'Fixture Candidates' "$tmp_dir/dedupe-quality/ios-report-quality.md"
+grep -q 'Fixture Materialization' "$tmp_dir/dedupe-quality/ios-report-quality.md"
 grep -q 'fixtures/ios-report-quality/' "$tmp_dir/dedupe-quality/ios-report-quality.md"
+test -f "$tmp_dir/materialized-fixtures/fixture-candidates-index.json"
+test -f "$tmp_dir/materialized-fixtures/README.md"
+materialized_candidate_dir="$(find "$tmp_dir/materialized-fixtures" -mindepth 1 -maxdepth 1 -type d | sort | head -n 1)"
+test -n "$materialized_candidate_dir"
+test -f "$materialized_candidate_dir/README.md"
+test -f "$materialized_candidate_dir/fixture-candidate.json"
+test -f "$materialized_candidate_dir/fixture-report.json"
+test -f "$materialized_candidate_dir/fixture-report.md"
+grep -q '"sourceReportsRedacted": true' "$materialized_candidate_dir/fixture-candidate.json"
+grep -q '"tool": "shipguard ios ' "$materialized_candidate_dir/fixture-report.json"
+grep -q '"shipguardOnly": true' "$materialized_candidate_dir/fixture-report.json"
+grep -q '"targetAppsReadOnly": true' "$materialized_candidate_dir/fixture-report.json"
+grep -q 'Synthetic Report-Quality Fixture' "$materialized_candidate_dir/fixture-report.md"
+./bin/shipguard ios report-quality \
+  --reports "$materialized_candidate_dir" \
+  --out "$tmp_dir/materialized-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/materialized-quality/ios-report-quality.json"
 if grep -R -F -q "$tmp_dir" "$tmp_dir/dedupe-quality"; then
   echo "shareable fixture-candidate output must not include local absolute temp paths" >&2
+  exit 1
+fi
+if grep -R -F -q "$tmp_dir" "$tmp_dir/materialized-fixtures"; then
+  echo "materialized fixture candidates must not include local absolute temp paths" >&2
+  exit 1
+fi
+if grep -R -E -q 'Ringly|Ilmify|InweFi' "$tmp_dir/materialized-fixtures"; then
+  echo "materialized fixture candidates must not include private app identifiers" >&2
   exit 1
 fi
 if grep -q 'local-path-shareability-warning' "$tmp_dir/shareable-quality/ios-report-quality.json"; then

@@ -50,7 +50,7 @@ Usage:
   shipguard ios ai-readiness --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard ios external-audit --path <shipguard-repo> [--source-path <repo> ...] [--source-url <url> ...] [--out <dir>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard ios spec-workflow --path <repo> --feature <text> --out <dir> [--from-report <file-or-dir> ...] [--app-type auto|utility|game|fitness|health|education|kids|creative|commerce|social|finance|saas] [--shipguard-eval] [--shareable] [--json|--markdown]
-  shipguard ios report-quality --reports <file-or-dir> [--reports <file-or-dir> ...] [--out <dir>] [--shareable] [--strict] [--json|--markdown]
+  shipguard ios report-quality --reports <file-or-dir> [--reports <file-or-dir> ...] [--out <dir>] [--shareable] [--write-fixture-candidates <dir>] [--strict] [--json|--markdown]
   shipguard ios redact --in <file-or-dir> --out <file-or-dir> [--report <report.json>] [--private-term <text> ...]
   shipguard ios eval [--cases <cases.jsonl>] [--out <dir>] [--json|--markdown]
   shipguard ios demo --out <dir> [--fixture <repo>] [--cases <cases.jsonl>]
@@ -119,6 +119,10 @@ USAGE
 fail() {
   echo "shipguard: $*" >&2
   exit 1
+}
+
+run_py() {
+  "${PYTHON:-python3}" "$@"
 }
 
 copy_file() {
@@ -382,67 +386,67 @@ cmd_ios() {
   shift || true
   case "$subcommand" in
     doctor)
-      "$tool_root/scripts/ios_doctor.py" "$@"
+      run_py "$tool_root/scripts/ios_doctor.py" "$@"
       ;;
     inventory)
-      "$tool_root/scripts/ios_inventory.py" "$@"
+      run_py "$tool_root/scripts/ios_inventory.py" "$@"
       ;;
     preview)
-      "$tool_root/scripts/ios_preview.py" "$@"
+      run_py "$tool_root/scripts/ios_preview.py" "$@"
       ;;
     devspace)
-      "$tool_root/scripts/shipguard_devspace_mcp.py" --repo-root "$tool_root" "$@"
+      run_py "$tool_root/scripts/shipguard_devspace_mcp.py" --repo-root "$tool_root" "$@"
       ;;
     devspace-check)
-      "$tool_root/scripts/ios_devspace_check.py" "$@"
+      run_py "$tool_root/scripts/ios_devspace_check.py" "$@"
       ;;
     target-match)
-      "$tool_root/scripts/ios_target_match.py" "$@"
+      run_py "$tool_root/scripts/ios_target_match.py" "$@"
       ;;
     codex-handoff)
-      "$tool_root/scripts/ios_codex_handoff.py" "$@"
+      run_py "$tool_root/scripts/ios_codex_handoff.py" "$@"
       ;;
     plan)
-      "$tool_root/scripts/ios_plan.py" "$@"
+      run_py "$tool_root/scripts/ios_plan.py" "$@"
       ;;
     prove)
-      "$tool_root/scripts/ios_prove.py" "$@"
+      run_py "$tool_root/scripts/ios_prove.py" "$@"
       ;;
     performance)
-      "$tool_root/scripts/ios_performance.py" "$@"
+      run_py "$tool_root/scripts/ios_performance.py" "$@"
       ;;
     design)
-      "$tool_root/scripts/ios_design.py" "$@"
+      run_py "$tool_root/scripts/ios_design.py" "$@"
       ;;
     modernize)
-      "$tool_root/scripts/ios_modernize.py" "$@"
+      run_py "$tool_root/scripts/ios_modernize.py" "$@"
       ;;
     app-intelligence)
-      "$tool_root/scripts/ios_app_intelligence.py" "$@"
+      run_py "$tool_root/scripts/ios_app_intelligence.py" "$@"
       ;;
     ai-readiness)
-      "$tool_root/scripts/ios_ai_readiness.py" "$@"
+      run_py "$tool_root/scripts/ios_ai_readiness.py" "$@"
       ;;
     external-audit)
-      "$tool_root/scripts/ios_external_audit.py" "$@"
+      run_py "$tool_root/scripts/ios_external_audit.py" "$@"
       ;;
     spec-workflow)
-      "$tool_root/scripts/ios_spec_workflow.py" "$@"
+      run_py "$tool_root/scripts/ios_spec_workflow.py" "$@"
       ;;
     report-quality)
-      "$tool_root/scripts/ios_report_quality.py" "$@"
+      run_py "$tool_root/scripts/ios_report_quality.py" "$@"
       ;;
     redact)
-      "$tool_root/scripts/ios_redaction.py" "$@"
+      run_py "$tool_root/scripts/ios_redaction.py" "$@"
       ;;
     eval)
-      "$tool_root/scripts/ios_shipguard_eval.py" "$@"
+      run_py "$tool_root/scripts/ios_shipguard_eval.py" "$@"
       ;;
     demo)
-      "$tool_root/scripts/ios_shipguard_demo.py" "$@"
+      run_py "$tool_root/scripts/ios_shipguard_demo.py" "$@"
       ;;
     goals)
-      "$tool_root/scripts/ios_goal_loop.py" "$@"
+      run_py "$tool_root/scripts/ios_goal_loop.py" "$@"
       ;;
   esac
 }
