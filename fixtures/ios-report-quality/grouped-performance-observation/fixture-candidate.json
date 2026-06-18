@@ -5,6 +5,7 @@
     "report-quality does not emit recursive fixtureCandidates for an already-materialized synthetic fixture",
     "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
     "performance reports expose groupedActionPlan with firstExperiment, validationRoute, and stopCondition",
+    "performance reports expose evidencePromotion with one exact next action",
     "performance findings separate Codex local proof from manual/device proof",
     "shareable output contains no local absolute paths or private app identifiers"
   ],

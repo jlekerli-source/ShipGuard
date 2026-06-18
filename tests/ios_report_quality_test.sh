@@ -348,7 +348,16 @@ grep -q '"shipguardOnly": true' "$materialized_candidate_dir/fixture-report.json
 grep -q '"targetAppsReadOnly": true' "$materialized_candidate_dir/fixture-report.json"
 grep -q 'Synthetic Report-Quality Fixture' "$materialized_candidate_dir/fixture-report.md"
 grep -q '"groupedActionPlan":' "$materialized_candidate_dir/fixture-report.json"
+grep -q '"evidencePromotion":' "$materialized_candidate_dir/fixture-report.json"
+grep -q '"promotionStatus": "missing-runtime-proof"' "$materialized_candidate_dir/fixture-report.json"
+grep -q '"expectedArtifact":' "$materialized_candidate_dir/fixture-report.json"
+grep -q '"successCondition":' "$materialized_candidate_dir/fixture-report.json"
+grep -q '"failureMeaning":' "$materialized_candidate_dir/fixture-report.json"
 grep -q '"ruleId": "swiftui-repeat-forever-animation"' "$materialized_candidate_dir/fixture-report.json"
+grep -q 'Evidence Promotion Contract' "$materialized_candidate_dir/fixture-report.md"
+grep -q 'Expected artifact' "$materialized_candidate_dir/fixture-report.md"
+grep -q 'Success condition' "$materialized_candidate_dir/fixture-report.md"
+grep -q 'Failure meaning' "$materialized_candidate_dir/fixture-report.md"
 grep -q 'Grouped Next Actions' "$materialized_candidate_dir/fixture-report.md"
 grep -q 'First experiment' "$materialized_candidate_dir/fixture-report.md"
 grep -q 'Validation route' "$materialized_candidate_dir/fixture-report.md"
@@ -497,7 +506,9 @@ grep -q 'Validation route' "$grouped_performance_fixture/fixture-report.md"
 grep -q 'Stop condition' "$grouped_performance_fixture/fixture-report.md"
 grep -q 'Proof Boundaries' "$grouped_performance_fixture/fixture-report.md"
 grep -q '"groupedActionPlan":' "$grouped_performance_fixture/fixture-report.json"
+grep -q '"evidencePromotion":' "$grouped_performance_fixture/fixture-report.json"
 grep -q '"ruleId": "swiftui-repeat-forever-animation"' "$grouped_performance_fixture/fixture-report.json"
+grep -q 'Evidence Promotion Contract' "$grouped_performance_fixture/fixture-report.md"
 python3 - <<'PY' "$tmp_dir/grouped-performance-quality/ios-report-quality.json"
 import json
 import sys
@@ -514,6 +525,36 @@ if "swiftui-repeat-forever-animation" not in source_rules:
 PY
 if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$grouped_performance_fixture"; then
   echo "grouped performance fixture must not include local paths or private app identifiers" >&2
+  exit 1
+fi
+
+performance_promotion_fixture="fixtures/ios-report-quality/performance-evidence-promotion"
+./bin/shipguard ios report-quality \
+  --reports "$performance_promotion_fixture" \
+  --out "$tmp_dir/performance-promotion-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/performance-promotion-quality/ios-report-quality.json"
+grep -q '"sourceMaterializedFixture": true' "$tmp_dir/performance-promotion-quality/ios-report-quality.json"
+grep -q 'Evidence Promotion Contract' "$performance_promotion_fixture/fixture-report.md"
+grep -q '"evidencePromotion":' "$performance_promotion_fixture/fixture-report.json"
+grep -q '"firstCandidateRule": "swiftui-repeat-forever-animation"' "$performance_promotion_fixture/fixture-report.json"
+grep -q '"expectedArtifact":' "$performance_promotion_fixture/fixture-report.json"
+grep -q '"successCondition":' "$performance_promotion_fixture/fixture-report.json"
+grep -q '"failureMeaning":' "$performance_promotion_fixture/fixture-report.json"
+grep -q 'Did the report make it obvious which evidence would promote a source suspicion into broader work?' "$tmp_dir/performance-promotion-quality/ios-report-quality.md"
+python3 - <<'PY' "$tmp_dir/performance-promotion-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"performance promotion fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+if not questions or questions[0].get("sourceMaterializedFixture") is not True:
+    raise SystemExit(f"performance promotion fixture should retain sourceMaterializedFixture question evidence: {questions!r}")
+PY
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$performance_promotion_fixture"; then
+  echo "performance promotion fixture must not include local paths or private app identifiers" >&2
   exit 1
 fi
 
@@ -594,6 +635,23 @@ cat > "$priority_fixture/ios-performance.json" <<'JSON'
       "Physical-device Instruments or equivalent proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims."
     ]
   },
+  "evidencePromotion": {
+    "sourceEvidence": "source heuristic",
+    "promotionStatus": "missing-runtime-proof",
+    "firstCandidateRule": "performance-higher-priority",
+    "proofRequired": [
+      "Same-route Simulator trace, sample, or log evidence for local-only claims.",
+      "Physical-device Instruments or equivalent proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims."
+    ],
+    "nextAction": {
+      "owner": "developer",
+      "kind": "manual-proof",
+      "manualProof": "Run report-quality on the fixture locally.",
+      "expectedArtifact": "priority-quality/ios-report-quality.json",
+      "successCondition": "The blocked performance question remains the first priority action.",
+      "failureMeaning": "The priority fixture no longer proves blocked performance questions outrank lower-status reports."
+    }
+  },
   "findings": [
     {
       "ruleId": "performance-higher-priority",
@@ -635,6 +693,17 @@ No skipped directories.
 Required runtime proof:
 - Same-route Simulator trace, sample, or log evidence for local-only claims.
 - Physical-device Instruments or equivalent proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims.
+
+## Evidence Promotion Contract
+
+- Source evidence: `source heuristic`
+- Promotion status: `missing-runtime-proof`
+- First candidate rule: `performance-higher-priority`
+- Owner: `developer`
+- Manual proof: Run report-quality on the fixture locally.
+- Expected artifact: priority-quality/ios-report-quality.json
+- Success condition: The blocked performance question remains the first priority action.
+- Failure meaning: The priority fixture no longer proves blocked performance questions outrank lower-status reports.
 
 ## Top Findings
 
@@ -718,6 +787,87 @@ MD
   --shareable >/dev/null
 grep -q '"status": "review"' "$tmp_dir/missing-runtime-boundary-quality/ios-report-quality.json"
 grep -q '"ruleId": "performance-runtime-evidence-boundary-missing"' "$tmp_dir/missing-runtime-boundary-quality/ios-report-quality.json"
+
+missing_promotion_dir="$tmp_dir/missing-promotion"
+mkdir -p "$missing_promotion_dir"
+cat > "$missing_promotion_dir/ios-performance.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard ios performance",
+  "intent": "shipguard-evaluation",
+  "generatedAt": "2026-06-17T00:00:00Z",
+  "status": "review",
+  "shareability": {
+    "mode": "shareable",
+    "localAbsolutePathsIncluded": false
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "runtimeEvidenceBoundary": {
+    "evidence": "source heuristic",
+    "confidence": "medium",
+    "runtimeProof": "missing",
+    "blocking": "no",
+    "interpretation": "Source-only findings nominate proof candidates; they do not prove CPU, GPU, or FPS runtime problems.",
+    "promotionRule": "Promote only after same-route runtime proof confirms the issue shape.",
+    "requiredRuntimeProof": [
+      "Same-route Simulator trace, sample, or log evidence for local-only claims.",
+      "Physical-device Instruments proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims."
+    ]
+  },
+  "scanScope": {
+    "skippedDirectoryCount": 0,
+    "skippedDirectories": []
+  },
+  "findings": [
+    {
+      "severity": "review",
+      "ruleId": "performance-missing-promotion",
+      "category": "SwiftUI Rendering",
+      "title": "Missing exact next action",
+      "evidence": ".repeatForever()",
+      "recommendation": "Add evidencePromotion.",
+      "proof": "Runtime proof required.",
+      "impact": "A source suspicion needs promotion evidence.",
+      "severityReason": "Review because this is a source-only signal.",
+      "localProof": "Run a same-route sample.",
+      "manualProof": "Use device Instruments for hardware claims."
+    }
+  ],
+  "reportQualityQuestions": [
+    "Did report-quality enforce performance evidence promotion?"
+  ]
+}
+JSON
+cat > "$missing_promotion_dir/ios-performance.md" <<'MD'
+# Missing Evidence Promotion Fixture
+
+## Runtime Evidence Boundary
+
+- Evidence: `source heuristic`
+- Runtime proof: `missing`
+- Blocking: `no`
+
+## Top Findings
+
+| Severity | Rule | Why severity | Why it matters |
+| --- | --- | --- | --- |
+| review | `performance-missing-promotion` | Review because this is a source-only signal. | A source suspicion needs promotion evidence. |
+
+## Proof Boundaries
+
+| Severity | Rule | Codex local proof | Manual/device proof |
+| --- | --- | --- | --- |
+| review | `performance-missing-promotion` | Run a same-route sample. | Use device Instruments for hardware claims. |
+MD
+./bin/shipguard ios report-quality \
+  --reports "$missing_promotion_dir" \
+  --out "$tmp_dir/missing-promotion-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-promotion-quality/ios-report-quality.json"
+grep -q '"ruleId": "performance-evidence-promotion-contract-missing"' "$tmp_dir/missing-promotion-quality/ios-report-quality.json"
 
 missing_impact_dir="$tmp_dir/missing-impact"
 mkdir -p "$missing_impact_dir"

@@ -125,6 +125,23 @@
     ],
     "runtimeProof": "missing"
   },
+  "evidencePromotion": {
+    "sourceEvidence": "source heuristic",
+    "promotionStatus": "missing-runtime-proof",
+    "firstCandidateRule": "swiftui-repeat-forever-animation",
+    "proofRequired": [
+      "Same-route Simulator trace, sample, or log evidence for local-only claims.",
+      "Physical-device Instruments or equivalent proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims."
+    ],
+    "nextAction": {
+      "owner": "developer",
+      "kind": "manual-proof",
+      "manualProof": "Run the same local sample or trace before and after the single animation gate; attach device Instruments proof before claiming FPS, ProMotion, battery, thermal, or hardware-display improvement.",
+      "expectedArtifact": "Same-route before/after trace, sample, or screen recording for the first swiftui-repeat-forever-animation experiment.",
+      "successCondition": "The same-route proof shows less constant motion work, Reduce Motion or visibility behavior remains correct, and no broader performance claim is made without device proof.",
+      "failureMeaning": "The source suspicion remains unpromoted; keep it as review guidance and do not broaden scanner heuristics or target-app remediation."
+    }
+  },
   "scanScope": {
     "note": "Synthetic fixture; no private source tree was scanned.",
     "skippedDirectories": [],

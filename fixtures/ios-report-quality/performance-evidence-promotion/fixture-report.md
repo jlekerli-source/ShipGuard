@@ -1,4 +1,4 @@
-# Grouped Performance Observation Fixture
+# Performance Evidence Promotion Fixture
 
 ## ShipGuard Evaluation Boundary
 
@@ -36,16 +36,13 @@ Required runtime proof:
 
 | Rule | Count | Severity | First experiment | Validation route | Stop condition |
 | --- | ---: | --- | --- | --- | --- |
-| `swiftui-repeat-forever-animation` | 4 | review | Disable or gate one decorative repeatForever animation behind Reduce Motion and active-screen visibility, then compare an at-rest screen recording plus a same-route sample. | Run the same local sample or trace before and after the single gate; use device Instruments before claiming FPS, ProMotion, battery, or thermal improvement. | Stop after the first gated animation unless the same-route proof shows a measurable improvement and the UI still communicates the intended state. |
+| `swiftui-repeat-forever-animation` | 1 | review | Disable or gate one decorative repeatForever animation behind Reduce Motion and active-screen visibility, then compare an at-rest screen recording plus a same-route sample. | Run the same local sample or trace before and after the single gate; use device Instruments before claiming FPS, ProMotion, battery, or thermal improvement. | Stop after the first gated animation unless the same-route proof shows a measurable improvement and the UI still communicates the intended state. |
 
 ## Top Findings
 
 | Severity | Rule | Location | Why severity | Why it matters |
 | --- | --- | --- | --- | --- |
 | review | `swiftui-repeat-forever-animation` | `Sources/SyntheticPerformanceFixture/LoopingMotionView.swift:12` | Review because repeatForever can keep the render loop active until it is gated by visibility, Reduce Motion, or user value. | Always-on decorative motion can keep rendering work alive and combine poorly with blur, material, or tab backgrounds. |
-| review | `swiftui-repeat-forever-animation` | `Sources/SyntheticPerformanceFixture/LoopingMotionView.swift:28` | Review because repeatForever can keep the render loop active until it is gated by visibility, Reduce Motion, or user value. | Always-on decorative motion can keep rendering work alive and combine poorly with blur, material, or tab backgrounds. |
-| review | `swiftui-repeat-forever-animation` | `Sources/SyntheticPerformanceFixture/LoopingMotionView.swift:44` | Review because repeatForever can keep the render loop active until it is gated by visibility, Reduce Motion, or user value. | Always-on decorative motion can keep rendering work alive and combine poorly with blur, material, or tab backgrounds. |
-| review | `swiftui-repeat-forever-animation` | `Sources/SyntheticPerformanceFixture/LoopingMotionView.swift:60` | Review because repeatForever can keep the render loop active until it is gated by visibility, Reduce Motion, or user value. | Always-on decorative motion can keep rendering work alive and combine poorly with blur, material, or tab backgrounds. |
 
 ## Proof Boundaries
 
@@ -57,4 +54,4 @@ Required runtime proof:
 
 - Type: `ios-performance-report-quality-fixture`
 - Source tool: `shipguard ios performance`
-- Source question: Which grouped performance observation should become a public fixture or eval case before changing scanner heuristics again?
+- Source question: Did the report make it obvious which evidence would promote a source suspicion into broader work?

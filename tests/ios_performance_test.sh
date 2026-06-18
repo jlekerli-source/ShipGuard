@@ -81,10 +81,19 @@ grep -q '"localProof":' "$tmp_dir/performance/ios-performance.json"
 grep -q '"manualProof":' "$tmp_dir/performance/ios-performance.json"
 grep -q '"impact":' "$tmp_dir/performance/ios-performance.json"
 grep -q '"groupedActionPlan":' "$tmp_dir/performance/ios-performance.json"
+grep -q '"evidencePromotion":' "$tmp_dir/performance/ios-performance.json"
+grep -q '"promotionStatus": "missing-runtime-proof"' "$tmp_dir/performance/ios-performance.json"
+grep -q '"expectedArtifact":' "$tmp_dir/performance/ios-performance.json"
+grep -q '"successCondition":' "$tmp_dir/performance/ios-performance.json"
+grep -q '"failureMeaning":' "$tmp_dir/performance/ios-performance.json"
 grep -q '"scanScope"' "$tmp_dir/performance/ios-performance.json"
 grep -q '"release-artifacts"' "$tmp_dir/performance/ios-performance.json"
 grep -q 'Scan Scope' "$tmp_dir/performance/ios-performance.md"
 grep -q 'release-artifacts' "$tmp_dir/performance/ios-performance.md"
+grep -q 'Evidence Promotion Contract' "$tmp_dir/performance/ios-performance.md"
+grep -q 'Expected artifact' "$tmp_dir/performance/ios-performance.md"
+grep -q 'Success condition' "$tmp_dir/performance/ios-performance.md"
+grep -q 'Failure meaning' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Why severity' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Why it matters' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Grouped Next Actions' "$tmp_dir/performance/ios-performance.md"
@@ -105,6 +114,19 @@ from pathlib import Path
 
 report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 groups = {item["ruleId"]: item for item in report["groupedActionPlan"]}
+promotion = report.get("evidencePromotion") or {}
+next_action = promotion.get("nextAction") or {}
+if promotion.get("sourceEvidence") != "source heuristic":
+    raise SystemExit(f"unexpected evidence promotion source: {promotion!r}")
+if promotion.get("promotionStatus") != "missing-runtime-proof":
+    raise SystemExit(f"unexpected evidence promotion status: {promotion!r}")
+if not promotion.get("firstCandidateRule"):
+    raise SystemExit(f"missing first candidate rule: {promotion!r}")
+for field in ("owner", "expectedArtifact", "successCondition", "failureMeaning"):
+    if not next_action.get(field):
+        raise SystemExit(f"next action missing {field}: {next_action!r}")
+if not (next_action.get("command") or next_action.get("manualProof")):
+    raise SystemExit(f"next action needs command or manual proof: {next_action!r}")
 for rule_id in ("swiftui-periodic-timeline", "notification-removal-ui-stall"):
     if groups.get(rule_id, {}).get("count", 0) <= 3:
         raise SystemExit(f"expected repeated group for {rule_id}: {groups.get(rule_id)}")

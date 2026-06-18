@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added public `fixtures/ios-report-quality/performance-evidence-promotion` coverage after read-only product-QA showed the next uncovered performance question was promotion evidence: source-only suspicions now need a machine-readable next action before they become broader work.
+- Added `evidencePromotion` to `shipguard ios performance` JSON and Markdown: reports now name source evidence, promotion status, first candidate rule, required proof, and one exact next action with owner, manual proof, expected artifact, success condition, and failure meaning.
+- Tightened `shipguard ios report-quality` so non-pass performance reports missing the evidence-promotion next-action contract receive review findings; regenerated read-only Ringly/Ilmify product-QA output now has fixture coverage for runtime boundary, grouped performance, and evidence promotion, moving the next priority to design app-type tailoring.
 - Added public `fixtures/ios-report-quality/grouped-performance-observation` coverage after read-only product-QA showed grouped performance fixture candidates were too generic; the fixture uses synthetic `swiftui-repeat-forever-animation` findings and keeps private app evidence out of public files.
 - Upgraded `shipguard ios report-quality --write-fixture-candidates` so generated `ios-performance-report-quality-fixture` reports include repeated synthetic findings, `ruleSummary`, `groupedActionPlan`, `firstExperiment`, `validationRoute`, `stopCondition`, Markdown `Grouped Next Actions`, and split local/manual proof boundaries before promotion.
 - Regenerated the read-only performance/design product-QA loop and proved fixture coverage now suppresses both runtime-boundary and grouped-performance questions, moving the next uncovered priority to performance evidence promotion.

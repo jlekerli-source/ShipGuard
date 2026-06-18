@@ -9,7 +9,7 @@ tarball="$(./scripts/package_release.sh)"
   --tarball "$tarball" \
   --out /tmp/shipguard-release-proof \
   --ci-run-url "https://github.com/owner/repo/actions/runs/123" \
-  --release-url "https://github.com/owner/repo/releases/tag/v3.110.0" \
+  --release-url "https://github.com/owner/repo/releases/tag/v3.111.0" \
   --issue-url "https://github.com/owner/repo/issues/37"
 ```
 

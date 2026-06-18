@@ -428,6 +428,44 @@ def runtime_evidence_boundary() -> dict[str, Any]:
     }
 
 
+def evidence_promotion_contract(groups: list[dict[str, Any]]) -> dict[str, Any]:
+    if not groups:
+        return {
+            "sourceEvidence": "source heuristic",
+            "promotionStatus": "not-needed",
+            "firstCandidateRule": None,
+            "proofRequired": runtime_evidence_boundary()["requiredRuntimeProof"],
+            "nextAction": {
+                "owner": "developer",
+                "kind": "no-op",
+                "manualProof": "No performance findings were emitted, so there is no source suspicion to promote.",
+                "expectedArtifact": "No runtime artifact required until a future report emits a source performance finding.",
+                "successCondition": "Report remains pass with no source performance findings.",
+                "failureMeaning": "If runtime symptoms exist despite a pass report, collect a same-route trace and add a public ShipGuard fixture before changing scanner heuristics.",
+            },
+        }
+
+    first = groups[0]
+    rule_id = str(first.get("ruleId") or "first-performance-group")
+    validation_route = str(first.get("validationRoute") or "Run the same-route local or device proof for the first grouped performance action.")
+    stop_condition = str(first.get("stopCondition") or "Stop after the first experiment unless same-route evidence shows useful signal.")
+    first_experiment = str(first.get("firstExperiment") or "Change one flagged location only.")
+    return {
+        "sourceEvidence": "source heuristic",
+        "promotionStatus": "missing-runtime-proof",
+        "firstCandidateRule": rule_id,
+        "proofRequired": runtime_evidence_boundary()["requiredRuntimeProof"],
+        "nextAction": {
+            "owner": "developer",
+            "kind": "manual-proof",
+            "manualProof": f"{validation_route} Attach the resulting trace, sample, log, or device Instruments receipt before broadening the work.",
+            "expectedArtifact": f"Same-route before/after evidence for `{rule_id}` after this first experiment: {first_experiment}",
+            "successCondition": f"{stop_condition} Runtime evidence must confirm the source suspicion before it is promoted into broader work.",
+            "failureMeaning": "The source suspicion remains unpromoted; keep it as review guidance and do not broaden scanner heuristics or target-app remediation.",
+        },
+    }
+
+
 def summarize_rules(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
     grouped: dict[str, dict[str, Any]] = {}
     for finding in findings:
@@ -579,6 +617,7 @@ def build_report(root: Path, *, shipguard_eval: bool = False, shareable: bool = 
     high_count = sum(1 for item in findings if item["severity"] == "high")
     review_count = sum(1 for item in findings if item["severity"] == "review")
     status = "blocked" if high_count else "review" if review_count else "pass"
+    action_plan = grouped_action_plan(findings)
     return {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard ios performance",
@@ -608,7 +647,8 @@ def build_report(root: Path, *, shipguard_eval: bool = False, shareable: bool = 
         "scopeBoundary": shipguard_eval_boundary() if shipguard_eval else None,
         "reportQualityQuestions": shipguard_eval_questions() if shipguard_eval else [],
         "ruleSummary": summarize_rules(findings),
-        "groupedActionPlan": grouped_action_plan(findings),
+        "groupedActionPlan": action_plan,
+        "evidencePromotion": evidence_promotion_contract(action_plan),
         "findings": findings,
         "nextSteps": shipguard_eval_next_steps() if shipguard_eval else app_development_next_steps(),
     }
@@ -667,6 +707,24 @@ def markdown_report(report: dict[str, Any]) -> str:
     for item in boundary["requiredRuntimeProof"]:
         lines.append(f"- {item}")
     lines.append("")
+    promotion = report.get("evidencePromotion")
+    if isinstance(promotion, dict):
+        action = promotion.get("nextAction") if isinstance(promotion.get("nextAction"), dict) else {}
+        lines.extend(
+            [
+                "## Evidence Promotion Contract",
+                "",
+                f"- Source evidence: `{promotion.get('sourceEvidence', 'unknown')}`",
+                f"- Promotion status: `{promotion.get('promotionStatus', 'unknown')}`",
+                f"- First candidate rule: `{promotion.get('firstCandidateRule') or 'none'}`",
+                f"- Owner: `{action.get('owner', 'developer')}`",
+                f"- Manual proof: {action.get('manualProof', 'No manual proof specified.')}",
+                f"- Expected artifact: {action.get('expectedArtifact', 'No expected artifact specified.')}",
+                f"- Success condition: {action.get('successCondition', 'No success condition specified.')}",
+                f"- Failure meaning: {action.get('failureMeaning', 'No failure meaning specified.')}",
+                "",
+            ]
+        )
     if report["intent"] == "shipguard-evaluation":
         boundary = report["scopeBoundary"]
         lines.extend(

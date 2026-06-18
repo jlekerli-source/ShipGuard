@@ -1,0 +1,22 @@
+{
+  "candidateId": "performance-evidence-promotion",
+  "expectedAssertions": [
+    "report-quality preserves the performance evidence-promotion actionability question in JSON and Markdown",
+    "report-quality does not emit recursive fixtureCandidates for an already-materialized synthetic fixture",
+    "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+    "performance reports expose runtimeEvidenceBoundary as source heuristic evidence with missing runtime proof",
+    "performance reports expose evidencePromotion with sourceEvidence, promotionStatus, firstCandidateRule, proofRequired, and nextAction",
+    "nextAction names owner, manual proof, expected artifact, success condition, and failure meaning",
+    "shareable output contains no local absolute paths or private app identifiers"
+  ],
+  "fixtureType": "ios-performance-report-quality-fixture",
+  "privateDataPolicy": "Synthetic public fixture. No private app code, local paths, screenshots, app-specific identifiers, or proprietary text were copied.",
+  "publicFixturePath": "fixtures/ios-report-quality/performance-evidence-promotion",
+  "sourceQuestion": "Did the report make it obvious which evidence would promote a source suspicion into broader work?",
+  "sourceReportsRedacted": true,
+  "sourceTool": "shipguard ios performance",
+  "validationCommands": [
+    "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/performance-evidence-promotion --out <quality-dir> --shareable",
+    "./tests/ios_report_quality_test.sh"
+  ]
+}

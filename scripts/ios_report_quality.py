@@ -928,6 +928,124 @@ def performance_runtime_evidence_boundary_issues(
     return issues
 
 
+def performance_evidence_promotion_issues(
+    report: dict[str, Any], *, markdown: str, path_name: str
+) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    findings = report.get("findings")
+    has_findings = isinstance(findings, list) and bool(findings)
+    status = normalized_question_text(report.get("status") or "")
+    if not has_findings and status == "pass":
+        return issues
+
+    promotion = report.get("evidencePromotion")
+    if not isinstance(promotion, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-evidence-promotion-contract-missing",
+            evidence=f"{path_name} has performance findings without evidencePromotion",
+            recommendation="Add evidencePromotion with sourceEvidence, promotionStatus, first candidate rule, proof requirements, and one exact nextAction.",
+        )
+        return issues
+
+    source_evidence = normalized_question_text(promotion.get("sourceEvidence") or "")
+    promotion_status = normalized_question_text(promotion.get("promotionStatus") or "")
+    if "source" not in source_evidence or "heuristic" not in source_evidence:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-evidence-promotion-source-missing",
+            evidence=f"{path_name} evidencePromotion sourceEvidence={promotion.get('sourceEvidence')!r}",
+            recommendation="State that the promotion contract starts from source-heuristic evidence.",
+        )
+    if not promotion_status:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-evidence-promotion-status-missing",
+            evidence=f"{path_name} evidencePromotion has no promotionStatus",
+            recommendation="State whether runtime proof is missing, attached, rejected, or not needed.",
+        )
+
+    action = promotion.get("nextAction")
+    if not isinstance(action, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-next-action-missing",
+            evidence=f"{path_name} evidencePromotion has no nextAction",
+            recommendation="Provide exactly one nextAction with owner, command or manual proof, expected artifact, success condition, and failure meaning.",
+        )
+        return issues
+
+    owner = normalized_question_text(action.get("owner") or "")
+    command = normalized_question_text(action.get("command") or "")
+    manual_proof = normalized_question_text(action.get("manualProof") or action.get("manual_proof") or "")
+    expected_artifact = normalized_question_text(action.get("expectedArtifact") or action.get("expected_artifact") or "")
+    success_condition = normalized_question_text(action.get("successCondition") or action.get("success_condition") or "")
+    failure_meaning = normalized_question_text(action.get("failureMeaning") or action.get("failure_meaning") or "")
+    if not owner:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-next-action-owner-missing",
+            evidence=f"{path_name} evidencePromotion.nextAction has no owner",
+            recommendation="Name who owns the next proof step, usually developer for local/manual performance evidence.",
+        )
+    if not command and not manual_proof:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-next-action-proof-missing",
+            evidence=f"{path_name} evidencePromotion.nextAction has neither command nor manualProof",
+            recommendation="Provide either a runnable command or a concrete manual/device proof instruction.",
+        )
+    if not expected_artifact:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-next-action-artifact-missing",
+            evidence=f"{path_name} evidencePromotion.nextAction has no expectedArtifact",
+            recommendation="Name the artifact a maintainer should attach before promoting the source suspicion.",
+        )
+    if not success_condition:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-next-action-success-missing",
+            evidence=f"{path_name} evidencePromotion.nextAction has no successCondition",
+            recommendation="Define the condition that proves the source suspicion was promoted by runtime evidence.",
+        )
+    if not failure_meaning:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-next-action-failure-missing",
+            evidence=f"{path_name} evidencePromotion.nextAction has no failureMeaning",
+            recommendation="Explain what it means if the next proof action fails or produces no signal.",
+        )
+
+    if issues:
+        return issues
+    markdown_contract_visible = (
+        "Evidence Promotion Contract" in markdown
+        and "Expected artifact" in markdown
+        and "Success condition" in markdown
+        and "Failure meaning" in markdown
+        and ("Manual proof" in markdown or "Command" in markdown)
+    )
+    if not markdown_contract_visible:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-markdown-evidence-promotion-missing",
+            evidence=f"{path_name} has evidencePromotion JSON but Markdown does not show the exact next-action contract",
+            recommendation="Render the evidence promotion contract in Markdown so reviewers see the owner, proof, artifact, success condition, and failure meaning.",
+        )
+    return issues
+
+
 def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     inputs = report.get("reportInputs")
@@ -1466,6 +1584,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     issues.extend(finding_quality_issues(loaded))
     if tool == "shipguard ios performance":
         issues.extend(performance_runtime_evidence_boundary_issues(loaded, markdown=markdown, path_name=path.name))
+        issues.extend(performance_evidence_promotion_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_finding_explanation_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_grouping_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_high_severity_issues(loaded, markdown=markdown, path_name=path.name))
@@ -2478,6 +2597,38 @@ def synthetic_performance_grouped_action_plan() -> list[dict[str, Any]]:
     ]
 
 
+def synthetic_performance_evidence_promotion() -> dict[str, Any]:
+    return {
+        "sourceEvidence": "source heuristic",
+        "promotionStatus": "missing-runtime-proof",
+        "firstCandidateRule": "swiftui-repeat-forever-animation",
+        "proofRequired": [
+            "Same-route Simulator trace, sample, or log evidence for local-only claims.",
+            "Physical-device Instruments or equivalent proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims.",
+        ],
+        "nextAction": {
+            "owner": "developer",
+            "kind": "manual-proof",
+            "manualProof": (
+                "Run the same local sample or trace before and after the single animation gate; attach device "
+                "Instruments proof before claiming FPS, ProMotion, battery, thermal, or hardware-display improvement."
+            ),
+            "expectedArtifact": (
+                "Same-route before/after trace, sample, or screen recording for the first "
+                "swiftui-repeat-forever-animation experiment."
+            ),
+            "successCondition": (
+                "The same-route proof shows less constant motion work, Reduce Motion or visibility behavior remains "
+                "correct, and no broader performance claim is made without device proof."
+            ),
+            "failureMeaning": (
+                "The source suspicion remains unpromoted; keep it as review guidance and do not broaden scanner "
+                "heuristics or target-app remediation."
+            ),
+        },
+    }
+
+
 def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
     question = materialized_source_question(candidate)
     source_tool = sanitize_materialized_text(candidate.get("sourceTool")) or "shipguard ios report-quality"
@@ -2522,6 +2673,7 @@ def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
                 "Physical-device Instruments or equivalent proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims.",
             ],
         }
+        report["evidencePromotion"] = synthetic_performance_evidence_promotion()
     if source_tool == "shipguard ios performance" and fixture_type == "ios-performance-report-quality-fixture":
         report["status"] = "review"
         report["findings"] = synthetic_performance_findings()
@@ -2566,6 +2718,17 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "Required runtime proof:",
                 "- Same-route Simulator trace, sample, or log evidence for local-only claims.",
                 "- Physical-device Instruments or equivalent proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims.",
+                "",
+                "## Evidence Promotion Contract",
+                "",
+                "- Source evidence: `source heuristic`",
+                "- Promotion status: `missing-runtime-proof`",
+                "- First candidate rule: `swiftui-repeat-forever-animation`",
+                "- Owner: `developer`",
+                "- Manual proof: Run the same local sample or trace before and after the single animation gate; attach device Instruments proof before claiming FPS, ProMotion, battery, thermal, or hardware-display improvement.",
+                "- Expected artifact: Same-route before/after trace, sample, or screen recording for the first swiftui-repeat-forever-animation experiment.",
+                "- Success condition: The same-route proof shows less constant motion work, Reduce Motion or visibility behavior remains correct, and no broader performance claim is made without device proof.",
+                "- Failure meaning: The source suspicion remains unpromoted; keep it as review guidance and do not broaden scanner heuristics or target-app remediation.",
                 "",
             ]
         )
