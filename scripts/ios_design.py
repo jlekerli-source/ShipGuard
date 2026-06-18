@@ -592,9 +592,133 @@ def motion_quality_gates(app_type: str) -> dict[str, Any]:
     }
 
 
+def app_type_profile(app_type: str) -> dict[str, str]:
+    if app_type in {"game", "kids", "creative"}:
+        return {
+            "profile": "expressive-delight",
+            "primaryDecision": "Allow richer motion and stronger visual identity only when it supports play, creation, or brand memory.",
+            "risk": "Decorative motion can still become inaccessible, noisy, or expensive when copied into repeated controls.",
+        }
+    if app_type == "education":
+        return {
+            "profile": "learning-progress",
+            "primaryDecision": "Use motion, haptics, and visual hierarchy to clarify learning state, progress, feedback, and recovery.",
+            "risk": "Generic utility restraint can make learning feedback feel flat, while generic game delight can distract from comprehension.",
+        }
+    if app_type in {"fitness", "health"}:
+        return {
+            "profile": "calm-confidence",
+            "primaryDecision": "Prioritize legibility, stable progress feedback, and confidence-building confirmations over spectacle.",
+            "risk": "Nervous loops, ambiguous haptics, or decorative effects can reduce trust in sensitive progress and health states.",
+        }
+    if app_type in {"commerce", "finance"}:
+        return {
+            "profile": "transactional-trust",
+            "primaryDecision": "Make confirmation, reversibility, price/account state, and error recovery unmistakable.",
+            "risk": "Delight patterns can make transactional or financial state feel less trustworthy.",
+        }
+    if app_type == "saas":
+        return {
+            "profile": "workflow-density",
+            "primaryDecision": "Favor dense, scannable, repeatable workflows with quiet feedback and predictable navigation.",
+            "risk": "Marketing-style cards, broad decorative animation, and low-density layouts slow repeated operational work.",
+        }
+    if app_type == "social":
+        return {
+            "profile": "human-relationship",
+            "primaryDecision": "Use feedback to clarify social state, authorship, sharing, messaging, and privacy boundaries.",
+            "risk": "Generic engagement motion can make privacy-sensitive or relationship-state actions feel manipulative.",
+        }
+    return {
+        "profile": "utility-speed",
+        "primaryDecision": "Keep repeated interactions fast, restrained, legible, and easy to verify.",
+        "risk": "Delight should be rare and must not slow task completion or reduce alarm, reminder, timer, or productivity trust.",
+    }
+
+
+def design_tailoring_contract(app_type_report: dict[str, Any], dna: dict[str, Any]) -> dict[str, Any]:
+    app_type = str(app_type_report["value"])
+    profile = app_type_profile(app_type)
+    top_signals = [
+        {
+            "appType": item.get("appType"),
+            "token": item.get("token"),
+            "file": item.get("file"),
+            "count": item.get("count"),
+        }
+        for item in app_type_report.get("signals", [])[:6]
+    ]
+    signal_summary = ", ".join(
+        f"{item.get('token')}->{item.get('appType')}" for item in top_signals[:3]
+    ) or "fallback utility classification"
+    motion = dna["motion"]
+    layout = dna["layout"]
+    copy_tone = dna["copyTone"]
+    haptics = dna["haptics"]
+    return {
+        "tailoredFor": app_type,
+        "guidanceProfile": profile["profile"],
+        "universalDefaultsRejected": True,
+        "sourceSignals": top_signals,
+        "sourceSignalSummary": signal_summary,
+        "dimensions": {
+            "motion": {
+                "stance": motion_quality_gates(app_type)["contextLens"]["primaryLens"],
+                "reason": profile["primaryDecision"],
+                "observedSignals": {
+                    "withAnimation": motion["withAnimationSignals"],
+                    "animationModifiers": motion["animationModifiers"],
+                    "repeatForever": motion["repeatForeverSignals"],
+                    "timelineView": motion["timelineViewSignals"],
+                },
+            },
+            "haptics": {
+                "tone": haptics_blueprint(app_type)["tone"],
+                "deviceProofRequired": True,
+                "observedSignals": haptics,
+            },
+            "visualDensity": {
+                "stance": "reduce effects for repeated workflows" if app_type in {"utility", "saas", "finance", "commerce", "health", "fitness"} else "allow expressive hierarchy with proof",
+                "observedSignals": {
+                    "rounded": layout["roundedSignals"],
+                    "shadow": layout["shadowSignals"],
+                    "blur": layout["blurSignals"],
+                    "cardNames": layout["cardNameSignals"],
+                },
+            },
+            "copyTone": {
+                "stance": "stateful, localized, and confidence-building" if app_type in {"health", "fitness", "finance", "commerce"} else "specific to the app task and audience",
+                "visibleStringCount": copy_tone["visibleStringCount"],
+                "localizationSignals": copy_tone["localizationSignals"],
+            },
+        },
+        "nextAction": {
+            "owner": "developer",
+            "kind": "manual-proof",
+            "manualProof": (
+                f"Review one primary {app_type} flow and confirm the report's motion, haptics, visual density, and copy guidance "
+                "matches the app category instead of a universal design checklist."
+            ),
+            "expectedArtifact": "A same-flow screenshot or preview receipt plus one short note mapping the selected guidance profile to observed source/app signals.",
+            "successCondition": (
+                f"The design report clearly explains why `{profile['profile']}` is the right guidance profile for `{app_type}` "
+                "and does not reuse utility-only advice for unrelated app categories."
+            ),
+            "failureMeaning": "The design report remains an inventory, not a dependable app-type-specific design QA recommendation.",
+        },
+        "risk": profile["risk"],
+    }
+
+
 def haptics_blueprint(app_type: str) -> dict[str, Any]:
     if app_type in {"game", "kids", "creative"}:
         tone = "expressive but still sparse"
+    elif app_type == "education":
+        tone = "encouraging, milestone-aware, and interruption-sparse"
+    elif app_type == "social":
+        tone = "human, privacy-aware, and low-noise"
+    elif app_type == "saas":
+        tone = "quiet, operational, and interruption-sparse"
     elif app_type in {"health", "fitness", "finance", "commerce"}:
         tone = "calm, confirmation-focused, and trust-preserving"
     else:
@@ -774,6 +898,7 @@ def build_report(
             "targets": facts["targetNames"],
             "bundleIds": facts["bundleIds"],
         },
+        "designTailoring": design_tailoring_contract(app_type, dna),
         "designDNA": dna,
         "findings": findings,
         "motionBlueprint": motion_blueprint(app_type["value"]),
@@ -819,6 +944,7 @@ def render_icon_brief(report: dict[str, Any]) -> str:
 
 def render_markdown(report: dict[str, Any]) -> str:
     app_type = report["appType"]
+    tailoring = report["designTailoring"]
     dna = report["designDNA"]
     motion = report["motionBlueprint"]
     motion_gates = report["motionQualityGates"]
@@ -870,6 +996,29 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- `{directory}`")
         if scan_scope["skippedDirectoryListTruncated"]:
             lines.append("- Additional skipped directories are listed in JSON.")
+
+    action = tailoring["nextAction"]
+    lines.extend(
+        [
+            "",
+            "## Design Tailoring Contract",
+            "",
+            f"- Tailored for: `{tailoring['tailoredFor']}`",
+            f"- Guidance profile: `{tailoring['guidanceProfile']}`",
+            f"- Universal defaults rejected: `{str(tailoring['universalDefaultsRejected']).lower()}`",
+            f"- Source signals: {tailoring['sourceSignalSummary']}",
+            f"- Motion stance: {tailoring['dimensions']['motion']['stance']}",
+            f"- Haptics tone: {tailoring['dimensions']['haptics']['tone']}",
+            f"- Visual density stance: {tailoring['dimensions']['visualDensity']['stance']}",
+            f"- Copy tone stance: {tailoring['dimensions']['copyTone']['stance']}",
+            f"- Risk: {tailoring['risk']}",
+            f"- Owner: `{action['owner']}`",
+            f"- Manual proof: {action['manualProof']}",
+            f"- Expected artifact: {action['expectedArtifact']}",
+            f"- Success condition: {action['successCondition']}",
+            f"- Failure meaning: {action['failureMeaning']}",
+        ]
+    )
 
     lines.extend(
         [

@@ -68,6 +68,23 @@ if grep -R -F -q "$tmp_dir" "$tmp_dir/shareable-quality"; then
   echo "shareable report-quality output must not include local absolute temp paths" >&2
   exit 1
 fi
+broken_design="$tmp_dir/broken-design"
+cp -R "$shareable_reports/design" "$broken_design"
+python3 - <<'PY' "$broken_design/ios-design.json"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data.pop("designTailoring", None)
+path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$broken_design" \
+  --out "$tmp_dir/broken-design-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "design-tailoring-contract-missing"' "$tmp_dir/broken-design-quality/ios-report-quality.json"
 
 actionability_fixture="fixtures/ios-report-quality/actionability"
 ./bin/shipguard ios report-quality \
@@ -84,6 +101,24 @@ grep -q 'Priority Action' "$tmp_dir/actionability-quality/ios-report-quality.md"
 grep -q 'Actionability Questions' "$tmp_dir/actionability-quality/ios-report-quality.md"
 grep -q 'safest default for this app type' "$tmp_dir/actionability-quality/ios-report-quality.md"
 grep -q 'Answer the actionability questions above' "$tmp_dir/actionability-quality/ios-report-quality.md"
+
+design_tailoring_fixture="fixtures/ios-report-quality/design-app-type-tailoring"
+./bin/shipguard ios report-quality \
+  --reports "$design_tailoring_fixture" \
+  --out "$tmp_dir/design-tailoring-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/design-tailoring-quality/ios-report-quality.json"
+grep -q '"sourceMaterializedFixture": true' "$tmp_dir/design-tailoring-quality/ios-report-quality.json"
+grep -q '"designTailoring":' "$design_tailoring_fixture/fixture-report.json"
+grep -q 'Design Tailoring Contract' "$design_tailoring_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/design-tailoring-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"design tailoring fixture should not recurse: {data['fixtureCandidates']!r}")
+PY
 
 ./bin/shipguard brand \
   --path . \
@@ -237,6 +272,74 @@ cat > "$dedupe_fixture/ios-design.json" <<'JSON'
     "skippedDirectoryCount": 0,
     "skippedDirectories": []
   },
+  "appType": {
+    "value": "education",
+    "inferred": "education",
+    "override": null,
+    "confidence": 0.78,
+    "scores": {
+      "education": 25,
+      "utility": 4
+    },
+    "signals": [
+      {
+        "appType": "education",
+        "token": "lesson",
+        "file": "Sources/SyntheticDesignFixture/LearningFlow.swift",
+        "count": 12
+      }
+    ]
+  },
+  "designTailoring": {
+    "tailoredFor": "education",
+    "guidanceProfile": "learning-progress",
+    "universalDefaultsRejected": true,
+    "sourceSignalSummary": "lesson->education",
+    "sourceSignals": [
+      {
+        "appType": "education",
+        "token": "lesson",
+        "file": "Sources/SyntheticDesignFixture/LearningFlow.swift",
+        "count": 12
+      }
+    ],
+    "dimensions": {
+      "motion": {
+        "stance": "production-polish",
+        "reason": "Motion should clarify learning state.",
+        "observedSignals": {
+          "withAnimation": 2
+        }
+      },
+      "haptics": {
+        "tone": "encouraging, milestone-aware, and interruption-sparse",
+        "deviceProofRequired": true,
+        "observedSignals": {
+          "uikitFeedbackSignals": 1
+        }
+      },
+      "visualDensity": {
+        "stance": "allow expressive hierarchy with proof",
+        "observedSignals": {
+          "rounded": 4
+        }
+      },
+      "copyTone": {
+        "stance": "specific to the app task and audience",
+        "visibleStringCount": 4,
+        "localizationSignals": 1
+      }
+    },
+    "nextAction": {
+      "owner": "developer",
+      "kind": "manual-proof",
+      "manualProof": "Review one synthetic learning flow for app-type fit.",
+      "expectedArtifact": "One preview receipt plus a note mapping the learning-progress profile to source signals.",
+      "successCondition": "The report uses education guidance and avoids utility-only advice.",
+      "failureMeaning": "The design report remains an inventory, not app-type-specific design QA."
+    },
+    "risk": "Generic utility restraint can make learning feedback feel flat."
+  },
   "findings": [],
   "reportQualityQuestions": [
     "Did report wording keep target-app remediation separate from ShipGuard product QA next steps?",
@@ -255,6 +358,18 @@ This fixture is ShipGuard product QA only.
 ## Scan Scope
 
 No skipped directories.
+
+## Design Tailoring Contract
+
+- Tailored for: `education`
+- Guidance profile: `learning-progress`
+- Universal defaults rejected: `true`
+- Source signals: lesson->education
+- Owner: `developer`
+- Manual proof: Review one synthetic learning flow for app-type fit.
+- Expected artifact: One preview receipt plus a note mapping the learning-progress profile to source signals.
+- Success condition: The report uses education guidance and avoids utility-only advice.
+- Failure meaning: The design report remains an inventory, not app-type-specific design QA.
 MD
 ./bin/shipguard ios report-quality \
   --reports "$dedupe_fixture" \
@@ -363,6 +478,15 @@ grep -q 'First experiment' "$materialized_candidate_dir/fixture-report.md"
 grep -q 'Validation route' "$materialized_candidate_dir/fixture-report.md"
 grep -q 'Stop condition' "$materialized_candidate_dir/fixture-report.md"
 grep -q 'Proof Boundaries' "$materialized_candidate_dir/fixture-report.md"
+materialized_design_candidate_dir="$(find "$tmp_dir/materialized-fixtures" -mindepth 1 -maxdepth 1 -type d -name '*ios-design*' | sort | head -n 1)"
+test -n "$materialized_design_candidate_dir"
+grep -q '"designTailoring":' "$materialized_design_candidate_dir/fixture-report.json"
+grep -q '"tailoredFor": "education"' "$materialized_design_candidate_dir/fixture-report.json"
+grep -q '"guidanceProfile": "learning-progress"' "$materialized_design_candidate_dir/fixture-report.json"
+grep -q '"universalDefaultsRejected": true' "$materialized_design_candidate_dir/fixture-report.json"
+grep -q '"expectedArtifact":' "$materialized_design_candidate_dir/fixture-report.json"
+grep -q 'Design Tailoring Contract' "$materialized_design_candidate_dir/fixture-report.md"
+grep -q 'Universal defaults rejected' "$materialized_design_candidate_dir/fixture-report.md"
 ./bin/shipguard ios report-quality \
   --reports "$materialized_candidate_dir" \
   --out "$tmp_dir/materialized-quality" \

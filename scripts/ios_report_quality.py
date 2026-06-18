@@ -1046,6 +1046,184 @@ def performance_evidence_promotion_issues(
     return issues
 
 
+def design_app_type_tailoring_issues(
+    report: dict[str, Any], *, markdown: str, path_name: str
+) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    app_type = report.get("appType")
+    app_value = ""
+    if isinstance(app_type, dict):
+        app_value = normalized_question_text(app_type.get("value") or "")
+    if not app_value:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-app-type-missing",
+            evidence=f"{path_name} has no appType.value",
+            recommendation="Emit appType.value so design guidance can be checked against the inferred or overridden app category.",
+        )
+
+    tailoring = report.get("designTailoring")
+    if not isinstance(tailoring, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-tailoring-contract-missing",
+            evidence=f"{path_name} has no designTailoring contract",
+            recommendation="Add designTailoring with tailoredFor, guidanceProfile, sourceSignals, dimensions, and one exact nextAction.",
+        )
+        return issues
+
+    tailored_for = normalized_question_text(tailoring.get("tailoredFor") or "")
+    guidance_profile = normalized_question_text(tailoring.get("guidanceProfile") or "")
+    if app_value and tailored_for != app_value:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-tailoring-app-type-mismatch",
+            evidence=f"{path_name} appType.value={app_value!r} but designTailoring.tailoredFor={tailored_for!r}",
+            recommendation="Set designTailoring.tailoredFor to the same app type used by motion, haptics, copy, and layout guidance.",
+        )
+    if not guidance_profile or "universal" in guidance_profile or guidance_profile == "default":
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-tailoring-profile-generic",
+            evidence=f"{path_name} guidanceProfile={tailoring.get('guidanceProfile')!r}",
+            recommendation="Name a specific app-type guidance profile such as utility-speed, learning-progress, calm-confidence, transactional-trust, workflow-density, human-relationship, or expressive-delight.",
+        )
+    if tailoring.get("universalDefaultsRejected") is not True:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-tailoring-universal-defaults-not-rejected",
+            evidence=f"{path_name} universalDefaultsRejected={tailoring.get('universalDefaultsRejected')!r}",
+            recommendation="State that universal design defaults were rejected and guidance was weighted by app type.",
+        )
+
+    source_signals = tailoring.get("sourceSignals")
+    if not isinstance(source_signals, list) or not source_signals:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-tailoring-source-signals-missing",
+            evidence=f"{path_name} designTailoring has no sourceSignals",
+            recommendation="Attach the source or metadata signals that justify the selected app type.",
+        )
+
+    dimensions = tailoring.get("dimensions")
+    required_dimensions = ("motion", "haptics", "visualDensity", "copyTone")
+    if not isinstance(dimensions, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-tailoring-dimensions-missing",
+            evidence=f"{path_name} designTailoring has no dimensions object",
+            recommendation="Provide motion, haptics, visualDensity, and copyTone tailoring dimensions.",
+        )
+        dimensions = {}
+    for dimension in required_dimensions:
+        if not isinstance(dimensions.get(dimension), dict):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id=f"design-tailoring-{dimension.lower()}-missing",
+                evidence=f"{path_name} designTailoring.dimensions.{dimension} is missing",
+                recommendation=f"Add designTailoring.dimensions.{dimension} so app-type guidance is not a single universal paragraph.",
+            )
+
+    haptics_dimension = dimensions.get("haptics") if isinstance(dimensions, dict) else None
+    haptics_tone = normalized_question_text(
+        haptics_dimension.get("tone") if isinstance(haptics_dimension, dict) else ""
+    )
+    if app_value and app_value != "utility" and haptics_tone == "quiet and utility-focused":
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-tailoring-haptics-universal-utility-tone",
+            evidence=f"{path_name} uses utility haptics tone for appType={app_value}",
+            recommendation="Tailor haptic tone to the app category instead of reusing the utility default.",
+        )
+
+    action = tailoring.get("nextAction")
+    if not isinstance(action, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-tailoring-next-action-missing",
+            evidence=f"{path_name} designTailoring has no nextAction",
+            recommendation="Provide one exact nextAction with owner, manual proof or command, expected artifact, success condition, and failure meaning.",
+        )
+        return issues
+
+    owner = normalized_question_text(action.get("owner") or "")
+    command = normalized_question_text(action.get("command") or "")
+    manual_proof = normalized_question_text(action.get("manualProof") or action.get("manual_proof") or "")
+    expected_artifact = normalized_question_text(action.get("expectedArtifact") or action.get("expected_artifact") or "")
+    success_condition = normalized_question_text(action.get("successCondition") or action.get("success_condition") or "")
+    failure_meaning = normalized_question_text(action.get("failureMeaning") or action.get("failure_meaning") or "")
+    if not owner:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-tailoring-next-action-owner-missing",
+            evidence=f"{path_name} designTailoring.nextAction has no owner",
+            recommendation="Name who owns the next design proof step.",
+        )
+    if not command and not manual_proof:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-tailoring-next-action-proof-missing",
+            evidence=f"{path_name} designTailoring.nextAction has neither command nor manualProof",
+            recommendation="Provide either a runnable command or concrete manual preview/design proof instruction.",
+        )
+    if not expected_artifact:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-tailoring-next-action-artifact-missing",
+            evidence=f"{path_name} designTailoring.nextAction has no expectedArtifact",
+            recommendation="Name the artifact that proves app-type-tailored guidance was reviewed.",
+        )
+    if not success_condition:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-tailoring-next-action-success-missing",
+            evidence=f"{path_name} designTailoring.nextAction has no successCondition",
+            recommendation="Define what proves the design report is app-type tailored.",
+        )
+    if not failure_meaning:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-tailoring-next-action-failure-missing",
+            evidence=f"{path_name} designTailoring.nextAction has no failureMeaning",
+            recommendation="Explain what it means when app-type proof is missing or generic.",
+        )
+
+    if issues:
+        return issues
+    markdown_contract_visible = (
+        "Design Tailoring Contract" in markdown
+        and "Guidance profile" in markdown
+        and "Universal defaults rejected" in markdown
+        and "Expected artifact" in markdown
+        and "Success condition" in markdown
+        and "Failure meaning" in markdown
+    )
+    if not markdown_contract_visible:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-tailoring-markdown-missing",
+            evidence=f"{path_name} has designTailoring JSON but Markdown does not show the exact app-type contract",
+            recommendation="Render the design tailoring contract in Markdown so reviewers see app type, profile, proof, artifact, success condition, and failure meaning.",
+        )
+    return issues
+
+
 def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     inputs = report.get("reportInputs")
@@ -1589,6 +1767,8 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
         issues.extend(performance_grouping_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_high_severity_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_proof_boundary_issues(loaded, markdown=markdown, path_name=path.name))
+    if tool == "shipguard ios design":
+        issues.extend(design_app_type_tailoring_issues(loaded, markdown=markdown, path_name=path.name))
 
     if has_local_path(raw_text):
         add_issue(
@@ -2629,6 +2809,83 @@ def synthetic_performance_evidence_promotion() -> dict[str, Any]:
     }
 
 
+def synthetic_design_tailoring(app_type: str = "education") -> dict[str, Any]:
+    return {
+        "tailoredFor": app_type,
+        "guidanceProfile": "learning-progress" if app_type == "education" else "utility-speed",
+        "universalDefaultsRejected": True,
+        "sourceSignalSummary": "lesson->education, learn->education, progress->education",
+        "sourceSignals": [
+            {"appType": "education", "token": "lesson", "file": "Sources/SyntheticDesignFixture/LearningFlow.swift", "count": 12},
+            {"appType": "education", "token": "learn", "file": "Sources/SyntheticDesignFixture/LearningFlow.swift", "count": 8},
+            {"appType": "education", "token": "progress", "file": "Sources/SyntheticDesignFixture/LearningFlow.swift", "count": 5},
+        ],
+        "dimensions": {
+            "motion": {
+                "stance": "production-polish",
+                "reason": "Motion should clarify learning state, feedback, and recovery rather than apply utility-only restraint.",
+                "observedSignals": {"withAnimation": 4, "animationModifiers": 2, "repeatForever": 1, "timelineView": 0},
+            },
+            "haptics": {
+                "tone": "encouraging, milestone-aware, and interruption-sparse",
+                "deviceProofRequired": True,
+                "observedSignals": {"uikitFeedbackSignals": 1, "coreHapticsSignals": 0, "sensoryFeedbackSignals": 0},
+            },
+            "visualDensity": {
+                "stance": "allow expressive hierarchy with proof",
+                "observedSignals": {"rounded": 8, "shadow": 2, "blur": 1, "cardNames": 3},
+            },
+            "copyTone": {
+                "stance": "specific to the app task and audience",
+                "visibleStringCount": 9,
+                "localizationSignals": 2,
+            },
+        },
+        "nextAction": {
+            "owner": "developer",
+            "kind": "manual-proof",
+            "manualProof": "Review one synthetic learning flow and confirm motion, haptics, visual density, and copy guidance match the education profile rather than a universal design checklist.",
+            "expectedArtifact": "A same-flow screenshot or preview receipt plus one note mapping the learning-progress profile to source signals.",
+            "successCondition": "The report explains why learning-progress is the right profile for education and avoids utility-only advice.",
+            "failureMeaning": "The design report remains an inventory, not an app-type-specific design QA recommendation.",
+        },
+        "risk": "Generic utility restraint can make learning feedback feel flat, while generic game delight can distract from comprehension.",
+    }
+
+
+def synthetic_design_report_fields() -> dict[str, Any]:
+    return {
+        "status": "review",
+        "appType": {
+            "value": "education",
+            "inferred": "education",
+            "override": None,
+            "confidence": 0.78,
+            "scores": {"education": 25, "utility": 4, "game": 3},
+            "signals": synthetic_design_tailoring("education")["sourceSignals"],
+        },
+        "designTailoring": synthetic_design_tailoring("education"),
+        "designDNA": {
+            "motion": {"withAnimationSignals": 4, "animationModifiers": 2, "repeatForeverSignals": 1, "timelineViewSignals": 0, "reduceMotionSignals": 2},
+            "haptics": {"uikitFeedbackSignals": 1, "coreHapticsSignals": 0, "sensoryFeedbackSignals": 0},
+            "layout": {"roundedSignals": 8, "shadowSignals": 2, "blurSignals": 1, "cardNameSignals": 3},
+            "copyTone": {"visibleStringCount": 9, "localizationSignals": 2, "samples": ["Lesson complete", "Try again"]},
+        },
+        "findings": [
+            {
+                "severity": "review",
+                "category": "Design Tailoring",
+                "ruleId": "design-tailoring-app-type-proof",
+                "title": "Education guidance must be app-type tailored",
+                "evidence": "Synthetic learning source signals choose education while the report must avoid utility-only design advice.",
+                "recommendation": "Use the learning-progress profile for motion, haptics, visual density, and copy guidance.",
+                "proof": "Review the Design Tailoring Contract and attach one preview or screenshot receipt for the synthetic learning flow.",
+                "proofGuidance": "Review the Design Tailoring Contract and attach one preview or screenshot receipt for the synthetic learning flow.",
+            }
+        ],
+    }
+
+
 def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
     question = materialized_source_question(candidate)
     source_tool = sanitize_materialized_text(candidate.get("sourceTool")) or "shipguard ios report-quality"
@@ -2679,6 +2936,8 @@ def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
         report["findings"] = synthetic_performance_findings()
         report["ruleSummary"] = synthetic_performance_rule_summary()
         report["groupedActionPlan"] = synthetic_performance_grouped_action_plan()
+    if source_tool == "shipguard ios design" and fixture_type == "ios-design-report-quality-fixture":
+        report.update(synthetic_design_report_fields())
     return report
 
 
@@ -2769,6 +3028,45 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                     "",
                 ]
             )
+    if source_tool == "shipguard ios design" and fixture_type == "ios-design-report-quality-fixture":
+        lines.extend(
+            [
+                "## App Type Signals",
+                "",
+                "| App Type | Score |",
+                "| --- | ---: |",
+                "| education | 25 |",
+                "| utility | 4 |",
+                "",
+                "Top signals:",
+                "- `lesson` -> education (12) in Sources/SyntheticDesignFixture/LearningFlow.swift",
+                "- `learn` -> education (8) in Sources/SyntheticDesignFixture/LearningFlow.swift",
+                "",
+                "## Design Tailoring Contract",
+                "",
+                "- Tailored for: `education`",
+                "- Guidance profile: `learning-progress`",
+                "- Universal defaults rejected: `true`",
+                "- Source signals: lesson->education, learn->education, progress->education",
+                "- Motion stance: production-polish",
+                "- Haptics tone: encouraging, milestone-aware, and interruption-sparse",
+                "- Visual density stance: allow expressive hierarchy with proof",
+                "- Copy tone stance: specific to the app task and audience",
+                "- Risk: Generic utility restraint can make learning feedback feel flat, while generic game delight can distract from comprehension.",
+                "- Owner: `developer`",
+                "- Manual proof: Review one synthetic learning flow and confirm motion, haptics, visual density, and copy guidance match the education profile rather than a universal design checklist.",
+                "- Expected artifact: A same-flow screenshot or preview receipt plus one note mapping the learning-progress profile to source signals.",
+                "- Success condition: The report explains why learning-progress is the right profile for education and avoids utility-only advice.",
+                "- Failure meaning: The design report remains an inventory, not an app-type-specific design QA recommendation.",
+                "",
+                "## Findings",
+                "",
+                "| Severity | Category | Rule | Finding | Recommendation | Proof |",
+                "| --- | --- | --- | --- | --- | --- |",
+                "| review | Design Tailoring | `design-tailoring-app-type-proof` | Education guidance must be app-type tailored | Use the learning-progress profile for motion, haptics, visual density, and copy guidance. | Review the Design Tailoring Contract and attach one preview or screenshot receipt for the synthetic learning flow. |",
+                "",
+            ]
+        )
     return "\n".join(lines)
 
 

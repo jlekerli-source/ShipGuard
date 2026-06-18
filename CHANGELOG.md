@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added public `fixtures/ios-report-quality/design-app-type-tailoring` coverage after read-only product-QA showed the next uncovered design question was app-type tailoring: `shipguard ios design` reports now expose a machine-readable `designTailoring` contract with source signals, guidance profile, tailored motion/haptics/visual-density/copy dimensions, and one exact next proof action.
+- Tightened `shipguard ios report-quality` so design reports missing the app-type tailoring contract, source signals, tailored dimensions, Markdown rendering, or next-action proof fields receive review findings; regenerated read-only Ringly/Ilmify product-QA output now has fixture coverage for runtime boundary, grouped performance, evidence promotion, and design app-type tailoring, moving the next priority to design-system coherence boundary separation.
 - Added public `fixtures/ios-report-quality/performance-evidence-promotion` coverage after read-only product-QA showed the next uncovered performance question was promotion evidence: source-only suspicions now need a machine-readable next action before they become broader work.
 - Added `evidencePromotion` to `shipguard ios performance` JSON and Markdown: reports now name source evidence, promotion status, first candidate rule, required proof, and one exact next action with owner, manual proof, expected artifact, success condition, and failure meaning.
 - Tightened `shipguard ios report-quality` so non-pass performance reports missing the evidence-promotion next-action contract receive review findings; regenerated read-only Ringly/Ilmify product-QA output now has fixture coverage for runtime boundary, grouped performance, and evidence promotion, moving the next priority to design app-type tailoring.

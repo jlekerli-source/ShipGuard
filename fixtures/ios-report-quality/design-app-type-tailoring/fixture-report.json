@@ -1,0 +1,173 @@
+{
+  "appType": {
+    "confidence": 0.78,
+    "inferred": "education",
+    "override": null,
+    "scores": {
+      "education": 25,
+      "game": 3,
+      "utility": 4
+    },
+    "signals": [
+      {
+        "appType": "education",
+        "count": 12,
+        "file": "Sources/SyntheticDesignFixture/LearningFlow.swift",
+        "token": "lesson"
+      },
+      {
+        "appType": "education",
+        "count": 8,
+        "file": "Sources/SyntheticDesignFixture/LearningFlow.swift",
+        "token": "learn"
+      },
+      {
+        "appType": "education",
+        "count": 5,
+        "file": "Sources/SyntheticDesignFixture/LearningFlow.swift",
+        "token": "progress"
+      }
+    ],
+    "value": "education"
+  },
+  "designDNA": {
+    "copyTone": {
+      "localizationSignals": 2,
+      "samples": [
+        "Lesson complete",
+        "Try again"
+      ],
+      "visibleStringCount": 9
+    },
+    "haptics": {
+      "coreHapticsSignals": 0,
+      "sensoryFeedbackSignals": 0,
+      "uikitFeedbackSignals": 1
+    },
+    "layout": {
+      "blurSignals": 1,
+      "cardNameSignals": 3,
+      "roundedSignals": 8,
+      "shadowSignals": 2
+    },
+    "motion": {
+      "animationModifiers": 2,
+      "reduceMotionSignals": 2,
+      "repeatForeverSignals": 1,
+      "timelineViewSignals": 0,
+      "withAnimationSignals": 4
+    }
+  },
+  "designTailoring": {
+    "dimensions": {
+      "copyTone": {
+        "localizationSignals": 2,
+        "stance": "specific to the app task and audience",
+        "visibleStringCount": 9
+      },
+      "haptics": {
+        "deviceProofRequired": true,
+        "observedSignals": {
+          "coreHapticsSignals": 0,
+          "sensoryFeedbackSignals": 0,
+          "uikitFeedbackSignals": 1
+        },
+        "tone": "encouraging, milestone-aware, and interruption-sparse"
+      },
+      "motion": {
+        "observedSignals": {
+          "animationModifiers": 2,
+          "repeatForever": 1,
+          "timelineView": 0,
+          "withAnimation": 4
+        },
+        "reason": "Motion should clarify learning state, feedback, and recovery rather than apply utility-only restraint.",
+        "stance": "production-polish"
+      },
+      "visualDensity": {
+        "observedSignals": {
+          "blur": 1,
+          "cardNames": 3,
+          "rounded": 8,
+          "shadow": 2
+        },
+        "stance": "allow expressive hierarchy with proof"
+      }
+    },
+    "guidanceProfile": "learning-progress",
+    "nextAction": {
+      "expectedArtifact": "A same-flow screenshot or preview receipt plus one note mapping the learning-progress profile to source signals.",
+      "failureMeaning": "The design report remains an inventory, not an app-type-specific design QA recommendation.",
+      "kind": "manual-proof",
+      "manualProof": "Review one synthetic learning flow and confirm motion, haptics, visual density, and copy guidance match the education profile rather than a universal design checklist.",
+      "owner": "developer",
+      "successCondition": "The report explains why learning-progress is the right profile for education and avoids utility-only advice."
+    },
+    "risk": "Generic utility restraint can make learning feedback feel flat, while generic game delight can distract from comprehension.",
+    "sourceSignalSummary": "lesson->education, learn->education, progress->education",
+    "sourceSignals": [
+      {
+        "appType": "education",
+        "count": 12,
+        "file": "Sources/SyntheticDesignFixture/LearningFlow.swift",
+        "token": "lesson"
+      },
+      {
+        "appType": "education",
+        "count": 8,
+        "file": "Sources/SyntheticDesignFixture/LearningFlow.swift",
+        "token": "learn"
+      },
+      {
+        "appType": "education",
+        "count": 5,
+        "file": "Sources/SyntheticDesignFixture/LearningFlow.swift",
+        "token": "progress"
+      }
+    ],
+    "tailoredFor": "education",
+    "universalDefaultsRejected": true
+  },
+  "findings": [
+    {
+      "category": "Design Tailoring",
+      "evidence": "Synthetic learning source signals choose education while the report must avoid utility-only design advice.",
+      "proof": "Review the Design Tailoring Contract and attach one preview or screenshot receipt for the synthetic learning flow.",
+      "proofGuidance": "Review the Design Tailoring Contract and attach one preview or screenshot receipt for the synthetic learning flow.",
+      "recommendation": "Use the learning-progress profile for motion, haptics, visual density, and copy guidance.",
+      "ruleId": "design-tailoring-app-type-proof",
+      "severity": "review",
+      "title": "Education guidance must be app-type tailored"
+    }
+  ],
+  "fixtureCandidate": {
+    "candidateId": "design-app-type-tailoring",
+    "fixtureType": "ios-design-report-quality-fixture",
+    "privateDataPolicy": "Synthetic public fixture. No private app code, local paths, screenshots, app-specific identifiers, or proprietary text were copied.",
+    "sourceQuestion": "Did the report tailor advice to the app type instead of applying one universal design rule?",
+    "sourceReportsRedacted": true,
+    "sourceTool": "shipguard ios design"
+  },
+  "generatedAt": "2026-06-18T00:00:00Z",
+  "intent": "shipguard-evaluation",
+  "reportQualityQuestions": [
+    "Did the report tailor advice to the app type instead of applying one universal design rule?"
+  ],
+  "scanScope": {
+    "note": "Synthetic fixture; no private source tree was scanned.",
+    "skippedDirectories": [],
+    "skippedDirectoryCount": 0
+  },
+  "schemaVersion": 1,
+  "scopeBoundary": {
+    "purpose": "Synthetic public fixture for ShipGuard design app-type tailoring report-quality behavior.",
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "shareability": {
+    "localAbsolutePathsIncluded": false,
+    "mode": "shareable"
+  },
+  "status": "review",
+  "tool": "shipguard ios design"
+}

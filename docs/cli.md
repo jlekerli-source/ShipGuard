@@ -183,10 +183,10 @@ The iOS namespace also includes:
 - `ios plan --mode performance-audit`: route FPS, hitches, launch/scroll stutter, profiler fallback, and device-vs-simulator proof gaps.
 - `ios launchdeck`: make ShipGuard the front door for the LaunchDeck surface. It inspects project/workspace/package/scheme topology, selects the right launch workflow, and emits XcodeBuildMCP build/run, simulator browser, SwiftUI preview hot reload, debugger, and performance-profiler handoff steps plus proof boundaries. Add `--receipt <file-or-dir>` after Codex executes the LaunchDeck route to grade whether build/run, UI, preview, log, or profiler proof is actually present. LaunchDeck owns routing and receipt grading; Codex iOS execution tools perform the simulator, preview, debugger, and profiler work.
 - `ios performance`: run ShipGuard PulseRadar, scanning Swift source for ranked app-side performance hotspots before Codex edits; reports carry a `runtimeEvidenceBoundary` that labels source-only evidence as `source heuristic`, `confidence: medium`, `runtimeProof: missing`, and `blocking: no`, plus an `evidencePromotion` contract that names the first promotable source suspicion and one exact next action with owner, manual proof or command, expected artifact, success condition, and failure meaning. Findings include impact/why-it-matters explanations, high-severity reasons, local/manual proof boundaries, and grouped next actions for repeated rule clusters in JSON and Markdown. Add `--shareable` when performance reports will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or report-quality scoring.
-- `ios design`: run ShipGuard VibeCheck, auditing app-type-specific UI/UX coherence, motion, haptics, preview routing, and ImageGen app-icon handoff before visual work; it emits native `motionQualityGates` for frequency, purpose, keyboard, Reduce Motion, AI-slop, and performance checks. Add `--shareable` when design reports will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or report-quality scoring.
+- `ios design`: run ShipGuard VibeCheck, auditing app-type-specific UI/UX coherence, motion, haptics, preview routing, and ImageGen app-icon handoff before visual work; it emits native `motionQualityGates` for frequency, purpose, keyboard, Reduce Motion, AI-slop, and performance checks plus a `designTailoring` contract that ties app type, source signals, guidance profile, tailored motion/haptics/visual-density/copy dimensions, and one exact next proof action together. Add `--shareable` when design reports will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or report-quality scoring.
 - iOS source scanners skip generated/proof/cache directories such as build output, release artifacts, scratch folders, web assets, and plugin/editor caches; reports include a scan-scope summary so private-app product QA stays auditable.
 - `--shipguard-eval`: mark `ios launchdeck`, `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, or `ios ai-readiness` as ShipGuard product QA only, so findings improve ShipGuard rather than becoming target-app work; add `--shareable` before those reports move into report-quality scoring or external planning.
-- `ios report-quality`: grade ShipGuard report usefulness across read-only product-QA outputs; it evaluates report structure, boundaries, proof guidance, scan scope, performance runtime-evidence boundaries, performance evidence-promotion next actions, performance finding impact explanations, high-severity reasons, local/manual proof boundaries, repeated performance grouping, grouped first experiments, declared shareability, token/path shareability, redaction handoff, aggregated actionability questions, fixture candidates, promotion manifests, existing fixture coverage, and a prioritized next action, not target-app quality. Add `--shareable` when the report-quality artifact itself will move into ChatGPT, GitHub, docs, benchmark fixtures, or release evidence. Add `--write-fixture-candidates <dir>` to materialize generated fixture candidates as synthetic public starter files plus `fixture-promotion-manifest.json` and `PROMOTION.md`; already-materialized synthetic fixtures and questions covered by promoted public fixtures keep their evidence but do not generate recursive or duplicate fixture candidates, and materialized-root scoring consumes promotion manifests as metadata instead of grading them as reports.
+- `ios report-quality`: grade ShipGuard report usefulness across read-only product-QA outputs; it evaluates report structure, boundaries, proof guidance, scan scope, performance runtime-evidence boundaries, performance evidence-promotion next actions, design app-type tailoring contracts, performance finding impact explanations, high-severity reasons, local/manual proof boundaries, repeated performance grouping, grouped first experiments, declared shareability, token/path shareability, redaction handoff, aggregated actionability questions, fixture candidates, promotion manifests, existing fixture coverage, and a prioritized next action, not target-app quality. Add `--shareable` when the report-quality artifact itself will move into ChatGPT, GitHub, docs, benchmark fixtures, or release evidence. Add `--write-fixture-candidates <dir>` to materialize generated fixture candidates as synthetic public starter files plus `fixture-promotion-manifest.json` and `PROMOTION.md`; already-materialized synthetic fixtures and questions covered by promoted public fixtures keep their evidence but do not generate recursive or duplicate fixture candidates, and materialized-root scoring consumes promotion manifests as metadata instead of grading them as reports.
 - `ios modernize`: run ShipGuard UpgradeForge for Swift, SwiftUI, Observation, accessibility, localization, and availability risks; add `--shareable` before report-quality scoring or external sharing.
 - `ios app-intelligence`: run ShipGuard SignalLens for App Intents, shortcuts, widgets, Spotlight, controls, and system exposure; add `--shareable` before report-quality scoring or external sharing.
 - `ios ai-readiness`: run ShipGuard ModelDock to compare on-device, cloud, Core ML, and no-AI options before model work; add `--shareable` before report-quality scoring or external sharing.
@@ -450,7 +450,7 @@ Generate release proof files for a tarball:
 
 ```bash
 ./bin/shipguard release-manifest \
-  --tarball dist/shipguard-v3.111.0.tar.gz \
+  --tarball dist/shipguard-v3.112.0.tar.gz \
   --out /tmp/shipguard-release-proof
 ```
 
@@ -459,7 +459,7 @@ Verify the manifest against the tarball:
 ```bash
 ./bin/shipguard release-manifest verify \
   --manifest /tmp/shipguard-release-proof/release-manifest.json \
-  --tarball dist/shipguard-v3.111.0.tar.gz
+  --tarball dist/shipguard-v3.112.0.tar.gz
 ```
 
 The command writes `release-manifest.json` and `proof-ledger.md`. Add `--ci-run-url`, `--release-url`, and `--issue-url` after publishing to bind the local artifact digest to public release proof. See `release-manifest.md`.
@@ -469,7 +469,7 @@ Build a release proof catalog from manifests:
 ```bash
 ./bin/shipguard release-index build \
   --manifest dist/release-proof-v3.5.0/release-manifest.json \
-  --manifest dist/release-proof-v3.111.0/release-manifest.json \
+  --manifest dist/release-proof-v3.112.0/release-manifest.json \
   --out /tmp/shipguard-release-index
 ```
 
@@ -480,7 +480,7 @@ Replay-verify downloaded release assets:
 ```bash
 ./bin/shipguard release-replay verify \
   --manifest /tmp/shipguard-release-proof/release-manifest.json \
-  --tarball /tmp/shipguard-release-assets/shipguard-v3.111.0.tar.gz \
+  --tarball /tmp/shipguard-release-assets/shipguard-v3.112.0.tar.gz \
   --index /tmp/shipguard-release-index/release-index.json \
   --ledger /tmp/shipguard-release-proof/proof-ledger.md \
   --out /tmp/shipguard-release-replay
@@ -504,7 +504,7 @@ Build the full release proof bundle in one command:
 ```bash
 ./bin/shipguard release-proof build \
   --out /tmp/shipguard-release-proof-bundle \
-  --release-url https://github.com/owner/repo/releases/tag/v3.111.0
+  --release-url https://github.com/owner/repo/releases/tag/v3.112.0
 ```
 
 The command writes the release tarball, manifest, release index, replay report, attestation, and attestation badge. See `release-proof.md`.
@@ -515,9 +515,9 @@ Verify a flat directory of downloaded release assets and write a consumer report
 
 ```bash
 ./bin/shipguard release-consume verify \
-  --dir /tmp/shipguard-v3.111.0 \
-  --out /tmp/shipguard-v3.111.0/consumer-proof \
-  --version 3.111.0
+  --dir /tmp/shipguard-v3.112.0 \
+  --out /tmp/shipguard-v3.112.0/consumer-proof \
+  --version 3.112.0
 ```
 
 The command writes `consumer-report.json`, `consumer-report.md`, `asset-digests.json`, `asset-digests.md`, `sha256.txt`, replay outputs, and attestation outputs. It also cross-checks downloaded replay, attestation, and badge assets when they are present. Use `actions/release-consume` when this verification should run in GitHub Actions. See `release-consume.md` and `release-consume-action.md`.
@@ -529,7 +529,7 @@ Compare two release proof asset directories and write JSON/Markdown diff reports
 ```bash
 ./bin/shipguard release-diff compare \
   --left /tmp/shipguard-old \
-  --right /tmp/shipguard-v3.111.0 \
+  --right /tmp/shipguard-v3.112.0 \
   --out /tmp/shipguard-release-diff
 ```
 
@@ -541,7 +541,7 @@ Export release proof reports as a static evidence page:
 
 ```bash
 ./bin/shipguard release-evidence site \
-  --consume /tmp/shipguard-v3.111.0/consumer-proof \
+  --consume /tmp/shipguard-v3.112.0/consumer-proof \
   --diff /tmp/shipguard-release-diff \
   --out /tmp/shipguard-release-site
 ```
@@ -553,7 +553,7 @@ Build a static index from one or more evidence site exports:
 ```bash
 ./bin/shipguard release-evidence index \
   --site /tmp/shipguard-previous-site \
-  --site /tmp/shipguard-v3.111.0-site \
+  --site /tmp/shipguard-v3.112.0-site \
   --out /tmp/shipguard-release-history
 ```
 
@@ -563,11 +563,11 @@ Build the full local evidence path from downloaded release assets:
 
 ```bash
 ./bin/shipguard release-evidence bundle \
-  --assets /tmp/shipguard-v3.111.0 \
+  --assets /tmp/shipguard-v3.112.0 \
   --left /tmp/shipguard-old \
   --out /tmp/shipguard-release-evidence-bundle \
-  --version 3.111.0 \
-  --title "ShipGuard v3.111.0 Evidence"
+  --version 3.112.0 \
+  --title "ShipGuard v3.112.0 Evidence"
 ```
 
 The command writes consumer proof, optional release-diff proof, `site/index.html`, `index/evidence-index.json`, `bundle.json`, and `README.md`. See `release-evidence-bundle.md`.
@@ -601,28 +601,28 @@ Use `actions/release-evidence-negative-index` when this guardrail index should r
 Download a published release bundle, verify the tarball digest, replay the proof, and rebuild the compact attestation:
 
 ```bash
-gh release download v3.111.0 \
+gh release download v3.112.0 \
   --repo jlekerli-source/ShipGuard \
-  --pattern 'shipguard-v3.111.0.tar.gz' \
+  --pattern 'shipguard-v3.112.0.tar.gz' \
   --pattern 'release-manifest.json' \
   --pattern 'release-index.json' \
   --pattern 'proof-ledger.md' \
   --pattern 'attestation-badge.json' \
-  --dir /tmp/shipguard-v3.111.0
+  --dir /tmp/shipguard-v3.112.0
 
-shasum -a 256 /tmp/shipguard-v3.111.0/shipguard-v3.111.0.tar.gz
+shasum -a 256 /tmp/shipguard-v3.112.0/shipguard-v3.112.0.tar.gz
 
 ./bin/shipguard release-replay verify \
-  --manifest /tmp/shipguard-v3.111.0/release-manifest.json \
-  --tarball /tmp/shipguard-v3.111.0/shipguard-v3.111.0.tar.gz \
-  --index /tmp/shipguard-v3.111.0/release-index.json \
-  --ledger /tmp/shipguard-v3.111.0/proof-ledger.md \
-  --out /tmp/shipguard-v3.111.0/consumer-replay
+  --manifest /tmp/shipguard-v3.112.0/release-manifest.json \
+  --tarball /tmp/shipguard-v3.112.0/shipguard-v3.112.0.tar.gz \
+  --index /tmp/shipguard-v3.112.0/release-index.json \
+  --ledger /tmp/shipguard-v3.112.0/proof-ledger.md \
+  --out /tmp/shipguard-v3.112.0/consumer-replay
 
 ./bin/shipguard release-attest build \
-  --manifest /tmp/shipguard-v3.111.0/release-manifest.json \
-  --replay /tmp/shipguard-v3.111.0/consumer-replay/replay-report.json \
-  --out /tmp/shipguard-v3.111.0/consumer-attestation
+  --manifest /tmp/shipguard-v3.112.0/release-manifest.json \
+  --replay /tmp/shipguard-v3.112.0/consumer-replay/replay-report.json \
+  --out /tmp/shipguard-v3.112.0/consumer-attestation
 ```
 
 See `release-proof-consumption.md` for the rejection rules and trust model.
@@ -690,8 +690,8 @@ The command writes a Markdown plan with `/plan` and `/goal` blocks, optional bou
 Download and extract a release package:
 
 ```bash
-tar -xzf shipguard-v3.111.0.tar.gz
-cd shipguard-v3.111.0
+tar -xzf shipguard-v3.112.0.tar.gz
+cd shipguard-v3.112.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 ```
 

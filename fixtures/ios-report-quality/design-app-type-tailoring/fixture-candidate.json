@@ -1,0 +1,22 @@
+{
+  "candidateId": "design-app-type-tailoring",
+  "expectedAssertions": [
+    "report-quality preserves the app-type tailoring actionability question in JSON and Markdown",
+    "report-quality does not emit recursive fixtureCandidates for an already-materialized synthetic fixture",
+    "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+    "design reports expose designTailoring with tailoredFor, guidanceProfile, sourceSignals, dimensions, and nextAction",
+    "designTailoring rejects universal defaults and names app-type-specific motion, haptics, visual-density, and copy guidance",
+    "nextAction names owner, manual proof, expected artifact, success condition, and failure meaning",
+    "shareable output contains no local absolute paths or private app identifiers"
+  ],
+  "fixtureType": "ios-design-report-quality-fixture",
+  "privateDataPolicy": "Synthetic public fixture. No private app code, local paths, screenshots, app-specific identifiers, or proprietary text were copied.",
+  "publicFixturePath": "fixtures/ios-report-quality/design-app-type-tailoring",
+  "sourceQuestion": "Did the report tailor advice to the app type instead of applying one universal design rule?",
+  "sourceReportsRedacted": true,
+  "sourceTool": "shipguard ios design",
+  "validationCommands": [
+    "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/design-app-type-tailoring --out <quality-dir> --shareable",
+    "./tests/ios_report_quality_test.sh"
+  ]
+}
