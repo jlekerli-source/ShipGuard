@@ -1,0 +1,20 @@
+{
+  "candidateId": "performance-runtime-boundary",
+  "expectedAssertions": [
+    "report-quality preserves the actionability question in JSON and Markdown",
+    "report-quality does not emit recursive fixtureCandidates for an already-materialized synthetic fixture",
+    "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+    "performance reports expose source-heuristic, medium-confidence, runtime-proof-missing, non-blocking boundaries",
+    "shareable output contains no local absolute paths or private app identifiers"
+  ],
+  "fixtureType": "shipguard-eval-boundary-fixture",
+  "privateDataPolicy": "Synthetic public fixture. No private app code, local paths, screenshots, app-specific identifiers, or proprietary text were copied.",
+  "publicFixturePath": "fixtures/ios-report-quality/performance-runtime-boundary",
+  "sourceQuestion": "Did report wording keep target-app remediation separate from ShipGuard product QA next steps?",
+  "sourceReportsRedacted": true,
+  "sourceTool": "shipguard ios performance",
+  "validationCommands": [
+    "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/performance-runtime-boundary --out <quality-dir> --shareable",
+    "./tests/ios_report_quality_test.sh"
+  ]
+}

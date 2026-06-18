@@ -1,0 +1,45 @@
+{
+  "findings": [],
+  "fixtureCandidate": {
+    "candidateId": "performance-runtime-boundary",
+    "fixtureType": "shipguard-eval-boundary-fixture",
+    "privateDataPolicy": "Synthetic public fixture. No private app code, local paths, screenshots, app-specific identifiers, or proprietary text were copied.",
+    "sourceQuestion": "Did report wording keep target-app remediation separate from ShipGuard product QA next steps?",
+    "sourceReportsRedacted": true,
+    "sourceTool": "shipguard ios performance"
+  },
+  "generatedAt": "2026-06-18T00:00:00Z",
+  "intent": "shipguard-evaluation",
+  "reportQualityQuestions": [
+    "Did report wording keep target-app remediation separate from ShipGuard product QA next steps?"
+  ],
+  "runtimeEvidenceBoundary": {
+    "blocking": "no",
+    "confidence": "medium",
+    "evidence": "source heuristic",
+    "interpretation": "Synthetic source-only performance fixture; it does not prove actual CPU, GPU, memory, energy, hitch, FPS, or frame-rate problems.",
+    "promotionRule": "Promote only after a public fixture or same-route runtime proof confirms the issue shape.",
+    "requiredRuntimeProof": [
+      "Same-route Simulator trace, sample, or log evidence for local-only claims.",
+      "Physical-device Instruments or equivalent proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims."
+    ],
+    "runtimeProof": "missing"
+  },
+  "scanScope": {
+    "note": "Synthetic fixture; no private source tree was scanned.",
+    "skippedDirectories": [],
+    "skippedDirectoryCount": 0
+  },
+  "schemaVersion": 1,
+  "scopeBoundary": {
+    "purpose": "Synthetic public fixture for ShipGuard performance report-quality behavior.",
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "shareability": {
+    "localAbsolutePathsIncluded": false,
+    "mode": "shareable"
+  },
+  "status": "pass",
+  "tool": "shipguard ios performance"
+}

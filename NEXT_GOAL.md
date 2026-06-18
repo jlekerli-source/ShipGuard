@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T14:51:54Z
-- Current toolkit version: 3.108.0
-- Target release: v3.108.0
-- Title: ShipGuard DockCheck Report Contract
+- Generated: 2026-06-18T15:19:51Z
+- Current toolkit version: 3.109.0
+- Target release: v3.109.0
+- Title: ShipGuard Performance Runtime Boundary Fixtures
 
 ## Slash Plan
 
 ```text
-/plan v3.108.0 ShipGuard DockCheck Report Contract for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Upgrade shipguard ios doctor after read-only Ringly and Ilmify ShipGuard product-QA: add stable report metadata, structured finding fields, and privacy-safe target roots so DockCheck reports pass ios report-quality --shareable and can feed the next evaluation loop.
+/plan v3.109.0 ShipGuard Performance Runtime Boundary Fixtures for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add a runtime-evidence boundary to shipguard ios performance, enforce it in ios report-quality, and promote a public synthetic fixture from read-only Ringly/Ilmify product-QA evidence without editing either app.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.108.0 ShipGuard DockCheck Report Contract for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Upgrade shipguard ios doctor after read-only Ringly and Ilmify ShipGuard product-QA: add stable report metadata, structured finding fields, and privacy-safe target roots so DockCheck reports pass ios report-quality --shareable and can feed the next evaluation loop, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.109.0 ShipGuard Performance Runtime Boundary Fixtures for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add a runtime-evidence boundary to shipguard ios performance, enforce it in ios report-quality, and promote a public synthetic fixture from read-only Ringly/Ilmify product-QA evidence without editing either app, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Upgrade shipguard ios doctor after read-only Ringly and Ilmify ShipGuard product-QA: add stable report metadata, structured finding fields, and privacy-safe target roots so DockCheck reports pass ios report-quality --shareable and can feed the next evaluation loop.
+Add a runtime-evidence boundary to shipguard ios performance, enforce it in ios report-quality, and promote a public synthetic fixture from read-only Ringly/Ilmify product-QA evidence without editing either app.
 
 ## Completion Receipt
 
-- Completed scope: Upgrade shipguard ios doctor after read-only Ringly and Ilmify ShipGuard product-QA: add stable report metadata, structured finding fields, and privacy-safe target roots so DockCheck reports pass ios report-quality --shareable and can feed the next evaluation loop.
-- Evidence: git diff --check; python3 -m py_compile scripts/ios_doctor.py scripts/ios_report_quality.py; ./tests/ios_doctor_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard ios doctor --path fixtures/demo-ios-repo --out /tmp/shipguard-doctor-contract-v3108; ./bin/shipguard ios report-quality --reports /tmp/shipguard-doctor-contract-v3108 --out /tmp/shipguard-doctor-contract-quality-v3108 --shareable; read-only Ringly and Ilmify ShipGuard report sweep to /tmp/shipguard-readonly-*-v3108; ./bin/shipguard ios report-quality --reports /tmp/shipguard-readonly-ringly-v3108 --reports /tmp/shipguard-readonly-ilmify-v3108 --out /tmp/shipguard-readonly-quality-v3108-after-doctor2 --shareable; ./bin/shipguard validate; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/next_goal_test.sh; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3108; ./tests/package_release_test.sh
+- Completed scope: Add a runtime-evidence boundary to shipguard ios performance, enforce it in ios report-quality, and promote a public synthetic fixture from read-only Ringly/Ilmify product-QA evidence without editing either app.
+- Evidence: Validated generated performance reports expose source-heuristic/runtime-proof-missing/non-blocking boundaries, report-quality flags missing boundaries, the public performance-runtime-boundary fixture passes without recursive candidates, and regenerated read-only Ringly/Ilmify reports score 100/100 with the next uncovered priority on grouped performance observation fixtures.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.109.0 ShipGuard Performance Boundary Fixtures for jlekerli-source/ShipGuard:
+/plan v3.110.0 ShipGuard Grouped Performance Observation Fixtures for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Upgrade shipguard ios doctor after read-only Ringly and Ilmify ShipGuard product
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.109.0 ShipGuard Performance Boundary Fixtures for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.110.0 ShipGuard Grouped Performance Observation Fixtures for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.109.0 --title "ShipGuard Performance Boundary Fixtures" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.110.0 --title "ShipGuard Grouped Performance Observation Fixtures" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -145,12 +145,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.108.0.
+1. Open or update the tracking issue for v3.109.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.108.0` and upload `dist/shipguard-v3.108.0.tar.gz`.
+6. Create release `v3.109.0` and upload `dist/shipguard-v3.109.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

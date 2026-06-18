@@ -407,6 +407,27 @@ def shipguard_eval_questions() -> list[str]:
     ]
 
 
+def runtime_evidence_boundary() -> dict[str, Any]:
+    return {
+        "evidence": "source heuristic",
+        "confidence": "medium",
+        "runtimeProof": "missing",
+        "blocking": "no",
+        "interpretation": (
+            "Source-only findings nominate review and proof candidates; they do not prove actual CPU, GPU, memory, "
+            "energy, hitch, touch-latency, FPS, or frame-rate problems."
+        ),
+        "promotionRule": (
+            "Promote a performance suspicion only after same-route local profiling or physical-device evidence confirms "
+            "the issue and the proposed change stays inside the authorized task boundary."
+        ),
+        "requiredRuntimeProof": [
+            "Same-route Simulator trace, sample, or log evidence for local-only claims.",
+            "Physical-device Instruments or equivalent proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims.",
+        ],
+    }
+
+
 def summarize_rules(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
     grouped: dict[str, dict[str, Any]] = {}
     for finding in findings:
@@ -582,6 +603,7 @@ def build_report(root: Path, *, shipguard_eval: bool = False, shareable: bool = 
             "opportunity": sum(1 for item in findings if item["severity"] == "opportunity"),
         },
         "scanScope": ios_scan_scope.summary(scan),
+        "runtimeEvidenceBoundary": runtime_evidence_boundary(),
         "guardrails": collect_guardrails(root),
         "scopeBoundary": shipguard_eval_boundary() if shipguard_eval else None,
         "reportQualityQuestions": shipguard_eval_questions() if shipguard_eval else [],
@@ -627,6 +649,24 @@ def markdown_report(report: dict[str, Any]) -> str:
         f"- Skipped generated/proof/cache directories: {report['scanScope']['skippedDirectoryCount']}",
         "",
     ]
+    boundary = report["runtimeEvidenceBoundary"]
+    lines.extend(
+        [
+            "## Runtime Evidence Boundary",
+            "",
+            f"- Evidence: `{boundary['evidence']}`",
+            f"- Confidence: `{boundary['confidence']}`",
+            f"- Runtime proof: `{boundary['runtimeProof']}`",
+            f"- Blocking: `{boundary['blocking']}`",
+            f"- Interpretation: {boundary['interpretation']}",
+            f"- Promotion rule: {boundary['promotionRule']}",
+            "",
+            "Required runtime proof:",
+        ]
+    )
+    for item in boundary["requiredRuntimeProof"]:
+        lines.append(f"- {item}")
+    lines.append("")
     if report["intent"] == "shipguard-evaluation":
         boundary = report["scopeBoundary"]
         lines.extend(

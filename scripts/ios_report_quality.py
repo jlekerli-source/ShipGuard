@@ -825,6 +825,109 @@ def performance_proof_boundary_issues(report: dict[str, Any], *, markdown: str, 
     return issues
 
 
+def performance_runtime_evidence_boundary_issues(
+    report: dict[str, Any], *, markdown: str, path_name: str
+) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    boundary = report.get("runtimeEvidenceBoundary")
+    if not isinstance(boundary, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-runtime-evidence-boundary-missing",
+            evidence=f"{path_name} has no runtimeEvidenceBoundary",
+            recommendation=(
+                "State that source-only performance findings are source heuristics with medium confidence, "
+                "missing runtime proof, and no target-app blocking claim."
+            ),
+        )
+        return issues
+
+    evidence = normalized_question_text(boundary.get("evidence") or boundary.get("evidenceType") or "")
+    confidence = normalized_question_text(boundary.get("confidence") or "")
+    runtime_proof = normalized_question_text(boundary.get("runtimeProof") or "")
+    blocking = normalized_question_text(boundary.get("blocking") or "")
+    interpretation = normalized_question_text(boundary.get("interpretation") or "")
+    promotion_rule = normalized_question_text(boundary.get("promotionRule") or "")
+    proof_items = boundary.get("requiredRuntimeProof")
+    proof_text = normalized_question_text(" ".join(str(item) for item in proof_items if isinstance(item, str))) if isinstance(proof_items, list) else ""
+
+    if evidence not in {"source heuristic", "source-heuristic", "source heuristics", "source-only heuristic"}:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-runtime-evidence-type-invalid",
+            evidence=f"{path_name} runtimeEvidenceBoundary evidence={boundary.get('evidence')!r}",
+            recommendation="Use evidence='source heuristic' until runtime profiler or device evidence is attached.",
+        )
+    if confidence != "medium":
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-runtime-confidence-invalid",
+            evidence=f"{path_name} runtimeEvidenceBoundary confidence={boundary.get('confidence')!r}",
+            recommendation="Use confidence='medium' for source-only performance reports unless calibrated runtime evidence changes that claim.",
+        )
+    if runtime_proof != "missing":
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-runtime-proof-invalid",
+            evidence=f"{path_name} runtimeEvidenceBoundary runtimeProof={boundary.get('runtimeProof')!r}",
+            recommendation="Use runtimeProof='missing' for source-only performance reports before a trace, sample, or device proof is attached.",
+        )
+    if blocking not in {"no", "false"}:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-runtime-blocking-invalid",
+            evidence=f"{path_name} runtimeEvidenceBoundary blocking={boundary.get('blocking')!r}",
+            recommendation="Use blocking='no' so source-only performance suspicion does not become target-app remediation authority.",
+        )
+    if not all(token in interpretation for token in ("source", "prove", "cpu", "gpu", "fps")):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-runtime-interpretation-incomplete",
+            evidence=f"{path_name} runtimeEvidenceBoundary interpretation does not clearly separate source suspicion from runtime proof",
+            recommendation="Explain that the report nominates proof candidates and does not prove CPU/GPU/FPS/runtime problems by itself.",
+        )
+    if "promote" not in promotion_rule and "promotion" not in promotion_rule:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-runtime-promotion-rule-missing",
+            evidence=f"{path_name} runtimeEvidenceBoundary has no promotion rule",
+            recommendation="State what evidence promotes a source suspicion into a broader performance finding or ShipGuard rule change.",
+        )
+    if not all(token in proof_text for token in ("simulator", "physical-device")):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-runtime-proof-list-incomplete",
+            evidence=f"{path_name} runtimeEvidenceBoundary requiredRuntimeProof does not separate Simulator and physical-device proof",
+            recommendation="List local Simulator proof separately from physical-device proof for hardware, thermal, ProMotion, and release claims.",
+        )
+
+    if issues:
+        return issues
+    markdown_boundary_visible = (
+        "Runtime Evidence Boundary" in markdown
+        and "Evidence: `source heuristic`" in markdown
+        and "Runtime proof: `missing`" in markdown
+        and "Blocking: `no`" in markdown
+    )
+    if not markdown_boundary_visible:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="performance-runtime-boundary-markdown-missing",
+            evidence=f"{path_name} has runtimeEvidenceBoundary JSON but Markdown does not show the source-heuristic boundary",
+            recommendation="Show Evidence, Confidence, Runtime proof, and Blocking in Markdown before report-quality passes.",
+        )
+    return issues
+
+
 def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     inputs = report.get("reportInputs")
@@ -1362,6 +1465,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
         )
     issues.extend(finding_quality_issues(loaded))
     if tool == "shipguard ios performance":
+        issues.extend(performance_runtime_evidence_boundary_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_finding_explanation_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_grouping_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_high_severity_issues(loaded, markdown=markdown, path_name=path.name))
@@ -2280,7 +2384,7 @@ def materialized_candidate_id(candidate: dict[str, Any]) -> str:
 def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
     question = materialized_source_question(candidate)
     source_tool = sanitize_materialized_text(candidate.get("sourceTool")) or "shipguard ios report-quality"
-    return {
+    report = {
         "schemaVersion": 1,
         "tool": source_tool,
         "intent": "shipguard-evaluation",
@@ -2304,13 +2408,30 @@ def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
         "reportQualityQuestions": [question],
         "fixtureCandidate": safe_candidate_metadata(candidate),
     }
+    if source_tool == "shipguard ios performance":
+        report["runtimeEvidenceBoundary"] = {
+            "evidence": "source heuristic",
+            "confidence": "medium",
+            "runtimeProof": "missing",
+            "blocking": "no",
+            "interpretation": (
+                "Synthetic source-only performance fixture; it does not prove actual CPU, GPU, memory, energy, hitch, FPS, "
+                "or frame-rate problems."
+            ),
+            "promotionRule": "Promote only after a public fixture or same-route runtime proof confirms the issue shape.",
+            "requiredRuntimeProof": [
+                "Same-route Simulator trace, sample, or log evidence for local-only claims.",
+                "Physical-device Instruments or equivalent proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims.",
+            ],
+        }
+    return report
 
 
 def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
     question = materialized_source_question(candidate)
     fixture_type = sanitize_materialized_text(candidate.get("fixtureType")) or "report-quality-actionability-fixture"
-    return "\n".join(
-        [
+    source_tool = sanitize_materialized_text(candidate.get("sourceTool")) or "shipguard ios report-quality"
+    lines = [
             "# Synthetic Report-Quality Fixture",
             "",
             "## ShipGuard Evaluation Boundary",
@@ -2326,8 +2447,26 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
             f"- Type: `{fixture_type}`",
             f"- Source question: {question}",
             "",
-        ]
-    )
+    ]
+    if source_tool == "shipguard ios performance":
+        lines.extend(
+            [
+                "## Runtime Evidence Boundary",
+                "",
+                "- Evidence: `source heuristic`",
+                "- Confidence: `medium`",
+                "- Runtime proof: `missing`",
+                "- Blocking: `no`",
+                "- Interpretation: Synthetic source-only performance fixture; it does not prove actual CPU, GPU, memory, energy, hitch, FPS, or frame-rate problems.",
+                "- Promotion rule: Promote only after a public fixture or same-route runtime proof confirms the issue shape.",
+                "",
+                "Required runtime proof:",
+                "- Same-route Simulator trace, sample, or log evidence for local-only claims.",
+                "- Physical-device Instruments or equivalent proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims.",
+                "",
+            ]
+        )
+    return "\n".join(lines)
 
 
 def fixture_readme(candidate: dict[str, Any]) -> str:

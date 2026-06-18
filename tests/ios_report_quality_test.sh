@@ -18,6 +18,14 @@ reports="$tmp_dir/reports"
   --path fixtures/demo-ios-repo \
   --out "$reports/design" \
   --shipguard-eval >/dev/null
+grep -q '"runtimeEvidenceBoundary":' "$reports/performance/ios-performance.json"
+grep -q '"evidence": "source heuristic"' "$reports/performance/ios-performance.json"
+grep -q '"runtimeProof": "missing"' "$reports/performance/ios-performance.json"
+grep -q '"blocking": "no"' "$reports/performance/ios-performance.json"
+grep -q 'Runtime Evidence Boundary' "$reports/performance/ios-performance.md"
+grep -q 'Evidence: `source heuristic`' "$reports/performance/ios-performance.md"
+grep -q 'Runtime proof: `missing`' "$reports/performance/ios-performance.md"
+grep -q 'Blocking: `no`' "$reports/performance/ios-performance.md"
 
 ./bin/shipguard ios report-quality \
   --reports "$reports" \
@@ -173,6 +181,18 @@ cat > "$dedupe_fixture/ios-performance.json" <<'JSON'
     "skippedDirectoryCount": 0,
     "skippedDirectories": []
   },
+  "runtimeEvidenceBoundary": {
+    "evidence": "source heuristic",
+    "confidence": "medium",
+    "runtimeProof": "missing",
+    "blocking": "no",
+    "interpretation": "Source-only findings nominate review and proof candidates; they do not prove actual CPU, GPU, memory, energy, hitch, FPS, or frame-rate problems.",
+    "promotionRule": "Promote only after same-route runtime proof confirms the issue shape.",
+    "requiredRuntimeProof": [
+      "Same-route Simulator trace, sample, or log evidence for local-only claims.",
+      "Physical-device Instruments or equivalent proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims."
+    ]
+  },
   "findings": [],
   "reportQualityQuestions": [
     "Did report wording keep target-app remediation separate from ShipGuard product QA next steps?",
@@ -190,6 +210,13 @@ This fixture is ShipGuard product QA only.
 ## Scan Scope
 
 No skipped directories.
+
+## Runtime Evidence Boundary
+
+- Evidence: `source heuristic`
+- Confidence: `medium`
+- Runtime proof: `missing`
+- Blocking: `no`
 MD
 cat > "$dedupe_fixture/ios-design.json" <<'JSON'
 {
@@ -424,6 +451,32 @@ if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$mater
   exit 1
 fi
 
+performance_boundary_fixture="fixtures/ios-report-quality/performance-runtime-boundary"
+./bin/shipguard ios report-quality \
+  --reports "$performance_boundary_fixture" \
+  --out "$tmp_dir/performance-boundary-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/performance-boundary-quality/ios-report-quality.json"
+grep -q '"sourceMaterializedFixture": true' "$tmp_dir/performance-boundary-quality/ios-report-quality.json"
+grep -q 'Runtime Evidence Boundary' "$performance_boundary_fixture/fixture-report.md"
+grep -q '"runtimeEvidenceBoundary":' "$performance_boundary_fixture/fixture-report.json"
+grep -q 'Did report wording keep target-app remediation separate from ShipGuard product QA next steps?' "$tmp_dir/performance-boundary-quality/ios-report-quality.md"
+python3 - <<'PY' "$tmp_dir/performance-boundary-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"performance runtime boundary fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+if not questions or questions[0].get("sourceMaterializedFixture") is not True:
+    raise SystemExit(f"promoted performance fixture should retain sourceMaterializedFixture question evidence: {questions!r}")
+PY
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$performance_boundary_fixture"; then
+  echo "performance runtime boundary fixture must not include local paths or private app identifiers" >&2
+  exit 1
+fi
+
 priority_fixture="$tmp_dir/priority-fixture"
 mkdir -p "$priority_fixture"
 cat > "$priority_fixture/ios-ai-readiness.json" <<'JSON'
@@ -489,6 +542,18 @@ cat > "$priority_fixture/ios-performance.json" <<'JSON'
     "skippedDirectoryCount": 0,
     "skippedDirectories": []
   },
+  "runtimeEvidenceBoundary": {
+    "evidence": "source heuristic",
+    "confidence": "medium",
+    "runtimeProof": "missing",
+    "blocking": "no",
+    "interpretation": "Source-only findings nominate review and proof candidates; they do not prove actual CPU, GPU, memory, energy, hitch, FPS, or frame-rate problems.",
+    "promotionRule": "Promote only after same-route runtime proof confirms the issue shape.",
+    "requiredRuntimeProof": [
+      "Same-route Simulator trace, sample, or log evidence for local-only claims.",
+      "Physical-device Instruments or equivalent proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims."
+    ]
+  },
   "findings": [
     {
       "ruleId": "performance-higher-priority",
@@ -517,6 +582,19 @@ This fixture is ShipGuard product QA only.
 ## Scan Scope
 
 No skipped directories.
+
+## Runtime Evidence Boundary
+
+- Evidence: `source heuristic`
+- Confidence: `medium`
+- Runtime proof: `missing`
+- Blocking: `no`
+- Interpretation: Source-only findings nominate review and proof candidates; they do not prove actual CPU, GPU, memory, energy, hitch, FPS, or frame-rate problems.
+- Promotion rule: Promote only after same-route runtime proof confirms the issue shape.
+
+Required runtime proof:
+- Same-route Simulator trace, sample, or log evidence for local-only claims.
+- Physical-device Instruments or equivalent proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims.
 
 ## Top Findings
 
@@ -555,6 +633,51 @@ if ranked[0]["tool"] != "shipguard ios performance":
 PY
 grep -q 'Priority Action' "$tmp_dir/priority-quality/ios-report-quality.md"
 grep -q 'Performance priority question should be first.' "$tmp_dir/priority-quality/ios-report-quality.md"
+
+missing_runtime_boundary_dir="$tmp_dir/missing-runtime-boundary"
+mkdir -p "$missing_runtime_boundary_dir"
+cat > "$missing_runtime_boundary_dir/ios-performance.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard ios performance",
+  "intent": "shipguard-evaluation",
+  "generatedAt": "2026-06-17T00:00:00Z",
+  "status": "review",
+  "shareability": {
+    "mode": "shareable",
+    "localAbsolutePathsIncluded": false
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "scanScope": {
+    "skippedDirectoryCount": 0,
+    "skippedDirectories": []
+  },
+  "findings": [],
+  "reportQualityQuestions": [
+    "Does the performance report clearly state that source heuristics are not runtime proof?"
+  ]
+}
+JSON
+cat > "$missing_runtime_boundary_dir/ios-performance.md" <<'MD'
+# Missing Runtime Boundary Fixture
+
+## ShipGuard Evaluation Boundary
+
+This fixture is ShipGuard product QA only.
+
+## Scan Scope
+
+No skipped directories.
+MD
+./bin/shipguard ios report-quality \
+  --reports "$missing_runtime_boundary_dir" \
+  --out "$tmp_dir/missing-runtime-boundary-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/missing-runtime-boundary-quality/ios-report-quality.json"
+grep -q '"ruleId": "performance-runtime-evidence-boundary-missing"' "$tmp_dir/missing-runtime-boundary-quality/ios-report-quality.json"
 
 missing_impact_dir="$tmp_dir/missing-impact"
 mkdir -p "$missing_impact_dir"
