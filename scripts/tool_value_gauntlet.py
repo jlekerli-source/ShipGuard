@@ -13,6 +13,7 @@ from typing import Any
 
 
 SCHEMA_VERSION = 1
+LOWEST_VALUE_QUESTION = "Which ShipGuard command, skill, plugin, or action has the lowest developer-value score and should be upgraded next?"
 
 COMMANDS: list[dict[str, str]] = [
     {"command": "shipguard brand", "surface": "ShipGuard Brand Deck", "family": "brand"},
@@ -69,7 +70,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Which ShipGuard command, skill, plugin, or action has the lowest developer-value score and should be upgraded next?",
+    "Should the lowest-value surface probe execute representative commands and compare actual output against usefulness criteria instead of relying on static metadata only?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -197,6 +198,20 @@ def build_text_index(root: Path) -> dict[str, str]:
 def text_contains_any(text_index: dict[str, str], needles: list[str]) -> bool:
     combined = "\n".join(text_index.values()).lower()
     return all(needle.lower() in combined for needle in needles)
+
+
+def count_hits(text: str, needles: list[str]) -> int:
+    lowered = text.lower()
+    return sum(lowered.count(needle.lower()) for needle in needles if needle)
+
+
+def count_hits_in_paths(text_index: dict[str, str], prefixes: tuple[str, ...], needles: list[str]) -> int:
+    total = 0
+    for path, text in text_index.items():
+        if not path.startswith(prefixes):
+            continue
+        total += count_hits(text, needles)
+    return total
 
 
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
@@ -474,7 +489,276 @@ def evaluate_docs(root: Path, findings: list[dict[str, Any]]) -> list[dict[str, 
     return rows
 
 
-def priority_actions(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def depth_check(check_id: str, passed: bool, evidence: str) -> dict[str, Any]:
+    return {"id": check_id, "passed": passed, "evidence": evidence}
+
+
+def depth_score(checks: list[dict[str, Any]]) -> int:
+    return score_from_checks([{"id": item["id"], "passed": bool(item["passed"])} for item in checks])
+
+
+def surface_probe_row(
+    *,
+    surface_type: str,
+    identifier: str,
+    name: str,
+    base_score: int,
+    base_status: str,
+    depth_checks: list[dict[str, Any]],
+    recommendation: str,
+    proof: str,
+) -> dict[str, Any]:
+    score = depth_score(depth_checks)
+    missing = [check["id"] for check in depth_checks if not check["passed"]]
+    return {
+        "surfaceType": surface_type,
+        "identifier": identifier,
+        "name": name,
+        "baseScore": base_score,
+        "baseStatus": base_status,
+        "depthScore": score,
+        "depthStatus": "pass" if score >= 85 else "review",
+        "depthChecks": depth_checks,
+        "missingDepthSignals": missing,
+        "recommendation": recommendation,
+        "proofGuidance": proof,
+    }
+
+
+def command_depth_rows(
+    commands: list[dict[str, Any]],
+    text_index: dict[str, str],
+    *,
+    self_audit_text: str,
+    package_text: str,
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for item in commands:
+        command = str(item["command"])
+        surface = str(item["surface"])
+        slug = command_slug(command)
+        needles = [command, surface, slug.replace("_", "-"), slug]
+        docs_hits = count_hits_in_paths(text_index, ("README.md", "docs/"), needles)
+        test_hits = count_hits_in_paths(text_index, ("tests/",), [command, slug, slug.replace("_", "-")])
+        script_hits = count_hits_in_paths(text_index, ("scripts/", "bin"), [command, slug, slug.replace("_", "-")])
+        checks = [
+            depth_check("baseChecksPass", int(item["score"]) >= 90 and item["status"] == "pass", f"base score {item['score']}/100"),
+            depth_check("docsDepth", docs_hits >= 2, f"{docs_hits} README/docs references"),
+            depth_check("testDepth", test_hits >= 2, f"{test_hits} test references"),
+            depth_check("implementationDepth", script_hits >= 2, f"{script_hits} script/bin references"),
+            depth_check(
+                "selfAuditDepth",
+                command_in_self_audit(command, self_audit_text) or command in {"shipguard init", "shipguard validate", "shipguard doctor", "shipguard version"},
+                "covered by self-audit or accepted bootstrap/version route",
+            ),
+            depth_check("packageProofDepth", command_in_package_proof(command, surface, str(item["family"]), package_text), "covered by package proof heuristics"),
+        ]
+        rows.append(
+            surface_probe_row(
+                surface_type="command",
+                identifier=command,
+                name=surface,
+                base_score=int(item["score"]),
+                base_status=str(item["status"]),
+                depth_checks=checks,
+                recommendation=f"Upgrade `{command}` with richer examples, focused tests, or output-quality proof if it remains the lowest-depth surface.",
+                proof=f"Rerun `./bin/shipguard value-gauntlet --path . --out <out>` and the focused test for `{command}`.",
+            )
+        )
+    return rows
+
+
+def skill_depth_rows(root: Path, skills: list[dict[str, Any]], text_index: dict[str, str]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for item in skills:
+        path = str(item["path"])
+        text = read_text(root / path)
+        name = str(item["name"])
+        docs_hits = count_hits_in_paths(text_index, ("README.md", "docs/"), [name, path])
+        test_hits = count_hits_in_paths(text_index, ("tests/",), [name, path])
+        command_examples = len(re.findall(r"(?:^|\s)(?:\./bin/shipguard|shipguard|scripts/|python3\s+scripts/)", text))
+        validation_hits = len(re.findall(r"(?i)\b(validate|validation|test|proof|rerun|blocked)\b", text))
+        checks = [
+            depth_check("baseChecksPass", int(item["score"]) >= 85 and item["status"] == "pass", f"base score {item['score']}/100"),
+            depth_check("skillDepth", int(item.get("lineCount") or 0) >= 45, f"{item.get('lineCount') or 0} lines"),
+            depth_check("commandExamples", command_examples >= 2, f"{command_examples} command/proof examples"),
+            depth_check("validationDensity", validation_hits >= 5, f"{validation_hits} validation/proof terms"),
+            depth_check("docsReferenced", docs_hits >= 1, f"{docs_hits} README/docs references"),
+            depth_check("testReferenced", test_hits >= 1, f"{test_hits} test references"),
+        ]
+        rows.append(
+            surface_probe_row(
+                surface_type="skill",
+                identifier=path,
+                name=name,
+                base_score=int(item["score"]),
+                base_status=str(item["status"]),
+                depth_checks=checks,
+                recommendation=f"Upgrade `{path}` with more concrete command routing, examples, proof language, and test/docs linkage if it remains the lowest-depth skill.",
+                proof="Rerun `./bin/shipguard value-gauntlet --path . --out <out>` and inspect the Skills plus Lowest-Value Surface Probe sections.",
+            )
+        )
+    return rows
+
+
+def plugin_depth_rows(root: Path, plugins: list[dict[str, Any]], text_index: dict[str, str]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    combined_index = "\n".join(text_index.values())
+    for item in plugins:
+        path = str(item["path"])
+        name = str(item["name"])
+        data = load_json(root / path)
+        interface = data.get("interface") if isinstance(data.get("interface"), dict) else {}
+        default_prompt = str(interface.get("defaultPrompt") or "")
+        docs_hits = count_hits_in_paths(text_index, ("README.md", "docs/"), [name, path, "ios-shipguard"])
+        test_hits = count_hits_in_paths(text_index, ("tests/",), [name, path, "codex status"])
+        checks = [
+            depth_check("baseChecksPass", int(item["score"]) >= 90 and item["status"] == "pass", f"base score {item['score']}/100"),
+            depth_check("promptDepth", len(default_prompt.split()) >= 12, f"{len(default_prompt.split())} default-prompt words"),
+            depth_check("skillBridgeDepth", (root / "plugins" / "ios-shipguard" / "skills").is_dir(), "plugin has bundled skill bridge"),
+            depth_check("docsReferenced", docs_hits >= 2, f"{docs_hits} README/docs references"),
+            depth_check("testReferenced", test_hits >= 2, f"{test_hits} test references"),
+            depth_check("strictStatusProof", "shipguard codex status --strict" in combined_index, "strict local cache status proof referenced"),
+        ]
+        rows.append(
+            surface_probe_row(
+                surface_type="plugin",
+                identifier=path,
+                name=name,
+                base_score=int(item["score"]),
+                base_status=str(item["status"]),
+                depth_checks=checks,
+                recommendation=f"Upgrade plugin `{name}` with clearer routing, install proof, and local-cache validation if it remains the lowest-depth surface.",
+                proof="Run `codex plugin marketplace add .`, `codex plugin add ios-shipguard@shipguard`, and `./bin/shipguard codex status --strict`.",
+            )
+        )
+    return rows
+
+
+def action_depth_rows(root: Path, actions: list[dict[str, Any]], text_index: dict[str, str]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for item in actions:
+        path = str(item["path"])
+        name = str(item["name"])
+        text = read_text(root / path)
+        docs_hits = count_hits_in_paths(text_index, ("README.md", "docs/"), [name, path])
+        test_hits = count_hits_in_paths(text_index, ("tests/",), [name, path])
+        input_hits = len(re.findall(r"(?m)^\s{2,}[A-Za-z0-9_-]+:\s*$", text))
+        checks = [
+            depth_check("baseChecksPass", int(item["score"]) >= 85 and item["status"] == "pass", f"base score {item['score']}/100"),
+            depth_check("docsDepth", docs_hits >= 1, f"{docs_hits} README/docs references"),
+            depth_check("testDepth", test_hits >= 1, f"{test_hits} test references"),
+            depth_check("inputDepth", input_hits >= 1, f"{input_hits} action input-like blocks"),
+            depth_check("shipguardInvocation", "./bin/shipguard" in text or "shipguard" in text.lower(), "action invokes or documents ShipGuard"),
+        ]
+        rows.append(
+            surface_probe_row(
+                surface_type="action",
+                identifier=path,
+                name=name,
+                base_score=int(item["score"]),
+                base_status=str(item["status"]),
+                depth_checks=checks,
+                recommendation=f"Upgrade GitHub Action `{name}` with stronger examples, inputs, and release proof if it remains the lowest-depth action.",
+                proof=f"Rerun action/package tests and inspect `{path}` in the value-gauntlet report.",
+            )
+        )
+    return rows
+
+
+def doc_depth_rows(root: Path, docs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for item in docs:
+        path = str(item["path"])
+        text = read_text(root / path)
+        command_blocks = text.count("```")
+        shipguard_hits = count_hits(text, ["shipguard", "./bin/shipguard"])
+        proof_hits = count_hits(text, ["proof", "validate", "validation", "test"])
+        checks = [
+            depth_check("baseChecksPass", int(item["score"]) >= 85 and item["status"] == "pass", f"base score {item['score']}/100"),
+            depth_check("commandExamples", command_blocks >= 2 or shipguard_hits >= 6, f"{command_blocks} code fences, {shipguard_hits} ShipGuard mentions"),
+            depth_check("proofDensity", proof_hits >= 5, f"{proof_hits} proof/validation/test mentions"),
+            depth_check("notTooThin", len(text.splitlines()) >= 25, f"{len(text.splitlines())} lines"),
+        ]
+        rows.append(
+            surface_probe_row(
+                surface_type="doc",
+                identifier=path,
+                name=path,
+                base_score=int(item["score"]),
+                base_status=str(item["status"]),
+                depth_checks=checks,
+                recommendation=f"Upgrade `{path}` with clearer commands, proof expectations, or examples if it remains the lowest-depth doc.",
+                proof="Run `./bin/shipguard docs-check . --out <out>` plus value-gauntlet.",
+            )
+        )
+    return rows
+
+
+def lowest_value_surface_probe(
+    root: Path,
+    text_index: dict[str, str],
+    *,
+    commands: list[dict[str, Any]],
+    skills: list[dict[str, Any]],
+    plugins: list[dict[str, Any]],
+    actions: list[dict[str, Any]],
+    docs: list[dict[str, Any]],
+) -> dict[str, Any]:
+    self_audit_text = read_text(root / "scripts" / "self_audit.sh")
+    package_text = read_text(root / "tests" / "package_release_test.sh")
+    rows: list[dict[str, Any]] = []
+    rows.extend(command_depth_rows(commands, text_index, self_audit_text=self_audit_text, package_text=package_text))
+    rows.extend(skill_depth_rows(root, skills, text_index))
+    rows.extend(plugin_depth_rows(root, plugins, text_index))
+    rows.extend(action_depth_rows(root, actions, text_index))
+    rows.extend(doc_depth_rows(root, docs))
+    type_order = {"command": 0, "skill": 1, "plugin": 2, "action": 3, "doc": 4}
+    ranked = sorted(
+        rows,
+        key=lambda row: (
+            int(row["baseScore"]),
+            int(row["depthScore"]),
+            type_order.get(str(row["surfaceType"]), 9),
+            str(row["identifier"]),
+        ),
+    )
+    all_static_green = bool(ranked) and all(int(row["baseScore"]) >= 90 and int(row["depthScore"]) >= 100 for row in ranked)
+    if all_static_green:
+        answer = surface_probe_row(
+            surface_type="cross-cutting",
+            identifier="shipguard value-gauntlet runtime-output-probe",
+            name="Runtime output usefulness probe",
+            base_score=100,
+            base_status="pass",
+            depth_checks=[
+                depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
+                depth_check("runtimeOutputProbe", False, "representative commands are not executed and judged for output usefulness yet"),
+            ],
+            recommendation="Add a read-only runtime output probe that executes representative ShipGuard commands and grades whether their reports are specific, prioritized, proof-oriented, and non-decorative.",
+            proof="Run the new output probe against public fixtures plus `./tests/tool_value_gauntlet_test.sh` and `./tests/ios_report_quality_test.sh`.",
+        )
+    else:
+        answer = ranked[0] if ranked else {}
+    if answer:
+        missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
+        answer = {
+            **answer,
+            "reason": (
+                f"{answer['surfaceType']} `{answer['identifier']}` has base score {answer['baseScore']}/100 "
+                f"and depth score {answer['depthScore']}/100; weakest depth signals: {missing}."
+            ),
+        }
+    return {
+        "question": LOWEST_VALUE_QUESTION,
+        "method": "Rank by baseline coverage first, then deeper evidence density across docs, tests, implementation references, package/self-audit proof, and concrete command/proof examples. This is read-only ShipGuard product QA and does not inspect private target apps.",
+        "answer": answer,
+        "rankedSurfaces": ranked[:15],
+        "nextProbeQuestion": REPORT_QUALITY_QUESTIONS[0],
+    }
+
+
+def priority_actions(findings: list[dict[str, Any]], probe: dict[str, Any]) -> list[dict[str, Any]]:
     severity_order = {"high": 0, "review": 1, "opportunity": 2, "info": 3}
     sorted_findings = sorted(findings, key=lambda item: (severity_order.get(item["severity"], 9), item["category"], item["ruleId"], item["evidence"]))
     actions = []
@@ -490,6 +774,19 @@ def priority_actions(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "proofGuidance": finding["proofGuidance"],
             }
         )
+    if not actions and probe.get("answer"):
+        answer = probe["answer"]
+        actions.append(
+            {
+                "priority": 1,
+                "kind": "upgrade-lowest-depth-surface",
+                "severity": "opportunity",
+                "category": str(answer.get("surfaceType") or "surface"),
+                "ruleId": "lowest-value-surface-depth-probe",
+                "summary": f"{answer.get('reason')} {answer.get('recommendation')}",
+                "proofGuidance": str(answer.get("proofGuidance") or "Rerun shipguard value-gauntlet after the upgrade."),
+            }
+        )
     return actions
 
 
@@ -501,6 +798,15 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     plugins = evaluate_plugins(root, findings)
     actions = evaluate_actions(root, text_index, findings)
     docs = evaluate_docs(root, findings)
+    probe = lowest_value_surface_probe(
+        root,
+        text_index,
+        commands=commands,
+        skills=skills,
+        plugins=plugins,
+        actions=actions,
+        docs=docs,
+    )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
     review_count = sum(1 for finding in findings if finding["severity"] == "review")
@@ -534,8 +840,9 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "plugins": plugins,
         "actions": actions,
         "docs": docs,
+        "lowestValueSurfaceProbe": probe,
         "findings": findings,
-        "priorityActions": priority_actions(findings),
+        "priorityActions": priority_actions(findings, probe),
         "reportQualityQuestions": REPORT_QUALITY_QUESTIONS,
     }
 
@@ -569,6 +876,27 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"   Proof: {action['proofGuidance']}")
     else:
         lines.append("- No priority value gaps found.")
+    probe = report.get("lowestValueSurfaceProbe") or {}
+    answer = probe.get("answer") if isinstance(probe, dict) else {}
+    lines.extend(["", "## Lowest-Value Surface Probe", ""])
+    if answer:
+        lines.append(f"- Question: {probe.get('question')}")
+        lines.append(f"- Answer: `{answer.get('surfaceType')}` `{answer.get('identifier')}` ({answer.get('name')})")
+        lines.append(f"- Base score: {answer.get('baseScore')}/100")
+        lines.append(f"- Depth score: {answer.get('depthScore')}/100")
+        lines.append(f"- Reason: {answer.get('reason')}")
+        lines.append(f"- Recommendation: {answer.get('recommendation')}")
+        lines.append(f"- Proof: {answer.get('proofGuidance')}")
+        lines.append("")
+        lines.append("| Rank | Type | Depth | Base | Surface | Missing Depth Signals |")
+        lines.append("| ---: | --- | ---: | ---: | --- | --- |")
+        for index, item in enumerate(probe.get("rankedSurfaces", [])[:10], start=1):
+            missing = ", ".join(item.get("missingDepthSignals") or []) or "-"
+            lines.append(
+                f"| {index} | {item.get('surfaceType')} | {item.get('depthScore')} | {item.get('baseScore')} | `{table_cell(item.get('identifier'), 70)}` | {table_cell(missing, 90)} |"
+            )
+    else:
+        lines.append("- No surfaces were available for depth probing.")
     lines.extend(
         [
             "",

@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T05:11:12Z
-- Current toolkit version: 3.87.0
-- Target release: v3.87.0
-- Title: ShipGuard Command Depth Probes
+- Generated: 2026-06-18T05:32:41Z
+- Current toolkit version: 3.88.0
+- Target release: v3.88.0
+- Title: ShipGuard Lowest-Value Surface Probe
 
 ## Slash Plan
 
 ```text
-/plan v3.87.0 ShipGuard Command Depth Probes for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Teach ios report-quality to recognize promoted public fixtures for repeated actionability questions so ShipGuard does not keep generating duplicate fixtureCandidates and can move priority to the next uncovered command-depth weakness.
+/plan v3.88.0 ShipGuard Lowest-Value Surface Probe for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add lowestValueSurfaceProbe to value-gauntlet, upgrade starter-skill QA hooks/docs/test linkage, and escalate all-green static coverage to a runtime-output usefulness probe.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.87.0 ShipGuard Command Depth Probes for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Teach ios report-quality to recognize promoted public fixtures for repeated actionability questions so ShipGuard does not keep generating duplicate fixtureCandidates and can move priority to the next uncovered command-depth weakness, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.88.0 ShipGuard Lowest-Value Surface Probe for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add lowestValueSurfaceProbe to value-gauntlet, upgrade starter-skill QA hooks/docs/test linkage, and escalate all-green static coverage to a runtime-output usefulness probe, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Teach ios report-quality to recognize promoted public fixtures for repeated actionability questions so ShipGuard does not keep generating duplicate fixtureCandidates and can move priority to the next uncovered command-depth weakness.
+Add lowestValueSurfaceProbe to value-gauntlet, upgrade starter-skill QA hooks/docs/test linkage, and escalate all-green static coverage to a runtime-output usefulness probe.
 
 ## Completion Receipt
 
-- Completed scope: Teach ios report-quality to recognize promoted public fixtures for repeated actionability questions so ShipGuard does not keep generating duplicate fixtureCandidates and can move priority to the next uncovered command-depth weakness.
-- Evidence: Fresh read-only ShipGuard value-gauntlet plus report-quality showed the promoted value-gauntlet actionability fixture was still suggested as a new fixture candidate. Added fixtureCoverage detection for promoted public fixtures under fixtures/ios-report-quality, suppressed duplicate fixtureCandidates for covered questions, rendered Fixture Coverage in Markdown, and moved priorityAction to the next uncovered value-gauntlet question. Validation passed: git diff --check, python3 -m py_compile scripts/ios_report_quality.py, ./tests/ios_report_quality_test.sh, ./bin/shipguard validate, ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v387, ./tests/cli_smoke_test.sh, ./tests/self_audit_test.sh, ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet-v387-final, and ./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet-v387-final --out /tmp/shipguard-value-quality-v387-final --shareable.
+- Completed scope: Add lowestValueSurfaceProbe to value-gauntlet, upgrade starter-skill QA hooks/docs/test linkage, and escalate all-green static coverage to a runtime-output usefulness probe.
+- Evidence: validated with git diff --check; python3 -m py_compile scripts/tool_value_gauntlet.py; ./tests/tool_value_gauntlet_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v388; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/next_goal_test.sh; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet-v388-final; ./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet-v388-final --out /tmp/shipguard-value-quality-v388-final --shareable
 
 ## Following Slash Plan
 
 ```text
-/plan v3.88.0 ShipGuard Lowest-Value Surface Probe for jlekerli-source/ShipGuard:
+/plan v3.89.0 ShipGuard Runtime Output Probe for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Teach ios report-quality to recognize promoted public fixtures for repeated acti
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.88.0 ShipGuard Lowest-Value Surface Probe for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.89.0 ShipGuard Runtime Output Probe for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.88.0 --title "ShipGuard Lowest-Value Surface Probe" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.89.0 --title "ShipGuard Runtime Output Probe" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -136,12 +136,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.87.0.
+1. Open or update the tracking issue for v3.88.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.87.0` and upload `dist/shipguard-v3.87.0.tar.gz`.
+6. Create release `v3.88.0` and upload `dist/shipguard-v3.88.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

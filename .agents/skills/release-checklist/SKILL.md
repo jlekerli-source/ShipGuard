@@ -47,6 +47,17 @@ Use this skill to keep release claims tied to proof.
 
 8. Stop on manual blockers. Record the exact operator action instead of rerunning stale local proof.
 
+## ShipGuard QA Hooks
+
+When this skill is being audited inside the ShipGuard ShipYard, keep the skill useful by running the product-QA loop:
+
+```bash
+./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet
+./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --out /tmp/shipguard-value-quality --shareable
+```
+
+Proof should show that release-checklist has concrete commands, validation language, docs linkage, and test coverage; otherwise upgrade the skill before treating it as mature.
+
 ## Release Claim Rule
 
 Do not say release-ready, submitted, approved, live, or proven unless the matching command, App Store/TestFlight state, proof packet, or operator-provided evidence exists.

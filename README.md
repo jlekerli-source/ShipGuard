@@ -24,8 +24,8 @@ The naming style is intentional: stable commands and paths stay literal, while p
 Install from a release tarball, then validate the bundle:
 
 ```bash
-tar -xzf shipguard-v3.87.0.tar.gz
-cd shipguard-v3.87.0
+tar -xzf shipguard-v3.88.0.tar.gz
+cd shipguard-v3.88.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" version
 ./bin/shipguard validate
@@ -89,7 +89,7 @@ Read `docs/cli.md` for the full command reference and `examples/demo-walkthrough
 ## What Is Inside
 
 - `bin/shipguard`: the local CLI for validation, iOS analysis, report quality, spec workflow generation, release proof, and handoff creation.
-- `scripts/tool_value_gauntlet.py`: the ShipGuard Tool Value Gauntlet for grading every command, skill, plugin, action, doc, and proof path for real developer usefulness.
+- `scripts/tool_value_gauntlet.py`: the ShipGuard Tool Value Gauntlet for grading every command, skill, plugin, action, doc, and proof path for real developer usefulness, then probing the weakest surface or next missing output-quality layer.
 - `plugins/ios-shipguard/`: the Codex plugin bundle for the iOS ShipGuard skill and metadata.
 - `.agents/skills/`: reusable skill templates for risky app maintenance workflows.
 - `templates/`: starter profiles for adapting ShipGuard into another app.

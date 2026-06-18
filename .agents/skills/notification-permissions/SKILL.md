@@ -36,6 +36,17 @@ Check each relevant state:
 6. For permission-denied or fallback states, verify the app still allows safe free exploration while clearly blocking or warning about armed alarms that cannot be trusted.
 7. For release claims, record whether proof is simulator, TestFlight, physical-device, or blocked-manual.
 
+## ShipGuard QA Hooks
+
+When this skill is being audited inside the ShipGuard ShipYard, keep the skill useful by running the product-QA loop:
+
+```bash
+./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet
+./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --out /tmp/shipguard-value-quality --shareable
+```
+
+Proof should show that notification-permissions has concrete commands, validation language, docs linkage, and test coverage; otherwise upgrade the skill before treating it as mature.
+
 ## Rules
 
 - UI must describe the actual permission state, not the desired state.

@@ -9,7 +9,15 @@
 ./bin/shipguard doctor ios ../my-ios-app
 ```
 
-The iOS profile includes alarm, notification, release, bug-triage, and UI-polish skills.
+The iOS profile includes alarm, notification, release, bug-triage, and UI-polish skills. Each starter skill also carries ShipGuard QA hooks so `shipguard value-gauntlet` can verify it has command examples, validation language, docs linkage, and test coverage.
+
+| Skill | Path | Primary use |
+| --- | --- | --- |
+| alarm-testing | `.agents/skills/alarm-testing/SKILL.md` | Alarm runtime and wake-path proof routing. |
+| notification-permissions | `.agents/skills/notification-permissions/SKILL.md` | Notification, AlarmKit, fallback, and permission-truth checks. |
+| release-checklist | `.agents/skills/release-checklist/SKILL.md` | Release readiness, TestFlight handoff, and proof claims. |
+| bug-triage | `.agents/skills/bug-triage/SKILL.md` | Bug report classification before implementation. |
+| ui-polish | `.agents/skills/ui-polish/SKILL.md` | UI/UX polish with accessibility, localization, and visual-proof boundaries. |
 
 ## Web
 

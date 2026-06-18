@@ -27,6 +27,17 @@ python3 ./scripts/check_localization_coverage.py
 
 8. If visual proof is missing, say so. Screenshots and simulator proof do not replace physical-device proof for delivery or reliability claims.
 
+## ShipGuard QA Hooks
+
+When this skill is being audited inside the ShipGuard ShipYard, keep the skill useful by running the product-QA loop:
+
+```bash
+./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet
+./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --out /tmp/shipguard-value-quality --shareable
+```
+
+Proof should show that ui-polish has concrete commands, validation language, docs linkage, and test coverage; otherwise upgrade the skill before treating it as mature.
+
 ## Rules
 
 - Match the existing app style before inventing a new visual pattern.

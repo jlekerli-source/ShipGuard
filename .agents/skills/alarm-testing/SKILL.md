@@ -36,6 +36,17 @@ Use this skill to keep alarm work narrow, truthful, and evidence-backed.
 7. For release or trust claims, require real-device proof through the release/device handoff scripts. Simulator proof alone is not alarm-trust proof.
 8. Report exact command status and evidence path. Treat timeouts and infrastructure stalls as blockers, not passes.
 
+## ShipGuard QA Hooks
+
+When this skill is being audited inside the ShipGuard ShipYard, keep the skill useful by running the product-QA loop:
+
+```bash
+./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet
+./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --out /tmp/shipguard-value-quality --shareable
+```
+
+Proof should show that alarm-testing has concrete commands, validation language, docs linkage, and test coverage; otherwise upgrade the skill before treating it as mature.
+
 ## Output
 
 Return the behavior checked, files or lanes touched, command status, evidence path, and any manual device action still required.

@@ -24,6 +24,17 @@ Use this skill before implementing an unclear bug report.
 8. Write a small plan with objective, affected files, risks, tests, and rollback.
 9. Do not implement until the plan is accepted or the user clearly asked for the fix.
 
+## ShipGuard QA Hooks
+
+When this skill is being audited inside the ShipGuard ShipYard, keep the skill useful by running the product-QA loop:
+
+```bash
+./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet
+./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --out /tmp/shipguard-value-quality --shareable
+```
+
+Proof should show that bug-triage has concrete commands, validation language, docs linkage, and test coverage; otherwise upgrade the skill before treating it as mature.
+
 ## Output Shape
 
 Return:

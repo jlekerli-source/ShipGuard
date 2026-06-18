@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added a Lowest-Value Surface Probe to `shipguard value-gauntlet`: after command/skill/plugin/action/doc coverage passes, it ranks deeper evidence signals, upgrades thin starter-skill QA hooks, and escalates all-green static coverage into a runtime-output usefulness probe instead of pretending the ShipYard is finished.
 - Added report-quality fixture coverage detection so questions already covered by promoted public fixtures under `fixtures/ios-report-quality` keep their actionability evidence, suppress duplicate fixtureCandidates, render a `Fixture Coverage` section, and move the priority action to the next uncovered question.
 - Fixed `release-proof build` so optional proof links like `--issue-url` and `--ci-run-url` are only forwarded when present, matching the documented release command and allowing proof bundles without a tracking issue URL.
 - Promoted the ShipGuard Tool Value Gauntlet actionability question into a public `fixtures/ios-report-quality/value-gauntlet-actionability` synthetic fixture so report-quality proves low-value surface concerns can become reusable eval coverage without copying private app evidence.

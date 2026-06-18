@@ -10,7 +10,7 @@ Current checkout:
 
 ```bash
 ./bin/shipguard version
-# 3.87.0
+# 3.88.0
 
 ./bin/shipguard validate
 # workflow bundle validation passed
@@ -160,6 +160,8 @@ The installed Codex cache now has `ios-shipguard` metadata version `0.2.3+codex.
 The next value-gauntlet pass scored the ShipYard at 100.0 but still prioritized whether low-value patterns should become public fixtures. That question is now promoted into `fixtures/ios-report-quality/value-gauntlet-actionability`, a synthetic report-quality fixture that keeps `shipguard value-gauntlet` actionability visible while proving materialized fixtures do not recursively emit more fixture candidates.
 
 The next command-depth probe showed the loop could still waste time by asking for the same value-gauntlet fixture again even after promotion. `ios report-quality` now detects promoted public fixtures under `fixtures/ios-report-quality`, renders `Fixture Coverage`, suppresses duplicate fixtureCandidates for covered questions, and moves the priority action to the next uncovered question.
+
+The next ShipYard value loop showed `shipguard value-gauntlet` needed to answer its own "which surface is weakest?" question instead of handing a human an unranked all-green report. It now emits `lowestValueSurfaceProbe`, upgrades the copied starter skills with ShipGuard QA hooks, verifies starter-skill docs/test linkage, and escalates all-green static coverage into a runtime-output usefulness probe for the next implementation slice.
 
 ## Verdict
 
