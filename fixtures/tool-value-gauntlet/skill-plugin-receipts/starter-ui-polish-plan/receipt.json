@@ -1,0 +1,117 @@
+{
+  "id": "starter-ui-polish-plan",
+  "kind": "starter-skill",
+  "surface": "UI Polish starter skill",
+  "selectedSkill": "ui-polish",
+  "selectedMode": "ui-polish",
+  "trigger": "User asks for narrow SwiftUI polish and ShipGuard must route to inventory and an honest UI proof plan before edits.",
+  "sourcePaths": [
+    ".agents/skills/ui-polish/SKILL.md"
+  ],
+  "expectedSourcePhrases": [
+    "UI Polish",
+    "ShipGuard QA Hooks",
+    "run_onboarding_validation",
+    "value-gauntlet",
+    "report-quality"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppDetailsAllowed": false
+  },
+  "commands": [
+    {
+      "id": "inventory",
+      "display": "./bin/shipguard ios inventory --path fixtures/demo-ios-repo --out <receipt-out>/inventory",
+      "args": [
+        "ios",
+        "inventory",
+        "--path",
+        "fixtures/demo-ios-repo",
+        "--out",
+        "{out}/inventory"
+      ],
+      "artifacts": [
+        {
+          "path": "inventory/ios-inventory.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "project",
+            "targets",
+            "surfaces",
+            "recommended_codex_prompts"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "targets",
+            "surfaces",
+            "recommended_codex_prompts"
+          ]
+        },
+        {
+          "path": "inventory/ios-inventory.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# iOS Permission And Runtime Inventory",
+            "Ask Before Editing",
+            "Codex Workflow Prompts"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ui-polish-plan",
+      "display": "./bin/shipguard ios plan --inventory <receipt-out>/inventory/ios-inventory.json --mode ui-polish --out <receipt-out>/plan",
+      "args": [
+        "ios",
+        "plan",
+        "--inventory",
+        "{out}/inventory/ios-inventory.json",
+        "--mode",
+        "ui-polish",
+        "--out",
+        "{out}/plan"
+      ],
+      "artifacts": [
+        {
+          "path": "plan/ios-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "mode",
+            "blockedQuestions",
+            "proofRoute",
+            "codexBrief"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "blockedQuestions",
+            "proofRoute",
+            "codexBrief.mustDo"
+          ],
+          "requiredValues": [
+            {
+              "path": "mode",
+              "equals": "ui-polish"
+            },
+            {
+              "path": "status",
+              "equals": "needs-user-answer"
+            }
+          ]
+        },
+        {
+          "path": "plan/ios-plan.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# iOS ShipGuard Plan",
+            "Mode: `ui-polish`",
+            "Blocked Questions",
+            "Proof Route"
+          ]
+        }
+      ]
+    }
+  ]
+}

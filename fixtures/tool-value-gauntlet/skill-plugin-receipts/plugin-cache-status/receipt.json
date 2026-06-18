@@ -1,0 +1,47 @@
+{
+  "id": "plugin-cache-status",
+  "kind": "plugin",
+  "surface": "iOS ShipGuard Codex plugin install status",
+  "selectedSkill": "ios-shipguard",
+  "selectedMode": "plugin-refresh",
+  "trigger": "User asks whether the latest ShipGuard plugin is installed and how Git updates relate to Codex plugin cache refresh.",
+  "sourcePaths": [
+    "plugins/ios-shipguard/.codex-plugin/plugin.json",
+    "plugins/ios-shipguard/.mcp.json",
+    ".agents/plugins/marketplace.json",
+    "scripts/codex_status.sh",
+    "docs/ios-shipguard.md"
+  ],
+  "expectedSourcePhrases": [
+    "ios-shipguard",
+    "SHIPGUARD_CLI",
+    "codex status",
+    "codex plugin add ios-shipguard@shipguard"
+  ],
+  "prepareCodexPluginCache": true,
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppDetailsAllowed": false
+  },
+  "commands": [
+    {
+      "id": "codex-status-strict-fixture-cache",
+      "display": "./bin/shipguard codex status --cache <receipt-out>/codex-cache --strict",
+      "args": [
+        "codex",
+        "status",
+        "--cache",
+        "{cache}",
+        "--strict"
+      ],
+      "expectedOutputPhrases": [
+        "Overall status: pass",
+        "Tracked plugin source: present",
+        "Tracked plugin MCP: present",
+        "Local marketplace plugin: ios-shipguard",
+        "Installed ios-shipguard plugins: 1"
+      ]
+    }
+  ]
+}

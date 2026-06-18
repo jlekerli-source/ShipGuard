@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added `skillPluginRuntimeReceipts` to `shipguard value-gauntlet`: public receipt fixtures now execute iOS ShipGuard design-audit routing, starter UI-polish inventory/plan routing, and plugin cache status proof against public/demo inputs, so skill/plugin usefulness is tested through real ShipGuard commands before the next priority advances to workflow-chain receipts.
 - Added `runtimeCommandFamilyCoverage` to `shipguard value-gauntlet`: it now executes `--help` for all 51 registered public ShipGuard commands, fixes top-level help routing for command families that previously treated `--help` as an invalid file/path/subcommand, and moves the next priority to skill/plugin runtime receipt fixtures.
 - Added `runtimeOutputNegativeFixtures` to `shipguard value-gauntlet`: synthetic public bad-output fixtures now prove decorative empty reports and boundaryless design reports are rejected, and the next priority advances to broader command-family runtime execution.
 - Added `runtimeOutputProbe` to `shipguard value-gauntlet`: it runs representative ShipGuard commands on public/demo inputs, scores their JSON/Markdown artifacts for machine-readable usefulness, tightens Brand Deck and DockCheck report shape, and retired the old "just run representative commands" next step.

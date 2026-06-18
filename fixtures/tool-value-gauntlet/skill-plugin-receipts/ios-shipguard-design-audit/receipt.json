@@ -1,0 +1,138 @@
+{
+  "id": "ios-shipguard-design-audit",
+  "kind": "plugin-skill",
+  "surface": "iOS ShipGuard design-audit mode",
+  "selectedSkill": "ios-shipguard",
+  "selectedMode": "design-audit",
+  "trigger": "User asks ShipGuard to evaluate UI/UX, motion, haptics, app icon direction, and design coherence for an iOS app without editing the app.",
+  "sourcePaths": [
+    "plugins/ios-shipguard/skills/ios-shipguard/SKILL.md",
+    "plugins/ios-shipguard/skills/ios-shipguard/references/modes.md"
+  ],
+  "expectedSourcePhrases": [
+    "design-audit",
+    "ios design",
+    "ios report-quality",
+    "--shipguard-eval",
+    "--shareable"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppDetailsAllowed": false
+  },
+  "commands": [
+    {
+      "id": "design-report",
+      "display": "./bin/shipguard ios design --path fixtures/demo-ios-repo --out <receipt-out>/design --shipguard-eval --shareable",
+      "args": [
+        "ios",
+        "design",
+        "--path",
+        "fixtures/demo-ios-repo",
+        "--out",
+        "{out}/design",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "design/ios-design.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "appType",
+            "designDNA",
+            "motionQualityGates",
+            "reportQualityQuestions",
+            "scopeBoundary",
+            "shareability"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "appType",
+            "designDNA",
+            "motionQualityGates",
+            "findings",
+            "reportQualityQuestions"
+          ],
+          "requiredValues": [
+            {
+              "path": "scopeBoundary.shipguardOnly",
+              "equals": true
+            },
+            {
+              "path": "scopeBoundary.targetAppsReadOnly",
+              "equals": true
+            },
+            {
+              "path": "shareability.mode",
+              "equals": "shareable"
+            }
+          ]
+        },
+        {
+          "path": "design/ios-design.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# iOS Design QA",
+            "Motion Quality Gates",
+            "Report Quality Questions"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "design-report-quality",
+      "display": "./bin/shipguard ios report-quality --reports <receipt-out>/design --out <receipt-out>/quality --shareable",
+      "args": [
+        "ios",
+        "report-quality",
+        "--reports",
+        "{out}/design",
+        "--out",
+        "{out}/quality",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "quality/ios-report-quality.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "priorityAction",
+            "actionabilityQuestions",
+            "sourceFindings",
+            "scopeBoundary"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "priorityAction",
+            "actionabilityQuestions"
+          ],
+          "requiredValues": [
+            {
+              "path": "scopeBoundary.shipguardOnly",
+              "equals": true
+            },
+            {
+              "path": "scopeBoundary.targetAppsReadOnly",
+              "equals": true
+            }
+          ]
+        },
+        {
+          "path": "quality/ios-report-quality.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# iOS ShipGuard Report Quality",
+            "Priority Action",
+            "Actionability Questions"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}

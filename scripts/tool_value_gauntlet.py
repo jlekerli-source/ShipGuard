@@ -6,7 +6,9 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -73,7 +75,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add skill/plugin runtime receipt fixtures so Codex guidance is tested through realistic invoked workflows, not only command help paths?",
+    "Should ShipGuard add end-to-end workflow chain receipts so report-quality questions become spec-workflow tasks and the next slash plan without manual interpretation?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -141,6 +143,7 @@ RUNTIME_OUTPUT_SPECS: list[dict[str, Any]] = [
 ]
 
 RUNTIME_NEGATIVE_FIXTURE_ROOT = Path("fixtures") / "tool-value-gauntlet" / "runtime-output"
+SKILL_PLUGIN_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "skill-plugin-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -655,9 +658,227 @@ def runtime_command_family_probe(root: Path) -> dict[str, Any]:
         "families": families,
         "commands": rows,
         "nextAction": (
-            "Add skill/plugin runtime receipt fixtures that exercise realistic Codex guidance workflows beyond command help paths."
+            "Command-family help coverage is passing; use skill/plugin receipt and workflow-chain probes for higher-level Codex guidance proof."
             if status == "pass"
             else "Fix public commands whose top-level help path does not execute cleanly."
+        ),
+    }
+
+
+def load_skill_plugin_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / SKILL_PLUGIN_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def format_receipt_value(value: object, *, out_dir: Path, cache_dir: Path) -> str:
+    return str(value).format(out=out_dir.as_posix(), cache=cache_dir.as_posix())
+
+
+def prepare_receipt_codex_cache(root: Path, out_dir: Path, meta: dict[str, Any]) -> Path:
+    cache_dir = out_dir / "codex-cache"
+    if not meta.get("prepareCodexPluginCache"):
+        return cache_dir
+    plugin_source = root / "plugins" / "ios-shipguard"
+    plugin_json = load_json(plugin_source / ".codex-plugin" / "plugin.json")
+    version = str(plugin_json.get("version") or "fixture")
+    plugin_dest = cache_dir / "shipguard" / "ios-shipguard" / version
+    if plugin_dest.exists():
+        shutil.rmtree(plugin_dest)
+    plugin_dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(plugin_source, plugin_dest)
+    return cache_dir
+
+
+def receipt_artifact_checks(artifact_path: Path, artifact: dict[str, Any], *, root: Path, out_dir: Path) -> list[dict[str, Any]]:
+    relative = rel(artifact_path, out_dir) if out_dir in artifact_path.parents or artifact_path == out_dir else artifact_path.as_posix()
+    kind = str(artifact.get("type") or "")
+    checks = [runtime_probe_check(f"artifact:{relative}", artifact_path.is_file(), f"{relative} exists" if artifact_path.is_file() else f"{relative} missing")]
+    if not artifact_path.is_file():
+        return checks
+
+    if kind == "json":
+        loaded = load_json(artifact_path)
+        checks.append(runtime_probe_check(f"jsonArtifact:{relative}", bool(loaded), f"{relative} parsed" if loaded else f"{relative} missing or invalid"))
+        for key in artifact.get("requiredJsonKeys") or []:
+            present = value_at_path(loaded, str(key)) is not None
+            checks.append(runtime_probe_check(f"json:{relative}:{key}", present, f"{key} present" if present else f"{key} missing"))
+        for key in artifact.get("requiredNonEmptyJsonPaths") or []:
+            value = value_at_path(loaded, str(key))
+            checks.append(
+                runtime_probe_check(
+                    f"jsonNonEmpty:{relative}:{key}",
+                    is_meaningful_value(value),
+                    f"{key} has meaningful content" if is_meaningful_value(value) else f"{key} empty or missing",
+                )
+            )
+        for expected in artifact.get("requiredValues") or []:
+            path = str(expected.get("path") or "")
+            value = value_at_path(loaded, path)
+            equals = expected.get("equals")
+            checks.append(
+                runtime_probe_check(
+                    f"jsonValue:{relative}:{path}",
+                    value == equals,
+                    f"{path}={value!r}" if value == equals else f"{path} expected {equals!r}, got {value!r}",
+                )
+            )
+    else:
+        text = read_text(artifact_path)
+        phrases = list(artifact.get("requiredPhrases") or artifact.get("markdownPhrases") or [])
+        for phrase in phrases:
+            present = str(phrase).lower() in text.lower()
+            checks.append(runtime_probe_check(f"text:{relative}:{phrase}", present, f"{phrase!r} present" if present else f"{phrase!r} missing"))
+        if artifact.get("forbidLocalPaths"):
+            local_path_hit = root.as_posix() in text or ("/" + "Users/") in text or "/private/tmp/" in text
+            checks.append(
+                runtime_probe_check(
+                    f"textShareable:{relative}",
+                    not local_path_hit,
+                    "no local absolute paths" if not local_path_hit else "local absolute path found",
+                )
+            )
+    return checks
+
+
+def run_skill_plugin_receipt_command(
+    root: Path,
+    out_dir: Path,
+    cache_dir: Path,
+    command_spec: dict[str, Any],
+) -> dict[str, Any]:
+    args = [format_receipt_value(part, out_dir=out_dir, cache_dir=cache_dir) for part in command_spec.get("args") or []]
+    started = time.monotonic()
+    try:
+        env = dict(os.environ, SHIPGUARD_CLI=str(root / "bin" / "shipguard"))
+        completed = subprocess.run(
+            [str(root / "bin" / "shipguard"), *args],
+            cwd=root,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=int(command_spec.get("timeoutSeconds") or 60),
+            check=False,
+            env=env,
+        )
+        exit_code: int | str = completed.returncode
+        stdout = completed.stdout or ""
+        stderr = completed.stderr or ""
+        timed_out = False
+    except subprocess.TimeoutExpired as exc:
+        exit_code = "timeout"
+        stdout = exc.stdout if isinstance(exc.stdout, str) else ""
+        stderr = exc.stderr if isinstance(exc.stderr, str) else ""
+        timed_out = True
+    duration_ms = round((time.monotonic() - started) * 1000)
+    checks = [runtime_probe_check("exitZero", exit_code == 0, f"exit code {exit_code}")]
+    combined_output = f"{stdout}\n{stderr}"
+    for phrase in command_spec.get("expectedOutputPhrases") or []:
+        present = str(phrase).lower() in combined_output.lower()
+        checks.append(runtime_probe_check(f"stdout:{phrase}", present, f"{phrase!r} present" if present else f"{phrase!r} missing"))
+    for artifact in command_spec.get("artifacts") or []:
+        artifact_relative = format_receipt_value(artifact.get("path") or "", out_dir=out_dir, cache_dir=cache_dir)
+        artifact_path = Path(artifact_relative)
+        if not artifact_path.is_absolute():
+            artifact_path = out_dir / artifact_path
+        checks.extend(receipt_artifact_checks(artifact_path, artifact, root=root, out_dir=out_dir))
+    score = score_from_checks(checks)
+    missing = [check["id"] for check in checks if not check["passed"]]
+    status = "pass" if score == 100 and exit_code == 0 and not timed_out else "blocked" if exit_code != 0 or timed_out else "review"
+    return {
+        "id": str(command_spec.get("id") or "receipt-command"),
+        "command": str(command_spec.get("display") or f"./bin/shipguard {' '.join(args)}"),
+        "durationMs": duration_ms,
+        "exitCode": exit_code,
+        "timedOut": timed_out,
+        "score": score,
+        "status": status,
+        "checks": checks,
+        "missing": missing,
+        "stdoutLineCount": len(stdout.splitlines()),
+        "stderrLineCount": len(stderr.splitlines()),
+        "errorSummary": compact_error(stderr or stdout) if exit_code != 0 or timed_out else "",
+    }
+
+
+def run_skill_plugin_receipt(root: Path, fixture_dir: Path, meta: dict[str, Any]) -> dict[str, Any]:
+    with tempfile.TemporaryDirectory(prefix=f"shipguard-receipt-{fixture_dir.name}-") as tmp:
+        out_dir = Path(tmp)
+        cache_dir = prepare_receipt_codex_cache(root, out_dir, meta)
+        source_paths = [str(path) for path in meta.get("sourcePaths") or []]
+        source_text = "\n".join(read_text(root / path) for path in source_paths)
+        source_checks = [
+            runtime_probe_check(
+                "sourcePaths",
+                bool(source_paths) and all((root / path).is_file() for path in source_paths),
+                f"{len(source_paths)} source path(s) present",
+            ),
+            runtime_probe_check("trigger", bool(str(meta.get("trigger") or "").strip()), "trigger present" if meta.get("trigger") else "trigger missing"),
+            runtime_probe_check(
+                "scopeBoundary",
+                (meta.get("scopeBoundary") or {}).get("shipguardOnly") is True and (meta.get("scopeBoundary") or {}).get("targetAppsReadOnly") is True,
+                "ShipGuard-only read-only boundary present",
+            ),
+        ]
+        for phrase in meta.get("expectedSourcePhrases") or []:
+            present = str(phrase).lower() in source_text.lower()
+            source_checks.append(runtime_probe_check(f"source:{phrase}", present, f"{phrase!r} present" if present else f"{phrase!r} missing"))
+        commands = [run_skill_plugin_receipt_command(root, out_dir, cache_dir, command) for command in meta.get("commands") or []]
+    command_checks = [check for command in commands for check in command.get("checks", [])]
+    checks = source_checks + command_checks
+    score = score_from_checks(checks)
+    missing = [check["id"] for check in checks if not check["passed"]]
+    blocked = any(command.get("status") == "blocked" for command in commands)
+    review = any(command.get("status") == "review" for command in commands)
+    status = "blocked" if blocked else "review" if review or score < 100 else "pass"
+    return {
+        "id": str(meta.get("id") or fixture_dir.name),
+        "kind": str(meta.get("kind") or "skill-plugin-receipt"),
+        "surface": str(meta.get("surface") or meta.get("selectedSkill") or fixture_dir.name),
+        "selectedSkill": str(meta.get("selectedSkill") or ""),
+        "selectedMode": str(meta.get("selectedMode") or ""),
+        "fixturePath": rel(fixture_dir, root),
+        "sourcePaths": source_paths,
+        "trigger": str(meta.get("trigger") or ""),
+        "score": score,
+        "status": status,
+        "checks": checks,
+        "missing": missing,
+        "commands": commands,
+        "scopeBoundary": meta.get("scopeBoundary") or {},
+    }
+
+
+def skill_plugin_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [run_skill_plugin_receipt(root, fixture_dir, meta) for fixture_dir, meta in load_skill_plugin_receipts(root)]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public skill/plugin receipt fixtures that prove ShipGuard guidance routes Codex into useful CLI workflows and evidence artifacts.",
+        "fixtureRoot": SKILL_PLUGIN_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public skill/plugin receipt fixtures", "fixtures/demo-ios-repo", "synthetic Codex plugin cache"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Add end-to-end workflow chain receipts so report-quality questions become spec-workflow tasks and the next slash plan without manual interpretation."
+            if status == "pass"
+            else "Fix skill/plugin receipt fixtures or guidance so Codex-facing surfaces prove useful runtime workflows."
         ),
     }
 
@@ -1155,6 +1376,7 @@ def lowest_value_surface_probe(
     runtime_probe: dict[str, Any],
     negative_fixture_probe: dict[str, Any],
     command_family_probe: dict[str, Any],
+    skill_plugin_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -1182,34 +1404,74 @@ def lowest_value_surface_probe(
             if negative_fixtures_passed:
                 command_family_passed = command_family_probe.get("status") == "pass"
                 if command_family_passed:
-                    answer = surface_probe_row(
-                        surface_type="cross-cutting",
-                        identifier="shipguard value-gauntlet skill-plugin-runtime-receipts",
-                        name="Skill and plugin runtime receipts",
-                        base_score=100,
-                        base_status="pass",
-                        depth_checks=[
-                            depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
-                            depth_check(
-                                "runtimeOutputProbe",
-                                True,
-                                f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100",
-                            ),
-                            depth_check(
-                                "runtimeRegressionFixtures",
-                                True,
-                                f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output",
-                            ),
-                            depth_check(
-                                "runtimeCommandCoverage",
-                                True,
-                                f"{command_family_probe.get('passedCommandCount') or 0}/{command_family_probe.get('commandCount') or 0} public command help paths executed",
-                            ),
-                            depth_check("runtimeSkillPluginReceipts", False, "skills and plugin guidance still lack realistic runtime receipt fixtures"),
-                        ],
-                        recommendation="Add skill/plugin runtime receipt fixtures that prove Codex guidance invokes useful ShipGuard workflows, not only static skill prose.",
-                        proof="Run value-gauntlet, report-quality, codex status, and focused skill/plugin receipt fixture tests after adding the receipts.",
-                    )
+                    skill_plugin_receipts_passed = skill_plugin_receipts.get("status") == "pass"
+                    if skill_plugin_receipts_passed:
+                        answer = surface_probe_row(
+                            surface_type="cross-cutting",
+                            identifier="shipguard value-gauntlet workflow-chain-receipts",
+                            name="Workflow chain receipts",
+                            base_score=100,
+                            base_status="pass",
+                            depth_checks=[
+                                depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
+                                depth_check(
+                                    "runtimeOutputProbe",
+                                    True,
+                                    f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100",
+                                ),
+                                depth_check(
+                                    "runtimeRegressionFixtures",
+                                    True,
+                                    f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output",
+                                ),
+                                depth_check(
+                                    "runtimeCommandCoverage",
+                                    True,
+                                    f"{command_family_probe.get('passedCommandCount') or 0}/{command_family_probe.get('commandCount') or 0} public command help paths executed",
+                                ),
+                                depth_check(
+                                    "runtimeSkillPluginReceipts",
+                                    True,
+                                    f"{skill_plugin_receipts.get('passedReceiptCount') or 0}/{skill_plugin_receipts.get('receiptCount') or 0} skill/plugin receipts executed",
+                                ),
+                                depth_check("runtimeWorkflowChainReceipts", False, "report-quality questions still lack end-to-end receipts into spec-workflow tasks and next slash goals"),
+                            ],
+                            recommendation="Add workflow chain receipts that prove report-quality questions become SpecForge tasks, validation commands, and the next slash plan/goal without manual interpretation.",
+                            proof="Run value-gauntlet, report-quality, spec-workflow, next-goal, and focused workflow-chain receipt fixture tests after adding the chain receipts.",
+                        )
+                    else:
+                        answer = surface_probe_row(
+                            surface_type="cross-cutting",
+                            identifier="shipguard value-gauntlet skill-plugin-runtime-receipts",
+                            name="Skill and plugin runtime receipts",
+                            base_score=100,
+                            base_status="pass",
+                            depth_checks=[
+                                depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
+                                depth_check(
+                                    "runtimeOutputProbe",
+                                    True,
+                                    f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100",
+                                ),
+                                depth_check(
+                                    "runtimeRegressionFixtures",
+                                    True,
+                                    f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output",
+                                ),
+                                depth_check(
+                                    "runtimeCommandCoverage",
+                                    True,
+                                    f"{command_family_probe.get('passedCommandCount') or 0}/{command_family_probe.get('commandCount') or 0} public command help paths executed",
+                                ),
+                                depth_check(
+                                    "runtimeSkillPluginReceipts",
+                                    False,
+                                    f"{skill_plugin_receipts.get('passedReceiptCount') or 0}/{skill_plugin_receipts.get('receiptCount') or 0} skill/plugin receipts passed",
+                                ),
+                            ],
+                            recommendation="Add skill/plugin runtime receipt fixtures that prove Codex guidance invokes useful ShipGuard workflows, not only static skill prose.",
+                            proof="Run value-gauntlet, report-quality, codex status, and focused skill/plugin receipt fixture tests after adding the receipts.",
+                        )
                 else:
                     answer = surface_probe_row(
                         surface_type="cross-cutting",
@@ -1343,6 +1605,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     runtime_probe = runtime_output_probe(root)
     negative_fixture_probe = runtime_negative_fixture_probe(root)
     command_family_probe = runtime_command_family_probe(root)
+    skill_plugin_receipts = skill_plugin_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -1354,6 +1617,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         runtime_probe=runtime_probe,
         negative_fixture_probe=negative_fixture_probe,
         command_family_probe=command_family_probe,
+        skill_plugin_receipts=skill_plugin_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -1391,6 +1655,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "runtimeOutputProbe": runtime_probe,
         "runtimeOutputNegativeFixtures": negative_fixture_probe,
         "runtimeCommandFamilyCoverage": command_family_probe,
+        "skillPluginRuntimeReceipts": skill_plugin_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -1492,6 +1757,30 @@ def render_markdown(report: dict[str, Any]) -> str:
         for item in failing_commands[:20]:
             lines.append(
                 f"| {item.get('status')} | `{table_cell(item.get('command'), 80)}` | {table_cell(', '.join(item.get('missing') or []) or '-', 80)} | {table_cell(item.get('errorSummary') or '-', 90)} |"
+            )
+    skill_plugin_receipts = report.get("skillPluginRuntimeReceipts") or {}
+    lines.extend(["", "## Skill/Plugin Runtime Receipts", ""])
+    lines.append(f"- Status: {skill_plugin_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {skill_plugin_receipts.get('passedReceiptCount', 0)}/{skill_plugin_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {skill_plugin_receipts.get('commandCount', 0)}")
+    if skill_plugin_receipts.get("nextAction"):
+        lines.append(f"- Next action: {skill_plugin_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in skill_plugin_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 32)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_receipt_commands = [
+        (receipt, command)
+        for receipt in skill_plugin_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_receipt_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_receipt_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )
     lines.extend(
         [

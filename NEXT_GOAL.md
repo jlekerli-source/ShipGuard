@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T06:25:50Z
-- Current toolkit version: 3.91.0
-- Target release: v3.91.0
-- Title: ShipGuard Runtime Command-Family Coverage
+- Generated: 2026-06-18T06:48:18Z
+- Current toolkit version: 3.92.0
+- Target release: v3.92.0
+- Title: ShipGuard Skill Plugin Runtime Receipts
 
 ## Slash Plan
 
 ```text
-/plan v3.91.0 ShipGuard Runtime Command-Family Coverage for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add runtimeCommandFamilyCoverage to value-gauntlet, execute top-level --help for all 51 registered public commands, fix top-level help routing for command families that treated --help as an invalid file/path/subcommand, and move the next priority to skill/plugin runtime receipt fixtures.
+/plan v3.92.0 ShipGuard Skill Plugin Runtime Receipts for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add skillPluginRuntimeReceipts to value-gauntlet, add public skill/plugin receipt fixtures for iOS ShipGuard design-audit routing, starter UI-polish inventory/plan routing, and plugin cache status proof, execute their safe ShipGuard commands on public/demo inputs or a synthetic Codex plugin cache, expose receipt results in JSON/Markdown, and move the next priority to workflow-chain receipts.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.91.0 ShipGuard Runtime Command-Family Coverage for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add runtimeCommandFamilyCoverage to value-gauntlet, execute top-level --help for all 51 registered public commands, fix top-level help routing for command families that treated --help as an invalid file/path/subcommand, and move the next priority to skill/plugin runtime receipt fixtures, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.92.0 ShipGuard Skill Plugin Runtime Receipts for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add skillPluginRuntimeReceipts to value-gauntlet, add public skill/plugin receipt fixtures for iOS ShipGuard design-audit routing, starter UI-polish inventory/plan routing, and plugin cache status proof, execute their safe ShipGuard commands on public/demo inputs or a synthetic Codex plugin cache, expose receipt results in JSON/Markdown, and move the next priority to workflow-chain receipts, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add runtimeCommandFamilyCoverage to value-gauntlet, execute top-level --help for all 51 registered public commands, fix top-level help routing for command families that treated --help as an invalid file/path/subcommand, and move the next priority to skill/plugin runtime receipt fixtures.
+Add skillPluginRuntimeReceipts to value-gauntlet, add public skill/plugin receipt fixtures for iOS ShipGuard design-audit routing, starter UI-polish inventory/plan routing, and plugin cache status proof, execute their safe ShipGuard commands on public/demo inputs or a synthetic Codex plugin cache, expose receipt results in JSON/Markdown, and move the next priority to workflow-chain receipts.
 
 ## Completion Receipt
 
-- Completed scope: Add runtimeCommandFamilyCoverage to value-gauntlet, execute top-level --help for all 51 registered public commands, fix top-level help routing for command families that treated --help as an invalid file/path/subcommand, and move the next priority to skill/plugin runtime receipt fixtures.
+- Completed scope: Add skillPluginRuntimeReceipts to value-gauntlet, add public skill/plugin receipt fixtures for iOS ShipGuard design-audit routing, starter UI-polish inventory/plan routing, and plugin cache status proof, execute their safe ShipGuard commands on public/demo inputs or a synthetic Codex plugin cache, expose receipt results in JSON/Markdown, and move the next priority to workflow-chain receipts.
 - Evidence: Validated with python3 -m py_compile scripts/tool_value_gauntlet.py; git diff --check; tests/tool_value_gauntlet_test.sh; tests/ios_report_quality_test.sh; bin/shipguard value-gauntlet; bin/shipguard ios report-quality; bin/shipguard validate; bin/shipguard docs-check; tests/self_audit_test.sh; tests/next_goal_test.sh; tests/cli_smoke_test.sh; tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; bin/shipguard codex status --strict.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.92.0 ShipGuard Skill Plugin Runtime Receipts for jlekerli-source/ShipGuard:
+/plan v3.93.0 ShipGuard Workflow Chain Receipts for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add runtimeCommandFamilyCoverage to value-gauntlet, execute top-level --help for
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.92.0 ShipGuard Skill Plugin Runtime Receipts for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.93.0 ShipGuard Workflow Chain Receipts for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.92.0 --title "ShipGuard Skill Plugin Runtime Receipts" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.93.0 --title "ShipGuard Workflow Chain Receipts" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -136,12 +136,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.91.0.
+1. Open or update the tracking issue for v3.92.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.91.0` and upload `dist/shipguard-v3.91.0.tar.gz`.
+6. Create release `v3.92.0` and upload `dist/shipguard-v3.92.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
