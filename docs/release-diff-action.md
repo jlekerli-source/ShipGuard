@@ -17,7 +17,7 @@ on:
       right-tag:
         description: Newer release tag.
         required: true
-        default: v3.85.0
+        default: v3.86.0
 
 permissions:
   contents: read
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Compare release proof assets
-        uses: jlekerli-source/ShipGuard/actions/release-diff@v3.85.0
+        uses: jlekerli-source/ShipGuard/actions/release-diff@v3.86.0
         with:
           repo: jlekerli-source/ShipGuard
           left-tag: ${{ inputs.left-tag }}

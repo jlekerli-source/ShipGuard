@@ -1,0 +1,34 @@
+{
+  "findings": [],
+  "fixtureCandidate": {
+    "candidateId": "value-gauntlet-actionability-fixture",
+    "fixtureType": "report-quality-actionability-fixture",
+    "privateDataPolicy": "Synthetic public fixture. No private app code, local paths, screenshots, app-specific identifiers, or proprietary text were copied.",
+    "sourceQuestion": "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
+    "sourceReportsRedacted": true,
+    "sourceTool": "shipguard value-gauntlet"
+  },
+  "generatedAt": "2026-06-18T00:00:00Z",
+  "intent": "shipguard-evaluation",
+  "reportQualityQuestions": [
+    "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?"
+  ],
+  "scanScope": {
+    "note": "Synthetic fixture; no private source tree was scanned.",
+    "skippedDirectories": [],
+    "skippedDirectoryCount": 0
+  },
+  "schemaVersion": 1,
+  "scopeBoundary": {
+    "purpose": "Synthetic public fixture for ShipGuard Tool Value Gauntlet report-quality behavior.",
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "shareability": {
+    "localAbsolutePathsIncluded": false,
+    "mode": "shareable"
+  },
+  "status": "pass",
+  "surface": "ShipGuard Tool Value Gauntlet",
+  "tool": "shipguard value-gauntlet"
+}

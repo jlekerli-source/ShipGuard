@@ -6,11 +6,11 @@ Use it after downloading a published release asset set:
 
 ```bash
 ./bin/shipguard release-evidence bundle \
-  --assets /tmp/shipguard-v3.85.0 \
+  --assets /tmp/shipguard-v3.86.0 \
   --left /tmp/shipguard-v3.19.0 \
-  --out /tmp/shipguard-v3.85.0-evidence-bundle \
-  --version 3.85.0 \
-  --title "ShipGuard v3.85.0 Evidence" \
+  --out /tmp/shipguard-v3.86.0-evidence-bundle \
+  --version 3.86.0 \
+  --title "ShipGuard v3.86.0 Evidence" \
   --index-title "ShipGuard Release Evidence"
 ```
 

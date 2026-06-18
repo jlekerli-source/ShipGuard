@@ -1206,6 +1206,35 @@ if grep -R -q 'fixtureconnector1234567890' "$tmp_dir/token-quality-shareable"; t
   exit 1
 fi
 
+value_gauntlet_fixture="fixtures/ios-report-quality/value-gauntlet-actionability"
+./bin/shipguard ios report-quality \
+  --reports "$value_gauntlet_fixture" \
+  --out "$tmp_dir/value-gauntlet-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/value-gauntlet-fixture-quality/ios-report-quality.json"
+grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/value-gauntlet-fixture-quality/ios-report-quality.json"
+grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/value-gauntlet-fixture-quality/ios-report-quality.md"
+grep -q 'Should repeated low-value patterns become public fixtures or eval cases' "$tmp_dir/value-gauntlet-fixture-quality/ios-report-quality.md"
+python3 - <<'PY' "$tmp_dir/value-gauntlet-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"value-gauntlet materialized fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+if not questions:
+    raise SystemExit("value-gauntlet materialized fixture should preserve actionability questions")
+if questions[0].get("sourceMaterializedFixture") is not True:
+    raise SystemExit(f"value-gauntlet fixture should be marked materialized: {questions[0]!r}")
+if questions[0].get("tool") != "shipguard value-gauntlet":
+    raise SystemExit(f"unexpected source tool: {questions[0]!r}")
+PY
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$value_gauntlet_fixture"; then
+  echo "value-gauntlet fixture must not include local paths or private app identifiers" >&2
+  exit 1
+fi
+
 json_stdout="$(./bin/shipguard ios report-quality --reports "$reports" --json)"
 printf '%s\n' "$json_stdout" | python3 -m json.tool >/dev/null
 printf '%s\n' "$json_stdout" | grep -q '"tool": "shipguard ios report-quality"'
