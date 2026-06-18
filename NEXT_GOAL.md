@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T16:44:49Z
-- Current toolkit version: 3.111.0
-- Target release: v3.112.0
-- Title: ShipGuard Design App-Type Tailoring Fixtures
+- Generated: 2026-06-18T17:12:09Z
+- Current toolkit version: 3.112.0
+- Target release: v3.113.0
+- Title: ShipGuard Design Coherence Boundary Fixtures
 
 ## Slash Plan
 
 ```text
-/plan v3.112.0 ShipGuard Design App-Type Tailoring Fixtures for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Close the next uncovered read-only product-QA gap: make shipguard ios design prove that app-type guidance is tailored from source signals instead of applying one universal design rule. Add public synthetic report-quality fixtures and checks for utility/productivity, game/kids/creative, health/fitness, commerce/finance, SaaS, and social contexts; keep Ringly and Ilmify evidence read-only and private; require exact next actions and proof boundaries without target-app remediation.
+/plan v3.113.0 ShipGuard Design Coherence Boundary Fixtures for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Close the next uncovered read-only product-QA gap: make shipguard ios design and ios report-quality prove that design-system coherence findings remain ShipGuard product QA evidence, not target-app redesign tasks. Add public synthetic fixtures/checks for separating design-system inventory, coherence risks, proof guidance, and app-work authorization boundaries; keep Ringly and Ilmify evidence read-only/private; require exact next actions and proof boundaries without target-app remediation.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,13 +18,13 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.112.0 ShipGuard Design App-Type Tailoring Fixtures for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Close the next uncovered read-only product-QA gap: make shipguard ios design prove that app-type guidance is tailored from source signals instead of applying one universal design rule. Add public synthetic report-quality fixtures and checks for utility/productivity, game/kids/creative, health/fitness, commerce/finance, SaaS, and social contexts; keep Ringly and Ilmify evidence read-only and private; require exact next actions and proof boundaries without target-app remediation, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.113.0 ShipGuard Design Coherence Boundary Fixtures for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Close the next uncovered read-only product-QA gap: make shipguard ios design and ios report-quality prove that design-system coherence findings remain ShipGuard product QA evidence, not target-app redesign tasks. Add public synthetic fixtures/checks for separating design-system inventory, coherence risks, proof guidance, and app-work authorization boundaries; keep Ringly and Ilmify evidence read-only/private; require exact next actions and proof boundaries without target-app remediation, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Close the next uncovered read-only product-QA gap: make shipguard ios design prove that app-type guidance is tailored from source signals instead of applying one universal design rule. Add public synthetic report-quality fixtures and checks for utility/productivity, game/kids/creative, health/fitness, commerce/finance, SaaS, and social contexts; keep Ringly and Ilmify evidence read-only and private; require exact next actions and proof boundaries without target-app remediation.
+Close the next uncovered read-only product-QA gap: make shipguard ios design and ios report-quality prove that design-system coherence findings remain ShipGuard product QA evidence, not target-app redesign tasks. Add public synthetic fixtures/checks for separating design-system inventory, coherence risks, proof guidance, and app-work authorization boundaries; keep Ringly and Ilmify evidence read-only/private; require exact next actions and proof boundaries without target-app remediation.
 
 ## Constraints
 
@@ -118,12 +118,12 @@ Close the next uncovered read-only product-QA gap: make shipguard ios design pro
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.112.0.
+1. Open or update the tracking issue for v3.113.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.112.0` and upload `dist/shipguard-v3.112.0.tar.gz`.
+6. Create release `v3.113.0` and upload `dist/shipguard-v3.113.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
