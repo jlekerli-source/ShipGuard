@@ -77,7 +77,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add scenario-failure receipts that prove complete public developer journeys reject missing proof, unsafe sharing, stale plugin cache, and incomplete release evidence instead of only passing happy paths?",
+    "Should ShipGuard add scenario-remediation receipts that pair each blocked developer journey with the smallest repair command and a successful rerun proof?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -148,6 +148,7 @@ RUNTIME_NEGATIVE_FIXTURE_ROOT = Path("fixtures") / "tool-value-gauntlet" / "runt
 SKILL_PLUGIN_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "skill-plugin-receipts"
 WORKFLOW_CHAIN_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "workflow-chain-receipts"
 SCENARIO_MATRIX_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "scenario-matrix-receipts"
+SCENARIO_FAILURE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "scenario-failure-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -705,6 +706,18 @@ def load_scenario_matrix_receipts(root: Path) -> list[tuple[Path, dict[str, Any]
     return receipts
 
 
+def load_scenario_failure_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / SCENARIO_FAILURE_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
 def format_receipt_value(value: object, *, out_dir: Path, cache_dir: Path) -> str:
     return str(value).format(out=out_dir.as_posix(), cache=cache_dir.as_posix())
 
@@ -860,7 +873,17 @@ def run_skill_plugin_receipt_command(
         stderr = exc.stderr if isinstance(exc.stderr, str) else ""
         timed_out = True
     duration_ms = round((time.monotonic() - started) * 1000)
-    checks = [runtime_probe_check("exitZero", exit_code == 0, f"exit code {exit_code}")]
+    expected_exit = command_spec.get("expectedExitCode", 0)
+    if str(expected_exit) == "nonzero":
+        exit_expected = isinstance(exit_code, int) and exit_code != 0
+        exit_evidence = f"exit code {exit_code}, expected nonzero"
+        exit_check_id = "exitExpected"
+    else:
+        expected_exit_int = int(expected_exit or 0)
+        exit_expected = exit_code == expected_exit_int
+        exit_evidence = f"exit code {exit_code}, expected {expected_exit_int}"
+        exit_check_id = "exitZero" if expected_exit_int == 0 else "exitExpected"
+    checks = [runtime_probe_check(exit_check_id, exit_expected, exit_evidence)]
     combined_output = f"{stdout}\n{stderr}"
     for phrase in command_spec.get("expectedOutputPhrases") or []:
         present = str(phrase).lower() in combined_output.lower()
@@ -873,7 +896,7 @@ def run_skill_plugin_receipt_command(
         checks.extend(receipt_artifact_checks(artifact_path, artifact, root=root, out_dir=out_dir))
     score = score_from_checks(checks)
     missing = [check["id"] for check in checks if not check["passed"]]
-    status = "pass" if score == 100 and exit_code == 0 and not timed_out else "blocked" if exit_code != 0 or timed_out else "review"
+    status = "pass" if score == 100 and exit_expected and not timed_out else "blocked" if not exit_expected or timed_out else "review"
     return {
         "id": str(command_spec.get("id") or "receipt-command"),
         "command": str(command_spec.get("display") or f"./bin/shipguard {' '.join(args)}"),
@@ -886,7 +909,7 @@ def run_skill_plugin_receipt_command(
         "missing": missing,
         "stdoutLineCount": len(stdout.splitlines()),
         "stderrLineCount": len(stderr.splitlines()),
-        "errorSummary": compact_error(stderr or stdout) if exit_code != 0 or timed_out else "",
+        "errorSummary": compact_error(stderr or stdout) if not exit_expected or timed_out else "",
     }
 
 
@@ -1019,6 +1042,34 @@ def scenario_matrix_receipt_probe(root: Path) -> dict[str, Any]:
             "Add scenario-failure receipts so complete journeys prove missing proof, unsafe sharing, stale plugin cache, and incomplete release evidence are rejected."
             if status == "pass"
             else "Fix scenario-matrix receipts so complete developer journeys pass before expanding into failure-path proof."
+        ),
+    }
+
+
+def scenario_failure_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [run_skill_plugin_receipt(root, fixture_dir, meta) for fixture_dir, meta in load_scenario_failure_receipts(root)]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public scenario-failure receipts that prove ShipGuard blocks unsafe transcripts, broken docs, stale plugin cache, and incomplete release proof with concrete evidence.",
+        "fixtureRoot": SCENARIO_FAILURE_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public scenario-failure receipt fixtures", "synthetic unsafe transcript", "synthetic stale plugin cache", "synthetic incomplete release proof"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Add scenario-remediation receipts so blocked journeys also prove the smallest repair command and successful rerun."
+            if status == "pass"
+            else "Fix scenario-failure receipts so bad evidence is blocked with specific machine-readable proof."
         ),
     }
 
@@ -1519,6 +1570,7 @@ def lowest_value_surface_probe(
     skill_plugin_receipts: dict[str, Any],
     workflow_chain_receipts: dict[str, Any],
     scenario_matrix_receipts: dict[str, Any],
+    scenario_failure_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -1552,49 +1604,48 @@ def lowest_value_surface_probe(
                         if workflow_chain_receipts_passed:
                             scenario_matrix_receipts_passed = scenario_matrix_receipts.get("status") == "pass"
                             if scenario_matrix_receipts_passed:
-                                answer = surface_probe_row(
-                                    surface_type="cross-cutting",
-                                    identifier="shipguard value-gauntlet scenario-failure-receipts",
-                                    name="Scenario failure receipts",
-                                    base_score=100,
-                                    base_status="pass",
-                                    depth_checks=[
-                                        depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
-                                        depth_check(
-                                            "runtimeOutputProbe",
-                                            True,
-                                            f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100",
-                                        ),
-                                        depth_check(
-                                            "runtimeRegressionFixtures",
-                                            True,
-                                            f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output",
-                                        ),
-                                        depth_check(
-                                            "runtimeCommandCoverage",
-                                            True,
-                                            f"{command_family_probe.get('passedCommandCount') or 0}/{command_family_probe.get('commandCount') or 0} public command help paths executed",
-                                        ),
-                                        depth_check(
-                                            "runtimeSkillPluginReceipts",
-                                            True,
-                                            f"{skill_plugin_receipts.get('passedReceiptCount') or 0}/{skill_plugin_receipts.get('receiptCount') or 0} skill/plugin receipts executed",
-                                        ),
-                                        depth_check(
-                                            "runtimeWorkflowChainReceipts",
-                                            True,
-                                            f"{workflow_chain_receipts.get('passedReceiptCount') or 0}/{workflow_chain_receipts.get('receiptCount') or 0} workflow-chain receipts executed",
-                                        ),
-                                        depth_check(
-                                            "runtimeScenarioMatrixReceipts",
-                                            True,
-                                            f"{scenario_matrix_receipts.get('passedReceiptCount') or 0}/{scenario_matrix_receipts.get('receiptCount') or 0} scenario-matrix receipts executed",
-                                        ),
-                                        depth_check("runtimeScenarioFailureReceipts", False, "complete developer journeys do not yet prove failure paths reject missing proof, unsafe sharing, stale plugin cache, and incomplete release evidence"),
-                                    ],
-                                    recommendation="Add scenario-failure receipts that intentionally feed incomplete or unsafe workflow evidence and require ShipGuard to block with specific guidance.",
-                                    proof="Run value-gauntlet plus focused scenario-failure receipt fixtures for privacy, release proof, stale plugin cache, report-quality, and CI evidence failures.",
-                                )
+                                scenario_failure_receipts_passed = scenario_failure_receipts.get("status") == "pass"
+                                if scenario_failure_receipts_passed:
+                                    answer = surface_probe_row(
+                                        surface_type="cross-cutting",
+                                        identifier="shipguard value-gauntlet scenario-remediation-receipts",
+                                        name="Scenario remediation receipts",
+                                        base_score=100,
+                                        base_status="pass",
+                                        depth_checks=[
+                                            depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
+                                            depth_check("runtimeOutputProbe", True, f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100"),
+                                            depth_check("runtimeRegressionFixtures", True, f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output"),
+                                            depth_check("runtimeCommandCoverage", True, f"{command_family_probe.get('passedCommandCount') or 0}/{command_family_probe.get('commandCount') or 0} public command help paths executed"),
+                                            depth_check("runtimeSkillPluginReceipts", True, f"{skill_plugin_receipts.get('passedReceiptCount') or 0}/{skill_plugin_receipts.get('receiptCount') or 0} skill/plugin receipts executed"),
+                                            depth_check("runtimeWorkflowChainReceipts", True, f"{workflow_chain_receipts.get('passedReceiptCount') or 0}/{workflow_chain_receipts.get('receiptCount') or 0} workflow-chain receipts executed"),
+                                            depth_check("runtimeScenarioMatrixReceipts", True, f"{scenario_matrix_receipts.get('passedReceiptCount') or 0}/{scenario_matrix_receipts.get('receiptCount') or 0} scenario-matrix receipts executed"),
+                                            depth_check("runtimeScenarioFailureReceipts", True, f"{scenario_failure_receipts.get('passedReceiptCount') or 0}/{scenario_failure_receipts.get('receiptCount') or 0} scenario-failure receipts executed"),
+                                            depth_check("runtimeScenarioRemediationReceipts", False, "blocked developer journeys do not yet prove the smallest repair command and successful rerun"),
+                                        ],
+                                        recommendation="Add scenario-remediation receipts that pair each blocked journey with the smallest repair command and successful rerun proof.",
+                                        proof="Run value-gauntlet plus focused remediation receipts for privacy, docs, plugin cache, release proof, and report-quality repair loops.",
+                                    )
+                                else:
+                                    answer = surface_probe_row(
+                                        surface_type="cross-cutting",
+                                        identifier="shipguard value-gauntlet scenario-failure-receipts",
+                                        name="Scenario failure receipts",
+                                        base_score=100,
+                                        base_status="pass",
+                                        depth_checks=[
+                                            depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
+                                            depth_check("runtimeOutputProbe", True, f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100"),
+                                            depth_check("runtimeRegressionFixtures", True, f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output"),
+                                            depth_check("runtimeCommandCoverage", True, f"{command_family_probe.get('passedCommandCount') or 0}/{command_family_probe.get('commandCount') or 0} public command help paths executed"),
+                                            depth_check("runtimeSkillPluginReceipts", True, f"{skill_plugin_receipts.get('passedReceiptCount') or 0}/{skill_plugin_receipts.get('receiptCount') or 0} skill/plugin receipts executed"),
+                                            depth_check("runtimeWorkflowChainReceipts", True, f"{workflow_chain_receipts.get('passedReceiptCount') or 0}/{workflow_chain_receipts.get('receiptCount') or 0} workflow-chain receipts executed"),
+                                            depth_check("runtimeScenarioMatrixReceipts", True, f"{scenario_matrix_receipts.get('passedReceiptCount') or 0}/{scenario_matrix_receipts.get('receiptCount') or 0} scenario-matrix receipts executed"),
+                                            depth_check("runtimeScenarioFailureReceipts", False, f"{scenario_failure_receipts.get('passedReceiptCount') or 0}/{scenario_failure_receipts.get('receiptCount') or 0} scenario-failure receipts passed"),
+                                        ],
+                                        recommendation="Add scenario-failure receipts that intentionally feed incomplete or unsafe workflow evidence and require ShipGuard to block with specific guidance.",
+                                        proof="Run value-gauntlet plus focused scenario-failure receipt fixtures for privacy, release proof, stale plugin cache, report-quality, and CI evidence failures.",
+                                    )
                             else:
                                 answer = surface_probe_row(
                                     surface_type="cross-cutting",
@@ -1845,6 +1896,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     skill_plugin_receipts = skill_plugin_receipt_probe(root)
     workflow_chain_receipts = workflow_chain_receipt_probe(root)
     scenario_matrix_receipts = scenario_matrix_receipt_probe(root)
+    scenario_failure_receipts = scenario_failure_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -1859,6 +1911,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         skill_plugin_receipts=skill_plugin_receipts,
         workflow_chain_receipts=workflow_chain_receipts,
         scenario_matrix_receipts=scenario_matrix_receipts,
+        scenario_failure_receipts=scenario_failure_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -1899,6 +1952,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "skillPluginRuntimeReceipts": skill_plugin_receipts,
         "workflowChainReceipts": workflow_chain_receipts,
         "scenarioMatrixReceipts": scenario_matrix_receipts,
+        "scenarioFailureReceipts": scenario_failure_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -2070,6 +2124,30 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_scenario_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_scenario_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+    scenario_failure_receipts = report.get("scenarioFailureReceipts") or {}
+    lines.extend(["", "## Scenario Failure Receipts", ""])
+    lines.append(f"- Status: {scenario_failure_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {scenario_failure_receipts.get('passedReceiptCount', 0)}/{scenario_failure_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {scenario_failure_receipts.get('commandCount', 0)}")
+    if scenario_failure_receipts.get("nextAction"):
+        lines.append(f"- Next action: {scenario_failure_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in scenario_failure_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 32)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_failure_commands = [
+        (receipt, command)
+        for receipt in scenario_failure_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_failure_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_failure_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

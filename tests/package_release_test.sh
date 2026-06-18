@@ -173,6 +173,7 @@ grep -q "^$package_name/fixtures/tool-value-gauntlet/skill-plugin-receipts/plugi
 grep -q "^$package_name/fixtures/tool-value-gauntlet/skill-plugin-receipts/starter-ui-polish-plan/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/workflow-chain-receipts/report-quality-to-spec-and-next-goal/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/scenario-matrix-receipts/full-public-maintainer-loop/receipt.json$" "$tar_list"
+grep -q "^$package_name/fixtures/tool-value-gauntlet/scenario-failure-receipts/bad-evidence-blocks/receipt.json$" "$tar_list"
 grep -q "^$package_name/scripts/ios_launchdeck.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_codex_handoff.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_devspace_check.py$" "$tar_list"

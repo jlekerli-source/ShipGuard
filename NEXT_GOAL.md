@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T07:37:05Z
-- Current toolkit version: 3.94.0
-- Target release: v3.94.0
-- Title: ShipGuard Scenario Matrix Receipts
+- Generated: 2026-06-18T07:54:38Z
+- Current toolkit version: 3.95.0
+- Target release: v3.95.0
+- Title: ShipGuard Scenario Failure Receipts
 
 ## Slash Plan
 
 ```text
-/plan v3.94.0 ShipGuard Scenario Matrix Receipts for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add scenarioMatrixReceipts to value-gauntlet, add a public full maintainer-loop receipt fixture that runs iOS doctor, inventory, plan, design, report-quality, docs-check, transcript redaction and verification, CI gate and summary, Codex plugin status, and release manifest/index/replay on public/demo inputs plus a synthetic release package, fix transcript redact's no-private-term path, and move the next priority to scenario-failure receipts.
+/plan v3.95.0 ShipGuard Scenario Failure Receipts for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add scenarioFailureReceipts to value-gauntlet, add a public bad-evidence receipt fixture that proves unsafe transcripts, broken docs, stale Codex plugin cache metadata, and incomplete release proof are blocked with non-zero exits or blocked reports, and move the next priority to scenario-remediation receipts.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.94.0 ShipGuard Scenario Matrix Receipts for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add scenarioMatrixReceipts to value-gauntlet, add a public full maintainer-loop receipt fixture that runs iOS doctor, inventory, plan, design, report-quality, docs-check, transcript redaction and verification, CI gate and summary, Codex plugin status, and release manifest/index/replay on public/demo inputs plus a synthetic release package, fix transcript redact's no-private-term path, and move the next priority to scenario-failure receipts, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.95.0 ShipGuard Scenario Failure Receipts for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add scenarioFailureReceipts to value-gauntlet, add a public bad-evidence receipt fixture that proves unsafe transcripts, broken docs, stale Codex plugin cache metadata, and incomplete release proof are blocked with non-zero exits or blocked reports, and move the next priority to scenario-remediation receipts, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add scenarioMatrixReceipts to value-gauntlet, add a public full maintainer-loop receipt fixture that runs iOS doctor, inventory, plan, design, report-quality, docs-check, transcript redaction and verification, CI gate and summary, Codex plugin status, and release manifest/index/replay on public/demo inputs plus a synthetic release package, fix transcript redact's no-private-term path, and move the next priority to scenario-failure receipts.
+Add scenarioFailureReceipts to value-gauntlet, add a public bad-evidence receipt fixture that proves unsafe transcripts, broken docs, stale Codex plugin cache metadata, and incomplete release proof are blocked with non-zero exits or blocked reports, and move the next priority to scenario-remediation receipts.
 
 ## Completion Receipt
 
-- Completed scope: Add scenarioMatrixReceipts to value-gauntlet, add a public full maintainer-loop receipt fixture that runs iOS doctor, inventory, plan, design, report-quality, docs-check, transcript redaction and verification, CI gate and summary, Codex plugin status, and release manifest/index/replay on public/demo inputs plus a synthetic release package, fix transcript redact's no-private-term path, and move the next priority to scenario-failure receipts.
-- Evidence: Implemented scenarioMatrixReceipts with fixtures/tool-value-gauntlet/scenario-matrix-receipts/full-public-maintainer-loop/receipt.json; value-gauntlet now reports scenarioMatrixReceipts status pass with 1/1 receipts and 15 commands; transcript redaction no-private-term path is covered; focused tests ./tests/transcript_redaction_test.sh, ./tests/tool_value_gauntlet_test.sh, and ./tests/ios_report_quality_test.sh passed.
+- Completed scope: Add scenarioFailureReceipts to value-gauntlet, add a public bad-evidence receipt fixture that proves unsafe transcripts, broken docs, stale Codex plugin cache metadata, and incomplete release proof are blocked with non-zero exits or blocked reports, and move the next priority to scenario-remediation receipts.
+- Evidence: Implemented scenarioFailureReceipts with fixtures/tool-value-gauntlet/scenario-failure-receipts/bad-evidence-blocks/receipt.json; value-gauntlet now reports scenarioFailureReceipts status pass with 1/1 receipts and 5 commands; lowestValueSurfaceProbe now escalates to shipguard value-gauntlet scenario-remediation-receipts.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.95.0 ShipGuard Scenario Failure Receipts for jlekerli-source/ShipGuard:
+/plan v3.96.0 ShipGuard Scenario Remediation Receipts for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add scenarioMatrixReceipts to value-gauntlet, add a public full maintainer-loop 
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.95.0 ShipGuard Scenario Failure Receipts for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.96.0 ShipGuard Scenario Remediation Receipts for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.95.0 --title "ShipGuard Scenario Failure Receipts" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.96.0 --title "ShipGuard Scenario Remediation Receipts" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -136,12 +136,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.94.0.
+1. Open or update the tracking issue for v3.95.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.94.0` and upload `dist/shipguard-v3.94.0.tar.gz`.
+6. Create release `v3.95.0` and upload `dist/shipguard-v3.95.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

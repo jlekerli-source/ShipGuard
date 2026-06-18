@@ -24,8 +24,8 @@ The naming style is intentional: stable commands and paths stay literal, while p
 Install from a release tarball, then validate the bundle:
 
 ```bash
-tar -xzf shipguard-v3.94.0.tar.gz
-cd shipguard-v3.94.0
+tar -xzf shipguard-v3.95.0.tar.gz
+cd shipguard-v3.95.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" version
 ./bin/shipguard validate

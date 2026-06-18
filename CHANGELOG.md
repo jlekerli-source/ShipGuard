@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `scenarioFailureReceipts` to `shipguard value-gauntlet`: a public bad-evidence receipt now proves ShipGuard blocks unsafe transcripts, broken docs, stale Codex plugin cache metadata, and incomplete release proof with non-zero exits or blocked reports before the next priority advances to scenario-remediation receipts.
+- Added expected non-zero receipt-command support to the value-gauntlet receipt runner so failure-path receipts pass only when ShipGuard rejects bad evidence and still writes the expected machine-readable proof.
 - Added `scenarioMatrixReceipts` to `shipguard value-gauntlet`: a public full maintainer-loop receipt now runs iOS doctor/inventory/plan/design, report-quality, docs-check, transcript redaction and verification, CI gate and summary, Codex plugin status, and release manifest/index/replay against public fixtures and a synthetic release package before the next priority advances to scenario-failure receipts.
 - Added safe receipt fixture preparation to `shipguard value-gauntlet`, including temporary prepared files and deterministic synthetic tarballs under the receipt output directory so release workflows can be tested without mutating `dist/` or private app repos.
 - Fixed `shipguard transcript redact` so redaction works when no `--private-term` arguments are supplied on macOS Bash with `set -u`, and added coverage for the default no-private-term privacy path.

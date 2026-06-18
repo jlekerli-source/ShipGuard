@@ -1,0 +1,269 @@
+{
+  "id": "bad-evidence-blocks",
+  "kind": "scenario-failure",
+  "surface": "ShipGuard bad evidence blocking loop",
+  "selectedSkill": "ios-shipguard",
+  "selectedMode": "scenario-failure",
+  "trigger": "User asks whether ShipGuard is genuinely useful when evidence is unsafe, incomplete, stale, or broken rather than only when happy paths pass.",
+  "sourcePaths": [
+    "scripts/transcript_verify.sh",
+    "scripts/docs_check.sh",
+    "scripts/codex_status.sh",
+    "scripts/release_manifest.sh",
+    "scripts/release_replay.sh",
+    "scripts/tool_value_gauntlet.py",
+    "docs/privacy.md",
+    "docs/docs-check.md",
+    "docs/codex-status.md",
+    "docs/release-replay.md"
+  ],
+  "expectedSourcePhrases": [
+    "transcript verify",
+    "docs-check",
+    "codex status",
+    "release-replay",
+    "blocked",
+    "stale"
+  ],
+  "prepareFiles": [
+    {
+      "path": "privacy/unsafe-redacted.md",
+      "text": "# Unsafe Transcript\n\nMaintainer: This still contains maintainer@example.com and API_TOKEN=secret-value.\n"
+    },
+    {
+      "path": "bad-docs/README.md",
+      "text": "# Broken Docs\n\nThis local link is broken: [missing](missing.md).\n"
+    },
+    {
+      "path": "stale-cache/ringly-codex-workflows/ios-shipguard/0.2.0+codex.test/.codex-plugin/plugin.json",
+      "text": "{\n  \"name\": \"ios-shipguard\",\n  \"version\": \"0.2.0+codex.test\",\n  \"repository\": \"https://github.com/jlekerli-source/ringly-codex-workflows\",\n  \"homepage\": \"https://github.com/jlekerli-source/ringly-codex-workflows\",\n  \"interface\": {\n    \"displayName\": \"iOS Shipguard\"\n  }\n}\n"
+    },
+    {
+      "path": "stale-cache/ringly-codex-workflows/ios-shipguard/0.2.0+codex.test/skills/ios-shipguard/SKILL.md",
+      "text": "---\nname: ios-shipguard\ndescription: Stale fixture skill\n---\n\nRun ./bin/codex-maintainer ios inventory before edits.\n"
+    },
+    {
+      "path": "stale-cache/ringly-codex-workflows/ios-shipguard/0.2.0+codex.test/skills/ios-shipguard/agents/openai.yaml",
+      "text": "interface:\n  display_name: \"iOS Shipguard\"\n"
+    },
+    {
+      "path": "stale-cache/ringly-codex-workflows/ios-shipguard/0.2.0+codex.test/.mcp.json",
+      "text": "{\n  \"mcpServers\": {\n    \"shipguard-devspace\": {\n      \"cwd\": \"../..\",\n      \"command\": \"python3\",\n      \"args\": [\"./scripts/shipguard_devspace_mcp.py\", \"--stdio\", \"--repo-root\", \".\"]\n    }\n  }\n}\n"
+    }
+  ],
+  "prepareTarballs": [
+    {
+      "path": "release/shipguard-v0.0.0.tar.gz",
+      "entries": [
+        {
+          "path": "shipguard-v0.0.0/bin/shipguard",
+          "mode": 493,
+          "text": "#!/usr/bin/env bash\necho shipguard fixture\n"
+        },
+        {
+          "path": "shipguard-v0.0.0/VERSION",
+          "text": "0.0.0\n"
+        },
+        {
+          "path": "shipguard-v0.0.0/scripts/install.sh",
+          "mode": 493,
+          "text": "#!/usr/bin/env bash\nexit 0\n"
+        }
+      ]
+    }
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppDetailsAllowed": false
+  },
+  "commands": [
+    {
+      "id": "unsafe-transcript-blocked",
+      "display": "./bin/shipguard transcript verify --in <receipt-out>/privacy/unsafe-redacted.md --out <receipt-out>/privacy-verify",
+      "expectedExitCode": "nonzero",
+      "args": [
+        "transcript",
+        "verify",
+        "--in",
+        "{out}/privacy/unsafe-redacted.md",
+        "--out",
+        "{out}/privacy-verify"
+      ],
+      "artifacts": [
+        {
+          "path": "privacy-verify/transcript-verify.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schema_version",
+            "status",
+            "remaining_risk_count",
+            "checks"
+          ],
+          "requiredValues": [
+            {
+              "path": "status",
+              "equals": "blocked"
+            }
+          ]
+        },
+        {
+          "path": "privacy-verify/transcript-verify.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# Transcript Verification",
+            "email",
+            "secret assignment",
+            "blocked"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "broken-docs-blocked",
+      "display": "./bin/shipguard docs-check <receipt-out>/bad-docs --out <receipt-out>/bad-docs-out",
+      "expectedExitCode": "nonzero",
+      "args": [
+        "docs-check",
+        "{out}/bad-docs",
+        "--out",
+        "{out}/bad-docs-out"
+      ],
+      "artifacts": [
+        {
+          "path": "bad-docs-out/docs-check.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schema_version",
+            "status",
+            "broken_count",
+            "broken_links"
+          ],
+          "requiredValues": [
+            {
+              "path": "status",
+              "equals": "blocked"
+            },
+            {
+              "path": "broken_count",
+              "equals": 1
+            }
+          ]
+        },
+        {
+          "path": "bad-docs-out/docs-check.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# Docs Check",
+            "Status: blocked",
+            "missing.md"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "stale-plugin-cache-blocked",
+      "display": "./bin/shipguard codex status --cache <receipt-out>/stale-cache --strict",
+      "expectedExitCode": "nonzero",
+      "args": [
+        "codex",
+        "status",
+        "--cache",
+        "{out}/stale-cache",
+        "--strict"
+      ],
+      "expectedOutputPhrases": [
+        "Overall status: stale",
+        "stale_metadata",
+        "stale_skill_text",
+        "stale_mcp_sidecar",
+        "Refresh Handoff"
+      ]
+    },
+    {
+      "id": "incomplete-release-manifest",
+      "display": "./bin/shipguard release-manifest --tarball <receipt-out>/release/shipguard-v0.0.0.tar.gz --out <receipt-out>/incomplete-release --version 0.0.0 --tag v0.0.0 --commit 0123456789abcdef0123456789abcdef01234567",
+      "args": [
+        "release-manifest",
+        "--tarball",
+        "{out}/release/shipguard-v0.0.0.tar.gz",
+        "--out",
+        "{out}/incomplete-release",
+        "--version",
+        "0.0.0",
+        "--tag",
+        "v0.0.0",
+        "--commit",
+        "0123456789abcdef0123456789abcdef01234567",
+        "--notes",
+        "incomplete release proof fixture"
+      ],
+      "artifacts": [
+        {
+          "path": "incomplete-release/release-manifest.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schema_version",
+            "version",
+            "tag",
+            "artifact",
+            "proofs"
+          ],
+          "requiredValues": [
+            {
+              "path": "version",
+              "equals": "0.0.0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "incomplete-release-replay-blocked",
+      "display": "./bin/shipguard release-replay verify --manifest <receipt-out>/incomplete-release/release-manifest.json --tarball <receipt-out>/release/shipguard-v0.0.0.tar.gz --ledger <receipt-out>/incomplete-release/proof-ledger.md --out <receipt-out>/incomplete-release-replay",
+      "expectedExitCode": "nonzero",
+      "args": [
+        "release-replay",
+        "verify",
+        "--manifest",
+        "{out}/incomplete-release/release-manifest.json",
+        "--tarball",
+        "{out}/release/shipguard-v0.0.0.tar.gz",
+        "--ledger",
+        "{out}/incomplete-release/proof-ledger.md",
+        "--out",
+        "{out}/incomplete-release-replay"
+      ],
+      "artifacts": [
+        {
+          "path": "incomplete-release-replay/replay-report.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schema_version",
+            "status",
+            "summary",
+            "checks"
+          ],
+          "requiredValues": [
+            {
+              "path": "status",
+              "equals": "blocked"
+            }
+          ]
+        },
+        {
+          "path": "incomplete-release-replay/replay-report.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# Release Replay Report",
+            "Status: blocked",
+            "public proof urls"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}
