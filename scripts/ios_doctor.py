@@ -10,6 +10,7 @@ import plistlib
 import re
 import shutil
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -32,6 +33,10 @@ def parse_args() -> argparse.Namespace:
 def fail(message: str) -> None:
     print(f"ios-doctor: {message}", file=sys.stderr)
     raise SystemExit(1)
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def rel(path: Path, root: Path) -> str:
@@ -309,65 +314,107 @@ def source_imports(swift_files: list[Path]) -> list[str]:
     return unique_sorted(imports)
 
 
+def finding(
+    *,
+    severity: str,
+    rule_id: str,
+    message: str,
+    evidence: str,
+    recommendation: str,
+    proof_guidance: str,
+) -> dict[str, str]:
+    return {
+        "severity": severity,
+        "code": rule_id,
+        "ruleId": rule_id,
+        "category": "ios-topology",
+        "message": message,
+        "evidence": evidence,
+        "recommendation": recommendation,
+        "proofGuidance": proof_guidance,
+    }
+
+
 def build_findings(report: dict[str, Any]) -> list[dict[str, str]]:
     findings: list[dict[str, str]] = []
     counts = report["counts"]
     if counts["xcode_projects"] == 0 and counts["swift_packages"] == 0:
         findings.append(
-            {
-                "severity": "high",
-                "code": "no-build-topology",
-                "message": "No Xcode project, workspace, or Swift package was detected. Codex cannot choose an honest build or simulator route yet.",
-            }
+            finding(
+                severity="high",
+                rule_id="no-build-topology",
+                message="No Xcode project, workspace, or Swift package was detected. Codex cannot choose an honest build or simulator route yet.",
+                evidence="Detected 0 .xcodeproj directories and 0 Package.swift files.",
+                recommendation="Point ShipGuard at the iOS repository root or add the missing project/package before running build, simulator, or release proof workflows.",
+                proof_guidance="Rerun shipguard ios doctor and confirm at least one Xcode project, workspace, or Swift package is reported.",
+            )
         )
     if counts["xcode_projects"] == 0 and counts["swift_packages"] > 0:
         findings.append(
-            {
-                "severity": "review",
-                "code": "package-only",
-                "message": "Only a Swift package was detected. Simulator proof may require a host app or generated preview host.",
-            }
+            finding(
+                severity="review",
+                rule_id="package-only",
+                message="Only a Swift package was detected. Simulator proof may require a host app or generated preview host.",
+                evidence=f"Detected {counts['swift_packages']} Swift package(s) and 0 Xcode projects.",
+                recommendation="Name the SwiftPM validation lane explicitly and add a preview host before claiming simulator UI proof.",
+                proof_guidance="Run swift test for package proof, or add a host app and rerun ios doctor before simulator workflows.",
+            )
         )
     for project in report["xcode_projects"]:
         if not project["schemes"]:
             findings.append(
-                {
-                    "severity": "review",
-                    "code": "no-shared-schemes",
-                    "message": f"{project['path']} has no shared schemes. Codex may need an explicit scheme from the user.",
-                }
+                finding(
+                    severity="review",
+                    rule_id="no-shared-schemes",
+                    message=f"{project['path']} has no shared schemes. Codex may need an explicit scheme from the user.",
+                    evidence=f"{project['path']} contains no xcshareddata/xcschemes entries.",
+                    recommendation="Commit a shared scheme or record the exact scheme name in the task contract before build/test work.",
+                    proof_guidance="Rerun ios doctor and confirm the scheme appears under the project evidence table.",
+                )
             )
         if not project["deployment_targets"]:
             findings.append(
-                {
-                    "severity": "review",
-                    "code": "missing-deployment-target",
-                    "message": f"{project['path']} does not expose an iOS deployment target in parsed build settings.",
-                }
+                finding(
+                    severity="review",
+                    rule_id="missing-deployment-target",
+                    message=f"{project['path']} does not expose an iOS deployment target in parsed build settings.",
+                    evidence=f"{project['path']} parsed deployment_targets is empty.",
+                    recommendation="Confirm the intended minimum iOS version before modernization, API adoption, or simulator matrix claims.",
+                    proof_guidance="Inspect build settings or rerun ios doctor after the deployment target is visible in the project file.",
+                )
             )
         if not project["swift_versions"]:
             findings.append(
-                {
-                    "severity": "review",
-                    "code": "missing-swift-version",
-                    "message": f"{project['path']} does not expose SWIFT_VERSION in parsed build settings.",
-                }
+                finding(
+                    severity="review",
+                    rule_id="missing-swift-version",
+                    message=f"{project['path']} does not expose SWIFT_VERSION in parsed build settings.",
+                    evidence=f"{project['path']} parsed swift_versions is empty.",
+                    recommendation="Confirm the Swift language mode before concurrency, Swift 6, or modernization planning.",
+                    proof_guidance="Inspect build settings or rerun ios doctor after SWIFT_VERSION is visible in the project file.",
+                )
             )
     if counts["privacy_manifests"] == 0:
         findings.append(
-            {
-                "severity": "review",
-                "code": "missing-privacy-manifest",
-                "message": "No PrivacyInfo.xcprivacy file was detected. Verify whether the app or SDKs require privacy manifest coverage.",
-            }
+            finding(
+                severity="review",
+                rule_id="missing-privacy-manifest",
+                message="No PrivacyInfo.xcprivacy file was detected. Verify whether the app or SDKs require privacy manifest coverage.",
+                evidence="Detected 0 PrivacyInfo.xcprivacy files.",
+                recommendation="Check privacy manifest requirements before App Store, SDK, analytics, or permission-copy work.",
+                proof_guidance="Rerun ios doctor and confirm the privacy manifest path is listed, or document why this target does not require one.",
+            )
         )
     if counts["test_plans"] == 0:
         findings.append(
-            {
-                "severity": "info",
-                "code": "no-test-plan",
-                "message": "No .xctestplan file was detected. Codex can still build/test, but release proof should name the chosen scheme and test command.",
-            }
+            finding(
+                severity="info",
+                rule_id="no-test-plan",
+                message="No .xctestplan file was detected. Codex can still build/test, but release proof should name the chosen scheme and test command.",
+                evidence="Detected 0 .xctestplan files.",
+                recommendation="Make the validation lane explicit in the task contract or release proof when no test plan exists.",
+                proof_guidance="Record the exact xcodebuild or swift test command that proves the scoped change.",
+            )
         )
     return findings
 
@@ -409,10 +456,17 @@ def build_report(root: Path) -> dict[str, Any]:
     storekit_configs = [path for path in files if path.name.endswith(".storekit")]
 
     report: dict[str, Any] = {
+        "schemaVersion": SCHEMA_VERSION,
         "schema_version": SCHEMA_VERSION,
         "tool": "shipguard ios doctor",
         "surface": "ShipGuard DockCheck",
-        "project": str(root),
+        "generatedAt": utc_now(),
+        "project": "<target-repo>",
+        "target": {
+            "root": "<target-repo>",
+            "name": root.name,
+            "pathRedacted": True,
+        },
         "xcodebuild_available": shutil.which("xcodebuild") is not None,
         "counts": {
             "files": len(files),
@@ -458,6 +512,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         f"- Status: {report['status']}",
         f"- Project: `{report['project']}`",
+        f"- Project name: `{report['target']['name']}`",
         f"- Xcode projects: {counts['xcode_projects']}",
         f"- Xcode workspaces: {counts['xcode_workspaces']}",
         f"- Swift packages: {counts['swift_packages']}",

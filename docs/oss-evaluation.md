@@ -4,13 +4,26 @@ Generated: 2026-06-17
 
 This is the current usefulness and refinement evaluation for ShipGuard after the rename and README repositioning work.
 
+## v3.108.0 DockCheck Report Contract
+
+Read-only ShipGuard product-QA against local Ringly and Ilmify checkouts showed a ShipGuard-owned weakness: `shipguard ios doctor` produced useful topology facts, but its JSON still used an older report shape. `ios report-quality --shareable` blocked on missing stable metadata, missing structured finding fields, and local absolute project paths in DockCheck output.
+
+The v3.108.0 slice fixes DockCheck itself, not either target app:
+
+- `ios-doctor.json` now includes `schemaVersion`, `generatedAt`, a privacy-safe `<target-repo>` project root, and target metadata.
+- Every DockCheck finding now includes `ruleId`, backward-compatible `code`, `evidence`, `recommendation`, and `proofGuidance`.
+- The focused doctor test builds a synthetic public package-only fixture and proves the generated doctor report passes `ios report-quality --shareable`.
+- Regenerating the same read-only Ringly/Ilmify report set moved report-quality from blocked to pass with an average score of 100/100 and no report-quality findings.
+
+The next report-quality question from that clean run is performance-boundary wording: blocked performance reports must make it unmistakable that target-app remediation is evidence for ShipGuard product QA unless app work is separately authorized.
+
 ## Evidence Run
 
 Current checkout:
 
 ```bash
 ./bin/shipguard version
-# 3.107.0
+# 3.108.0
 
 ./bin/shipguard validate
 # workflow bundle validation passed
@@ -157,7 +170,7 @@ The next read-only Ringly/Ilmify report-quality pass still left a manual gap: it
 
 The next read-only full-report pass showed report-quality could score all source reports as structurally valid while leaving 21 actionability questions unranked and even suggesting "fix high report-quality issues" when there were no findings. `ios report-quality` now emits `priorityAction` and `prioritizedActionabilityQuestions`, ranks report-quality findings before questions, and ranks questions from blocked/review source reports before lower-risk output so the next ShipGuard improvement is concrete.
 
-The installed Codex cache now has `ios-shipguard` metadata version `0.2.22+codex.20260618152000`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, source-path MCP sidecar, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
+The installed Codex cache now has `ios-shipguard` metadata version `0.2.23+codex.20260618144857`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, source-path MCP sidecar, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
 
 The next value-gauntlet pass scored the ShipYard at 100.0 but still prioritized whether low-value patterns should become public fixtures. That question is now promoted into `fixtures/ios-report-quality/value-gauntlet-actionability`, a synthetic report-quality fixture that keeps `shipguard value-gauntlet` actionability visible while proving materialized fixtures do not recursively emit more fixture candidates.
 

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Upgraded `shipguard ios doctor` / ShipGuard DockCheck after read-only Ringly and Ilmify product-QA: doctor reports now emit `schemaVersion`, `generatedAt`, privacy-safe `<target-repo>` roots, target metadata, and structured finding fields (`ruleId`, `evidence`, `recommendation`, `proofGuidance`) so `ios report-quality --shareable` can grade DockCheck output at 100/100 without leaking local paths.
 - Added the proof-gated task contract core: `shipguard prepare` writes one durable task object with repo context, risk, authorized files, protected boundaries, validation contract, claims, and next action; `shipguard verify` checks the exact diff, evidence receipts, and claims against that object and returns pass/review/blocked with an exact next action.
 - Added `taskContractReceipts` to `shipguard value-gauntlet`: the public receipt proves prepare/verify pass a scoped diff with evidence, block a protected/out-of-scope diff plus unsupported "fully verified" claim, and advance the lowest-value probe to diff-first verification.
 - Added `docs/task-contract.md`, direct task-contract tests, package/self-audit coverage, and roadmap updates that center ShipGuard on the proof-gated Codex change loop before broader iOS packs or multi-stack expansion.

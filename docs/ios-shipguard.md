@@ -46,7 +46,7 @@ The command writes:
 - `ios-doctor.md`
 - `ios-doctor.json`
 
-It detects Xcode projects, workspaces, Swift packages, schemes, deployment targets, Swift versions, bundle IDs, test plans, StoreKit configs, privacy manifests, plists, entitlements, Swift imports, and proof-readiness findings.
+It detects Xcode projects, workspaces, Swift packages, schemes, deployment targets, Swift versions, bundle IDs, test plans, StoreKit configs, privacy manifests, plists, entitlements, Swift imports, and proof-readiness findings. DockCheck JSON uses the same report contract as newer ShipGuard surfaces: `schemaVersion`, `generatedAt`, privacy-safe `<target-repo>` roots, target metadata, and structured findings with `ruleId`, `evidence`, `recommendation`, and `proofGuidance`.
 
 Then inventory risky permission and runtime surfaces. Inventory reuses doctor topology automatically so every detected surface can be mapped back to an app, package, or test target when the local files make ownership clear:
 

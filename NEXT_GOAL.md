@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T14:29:10Z
-- Current toolkit version: 3.107.0
-- Target release: v3.107.0
-- Title: ShipGuard Proof-Gated Task Contract
+- Generated: 2026-06-18T14:51:54Z
+- Current toolkit version: 3.108.0
+- Target release: v3.108.0
+- Title: ShipGuard DockCheck Report Contract
 
 ## Slash Plan
 
 ```text
-/plan v3.107.0 ShipGuard Proof-Gated Task Contract for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add shipguard prepare and shipguard verify as a durable proof-gated task contract, prove taskContractReceipts in value-gauntlet, connect scope/evidence/claims/verdict into one artifact, and advance the next weak surface to diff-first verification.
+/plan v3.108.0 ShipGuard DockCheck Report Contract for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Upgrade shipguard ios doctor after read-only Ringly and Ilmify ShipGuard product-QA: add stable report metadata, structured finding fields, and privacy-safe target roots so DockCheck reports pass ios report-quality --shareable and can feed the next evaluation loop.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.107.0 ShipGuard Proof-Gated Task Contract for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add shipguard prepare and shipguard verify as a durable proof-gated task contract, prove taskContractReceipts in value-gauntlet, connect scope/evidence/claims/verdict into one artifact, and advance the next weak surface to diff-first verification, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.108.0 ShipGuard DockCheck Report Contract for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Upgrade shipguard ios doctor after read-only Ringly and Ilmify ShipGuard product-QA: add stable report metadata, structured finding fields, and privacy-safe target roots so DockCheck reports pass ios report-quality --shareable and can feed the next evaluation loop, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add shipguard prepare and shipguard verify as a durable proof-gated task contract, prove taskContractReceipts in value-gauntlet, connect scope/evidence/claims/verdict into one artifact, and advance the next weak surface to diff-first verification.
+Upgrade shipguard ios doctor after read-only Ringly and Ilmify ShipGuard product-QA: add stable report metadata, structured finding fields, and privacy-safe target roots so DockCheck reports pass ios report-quality --shareable and can feed the next evaluation loop.
 
 ## Completion Receipt
 
-- Completed scope: Add shipguard prepare and shipguard verify as a durable proof-gated task contract, prove taskContractReceipts in value-gauntlet, connect scope/evidence/claims/verdict into one artifact, and advance the next weak surface to diff-first verification.
-- Evidence: git diff --check; python3 -m py_compile scripts/task_contract.py scripts/tool_value_gauntlet.py; ./tests/task_contract_test.sh; ./tests/task_contract_receipts_test.sh; ./tests/tool_value_gauntlet_test.sh; ./tests/trust_hardening_receipts_test.sh; ./tests/command_family_runtime_output_receipts_test.sh; ./bin/shipguard validate; ./tests/self_audit_test.sh; ./tests/next_goal_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3107; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet-v3107-final; ./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet-v3107-final --out /tmp/shipguard-value-quality-v3107-final --shareable; ./tests/package_release_test.sh
+- Completed scope: Upgrade shipguard ios doctor after read-only Ringly and Ilmify ShipGuard product-QA: add stable report metadata, structured finding fields, and privacy-safe target roots so DockCheck reports pass ios report-quality --shareable and can feed the next evaluation loop.
+- Evidence: git diff --check; python3 -m py_compile scripts/ios_doctor.py scripts/ios_report_quality.py; ./tests/ios_doctor_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard ios doctor --path fixtures/demo-ios-repo --out /tmp/shipguard-doctor-contract-v3108; ./bin/shipguard ios report-quality --reports /tmp/shipguard-doctor-contract-v3108 --out /tmp/shipguard-doctor-contract-quality-v3108 --shareable; read-only Ringly and Ilmify ShipGuard report sweep to /tmp/shipguard-readonly-*-v3108; ./bin/shipguard ios report-quality --reports /tmp/shipguard-readonly-ringly-v3108 --reports /tmp/shipguard-readonly-ilmify-v3108 --out /tmp/shipguard-readonly-quality-v3108-after-doctor2 --shareable; ./bin/shipguard validate; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/next_goal_test.sh; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3108; ./tests/package_release_test.sh
 
 ## Following Slash Plan
 
 ```text
-/plan v3.108.0 ShipGuard Diff-First Verification for jlekerli-source/ShipGuard:
+/plan v3.109.0 ShipGuard Performance Boundary Fixtures for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add shipguard prepare and shipguard verify as a durable proof-gated task contrac
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.108.0 ShipGuard Diff-First Verification for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.109.0 ShipGuard Performance Boundary Fixtures for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.108.0 --title "ShipGuard Diff-First Verification" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.109.0 --title "ShipGuard Performance Boundary Fixtures" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -145,12 +145,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.107.0.
+1. Open or update the tracking issue for v3.108.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.107.0` and upload `dist/shipguard-v3.107.0.tar.gz`.
+6. Create release `v3.108.0` and upload `dist/shipguard-v3.108.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
