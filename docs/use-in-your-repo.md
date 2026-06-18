@@ -16,8 +16,8 @@ From a cloned repository:
 From a release tarball:
 
 ```bash
-tar -xzf shipguard-v3.70.1.tar.gz
-cd shipguard-v3.70.1
+tar -xzf shipguard-v3.85.0.tar.gz
+cd shipguard-v3.85.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" init ios ../my-ios-app
 "$HOME/.local/bin/shipguard" init web ../my-web-app

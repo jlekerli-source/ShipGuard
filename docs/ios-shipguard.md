@@ -10,7 +10,16 @@ ShipGuard uses a toolkit-wide branded surface scheme so the tool feels coherent 
 ./bin/shipguard brand --path . --out /tmp/shipguard-brand --strict
 ```
 
-The command writes `ios-branding.json` and `ios-branding.md` with the current naming rules, future naming contract, public command coverage, and surface names such as ShipGuard StarterBay, ShipGuard RigCheck, ShipGuard DockCheck, ShipGuard LaunchDeck, ShipGuard PulseRadar, ShipGuard VibeCheck, ShipGuard BridgeWatch, ShipGuard HandoffRail, ShipGuard ReleaseDock, ShipGuard PluginRadar, ShipGuard SelfScan, and ShipGuard NextRail. `shipguard ios brand` remains available as a compatibility route.
+The command writes `ios-branding.json` and `ios-branding.md` with the current naming rules, future naming contract, public command coverage, and surface names such as ShipGuard StarterBay, ShipGuard RigCheck, ShipGuard Tool Value Gauntlet, ShipGuard DockCheck, ShipGuard LaunchDeck, ShipGuard PulseRadar, ShipGuard VibeCheck, ShipGuard BridgeWatch, ShipGuard HandoffRail, ShipGuard ReleaseDock, ShipGuard PluginRadar, ShipGuard SelfScan, and ShipGuard NextRail. `shipguard ios brand` remains available as a compatibility route.
+
+Run ShipGuard Tool Value Gauntlet when the question is whether the ShipYard itself is genuinely useful, not just well named:
+
+```bash
+./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet
+./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --out /tmp/shipguard-value-quality --shareable
+```
+
+That report grades ShipGuard commands, skills, plugin metadata, GitHub Actions, docs, tests, package proof, and proof boundaries. Use its priority actions to upgrade ShipGuard itself; do not turn private Ringly or Ilmify evidence into app work unless a later task explicitly asks for app changes.
 
 ## What Codex Already Does
 

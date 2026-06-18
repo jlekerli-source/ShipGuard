@@ -150,6 +150,22 @@ Proof:
 - ShipGuard owns routing, proof boundaries, shareability, and report quality; Codex iOS execution tools perform actual simulator/debugger/browser/profiler execution inside Codex.
 - Do not claim the CLI performed a simulator build, debug session, preview loop, or profiler capture unless the corresponding LaunchDeck or XcodeBuildMCP proof actually ran and was attached as a receipt.
 
+## shipyard-value-audit
+
+Use when the user asks to test every ShipGuard skill, plugin, command, GitHub Action, doc, package path, or named surface and upgrade anything that is only decorative.
+
+Ask:
+
+- Is this a ShipGuard-only product QA pass, or is any target app explicitly authorized for edits?
+- Should the gauntlet result become a release blocker, a prioritized backlog, or a scoped next-goal handoff?
+
+Proof:
+
+- `shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet` to grade command wiring, docs, tests, package proof, self-audit coverage, skills, plugin metadata, actions, and proof boundaries
+- `shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --out /tmp/shipguard-value-quality --shareable` to score the gauntlet report itself and surface prioritized actionability questions
+- focused tests for any upgraded surface, plus `tests/tool_value_gauntlet_test.sh`, self-audit, package proof, docs-check, and plugin status before claiming the ShipYard is stronger
+- do not use Ringly, Ilmify, or another private app as the implementation target unless a later task explicitly authorizes app work
+
 ## ShipGuard product QA
 
 Use when Ringly, Ilmify, or another private app is only a read-only sample for improving ShipGuard itself.

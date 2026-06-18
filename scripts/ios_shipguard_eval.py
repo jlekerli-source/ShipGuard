@@ -23,6 +23,11 @@ MODE_COMMANDS = {
         "Update docs/shipguard-naming.md, docs/command-matrix.md, and plugin skill routing for new public surfaces",
         "Run tests/ios_branding_test.sh, CLI smoke, self-audit, package proof, and docs-check before claiming the naming scheme is complete",
     ],
+    "shipyard-value-audit": [
+        "shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet",
+        "shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --out /tmp/shipguard-value-quality --shareable",
+        "Upgrade ShipGuard docs, tests, skills, package proof, or command behavior from the gauntlet priority actions",
+    ],
     "launchdeck": [
         "shipguard ios launchdeck --path . --out /tmp/ios-shipguard-launchdeck",
         "XcodeBuildMCP session_show_defaults and build_run_sim from the LaunchDeck report",
@@ -71,6 +76,11 @@ MODE_PROOF = {
         "ShipGuard Brand Deck report with registered public commands, plain purposes, proof boundaries, and active-doc coverage",
         "docs and skill guidance updated for the branded surface names",
         "focused branding test plus package, self-audit, CLI smoke, and docs-check coverage",
+    ],
+    "shipyard-value-audit": [
+        "ShipGuard Tool Value Gauntlet report covering commands, skills, plugin metadata, GitHub Actions, docs, package proof, and proof boundaries",
+        "report-quality scoring of the gauntlet output with prioritized actionability questions",
+        "focused gauntlet test plus package, self-audit, CLI smoke, docs-check, and plugin-status coverage",
     ],
     "launchdeck": [
         "ShipGuard ios launchdeck report with discovered project/workspace, scheme, and recommended workflow",
@@ -201,6 +211,25 @@ def classify_mode(text: str) -> str:
     if contains_any(
         text,
         [
+            "test every skill",
+            "every skill and plugin",
+            "every plugin",
+            "truely useful",
+            "truly useful",
+            "cool name",
+            "doesnt really do much",
+            "doesn't really do much",
+            "100/10",
+            "devs dream",
+            "developer value",
+            "tool value",
+            "shipyard value",
+        ],
+    ):
+        return "shipyard-value-audit"
+    if contains_any(
+        text,
+        [
             "naming scheme",
             "rename scheme",
             "renaming scheme",
@@ -302,6 +331,11 @@ def questions_for(mode: str, text: str) -> list[str]:
             "Is this only ShipGuard product naming, or should any target app code be renamed too?",
             "Should stable CLI commands remain script-safe while branded names appear in report headings, docs, skills, and aliases?",
         ]
+    if mode == "shipyard-value-audit":
+        return [
+            "Is this a ShipGuard-only product QA pass, or is any target app explicitly authorized for edits?",
+            "Should gauntlet findings become release blockers, prioritized backlog items, or the next scoped ShipGuard goal?",
+        ]
     if mode == "release-proof":
         return [
             "Which binary, version, build, commit, and release channel are being proven?",
@@ -372,6 +406,9 @@ def claim_boundaries_for(mode: str, text: str) -> list[str]:
     if mode == "brand-audit":
         claims.append("Do not rename stable public CLI commands only for flavor; keep commands automation-safe and put personality in surface names, report headings, section labels, docs, and aliases.")
         claims.append("Do not claim the naming scheme is complete without Brand Deck strict proof plus docs, skill, eval, package, and self-audit coverage.")
+    if mode == "shipyard-value-audit":
+        claims.append("Do not claim every ShipGuard skill, plugin, command, or action is useful without Tool Value Gauntlet, report-quality, focused tests, package proof, and self-audit evidence.")
+        claims.append("Do not turn gauntlet findings into target-app work unless the user explicitly authorizes app remediation.")
     if mode == "design-audit":
         claims.append("Do not claim visual coherence, app icon quality, or haptic quality without preview, ImageGen review, or physical-device evidence as applicable.")
     if mode == "external-source-audit":

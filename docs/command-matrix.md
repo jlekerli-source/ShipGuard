@@ -10,6 +10,7 @@
 | Install local Codex plugin source | `codex plugin marketplace add .`, `codex plugin add ios-shipguard@shipguard` | Local plugin cache entry; new Codex thread required to load refreshed skill text |
 | Check local Codex plugin install | `codex status` | Installed plugin metadata, stale branding, and missing-source report |
 | Keep ShipGuard naming coherent | `brand`, `ios brand` | ShipGuard Brand Deck: toolkit-wide branded surface scheme, nitty-gritty file-family call signs, public-command coverage, active-doc coverage, stale wording checks, and future naming contract |
+| Audit actual ShipGuard developer value | `value-gauntlet` | ShipGuard Tool Value Gauntlet: read-only scoring of commands, skills, plugin metadata, GitHub Actions, docs, tests, package proof, proof boundaries, and priority upgrades so cool names cannot hide weak tooling |
 | Inspect iOS app topology | `ios doctor` | Xcode, SwiftPM, scheme, target, StoreKit, privacy manifest, and proof-readiness report |
 | Inventory risky iOS surfaces | `ios inventory` | Permission, entitlement, target risk, modernization, and ask-before-editing report |
 | Generate Codex iOS brief | `ios plan` | Mode, owner files, blocked questions, proof route, and task brief |

@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T04:04:05Z
-- Current toolkit version: 3.70.1
-- Target release: v3.84.0
-- Title: Brand Deck Toolkit Naming System
+- Generated: 2026-06-18T04:32:03Z
+- Current toolkit version: 3.85.0
+- Target release: v3.85.0
+- Title: ShipGuard Tool Value Gauntlet
 
 ## Slash Plan
 
 ```text
-/plan v3.84.0 Brand Deck Toolkit Naming System for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Expand Brand Deck from an iOS-heavy naming audit into a toolkit-wide ShipGuard naming system with a root shipguard brand command, public command-family branded surfaces, ShipGuard ShipYard as the workshop-level product place, nitty-gritty file-family call signs, report-quality actionability, docs, evals, self-audit, and package proof while keeping stable commands and paths automation-safe.
+/plan v3.85.0 ShipGuard Tool Value Gauntlet for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add ShipGuard Tool Value Gauntlet as a read-only ShipYard product-QA command that scores every command, skill, plugin, GitHub Action, doc, package proof path, and proof boundary for real developer usefulness, then routes the result through report-quality and future goal proof.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.84.0 Brand Deck Toolkit Naming System for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Expand Brand Deck from an iOS-heavy naming audit into a toolkit-wide ShipGuard naming system with a root shipguard brand command, public command-family branded surfaces, ShipGuard ShipYard as the workshop-level product place, nitty-gritty file-family call signs, report-quality actionability, docs, evals, self-audit, and package proof while keeping stable commands and paths automation-safe, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.85.0 ShipGuard Tool Value Gauntlet for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add ShipGuard Tool Value Gauntlet as a read-only ShipYard product-QA command that scores every command, skill, plugin, GitHub Action, doc, package proof path, and proof boundary for real developer usefulness, then routes the result through report-quality and future goal proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Expand Brand Deck from an iOS-heavy naming audit into a toolkit-wide ShipGuard naming system with a root shipguard brand command, public command-family branded surfaces, ShipGuard ShipYard as the workshop-level product place, nitty-gritty file-family call signs, report-quality actionability, docs, evals, self-audit, and package proof while keeping stable commands and paths automation-safe.
+Add ShipGuard Tool Value Gauntlet as a read-only ShipYard product-QA command that scores every command, skill, plugin, GitHub Action, doc, package proof path, and proof boundary for real developer usefulness, then routes the result through report-quality and future goal proof.
 
 ## Completion Receipt
 
-- Completed scope: Expand Brand Deck from an iOS-heavy naming audit into a toolkit-wide ShipGuard naming system with a root shipguard brand command, public command-family branded surfaces, ShipGuard ShipYard as the workshop-level product place, nitty-gritty file-family call signs, report-quality actionability, docs, evals, self-audit, and package proof while keeping stable commands and paths automation-safe.
-- Evidence: Implemented shipguard brand as the root Brand Deck command while keeping shipguard ios brand as a compatibility route. Registered 50 public command-family surfaces, ShipGuard ShipYard as the workshop-level product place, and artifact call signs for Deckhand Scripts, Sonar Modules, Gauntlet Runs, Signal Flares, Proof Playground, Blackbox Receipts, Bridge Notes, Engine Tapes, Cargo Crates, and Docking Gear. Updated README, CLI docs, command matrix, iOS docs, naming contract, plugin skill guidance, eval fixture, report-quality priority handling, self-audit, package proof, and tests. Validation passed: python compile, git diff --check, ./bin/shipguard brand --path . --out /tmp/shipguard-brand-shipyard --strict, ./tests/ios_branding_test.sh, ./tests/ios_report_quality_test.sh, ./tests/next_goal_test.sh, ./tests/cli_smoke_test.sh, ./tests/ios_shipguard_eval_test.sh, ./tests/self_audit_test.sh, ./bin/shipguard validate, ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-brand-callsigns, and ./tests/package_release_test.sh.
+- Completed scope: Add ShipGuard Tool Value Gauntlet as a read-only ShipYard product-QA command that scores every command, skill, plugin, GitHub Action, doc, package proof path, and proof boundary for real developer usefulness, then routes the result through report-quality and future goal proof.
+- Evidence: Implemented shipguard value-gauntlet with JSON and Markdown reports for 51 commands, 6 skills, 1 plugin, 12 GitHub Actions, 7 core docs, package/self-audit coverage, report-quality routing, Brand Deck coverage, and deterministic shipyard-value-audit eval routing. Validation passed: python compile, git diff --check, ./tests/tool_value_gauntlet_test.sh, ./tests/ios_report_quality_test.sh, ./tests/ios_shipguard_eval_test.sh, ./tests/ios_branding_test.sh, ./tests/cli_smoke_test.sh, ./tests/next_goal_test.sh, ./tests/self_audit_test.sh, ./bin/shipguard validate, ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-value-gauntlet, ./tests/package_release_test.sh, and live ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet showing averageScore 100.0 with zero findings.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.85.0 ShipGuard Tool Value Gauntlet for jlekerli-source/ShipGuard:
+/plan v3.86.0 ShipGuard Surface Depth Audits for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Expand Brand Deck from an iOS-heavy naming audit into a toolkit-wide ShipGuard n
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.85.0 ShipGuard Tool Value Gauntlet for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.86.0 ShipGuard Surface Depth Audits for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.85.0 --title "ShipGuard Tool Value Gauntlet" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.86.0 --title "ShipGuard Surface Depth Audits" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -83,6 +83,8 @@ Generate that follow-up file with:
 ./tests/docs_check_test.sh
 ./bin/shipguard brand --path . --out /tmp/shipguard-brand --strict
 ./tests/ios_branding_test.sh
+./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet
+./tests/tool_value_gauntlet_test.sh
 ./tests/ios_doctor_test.sh
 ./tests/ios_inventory_test.sh
 ./tests/ios_preview_test.sh
@@ -134,12 +136,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.84.0.
+1. Open or update the tracking issue for v3.85.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.84.0` and upload `dist/shipguard-v3.84.0.tar.gz`.
+6. Create release `v3.85.0` and upload `dist/shipguard-v3.85.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

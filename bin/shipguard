@@ -35,6 +35,7 @@ Usage:
   shipguard sarif --report <report.json> --out <results.sarif>
   shipguard docs-check [path] [--out <dir>]
   shipguard brand [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
+  shipguard value-gauntlet [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
   shipguard ios doctor [--path <ios-project>] [--out <dir>] [--json|--markdown]
   shipguard ios inventory [--path <ios-project>] [--doctor <ios-doctor.json>] [--out <dir>] [--json|--markdown]
   shipguard ios preview --out <dir> [--device booted] [--host 127.0.0.1] [--port 8765]
@@ -95,6 +96,8 @@ Commands:
   sarif       Convert an autopsy report JSON file into SARIF 2.1.0.
   docs-check  Check Markdown files for broken local links.
   brand       Audit the full ShipGuard branded naming scheme.
+  value-gauntlet
+              Grade every ShipGuard command, skill, plugin, action, and proof surface for developer value.
   ios         iOS-focused Codex planning helpers for branded build, debug, permission, preview, performance, and runtime surfaces.
   codex      Check local Codex plugin install status for ShipGuard.
   leaderboard Build a stable leaderboard JSON file from arena results.
@@ -392,6 +395,10 @@ cmd_brand() {
   run_py "$tool_root/scripts/ios_branding.py" "$@"
 }
 
+cmd_value_gauntlet() {
+  run_py "$tool_root/scripts/tool_value_gauntlet.py" "$@"
+}
+
 cmd_ios() {
   local subcommand="${1:-}"
   [[ "$subcommand" == "doctor" || "$subcommand" == "inventory" || "$subcommand" == "preview" || "$subcommand" == "devspace" || "$subcommand" == "devspace-check" || "$subcommand" == "brand" || "$subcommand" == "target-match" || "$subcommand" == "codex-handoff" || "$subcommand" == "plan" || "$subcommand" == "prove" || "$subcommand" == "launchdeck" || "$subcommand" == "performance" || "$subcommand" == "design" || "$subcommand" == "modernize" || "$subcommand" == "app-intelligence" || "$subcommand" == "ai-readiness" || "$subcommand" == "external-audit" || "$subcommand" == "spec-workflow" || "$subcommand" == "report-quality" || "$subcommand" == "redact" || "$subcommand" == "eval" || "$subcommand" == "demo" || "$subcommand" == "goals" ]] || fail "ios requires subcommand: doctor, inventory, preview, devspace, devspace-check, brand, target-match, codex-handoff, plan, prove, launchdeck, performance, design, modernize, app-intelligence, ai-readiness, external-audit, spec-workflow, report-quality, redact, eval, demo, or goals"
@@ -581,6 +588,9 @@ main() {
       ;;
     brand)
       cmd_brand "$@"
+      ;;
+    value-gauntlet)
+      cmd_value_gauntlet "$@"
       ;;
     ios)
       cmd_ios "$@"

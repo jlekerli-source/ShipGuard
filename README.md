@@ -11,7 +11,7 @@ It gives AI-assisted development a repeatable operating loop:
 
 ShipGuard is not tied to any single app. This repo is the ShipGuard ShipYard: the workshop for reusable CLI commands, Codex skills, plugin metadata, fixtures, tests, and GitHub Actions for developers who want agent work to be reviewable instead of vague.
 
-The naming style is intentional: stable commands and paths stay literal, while product surfaces get branded names like ShipGuard StarterBay, ShipGuard LaunchDeck, ShipGuard PulseRadar, ShipGuard VibeCheck, ShipGuard ReleaseDock, ShipGuard PluginRadar, and ShipGuard NextRail. The nitty-gritty gets call signs too: Deckhand Scripts, Gauntlet Runs, Blackbox Receipts, Bridge Notes, Engine Tapes, Cargo Crates, and Docking Gear. See `docs/shipguard-naming.md` or run `./bin/shipguard brand --strict` before adding new surfaces.
+The naming style is intentional: stable commands and paths stay literal, while product surfaces get branded names like ShipGuard StarterBay, ShipGuard LaunchDeck, ShipGuard PulseRadar, ShipGuard VibeCheck, ShipGuard Tool Value Gauntlet, ShipGuard ReleaseDock, ShipGuard PluginRadar, and ShipGuard NextRail. The nitty-gritty gets call signs too: Deckhand Scripts, Gauntlet Runs, Blackbox Receipts, Bridge Notes, Engine Tapes, Cargo Crates, and Docking Gear. See `docs/shipguard-naming.md` or run `./bin/shipguard brand --strict` before adding new surfaces.
 
 ## Who This Is For
 
@@ -24,8 +24,8 @@ The naming style is intentional: stable commands and paths stay literal, while p
 Install from a release tarball, then validate the bundle:
 
 ```bash
-tar -xzf shipguard-v3.70.1.tar.gz
-cd shipguard-v3.70.1
+tar -xzf shipguard-v3.85.0.tar.gz
+cd shipguard-v3.85.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" version
 ./bin/shipguard validate
@@ -73,6 +73,7 @@ Common loops:
 | Audit an AI coding run | `./bin/shipguard autopsy --help` |
 | Inspect risky iOS surfaces | `./bin/shipguard ios doctor --help` |
 | Check the branded naming scheme | `./bin/shipguard brand --help` |
+| Audit actual ShipGuard developer value | `./bin/shipguard value-gauntlet --help` |
 | Route and grade iOS build, debug, preview, and profiler proof | `./bin/shipguard ios launchdeck --help` |
 | Review iOS performance evidence | `./bin/shipguard ios performance --help` |
 | Review UI/UX, motion, haptics, and icon direction | `./bin/shipguard ios design --help` |
@@ -88,6 +89,7 @@ Read `docs/cli.md` for the full command reference and `examples/demo-walkthrough
 ## What Is Inside
 
 - `bin/shipguard`: the local CLI for validation, iOS analysis, report quality, spec workflow generation, release proof, and handoff creation.
+- `scripts/tool_value_gauntlet.py`: the ShipGuard Tool Value Gauntlet for grading every command, skill, plugin, action, doc, and proof path for real developer usefulness.
 - `plugins/ios-shipguard/`: the Codex plugin bundle for the iOS ShipGuard skill and metadata.
 - `.agents/skills/`: reusable skill templates for risky app maintenance workflows.
 - `templates/`: starter profiles for adapting ShipGuard into another app.

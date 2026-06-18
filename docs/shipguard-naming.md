@@ -37,6 +37,7 @@ The rule is simple: a fun name is allowed only when its plain job and proof boun
 | `shipguard check-run` | ShipGuard CheckPilot | Generate or post GitHub Checks API payloads from gate output. |
 | `shipguard sarif` | ShipGuard AlertBeacon | Convert autopsy findings into SARIF for code scanning surfaces. |
 | `shipguard docs-check` | ShipGuard LinkSweep | Check Markdown docs for broken local links. |
+| `shipguard value-gauntlet` | ShipGuard Tool Value Gauntlet | Grade every ShipGuard command, skill, plugin, action, doc, and proof path for real developer usefulness. |
 | `shipguard ios doctor` | ShipGuard DockCheck | Inspect Xcode, SwiftPM, schemes, targets, and proof readiness. |
 | `shipguard ios inventory` | ShipGuard CargoScan | Map permissions, entitlements, StoreKit, widgets, intents, and runtime risk. |
 | `shipguard ios plan` | ShipGuard BriefForge | Turn inventory into a scoped Codex brief with blockers and proof route. |

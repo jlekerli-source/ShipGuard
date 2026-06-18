@@ -91,16 +91,21 @@ SEVERITY_PRIORITY = {"high": 0, "review": 1, "opportunity": 2}
 STATUS_PRIORITY = {"blocked": 0, "review": 1, "pass": 2}
 TOOL_NEXT_ACTION_PRIORITY = {
     "shipguard brand": 0,
-    "shipguard ios brand": 0,
-    "shipguard ios launchdeck": 1,
-    "shipguard ios performance": 2,
-    "shipguard ios design": 3,
-    "shipguard ios modernize": 4,
-    "shipguard ios app-intelligence": 5,
-    "shipguard ios ai-readiness": 6,
-    "shipguard ios external-audit": 7,
-    "shipguard ios spec-workflow": 8,
-    "shipguard ios devspace-check": 9,
+    "shipguard value-gauntlet": 0,
+    "shipguard ios brand": 1,
+    "shipguard ios launchdeck": 2,
+    "shipguard ios performance": 3,
+    "shipguard ios design": 4,
+    "shipguard ios modernize": 5,
+    "shipguard ios app-intelligence": 6,
+    "shipguard ios ai-readiness": 7,
+    "shipguard ios external-audit": 8,
+    "shipguard ios spec-workflow": 9,
+    "shipguard ios devspace-check": 10,
+}
+ROOT_REPORT_TOOLS = {
+    "shipguard brand",
+    "shipguard value-gauntlet",
 }
 SPEC_WORKFLOW_PLACEHOLDER_RE = re.compile(r"(?im)^\s*(?:[-*]\s*)?(?:TODO|TBD|FIXME)\b")
 TOKEN_RISK_PATTERNS = {
@@ -1246,7 +1251,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
 
     tool = str(loaded.get("tool") or "")
     intent = str(loaded.get("intent") or "")
-    if tool != "shipguard brand" and not tool.startswith("shipguard ios "):
+    if tool not in ROOT_REPORT_TOOLS and not tool.startswith("shipguard ios "):
         add_issue(
             issues,
             severity="high",
@@ -1381,6 +1386,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
         "path": display_path,
         "markdownPath": display_markdown_path,
         "tool": tool,
+        "surface": loaded.get("surface") or None,
         "intent": intent or None,
         "reportStatus": loaded.get("status"),
         "actionabilityQuestions": report_questions(loaded, report_path=display_path, tool=tool),
@@ -1924,12 +1930,12 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         "## Reports",
         "",
-        "| Score | Quality Status | Source Status | Tool | Intent | Report | Issues |",
-        "| ---: | --- | --- | --- | --- | --- | ---: |",
+        "| Score | Quality Status | Source Status | Tool | Surface | Intent | Report | Issues |",
+        "| ---: | --- | --- | --- | --- | --- | --- | ---: |",
     ]
     for item in report["reports"]:
         lines.append(
-            f"| {item['score']} | {item['status']} | {item.get('reportStatus') or '-'} | `{table_cell(item.get('tool') or 'unknown', 40)}` | {item.get('intent') or '-'} | `{Path(item['path']).name}` | {item['issueCount']} |"
+            f"| {item['score']} | {item['status']} | {item.get('reportStatus') or '-'} | `{table_cell(item.get('tool') or 'unknown', 40)}` | {table_cell(item.get('surface') or '-', 42)} | {item.get('intent') or '-'} | `{Path(item['path']).name}` | {item['issueCount']} |"
         )
 
     lines.extend(["", "## Findings", ""])

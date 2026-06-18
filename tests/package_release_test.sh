@@ -57,6 +57,7 @@ grep -q 'SHIPGUARD_CLI' plugins/ios-shipguard/skills/ios-shipguard/SKILL.md
 grep -q 'command -v shipguard' plugins/ios-shipguard/skills/ios-shipguard/SKILL.md
 grep -q 'LaunchDeck' plugins/ios-shipguard/skills/ios-shipguard/SKILL.md
 grep -q 'Brand Deck' plugins/ios-shipguard/skills/ios-shipguard/SKILL.md
+grep -q 'Tool Value Gauntlet' plugins/ios-shipguard/skills/ios-shipguard/SKILL.md
 grep -q 'hot reload' docs/ios-preview.md
 python3 - <<'PY'
 import json
@@ -162,6 +163,7 @@ grep -q "^$package_name/scripts/docs_check.sh$" "$tar_list"
 grep -q "^$package_name/scripts/ios_ai_readiness.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_app_intelligence.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_branding.py$" "$tar_list"
+grep -q "^$package_name/scripts/tool_value_gauntlet.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_launchdeck.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_codex_handoff.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_devspace_check.py$" "$tar_list"
@@ -215,6 +217,7 @@ grep -q "^$package_name/tests/docs_check_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ios_ai_readiness_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ios_app_intelligence_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ios_branding_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/tool_value_gauntlet_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ios_launchdeck_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ios_codex_handoff_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ios_devspace_check_test.sh$" "$tar_list"
@@ -402,6 +405,16 @@ grep -q 'ShipGuard PluginRadar' "$tmp_dir/package-brand/ios-branding.md"
 grep -q 'ShipGuard ShipYard' "$tmp_dir/package-brand/ios-branding.md"
 grep -q 'Nitty-Gritty Call Signs' "$tmp_dir/package-brand/ios-branding.md"
 grep -q 'Engine Tapes' "$tmp_dir/package-brand/ios-branding.md"
+"$package_root/bin/shipguard" value-gauntlet \
+  --path "$package_root" \
+  --out "$tmp_dir/package-value-gauntlet" >/dev/null
+grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
+grep -q '"surface": "ShipGuard Tool Value Gauntlet"' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
+grep -q '"priorityActions":' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
+grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
+package_score_output="$("$package_root/bin/shipguard" score "$package_root/examples/scored-run.md")"
+printf '%s\n' "$package_score_output" | grep -q 'Total score: 11/12'
+printf '%s\n' "$package_score_output" | grep -q 'usable maintainer-quality run'
 "$package_root/bin/shipguard" autopsy \
   --run "$package_root/fixtures/autopsy/good-run/run.md" \
   --task "$package_root/fixtures/autopsy/good-run/task.md" \
@@ -877,6 +890,8 @@ grep -q './tests/check_run_post_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/ci_summary_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/sarif_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/docs_check_test.sh' "$tmp_dir/package-next-goal.md"
+grep -q './bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet' "$tmp_dir/package-next-goal.md"
+grep -q './tests/tool_value_gauntlet_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/ios_launchdeck_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/ios_performance_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/ios_devspace_check_test.sh' "$tmp_dir/package-next-goal.md"

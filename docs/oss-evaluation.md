@@ -10,7 +10,7 @@ Current checkout:
 
 ```bash
 ./bin/shipguard version
-# 3.70.1
+# 3.85.0
 
 ./bin/shipguard validate
 # workflow bundle validation passed
@@ -193,6 +193,7 @@ The Codex plugin source and local cache are now clean enough for local use. The 
 - `--shipguard-eval` as the explicit ShipGuard-only product QA mode for private real-app samples across `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, and `ios ai-readiness`.
 - `shipguard ios design` for genre-aware UI/UX coherence, design DNA, motion, haptics, preview routing, and ImageGen app-icon handoff.
 - `shipguard ios report-quality` to score ShipGuard's own read-only reports for boundaries, evidence, proof guidance, scan scope, Markdown usefulness, token/path shareability, and redaction handoff before turning observations into public fixtures or eval cases.
+- `shipguard value-gauntlet` to score every ShipGuard command, skill, plugin, GitHub Action, doc, package proof path, and proof boundary for developer usefulness before a branded surface is treated as mature.
 - `shipguard ios devspace-check` to score Devspace connector readiness, public URL safety, MCP widget metadata, preview evidence, handoff execution boundaries, handoff fixture quality, and ChatGPT model-choice honesty before tunneled visual planning is treated as useful.
 - `shipguard ios spec-workflow` to convert report-quality actionability questions into ShipGuard-owned constitution, spec, requirements checklist, native integration decisions, implementation plan, tasks, consistency analysis, analysis gates, slash plan/goal, and Devspace guardrails before Codex implementation.
 - `shipguard ios external-audit` to convert Spec Kit, CodexPro, Expo, Design Motion Principles, native iOS workflow skills, X posts, and other external ideas into a native replacement ledger before ShipGuard claims adoption.
