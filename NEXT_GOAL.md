@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T17:12:09Z
+- Generated: 2026-06-18T17:55:20Z
 - Current toolkit version: 3.113.0
-- Target release: v3.113.0
-- Title: ShipGuard Design Coherence Boundary Fixtures
+- Target release: v3.114.0
+- Title: ShipGuard Diff-First Verification Verdict
 
 ## Slash Plan
 
 ```text
-/plan v3.113.0 ShipGuard Design Coherence Boundary Fixtures for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Close the next uncovered read-only product-QA gap: make shipguard ios design and ios report-quality prove that design-system coherence findings remain ShipGuard product QA evidence, not target-app redesign tasks. Add public synthetic fixtures/checks for separating design-system inventory, coherence risks, proof guidance, and app-work authorization boundaries; keep Ringly and Ilmify evidence read-only/private; require exact next actions and proof boundaries without target-app remediation.
+/plan v3.114.0 ShipGuard Diff-First Verification Verdict for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Close the next product-strategy gap from the external evaluation: make shipguard verify explain the exact AI-generated diff before merge. Extend the task contract/report-quality loop with public fixtures and checks for changed files, changed behavior categories, deleted tests, validation coverage, protected-boundary crossings, evidence receipts, unsupported completion claims, and one exact next action. Keep this ShipGuard-only: do not edit Ringly or Ilmify, do not add broad new public command families, and keep private app observations as redacted eval evidence only. The release should make prepare/verify feel like the center of ShipGuard's proof-gated Codex change loop.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,13 +18,40 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.113.0 ShipGuard Design Coherence Boundary Fixtures for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Close the next uncovered read-only product-QA gap: make shipguard ios design and ios report-quality prove that design-system coherence findings remain ShipGuard product QA evidence, not target-app redesign tasks. Add public synthetic fixtures/checks for separating design-system inventory, coherence risks, proof guidance, and app-work authorization boundaries; keep Ringly and Ilmify evidence read-only/private; require exact next actions and proof boundaries without target-app remediation, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.114.0 ShipGuard Diff-First Verification Verdict for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Close the next product-strategy gap from the external evaluation: make shipguard verify explain the exact AI-generated diff before merge. Extend the task contract/report-quality loop with public fixtures and checks for changed files, changed behavior categories, deleted tests, validation coverage, protected-boundary crossings, evidence receipts, unsupported completion claims, and one exact next action. Keep this ShipGuard-only: do not edit Ringly or Ilmify, do not add broad new public command families, and keep private app observations as redacted eval evidence only. The release should make prepare/verify feel like the center of ShipGuard's proof-gated Codex change loop, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Close the next uncovered read-only product-QA gap: make shipguard ios design and ios report-quality prove that design-system coherence findings remain ShipGuard product QA evidence, not target-app redesign tasks. Add public synthetic fixtures/checks for separating design-system inventory, coherence risks, proof guidance, and app-work authorization boundaries; keep Ringly and Ilmify evidence read-only/private; require exact next actions and proof boundaries without target-app remediation.
+Close the next product-strategy gap from the external evaluation: make shipguard verify explain the exact AI-generated diff before merge. Extend the task contract/report-quality loop with public fixtures and checks for changed files, changed behavior categories, deleted tests, validation coverage, protected-boundary crossings, evidence receipts, unsupported completion claims, and one exact next action. Keep this ShipGuard-only: do not edit Ringly or Ilmify, do not add broad new public command families, and keep private app observations as redacted eval evidence only. The release should make prepare/verify feel like the center of ShipGuard's proof-gated Codex change loop.
+
+## Completion Receipt
+
+- Completed scope: v3.113.0 ShipGuard Design Coherence Boundary Fixtures. ShipGuard now separates design inventory, coherence risks, ShipGuard-owned follow-up work, target-app authorization, and proof boundaries in iOS design/report-quality outputs.
+- Evidence: v3.113.0 shipped designCoherenceBoundary in ios design and ios report-quality, promoted fixtures/ios-report-quality/design-coherence-boundary, refreshed the Codex plugin to 0.2.28+codex.20260618172721, passed local/package/CI validation, and published https://github.com/jlekerli-source/ShipGuard/releases/tag/v3.113.0 with consumer release proof SHA-256 6a3dd931ea9c5f5f2db2d155c20648305a3e0546a6078fffa247ee5908acd4a2.
+
+## Following Slash Plan
+
+```text
+/plan v3.115.0 ShipGuard iOS Notification Permission Killer Workflow for jlekerli-source/ShipGuard:
+1. Use the improved diff-first task contract as the entry point for one risky iOS notification or permission change.
+2. Add public fixtures and proof receipts for permission-state risk, protected scheduler/lifecycle boundaries, simulator/device proof separation, validation commands, unsupported completion claims, and one exact next action.
+3. Keep this as a ShipGuard workflow/eval improvement; private Ringly or Ilmify observations remain read-only evidence and must not become app work.
+4. Implement the CLI, docs, tests, package proof, plugin-refresh proof, release proof, and following /plan plus /goal after validation passes.
+```
+
+## Following Slash Goal
+
+```text
+/goal Implement v3.115.0 ShipGuard iOS Notification Permission Killer Workflow for jlekerli-source/ShipGuard: follow the following /plan above, make prepare/verify exceptional for one risky iOS notification or permission change, prove permission-state risk, protected-boundary, simulator/device-proof, validation, claim-checking, and exact-next-action behavior with public fixtures, then publish the release proof and generate the next completion receipt plus following /plan and /goal after validation passes.
+```
+
+Generate that follow-up file with:
+
+```bash
+./bin/shipguard next-goal --release 3.115.0 --title "ShipGuard iOS Notification Permission Killer Workflow" --out NEXT_GOAL.md
+```
 
 ## Constraints
 
@@ -118,12 +145,12 @@ Close the next uncovered read-only product-QA gap: make shipguard ios design and
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.113.0.
+1. Open or update the tracking issue for v3.114.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.113.0` and upload `dist/shipguard-v3.113.0.tar.gz`.
+6. Create release `v3.114.0` and upload `dist/shipguard-v3.114.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
