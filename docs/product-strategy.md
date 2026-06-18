@@ -47,6 +47,22 @@ For every new public surface, answer:
 - What fixture proves it is useful?
 - What existing surface should be merged or retired instead?
 
+## Roadmap Discipline
+
+The v3.105-v3.110 loop is only a short evaluation loop, not the complete roadmap. Its job is to prove that read-only evidence from real app checkouts can safely improve ShipGuard itself through public fixtures and report-quality rules.
+
+The larger product path is:
+
+1. Report-quality discipline: close repeated private-app evidence gaps with public synthetic fixtures.
+2. Trust hardening: configuration, baselines, suppressions, redaction, package safety, and action boundary proof.
+3. Task object: make `prepare` and `verify` the durable local object connecting scope, risk, evidence, and verdict.
+4. Killer workflow: make iOS notification and permission changes the first exceptional end-to-end workflow.
+5. Diff-first verification: decide whether the exact AI-generated change is safe enough to review or merge.
+6. Evaluated iOS packs: add StoreKit, persistence, widgets, lifecycle, performance, design, and modernization only with hard evals.
+7. v4 productization: stable schemas, fewer public verbs, strong security posture, external benchmark proof, and adoption evidence.
+
+Each phase has an exit gate. ShipGuard should not call a capability dependable until the exit gate is met.
+
 ## Persistent Task Object
 
 The first implementation of the durable local task object is `shipguard prepare` plus `shipguard verify`. It connects the whole change:

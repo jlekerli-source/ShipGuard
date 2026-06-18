@@ -27,6 +27,8 @@ Near-term strategy:
 
 ## Phase Map
 
+The roadmap is intentionally larger than the current v3.105-v3.110 loop. The short loop is only the evaluation flywheel proving that real-app read-only evidence can become public ShipGuard fixtures. It is not the full product plan.
+
 ### Phase A: Trustworthy Foundation
 
 Next three to five releases should harden the core before broadening the surface:
@@ -83,6 +85,123 @@ Do not mature web, backend, and CLI equally by default. Expand after the core ta
 ### Phase E: v4 Productization
 
 v4 should require stable schemas, migration support, clean package/install/uninstall behavior, strong security posture, independent benchmark results, and external adoption proof.
+
+## Release Ladder
+
+Version numbers are planning bands, not promises. A release can skip ahead only when the exit gate for its current band is already proven.
+
+### v3.110-v3.114: Report-Quality Discipline
+
+Goal: finish the current read-only ShipGuard product-QA loop without expanding the public surface.
+
+- Promote repeated local real-app read-only report weaknesses into public synthetic fixtures.
+- Keep private target-app findings framed only as ShipGuard report-quality evidence.
+- Close the grouped performance observation fixture gap.
+- Add performance evidence-promotion fixtures: source suspicion versus measured runtime proof.
+- Tighten exact next-action checks in report-quality so every blocked/review report names owner, command/manual proof, expected artifact, success condition, and failure meaning.
+- Reframe weak standalone report families as inventories when they lack runtime, screenshot, compiler, or human evidence.
+
+Exit gate: `ios report-quality` can turn a private-app observation into a public fixture candidate, score that fixture, suppress covered repeat questions, and move to the next uncovered question without leaking private paths, identifiers, or app-specific remediation tasks.
+
+### v3.115-v3.124: Trust Hardening And Surface Simplification
+
+Goal: make ShipGuard feel trustworthy before adding more capability.
+
+- Introduce one canonical `.shipguard.yml` configuration shape with safe defaults.
+- Add `.shipguard-baseline.json` and justified suppressions with reason and review/expiry metadata.
+- Converge transcript/report/path redaction into one shared redaction engine.
+- Harden GitHub Action input handling, Devspace URL boundaries, archive extraction, package install, and release provenance failure paths.
+- Move maintainer-only tools toward `shipguard dev` while keeping compatibility shims and deprecation warnings.
+- Stop adding new public commands unless they directly feed `init`, `inspect`, `prepare`, `verify`, or `doctor`.
+
+Exit gate: a new external developer can install ShipGuard, initialize a repo, run the first useful command, and understand the next step without seeing ShipYard-internal branding, app-specific templates, or report-directory maze behavior.
+
+### v3.125-v3.139: Task Object And Core Loop
+
+Goal: make the persistent task object the center of the product.
+
+- Stabilize `shipguard prepare` as the task-contract writer.
+- Stabilize `shipguard verify` as the diff/evidence/claim verdict reader.
+- Add explicit task fields for allowed automatically, allowed after agent review, requires human approval, forbidden in this task, and manual-only proof.
+- Teach existing iOS reports to enrich the task object instead of producing disconnected reports.
+- Add `inspect --profile ios` as the clearer long-term route for topology and ownership discovery while preserving current iOS commands as compatibility/check-pack paths.
+- Make every non-pass verdict return one `nextAction` with owner, command or manual proof, expected artifact, success condition, and failure meaning.
+
+Exit gate: one task can be prepared, edited by Codex, verified against a diff and evidence receipts, and returned as PASS, REVIEW, or BLOCKED without the user manually stitching reports together.
+
+### v3.140-v3.159: First Killer Workflow
+
+Goal: make proof-gated iOS notification and permission work exceptional.
+
+- Build a labeled fixture matrix for notification authorization states, denied-state recovery, provisional flows, scheduling truth, app lifecycle, background/killed-state limits, and simulator versus device proof.
+- Map owner files, protected boundaries, validation lanes, and manual proof requirements for the workflow.
+- Generate task-specific Codex skill guidance from `prepare`.
+- Verify the resulting diff, validation output, screenshots/logs, manual receipts, and agent completion claims through `verify`.
+- Run external pilot tasks and record whether ShipGuard changed task scope, prevented unsafe edits, rejected overclaims, or saved review time.
+
+Exit gate: independent iOS developers can complete risky notification/permission changes using ShipGuard without author assistance, and the labeled eval set shows the workflow improves review decisions.
+
+### v3.160-v3.179: Diff-First Verification And Learning
+
+Goal: answer "is this exact AI-generated change safe enough to review or merge?"
+
+- Inspect changed files, deleted tests, entitlements, plist/config changes, validation coverage, and protected-boundary crossings.
+- Compare agent claims against captured evidence and known manual-only proof.
+- Use local history for accepted ownership mappings, validation commands, suppressions, recurring mistakes, and dismissed findings.
+- Measure false positives, recurring dismissals, first useful result time, and recommendation follow-through locally.
+- Add PR and CI adapters only after the local verdict is strong.
+
+Exit gate: ShipGuard can explain the risk and evidence state of a real diff more usefully than a broad repo scan.
+
+### v3.180-v3.199: Evaluated iOS Assurance Packs
+
+Goal: add one measured iOS pack at a time after the core loop works.
+
+- StoreKit and entitlements with sandbox transaction and entitlement fixtures.
+- Persistence and migrations with compiler/test-backed migration examples.
+- Widgets, App Intents, and shared state with ownership and shared-store proof.
+- Background execution and lifecycle with simulator/device limitation boundaries.
+- Performance only with runtime evidence promotion from source suspicion to measured proof.
+- Design only with screenshots, flow context, accessibility inspection, interaction evidence, and human or calibrated model labels.
+- Modernization only with compiler-backed examples and regression tests.
+
+Exit gate: each stable pack meets its own precision, recall, actionability, and independent task-completion thresholds before being marketed as dependable.
+
+### v4.0: Productization
+
+Goal: ship a smaller, stable, externally usable product instead of a growing internal toolkit.
+
+- Stable task/evidence schemas and migration tools.
+- Clean install, upgrade, uninstall, and package verification.
+- A narrow public command story: `init`, `inspect`, `prepare`, `verify`, `doctor`, with specialist check packs behind profiles.
+- Independent benchmark results and public-safe eval corpus.
+- Security posture strong enough for a proof-centered tool.
+- Real external adoption and retention evidence.
+
+Exit gate: ShipGuard is recommendable because it repeatedly catches unsafe changes, selects better proof, rejects unsupported claims, and gives exact next actions.
+
+## Always-On Evaluation Track
+
+Every release band keeps an eval track running beside product work:
+
+- Gold fixtures for expected pass/review/blocked behavior.
+- Negative fixtures for overclaims, unsafe edits, missing proof, stale docs, and private-data leaks.
+- Mutation cases for protected-boundary bypass attempts.
+- Human or expert labels for task routing, design quality, and next-action usefulness.
+- Model critique recorded as evaluator metadata, not hard truth until calibrated.
+- Precision, recall, false-positive dismissal rate, exact next-action completeness, independent task completion, and time-to-first-useful-result tracking.
+
+Suggested stable-rule targets:
+
+| Metric | Target |
+| --- | ---: |
+| Blocking finding precision | >= 90% |
+| Critical benchmark recall | 100% |
+| Overall actionable precision | >= 80% |
+| False-positive dismissal rate | < 15% |
+| Exact next-action completeness | 100% |
+| Independent task completion | >= 80% |
+| Median first useful result | < 5 minutes |
 
 ## Now
 
