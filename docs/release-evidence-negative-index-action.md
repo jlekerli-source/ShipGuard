@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Audit release evidence negative fixtures
-        uses: jlekerli-source/ShipGuard/actions/release-evidence-negative-index@v3.95.0
+        uses: jlekerli-source/ShipGuard/actions/release-evidence-negative-index@v3.96.0
         with:
           mode: fail
 ```

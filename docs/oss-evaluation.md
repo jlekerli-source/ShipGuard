@@ -10,7 +10,7 @@ Current checkout:
 
 ```bash
 ./bin/shipguard version
-# 3.95.0
+# 3.96.0
 
 ./bin/shipguard validate
 # workflow bundle validation passed
@@ -157,7 +157,7 @@ The next read-only Ringly/Ilmify report-quality pass still left a manual gap: it
 
 The next read-only full-report pass showed report-quality could score all source reports as structurally valid while leaving 21 actionability questions unranked and even suggesting "fix high report-quality issues" when there were no findings. `ios report-quality` now emits `priorityAction` and `prioritizedActionabilityQuestions`, ranks report-quality findings before questions, and ranks questions from blocked/review source reports before lower-risk output so the next ShipGuard improvement is concrete.
 
-The installed Codex cache now has `ios-shipguard` metadata version `0.2.10+codex.20260618075259`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, source-path MCP sidecar, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
+The installed Codex cache now has `ios-shipguard` metadata version `0.2.11+codex.20260618081531`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, source-path MCP sidecar, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
 
 The next value-gauntlet pass scored the ShipYard at 100.0 but still prioritized whether low-value patterns should become public fixtures. That question is now promoted into `fixtures/ios-report-quality/value-gauntlet-actionability`, a synthetic report-quality fixture that keeps `shipguard value-gauntlet` actionability visible while proving materialized fixtures do not recursively emit more fixture candidates.
 
@@ -177,7 +177,9 @@ The workflow-chain receipt slice added a public fixture under `fixtures/tool-val
 
 The scenario-matrix receipt slice added a public fixture under `fixtures/tool-value-gauntlet/scenario-matrix-receipts`. `scenarioMatrixReceipts` executes a complete maintainer loop across iOS doctor, inventory, plan, design, report-quality, docs-check, transcript redaction and verification, CI gate and summary, Codex plugin status, and release manifest/index/replay using public fixtures plus a synthetic release package.
 
-The scenario-failure receipt slice now adds a public fixture under `fixtures/tool-value-gauntlet/scenario-failure-receipts`. `scenarioFailureReceipts` feeds unsafe transcript text, broken docs, stale Codex plugin cache metadata, and incomplete release proof into real ShipGuard commands and requires non-zero exits or blocked reports with machine-readable evidence. With that receipt green, the next weakness is scenario-remediation receipts that prove the smallest repair command and successful rerun for each blocked journey.
+The scenario-failure receipt slice adds a public fixture under `fixtures/tool-value-gauntlet/scenario-failure-receipts`. `scenarioFailureReceipts` feeds unsafe transcript text, broken docs, stale Codex plugin cache metadata, and incomplete release proof into real ShipGuard commands and requires non-zero exits or blocked reports with machine-readable evidence.
+
+The scenario-remediation receipt slice adds a public fixture under `fixtures/tool-value-gauntlet/scenario-remediation-receipts`. `scenarioRemediationReceipts` proves those same blocked journeys recover through the smallest repair step and successful rerun: transcript redact plus verify, missing docs target plus docs-check, fresh Codex plugin cache plus strict status, and complete release manifest/index plus release replay. With that receipt green, the next weakness is adoption receipts that prove a fresh user can install ShipGuard, refresh the Codex plugin, run the first useful audit, and understand the next command without maintainer context.
 
 ## Verdict
 

@@ -1,0 +1,549 @@
+{
+  "id": "blocked-to-repaired-loop",
+  "kind": "scenario-remediation",
+  "surface": "ShipGuard blocked evidence remediation loop",
+  "selectedSkill": "ios-shipguard",
+  "selectedMode": "scenario-remediation",
+  "trigger": "User asks whether ShipGuard is genuinely useful after it blocks unsafe, stale, broken, or incomplete evidence.",
+  "sourcePaths": [
+    "scripts/transcript_redact.sh",
+    "scripts/transcript_verify.sh",
+    "scripts/docs_check.sh",
+    "scripts/codex_status.sh",
+    "scripts/release_manifest.sh",
+    "scripts/release_index.sh",
+    "scripts/release_replay.sh",
+    "scripts/tool_value_gauntlet.py",
+    "docs/privacy.md",
+    "docs/docs-check.md",
+    "docs/codex-status.md",
+    "docs/release-replay.md"
+  ],
+  "expectedSourcePhrases": [
+    "transcript redact",
+    "transcript verify",
+    "docs-check",
+    "codex status",
+    "release-index",
+    "release-replay",
+    "blocked",
+    "pass"
+  ],
+  "prepareCodexPluginCache": true,
+  "prepareFiles": [
+    {
+      "path": "privacy/raw-transcript.md",
+      "text": "# Raw Transcript\n\nMaintainer: Please inspect AcmePrivateApp in the local product checkout.\nAgent: I will not publish alex@example.com or the private app name.\n"
+    },
+    {
+      "path": "privacy/unsafe-redacted.md",
+      "text": "# Unsafe Transcript\n\nMaintainer: This still contains maintainer@example.com and API_TOKEN=secret-value.\n"
+    },
+    {
+      "path": "bad-docs/README.md",
+      "text": "# Broken Docs\n\nThis local link is broken: [missing](missing.md).\n"
+    },
+    {
+      "path": "stale-cache/ringly-codex-workflows/ios-shipguard/0.2.0+codex.test/.codex-plugin/plugin.json",
+      "text": "{\n  \"name\": \"ios-shipguard\",\n  \"version\": \"0.2.0+codex.test\",\n  \"repository\": \"https://github.com/jlekerli-source/ringly-codex-workflows\",\n  \"homepage\": \"https://github.com/jlekerli-source/ringly-codex-workflows\",\n  \"interface\": {\n    \"displayName\": \"iOS Shipguard\"\n  }\n}\n"
+    },
+    {
+      "path": "stale-cache/ringly-codex-workflows/ios-shipguard/0.2.0+codex.test/skills/ios-shipguard/SKILL.md",
+      "text": "---\nname: ios-shipguard\ndescription: Stale fixture skill\n---\n\nRun ./bin/codex-maintainer ios inventory before edits.\n"
+    },
+    {
+      "path": "stale-cache/ringly-codex-workflows/ios-shipguard/0.2.0+codex.test/skills/ios-shipguard/agents/openai.yaml",
+      "text": "interface:\n  display_name: \"iOS Shipguard\"\n"
+    },
+    {
+      "path": "stale-cache/ringly-codex-workflows/ios-shipguard/0.2.0+codex.test/.mcp.json",
+      "text": "{\n  \"mcpServers\": {\n    \"shipguard-devspace\": {\n      \"cwd\": \"../..\",\n      \"command\": \"python3\",\n      \"args\": [\"./scripts/shipguard_devspace_mcp.py\", \"--stdio\", \"--repo-root\", \".\"]\n    }\n  }\n}\n"
+    }
+  ],
+  "prepareTarballs": [
+    {
+      "path": "release/shipguard-v0.0.0.tar.gz",
+      "entries": [
+        {
+          "path": "shipguard-v0.0.0/bin/shipguard",
+          "mode": 493,
+          "text": "#!/usr/bin/env bash\necho shipguard fixture\n"
+        },
+        {
+          "path": "shipguard-v0.0.0/VERSION",
+          "text": "0.0.0\n"
+        },
+        {
+          "path": "shipguard-v0.0.0/scripts/install.sh",
+          "mode": 493,
+          "text": "#!/usr/bin/env bash\nexit 0\n"
+        }
+      ]
+    }
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppDetailsAllowed": false
+  },
+  "remediationPairs": [
+    {
+      "id": "privacy-redaction-remediation",
+      "blockedCommandId": "unsafe-transcript-blocked",
+      "repairCommandIds": [
+        "transcript-redact-repair"
+      ],
+      "rerunCommandId": "transcript-verify-clean",
+      "smallestRepair": "Run transcript redact with the private app term, then rerun transcript verify with the generated redaction report."
+    },
+    {
+      "id": "docs-link-remediation",
+      "blockedCommandId": "broken-docs-blocked",
+      "repairCommandIds": [
+        "repair-docs-link-and-rerun"
+      ],
+      "rerunCommandId": "repair-docs-link-and-rerun",
+      "smallestRepair": "Add the missing local markdown target, then rerun docs-check."
+    },
+    {
+      "id": "plugin-cache-remediation",
+      "blockedCommandId": "stale-plugin-cache-blocked",
+      "repairCommandIds": [
+        "fresh-plugin-cache-pass"
+      ],
+      "rerunCommandId": "fresh-plugin-cache-pass",
+      "smallestRepair": "Refresh the local Codex marketplace/plugin cache, then rerun codex status --strict."
+    },
+    {
+      "id": "release-proof-remediation",
+      "blockedCommandId": "incomplete-release-replay-blocked",
+      "repairCommandIds": [
+        "complete-release-manifest",
+        "complete-release-index"
+      ],
+      "rerunCommandId": "complete-release-replay",
+      "smallestRepair": "Rebuild the release manifest with public CI and release URLs, rebuild the index, then rerun release-replay verify."
+    }
+  ],
+  "commands": [
+    {
+      "id": "unsafe-transcript-blocked",
+      "display": "./bin/shipguard transcript verify --in <receipt-out>/privacy/unsafe-redacted.md --out <receipt-out>/privacy-verify-blocked",
+      "expectedExitCode": "nonzero",
+      "args": [
+        "transcript",
+        "verify",
+        "--in",
+        "{out}/privacy/unsafe-redacted.md",
+        "--out",
+        "{out}/privacy-verify-blocked"
+      ],
+      "artifacts": [
+        {
+          "path": "privacy-verify-blocked/transcript-verify.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schema_version",
+            "status",
+            "remaining_risk_count",
+            "checks"
+          ],
+          "requiredValues": [
+            {
+              "path": "status",
+              "equals": "blocked"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "transcript-redact-repair",
+      "display": "./bin/shipguard transcript redact --in <receipt-out>/privacy/raw-transcript.md --out <receipt-out>/privacy/redacted.md --report <receipt-out>/privacy/redaction-report.json --private-term AcmePrivateApp",
+      "args": [
+        "transcript",
+        "redact",
+        "--in",
+        "{out}/privacy/raw-transcript.md",
+        "--out",
+        "{out}/privacy/redacted.md",
+        "--report",
+        "{out}/privacy/redaction-report.json",
+        "--private-term",
+        "AcmePrivateApp"
+      ],
+      "artifacts": [
+        {
+          "path": "privacy/redaction-report.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schema_version",
+            "status",
+            "remaining_risk_count",
+            "rules"
+          ],
+          "requiredValues": [
+            {
+              "path": "status",
+              "equals": "pass"
+            },
+            {
+              "path": "remaining_risk_count",
+              "equals": 0
+            }
+          ]
+        },
+        {
+          "path": "privacy/redacted.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "[redacted-private-term]",
+            "[redacted-email]"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "transcript-verify-clean",
+      "display": "./bin/shipguard transcript verify --in <receipt-out>/privacy/redacted.md --report <receipt-out>/privacy/redaction-report.json --out <receipt-out>/privacy-verify-clean",
+      "args": [
+        "transcript",
+        "verify",
+        "--in",
+        "{out}/privacy/redacted.md",
+        "--report",
+        "{out}/privacy/redaction-report.json",
+        "--out",
+        "{out}/privacy-verify-clean"
+      ],
+      "artifacts": [
+        {
+          "path": "privacy-verify-clean/transcript-verify.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schema_version",
+            "status",
+            "remaining_risk_count",
+            "redaction_report_status"
+          ],
+          "requiredValues": [
+            {
+              "path": "status",
+              "equals": "pass"
+            },
+            {
+              "path": "remaining_risk_count",
+              "equals": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "broken-docs-blocked",
+      "display": "./bin/shipguard docs-check <receipt-out>/bad-docs --out <receipt-out>/bad-docs-blocked",
+      "expectedExitCode": "nonzero",
+      "args": [
+        "docs-check",
+        "{out}/bad-docs",
+        "--out",
+        "{out}/bad-docs-blocked"
+      ],
+      "artifacts": [
+        {
+          "path": "bad-docs-blocked/docs-check.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schema_version",
+            "status",
+            "broken_count",
+            "broken_links"
+          ],
+          "requiredValues": [
+            {
+              "path": "status",
+              "equals": "blocked"
+            },
+            {
+              "path": "broken_count",
+              "equals": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "repair-docs-link-and-rerun",
+      "display": "repair missing.md, then ./bin/shipguard docs-check <receipt-out>/bad-docs --out <receipt-out>/bad-docs-fixed",
+      "prepareFiles": [
+        {
+          "path": "bad-docs/missing.md",
+          "text": "# Missing Target\n\nThis public fixture repairs the local docs link.\n"
+        }
+      ],
+      "args": [
+        "docs-check",
+        "{out}/bad-docs",
+        "--out",
+        "{out}/bad-docs-fixed"
+      ],
+      "artifacts": [
+        {
+          "path": "bad-docs-fixed/docs-check.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schema_version",
+            "status",
+            "broken_count"
+          ],
+          "requiredValues": [
+            {
+              "path": "status",
+              "equals": "pass"
+            },
+            {
+              "path": "broken_count",
+              "equals": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stale-plugin-cache-blocked",
+      "display": "./bin/shipguard codex status --cache <receipt-out>/stale-cache --strict",
+      "expectedExitCode": "nonzero",
+      "args": [
+        "codex",
+        "status",
+        "--cache",
+        "{out}/stale-cache",
+        "--strict"
+      ],
+      "expectedOutputPhrases": [
+        "Overall status: stale",
+        "stale_metadata",
+        "stale_skill_text",
+        "stale_mcp_sidecar",
+        "Refresh Handoff"
+      ]
+    },
+    {
+      "id": "fresh-plugin-cache-pass",
+      "display": "refresh plugin cache, then ./bin/shipguard codex status --cache <receipt-out>/codex-cache --strict",
+      "args": [
+        "codex",
+        "status",
+        "--cache",
+        "{cache}",
+        "--strict"
+      ],
+      "expectedOutputPhrases": [
+        "Overall status: pass",
+        "Tracked plugin source: present",
+        "Installed ios-shipguard plugins: 1"
+      ]
+    },
+    {
+      "id": "incomplete-release-manifest",
+      "display": "./bin/shipguard release-manifest --tarball <receipt-out>/release/shipguard-v0.0.0.tar.gz --out <receipt-out>/incomplete-release --version 0.0.0 --tag v0.0.0 --commit 0123456789abcdef0123456789abcdef01234567",
+      "args": [
+        "release-manifest",
+        "--tarball",
+        "{out}/release/shipguard-v0.0.0.tar.gz",
+        "--out",
+        "{out}/incomplete-release",
+        "--version",
+        "0.0.0",
+        "--tag",
+        "v0.0.0",
+        "--commit",
+        "0123456789abcdef0123456789abcdef01234567",
+        "--notes",
+        "incomplete release proof fixture"
+      ],
+      "artifacts": [
+        {
+          "path": "incomplete-release/release-manifest.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schema_version",
+            "version",
+            "tag",
+            "artifact",
+            "proofs"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "incomplete-release-replay-blocked",
+      "display": "./bin/shipguard release-replay verify --manifest <receipt-out>/incomplete-release/release-manifest.json --tarball <receipt-out>/release/shipguard-v0.0.0.tar.gz --ledger <receipt-out>/incomplete-release/proof-ledger.md --out <receipt-out>/incomplete-release-replay",
+      "expectedExitCode": "nonzero",
+      "args": [
+        "release-replay",
+        "verify",
+        "--manifest",
+        "{out}/incomplete-release/release-manifest.json",
+        "--tarball",
+        "{out}/release/shipguard-v0.0.0.tar.gz",
+        "--ledger",
+        "{out}/incomplete-release/proof-ledger.md",
+        "--out",
+        "{out}/incomplete-release-replay"
+      ],
+      "artifacts": [
+        {
+          "path": "incomplete-release-replay/replay-report.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schema_version",
+            "status",
+            "summary",
+            "checks"
+          ],
+          "requiredValues": [
+            {
+              "path": "status",
+              "equals": "blocked"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "complete-release-manifest",
+      "display": "./bin/shipguard release-manifest --tarball <receipt-out>/release/shipguard-v0.0.0.tar.gz --out <receipt-out>/complete-release --version 0.0.0 --tag v0.0.0 --commit 0123456789abcdef0123456789abcdef01234567 --ci-run-url https://github.com/example/repo/actions/runs/123 --release-url https://github.com/example/repo/releases/tag/v0.0.0",
+      "args": [
+        "release-manifest",
+        "--tarball",
+        "{out}/release/shipguard-v0.0.0.tar.gz",
+        "--out",
+        "{out}/complete-release",
+        "--version",
+        "0.0.0",
+        "--tag",
+        "v0.0.0",
+        "--commit",
+        "0123456789abcdef0123456789abcdef01234567",
+        "--ci-run-url",
+        "https://github.com/example/repo/actions/runs/123",
+        "--release-url",
+        "https://github.com/example/repo/releases/tag/v0.0.0",
+        "--issue-url",
+        "https://github.com/example/repo/issues/99",
+        "--notes",
+        "complete release proof fixture"
+      ],
+      "artifacts": [
+        {
+          "path": "complete-release/release-manifest.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schema_version",
+            "version",
+            "tag",
+            "artifact",
+            "proofs"
+          ],
+          "requiredValues": [
+            {
+              "path": "version",
+              "equals": "0.0.0"
+            },
+            {
+              "path": "tag",
+              "equals": "v0.0.0"
+            }
+          ]
+        },
+        {
+          "path": "complete-release/proof-ledger.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# Release Proof Ledger",
+            "https://github.com/example/repo/actions/runs/123",
+            "https://github.com/example/repo/releases/tag/v0.0.0"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "complete-release-index",
+      "display": "./bin/shipguard release-index build --manifest <receipt-out>/complete-release/release-manifest.json --out <receipt-out>/complete-release-index",
+      "args": [
+        "release-index",
+        "build",
+        "--manifest",
+        "{out}/complete-release/release-manifest.json",
+        "--out",
+        "{out}/complete-release-index"
+      ],
+      "artifacts": [
+        {
+          "path": "complete-release-index/release-index.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schema_version",
+            "release_count",
+            "releases"
+          ],
+          "requiredValues": [
+            {
+              "path": "release_count",
+              "equals": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "complete-release-replay",
+      "display": "./bin/shipguard release-replay verify --manifest <receipt-out>/complete-release/release-manifest.json --tarball <receipt-out>/release/shipguard-v0.0.0.tar.gz --index <receipt-out>/complete-release-index/release-index.json --ledger <receipt-out>/complete-release/proof-ledger.md --out <receipt-out>/complete-release-replay",
+      "args": [
+        "release-replay",
+        "verify",
+        "--manifest",
+        "{out}/complete-release/release-manifest.json",
+        "--tarball",
+        "{out}/release/shipguard-v0.0.0.tar.gz",
+        "--index",
+        "{out}/complete-release-index/release-index.json",
+        "--ledger",
+        "{out}/complete-release/proof-ledger.md",
+        "--out",
+        "{out}/complete-release-replay"
+      ],
+      "artifacts": [
+        {
+          "path": "complete-release-replay/replay-report.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schema_version",
+            "status",
+            "summary",
+            "checks"
+          ],
+          "requiredValues": [
+            {
+              "path": "status",
+              "equals": "pass"
+            }
+          ]
+        },
+        {
+          "path": "complete-release-replay/replay-report.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# Release Replay Report",
+            "Status: pass",
+            "artifact sha256"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}

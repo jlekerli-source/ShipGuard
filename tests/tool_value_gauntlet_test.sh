@@ -35,6 +35,7 @@ grep -q '"skillPluginRuntimeReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.j
 grep -q '"workflowChainReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"scenarioMatrixReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"scenarioFailureReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"scenarioRemediationReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"priorityActions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"reportQualityQuestions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard score"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -65,8 +66,9 @@ grep -q 'Skill/Plugin Runtime Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.m
 grep -q 'Workflow Chain Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Scenario Matrix Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Scenario Failure Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Scenario Remediation Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Report Quality Questions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
-grep -q 'scenario-remediation receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'adoption receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
 import sys
@@ -81,16 +83,17 @@ receipts = data.get("skillPluginRuntimeReceipts") or {}
 workflow_chain = data.get("workflowChainReceipts") or {}
 scenario_matrix = data.get("scenarioMatrixReceipts") or {}
 scenario_failure = data.get("scenarioFailureReceipts") or {}
+scenario_remediation = data.get("scenarioRemediationReceipts") or {}
 if probe.get("question") != "Which ShipGuard command, skill, plugin, or action has the lowest developer-value score and should be upgraded next?":
     raise SystemExit(f"unexpected probe question: {probe!r}")
 for key in ("surfaceType", "identifier", "name", "baseScore", "depthScore", "depthChecks", "recommendation", "proofGuidance", "reason"):
     if key not in answer:
         raise SystemExit(f"probe answer missing {key}: {answer!r}")
-if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard value-gauntlet scenario-remediation-receipts":
-    raise SystemExit(f"passing scenario-failure receipts should escalate to scenario-remediation receipts: {answer!r}")
-if "runtimeScenarioRemediationReceipts" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"scenario-remediation receipt gap should be explicit: {answer!r}")
-for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts"):
+if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard value-gauntlet adoption-receipts":
+    raise SystemExit(f"passing scenario-remediation receipts should escalate to adoption receipts: {answer!r}")
+if "runtimeAdoptionReceipts" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"adoption receipt gap should be explicit: {answer!r}")
+for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts"):
     if retired_signal in answer.get("missingDepthSignals", []):
         raise SystemExit(f"{retired_signal} should no longer be missing after fixture proof: {answer!r}")
 if not isinstance(probe.get("rankedSurfaces"), list) or not probe["rankedSurfaces"]:
@@ -215,6 +218,59 @@ for item in scenario_failure.get("receipts") or []:
     for command in item.get("commands") or []:
         if command.get("id") in expected_nonzero and command.get("exitCode") == 0:
             raise SystemExit(f"failure-path command should prove nonzero blocking: {command!r}")
+if scenario_remediation.get("status") != "pass":
+    raise SystemExit(f"scenario-remediation receipts should pass: {scenario_remediation!r}")
+if scenario_remediation.get("receiptCount") != 1 or scenario_remediation.get("passedReceiptCount") != 1 or scenario_remediation.get("commandCount") != 12:
+    raise SystemExit(f"expected one scenario-remediation receipt and twelve commands: {scenario_remediation!r}")
+if scenario_remediation.get("remediationPairCount") != 4 or scenario_remediation.get("passedRemediationPairCount") != 4:
+    raise SystemExit(f"expected four passing remediation pairs: {scenario_remediation!r}")
+remediation_ids = {item.get("id") for item in scenario_remediation.get("receipts") or []}
+if remediation_ids != {"blocked-to-repaired-loop"}:
+    raise SystemExit(f"unexpected scenario-remediation receipt fixtures: {remediation_ids!r}")
+for item in scenario_remediation.get("receipts") or []:
+    if item.get("status") != "pass" or item.get("missing"):
+        raise SystemExit(f"scenario-remediation receipt should pass without missing checks: {item!r}")
+    command_ids = {command.get("id") for command in item.get("commands") or []}
+    expected_commands = {
+        "unsafe-transcript-blocked",
+        "transcript-redact-repair",
+        "transcript-verify-clean",
+        "broken-docs-blocked",
+        "repair-docs-link-and-rerun",
+        "stale-plugin-cache-blocked",
+        "fresh-plugin-cache-pass",
+        "incomplete-release-manifest",
+        "incomplete-release-replay-blocked",
+        "complete-release-manifest",
+        "complete-release-index",
+        "complete-release-replay",
+    }
+    if command_ids != expected_commands:
+        raise SystemExit(f"unexpected scenario-remediation command set: {command_ids!r}")
+    for command in item.get("commands") or []:
+        if command.get("status") != "pass" or command.get("missing"):
+            raise SystemExit(f"scenario-remediation command should pass without missing checks: {command!r}")
+    expected_nonzero = {
+        "unsafe-transcript-blocked",
+        "broken-docs-blocked",
+        "stale-plugin-cache-blocked",
+        "incomplete-release-replay-blocked",
+    }
+    for command in item.get("commands") or []:
+        if command.get("id") in expected_nonzero and command.get("exitCode") == 0:
+            raise SystemExit(f"remediation blocked command should prove nonzero blocking: {command!r}")
+    pair_ids = {pair.get("id") for pair in item.get("remediationPairs") or []}
+    expected_pairs = {
+        "privacy-redaction-remediation",
+        "docs-link-remediation",
+        "plugin-cache-remediation",
+        "release-proof-remediation",
+    }
+    if pair_ids != expected_pairs:
+        raise SystemExit(f"unexpected remediation pair set: {pair_ids!r}")
+    for pair in item.get("remediationPairs") or []:
+        if pair.get("status") != "pass" or pair.get("missing"):
+            raise SystemExit(f"remediation pair should pass without missing checks: {pair!r}")
 if "Which ShipGuard command" in data.get("reportQualityQuestions", []):
     raise SystemExit("the answered lowest-value question should not remain a report-quality question")
 retired_phrases = (
@@ -225,11 +281,12 @@ retired_phrases = (
     "workflow chain receipts so report-quality questions become spec-workflow tasks",
     "scenario-matrix receipts that execute complete public developer journeys",
     "scenario-failure receipts that prove complete public developer journeys reject missing proof",
+    "scenario-remediation receipts that pair each blocked developer journey",
 )
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"runtime-output, negative-fixture, command-family, skill/plugin receipt, workflow-chain, scenario-matrix, and scenario-failure questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
-if not any("scenario-remediation receipts" in question for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"expected scenario-remediation receipt quality question: {data.get('reportQualityQuestions')!r}")
+    raise SystemExit(f"runtime-output, negative-fixture, command-family, skill/plugin receipt, workflow-chain, scenario-matrix, scenario-failure, and scenario-remediation questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
+if not any("adoption receipts" in question for question in data.get("reportQualityQuestions", [])):
+    raise SystemExit(f"expected adoption receipt quality question: {data.get('reportQualityQuestions')!r}")
 PY
 
 json_stdout="$(./bin/shipguard value-gauntlet --path . --json)"
@@ -246,6 +303,6 @@ grep -q '# ShipGuard Tool Value Gauntlet' <<<"$markdown_stdout"
 grep -q '"tool": "shipguard ios report-quality"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/quality/ios-report-quality.md"
-grep -q 'scenario-remediation receipts' "$tmp_dir/quality/ios-report-quality.md"
+grep -q 'adoption receipts' "$tmp_dir/quality/ios-report-quality.md"
 
 echo "tool value gauntlet tests passed"
