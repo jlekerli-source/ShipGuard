@@ -454,6 +454,32 @@ def tool_priority(value: object) -> int:
     return TOOL_NEXT_ACTION_PRIORITY.get(str(value or ""), 99)
 
 
+def is_build_apps_receipt_question(question: object, tool: object) -> bool:
+    question_text = normalized_question_text(question)
+    if str(tool or "") != "shipguard ios build-apps":
+        return False
+    if any(
+        token in question_text
+        for token in ("receipt", "missing build/run", "profiler proof", "proof for the selected lane")
+    ):
+        return True
+    return "execution" in question_text and ("quality" in question_text or "proof bundle" in question_text)
+
+
+def question_focus_priority(row: dict[str, Any]) -> int:
+    question = normalized_question_text(row.get("question") or "")
+    tool = str(row.get("tool") or "")
+    source_status = str(row.get("sourceStatus") or "")
+    if tool == "shipguard ios build-apps" and source_status != "pass":
+        if any(token in question for token in ("missing build/run", "proof for the selected lane", "when receipts")):
+            return -30
+        if is_build_apps_receipt_question(question, tool):
+            return -20
+    if should_create_fixture_candidate(question):
+        return -10
+    return 0
+
+
 def report_status(issues: list[dict[str, str]]) -> str:
     if any(issue["severity"] == "high" for issue in issues):
         return "blocked"
@@ -1552,6 +1578,7 @@ def ranked_actionability_questions(graded: list[dict[str, Any]]) -> list[dict[st
         key=lambda row: (
             status_rank(row.get("reportQualityStatus")),
             status_rank(row.get("sourceStatus")),
+            question_focus_priority(row),
             int(row.get("score") if isinstance(row.get("score"), int) else 999),
             tool_priority(row.get("tool")),
             row["_reportIndex"],
@@ -1657,6 +1684,8 @@ def slugify(value: object, *, limit: int = 72) -> str:
 def fixture_type_for_question(question: str, tool: str) -> str:
     text = normalized_question_text(f"{tool} {question}")
     question_text = normalized_question_text(question)
+    if is_build_apps_receipt_question(question_text, tool):
+        return "ios-build-apps-receipt-quality-fixture"
     if "private-app" in question_text or "private app" in question_text or "target-app" in question_text or "target app" in question_text:
         return "shipguard-eval-boundary-fixture"
     if "grouped performance" in text or "performance" in text:
@@ -1687,6 +1716,10 @@ def should_create_fixture_candidate(question: str) -> bool:
             "preview",
             "app type",
             "evidence would promote",
+            "receipt",
+            "execution receipt",
+            "execution proof",
+            "proof for the selected lane",
         )
     )
 

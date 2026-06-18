@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "tool": "shipguard ios build-apps",
+  "generatedAt": "2026-06-18T00:00:00Z",
+  "intent": "shipguard-evaluation",
+  "status": "review",
+  "shareability": {
+    "mode": "shareable",
+    "localAbsolutePathsIncluded": false
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "sourceSummary": {
+    "scanScope": {
+      "skippedDirectoryCount": 0,
+      "skippedDirectories": []
+    }
+  },
+  "recommendedWorkflow": "ios-profiler-performance",
+  "executionReceipts": {
+    "status": "provided",
+    "summary": {
+      "inputCount": 1,
+      "existingInputCount": 1,
+      "fileCount": 1,
+      "filesScanned": 1,
+      "truncated": false,
+      "buildRunProof": false,
+      "performanceProof": false,
+      "uiProof": false,
+      "logProof": false,
+      "simulatorBrowserProof": false,
+      "swiftuiPreviewProof": false,
+      "deviceProof": false
+    }
+  },
+  "receiptQuality": {
+    "status": "review",
+    "requiredForWorkflow": [
+      "buildRunProof",
+      "performanceProof"
+    ],
+    "present": [],
+    "missing": [
+      "buildRunProof",
+      "performanceProof"
+    ],
+    "summary": "Execution receipts are incomplete for the selected workflow."
+  },
+  "findings": [
+    {
+      "severity": "review",
+      "category": "execution-receipts",
+      "ruleId": "build-apps-build-run-receipt-missing",
+      "evidence": "The selected `ios-profiler-performance` lane requires XcodeBuildMCP build/run proof, but supplied receipts did not contain that signal.",
+      "recommendation": "Add XcodeBuildMCP build/run proof before claiming the selected Build iOS Apps workflow has been executed and proven.",
+      "proofGuidance": "Re-run the relevant Codex/XcodeBuildMCP step, preserve the log/screenshot/trace output, then rerun `shipguard ios build-apps --receipt <dir>`."
+    },
+    {
+      "severity": "review",
+      "category": "execution-receipts",
+      "ruleId": "build-apps-performance-receipt-missing",
+      "evidence": "The selected `ios-profiler-performance` lane requires profiler or performance capture proof, but supplied receipts did not contain that signal.",
+      "recommendation": "Add profiler or performance capture proof before claiming the selected Build iOS Apps workflow has been executed and proven.",
+      "proofGuidance": "Re-run the relevant Codex/XcodeBuildMCP step, preserve the log/screenshot/trace output, then rerun `shipguard ios build-apps --receipt <dir>`."
+    }
+  ],
+  "reportQualityQuestions": [
+    "Does the report make ShipGuard feel like the front door for Build iOS Apps rather than a separate plugin the user must remember?",
+    "Does it distinguish planned Build iOS Apps routing from execution receipt quality after Codex runs the workflow?",
+    "When receipts are supplied, does it name missing build/run, UI, preview, log, or profiler proof for the selected lane?"
+  ]
+}

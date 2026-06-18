@@ -77,6 +77,41 @@ grep -q 'Actionability Questions' "$tmp_dir/actionability-quality/ios-report-qua
 grep -q 'safest default for this app type' "$tmp_dir/actionability-quality/ios-report-quality.md"
 grep -q 'Answer the actionability questions above' "$tmp_dir/actionability-quality/ios-report-quality.md"
 
+build_apps_receipt_fixture="fixtures/ios-report-quality/build-apps-receipts"
+./bin/shipguard ios report-quality \
+  --reports "$build_apps_receipt_fixture" \
+  --out "$tmp_dir/build-apps-receipt-quality" \
+  --write-fixture-candidates "$tmp_dir/build-apps-receipt-fixtures" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/build-apps-receipt-quality/ios-report-quality.json"
+grep -q '"fixtureType": "ios-build-apps-receipt-quality-fixture"' "$tmp_dir/build-apps-receipt-quality/ios-report-quality.json"
+grep -q '"kind": "answer-actionability-question"' "$tmp_dir/build-apps-receipt-quality/ios-report-quality.json"
+python3 - <<'PY' "$tmp_dir/build-apps-receipt-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+priority = data["priorityAction"]
+expected = "When receipts are supplied, does it name missing build/run, UI, preview, log, or profiler proof for the selected lane?"
+if priority.get("question") != expected:
+    raise SystemExit(f"expected receipt-focused priority action, got {priority!r}")
+candidate = (data.get("fixtureCandidates") or [None])[0]
+if not candidate:
+    raise SystemExit("expected build-apps receipt fixture candidate")
+if candidate.get("fixtureType") != "ios-build-apps-receipt-quality-fixture":
+    raise SystemExit(f"unexpected fixture type: {candidate!r}")
+if candidate.get("sourceQuestion") != expected:
+    raise SystemExit(f"unexpected source question: {candidate!r}")
+if not str(candidate.get("publicFixturePath", "")).startswith("fixtures/ios-report-quality/"):
+    raise SystemExit(f"unexpected fixture path: {candidate!r}")
+PY
+grep -q 'ios-build-apps-receipt-quality-fixture' "$tmp_dir/build-apps-receipt-quality/ios-report-quality.md"
+grep -q 'missing build/run' "$tmp_dir/build-apps-receipt-quality/ios-report-quality.md"
+test -f "$tmp_dir/build-apps-receipt-fixtures/fixture-promotion-manifest.json"
+test -d "$tmp_dir/build-apps-receipt-fixtures/01-ios-build-apps-receipt-quality-fixture"
+test -f "$tmp_dir/build-apps-receipt-fixtures/01-ios-build-apps-receipt-quality-fixture/fixture-report.json"
+grep -q '"sourceReportsRedacted": true' "$tmp_dir/build-apps-receipt-fixtures/01-ios-build-apps-receipt-quality-fixture/fixture-candidate.json"
+
 dedupe_fixture="$tmp_dir/dedupe-fixture"
 mkdir -p "$dedupe_fixture"
 cat > "$dedupe_fixture/ios-performance.json" <<'JSON'

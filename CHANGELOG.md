@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Promoted Build iOS Apps receipt gaps into first-class report-quality fixture work: weak `ios build-apps` receipt reports now prioritize receipt-specific actionability questions and materialize `ios-build-apps-receipt-quality-fixture` starter fixtures instead of generic performance/preview candidates.
 - Added `shipguard ios build-apps --receipt <file-or-dir>` so ShipGuard can grade Build iOS Apps/XcodeBuildMCP execution receipts after a run, distinguish route plans from proof, and flag missing build/run, UI, preview, log, or profiler evidence for the selected lane.
 - Added `shipguard ios build-apps` as a ShipGuard-native front door for the Build iOS Apps plugin, emitting repo-aware XcodeBuildMCP build/run, debugger, simulator browser, SwiftUI preview hot reload, and performance-profiler handoffs with proof boundaries, shareable output, report-quality scoring, and package coverage.
 - Routed shell-backed `bin/shipguard` subcommands through `bash` from the wrapper so macOS provenance metadata cannot kill helper scripts before their help or validation paths run.

@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T02:26:38Z
+- Generated: 2026-06-18T02:41:25Z
 - Current toolkit version: 3.70.1
-- Target release: v3.80.0
-- Title: Build Apps Execution Receipt Quality
+- Target release: v3.81.0
+- Title: Build Apps Receipt Promotion Fixtures
 
 ## Slash Plan
 
 ```text
-/plan v3.80.0 Build Apps Execution Receipt Quality for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add native execution receipt grading to shipguard ios build-apps with repeatable --receipt inputs, lane-specific required signals for build/run, debug, simulator browser, SwiftUI preview, and performance profiling, shareable receipt labels, structured receipt findings, Markdown proof tables, report-quality actionability questions, docs, plugin guidance, and fixture tests without editing target apps.
+/plan v3.81.0 Build Apps Receipt Promotion Fixtures for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Promote Build iOS Apps receipt gaps into first-class ShipGuard report-quality fixture work by adding receipt-aware actionability ranking, an ios-build-apps-receipt-quality-fixture type, a public synthetic weak-receipt fixture, materialization coverage, docs, changelog, roadmap, and OSS evaluation evidence while keeping target apps read-only.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.80.0 Build Apps Execution Receipt Quality for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add native execution receipt grading to shipguard ios build-apps with repeatable --receipt inputs, lane-specific required signals for build/run, debug, simulator browser, SwiftUI preview, and performance profiling, shareable receipt labels, structured receipt findings, Markdown proof tables, report-quality actionability questions, docs, plugin guidance, and fixture tests without editing target apps, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.81.0 Build Apps Receipt Promotion Fixtures for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote Build iOS Apps receipt gaps into first-class ShipGuard report-quality fixture work by adding receipt-aware actionability ranking, an ios-build-apps-receipt-quality-fixture type, a public synthetic weak-receipt fixture, materialization coverage, docs, changelog, roadmap, and OSS evaluation evidence while keeping target apps read-only, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add native execution receipt grading to shipguard ios build-apps with repeatable --receipt inputs, lane-specific required signals for build/run, debug, simulator browser, SwiftUI preview, and performance profiling, shareable receipt labels, structured receipt findings, Markdown proof tables, report-quality actionability questions, docs, plugin guidance, and fixture tests without editing target apps.
+Promote Build iOS Apps receipt gaps into first-class ShipGuard report-quality fixture work by adding receipt-aware actionability ranking, an ios-build-apps-receipt-quality-fixture type, a public synthetic weak-receipt fixture, materialization coverage, docs, changelog, roadmap, and OSS evaluation evidence while keeping target apps read-only.
 
 ## Completion Receipt
 
-- Completed scope: Add native execution receipt grading to shipguard ios build-apps with repeatable --receipt inputs, lane-specific required signals for build/run, debug, simulator browser, SwiftUI preview, and performance profiling, shareable receipt labels, structured receipt findings, Markdown proof tables, report-quality actionability questions, docs, plugin guidance, and fixture tests without editing target apps.
-- Evidence: Implemented --receipt on shipguard ios build-apps, added executionReceipts and receiptQuality JSON, added Execution Receipts Markdown, graded good and weak public fixture receipt bundles, kept no-receipt reports as route plans, updated README/docs/plugin skill guidance/changelog/roadmap/OSS evaluation, and passed python compile plus ./tests/ios_build_apps_test.sh before broader validation.
+- Completed scope: Promote Build iOS Apps receipt gaps into first-class ShipGuard report-quality fixture work by adding receipt-aware actionability ranking, an ios-build-apps-receipt-quality-fixture type, a public synthetic weak-receipt fixture, materialization coverage, docs, changelog, roadmap, and OSS evaluation evidence while keeping target apps read-only.
+- Evidence: Read-only QA with shipguard ios build-apps weak performance receipts showed report-quality ranked a generic front-door question first and classified receipt gaps as performance/preview fixtures. Implemented receipt-focused question priority, ios-build-apps-receipt-quality-fixture classification, fixtures/ios-report-quality/build-apps-receipts, report-quality materialization assertions, and docs/changelog/roadmap/OSS evaluation notes. Focused validation passed: python compile, git diff --check, ./tests/ios_report_quality_test.sh, and a rerun of weak receipt report-quality showed the receipt-specific priority action and fixture type.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.81.0 Build Apps Receipt Promotion Fixtures for jlekerli-source/ShipGuard:
+/plan v3.82.0 Build Apps Receipt Issue Visibility for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add native execution receipt grading to shipguard ios build-apps with repeatable
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.81.0 Build Apps Receipt Promotion Fixtures for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.82.0 Build Apps Receipt Issue Visibility for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.81.0 --title "Build Apps Receipt Promotion Fixtures" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.82.0 --title "Build Apps Receipt Issue Visibility" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -132,12 +132,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.80.0.
+1. Open or update the tracking issue for v3.81.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.80.0` and upload `dist/shipguard-v3.80.0.tar.gz`.
+6. Create release `v3.81.0` and upload `dist/shipguard-v3.81.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
