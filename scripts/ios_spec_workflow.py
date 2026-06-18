@@ -13,6 +13,7 @@ from typing import Any
 
 import ios_doctor
 import ios_scan_scope
+import ios_shareable
 
 
 SCHEMA_VERSION = 1
@@ -719,6 +720,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         shipguard_eval=bool(args.shipguard_eval),
     )
     report["consistencyAnalysis"] = consistency_analysis(report)
+    if args.shipguard_eval and args.shareable:
+        report = ios_shareable.redact_shipguard_eval_report(report)
     return report
 
 

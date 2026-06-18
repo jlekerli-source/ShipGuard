@@ -1,0 +1,195 @@
+{
+  "id": "synthetic-pack-extension",
+  "kind": "domain-pack-sdk-receipt",
+  "surface": "ShipGuard Domain Pack SDK",
+  "selectedMode": "value-gauntlet domain-pack-sdk receipts",
+  "trigger": "Prove that a new synthetic Domain Pack can register prepare and verify hooks through the SDK without breaking notification-permission compatibility.",
+  "sourcePaths": [
+    "scripts/task_domain_packs.py",
+    "scripts/task_contract.py",
+    "tests/domain_pack_sdk_test.sh",
+    "docs/task-contract.md",
+    "NEXT_GOAL.md"
+  ],
+  "expectedSourcePhrases": [
+    "DomainPackRegistry",
+    "SyntheticDomainPackSDKFixturePack",
+    "domainPackSDK",
+    "syntheticDomainPackWorkflow",
+    "Domain Pack SDK Core Extraction"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppsUsed": false,
+    "inputs": [
+      "fixtures/demo-ios-repo",
+      "synthetic domain-pack-sdk goal",
+      "synthetic allowed diff",
+      "synthetic validation receipts"
+    ]
+  },
+  "commands": [
+    {
+      "id": "prepare-synthetic-domain-pack",
+      "display": "./bin/shipguard prepare \"Exercise synthetic domain-pack-sdk fixture\" --path fixtures/demo-ios-repo --out <receipt-out>/prepare --profile ios --shipguard-eval --shareable",
+      "args": [
+        "prepare",
+        "Exercise synthetic domain-pack-sdk fixture",
+        "--path",
+        "fixtures/demo-ios-repo",
+        "--out",
+        "{out}/prepare",
+        "--profile",
+        "ios",
+        "--validation",
+        "swift test",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "prepare/shipguard-task.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "surface", "taskId", "domainPackSDK", "domainRiskPack", "nextAction", "scopeBoundary"],
+          "requiredNonEmptyJsonPaths": ["domainPackSDK.registeredPacks", "domainRiskPack.validationReceiptRequirements", "nextAction.command", "reportQualityQuestions"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard prepare"},
+            {"path": "surface", "equals": "ShipGuard Task Contract"},
+            {"path": "domainPackSDK.sdkVersion", "equals": "1"},
+            {"path": "domainPackSDK.activePack", "equals": "synthetic-domain-pack-sdk-fixture"},
+            {"path": "domainRiskPack.id", "equals": "synthetic-domain-pack-sdk-fixture"},
+            {"path": "nextAction.priority", "equals": 4},
+            {"path": "scopeBoundary.shipguardOnly", "equals": true}
+          ]
+        },
+        {
+          "path": "prepare/shipguard-task.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard Task Contract",
+            "Domain Pack SDK",
+            "Domain Pack Workflow",
+            "synthetic-domain-pack-sdk-fixture",
+            "synthetic-domain-proof"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "verify-synthetic-pack-review",
+      "display": "./bin/shipguard verify --task <receipt-out>/prepare/shipguard-task.json --diff <receipt-out>/diffs/good.diff --evidence <receipt-out>/logs/generic-swift-test-receipt.json --out <receipt-out>/verify-review",
+      "args": [
+        "verify",
+        "--task",
+        "{out}/prepare/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/good.diff",
+        "--evidence",
+        "{out}/logs/generic-swift-test-receipt.json",
+        "--claim",
+        "Synthetic Domain Pack SDK fixture is wired.",
+        "--out",
+        "{out}/verify-review"
+      ],
+      "prepareFiles": [
+        {
+          "path": "diffs/good.diff",
+          "text": "diff --git a/Sources/DemoShipGuardApp/DemoPermissions.swift b/Sources/DemoShipGuardApp/DemoPermissions.swift\n--- a/Sources/DemoShipGuardApp/DemoPermissions.swift\n+++ b/Sources/DemoShipGuardApp/DemoPermissions.swift\n@@ -1,3 +1,4 @@\n+// synthetic sdk proof fixture\n"
+        },
+        {
+          "path": "logs/swift-test.log",
+          "text": "swift test passed for synthetic domain pack sdk fixture\n"
+        },
+        {
+          "path": "logs/generic-swift-test-receipt.json",
+          "text": "{\n  \"receiptId\": \"synthetic-domain-pack-sdk-generic\",\n  \"validationId\": \"swift-test\",\n  \"command\": \"swift test\",\n  \"exitCode\": 0,\n  \"status\": \"pass\",\n  \"startedAt\": \"2099-01-01T00:00:00Z\",\n  \"completedAt\": \"2099-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"artifact\": {\"path\": \"swift-test.log\"},\n  \"scope\": [\"generic-tests\"]\n}\n"
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "verify-review/shipguard-verdict.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "domainPackSDK", "domainWorkflows", "syntheticDomainPackWorkflow", "nextAction"],
+          "requiredNonEmptyJsonPaths": ["domainPackSDK.evaluatedPacks", "domainWorkflows.syntheticDomainPackWorkflow.proofLanes", "syntheticDomainPackWorkflow.proofLanes", "reviewReasons", "nextAction.command"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard verify"},
+            {"path": "status", "equals": "review"},
+            {"path": "domainPackSDK.activePack", "equals": "synthetic-domain-pack-sdk-fixture"},
+            {"path": "syntheticDomainPackWorkflow.status", "equals": "review"},
+            {"path": "syntheticDomainPackWorkflow.reviewRequired", "equals": true},
+            {"path": "notificationPermissionWorkflow", "equals": null},
+            {"path": "nextAction.priority", "equals": 4}
+          ]
+        },
+        {
+          "path": "verify-review/shipguard-verdict.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard Task Verdict",
+            "Status: review",
+            "Domain Pack SDK",
+            "Domain Pack Workflow: synthetic-domain-pack-sdk-fixture",
+            "synthetic-domain-pack-validation: missing"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "verify-synthetic-pack-pass",
+      "display": "./bin/shipguard verify --task <receipt-out>/prepare/shipguard-task.json --diff <receipt-out>/diffs/good.diff --evidence <receipt-out>/logs/swift-test-receipt.json --out <receipt-out>/verify-pass",
+      "args": [
+        "verify",
+        "--task",
+        "{out}/prepare/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/good.diff",
+        "--evidence",
+        "{out}/logs/swift-test-receipt.json",
+        "--claim",
+        "Synthetic Domain Pack SDK fixture is wired.",
+        "--out",
+        "{out}/verify-pass"
+      ],
+      "prepareFiles": [
+        {
+          "path": "logs/swift-test-receipt.json",
+          "text": "{\n  \"receiptId\": \"synthetic-domain-pack-sdk\",\n  \"validationId\": \"swift-test\",\n  \"command\": \"swift test\",\n  \"exitCode\": 0,\n  \"status\": \"pass\",\n  \"startedAt\": \"2099-01-01T00:00:00Z\",\n  \"completedAt\": \"2099-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"artifact\": {\"path\": \"swift-test.log\"},\n  \"scope\": [\"synthetic-domain-proof\", \"domain-pack-sdk\"]\n}\n"
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "verify-pass/shipguard-verdict.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "domainPackSDK", "domainWorkflows", "syntheticDomainPackWorkflow", "nextAction"],
+          "requiredNonEmptyJsonPaths": ["domainPackSDK.evaluatedPacks", "domainWorkflows.syntheticDomainPackWorkflow.proofLanes", "diffFirstAnalysis.domainWorkflows.syntheticDomainPackWorkflow.proofLanes", "syntheticDomainPackWorkflow.proofLanes", "nextAction.command"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard verify"},
+            {"path": "status", "equals": "pass"},
+            {"path": "domainPackSDK.activePack", "equals": "synthetic-domain-pack-sdk-fixture"},
+            {"path": "syntheticDomainPackWorkflow.status", "equals": "pass"},
+            {"path": "syntheticDomainPackWorkflow.reviewRequired", "equals": false},
+            {"path": "domainWorkflows.syntheticDomainPackWorkflow.status", "equals": "pass"},
+            {"path": "diffFirstAnalysis.domainWorkflows.syntheticDomainPackWorkflow.status", "equals": "pass"},
+            {"path": "notificationPermissionWorkflow", "equals": null},
+            {"path": "nextAction.priority", "equals": 7}
+          ]
+        },
+        {
+          "path": "verify-pass/shipguard-verdict.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard Task Verdict",
+            "Status: pass",
+            "Domain Pack SDK",
+            "Domain Pack Workflow: synthetic-domain-pack-sdk-fixture",
+            "synthetic-domain-pack-validation: proven"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}

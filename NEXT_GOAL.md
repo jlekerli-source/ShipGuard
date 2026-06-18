@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T20:57:33Z
-- Current toolkit version: 3.116.0
-- Target release: v3.117.0
-- Title: ShipGuard Domain Pack SDK Core Extraction
+- Generated: 2026-06-18T22:09:52Z
+- Current toolkit version: 3.117.0
+- Target release: v3.118.0
+- Title: Configuration Baselines And Suppressions
 
 ## Slash Plan
 
 ```text
-/plan v3.117.0 ShipGuard Domain Pack SDK Core Extraction for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Extract the task-contract core behind stable modules and turn task_domain_packs.py into a reusable Domain Pack SDK with a synthetic test pack, compatibility tests, docs, package proof, and plugin guidance. Preserve existing prepare/verify JSON and Markdown compatibility, keep notification-permission behavior green, and make value-gauntlet prove a new synthetic pack can be added without editing the generic verdict engine.
+/plan v3.118.0 Configuration Baselines And Suppressions for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add configuration baselines and suppressions so accepted findings have owners, expiry, proof boundaries, and regression behavior without hiding new risks.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.117.0 ShipGuard Domain Pack SDK Core Extraction for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Extract the task-contract core behind stable modules and turn task_domain_packs.py into a reusable Domain Pack SDK with a synthetic test pack, compatibility tests, docs, package proof, and plugin guidance. Preserve existing prepare/verify JSON and Markdown compatibility, keep notification-permission behavior green, and make value-gauntlet prove a new synthetic pack can be added without editing the generic verdict engine, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.118.0 Configuration Baselines And Suppressions for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add configuration baselines and suppressions so accepted findings have owners, expiry, proof boundaries, and regression behavior without hiding new risks, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Extract the task-contract core behind stable modules and turn task_domain_packs.py into a reusable Domain Pack SDK with a synthetic test pack, compatibility tests, docs, package proof, and plugin guidance. Preserve existing prepare/verify JSON and Markdown compatibility, keep notification-permission behavior green, and make value-gauntlet prove a new synthetic pack can be added without editing the generic verdict engine.
+Add configuration baselines and suppressions so accepted findings have owners, expiry, proof boundaries, and regression behavior without hiding new risks.
 
 ## Completion Receipt
 
-- Completed scope: v3.116.0 ShipGuard PilotBench shipped as a public-safe verdict-quality measurement layer.
-- Evidence: v3.116.0 adds scripts/external_pilot_verdict_bench.py, the shipguard pilot-bench CLI route, public synthetic trace fixtures, Tool Value Gauntlet PilotBench receipts, report-quality root-tool fixes for shipguard prepare, prepared task metadata status, docs/package/self-audit coverage, and plugin skill routing that escalates green PilotBench proof to Domain Pack SDK core extraction without modifying private app checkouts.
+- Completed scope: v3.117.0 ShipGuard Domain Pack SDK Core Extraction
+- Evidence: v3.117.0 extracts the Domain Pack SDK core: domainPackSDK metadata, DomainPackRegistry, synthetic pack extension proof, Domain Pack SDK value-gauntlet receipts, privacy-safe shareable redaction, docs, tests, package proof, and refreshed ios-shipguard plugin metadata.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.118.0 Configuration Baselines And Suppressions for jlekerli-source/ShipGuard:
+/plan v3.119.0 Structured Evidence Receipts v2 for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Extract the task-contract core behind stable modules and turn task_domain_packs.
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.118.0 Configuration Baselines And Suppressions for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.119.0 Structured Evidence Receipts v2 for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.118.0 --title "Configuration Baselines And Suppressions" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.119.0 --title "Structured Evidence Receipts v2" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -145,12 +145,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.117.0.
+1. Open or update the tracking issue for v3.118.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.117.0` and upload `dist/shipguard-v3.117.0.tar.gz`.
+6. Create release `v3.118.0` and upload `dist/shipguard-v3.118.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

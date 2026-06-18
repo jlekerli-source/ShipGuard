@@ -41,6 +41,7 @@ The JSON includes:
 - `authorizedScope`
 - `protectedBoundaries`
 - `validationContract`
+- `domainPackSDK`
 - `agentClaims`
 - `evidence`
 - `verdict`
@@ -60,7 +61,17 @@ For iOS notification, permission, authorization, denied-state, or provisional-fl
 - required receipt scopes for permission-state, denied-state, not-determined-state, and simulator permission-reset proof
 - a physical-device prompt boundary so simulator/source evidence is not treated as release proof
 
-The notification workflow is implemented as a domain pack in `scripts/task_domain_packs.py`, not as another standalone report family. The generic task contract passes bounded scan helpers, shareable redaction helpers, and skip rules through `DomainPackContext`; the pack supplies the iOS-specific applicability, scope, proof requirements, proof-lane evaluation, and next action. Future StoreKit, persistence, lifecycle, performance, design, and modernization packs should follow that contract instead of growing `scripts/task_contract.py`.
+The notification workflow is implemented as a domain pack in `scripts/task_domain_packs.py`, not as another standalone report family. The generic task contract passes bounded scan helpers, shareable redaction helpers, and skip rules through `DomainPackContext`; the pack supplies the iOS-specific applicability, scope, proof requirements, proof-lane evaluation, and next action.
+
+`domainPackSDK` records the reusable extension layer:
+
+- `sdkVersion`
+- `registeredPacks`
+- `activePack`
+- `evaluatedPacks`
+- pack-specific `resultField` names such as `notificationPermissionWorkflow` and `syntheticDomainPackWorkflow`
+
+`scripts/task_domain_packs.py` now exposes `DomainPackRegistry` and a public synthetic fixture pack. The synthetic pack is not app advice; it proves a second pack can register prepare/verify hooks, emit its own result field, and pass through the same verdict engine without breaking notification-permission compatibility. Future StoreKit, persistence, lifecycle, performance, design, and modernization packs should register through this SDK instead of growing bespoke branches in `scripts/task_contract.py`.
 
 Use `--shipguard-eval` when a target app is only being used to evaluate ShipGuard output quality; that boundary says the report is not app-work authorization.
 
@@ -121,7 +132,7 @@ For notification-permission workflows, a generic matching receipt such as `scope
 
 When the first three lanes are proven, the task can still pass locally while `notificationPermissionWorkflow.status` reports `local-pass-manual-device-proof-required`. Do not make release or "fully verified" claims until the physical-device prompt lane is proven.
 
-`shipguard-verdict.json` includes `diffFirstAnalysis` with changed file summaries, behavior categories, deleted-test warnings, validation coverage, evidence coverage, claim decisions, protected-boundary crossings, merge verdict, and the next action priority.
+`shipguard-verdict.json` includes `domainWorkflows` for every active pack, preserves compatibility fields such as `notificationPermissionWorkflow`, and includes `diffFirstAnalysis` with changed file summaries, behavior categories, deleted-test warnings, validation coverage, evidence coverage, claim decisions, protected-boundary crossings, merge verdict, domain workflow results, and the next action priority.
 
 Blocked and review results always include `nextAction` with:
 

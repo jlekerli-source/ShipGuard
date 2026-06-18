@@ -58,6 +58,11 @@ shareable_reports="$tmp_dir/shareable-reports"
   --reports "$shareable_reports/design" \
   --out "$tmp_dir/shareable-quality" \
   --shareable >/dev/null
+grep -q '"shareableRedactions":' "$shareable_reports/design/ios-design.json"
+if grep -R -E -q 'DemoShipGuardApp' "$shareable_reports/design"; then
+  echo "shareable ShipGuard-eval design output must redact target identifiers" >&2
+  exit 1
+fi
 grep -q '"mode": "shareable"' "$tmp_dir/shareable-quality/ios-report-quality.json"
 grep -q '"localAbsolutePathsIncluded": false' "$tmp_dir/shareable-quality/ios-report-quality.json"
 grep -q '"path": "<report-input-1>/ios-design.json"' "$tmp_dir/shareable-quality/ios-report-quality.json"
@@ -66,6 +71,41 @@ grep -q 'Shareability mode: `shareable`' "$tmp_dir/shareable-quality/ios-report-
 grep -q 'Actionability Questions' "$tmp_dir/shareable-quality/ios-report-quality.md"
 if grep -R -F -q "$tmp_dir" "$tmp_dir/shareable-quality"; then
   echo "shareable report-quality output must not include local absolute temp paths" >&2
+  exit 1
+fi
+leaky_private="$tmp_dir/leaky-private"
+cp -R "$shareable_reports/design" "$leaky_private"
+python3 - <<'PY' "$leaky_private/ios-design.json"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data.setdefault("sourceSummary", {})["targets"] = ["SecretApp", "SecretAppTests"]
+data.setdefault("scanScope", data.get("sourceSummary", {}).get("scanScope", {}))
+findings = data.setdefault("findings", [])
+findings.insert(
+    0,
+    {
+        "severity": "review",
+        "category": "privacy",
+        "ruleId": "synthetic-private-leak",
+        "evidence": "SecretApp/Features/SecretCheckoutView.swift keeps a source snippet in shareable output",
+        "recommendation": "Regenerate through the shareable redaction path.",
+        "proof": "No private target identifiers remain.",
+    },
+)
+path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$leaky_private" \
+  --out "$tmp_dir/leaky-private-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "private-identifier-shareability-risk"' "$tmp_dir/leaky-private-quality/ios-report-quality.json"
+grep -q '"status": "blocked"' "$tmp_dir/leaky-private-quality/ios-report-quality.json"
+if grep -R -q 'SecretApp' "$tmp_dir/leaky-private-quality"; then
+  echo "report-quality must not echo private identifiers while reporting shareability risk" >&2
   exit 1
 fi
 broken_design="$tmp_dir/broken-design"
@@ -585,22 +625,24 @@ grep -q '"tool": "shipguard ios ' "$materialized_candidate_dir/fixture-report.js
 grep -q '"shipguardOnly": true' "$materialized_candidate_dir/fixture-report.json"
 grep -q '"targetAppsReadOnly": true' "$materialized_candidate_dir/fixture-report.json"
 grep -q 'Synthetic Report-Quality Fixture' "$materialized_candidate_dir/fixture-report.md"
-grep -q '"groupedActionPlan":' "$materialized_candidate_dir/fixture-report.json"
-grep -q '"evidencePromotion":' "$materialized_candidate_dir/fixture-report.json"
-grep -q '"promotionStatus": "missing-runtime-proof"' "$materialized_candidate_dir/fixture-report.json"
-grep -q '"expectedArtifact":' "$materialized_candidate_dir/fixture-report.json"
-grep -q '"successCondition":' "$materialized_candidate_dir/fixture-report.json"
-grep -q '"failureMeaning":' "$materialized_candidate_dir/fixture-report.json"
-grep -q '"ruleId": "swiftui-repeat-forever-animation"' "$materialized_candidate_dir/fixture-report.json"
-grep -q 'Evidence Promotion Contract' "$materialized_candidate_dir/fixture-report.md"
-grep -q 'Expected artifact' "$materialized_candidate_dir/fixture-report.md"
-grep -q 'Success condition' "$materialized_candidate_dir/fixture-report.md"
-grep -q 'Failure meaning' "$materialized_candidate_dir/fixture-report.md"
-grep -q 'Grouped Next Actions' "$materialized_candidate_dir/fixture-report.md"
-grep -q 'First experiment' "$materialized_candidate_dir/fixture-report.md"
-grep -q 'Validation route' "$materialized_candidate_dir/fixture-report.md"
-grep -q 'Stop condition' "$materialized_candidate_dir/fixture-report.md"
-grep -q 'Proof Boundaries' "$materialized_candidate_dir/fixture-report.md"
+materialized_performance_candidate_dir="$(find "$tmp_dir/materialized-fixtures" -mindepth 1 -maxdepth 1 -type d -name '*ios-performance*' | sort | head -n 1)"
+test -n "$materialized_performance_candidate_dir"
+grep -q '"groupedActionPlan":' "$materialized_performance_candidate_dir/fixture-report.json"
+grep -q '"evidencePromotion":' "$materialized_performance_candidate_dir/fixture-report.json"
+grep -q '"promotionStatus": "missing-runtime-proof"' "$materialized_performance_candidate_dir/fixture-report.json"
+grep -q '"expectedArtifact":' "$materialized_performance_candidate_dir/fixture-report.json"
+grep -q '"successCondition":' "$materialized_performance_candidate_dir/fixture-report.json"
+grep -q '"failureMeaning":' "$materialized_performance_candidate_dir/fixture-report.json"
+grep -q '"ruleId": "swiftui-repeat-forever-animation"' "$materialized_performance_candidate_dir/fixture-report.json"
+grep -q 'Evidence Promotion Contract' "$materialized_performance_candidate_dir/fixture-report.md"
+grep -q 'Expected artifact' "$materialized_performance_candidate_dir/fixture-report.md"
+grep -q 'Success condition' "$materialized_performance_candidate_dir/fixture-report.md"
+grep -q 'Failure meaning' "$materialized_performance_candidate_dir/fixture-report.md"
+grep -q 'Grouped Next Actions' "$materialized_performance_candidate_dir/fixture-report.md"
+grep -q 'First experiment' "$materialized_performance_candidate_dir/fixture-report.md"
+grep -q 'Validation route' "$materialized_performance_candidate_dir/fixture-report.md"
+grep -q 'Stop condition' "$materialized_performance_candidate_dir/fixture-report.md"
+grep -q 'Proof Boundaries' "$materialized_performance_candidate_dir/fixture-report.md"
 materialized_design_candidate_dir="$(find "$tmp_dir/materialized-fixtures" -mindepth 1 -maxdepth 1 -type d -name '*ios-design*' | sort | head -n 1)"
 test -n "$materialized_design_candidate_dir"
 grep -q '"designTailoring":' "$materialized_design_candidate_dir/fixture-report.json"
@@ -1828,8 +1870,8 @@ for candidate in data.get("fixtureCandidates") or []:
 priority = data.get("priorityAction") or {}
 if priority.get("question") == covered_question:
     raise SystemExit(f"covered value-gauntlet question should not remain the priority action: {priority!r}")
-if "Domain Pack SDK" not in priority.get("question", ""):
-    raise SystemExit(f"expected next uncovered Domain Pack SDK question as priority: {priority!r}")
+if "configuration baselines and suppressions" not in priority.get("question", ""):
+    raise SystemExit(f"expected next uncovered configuration baseline/suppression question as priority: {priority!r}")
 PY
 
 json_stdout="$(./bin/shipguard ios report-quality --reports "$reports" --json)"

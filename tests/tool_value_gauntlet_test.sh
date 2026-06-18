@@ -48,6 +48,7 @@ grep -q '"commandFamilyRuntimeOutputReceipts":' "$tmp_dir/gauntlet/tool-value-ga
 grep -q '"trustHardeningReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"taskContractReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"externalPilotVerdictBenchReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"domainPackSDKReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"priorityActions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"reportQualityQuestions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard score"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -93,6 +94,7 @@ grep -q 'Command-Family Runtime Output Receipts' "$tmp_dir/gauntlet/tool-value-g
 grep -q 'Trust-Hardening Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Task-Contract Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'ShipGuard PilotBench Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Domain Pack SDK Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Report Quality Questions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'ShipGuard PilotBench' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -122,20 +124,21 @@ command_family_output = data.get("commandFamilyRuntimeOutputReceipts") or {}
 trust_hardening = data.get("trustHardeningReceipts") or {}
 task_contract = data.get("taskContractReceipts") or {}
 pilot_bench = data.get("externalPilotVerdictBenchReceipts") or {}
+domain_pack_sdk = data.get("domainPackSDKReceipts") or {}
 if probe.get("question") != "Which ShipGuard command, skill, plugin, or action has the lowest developer-value score and should be upgraded next?":
     raise SystemExit(f"unexpected probe question: {probe!r}")
 for key in ("surfaceType", "identifier", "name", "baseScore", "depthScore", "depthChecks", "recommendation", "proofGuidance", "reason"):
     if key not in answer:
         raise SystemExit(f"probe answer missing {key}: {answer!r}")
-if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard domain-pack-sdk-core":
-    raise SystemExit(f"passing PilotBench receipts should escalate to Domain Pack SDK core: {answer!r}")
+if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard configuration-baseline-and-suppressions":
+    raise SystemExit(f"passing Domain Pack SDK receipts should escalate to configuration baselines and suppressions: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"diff-first verification should no longer be missing: {answer!r}")
 if "runtimeIOSNotificationPermissionWorkflow" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"notification permission workflow should no longer be missing: {answer!r}")
-if "runtimeDomainPackSDK" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"Domain Pack SDK gap should be explicit: {answer!r}")
-for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract", "runtimeIOSNotificationPermissionWorkflow", "runtimeExternalPilotVerdictBench"):
+if "runtimeConfigurationBaselineSuppressions" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"configuration baseline/suppression gap should be explicit: {answer!r}")
+for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract", "runtimeIOSNotificationPermissionWorkflow", "runtimeExternalPilotVerdictBench", "runtimeDomainPackSDK"):
     if retired_signal in answer.get("missingDepthSignals", []):
         raise SystemExit(f"{retired_signal} should no longer be missing after fixture proof: {answer!r}")
 if not isinstance(probe.get("rankedSurfaces"), list) or not probe["rankedSurfaces"]:
@@ -615,6 +618,27 @@ for item in pilot_bench.get("receipts") or []:
     for command in item.get("commands") or []:
         if command.get("status") != "pass" or command.get("missing"):
             raise SystemExit(f"PilotBench command should pass without missing checks: {command!r}")
+if domain_pack_sdk.get("status") != "pass":
+    raise SystemExit(f"Domain Pack SDK receipts should pass: {domain_pack_sdk!r}")
+if domain_pack_sdk.get("receiptCount") != 1 or domain_pack_sdk.get("passedReceiptCount") != 1 or domain_pack_sdk.get("commandCount") != 3:
+    raise SystemExit(f"expected one Domain Pack SDK receipt and three commands: {domain_pack_sdk!r}")
+domain_pack_receipt_ids = {item.get("id") for item in domain_pack_sdk.get("receipts") or []}
+if domain_pack_receipt_ids != {"synthetic-pack-extension"}:
+    raise SystemExit(f"unexpected Domain Pack SDK receipt fixtures: {domain_pack_receipt_ids!r}")
+for item in domain_pack_sdk.get("receipts") or []:
+    if item.get("status") != "pass" or item.get("missing"):
+        raise SystemExit(f"Domain Pack SDK receipt should pass without missing checks: {item!r}")
+    command_ids = {command.get("id") for command in item.get("commands") or []}
+    expected_commands = {
+        "prepare-synthetic-domain-pack",
+        "verify-synthetic-pack-review",
+        "verify-synthetic-pack-pass",
+    }
+    if command_ids != expected_commands:
+        raise SystemExit(f"unexpected Domain Pack SDK command set: {command_ids!r}")
+    for command in item.get("commands") or []:
+        if command.get("status") != "pass" or command.get("missing"):
+            raise SystemExit(f"Domain Pack SDK command should pass without missing checks: {command!r}")
 if "Which ShipGuard command" in data.get("reportQualityQuestions", []):
     raise SystemExit("the answered lowest-value question should not remain a report-quality question")
 retired_phrases = (
@@ -638,11 +662,12 @@ retired_phrases = (
     "trust-hardening receipts for GitHub Action input interpolation",
     "proof-gated task contract",
     "external pilot verdict bench",
+    "Domain Pack SDK",
 )
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
     raise SystemExit(f"answered runtime receipt questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
-if not any("Domain Pack SDK" in question for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"expected Domain Pack SDK quality question: {data.get('reportQualityQuestions')!r}")
+if not any("configuration baselines and suppressions" in question for question in data.get("reportQualityQuestions", [])):
+    raise SystemExit(f"expected configuration baseline/suppression quality question: {data.get('reportQualityQuestions')!r}")
 PY
 
 json_stdout="$(./bin/shipguard value-gauntlet --path . --json)"
@@ -659,6 +684,6 @@ grep -q '# ShipGuard Tool Value Gauntlet' <<<"$markdown_stdout"
 grep -q '"tool": "shipguard ios report-quality"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/quality/ios-report-quality.md"
-grep -q 'Domain Pack SDK' "$tmp_dir/quality/ios-report-quality.md"
+grep -q 'configuration baselines and suppressions' "$tmp_dir/quality/ios-report-quality.md"
 
 echo "tool value gauntlet tests passed"

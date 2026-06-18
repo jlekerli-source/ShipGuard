@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Extracted the Domain Pack SDK core for `shipguard prepare` / `shipguard verify`: `scripts/task_domain_packs.py` now exposes `DomainPackRegistry`, `domainPackSDK` metadata, pack-specific result fields, and a public synthetic fixture pack that proves new packs can register prepare/verify hooks without editing the generic verdict engine.
+- Added Domain Pack SDK focused tests and Tool Value Gauntlet receipts; once synthetic pack receipts pass, the lowest-value probe now advances to configuration baselines and suppressions instead of reporting the SDK as missing.
+- Added shared ShipGuard-eval shareable redaction via `scripts/ios_shareable.py` and tightened `shipguard ios report-quality --shareable` so read-only Ringly/Ilmify product-QA evidence cannot leak private app names, local paths, or target identifiers into packaged reports.
 - Added `shipguard pilot-bench` / ShipGuard PilotBench as the v3.116 evidence release: public-safe task traces now score owner detection, acceptable and forbidden scope, proof coverage, unsupported-claim rejection, redaction, false-positive risk, exact next-action completeness, and first useful verdict time.
 - Added public PilotBench trace fixtures and Tool Value Gauntlet receipts so external/read-only product-QA evidence is tested through reusable synthetic traces instead of private Ringly or Ilmify app details.
 - Tightened `shipguard value-gauntlet` so passing PilotBench receipts advance the next weak surface to Domain Pack SDK core extraction instead of declaring the ShipYard finished.

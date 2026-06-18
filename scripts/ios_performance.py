@@ -16,6 +16,7 @@ from typing import Any
 
 import ios_doctor
 import ios_scan_scope
+import ios_shareable
 
 
 SCHEMA_VERSION = 1
@@ -618,7 +619,7 @@ def build_report(root: Path, *, shipguard_eval: bool = False, shareable: bool = 
     review_count = sum(1 for item in findings if item["severity"] == "review")
     status = "blocked" if high_count else "review" if review_count else "pass"
     action_plan = grouped_action_plan(findings)
-    return {
+    report = {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard ios performance",
         "intent": "shipguard-evaluation" if shipguard_eval else "app-development",
@@ -652,6 +653,9 @@ def build_report(root: Path, *, shipguard_eval: bool = False, shareable: bool = 
         "findings": findings,
         "nextSteps": shipguard_eval_next_steps() if shipguard_eval else app_development_next_steps(),
     }
+    if shipguard_eval and shareable:
+        report = ios_shareable.redact_shipguard_eval_report(report)
+    return report
 
 
 def table_cell(value: object, limit: int = 120) -> str:

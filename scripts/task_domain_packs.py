@@ -7,8 +7,10 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Protocol
+from typing import Any, Callable, Iterable, Protocol
 
+
+DOMAIN_PACK_SDK_VERSION = "1"
 
 IOS_PERMISSION_SOURCE_TOKENS = (
     "UNUserNotificationCenter",
@@ -35,6 +37,7 @@ class DomainPackContext:
 class DomainPack(Protocol):
     id: str
     version: str
+    result_field: str
 
     def build_prepare_risk_pack(self, contract: dict[str, Any], context: DomainPackContext) -> dict[str, Any] | None:
         ...
@@ -120,9 +123,21 @@ def evidence_text(item: dict[str, Any]) -> str:
     return " ".join(values).lower()
 
 
+def evidence_scope_text(item: dict[str, Any]) -> str:
+    values: list[str] = []
+    values.extend(str(value) for value in item.get("scope") or [])
+    values.extend(str(value) for value in item.get("proofScope") or [])
+    return " ".join(values).lower()
+
+
 def evidence_matches_any(evidence: list[dict[str, Any]], tokens: tuple[str, ...] | list[str]) -> bool:
     lowered_tokens = [token.lower() for token in tokens]
     return any(any(token in evidence_text(item) for token in lowered_tokens) for item in evidence)
+
+
+def evidence_scopes_include_all(evidence: list[dict[str, Any]], tokens: tuple[str, ...] | list[str]) -> bool:
+    lowered_tokens = [token.lower() for token in tokens]
+    return any(all(token in evidence_scope_text(item) for token in lowered_tokens) for item in evidence)
 
 
 def first_validation_command(task: dict[str, Any]) -> dict[str, Any]:
@@ -133,6 +148,7 @@ def first_validation_command(task: dict[str, Any]) -> dict[str, Any]:
 class IOSNotificationPermissionPack:
     id = "ios-notification-permission-workflow"
     version = "1"
+    result_field = "notificationPermissionWorkflow"
 
     def build_prepare_risk_pack(self, contract: dict[str, Any], context: DomainPackContext) -> dict[str, Any] | None:
         profile = (contract.get("projectSnapshot") or {}).get("profile")
@@ -351,8 +367,9 @@ class IOSNotificationPermissionPack:
         }
 
     def _active(self, task: dict[str, Any], diff_files: list[dict[str, Any]]) -> bool:
-        if (task.get("domainRiskPack") or {}).get("id") == self.id:
-            return True
+        risk_pack_id = (task.get("domainRiskPack") or {}).get("id")
+        if risk_pack_id:
+            return risk_pack_id == self.id
         categories = {category for item in diff_files for category in item.get("behaviorCategories") or []}
         return bool({"notification", "permission", "privacy"} & categories)
 
@@ -378,3 +395,206 @@ class IOSNotificationPermissionPack:
             "resolves": [first_missing["id"]],
             "priority": 4,
         }
+
+
+class SyntheticDomainPackSDKFixturePack:
+    """Public fixture pack proving new packs plug into the shared verdict engine."""
+
+    id = "synthetic-domain-pack-sdk-fixture"
+    version = "1"
+    result_field = "syntheticDomainPackWorkflow"
+
+    def build_prepare_risk_pack(self, contract: dict[str, Any], context: DomainPackContext) -> dict[str, Any] | None:
+        goal = str(contract.get("goal") or "")
+        if not self._goal_matches(goal):
+            return None
+        validation = first_validation_command(contract)
+        validation_command = str(validation.get("command") or "shipguard synthetic-domain-pack-proof")
+        validation_id = str(validation.get("requirementId") or slug(validation_command))
+        return {
+            "id": self.id,
+            "version": self.version,
+            "status": "active",
+            "triggerSignals": [
+                "goal:domain-pack-sdk",
+                "fixture:public-synthetic-pack",
+                f"profile:{(contract.get('projectSnapshot') or {}).get('profile') or 'unknown'}",
+            ],
+            "scopeRecommendations": {
+                "authorized": [
+                    {
+                        "pattern": item.get("pattern"),
+                        "reason": item.get("reason") or "Authorized by the base task contract.",
+                    }
+                    for item in contract.get("authorizedScope") or []
+                    if isinstance(item, dict)
+                ],
+                "reviewOnly": [
+                    {
+                        "pattern": "scripts/task_domain_packs.py",
+                        "reason": "Domain pack SDK changes should be reviewed as framework changes, not target-app behavior.",
+                    }
+                ],
+                "forbiddenUnlessExplicit": [
+                    {
+                        "pattern": "**/private-app-fixtures/**",
+                        "reason": "SDK extension proof must use public synthetic fixtures, not private app code.",
+                    }
+                ],
+            },
+            "candidateEvidence": {
+                "sdkExtensionPoint": "DomainPackRegistry",
+                "shareable": context.shareable,
+            },
+            "validationReceiptRequirements": [
+                {
+                    "id": "synthetic-domain-pack-validation",
+                    "validationId": validation_id,
+                    "command": validation_command,
+                    "requiredReceiptScope": ["synthetic-domain-proof", "domain-pack-sdk"],
+                    "expectedArtifact": "structured validation receipt proving the synthetic domain pack executed through prepare and verify",
+                    "successCondition": "Verify emits syntheticDomainPackWorkflow without editing the generic verdict engine for the fixture task.",
+                    "failureMeaning": "A new domain pack cannot be proven as a reusable SDK extension.",
+                }
+            ],
+            "proofBoundaries": {
+                "publicFixture": "Synthetic pack receipts prove SDK plumbing without private app source.",
+                "compatibility": "Existing notification-permission fields must remain stable while a second pack is registered.",
+            },
+            "nextAction": {
+                "owner": "developer",
+                "command": validation_command,
+                "expectedArtifact": "structured receipt with scope labels: synthetic-domain-proof, domain-pack-sdk",
+                "successCondition": "ShipGuard verify emits syntheticDomainPackWorkflow.status=pass.",
+                "failureMeaning": "Domain Pack SDK extensibility remains unproven.",
+                "resolves": ["synthetic-domain-pack-validation"],
+                "priority": 4,
+            },
+            "reportQualityQuestions": [
+                "Can a new domain pack register through the SDK without editing task_contract.py for bespoke fields?",
+                "Does the verdict preserve existing notification workflow compatibility while emitting the synthetic pack result?",
+            ],
+        }
+
+    def evaluate_verify(
+        self,
+        task: dict[str, Any],
+        diff_files: list[dict[str, Any]],
+        evidence: list[dict[str, Any]],
+        coverage: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        if (task.get("domainRiskPack") or {}).get("id") != self.id:
+            return None
+        coverage_ok = coverage.get("status") in {"covered", "not-required"}
+        sdk_proven = coverage_ok and evidence_scopes_include_all(evidence, ("synthetic-domain-proof", "domain-pack-sdk"))
+        proof_lanes = [
+            {
+                "id": "synthetic-domain-pack-validation",
+                "status": "proven" if sdk_proven else "missing",
+                "requiredReceiptScope": ["synthetic-domain-proof", "domain-pack-sdk"],
+                "proofBoundary": "public-fixture",
+                "failureMeaning": "Synthetic SDK extension proof is missing from the structured receipt.",
+            }
+        ]
+        if sdk_proven:
+            status = "pass"
+            next_action = {
+                "owner": "developer",
+                "command": "Attach the Domain Pack SDK fixture verdict and receipts to the ShipGuard review.",
+                "expectedArtifact": "review-ready Domain Pack SDK proof packet",
+                "successCondition": "Reviewer can confirm a second pack used shared prepare/verify extension points.",
+                "failureMeaning": "Domain Pack SDK proof packet is incomplete.",
+                "resolves": ["domain-pack-sdk-extension-proof"],
+                "priority": 7,
+            }
+        else:
+            status = "review"
+            next_action = {
+                "owner": "developer",
+                "command": "Rerun the synthetic SDK fixture receipt with scope labels: synthetic-domain-proof, domain-pack-sdk.",
+                "expectedArtifact": "structured validation receipt with synthetic-domain-proof and domain-pack-sdk scope labels",
+                "successCondition": "ShipGuard verify emits syntheticDomainPackWorkflow.status=pass.",
+                "failureMeaning": "A generic receipt does not prove Domain Pack SDK extensibility.",
+                "resolves": ["synthetic-domain-pack-validation"],
+                "priority": 4,
+            }
+        return {
+            "id": self.id,
+            "version": self.version,
+            "status": status,
+            "source": "task-domain-risk-pack",
+            "changedFiles": [item.get("path") for item in diff_files],
+            "proofLanes": proof_lanes,
+            "proofBoundary": {
+                "publicFixture": "The synthetic pack uses only public fixture inputs.",
+                "compatibility": "The shared verdict engine returns pack-specific result fields through the registry.",
+            },
+            "reviewRequired": not sdk_proven,
+            "nextAction": next_action,
+            "reportQualityQuestions": [
+                "Did the synthetic pack prove registry-based prepare and verify hooks?",
+                "Did the verdict avoid leaking private app details while proving SDK extensibility?",
+            ],
+        }
+
+    def _goal_matches(self, goal: str) -> bool:
+        lowered = goal.lower()
+        return "domain-pack-sdk" in lowered or "domain pack sdk" in lowered or "synthetic domain pack" in lowered
+
+
+class DomainPackRegistry:
+    def __init__(self, packs: Iterable[DomainPack] | None = None) -> None:
+        self.packs: list[DomainPack] = []
+        for pack in packs or []:
+            self.register(pack)
+
+    def register(self, pack: DomainPack) -> None:
+        if any(existing.id == pack.id for existing in self.packs):
+            raise ValueError(f"duplicate domain pack id: {pack.id}")
+        self.packs.append(pack)
+
+    def build_prepare_risk_pack(self, contract: dict[str, Any], context: DomainPackContext) -> dict[str, Any] | None:
+        for pack in self.packs:
+            risk_pack = pack.build_prepare_risk_pack(contract, context)
+            if risk_pack:
+                return risk_pack
+        return None
+
+    def evaluate_verify(
+        self,
+        task: dict[str, Any],
+        diff_files: list[dict[str, Any]],
+        evidence: list[dict[str, Any]],
+        coverage: dict[str, Any],
+    ) -> dict[str, dict[str, Any]]:
+        workflows: dict[str, dict[str, Any]] = {}
+        for pack in self.packs:
+            workflow = pack.evaluate_verify(task, diff_files, evidence, coverage)
+            if workflow:
+                workflows[getattr(pack, "result_field", "domainPackWorkflow")] = workflow
+        return workflows
+
+    def manifest(self, *, active_pack: str | None = None, evaluated_packs: list[str] | None = None) -> dict[str, Any]:
+        return {
+            "sdkVersion": DOMAIN_PACK_SDK_VERSION,
+            "activePack": active_pack,
+            "evaluatedPacks": evaluated_packs or [],
+            "registeredPacks": [
+                {
+                    "id": pack.id,
+                    "version": pack.version,
+                    "resultField": getattr(pack, "result_field", "domainPackWorkflow"),
+                    "prepareHook": True,
+                    "verifyHook": True,
+                }
+                for pack in self.packs
+            ],
+        }
+
+
+DEFAULT_DOMAIN_PACK_REGISTRY = DomainPackRegistry(
+    [
+        IOSNotificationPermissionPack(),
+        SyntheticDomainPackSDKFixturePack(),
+    ]
+)

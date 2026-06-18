@@ -14,6 +14,7 @@ from typing import Any
 
 import ios_doctor
 import ios_scan_scope
+import ios_shareable
 
 
 SCHEMA_VERSION = 1
@@ -388,7 +389,7 @@ def build_report(root: Path, *, shipguard_eval: bool = False, shareable: bool = 
     findings = build_findings(counts, facts)
     questions = blocked_questions(counts)
     status = "blocked" if any(item["severity"] == "high" for item in findings) else ("review" if findings else "pass")
-    return {
+    report = {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard ios ai-readiness",
         "intent": "shipguard-evaluation" if shipguard_eval else "app-development",
@@ -434,6 +435,9 @@ def build_report(root: Path, *, shipguard_eval: bool = False, shareable: bool = 
             },
         ],
     }
+    if shipguard_eval and shareable:
+        report = ios_shareable.redact_shipguard_eval_report(report)
+    return report
 
 
 def render_markdown(report: dict[str, Any]) -> str:

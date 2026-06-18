@@ -19,6 +19,8 @@ grep -q '"commandFamilyRuntimeOutputReceipts":' "$tmp_dir/gauntlet/tool-value-ga
 grep -q 'Command-Family Runtime Output Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q '"trustHardeningReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q 'Trust-Hardening Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q '"domainPackSDKReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q 'Domain Pack SDK Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
@@ -27,6 +29,7 @@ import sys
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 receipts = data.get("commandFamilyRuntimeOutputReceipts") or {}
 trust_receipts = data.get("trustHardeningReceipts") or {}
+domain_pack_sdk = data.get("domainPackSDKReceipts") or {}
 probe = data.get("lowestValueSurfaceProbe") or {}
 answer = probe.get("answer") or {}
 
@@ -61,8 +64,10 @@ for command in receipt.get("commands") or []:
 
 if trust_receipts.get("status") != "pass":
     raise SystemExit(f"trust-hardening receipts should also pass in the full gauntlet: {trust_receipts!r}")
-if answer.get("identifier") != "shipguard domain-pack-sdk-core":
-    raise SystemExit(f"passing command-family, trust, task-contract, notification workflow, and PilotBench receipts should escalate to Domain Pack SDK: {answer!r}")
+if domain_pack_sdk.get("status") != "pass":
+    raise SystemExit(f"Domain Pack SDK receipts should also pass in the full gauntlet: {domain_pack_sdk!r}")
+if answer.get("identifier") != "shipguard configuration-baseline-and-suppressions":
+    raise SystemExit(f"passing Domain Pack SDK receipts should escalate to configuration baselines and suppressions: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -71,8 +76,10 @@ if "runtimeIOSNotificationPermissionWorkflow" in answer.get("missingDepthSignals
     raise SystemExit(f"notification permission workflow should no longer be missing: {answer!r}")
 if "runtimeExternalPilotVerdictBench" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"PilotBench should no longer be missing: {answer!r}")
-if "runtimeDomainPackSDK" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"Domain Pack SDK gap should be explicit: {answer!r}")
+if "runtimeDomainPackSDK" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"Domain Pack SDK should no longer be missing: {answer!r}")
+if "runtimeConfigurationBaselineSuppressions" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"configuration baseline/suppression gap should be explicit: {answer!r}")
 if "runtimeCommandFamilyOutputReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"command-family output receipts should no longer be missing: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):

@@ -16,6 +16,7 @@ test -f "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 test -f "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 grep -q '"taskContractReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"domainPackSDKReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q 'Task-Contract Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Domain Pack SDK' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
@@ -25,6 +26,7 @@ import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 receipts = data.get("taskContractReceipts") or {}
+domain_pack_sdk = data.get("domainPackSDKReceipts") or {}
 probe = data.get("lowestValueSurfaceProbe") or {}
 answer = probe.get("answer") or {}
 
@@ -55,8 +57,13 @@ for command in receipt.get("commands") or []:
     if command.get("status") != "pass" or command.get("missing"):
         raise SystemExit(f"task-contract command should pass without missing checks: {command!r}")
 
-if answer.get("identifier") != "shipguard domain-pack-sdk-core":
-    raise SystemExit(f"passing notification workflow and PilotBench receipts should escalate to Domain Pack SDK: {answer!r}")
+if domain_pack_sdk.get("status") != "pass":
+    raise SystemExit(f"Domain Pack SDK receipts should pass: {domain_pack_sdk!r}")
+if domain_pack_sdk.get("receiptCount") != 1 or domain_pack_sdk.get("passedReceiptCount") != 1 or domain_pack_sdk.get("commandCount") != 3:
+    raise SystemExit(f"expected one Domain Pack SDK receipt and three commands: {domain_pack_sdk!r}")
+
+if answer.get("identifier") != "shipguard configuration-baseline-and-suppressions":
+    raise SystemExit(f"passing Domain Pack SDK receipts should escalate to configuration baselines and suppressions: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -65,8 +72,10 @@ if "runtimeIOSNotificationPermissionWorkflow" in answer.get("missingDepthSignals
     raise SystemExit(f"notification permission workflow should no longer be missing: {answer!r}")
 if "runtimeExternalPilotVerdictBench" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"PilotBench should no longer be missing: {answer!r}")
-if "runtimeDomainPackSDK" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"Domain Pack SDK gap should be explicit: {answer!r}")
+if "runtimeDomainPackSDK" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"Domain Pack SDK should no longer be missing: {answer!r}")
+if "runtimeConfigurationBaselineSuppressions" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"configuration baseline/suppression gap should be explicit: {answer!r}")
 PY
 
 echo "task contract receipt tests passed"

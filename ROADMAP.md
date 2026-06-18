@@ -130,7 +130,7 @@ v3.181-v3.190  CLI consolidation and packaging
 v3.191-v3.199  External benchmark, security review, v4 stabilization
 ```
 
-Current state: v3.116 adds ShipGuard PilotBench as the public-safe verdict-quality measurement layer. Once PilotBench receipts are green, the next architectural priority is v3.117 Domain Pack SDK extraction so StoreKit, persistence, lifecycle, performance, design, and modernization packs plug into one task-contract verdict engine instead of becoming disconnected report families.
+Current state: v3.117 extracts the Domain Pack SDK core behind `shipguard prepare` and `shipguard verify`. `domainPackSDK` metadata, `DomainPackRegistry`, notification-permission compatibility, and a synthetic public pack fixture now prove new packs can plug into the shared task-contract verdict engine. The next architectural priority is v3.118 configuration baselines and suppressions so accepted findings have owners, expiry, proof boundaries, and regression behavior instead of becoming invisible noise.
 
 Every release proposal must answer:
 

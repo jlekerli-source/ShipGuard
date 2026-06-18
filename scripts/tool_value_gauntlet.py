@@ -86,7 +86,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard extract a Domain Pack SDK so new StoreKit, persistence, lifecycle, performance, design, and modernization packs can plug into the task-contract verdict engine without bespoke report families?",
+    "Should ShipGuard add configuration baselines and suppressions so accepted findings have owners, expiry, proof boundaries, and regression behavior instead of becoming invisible noise?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -171,6 +171,7 @@ COMMAND_FAMILY_RUNTIME_OUTPUT_RECEIPT_ROOT = Path("fixtures") / "tool-value-gaun
 TRUST_HARDENING_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "trust-hardening-receipts"
 TASK_CONTRACT_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "task-contract-receipts"
 EXTERNAL_PILOT_VERDICT_BENCH_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "external-pilot-verdict-bench-receipts"
+DOMAIN_PACK_SDK_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "domain-pack-sdk-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -896,6 +897,18 @@ def load_task_contract_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]
 
 def load_external_pilot_verdict_bench_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / EXTERNAL_PILOT_VERDICT_BENCH_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_domain_pack_sdk_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / DOMAIN_PACK_SDK_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -2198,6 +2211,37 @@ def external_pilot_verdict_bench_receipt_probe(root: Path) -> dict[str, Any]:
     }
 
 
+def domain_pack_sdk_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [
+        run_skill_plugin_receipt(root, fixture_dir, meta)
+        for fixture_dir, meta in load_domain_pack_sdk_receipts(root)
+    ]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public Domain Pack SDK receipts that prove a synthetic pack can register prepare/verify hooks without breaking notification-permission compatibility.",
+        "fixtureRoot": DOMAIN_PACK_SDK_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public synthetic Domain Pack SDK fixture", "fixtures/demo-ios-repo", "synthetic diffs", "synthetic validation receipts"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Domain Pack SDK receipts are passing; add configuration baselines and suppressions next."
+            if status == "pass"
+            else "Fix Domain Pack SDK receipts so new packs prove registry-based prepare and verify extension points."
+        ),
+    }
+
+
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
     slug = command_slug(command)
     tokens = command_tokens(command)
@@ -2529,6 +2573,17 @@ def notification_permission_workflow_receipt_passed(task_contract_receipts: dict
     return required.issubset(receipt_command_ids(task_contract_receipts))
 
 
+def domain_pack_sdk_receipt_passed(domain_pack_sdk_receipts: dict[str, Any]) -> bool:
+    if domain_pack_sdk_receipts.get("status") != "pass":
+        return False
+    required = {
+        "prepare-synthetic-domain-pack",
+        "verify-synthetic-pack-review",
+        "verify-synthetic-pack-pass",
+    }
+    return required.issubset(receipt_command_ids(domain_pack_sdk_receipts))
+
+
 def command_depth_rows(
     commands: list[dict[str, Any]],
     text_index: dict[str, str],
@@ -2728,6 +2783,7 @@ def lowest_value_surface_probe(
     trust_hardening_receipts: dict[str, Any],
     task_contract_receipts: dict[str, Any],
     external_pilot_verdict_bench_receipts: dict[str, Any],
+    domain_pack_sdk_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -3417,6 +3473,40 @@ def lowest_value_surface_probe(
             recommendation="Extract task-contract domain-pack extension points so StoreKit, persistence, lifecycle, performance, design, and modernization packs plug into one verdict engine.",
             proof="Run value-gauntlet plus focused Domain Pack SDK fixtures that prove a synthetic pack can be added without editing the core verdict engine and without breaking notification-permission compatibility.",
         )
+    if (
+        answer
+        and answer.get("identifier") == "shipguard domain-pack-sdk-core"
+        and domain_pack_sdk_receipt_passed(domain_pack_sdk_receipts)
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeDomainPackSDK":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeDomainPackSDK",
+                        True,
+                        f"{domain_pack_sdk_receipts.get('passedReceiptCount') or 0}/{domain_pack_sdk_receipts.get('receiptCount') or 0} Domain Pack SDK receipts executed",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeConfigurationBaselineSuppressions",
+                False,
+                "report baselines and accepted-risk suppressions still need a structured policy so known noise can be carried forward without hiding regressions",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="cross-cutting",
+            identifier="shipguard configuration-baseline-and-suppressions",
+            name="Configuration baselines and suppressions",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Add configuration baselines and suppression receipts so teams can record accepted findings, expiry, ownership, and regression behavior without muting new risk.",
+            proof="Run value-gauntlet plus focused baseline/suppression fixtures that prove accepted findings are tracked, expired suppressions fail, and new findings are not hidden by old waivers.",
+        )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
         answer = {
@@ -3495,6 +3585,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     trust_hardening_receipts = trust_hardening_receipt_probe(root)
     task_contract_receipts = task_contract_receipt_probe(root)
     external_pilot_verdict_bench_receipts = external_pilot_verdict_bench_receipt_probe(root)
+    domain_pack_sdk_receipts = domain_pack_sdk_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -3523,6 +3614,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         trust_hardening_receipts=trust_hardening_receipts,
         task_contract_receipts=task_contract_receipts,
         external_pilot_verdict_bench_receipts=external_pilot_verdict_bench_receipts,
+        domain_pack_sdk_receipts=domain_pack_sdk_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -3577,6 +3669,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "trustHardeningReceipts": trust_hardening_receipts,
         "taskContractReceipts": task_contract_receipts,
         "externalPilotVerdictBenchReceipts": external_pilot_verdict_bench_receipts,
+        "domainPackSDKReceipts": domain_pack_sdk_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -4113,6 +4206,31 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_pilot_bench_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_pilot_bench_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+
+    domain_pack_sdk_receipts = report.get("domainPackSDKReceipts") or {}
+    lines.extend(["", "## Domain Pack SDK Receipts", ""])
+    lines.append(f"- Status: {domain_pack_sdk_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {domain_pack_sdk_receipts.get('passedReceiptCount', 0)}/{domain_pack_sdk_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {domain_pack_sdk_receipts.get('commandCount', 0)}")
+    if domain_pack_sdk_receipts.get("nextAction"):
+        lines.append(f"- Next action: {domain_pack_sdk_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in domain_pack_sdk_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 44)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_domain_pack_commands = [
+        (receipt, command)
+        for receipt in domain_pack_sdk_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_domain_pack_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_domain_pack_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

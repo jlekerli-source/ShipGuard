@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from task_domain_packs import DomainPackContext, IOSNotificationPermissionPack
+from task_domain_packs import DEFAULT_DOMAIN_PACK_REGISTRY, DomainPackContext
 
 
 SCHEMA_VERSION = 1
@@ -48,8 +48,6 @@ CLAIM_REQUIRES_PROOF = (
     "safe to ship",
     "no regressions",
 )
-
-DOMAIN_PACKS = [IOSNotificationPermissionPack()]
 
 SNAPSHOT_FILE_LIMIT = 10000
 SNAPSHOT_DIR_LIMIT = 4000
@@ -361,24 +359,16 @@ def domain_pack_context(root: Path, shareable: bool) -> DomainPackContext:
 
 def build_prepare_domain_risk_pack(contract: dict[str, Any], root: Path, shareable: bool) -> dict[str, Any] | None:
     context = domain_pack_context(root, shareable)
-    for pack in DOMAIN_PACKS:
-        risk_pack = pack.build_prepare_risk_pack(contract, context)
-        if risk_pack:
-            return risk_pack
-    return None
+    return DEFAULT_DOMAIN_PACK_REGISTRY.build_prepare_risk_pack(contract, context)
 
 
-def evaluate_domain_workflow(
+def evaluate_domain_workflows(
     task: dict[str, Any],
     diff_files: list[dict[str, Any]],
     evidence: list[dict[str, Any]],
     coverage: dict[str, Any],
-) -> dict[str, Any] | None:
-    for pack in DOMAIN_PACKS:
-        workflow = pack.evaluate_verify(task, diff_files, evidence, coverage)
-        if workflow:
-            return workflow
-    return None
+) -> dict[str, dict[str, Any]]:
+    return DEFAULT_DOMAIN_PACK_REGISTRY.evaluate_verify(task, diff_files, evidence, coverage)
 
 
 def redact_external_shareable_contract(contract: dict[str, Any], root: Path) -> dict[str, Any]:
@@ -652,6 +642,7 @@ def prepare_contract(args: argparse.Namespace) -> dict[str, Any]:
         "authorizedFiles": allowed,
         "authorizedScope": authorized_scope_details,
         "validationContract": build_validation_contract(args.validation, default_validation(profile, root)),
+        "domainPackSDK": DEFAULT_DOMAIN_PACK_REGISTRY.manifest(),
         "agentClaims": args.claim,
         "evidence": [],
         "verdict": {
@@ -681,6 +672,9 @@ def prepare_contract(args: argparse.Namespace) -> dict[str, Any]:
     risk_pack = build_prepare_domain_risk_pack(contract, root, args.shareable)
     if risk_pack:
         contract["domainRiskPack"] = risk_pack
+        contract["domainPackSDK"] = DEFAULT_DOMAIN_PACK_REGISTRY.manifest(active_pack=str(risk_pack.get("id") or ""))
+        if isinstance(risk_pack.get("nextAction"), dict):
+            contract["nextAction"] = dict(risk_pack["nextAction"])
         existing_questions = contract.get("reportQualityQuestions") or []
         contract["reportQualityQuestions"] = existing_questions + risk_pack.get("reportQualityQuestions", [])
     return contract
@@ -1157,6 +1151,7 @@ def build_diff_first_analysis(
     blocking_reasons: list[str],
     review_reasons: list[str],
     notification_permission_workflow: dict[str, Any] | None = None,
+    domain_workflows: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     deleted_tests = deleted_test_changes(diff_files)
     file_summaries = diff_file_summaries(diff_files, allowed, forbidden)
@@ -1216,9 +1211,15 @@ def build_diff_first_analysis(
             "Can a reviewer decide the next action from shipguard-verdict.md without reading the raw patch first?",
         ],
     }
+    domain_workflows = domain_workflows or {}
+    if domain_workflows:
+        analysis["domainWorkflows"] = domain_workflows
+        for field, workflow in domain_workflows.items():
+            analysis[field] = workflow
+        for workflow in domain_workflows.values():
+            analysis["reportQualityQuestions"].extend(workflow.get("reportQualityQuestions") or [])
     if notification_permission_workflow:
         analysis["notificationPermissionWorkflow"] = notification_permission_workflow
-        analysis["reportQualityQuestions"].extend(notification_permission_workflow.get("reportQualityQuestions") or [])
     return analysis
 
 
@@ -1249,7 +1250,8 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
     )
     manual_claims = [item["claim"] for item in claim_results if item["status"] == "needs-manual-proof"]
     deleted_tests = deleted_test_changes(diff_files)
-    notification_permission_workflow = evaluate_domain_workflow(task, diff_files, evidence, coverage)
+    domain_workflows = evaluate_domain_workflows(task, diff_files, evidence, coverage)
+    notification_permission_workflow = domain_workflows.get("notificationPermissionWorkflow")
 
     blocking_reasons: list[str] = []
     review_reasons: list[str] = []
@@ -1271,6 +1273,11 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         review_reasons.append("deleted tests require validation coverage proof")
     if notification_permission_workflow and notification_permission_workflow.get("reviewRequired"):
         review_reasons.append("iOS notification permission workflow proof missing")
+    for field, workflow in domain_workflows.items():
+        if field == "notificationPermissionWorkflow":
+            continue
+        if workflow.get("reviewRequired"):
+            review_reasons.append(f"{workflow.get('id') or field} proof missing")
     if manual_claims:
         review_reasons.append("broad completion claim still needs manual/device proof")
 
@@ -1296,6 +1303,7 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         rejected_claims=rejected_claims,
         manual_claims=manual_claims,
         notification_permission_workflow=notification_permission_workflow,
+        domain_workflows=domain_workflows,
     )
     diff_first = build_diff_first_analysis(
         status,
@@ -1312,14 +1320,19 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         blocking_reasons,
         review_reasons,
         notification_permission_workflow,
+        domain_workflows,
     )
-    return {
+    report = {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard verify",
         "surface": "ShipGuard Task Contract Verdict",
         "generatedAt": utc_now(),
         "taskId": task.get("taskId"),
         "goal": task.get("goal"),
+        "domainPackSDK": DEFAULT_DOMAIN_PACK_REGISTRY.manifest(
+            active_pack=(task.get("domainRiskPack") or {}).get("id"),
+            evaluated_packs=[str(workflow.get("id") or field) for field, workflow in domain_workflows.items()],
+        ),
         "status": status,
         "changedFiles": changed,
         "scopeChecks": {
@@ -1337,6 +1350,7 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
             "requiredProofPhrases": list(CLAIM_REQUIRES_PROOF),
         },
         "diffFirstAnalysis": diff_first,
+        "domainWorkflows": domain_workflows,
         "notificationPermissionWorkflow": notification_permission_workflow,
         "blockingReasons": blocking_reasons,
         "reviewReasons": review_reasons,
@@ -1346,6 +1360,8 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         },
         "nextAction": next_action,
     }
+    report.update(domain_workflows)
+    return report
 
 
 def build_next_action(
@@ -1362,6 +1378,7 @@ def build_next_action(
     rejected_claims: list[str] | None = None,
     manual_claims: list[str] | None = None,
     notification_permission_workflow: dict[str, Any] | None = None,
+    domain_workflows: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     required = (task.get("validationContract") or {}).get("required") or []
     first_command = str((required[0] or {}).get("command") or "run the targeted validation command") if required else "attach validation evidence"
@@ -1372,6 +1389,7 @@ def build_next_action(
     rejected_claims = rejected_claims or []
     manual_claims = manual_claims or []
     notification_permission_workflow = notification_permission_workflow or {}
+    domain_workflows = domain_workflows or {}
     if forbidden_touched or out_of_scope:
         return {
             "owner": "developer",
@@ -1417,6 +1435,11 @@ def build_next_action(
         }
     if notification_permission_workflow.get("reviewRequired"):
         return dict(notification_permission_workflow.get("nextAction") or {})
+    for field, workflow in domain_workflows.items():
+        if field == "notificationPermissionWorkflow":
+            continue
+        if workflow.get("reviewRequired"):
+            return dict(workflow.get("nextAction") or {})
     if manual_claims:
         return {
             "owner": "developer",
@@ -1479,9 +1502,23 @@ def render_prepare_markdown(contract: dict[str, Any]) -> str:
         lines.append(f"- `{item.get('command')}`")
         lines.append(f"  Expected: {item.get('expectedArtifact')}")
         lines.append(f"  Success: {item.get('successCondition')}")
+    sdk = contract.get("domainPackSDK") or {}
+    if sdk:
+        lines.extend(["", "## Domain Pack SDK", ""])
+        lines.append(f"- SDK version: {sdk.get('sdkVersion')}")
+        lines.append(f"- Active pack: {sdk.get('activePack') or 'none'}")
+        registered = sdk.get("registeredPacks") or []
+        if registered:
+            lines.append("- Registered packs:")
+            for item in registered:
+                lines.append(f"  - `{item.get('id')}` -> `{item.get('resultField')}`")
     risk_pack = contract.get("domainRiskPack") or {}
     if risk_pack:
-        lines.extend(["", "## iOS Notification Permission Workflow", ""])
+        if risk_pack.get("id") == "ios-notification-permission-workflow":
+            lines.extend(["", "## iOS Notification Permission Workflow", ""])
+        else:
+            lines.extend(["", "## Domain Pack Workflow", ""])
+            lines.append(f"- Pack: `{risk_pack.get('id')}`")
         lines.append(f"- Status: {risk_pack.get('status')}")
         triggers = ", ".join(risk_pack.get("triggerSignals") or [])
         lines.append(f"- Trigger signals: {triggers}")
@@ -1591,6 +1628,13 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
         for item in claim_decisions:
             lines.append(f"- {item.get('status')}: {item.get('claim')}")
             lines.append(f"  Reason: {item.get('reason')}")
+    sdk = verdict.get("domainPackSDK") or {}
+    if sdk:
+        lines.extend(["", "## Domain Pack SDK", ""])
+        lines.append(f"- SDK version: {sdk.get('sdkVersion')}")
+        lines.append(f"- Active pack: {sdk.get('activePack') or 'none'}")
+        evaluated = ", ".join(sdk.get("evaluatedPacks") or [])
+        lines.append(f"- Evaluated packs: {evaluated or 'none'}")
     workflow = verdict.get("notificationPermissionWorkflow") or {}
     if workflow:
         lines.extend(["", "## iOS Notification Permission Workflow", ""])
@@ -1608,6 +1652,24 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
                 lines.append(f"    Required receipt scope: {required_scope}")
             lines.append(f"    Failure meaning: {item.get('failureMeaning')}")
         boundary = workflow.get("proofBoundary") or {}
+        if boundary:
+            lines.append("- Proof boundary:")
+            for key, value in boundary.items():
+                lines.append(f"  - {key}: {value}")
+    for field, pack_workflow in (verdict.get("domainWorkflows") or {}).items():
+        if field == "notificationPermissionWorkflow" or not isinstance(pack_workflow, dict):
+            continue
+        lines.extend(["", f"## Domain Pack Workflow: {pack_workflow.get('id') or field}", ""])
+        lines.append(f"- Status: {pack_workflow.get('status')}")
+        lines.append(f"- Source: {pack_workflow.get('source')}")
+        lines.append("- Proof lanes:")
+        for item in pack_workflow.get("proofLanes") or []:
+            required_scope = ", ".join(item.get("requiredReceiptScope") or [])
+            lines.append(f"  - {item.get('id')}: {item.get('status')} ({item.get('proofBoundary')})")
+            if required_scope:
+                lines.append(f"    Required receipt scope: {required_scope}")
+            lines.append(f"    Failure meaning: {item.get('failureMeaning')}")
+        boundary = pack_workflow.get("proofBoundary") or {}
         if boundary:
             lines.append("- Proof boundary:")
             for key, value in boundary.items():

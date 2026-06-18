@@ -14,6 +14,7 @@ from typing import Any
 
 import ios_doctor
 import ios_scan_scope
+import ios_shareable
 
 
 SCHEMA_VERSION = 1
@@ -960,7 +961,7 @@ def build_report(
     preview = preview_evidence(preview_out, root=root, shareable=shareable)
     icon = build_icon_brief(app_type["value"], app_type, dna) if icon_brief else None
     findings = build_findings(app_type["value"], dna, preview, icon_brief)
-    return {
+    report = {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard ios design",
         "generatedAt": utc_now(),
@@ -1002,6 +1003,9 @@ def build_report(
             "Use ChatGPT ImageGen for icon bitmap candidates after reviewing app-icon-imagegen-brief.md.",
         ],
     }
+    if shipguard_eval and shareable:
+        report = ios_shareable.redact_shipguard_eval_report(report)
+    return report
 
 
 def render_icon_brief(report: dict[str, Any]) -> str:

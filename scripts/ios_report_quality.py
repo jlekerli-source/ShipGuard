@@ -12,6 +12,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import ios_shareable
+
 
 SCHEMA_VERSION = 1
 SOURCE_SCANNER_TOOLS = {
@@ -134,7 +136,6 @@ TOKEN_RISK_PATTERNS = {
     "known-token": re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,})\b"),
 }
 LOCAL_PATH_VALUE_RE = re.compile(r"(?<![A-Za-z0-9_])/(?:Users|private/tmp|var/folders)/[^\s`'\"),]+")
-PRIVATE_EVAL_APP_RE = re.compile(r"(?i)\b(?:Ringly|Ilmify|InweFi)\b")
 
 
 def utc_now() -> str:
@@ -301,6 +302,34 @@ def declared_shareability_issues(report: dict[str, Any], *, path_name: str) -> l
             rule_id="declared-shareability-local-mode",
             evidence=f"{path_name} declares shareability mode={mode or 'missing'} localAbsolutePathsIncluded={includes_local_paths!r}",
             recommendation="Regenerate the source report with --shareable so path-safe intent is explicit before sharing or scoring.",
+        )
+    return issues
+
+
+def private_identifier_shareability_issues(
+    report: dict[str, Any], *, raw_text: str, path_name: str
+) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    scope = report.get("scopeBoundary")
+    is_product_qa = report.get("intent") == "shipguard-evaluation" or (
+        isinstance(scope, dict) and scope.get("shipguardOnly") is True
+    )
+    if not is_product_qa or is_materialized_fixture_report(report):
+        return issues
+    shareability = report.get("shareability")
+    if not isinstance(shareability, dict) or shareability.get("mode") != "shareable":
+        return issues
+    hits = ios_shareable.private_identifier_hits(raw_text, report)
+    if hits:
+        add_issue(
+            issues,
+            severity="high",
+            rule_id="private-identifier-shareability-risk",
+            evidence=f"{path_name} contains {len(hits)} private target identifier(s) in shareable ShipGuard-eval output",
+            recommendation=(
+                "Regenerate the report with the current ShipGuard shareable redaction path, or run "
+                "shipguard ios redact with explicit --private-term values before external sharing."
+            ),
         )
     return issues
 
@@ -578,6 +607,7 @@ def source_report_findings(
     if not isinstance(findings, list) or not findings:
         return []
 
+    private_terms = ios_shareable.collect_private_terms(report)
     rows: list[dict[str, str]] = []
     for index, item in enumerate(findings[:40], start=1):
         if not isinstance(item, dict):
@@ -588,7 +618,7 @@ def source_report_findings(
 
         def text_value(key: str) -> str:
             value = str(item.get(key) or "").strip()
-            return sanitize_materialized_text(value) if shareable else value
+            return ios_shareable.redact_text(value, private_terms=private_terms) if shareable else value
 
         rows.append(
             {
@@ -1971,6 +2001,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
 
     if shareable and tool in DECLARED_SHAREABILITY_TOOLS:
         issues.extend(declared_shareability_issues(loaded, path_name=path.name))
+        issues.extend(private_identifier_shareability_issues(loaded, raw_text=raw_text, path_name=path.name))
 
     if tool == SPEC_WORKFLOW_TOOL:
         issues.extend(spec_workflow_quality_issues(loaded, path=path, path_name=path.name))
@@ -2880,13 +2911,9 @@ def promotion_metadata(candidate_id: str) -> dict[str, Any]:
 
 
 def sanitize_materialized_text(value: object) -> str:
-    text = re.sub(r"\s+", " ", str(value or "")).strip()
+    text = ios_shareable.redact_text(value, private_terms=list(ios_shareable.DEFAULT_PRIVATE_TERMS))
     if not text:
         return ""
-    text = LOCAL_PATH_VALUE_RE.sub("<local-path>", text)
-    for pattern in TOKEN_RISK_PATTERNS.values():
-        text = pattern.sub("<token-like-value>", text)
-    text = PRIVATE_EVAL_APP_RE.sub("<private-app>", text)
     return re.sub(r"\s+", " ", text).strip()
 
 
