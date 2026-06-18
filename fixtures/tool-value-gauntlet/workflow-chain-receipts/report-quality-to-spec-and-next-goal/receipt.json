@@ -1,0 +1,293 @@
+{
+  "id": "report-quality-to-spec-and-next-goal",
+  "kind": "workflow-chain",
+  "surface": "Report-quality to SpecForge and NextRail chain",
+  "selectedSkill": "ios-shipguard",
+  "selectedMode": "workflow-chain",
+  "trigger": "User asks ShipGuard to test read-only report output, evaluate usefulness, convert the weakness into a native plan/goal, and keep the ShipGuard improvement loop going.",
+  "sourcePaths": [
+    "scripts/ios_design.py",
+    "scripts/ios_report_quality.py",
+    "scripts/ios_spec_workflow.py",
+    "scripts/next_goal.sh",
+    "scripts/tool_value_gauntlet.py",
+    "docs/ios-shipguard.md",
+    "docs/next-goal.md"
+  ],
+  "expectedSourcePhrases": [
+    "actionabilityQuestions",
+    "ios spec-workflow",
+    "report-quality",
+    "slashPlan",
+    "slashGoal",
+    "next-goal"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppDetailsAllowed": false
+  },
+  "commands": [
+    {
+      "id": "design-report",
+      "display": "./bin/shipguard ios design --path fixtures/demo-ios-repo --out <receipt-out>/design --shipguard-eval --shareable",
+      "args": [
+        "ios",
+        "design",
+        "--path",
+        "fixtures/demo-ios-repo",
+        "--out",
+        "{out}/design",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "design/ios-design.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "reportQualityQuestions",
+            "scopeBoundary",
+            "shareability"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "reportQualityQuestions"
+          ],
+          "requiredValues": [
+            {
+              "path": "scopeBoundary.shipguardOnly",
+              "equals": true
+            },
+            {
+              "path": "scopeBoundary.targetAppsReadOnly",
+              "equals": true
+            },
+            {
+              "path": "shareability.mode",
+              "equals": "shareable"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "report-quality",
+      "display": "./bin/shipguard ios report-quality --reports <receipt-out>/design --out <receipt-out>/quality --shareable",
+      "args": [
+        "ios",
+        "report-quality",
+        "--reports",
+        "{out}/design",
+        "--out",
+        "{out}/quality",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "quality/ios-report-quality.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "priorityAction",
+            "actionabilityQuestions",
+            "fixtureCandidates",
+            "scopeBoundary"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "priorityAction",
+            "actionabilityQuestions"
+          ],
+          "requiredValues": [
+            {
+              "path": "scopeBoundary.shipguardOnly",
+              "equals": true
+            },
+            {
+              "path": "scopeBoundary.targetAppsReadOnly",
+              "equals": true
+            }
+          ]
+        },
+        {
+          "path": "quality/ios-report-quality.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "Actionability Questions",
+            "If implementation needs planning, feed this report-quality output into ios spec-workflow with --from-report"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "spec-workflow",
+      "display": "./bin/shipguard ios spec-workflow --path fixtures/demo-ios-repo --feature \"ShipGuard Workflow Chain Receipts\" --from-report <receipt-out>/quality --shipguard-eval --shareable --out <receipt-out>/spec",
+      "args": [
+        "ios",
+        "spec-workflow",
+        "--path",
+        "fixtures/demo-ios-repo",
+        "--feature",
+        "ShipGuard Workflow Chain Receipts",
+        "--from-report",
+        "{out}/quality",
+        "--shipguard-eval",
+        "--shareable",
+        "--out",
+        "{out}/spec"
+      ],
+      "artifacts": [
+        {
+          "path": "spec/ios-spec-workflow.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "reportInputs",
+            "featureSpec",
+            "technicalPlan",
+            "taskPlan",
+            "slashPlan",
+            "slashGoal",
+            "artifacts",
+            "scopeBoundary",
+            "shareability"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "reportInputs.actionabilityQuestions",
+            "featureSpec.acceptanceCriteria",
+            "technicalPlan.recommendedValidation",
+            "taskPlan",
+            "slashPlan",
+            "slashGoal"
+          ],
+          "requiredValues": [
+            {
+              "path": "scopeBoundary.shipguardOnly",
+              "equals": true
+            },
+            {
+              "path": "shareability.mode",
+              "equals": "shareable"
+            }
+          ]
+        },
+        {
+          "path": "spec/ios-spec-workflow.json",
+          "type": "text",
+          "requiredPhrases": [
+            "Did the report tailor advice to the app type instead of applying one universal design rule?",
+            "Resolve report-quality actionability question:",
+            "./tests/ios_spec_workflow_test.sh",
+            "\"slashPlan\"",
+            "\"slashGoal\""
+          ],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "spec/tasks.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# Tasks",
+            "Resolve report-quality actionability question:",
+            "Did the report tailor advice to the app type instead of applying one universal design rule?"
+          ],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "spec/implementation-plan.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# Implementation Plan",
+            "./tests/ios_spec_workflow_test.sh",
+            "./tests/ios_report_quality_test.sh"
+          ],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "spec/ios-spec-workflow.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "/plan ShipGuard Workflow Chain Receipts",
+            "/goal Implement ShipGuard Workflow Chain Receipts",
+            "Clarifying Questions",
+            "Scan Scope"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "spec-report-quality",
+      "display": "./bin/shipguard ios report-quality --reports <receipt-out>/spec --out <receipt-out>/spec-quality --shareable",
+      "args": [
+        "ios",
+        "report-quality",
+        "--reports",
+        "{out}/spec",
+        "--out",
+        "{out}/spec-quality",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "spec-quality/ios-report-quality.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "reports",
+            "priorityAction",
+            "scopeBoundary"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "reports",
+            "priorityAction"
+          ],
+          "requiredValues": [
+            {
+              "path": "status",
+              "equals": "pass"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "next-goal",
+      "display": "./bin/shipguard next-goal --release 3.93.0 --title \"ShipGuard Workflow Chain Receipts\" --scope \"Add workflow-chain receipts to value-gauntlet.\" --completion-evidence \"Validated the chain from report-quality to spec-workflow and next-goal.\" --following-title \"ShipGuard Scenario Matrix Receipts\" --out <receipt-out>/next/NEXT_GOAL.md",
+      "args": [
+        "next-goal",
+        "--release",
+        "3.93.0",
+        "--title",
+        "ShipGuard Workflow Chain Receipts",
+        "--scope",
+        "Add workflow-chain receipts to value-gauntlet.",
+        "--completion-evidence",
+        "Validated the chain from report-quality to spec-workflow and next-goal.",
+        "--following-title",
+        "ShipGuard Scenario Matrix Receipts",
+        "--out",
+        "{out}/next/NEXT_GOAL.md"
+      ],
+      "artifacts": [
+        {
+          "path": "next/NEXT_GOAL.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "/plan v3.93.0 ShipGuard Workflow Chain Receipts",
+            "/goal Implement v3.93.0 ShipGuard Workflow Chain Receipts",
+            "Completion Receipt",
+            "Following Slash Plan",
+            "ShipGuard Scenario Matrix Receipts"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}

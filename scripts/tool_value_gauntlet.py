@@ -75,7 +75,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add end-to-end workflow chain receipts so report-quality questions become spec-workflow tasks and the next slash plan without manual interpretation?",
+    "Should ShipGuard add scenario-matrix receipts that execute complete public developer journeys across iOS, release, privacy, CI, plugin, and docs surfaces instead of probing them one command at a time?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -144,6 +144,7 @@ RUNTIME_OUTPUT_SPECS: list[dict[str, Any]] = [
 
 RUNTIME_NEGATIVE_FIXTURE_ROOT = Path("fixtures") / "tool-value-gauntlet" / "runtime-output"
 SKILL_PLUGIN_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "skill-plugin-receipts"
+WORKFLOW_CHAIN_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "workflow-chain-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -677,6 +678,18 @@ def load_skill_plugin_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     return receipts
 
 
+def load_workflow_chain_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / WORKFLOW_CHAIN_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
 def format_receipt_value(value: object, *, out_dir: Path, cache_dir: Path) -> str:
     return str(value).format(out=out_dir.as_posix(), cache=cache_dir.as_posix())
 
@@ -879,6 +892,34 @@ def skill_plugin_receipt_probe(root: Path) -> dict[str, Any]:
             "Add end-to-end workflow chain receipts so report-quality questions become spec-workflow tasks and the next slash plan without manual interpretation."
             if status == "pass"
             else "Fix skill/plugin receipt fixtures or guidance so Codex-facing surfaces prove useful runtime workflows."
+        ),
+    }
+
+
+def workflow_chain_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [run_skill_plugin_receipt(root, fixture_dir, meta) for fixture_dir, meta in load_workflow_chain_receipts(root)]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public end-to-end workflow receipts that prove report-quality questions become SpecForge tasks, validation commands, slash plans, and the next-goal handoff.",
+        "fixtureRoot": WORKFLOW_CHAIN_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public workflow-chain receipt fixtures", "fixtures/demo-ios-repo", "synthetic report-quality output"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Add scenario-matrix receipts that execute complete public developer journeys across command families."
+            if status == "pass"
+            else "Fix workflow-chain receipts so report-quality questions become tasks, proof commands, and slash handoffs without manual interpretation."
         ),
     }
 
@@ -1377,6 +1418,7 @@ def lowest_value_surface_probe(
     negative_fixture_probe: dict[str, Any],
     command_family_probe: dict[str, Any],
     skill_plugin_receipts: dict[str, Any],
+    workflow_chain_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -1406,39 +1448,84 @@ def lowest_value_surface_probe(
                 if command_family_passed:
                     skill_plugin_receipts_passed = skill_plugin_receipts.get("status") == "pass"
                     if skill_plugin_receipts_passed:
-                        answer = surface_probe_row(
-                            surface_type="cross-cutting",
-                            identifier="shipguard value-gauntlet workflow-chain-receipts",
-                            name="Workflow chain receipts",
-                            base_score=100,
-                            base_status="pass",
-                            depth_checks=[
-                                depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
-                                depth_check(
-                                    "runtimeOutputProbe",
-                                    True,
-                                    f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100",
-                                ),
-                                depth_check(
-                                    "runtimeRegressionFixtures",
-                                    True,
-                                    f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output",
-                                ),
-                                depth_check(
-                                    "runtimeCommandCoverage",
-                                    True,
-                                    f"{command_family_probe.get('passedCommandCount') or 0}/{command_family_probe.get('commandCount') or 0} public command help paths executed",
-                                ),
-                                depth_check(
-                                    "runtimeSkillPluginReceipts",
-                                    True,
-                                    f"{skill_plugin_receipts.get('passedReceiptCount') or 0}/{skill_plugin_receipts.get('receiptCount') or 0} skill/plugin receipts executed",
-                                ),
-                                depth_check("runtimeWorkflowChainReceipts", False, "report-quality questions still lack end-to-end receipts into spec-workflow tasks and next slash goals"),
-                            ],
-                            recommendation="Add workflow chain receipts that prove report-quality questions become SpecForge tasks, validation commands, and the next slash plan/goal without manual interpretation.",
-                            proof="Run value-gauntlet, report-quality, spec-workflow, next-goal, and focused workflow-chain receipt fixture tests after adding the chain receipts.",
-                        )
+                        workflow_chain_receipts_passed = workflow_chain_receipts.get("status") == "pass"
+                        if workflow_chain_receipts_passed:
+                            answer = surface_probe_row(
+                                surface_type="cross-cutting",
+                                identifier="shipguard value-gauntlet scenario-matrix-receipts",
+                                name="Scenario matrix receipts",
+                                base_score=100,
+                                base_status="pass",
+                                depth_checks=[
+                                    depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
+                                    depth_check(
+                                        "runtimeOutputProbe",
+                                        True,
+                                        f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100",
+                                    ),
+                                    depth_check(
+                                        "runtimeRegressionFixtures",
+                                        True,
+                                        f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output",
+                                    ),
+                                    depth_check(
+                                        "runtimeCommandCoverage",
+                                        True,
+                                        f"{command_family_probe.get('passedCommandCount') or 0}/{command_family_probe.get('commandCount') or 0} public command help paths executed",
+                                    ),
+                                    depth_check(
+                                        "runtimeSkillPluginReceipts",
+                                        True,
+                                        f"{skill_plugin_receipts.get('passedReceiptCount') or 0}/{skill_plugin_receipts.get('receiptCount') or 0} skill/plugin receipts executed",
+                                    ),
+                                    depth_check(
+                                        "runtimeWorkflowChainReceipts",
+                                        True,
+                                        f"{workflow_chain_receipts.get('passedReceiptCount') or 0}/{workflow_chain_receipts.get('receiptCount') or 0} workflow-chain receipts executed",
+                                    ),
+                                    depth_check("runtimeScenarioMatrixReceipts", False, "complete public developer journeys are not yet executed across iOS, release, privacy, CI, plugin, and docs surfaces"),
+                                ],
+                                recommendation="Add scenario-matrix receipts that execute full public developer journeys, not only individual commands or one report-quality chain.",
+                                proof="Run value-gauntlet plus focused scenario-matrix receipt fixtures across iOS, release, privacy, CI, plugin, and docs journeys.",
+                            )
+                        else:
+                            answer = surface_probe_row(
+                                surface_type="cross-cutting",
+                                identifier="shipguard value-gauntlet workflow-chain-receipts",
+                                name="Workflow chain receipts",
+                                base_score=100,
+                                base_status="pass",
+                                depth_checks=[
+                                    depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
+                                    depth_check(
+                                        "runtimeOutputProbe",
+                                        True,
+                                        f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100",
+                                    ),
+                                    depth_check(
+                                        "runtimeRegressionFixtures",
+                                        True,
+                                        f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output",
+                                    ),
+                                    depth_check(
+                                        "runtimeCommandCoverage",
+                                        True,
+                                        f"{command_family_probe.get('passedCommandCount') or 0}/{command_family_probe.get('commandCount') or 0} public command help paths executed",
+                                    ),
+                                    depth_check(
+                                        "runtimeSkillPluginReceipts",
+                                        True,
+                                        f"{skill_plugin_receipts.get('passedReceiptCount') or 0}/{skill_plugin_receipts.get('receiptCount') or 0} skill/plugin receipts executed",
+                                    ),
+                                    depth_check(
+                                        "runtimeWorkflowChainReceipts",
+                                        False,
+                                        f"{workflow_chain_receipts.get('passedReceiptCount') or 0}/{workflow_chain_receipts.get('receiptCount') or 0} workflow-chain receipts passed",
+                                    ),
+                                ],
+                                recommendation="Add workflow chain receipts that prove report-quality questions become SpecForge tasks, validation commands, and the next slash plan/goal without manual interpretation.",
+                                proof="Run value-gauntlet, report-quality, spec-workflow, next-goal, and focused workflow-chain receipt fixture tests after adding the chain receipts.",
+                            )
                     else:
                         answer = surface_probe_row(
                             surface_type="cross-cutting",
@@ -1606,6 +1693,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     negative_fixture_probe = runtime_negative_fixture_probe(root)
     command_family_probe = runtime_command_family_probe(root)
     skill_plugin_receipts = skill_plugin_receipt_probe(root)
+    workflow_chain_receipts = workflow_chain_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -1618,6 +1706,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         negative_fixture_probe=negative_fixture_probe,
         command_family_probe=command_family_probe,
         skill_plugin_receipts=skill_plugin_receipts,
+        workflow_chain_receipts=workflow_chain_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -1656,6 +1745,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "runtimeOutputNegativeFixtures": negative_fixture_probe,
         "runtimeCommandFamilyCoverage": command_family_probe,
         "skillPluginRuntimeReceipts": skill_plugin_receipts,
+        "workflowChainReceipts": workflow_chain_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -1779,6 +1869,30 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_receipt_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_receipt_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+    workflow_chain_receipts = report.get("workflowChainReceipts") or {}
+    lines.extend(["", "## Workflow Chain Receipts", ""])
+    lines.append(f"- Status: {workflow_chain_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {workflow_chain_receipts.get('passedReceiptCount', 0)}/{workflow_chain_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {workflow_chain_receipts.get('commandCount', 0)}")
+    if workflow_chain_receipts.get("nextAction"):
+        lines.append(f"- Next action: {workflow_chain_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in workflow_chain_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 32)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_workflow_commands = [
+        (receipt, command)
+        for receipt in workflow_chain_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_workflow_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_workflow_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

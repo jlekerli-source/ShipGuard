@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added `workflowChainReceipts` to `shipguard value-gauntlet`: a public end-to-end receipt now runs design report -> report-quality -> spec-workflow -> spec report-quality -> next-goal against `fixtures/demo-ios-repo`, proving report-quality questions become SpecForge tasks, validation commands, slash plan/goal text, and a NextRail handoff before the next priority advances to scenario-matrix receipts.
 - Added `skillPluginRuntimeReceipts` to `shipguard value-gauntlet`: public receipt fixtures now execute iOS ShipGuard design-audit routing, starter UI-polish inventory/plan routing, and plugin cache status proof against public/demo inputs, so skill/plugin usefulness is tested through real ShipGuard commands before the next priority advances to workflow-chain receipts.
 - Added `runtimeCommandFamilyCoverage` to `shipguard value-gauntlet`: it now executes `--help` for all 51 registered public ShipGuard commands, fixes top-level help routing for command families that previously treated `--help` as an invalid file/path/subcommand, and moves the next priority to skill/plugin runtime receipt fixtures.
 - Added `runtimeOutputNegativeFixtures` to `shipguard value-gauntlet`: synthetic public bad-output fixtures now prove decorative empty reports and boundaryless design reports are rejected, and the next priority advances to broader command-family runtime execution.

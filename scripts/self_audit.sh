@@ -239,6 +239,7 @@ required_artifacts=(
   "fixtures/tool-value-gauntlet/skill-plugin-receipts/ios-shipguard-design-audit/receipt.json"
   "fixtures/tool-value-gauntlet/skill-plugin-receipts/plugin-cache-status/receipt.json"
   "fixtures/tool-value-gauntlet/skill-plugin-receipts/starter-ui-polish-plan/receipt.json"
+  "fixtures/tool-value-gauntlet/workflow-chain-receipts/report-quality-to-spec-and-next-goal/receipt.json"
   "fixtures/demo-ios-repo/DemoShipGuardApp.xcodeproj/project.pbxproj"
   "fixtures/demo-ios-repo/DemoShipGuardApp.xcodeproj/xcshareddata/xcschemes/DemoShipGuardApp.xcscheme"
   "fixtures/demo-ios-repo/DemoShipGuardApp.xctestplan"

@@ -10,7 +10,7 @@ Current checkout:
 
 ```bash
 ./bin/shipguard version
-# 3.92.0
+# 3.93.0
 
 ./bin/shipguard validate
 # workflow bundle validation passed
@@ -149,13 +149,15 @@ The next materialized-fixture loop showed a promoted synthetic fixture could pas
 
 The next promotion-workflow loop showed generated materialized fixtures were safe and recursive-fixture-proof, but still left the repo promotion step implicit. `ios report-quality --write-fixture-candidates` now emits `fixture-promotion-manifest.json`, `PROMOTION.md`, and per-candidate promotion metadata with repo-relative suggested paths, placeholder copy commands, validation commands, and a private-data review checklist without auto-copying candidates into the repository.
 
+The next value-gauntlet loop showed skill/plugin receipt proof was useful but still stopped before the full ShipGuard product workflow: a report-quality question could exist without proof that it became a spec task, validation command, slash plan, and following goal. `shipguard value-gauntlet` now emits `workflowChainReceipts` and runs a public chain over `fixtures/demo-ios-repo`: `ios design --shipguard-eval --shareable`, `ios report-quality --shareable`, `ios spec-workflow --from-report --shipguard-eval --shareable`, spec report-quality, and `next-goal`. The current next gap is broader scenario-matrix receipts that execute complete public developer journeys across iOS, release, privacy, CI, plugin, and docs surfaces.
+
 The next promotion-manifest consumption loop scored the full materialized fixture root and exposed a second-order gap: `fixture-promotion-manifest.json` was being graded as a report-quality source report, creating false `self-report-skipped` and Markdown companion findings. Report-quality now excludes promotion manifests from source-report discovery, consumes them as fixture metadata, renders a `Fixture Promotion Manifests` section, and flags unsafe paths, local/token-like metadata, missing copy placeholders, missing validation commands, incomplete review checklists, stale guide paths, or missing materialized files.
 
 The next read-only Ringly/Ilmify report-quality pass still left a manual gap: it asked which private observation should become a public fixture, but did not produce a safe fixture recipe. `ios report-quality` now emits `fixtureCandidates` with fixture type, synthetic public fixture path, source question, validation commands, and a private-data policy. The goal is to turn private-app evidence into public ShipGuard fixtures without copying private app code, screenshots, local paths, identifiers, or proprietary text.
 
 The next read-only full-report pass showed report-quality could score all source reports as structurally valid while leaving 21 actionability questions unranked and even suggesting "fix high report-quality issues" when there were no findings. `ios report-quality` now emits `priorityAction` and `prioritizedActionabilityQuestions`, ranks report-quality findings before questions, and ranks questions from blocked/review source reports before lower-risk output so the next ShipGuard improvement is concrete.
 
-The installed Codex cache now has `ios-shipguard` metadata version `0.2.7+codex.20260618064543`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, source-path MCP sidecar, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
+The installed Codex cache now has `ios-shipguard` metadata version `0.2.8+codex.20260618070304`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, source-path MCP sidecar, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
 
 The next value-gauntlet pass scored the ShipYard at 100.0 but still prioritized whether low-value patterns should become public fixtures. That question is now promoted into `fixtures/ios-report-quality/value-gauntlet-actionability`, a synthetic report-quality fixture that keeps `shipguard value-gauntlet` actionability visible while proving materialized fixtures do not recursively emit more fixture candidates.
 
@@ -169,7 +171,9 @@ The negative runtime-output slice now adds public synthetic fixtures under `fixt
 
 The command-family runtime slice now executes `--help` for all 51 registered public ShipGuard commands through `runtimeCommandFamilyCoverage`. That probe exposed top-level wrapper routes where `--help` was treated as an invalid file, path, or missing subcommand; the wrapper now handles top-level help consistently. With all public command help paths passing, ShipGuard could move beyond command entry points and test skill/plugin runtime receipts.
 
-The skill/plugin receipt slice now adds public fixtures under `fixtures/tool-value-gauntlet/skill-plugin-receipts`. `skillPluginRuntimeReceipts` executes the iOS ShipGuard design-audit route, a starter UI-polish inventory/plan route, and plugin cache status proof against a synthetic Codex plugin cache. The receipts must produce real JSON/Markdown artifacts or stdout proof before the skill/plugin layer passes. With those receipts green, the next weakness is workflow-chain receipts that prove report-quality questions become SpecForge tasks and the next slash plan without manual interpretation.
+The skill/plugin receipt slice now adds public fixtures under `fixtures/tool-value-gauntlet/skill-plugin-receipts`. `skillPluginRuntimeReceipts` executes the iOS ShipGuard design-audit route, a starter UI-polish inventory/plan route, and plugin cache status proof against a synthetic Codex plugin cache. The receipts must produce real JSON/Markdown artifacts or stdout proof before the skill/plugin layer passes.
+
+The workflow-chain receipt slice now adds a public fixture under `fixtures/tool-value-gauntlet/workflow-chain-receipts`. `workflowChainReceipts` executes design -> report-quality -> spec-workflow -> spec report-quality -> next-goal, and requires the source actionability question, proof-gated task, validation commands, copy-ready slash plan/goal, and following NextRail handoff to survive the chain. With that receipt green, the next weakness is scenario-matrix receipts that execute complete public developer journeys across command families.
 
 ## Verdict
 

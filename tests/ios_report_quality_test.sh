@@ -1264,12 +1264,12 @@ for candidate in data.get("fixtureCandidates") or []:
 priority = data.get("priorityAction") or {}
 if priority.get("question") == covered_question:
     raise SystemExit(f"covered value-gauntlet question should not remain the priority action: {priority!r}")
-if "workflow chain receipts" not in priority.get("question", ""):
-    raise SystemExit(f"expected next uncovered workflow-chain receipt value-gauntlet question as priority: {priority!r}")
+if "scenario-matrix receipts" not in priority.get("question", ""):
+    raise SystemExit(f"expected next uncovered scenario-matrix receipt value-gauntlet question as priority: {priority!r}")
 PY
 
 json_stdout="$(./bin/shipguard ios report-quality --reports "$reports" --json)"
 printf '%s\n' "$json_stdout" | python3 -m json.tool >/dev/null
-printf '%s\n' "$json_stdout" | grep -q '"tool": "shipguard ios report-quality"'
+grep -q '"tool": "shipguard ios report-quality"' <<<"$json_stdout"
 
 echo "ios report quality tests passed"
