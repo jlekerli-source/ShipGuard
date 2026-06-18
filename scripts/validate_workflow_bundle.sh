@@ -304,6 +304,7 @@ required_files=(
   "tests/profile_audit_test.sh"
   "tests/profile_fix_plan_test.sh"
   "tests/profile_validation_receipts_test.sh"
+  "tests/profile_validation_rerun_receipts_test.sh"
   "tests/tool_value_gauntlet_test.sh"
   "tests/ios_launchdeck_test.sh"
   "tests/ios_codex_handoff_test.sh"

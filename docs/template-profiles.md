@@ -30,7 +30,7 @@ The iOS profile includes alarm, notification, release, bug-triage, and UI-polish
 ./bin/shipguard web plan --report /tmp/shipguard-web-audit --target ../my-web-app --out /tmp/shipguard-web-plan --shareable
 ```
 
-The web profile copies the shared maintainer workflow files, `SHIPGUARD_PROFILE.md`, and a web-specific `AGENTS.md` that covers routing, auth, payments, migrations, browser validation, and build proof. ShipGuard WebScan turns that starter state into a read-only first audit with framework, auth/payment, validation, starter-health, and next-command evidence. ShipGuard WebForge then turns the audit into scoped tasks, validation commands, stop conditions, and report-quality questions without editing the target repo.
+The web profile copies the shared maintainer workflow files, `SHIPGUARD_PROFILE.md`, and a web-specific `AGENTS.md` that covers routing, auth, payments, migrations, browser validation, and build proof. ShipGuard WebScan turns that starter state into a read-only first audit with framework, auth/payment, validation, starter-health, and next-command evidence. ShipGuard WebForge then turns the audit into scoped tasks, validation commands, validation receipts, validation rerun receipts, stop conditions, and report-quality questions without editing the target repo.
 
 ## Backend
 
@@ -41,7 +41,7 @@ The web profile copies the shared maintainer workflow files, `SHIPGUARD_PROFILE.
 ./bin/shipguard backend plan --report /tmp/shipguard-backend-audit --target ../my-service --out /tmp/shipguard-backend-plan --shareable
 ```
 
-The backend profile writes `SHIPGUARD_PROFILE.md` and covers API endpoints, auth boundaries, migrations, queues, jobs, webhooks, observability, rollout risk, and operational proof. ShipGuard ServiceRadar turns those signals into a read-only first audit with validation guidance and backend-specific next commands. ShipGuard ServiceForge then turns the audit into scoped backend tasks, validation commands, stop conditions, and report-quality questions without contacting services or editing code.
+The backend profile writes `SHIPGUARD_PROFILE.md` and covers API endpoints, auth boundaries, migrations, queues, jobs, webhooks, observability, rollout risk, and operational proof. ShipGuard ServiceRadar turns those signals into a read-only first audit with validation guidance and backend-specific next commands. ShipGuard ServiceForge then turns the audit into scoped backend tasks, validation commands, validation receipts, validation rerun receipts, stop conditions, and report-quality questions without contacting services or editing code.
 
 ## CLI
 
@@ -52,7 +52,7 @@ The backend profile writes `SHIPGUARD_PROFILE.md` and covers API endpoints, auth
 ./bin/shipguard cli plan --report /tmp/shipguard-cli-audit --target ../my-tool --out /tmp/shipguard-cli-plan --shareable
 ```
 
-The CLI profile writes `SHIPGUARD_PROFILE.md` and covers command dispatch, argument parsing, file safety, stdout and stderr contracts, exit codes, token redaction, cross-platform behavior, and package proof. ShipGuard CommandLens turns those signals into a read-only first audit with contract, redaction, packaging, validation, and next-command guidance. ShipGuard CommandForge then turns the audit into scoped CLI contract tasks, smoke checks, validation commands, stop conditions, and report-quality questions without executing the target CLI.
+The CLI profile writes `SHIPGUARD_PROFILE.md` and covers command dispatch, argument parsing, file safety, stdout and stderr contracts, exit codes, token redaction, cross-platform behavior, and package proof. ShipGuard CommandLens turns those signals into a read-only first audit with contract, redaction, packaging, validation, and next-command guidance. ShipGuard CommandForge then turns the audit into scoped CLI contract tasks, smoke checks, validation commands, validation receipts, validation rerun receipts, stop conditions, and report-quality questions without executing the target CLI.
 
 ## Compatibility
 

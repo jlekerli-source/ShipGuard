@@ -263,6 +263,7 @@ grep -q "^$package_name/tests/policy_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/profile_audit_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/profile_fix_plan_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/profile_validation_receipts_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/profile_validation_rerun_receipts_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_attest_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_consume_action_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_consume_test.sh$" "$tar_list"
@@ -736,6 +737,7 @@ grep -q 'actions/upload-artifact@v4' "$package_root/actions/release-consume/acti
 "$package_root/tests/profile_audit_test.sh" >/dev/null
 "$package_root/tests/profile_fix_plan_test.sh" >/dev/null
 "$package_root/tests/profile_validation_receipts_test.sh" >/dev/null
+"$package_root/tests/profile_validation_rerun_receipts_test.sh" >/dev/null
 package_raw_transcript="$tmp_dir/package-raw-transcript.md"
 package_home_prefix="/""home"
 package_home_path="$package_home_prefix/runner/AcmePrivateApp"
@@ -910,7 +912,9 @@ grep -q '| scripts/codex_status.sh | pass |' "$tmp_dir/package-self-audit/self-a
 grep -q '| tests/profile_audit_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| tests/profile_fix_plan_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| tests/profile_validation_receipts_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| tests/profile_validation_rerun_receipts_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/profile-native-validation-receipts/web-backend-cli-validation-receipts/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| fixtures/tool-value-gauntlet/profile-native-validation-rerun-receipts/web-backend-cli-validation-rerun-receipts/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q 'shipguard web audit' "$package_root/docs/cli.md"
 grep -q 'shipguard web plan' "$package_root/docs/cli.md"
 grep -q 'shipguard backend audit' "$package_root/docs/cli.md"
@@ -943,6 +947,7 @@ grep -q './bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gaun
 grep -q './tests/profile_audit_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/profile_fix_plan_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/profile_validation_receipts_test.sh' "$tmp_dir/package-next-goal.md"
+grep -q './tests/profile_validation_rerun_receipts_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/tool_value_gauntlet_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/ios_launchdeck_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/ios_performance_test.sh' "$tmp_dir/package-next-goal.md"

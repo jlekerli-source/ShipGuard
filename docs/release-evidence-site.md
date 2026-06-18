@@ -6,10 +6,10 @@ Use it after running `release-consume verify`, and optionally after running `rel
 
 ```bash
 ./bin/shipguard release-evidence site \
-  --consume /tmp/shipguard-v3.102.0/consumer-proof \
+  --consume /tmp/shipguard-v3.103.0/consumer-proof \
   --diff /tmp/shipguard-release-diff \
   --out /tmp/shipguard-release-site \
-  --title "ShipGuard v3.102.0 Evidence"
+  --title "ShipGuard v3.103.0 Evidence"
 ```
 
 Outputs:
@@ -29,4 +29,4 @@ Use `shipguard release-evidence index` when you want to collect multiple site ex
 
 Use `shipguard release-evidence bundle` when you want to start from downloaded release assets and produce consumer proof, optional diff proof, the site, and an index in one command. See `release-evidence-bundle.md`.
 
-For GitHub Actions, use `jlekerli-source/ShipGuard/actions/release-evidence@v3.102.0` after `actions/release-consume` and optional `actions/release-diff`. See `release-evidence-action.md`.
+For GitHub Actions, use `jlekerli-source/ShipGuard/actions/release-evidence@v3.103.0` after `actions/release-consume` and optional `actions/release-diff`. See `release-evidence-action.md`.

@@ -1,0 +1,457 @@
+{
+  "id": "web-backend-cli-validation-rerun-receipts",
+  "kind": "profile-native-validation-rerun-receipt",
+  "surface": "ShipGuard profile-native validation rerun path",
+  "selectedSkill": "ios-shipguard",
+  "selectedMode": "profile-native-validation-rerun-receipts",
+  "trigger": "User asks whether ShipGuard can prove a blocked profile validation lane shows the smallest repair and passes after rerunning the plan, without editing private apps.",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/profile_fix_plan.py",
+    "scripts/tool_value_gauntlet.py",
+    "docs/template-profiles.md",
+    "docs/command-matrix.md",
+    "docs/cli.md",
+    "tests/profile_validation_rerun_receipts_test.sh",
+    "tests/tool_value_gauntlet_test.sh"
+  ],
+  "expectedSourcePhrases": [
+    "validationRerunReceipts",
+    "read-only repair/rerun guidance",
+    "profile-native validation rerun receipts"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppDetailsAllowed": false,
+    "commandsExecuted": false,
+    "repairsAreFixtureLocal": true
+  },
+  "commands": [
+    {
+      "id": "web-blocked-lint-plan",
+      "display": "./bin/shipguard web plan --report <web-audit> --target <fresh-web-target> --out <receipt-out>/web-plan-blocked --shipguard-eval --shareable",
+      "prepareFiles": [
+        {
+          "path": "target-web/package.json",
+          "text": "{\n  \"scripts\": {},\n  \"dependencies\": {\"next\": \"latest\"}\n}\n"
+        },
+        {
+          "path": "web-audit/web-audit.json",
+          "text": "{\n  \"schemaVersion\": 1,\n  \"tool\": \"shipguard web audit\",\n  \"surface\": \"ShipGuard WebScan\",\n  \"profile\": \"web\",\n  \"generatedAt\": \"2026-06-18T00:00:00Z\",\n  \"status\": \"pass\",\n  \"target\": {\"root\": \"<target-repo>\", \"fileCountScanned\": 2},\n  \"recommendedFirstCommands\": [\"shipguard web audit --path . --out /tmp/shipguard-web-audit\"],\n  \"recommendedValidation\": [\"npm run lint\"],\n  \"findings\": [],\n  \"reportQualityQuestions\": [\"Does ShipGuard web plan prove blocked validation lanes can be repaired and rerun?\"]\n}\n"
+        }
+      ],
+      "args": [
+        "web",
+        "plan",
+        "--report",
+        "{out}/web-audit",
+        "--out",
+        "{out}/web-plan-blocked",
+        "--target",
+        "{out}/target-web",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "blockingProof": {
+        "artifact": "web-plan-blocked/web-plan.json",
+        "path": "validationReceipts.blockedCount",
+        "min": 1
+      },
+      "artifacts": [
+        {
+          "path": "web-plan-blocked/web-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "profile",
+            "validationReceipts",
+            "validationRerunReceipts"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "validationRerunReceipts.pairs"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard web plan"
+            },
+            {
+              "path": "validationReceipts.blockedCount",
+              "equals": 1
+            },
+            {
+              "path": "validationRerunReceipts.pairCount",
+              "equals": 1
+            },
+            {
+              "path": "validationRerunReceipts.blockedPairCount",
+              "equals": 1
+            }
+          ]
+        },
+        {
+          "path": "web-plan-blocked/web-plan.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "Validation Rerun Receipts",
+            "blocked_until_repaired",
+            "Rerun template"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "web-repair-lint-script",
+      "display": "fixture repair: add package.json scripts.lint, then run shipguard version",
+      "prepareFiles": [
+        {
+          "path": "target-web/package.json",
+          "text": "{\n  \"scripts\": {\"lint\": \"eslint .\"},\n  \"dependencies\": {\"next\": \"latest\"}\n}\n"
+        }
+      ],
+      "args": [
+        "version"
+      ],
+      "expectedOutputPhrases": [
+        "3."
+      ]
+    },
+    {
+      "id": "web-rerun-lint-plan",
+      "display": "./bin/shipguard web plan --report <web-audit> --target <repaired-web-target> --out <receipt-out>/web-plan-rerun --shipguard-eval --shareable",
+      "args": [
+        "web",
+        "plan",
+        "--report",
+        "{out}/web-audit",
+        "--out",
+        "{out}/web-plan-rerun",
+        "--target",
+        "{out}/target-web",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "web-plan-rerun/web-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "profile",
+            "validationReceipts",
+            "validationRerunReceipts"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard web plan"
+            },
+            {
+              "path": "validationReceipts.blockedCount",
+              "equals": 0
+            },
+            {
+              "path": "validationRerunReceipts.pairCount",
+              "equals": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "backend-blocked-lint-plan",
+      "display": "./bin/shipguard backend plan --report <backend-audit> --target <fresh-backend-target> --out <receipt-out>/backend-plan-blocked --shipguard-eval --shareable",
+      "prepareFiles": [
+        {
+          "path": "target-backend/pyproject.toml",
+          "text": "[project]\nname = \"demo-service\"\n"
+        },
+        {
+          "path": "backend-audit/backend-audit.json",
+          "text": "{\n  \"schemaVersion\": 1,\n  \"tool\": \"shipguard backend audit\",\n  \"surface\": \"ShipGuard ServiceRadar\",\n  \"profile\": \"backend\",\n  \"generatedAt\": \"2026-06-18T00:00:00Z\",\n  \"status\": \"pass\",\n  \"target\": {\"root\": \"<target-repo>\", \"fileCountScanned\": 2},\n  \"recommendedFirstCommands\": [\"shipguard backend audit --path . --out /tmp/shipguard-backend-audit\"],\n  \"recommendedValidation\": [\"lint/typecheck\"],\n  \"findings\": [],\n  \"reportQualityQuestions\": [\"Does ShipGuard backend plan prove blocked validation lanes can be repaired and rerun?\"]\n}\n"
+        }
+      ],
+      "args": [
+        "backend",
+        "plan",
+        "--report",
+        "{out}/backend-audit",
+        "--out",
+        "{out}/backend-plan-blocked",
+        "--target",
+        "{out}/target-backend",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "blockingProof": {
+        "artifact": "backend-plan-blocked/backend-plan.json",
+        "path": "validationReceipts.blockedCount",
+        "min": 1
+      },
+      "artifacts": [
+        {
+          "path": "backend-plan-blocked/backend-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "profile",
+            "validationReceipts",
+            "validationRerunReceipts"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "validationRerunReceipts.pairs"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard backend plan"
+            },
+            {
+              "path": "validationReceipts.blockedCount",
+              "equals": 1
+            },
+            {
+              "path": "validationRerunReceipts.pairCount",
+              "equals": 1
+            },
+            {
+              "path": "validationRerunReceipts.blockedPairCount",
+              "equals": 1
+            }
+          ]
+        },
+        {
+          "path": "backend-plan-blocked/backend-plan.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "Validation Rerun Receipts",
+            "blocked_until_repaired",
+            "Rerun template"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "backend-repair-lint-signal",
+      "display": "fixture repair: add pyproject ruff signal, then run shipguard version",
+      "prepareFiles": [
+        {
+          "path": "target-backend/pyproject.toml",
+          "text": "[project]\nname = \"demo-service\"\n\n[tool.ruff]\nline-length = 120\n"
+        }
+      ],
+      "args": [
+        "version"
+      ],
+      "expectedOutputPhrases": [
+        "3."
+      ]
+    },
+    {
+      "id": "backend-rerun-lint-plan",
+      "display": "./bin/shipguard backend plan --report <backend-audit> --target <repaired-backend-target> --out <receipt-out>/backend-plan-rerun --shipguard-eval --shareable",
+      "args": [
+        "backend",
+        "plan",
+        "--report",
+        "{out}/backend-audit",
+        "--out",
+        "{out}/backend-plan-rerun",
+        "--target",
+        "{out}/target-backend",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "backend-plan-rerun/backend-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "profile",
+            "validationReceipts",
+            "validationRerunReceipts"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard backend plan"
+            },
+            {
+              "path": "validationReceipts.blockedCount",
+              "equals": 0
+            },
+            {
+              "path": "validationRerunReceipts.pairCount",
+              "equals": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cli-blocked-help-plan",
+      "display": "./bin/shipguard cli plan --report <cli-audit> --target <fresh-cli-target> --out <receipt-out>/cli-plan-blocked --shipguard-eval --shareable",
+      "prepareFiles": [
+        {
+          "path": "target-cli/package.json",
+          "text": "{\n  \"scripts\": {},\n  \"dependencies\": {\"commander\": \"latest\"}\n}\n"
+        },
+        {
+          "path": "cli-audit/cli-audit.json",
+          "text": "{\n  \"schemaVersion\": 1,\n  \"tool\": \"shipguard cli audit\",\n  \"surface\": \"ShipGuard CommandLens\",\n  \"profile\": \"cli\",\n  \"generatedAt\": \"2026-06-18T00:00:00Z\",\n  \"status\": \"pass\",\n  \"target\": {\"root\": \"<target-repo>\", \"fileCountScanned\": 2},\n  \"recommendedFirstCommands\": [\"shipguard cli audit --path . --out /tmp/shipguard-cli-audit\"],\n  \"recommendedValidation\": [\"--help smoke test\"],\n  \"findings\": [],\n  \"reportQualityQuestions\": [\"Does ShipGuard CLI plan prove blocked validation lanes can be repaired and rerun?\"]\n}\n"
+        }
+      ],
+      "args": [
+        "cli",
+        "plan",
+        "--report",
+        "{out}/cli-audit",
+        "--out",
+        "{out}/cli-plan-blocked",
+        "--target",
+        "{out}/target-cli",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "blockingProof": {
+        "artifact": "cli-plan-blocked/cli-plan.json",
+        "path": "validationReceipts.blockedCount",
+        "min": 1
+      },
+      "artifacts": [
+        {
+          "path": "cli-plan-blocked/cli-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "profile",
+            "validationReceipts",
+            "validationRerunReceipts"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "validationRerunReceipts.pairs"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard cli plan"
+            },
+            {
+              "path": "validationReceipts.blockedCount",
+              "equals": 1
+            },
+            {
+              "path": "validationRerunReceipts.pairCount",
+              "equals": 1
+            },
+            {
+              "path": "validationRerunReceipts.blockedPairCount",
+              "equals": 1
+            }
+          ]
+        },
+        {
+          "path": "cli-plan-blocked/cli-plan.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "Validation Rerun Receipts",
+            "blocked_until_repaired",
+            "Rerun template"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "cli-repair-bin-entry",
+      "display": "fixture repair: add package.json bin entry, then run shipguard version",
+      "prepareFiles": [
+        {
+          "path": "target-cli/package.json",
+          "text": "{\n  \"bin\": {\"demo-cli\": \"bin/demo-cli.js\"},\n  \"scripts\": {},\n  \"dependencies\": {\"commander\": \"latest\"}\n}\n"
+        }
+      ],
+      "args": [
+        "version"
+      ],
+      "expectedOutputPhrases": [
+        "3."
+      ]
+    },
+    {
+      "id": "cli-rerun-help-plan",
+      "display": "./bin/shipguard cli plan --report <cli-audit> --target <repaired-cli-target> --out <receipt-out>/cli-plan-rerun --shipguard-eval --shareable",
+      "args": [
+        "cli",
+        "plan",
+        "--report",
+        "{out}/cli-audit",
+        "--out",
+        "{out}/cli-plan-rerun",
+        "--target",
+        "{out}/target-cli",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "cli-plan-rerun/cli-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "profile",
+            "validationReceipts",
+            "validationRerunReceipts"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard cli plan"
+            },
+            {
+              "path": "validationReceipts.blockedCount",
+              "equals": 0
+            },
+            {
+              "path": "validationRerunReceipts.pairCount",
+              "equals": 0
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "remediationPairs": [
+    {
+      "id": "web-lint-smallest-repair",
+      "blockedCommandId": "web-blocked-lint-plan",
+      "repairCommandIds": [
+        "web-repair-lint-script"
+      ],
+      "rerunCommandId": "web-rerun-lint-plan",
+      "smallestRepair": "Add only package.json scripts.lint, then rerun WebForge and require blockedCount to clear."
+    },
+    {
+      "id": "backend-lint-smallest-repair",
+      "blockedCommandId": "backend-blocked-lint-plan",
+      "repairCommandIds": [
+        "backend-repair-lint-signal"
+      ],
+      "rerunCommandId": "backend-rerun-lint-plan",
+      "smallestRepair": "Add only a pyproject Ruff signal, then rerun ServiceForge and require blockedCount to clear."
+    },
+    {
+      "id": "cli-help-smallest-repair",
+      "blockedCommandId": "cli-blocked-help-plan",
+      "repairCommandIds": [
+        "cli-repair-bin-entry"
+      ],
+      "rerunCommandId": "cli-rerun-help-plan",
+      "smallestRepair": "Add only the package.json bin entry, then rerun CommandForge and require blockedCount to clear."
+    }
+  ]
+}

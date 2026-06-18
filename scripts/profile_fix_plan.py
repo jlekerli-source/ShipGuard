@@ -586,6 +586,84 @@ def build_validation_receipts(profile: str, commands: list[str], target: Path | 
     }
 
 
+def receipt_slug(value: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+    return slug[:64] or "validation-lane"
+
+
+def rerun_plan_command(profile: str, audit_path: Path, target: Path | None, *, shareable: bool, shipguard_eval: bool) -> str:
+    report_arg = f"<{profile}-audit-report>" if shareable else audit_path.resolve().as_posix()
+    target_arg = "<target-repo>" if target is None else display_target_path(target, shareable=shareable)
+    parts = [
+        f"shipguard {profile} plan",
+        f"--report {report_arg}",
+        f"--target {target_arg}",
+        "--out <rerun-plan-out>",
+    ]
+    if shipguard_eval:
+        parts.append("--shipguard-eval")
+    if shareable:
+        parts.append("--shareable")
+    return " ".join(parts)
+
+
+def build_validation_rerun_receipts(
+    profile: str,
+    validation_receipts: dict[str, Any],
+    audit_path: Path,
+    target: Path | None,
+    *,
+    shareable: bool,
+    shipguard_eval: bool,
+) -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    rerun_command = rerun_plan_command(profile, audit_path, target, shareable=shareable, shipguard_eval=shipguard_eval)
+    for item in validation_receipts.get("receipts") or []:
+        status = str(item.get("status") or "")
+        command = str(item.get("command") or "")
+        if status == "blocked":
+            rows.append(
+                {
+                    "id": f"repair-{receipt_slug(command)}",
+                    "blockedCommand": command,
+                    "blockedStatus": status,
+                    "blockerEvidence": item.get("evidence") or [],
+                    "smallestRepair": item.get("recommendedAction") or "Make this validation lane concrete before claiming proof.",
+                    "rerunCommand": rerun_command,
+                    "proofGuidance": item.get("proofGuidance") or "Rerun the plan after the smallest repair and verify this lane is no longer blocked.",
+                    "repairAuthorized": False,
+                    "rerunAuthorized": False,
+                    "status": "blocked_until_repaired",
+                }
+            )
+        elif status == "not_checked":
+            rows.append(
+                {
+                    "id": f"target-required-{receipt_slug(command)}",
+                    "blockedCommand": command,
+                    "blockedStatus": status,
+                    "blockerEvidence": item.get("evidence") or [],
+                    "smallestRepair": f"Provide `--target <repo>` to classify `{command}` against the real target checkout.",
+                    "rerunCommand": rerun_plan_command(profile, audit_path, target, shareable=shareable, shipguard_eval=shipguard_eval),
+                    "proofGuidance": "Rerun the profile plan with a target-backed receipt before claiming validation proof.",
+                    "repairAuthorized": False,
+                    "rerunAuthorized": False,
+                    "status": "target_required",
+                }
+            )
+    blocked_pairs = sum(1 for row in rows if row["status"] == "blocked_until_repaired")
+    not_checked_pairs = sum(1 for row in rows if row["status"] == "target_required")
+    return {
+        "checked": validation_receipts.get("checked") is True,
+        "mode": "read-only repair/rerun guidance; repair and rerun commands were not executed",
+        "pairCount": len(rows),
+        "blockedPairCount": blocked_pairs,
+        "notCheckedPairCount": not_checked_pairs,
+        "rerunCommandTemplate": rerun_command,
+        "pairs": rows,
+    }
+
+
 def build_report(profile: str, report_path: Path, *, target_path: str | None, shareable: bool, shipguard_eval: bool) -> dict[str, Any]:
     config = PLAN_CONFIG[profile]
     audit_path = resolve_report(report_path, profile)
@@ -598,10 +676,19 @@ def build_report(profile: str, report_path: Path, *, target_path: str | None, sh
     validation = collect_validation_commands(tasks)
     target = target_from_args(target_path, audit)
     validation_receipts = build_validation_receipts(profile, validation, target, shareable=shareable)
+    validation_rerun_receipts = build_validation_rerun_receipts(
+        profile,
+        validation_receipts,
+        audit_path,
+        target,
+        shareable=shareable,
+        shipguard_eval=shipguard_eval,
+    )
     status = "review" if audit.get("status") != "pass" or any(task["severity"] == "review" for task in tasks) else "pass"
     questions = [
         f"Does {config['surface']} turn {config['auditSurface']} findings into scoped tasks with validation commands?",
         f"Do validation receipts distinguish runnable {profile} commands from blockers without executing arbitrary target commands?",
+        f"Do validation rerun receipts show the smallest repair and rerun path for blocked {profile} validation lanes?",
         f"Are the {profile} plan tasks concrete enough for a solo developer to execute without guessing?",
         f"Does the {profile} plan keep target-app work read-only until a separate implementation task is authorized?",
     ]
@@ -637,9 +724,11 @@ def build_report(profile: str, report_path: Path, *, target_path: str | None, sh
         },
         "validationCommands": validation,
         "validationReceipts": validation_receipts,
+        "validationRerunReceipts": validation_rerun_receipts,
         "stopConditions": [
             "Stop before editing the target repo unless the user explicitly changes the task from ShipGuard product QA to app implementation.",
             "Stop if validation receipts mark a command blocked or not_checked; record the exact blocker instead of claiming proof.",
+            "Stop if validation rerun receipts do not show the smallest repair and a rerun command for a blocked lane.",
             "Stop if report-quality flags missing scope boundary, local path leakage, or generic recommendations.",
         ],
         "reportQualityQuestions": questions,
@@ -702,6 +791,28 @@ def render_markdown(report: dict[str, Any]) -> str:
     for item in receipts["receipts"]:
         evidence = "; ".join(item.get("evidence") or [])
         lines.append(f"| {item['status']} | `{item['command']}` | {evidence} | {item['recommendedAction']} |")
+    rerun = report["validationRerunReceipts"]
+    lines.extend(
+        [
+            "",
+            "## Validation Rerun Receipts",
+            "",
+            f"- Checked target: {str(rerun['checked']).lower()}",
+            f"- Mode: {rerun['mode']}",
+            f"- Repair/rerun pairs: {rerun['pairCount']}",
+            f"- Blocked pairs: {rerun['blockedPairCount']}",
+            f"- Not-checked pairs: {rerun['notCheckedPairCount']}",
+            f"- Rerun template: `{rerun['rerunCommandTemplate']}`",
+            "",
+            "| Status | Blocked Command | Smallest Repair | Rerun |",
+            "| --- | --- | --- | --- |",
+        ]
+    )
+    if rerun["pairs"]:
+        for item in rerun["pairs"]:
+            lines.append(f"| {item['status']} | `{item['blockedCommand']}` | {item['smallestRepair']} | `{item['rerunCommand']}` |")
+    else:
+        lines.append("| pass | - | No blocked or unchecked validation lanes were detected. | - |")
     lines.extend(["", "## Stop Conditions", ""])
     for condition in report["stopConditions"]:
         lines.append(f"- {condition}")

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `validationRerunReceipts` to `shipguard web plan`, `shipguard backend plan`, and `shipguard cli plan`: WebForge, ServiceForge, and CommandForge now show the smallest repair plus rerun command for blocked or unchecked validation lanes while keeping target repos read-only.
+- Added `profileNativeValidationRerunReceipts` to `shipguard value-gauntlet`: a public web/backend/CLI receipt now starts with blocked validation lanes, applies fixture-local smallest repairs, reruns the plans, proves the blockers clear, and advances the next priority to profile-native proof handoff receipts.
 - Added `--target <repo>` validation receipts to `shipguard web plan`, `shipguard backend plan`, and `shipguard cli plan`: WebForge, ServiceForge, and CommandForge now classify validation lanes as runnable, blocked, manual, or not checked without executing arbitrary target commands.
 - Added `profileNativeValidationReceipts` to `shipguard value-gauntlet`: a public web/backend/CLI receipt now proves the profile plan commands emit target-backed validation evidence and advances the next priority to validation rerun receipts.
 - Added `shipguard web plan`, `shipguard backend plan`, and `shipguard cli plan` as profile-native fix-plan commands: ShipGuard WebForge, ServiceForge, and CommandForge now convert first-audit reports into scoped tasks, validation commands, stop conditions, ShipGuard-only eval boundaries, shareable output, and report-quality questions without editing target repos.

@@ -42,6 +42,7 @@ grep -q '"multiProfileOnboardingReceipts":' "$tmp_dir/gauntlet/tool-value-gauntl
 grep -q '"profileNativeFirstAuditReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"profileNativeFixPlanReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"profileNativeValidationReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"profileNativeValidationRerunReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"priorityActions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"reportQualityQuestions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard score"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -79,8 +80,9 @@ grep -q 'Multi-Profile Onboarding Receipts' "$tmp_dir/gauntlet/tool-value-gauntl
 grep -q 'Profile-Native First-Audit Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Profile-Native Fix-Plan Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Profile-Native Validation Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Profile-Native Validation Rerun Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Report Quality Questions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
-grep -q 'profile-native validation rerun receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'profile-native proof handoff receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
 import sys
@@ -102,16 +104,17 @@ multi_profile = data.get("multiProfileOnboardingReceipts") or {}
 profile_native = data.get("profileNativeFirstAuditReceipts") or {}
 profile_fix = data.get("profileNativeFixPlanReceipts") or {}
 profile_validation = data.get("profileNativeValidationReceipts") or {}
+profile_validation_rerun = data.get("profileNativeValidationRerunReceipts") or {}
 if probe.get("question") != "Which ShipGuard command, skill, plugin, or action has the lowest developer-value score and should be upgraded next?":
     raise SystemExit(f"unexpected probe question: {probe!r}")
 for key in ("surfaceType", "identifier", "name", "baseScore", "depthScore", "depthChecks", "recommendation", "proofGuidance", "reason"):
     if key not in answer:
         raise SystemExit(f"probe answer missing {key}: {answer!r}")
-if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard value-gauntlet profile-native-validation-rerun-receipts":
-    raise SystemExit(f"passing profile-native validation receipts should escalate to validation rerun receipts: {answer!r}")
-if "runtimeProfileNativeValidationRerunReceipts" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"profile-native validation rerun receipt gap should be explicit: {answer!r}")
-for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts"):
+if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard value-gauntlet profile-native-proof-handoff-receipts":
+    raise SystemExit(f"passing profile-native validation rerun receipts should escalate to proof handoff receipts: {answer!r}")
+if "runtimeProfileNativeProofHandoffReceipts" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"profile-native proof handoff receipt gap should be explicit: {answer!r}")
+for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts"):
     if retired_signal in answer.get("missingDepthSignals", []):
         raise SystemExit(f"{retired_signal} should no longer be missing after fixture proof: {answer!r}")
 if not isinstance(probe.get("rankedSurfaces"), list) or not probe["rankedSurfaces"]:
@@ -441,6 +444,42 @@ for item in profile_validation.get("receipts") or []:
     for command in item.get("commands") or []:
         if command.get("status") != "pass" or command.get("missing"):
             raise SystemExit(f"profile-native validation command should pass without missing checks: {command!r}")
+if profile_validation_rerun.get("status") != "pass":
+    raise SystemExit(f"profile-native validation rerun receipts should pass: {profile_validation_rerun!r}")
+if profile_validation_rerun.get("receiptCount") != 1 or profile_validation_rerun.get("passedReceiptCount") != 1 or profile_validation_rerun.get("commandCount") != 9:
+    raise SystemExit(f"expected one profile-native validation rerun receipt and nine commands: {profile_validation_rerun!r}")
+if profile_validation_rerun.get("remediationPairCount") != 3 or profile_validation_rerun.get("passedRemediationPairCount") != 3:
+    raise SystemExit(f"expected three passing profile-native validation rerun pairs: {profile_validation_rerun!r}")
+profile_validation_rerun_ids = {item.get("id") for item in profile_validation_rerun.get("receipts") or []}
+if profile_validation_rerun_ids != {"web-backend-cli-validation-rerun-receipts"}:
+    raise SystemExit(f"unexpected profile-native validation rerun receipt fixtures: {profile_validation_rerun_ids!r}")
+for item in profile_validation_rerun.get("receipts") or []:
+    if item.get("status") != "pass" or item.get("missing"):
+        raise SystemExit(f"profile-native validation rerun receipt should pass without missing checks: {item!r}")
+    command_ids = {command.get("id") for command in item.get("commands") or []}
+    expected_commands = {
+        "web-blocked-lint-plan",
+        "web-repair-lint-script",
+        "web-rerun-lint-plan",
+        "backend-blocked-lint-plan",
+        "backend-repair-lint-signal",
+        "backend-rerun-lint-plan",
+        "cli-blocked-help-plan",
+        "cli-repair-bin-entry",
+        "cli-rerun-help-plan",
+    }
+    if command_ids != expected_commands:
+        raise SystemExit(f"unexpected profile-native validation rerun command set: {command_ids!r}")
+    pair_ids = {pair.get("id") for pair in item.get("remediationPairs") or []}
+    expected_pairs = {"web-lint-smallest-repair", "backend-lint-smallest-repair", "cli-help-smallest-repair"}
+    if pair_ids != expected_pairs:
+        raise SystemExit(f"unexpected profile-native validation rerun pairs: {pair_ids!r}")
+    for pair in item.get("remediationPairs") or []:
+        if pair.get("status") != "pass":
+            raise SystemExit(f"profile-native validation rerun pair should pass: {pair!r}")
+    for command in item.get("commands") or []:
+        if command.get("status") != "pass" or command.get("missing"):
+            raise SystemExit(f"profile-native validation rerun command should pass without missing checks: {command!r}")
 if "Which ShipGuard command" in data.get("reportQualityQuestions", []):
     raise SystemExit("the answered lowest-value question should not remain a report-quality question")
 retired_phrases = (
@@ -458,11 +497,12 @@ retired_phrases = (
     "profile-native first-audit receipts so web, backend, and CLI targets",
     "profile-native fix-plan receipts so web, backend, and CLI first audits",
     "profile-native validation receipts so web, backend, and CLI fix plans",
+    "profile-native validation rerun receipts so repaired web, backend, and CLI plans",
 )
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
     raise SystemExit(f"runtime-output, negative-fixture, command-family, skill/plugin receipt, workflow-chain, scenario-matrix, scenario-failure, scenario-remediation, adoption, target-onboarding, and multi-profile onboarding questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
-if not any("profile-native validation rerun receipts" in question for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"expected profile-native validation rerun quality question: {data.get('reportQualityQuestions')!r}")
+if not any("profile-native proof handoff receipts" in question for question in data.get("reportQualityQuestions", [])):
+    raise SystemExit(f"expected profile-native proof handoff quality question: {data.get('reportQualityQuestions')!r}")
 PY
 
 json_stdout="$(./bin/shipguard value-gauntlet --path . --json)"
@@ -479,6 +519,6 @@ grep -q '# ShipGuard Tool Value Gauntlet' <<<"$markdown_stdout"
 grep -q '"tool": "shipguard ios report-quality"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/quality/ios-report-quality.md"
-grep -q 'profile-native validation rerun receipts' "$tmp_dir/quality/ios-report-quality.md"
+grep -q 'profile-native proof handoff receipts' "$tmp_dir/quality/ios-report-quality.md"
 
 echo "tool value gauntlet tests passed"
