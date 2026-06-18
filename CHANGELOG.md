@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `--target <repo>` validation receipts to `shipguard web plan`, `shipguard backend plan`, and `shipguard cli plan`: WebForge, ServiceForge, and CommandForge now classify validation lanes as runnable, blocked, manual, or not checked without executing arbitrary target commands.
+- Added `profileNativeValidationReceipts` to `shipguard value-gauntlet`: a public web/backend/CLI receipt now proves the profile plan commands emit target-backed validation evidence and advances the next priority to validation rerun receipts.
 - Added `shipguard web plan`, `shipguard backend plan`, and `shipguard cli plan` as profile-native fix-plan commands: ShipGuard WebForge, ServiceForge, and CommandForge now convert first-audit reports into scoped tasks, validation commands, stop conditions, ShipGuard-only eval boundaries, shareable output, and report-quality questions without editing target repos.
 - Added `profileNativeFixPlanReceipts` to `shipguard value-gauntlet`: a public web/backend/CLI receipt now initializes fresh starter targets, runs first audits, converts each through the new plan commands, grades those plans with `ios report-quality`, and advances the next priority to profile-native validation receipts.
 - Added `shipguard web audit`, `shipguard backend audit`, and `shipguard cli audit` as profile-native first audits: ShipGuard WebScan, ServiceRadar, and CommandLens now emit JSON/Markdown reports with source signals, validation guidance, next commands, ShipGuard-only eval boundaries, shareable output, report-quality questions, and package/self-audit proof.

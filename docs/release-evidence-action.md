@@ -13,7 +13,7 @@ on:
       release-tag:
         description: Release tag to verify.
         required: true
-        default: v3.101.0
+        default: v3.102.0
       previous-tag:
         description: Previous release tag for diff proof.
         required: true
@@ -27,14 +27,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Verify published proof assets
-        uses: jlekerli-source/ShipGuard/actions/release-consume@v3.101.0
+        uses: jlekerli-source/ShipGuard/actions/release-consume@v3.102.0
         with:
           repo: jlekerli-source/ShipGuard
           release-tag: ${{ inputs.release-tag }}
           mode: fail
 
       - name: Compare release proof assets
-        uses: jlekerli-source/ShipGuard/actions/release-diff@v3.101.0
+        uses: jlekerli-source/ShipGuard/actions/release-diff@v3.102.0
         with:
           repo: jlekerli-source/ShipGuard
           left-tag: ${{ inputs.previous-tag }}
@@ -42,7 +42,7 @@ jobs:
           mode: fail
 
       - name: Export release evidence
-        uses: jlekerli-source/ShipGuard/actions/release-evidence@v3.101.0
+        uses: jlekerli-source/ShipGuard/actions/release-evidence@v3.102.0
         with:
           title: ShipGuard Release Evidence
           include-diff: auto
@@ -61,7 +61,7 @@ on:
       release-tag:
         description: Release tag to verify.
         required: true
-        default: v3.101.0
+        default: v3.102.0
       previous-tag:
         description: Previous release tag for diff proof.
         required: true
@@ -75,7 +75,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build release evidence bundle
-        uses: jlekerli-source/ShipGuard/actions/release-evidence@v3.101.0
+        uses: jlekerli-source/ShipGuard/actions/release-evidence@v3.102.0
         with:
           run: bundle
           repo: jlekerli-source/ShipGuard
@@ -129,7 +129,7 @@ To prove the uploaded artifact can be consumed outside the producer job, run `ac
 
 ```yaml
 - name: Verify release evidence artifact
-  uses: jlekerli-source/ShipGuard/actions/release-evidence-verify@v3.101.0
+  uses: jlekerli-source/ShipGuard/actions/release-evidence-verify@v3.102.0
   with:
     download-artifact: true
     source-artifact-name: shipguard-release-evidence

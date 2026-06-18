@@ -50,7 +50,7 @@
       "prepareFiles": [
         {
           "path": "target-web/package.json",
-          "text": "{\n  \"scripts\": {\"lint\": \"eslint .\", \"test\": \"vitest\", \"build\": \"next build\", \"e2e\": \"playwright test\"},\n  \"dependencies\": {\"next\": \"latest\", \"stripe\": \"latest\"}\n}\n"
+          "text": "{\n  \"scripts\": {\"lint\": \"eslint .\", \"test\": \"vitest\", \"build\": \"next build\", \"e2e\": \"playwright test\"},\n  \"dependencies\": {\"next\": \"latest\", \"stripe\": \"latest\", \"playwright\": \"latest\"}\n}\n"
         },
         {
           "path": "target-web/src/AuthPanel.tsx",
@@ -70,7 +70,7 @@
     },
     {
       "id": "web-fix-plan",
-      "display": "./bin/shipguard web plan --report <web-audit> --out <receipt-out>/web-plan --shipguard-eval --shareable",
+      "display": "./bin/shipguard web plan --report <web-audit> --out <receipt-out>/web-plan --target <fresh-web-target> --shipguard-eval --shareable",
       "args": [
         "web",
         "plan",
@@ -78,6 +78,8 @@
         "{out}/web-audit",
         "--out",
         "{out}/web-plan",
+        "--target",
+        "{out}/target-web",
         "--shipguard-eval",
         "--shareable"
       ],
@@ -93,12 +95,14 @@
             "sourceAudit",
             "fixPlan",
             "validationCommands",
+            "validationReceipts",
             "stopConditions",
             "reportQualityQuestions"
           ],
           "requiredNonEmptyJsonPaths": [
             "fixPlan.tasks",
             "validationCommands",
+            "validationReceipts.receipts",
             "reportQualityQuestions"
           ],
           "requiredValues": [
@@ -119,6 +123,7 @@
             "# ShipGuard WebForge",
             "Scoped Fix Plan",
             "Validation Commands",
+            "Validation Receipts",
             "Stop Conditions",
             "Report Quality Questions"
           ],
@@ -165,7 +170,7 @@
     },
     {
       "id": "backend-fix-plan",
-      "display": "./bin/shipguard backend plan --report <backend-audit> --out <receipt-out>/backend-plan --shipguard-eval --shareable",
+      "display": "./bin/shipguard backend plan --report <backend-audit> --out <receipt-out>/backend-plan --target <fresh-backend-target> --shipguard-eval --shareable",
       "args": [
         "backend",
         "plan",
@@ -173,6 +178,8 @@
         "{out}/backend-audit",
         "--out",
         "{out}/backend-plan",
+        "--target",
+        "{out}/target-backend",
         "--shipguard-eval",
         "--shareable"
       ],
@@ -188,12 +195,14 @@
             "sourceAudit",
             "fixPlan",
             "validationCommands",
+            "validationReceipts",
             "stopConditions",
             "reportQualityQuestions"
           ],
           "requiredNonEmptyJsonPaths": [
             "fixPlan.tasks",
             "validationCommands",
+            "validationReceipts.receipts",
             "reportQualityQuestions"
           ],
           "requiredValues": [
@@ -214,6 +223,7 @@
             "# ShipGuard ServiceForge",
             "Scoped Fix Plan",
             "Validation Commands",
+            "Validation Receipts",
             "Stop Conditions",
             "Report Quality Questions"
           ],
@@ -260,7 +270,7 @@
     },
     {
       "id": "cli-fix-plan",
-      "display": "./bin/shipguard cli plan --report <cli-audit> --out <receipt-out>/cli-plan --shipguard-eval --shareable",
+      "display": "./bin/shipguard cli plan --report <cli-audit> --out <receipt-out>/cli-plan --target <fresh-cli-target> --shipguard-eval --shareable",
       "args": [
         "cli",
         "plan",
@@ -268,6 +278,8 @@
         "{out}/cli-audit",
         "--out",
         "{out}/cli-plan",
+        "--target",
+        "{out}/target-cli",
         "--shipguard-eval",
         "--shareable"
       ],
@@ -283,12 +295,14 @@
             "sourceAudit",
             "fixPlan",
             "validationCommands",
+            "validationReceipts",
             "stopConditions",
             "reportQualityQuestions"
           ],
           "requiredNonEmptyJsonPaths": [
             "fixPlan.tasks",
             "validationCommands",
+            "validationReceipts.receipts",
             "reportQualityQuestions"
           ],
           "requiredValues": [
@@ -309,6 +323,7 @@
             "# ShipGuard CommandForge",
             "Scoped Fix Plan",
             "Validation Commands",
+            "Validation Receipts",
             "Stop Conditions",
             "Report Quality Questions"
           ],

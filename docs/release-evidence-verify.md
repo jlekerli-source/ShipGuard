@@ -37,7 +37,7 @@ In GitHub Actions, let `actions/release-evidence-verify` download and verify the
 
 ```yaml
 - name: Verify release evidence artifact
-  uses: jlekerli-source/ShipGuard/actions/release-evidence-verify@v3.101.0
+  uses: jlekerli-source/ShipGuard/actions/release-evidence-verify@v3.102.0
   with:
     download-artifact: true
     source-artifact-name: shipguard-release-evidence

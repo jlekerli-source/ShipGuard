@@ -41,6 +41,7 @@ grep -q '"targetOnboardingReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.jso
 grep -q '"multiProfileOnboardingReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"profileNativeFirstAuditReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"profileNativeFixPlanReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"profileNativeValidationReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"priorityActions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"reportQualityQuestions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard score"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -77,8 +78,9 @@ grep -q 'Target Onboarding Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Multi-Profile Onboarding Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Profile-Native First-Audit Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Profile-Native Fix-Plan Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Profile-Native Validation Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Report Quality Questions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
-grep -q 'profile-native validation receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'profile-native validation rerun receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
 import sys
@@ -99,16 +101,17 @@ target_onboarding = data.get("targetOnboardingReceipts") or {}
 multi_profile = data.get("multiProfileOnboardingReceipts") or {}
 profile_native = data.get("profileNativeFirstAuditReceipts") or {}
 profile_fix = data.get("profileNativeFixPlanReceipts") or {}
+profile_validation = data.get("profileNativeValidationReceipts") or {}
 if probe.get("question") != "Which ShipGuard command, skill, plugin, or action has the lowest developer-value score and should be upgraded next?":
     raise SystemExit(f"unexpected probe question: {probe!r}")
 for key in ("surfaceType", "identifier", "name", "baseScore", "depthScore", "depthChecks", "recommendation", "proofGuidance", "reason"):
     if key not in answer:
         raise SystemExit(f"probe answer missing {key}: {answer!r}")
-if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard value-gauntlet profile-native-validation-receipts":
-    raise SystemExit(f"passing profile-native fix-plan receipts should escalate to profile-native validation receipts: {answer!r}")
-if "runtimeProfileNativeValidationReceipts" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"profile-native validation receipt gap should be explicit: {answer!r}")
-for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts"):
+if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard value-gauntlet profile-native-validation-rerun-receipts":
+    raise SystemExit(f"passing profile-native validation receipts should escalate to validation rerun receipts: {answer!r}")
+if "runtimeProfileNativeValidationRerunReceipts" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"profile-native validation rerun receipt gap should be explicit: {answer!r}")
+for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts"):
     if retired_signal in answer.get("missingDepthSignals", []):
         raise SystemExit(f"{retired_signal} should no longer be missing after fixture proof: {answer!r}")
 if not isinstance(probe.get("rankedSurfaces"), list) or not probe["rankedSurfaces"]:
@@ -416,6 +419,28 @@ for item in profile_fix.get("receipts") or []:
     for command in item.get("commands") or []:
         if command.get("status") != "pass" or command.get("missing"):
             raise SystemExit(f"profile-native fix-plan command should pass without missing checks: {command!r}")
+if profile_validation.get("status") != "pass":
+    raise SystemExit(f"profile-native validation receipts should pass: {profile_validation!r}")
+if profile_validation.get("receiptCount") != 1 or profile_validation.get("passedReceiptCount") != 1 or profile_validation.get("commandCount") != 4:
+    raise SystemExit(f"expected one profile-native validation receipt and four commands: {profile_validation!r}")
+profile_validation_ids = {item.get("id") for item in profile_validation.get("receipts") or []}
+if profile_validation_ids != {"web-backend-cli-validation-receipts"}:
+    raise SystemExit(f"unexpected profile-native validation receipt fixtures: {profile_validation_ids!r}")
+for item in profile_validation.get("receipts") or []:
+    if item.get("status") != "pass" or item.get("missing"):
+        raise SystemExit(f"profile-native validation receipt should pass without missing checks: {item!r}")
+    command_ids = {command.get("id") for command in item.get("commands") or []}
+    expected_commands = {
+        "web-validation-plan",
+        "backend-validation-plan",
+        "cli-validation-plan",
+        "profile-validation-quality",
+    }
+    if command_ids != expected_commands:
+        raise SystemExit(f"unexpected profile-native validation command set: {command_ids!r}")
+    for command in item.get("commands") or []:
+        if command.get("status") != "pass" or command.get("missing"):
+            raise SystemExit(f"profile-native validation command should pass without missing checks: {command!r}")
 if "Which ShipGuard command" in data.get("reportQualityQuestions", []):
     raise SystemExit("the answered lowest-value question should not remain a report-quality question")
 retired_phrases = (
@@ -432,11 +457,12 @@ retired_phrases = (
     "multi-profile onboarding receipts that prove",
     "profile-native first-audit receipts so web, backend, and CLI targets",
     "profile-native fix-plan receipts so web, backend, and CLI first audits",
+    "profile-native validation receipts so web, backend, and CLI fix plans",
 )
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
     raise SystemExit(f"runtime-output, negative-fixture, command-family, skill/plugin receipt, workflow-chain, scenario-matrix, scenario-failure, scenario-remediation, adoption, target-onboarding, and multi-profile onboarding questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
-if not any("profile-native validation receipts" in question for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"expected profile-native validation quality question: {data.get('reportQualityQuestions')!r}")
+if not any("profile-native validation rerun receipts" in question for question in data.get("reportQualityQuestions", [])):
+    raise SystemExit(f"expected profile-native validation rerun quality question: {data.get('reportQualityQuestions')!r}")
 PY
 
 json_stdout="$(./bin/shipguard value-gauntlet --path . --json)"
@@ -453,6 +479,6 @@ grep -q '# ShipGuard Tool Value Gauntlet' <<<"$markdown_stdout"
 grep -q '"tool": "shipguard ios report-quality"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/quality/ios-report-quality.md"
-grep -q 'profile-native validation receipts' "$tmp_dir/quality/ios-report-quality.md"
+grep -q 'profile-native validation rerun receipts' "$tmp_dir/quality/ios-report-quality.md"
 
 echo "tool value gauntlet tests passed"

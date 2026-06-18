@@ -1,0 +1,290 @@
+{
+  "id": "web-backend-cli-validation-receipts",
+  "kind": "profile-native-validation-receipt",
+  "surface": "ShipGuard profile-native validation receipt path",
+  "selectedSkill": "ios-shipguard",
+  "selectedMode": "profile-native-validation-receipts",
+  "trigger": "User asks whether ShipGuard profile plans prove validation commands can run or block honestly instead of listing unverified commands.",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/profile_fix_plan.py",
+    "docs/template-profiles.md",
+    "docs/command-matrix.md",
+    "docs/cli.md",
+    "tests/profile_validation_receipts_test.sh",
+    "scripts/tool_value_gauntlet.py"
+  ],
+  "expectedSourcePhrases": [
+    "--target <repo>",
+    "validationReceipts",
+    "read-only command availability classification",
+    "profile-native validation receipts"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppDetailsAllowed": false,
+    "commandsExecuted": false
+  },
+  "commands": [
+    {
+      "id": "web-validation-plan",
+      "display": "./bin/shipguard web plan --report <web-audit> --target <fresh-web-target> --out <receipt-out>/web-plan --shipguard-eval --shareable",
+      "prepareFiles": [
+        {
+          "path": "target-web/package.json",
+          "text": "{\n  \"scripts\": {\"lint\": \"eslint .\", \"test\": \"vitest\", \"build\": \"next build\", \"e2e\": \"playwright test\"},\n  \"dependencies\": {\"next\": \"latest\", \"playwright\": \"latest\"}\n}\n"
+        },
+        {
+          "path": "web-audit/web-audit.json",
+          "text": "{\n  \"schemaVersion\": 1,\n  \"tool\": \"shipguard web audit\",\n  \"surface\": \"ShipGuard WebScan\",\n  \"profile\": \"web\",\n  \"generatedAt\": \"2026-06-18T00:00:00Z\",\n  \"status\": \"pass\",\n  \"target\": {\"root\": \"<target-repo>\", \"fileCountScanned\": 3},\n  \"recommendedFirstCommands\": [\"shipguard web audit --path . --out /tmp/shipguard-web-audit\"],\n  \"recommendedValidation\": [\"npm run lint\", \"npm test\", \"npm run build\", \"npx playwright test\"],\n  \"findings\": [],\n  \"reportQualityQuestions\": [\"Does ShipGuard web audit lead to runnable validation receipts?\"]\n}\n"
+        }
+      ],
+      "args": [
+        "web",
+        "plan",
+        "--report",
+        "{out}/web-audit",
+        "--out",
+        "{out}/web-plan",
+        "--target",
+        "{out}/target-web",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "web-plan/web-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "profile",
+            "validationReceipts"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "validationReceipts.receipts"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard web plan"
+            },
+            {
+              "path": "validationReceipts.checked",
+              "equals": true
+            },
+            {
+              "path": "validationReceipts.target",
+              "equals": "<target-repo>"
+            },
+            {
+              "path": "validationReceipts.notCheckedCount",
+              "equals": 0
+            }
+          ]
+        },
+        {
+          "path": "web-plan/web-plan.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "Validation Receipts",
+            "read-only command availability classification",
+            "runnable"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "backend-validation-plan",
+      "display": "./bin/shipguard backend plan --report <backend-audit> --target <fresh-backend-target> --out <receipt-out>/backend-plan --shipguard-eval --shareable",
+      "prepareFiles": [
+        {
+          "path": "target-backend/pyproject.toml",
+          "text": "[project]\nname = \"demo-service\"\n\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n\n[tool.ruff]\nline-length = 120\n"
+        },
+        {
+          "path": "target-backend/tests/test_health.py",
+          "text": "def test_health():\n    assert True\n"
+        },
+        {
+          "path": "backend-audit/backend-audit.json",
+          "text": "{\n  \"schemaVersion\": 1,\n  \"tool\": \"shipguard backend audit\",\n  \"surface\": \"ShipGuard ServiceRadar\",\n  \"profile\": \"backend\",\n  \"generatedAt\": \"2026-06-18T00:00:00Z\",\n  \"status\": \"pass\",\n  \"target\": {\"root\": \"<target-repo>\", \"fileCountScanned\": 3},\n  \"recommendedFirstCommands\": [\"shipguard backend audit --path . --out /tmp/shipguard-backend-audit\"],\n  \"recommendedValidation\": [\"lint/typecheck\", \"unit tests\", \"integration tests\", \"deployment preflight\"],\n  \"findings\": [],\n  \"reportQualityQuestions\": [\"Does ShipGuard backend audit lead to honest validation receipts?\"]\n}\n"
+        }
+      ],
+      "args": [
+        "backend",
+        "plan",
+        "--report",
+        "{out}/backend-audit",
+        "--out",
+        "{out}/backend-plan",
+        "--target",
+        "{out}/target-backend",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "backend-plan/backend-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "profile",
+            "validationReceipts"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "validationReceipts.receipts"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard backend plan"
+            },
+            {
+              "path": "validationReceipts.checked",
+              "equals": true
+            },
+            {
+              "path": "validationReceipts.target",
+              "equals": "<target-repo>"
+            },
+            {
+              "path": "validationReceipts.notCheckedCount",
+              "equals": 0
+            }
+          ]
+        },
+        {
+          "path": "backend-plan/backend-plan.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "Validation Receipts",
+            "read-only command availability classification",
+            "blocked",
+            "manual"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "cli-validation-plan",
+      "display": "./bin/shipguard cli plan --report <cli-audit> --target <fresh-cli-target> --out <receipt-out>/cli-plan --shipguard-eval --shareable",
+      "prepareFiles": [
+        {
+          "path": "target-cli/package.json",
+          "text": "{\n  \"bin\": {\"demo-cli\": \"bin/demo-cli.js\"},\n  \"scripts\": {\"test\": \"node tests/demo.test.js\", \"lint\": \"shellcheck scripts/*.sh\"},\n  \"dependencies\": {\"commander\": \"latest\"}\n}\n"
+        },
+        {
+          "path": "target-cli/tests/demo.test.js",
+          "text": "console.log('golden stdout stderr exit code')\n"
+        },
+        {
+          "path": "cli-audit/cli-audit.json",
+          "text": "{\n  \"schemaVersion\": 1,\n  \"tool\": \"shipguard cli audit\",\n  \"surface\": \"ShipGuard CommandLens\",\n  \"profile\": \"cli\",\n  \"generatedAt\": \"2026-06-18T00:00:00Z\",\n  \"status\": \"pass\",\n  \"target\": {\"root\": \"<target-repo>\", \"fileCountScanned\": 3},\n  \"recommendedFirstCommands\": [\"shipguard cli audit --path . --out /tmp/shipguard-cli-audit\"],\n  \"recommendedValidation\": [\"--help smoke test\", \"version smoke test\", \"golden stdout/stderr test\", \"package install test\"],\n  \"findings\": [],\n  \"reportQualityQuestions\": [\"Does ShipGuard CLI audit lead to honest validation receipts?\"]\n}\n"
+        }
+      ],
+      "args": [
+        "cli",
+        "plan",
+        "--report",
+        "{out}/cli-audit",
+        "--out",
+        "{out}/cli-plan",
+        "--target",
+        "{out}/target-cli",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "cli-plan/cli-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "profile",
+            "validationReceipts"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "validationReceipts.receipts"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard cli plan"
+            },
+            {
+              "path": "validationReceipts.checked",
+              "equals": true
+            },
+            {
+              "path": "validationReceipts.target",
+              "equals": "<target-repo>"
+            },
+            {
+              "path": "validationReceipts.notCheckedCount",
+              "equals": 0
+            }
+          ]
+        },
+        {
+          "path": "cli-plan/cli-plan.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "Validation Receipts",
+            "read-only command availability classification",
+            "runnable",
+            "manual"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "profile-validation-quality",
+      "display": "./bin/shipguard ios report-quality --reports <web/backend/cli validation plans> --out <receipt-out>/profile-validation-quality --shareable",
+      "args": [
+        "ios",
+        "report-quality",
+        "--reports",
+        "{out}/web-plan",
+        "--reports",
+        "{out}/backend-plan",
+        "--reports",
+        "{out}/cli-plan",
+        "--out",
+        "{out}/profile-validation-quality",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "profile-validation-quality/ios-report-quality.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "reports",
+            "actionabilityQuestions"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "reports",
+            "actionabilityQuestions"
+          ]
+        },
+        {
+          "path": "profile-validation-quality/ios-report-quality.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# iOS ShipGuard Report Quality",
+            "Validation Receipts",
+            "ShipGuard WebForge",
+            "ShipGuard ServiceForge",
+            "ShipGuard CommandForge"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}

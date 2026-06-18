@@ -38,6 +38,7 @@ printf 'export const authPaymentSurface = true\n' > "$tmp_dir/web-app/src/compon
 ./bin/shipguard web plan \
   --report "$tmp_dir/web-audit" \
   --out "$tmp_dir/web-plan" \
+  --target "$tmp_dir/web-app" \
   --shipguard-eval \
   --shareable >/dev/null
 test -f "$tmp_dir/web-plan/web-plan.json"
@@ -50,9 +51,13 @@ grep -q '"targetAppsReadOnly": true' "$tmp_dir/web-plan/web-plan.json"
 grep -q '"implementationAuthorized": false' "$tmp_dir/web-plan/web-plan.json"
 grep -q '"fixPlan":' "$tmp_dir/web-plan/web-plan.json"
 grep -q '"validationCommands":' "$tmp_dir/web-plan/web-plan.json"
+grep -q '"validationReceipts":' "$tmp_dir/web-plan/web-plan.json"
+grep -q '"checked": true' "$tmp_dir/web-plan/web-plan.json"
+grep -q '"target": "<target-repo>"' "$tmp_dir/web-plan/web-plan.json"
 grep -q 'ShipGuard WebForge' "$tmp_dir/web-plan/web-plan.md"
 grep -q 'Scoped Fix Plan' "$tmp_dir/web-plan/web-plan.md"
 grep -q 'Validation Commands' "$tmp_dir/web-plan/web-plan.md"
+grep -q 'Validation Receipts' "$tmp_dir/web-plan/web-plan.md"
 grep -q 'Stop Conditions' "$tmp_dir/web-plan/web-plan.md"
 grep -q 'Report Quality Questions' "$tmp_dir/web-plan/web-plan.md"
 if grep -q "$tmp_dir" "$tmp_dir/web-plan/web-plan.json" "$tmp_dir/web-plan/web-plan.md"; then
@@ -79,6 +84,7 @@ printf 'def auth_webhook_queue_handler():\n    return "ok"\n' > "$tmp_dir/backen
 ./bin/shipguard backend plan \
   --report "$tmp_dir/backend-audit" \
   --out "$tmp_dir/backend-plan" \
+  --target "$tmp_dir/backend-app" \
   --shipguard-eval \
   --shareable >/dev/null
 test -f "$tmp_dir/backend-plan/backend-plan.json"
@@ -86,8 +92,11 @@ test -f "$tmp_dir/backend-plan/backend-plan.md"
 grep -q '"tool": "shipguard backend plan"' "$tmp_dir/backend-plan/backend-plan.json"
 grep -q '"surface": "ShipGuard ServiceForge"' "$tmp_dir/backend-plan/backend-plan.json"
 grep -q '"profile": "backend"' "$tmp_dir/backend-plan/backend-plan.json"
+grep -q '"validationReceipts":' "$tmp_dir/backend-plan/backend-plan.json"
+grep -q '"checked": true' "$tmp_dir/backend-plan/backend-plan.json"
 grep -q 'ShipGuard ServiceForge' "$tmp_dir/backend-plan/backend-plan.md"
 grep -q 'Scoped Fix Plan' "$tmp_dir/backend-plan/backend-plan.md"
+grep -q 'Validation Receipts' "$tmp_dir/backend-plan/backend-plan.md"
 if grep -q "$tmp_dir" "$tmp_dir/backend-plan/backend-plan.json" "$tmp_dir/backend-plan/backend-plan.md"; then
   echo "backend plan leaked local temp path" >&2
   exit 1
@@ -119,6 +128,7 @@ printf '#!/usr/bin/env node\nconsole.log("stdout stderr exit code token redactio
 ./bin/shipguard cli plan \
   --report "$tmp_dir/cli-audit" \
   --out "$tmp_dir/cli-plan" \
+  --target "$tmp_dir/cli-tool" \
   --shipguard-eval \
   --shareable >/dev/null
 test -f "$tmp_dir/cli-plan/cli-plan.json"
@@ -126,8 +136,11 @@ test -f "$tmp_dir/cli-plan/cli-plan.md"
 grep -q '"tool": "shipguard cli plan"' "$tmp_dir/cli-plan/cli-plan.json"
 grep -q '"surface": "ShipGuard CommandForge"' "$tmp_dir/cli-plan/cli-plan.json"
 grep -q '"profile": "cli"' "$tmp_dir/cli-plan/cli-plan.json"
+grep -q '"validationReceipts":' "$tmp_dir/cli-plan/cli-plan.json"
+grep -q '"checked": true' "$tmp_dir/cli-plan/cli-plan.json"
 grep -q 'ShipGuard CommandForge' "$tmp_dir/cli-plan/cli-plan.md"
 grep -q 'Scoped Fix Plan' "$tmp_dir/cli-plan/cli-plan.md"
+grep -q 'Validation Receipts' "$tmp_dir/cli-plan/cli-plan.md"
 if grep -q "$tmp_dir" "$tmp_dir/cli-plan/cli-plan.json" "$tmp_dir/cli-plan/cli-plan.md"; then
   echo "cli plan leaked local temp path" >&2
   exit 1
@@ -143,6 +156,13 @@ for path in sys.argv[1:]:
         raise SystemExit(f"missing fixPlan.tasks in {path}")
     if not data.get("validationCommands"):
         raise SystemExit(f"missing validationCommands in {path}")
+    receipts = data.get("validationReceipts") or {}
+    if receipts.get("checked") is not True:
+        raise SystemExit(f"validationReceipts.checked should be true in {path}")
+    if not receipts.get("receipts"):
+        raise SystemExit(f"missing validationReceipts.receipts in {path}")
+    if receipts.get("runnableCount", 0) < 1:
+        raise SystemExit(f"expected at least one runnable validation receipt in {path}")
     if not data.get("stopConditions"):
         raise SystemExit(f"missing stopConditions in {path}")
     if not data.get("reportQualityQuestions"):
@@ -151,7 +171,7 @@ for path in sys.argv[1:]:
         raise SystemExit(f"implementationAuthorized should stay false in {path}")
 PY
 
-json_stdout="$(./bin/shipguard web plan --report "$tmp_dir/web-audit/web-audit.json" --out "$tmp_dir/web-json" --shipguard-eval --shareable --json)"
+json_stdout="$(./bin/shipguard web plan --report "$tmp_dir/web-audit/web-audit.json" --out "$tmp_dir/web-json" --target "$tmp_dir/web-app" --shipguard-eval --shareable --json)"
 printf '%s\n' "$json_stdout" | python3 -c 'import json,sys; print(json.loads(sys.stdin.read().split("\nwrote:", 1)[0])["tool"])' | grep -q 'shipguard web plan'
 
 ./bin/shipguard ios report-quality \
