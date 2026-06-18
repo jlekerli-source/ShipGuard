@@ -17,7 +17,7 @@ test -f "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 grep -q '"taskContractReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q 'Task-Contract Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
-grep -q 'notification and permission workflow' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'external pilot verdict bench' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
@@ -32,8 +32,8 @@ if receipts.get("status") != "pass":
     raise SystemExit(f"task-contract receipts should pass: {receipts!r}")
 if receipts.get("receiptCount") != 1 or receipts.get("passedReceiptCount") != 1:
     raise SystemExit(f"expected one passing task-contract receipt: {receipts!r}")
-if receipts.get("commandCount") != 4:
-    raise SystemExit(f"expected four task-contract commands: {receipts!r}")
+if receipts.get("commandCount") != 5:
+    raise SystemExit(f"expected five task-contract commands: {receipts!r}")
 
 receipt = (receipts.get("receipts") or [{}])[0]
 if receipt.get("id") != "prepare-verify-proof-gate":
@@ -45,6 +45,7 @@ command_ids = {command.get("id") for command in receipt.get("commands") or []}
 expected_commands = {
     "prepare-ios-notification-task",
     "verify-scoped-diff-pass",
+    "verify-generic-permission-receipt-review",
     "verify-invalid-receipt-blocked",
     "verify-protected-diff-blocked",
 }
@@ -54,14 +55,16 @@ for command in receipt.get("commands") or []:
     if command.get("status") != "pass" or command.get("missing"):
         raise SystemExit(f"task-contract command should pass without missing checks: {command!r}")
 
-if answer.get("identifier") != "shipguard ios notification-permission-workflow":
-    raise SystemExit(f"passing task-contract receipts should escalate to notification permission workflow: {answer!r}")
+if answer.get("identifier") != "shipguard external-pilot-verdict-bench":
+    raise SystemExit(f"passing notification workflow receipts should escalate to external pilot verdict bench: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"diff-first verification should no longer be missing: {answer!r}")
-if "runtimeIOSNotificationPermissionWorkflow" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"notification permission workflow gap should be explicit: {answer!r}")
+if "runtimeIOSNotificationPermissionWorkflow" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"notification permission workflow should no longer be missing: {answer!r}")
+if "runtimeExternalPilotVerdictBench" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"external pilot verdict bench gap should be explicit: {answer!r}")
 PY
 
 echo "task contract receipt tests passed"

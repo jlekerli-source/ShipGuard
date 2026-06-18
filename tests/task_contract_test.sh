@@ -49,12 +49,20 @@ assert data["scopeBoundary"]["targetAppsReadOnly"] is True
 assert data["authorizedFiles"]
 assert ".github/workflows/**" in data["protectedBoundaries"]
 assert data["validationContract"]["required"][0]["command"] == "swift test"
+pack = data["domainRiskPack"]
+assert pack["id"] == "ios-notification-permission-workflow"
+assert pack["status"] == "active"
+assert pack["validationReceiptRequirements"][0]["id"] == "permission-state-validation"
+assert "permission-state" in pack["validationReceiptRequirements"][0]["requiredReceiptScope"]
+assert pack["scopeRecommendations"]["reviewOnly"]
+assert pack["scopeRecommendations"]["forbiddenUnlessExplicit"]
 assert data["nextAction"]["command"]
 PY
 
 external_repo="$tmp_dir/PrivateAppRepo"
 mkdir -p "$external_repo/PrivateApp" "$external_repo/PrivateAppTests" "$external_repo/PrivateApp.xcodeproj/xcshareddata/xcschemes"
 printf 'import SwiftUI\nstruct PrivateView {}\n' > "$external_repo/PrivateApp/PrivateView.swift"
+printf 'import UserNotifications\nlet center = UNUserNotificationCenter.current()\n' > "$external_repo/PrivateApp/PrivateAppPermissionView.swift"
 printf 'import XCTest\nfinal class PrivateAppTests: XCTestCase {}\n' > "$external_repo/PrivateAppTests/PrivateAppTests.swift"
 printf '<?xml version="1.0" encoding="UTF-8"?><Scheme LastUpgradeVersion="1500" version="1.7"></Scheme>\n' > "$external_repo/PrivateApp.xcodeproj/xcshareddata/xcschemes/PrivateApp.xcscheme"
 
@@ -103,6 +111,27 @@ cat > "$tmp_dir/logs/swift-test-receipt.json" <<JSON
   "startedAt": "2099-01-01T00:00:00Z",
   "completedAt": "2099-01-01T00:00:10Z",
   "repositoryCommit": "synthetic",
+  "environment": "simulator",
+  "proofType": "ios-permission-simulator-reset",
+  "artifact": {
+    "path": "swift-test.log",
+    "sha256": "$swift_log_sha",
+    "bytes": $swift_log_bytes
+  },
+  "scope": ["DemoPermissionsTests", "permission-state", "denied-state", "not-determined-state", "simulator-permission-reset"]
+}
+JSON
+
+cat > "$tmp_dir/logs/generic-swift-test-receipt.json" <<JSON
+{
+  "receiptId": "validation-unit-tests-generic",
+  "validationId": "swift-test",
+  "command": "swift test",
+  "exitCode": 0,
+  "status": "pass",
+  "startedAt": "2099-01-01T00:00:00Z",
+  "completedAt": "2099-01-01T00:00:10Z",
+  "repositoryCommit": "synthetic",
   "artifact": {
     "path": "swift-test.log",
     "sha256": "$swift_log_sha",
@@ -129,6 +158,30 @@ assert data["status"] == "review"
 assert data["validationCoverage"]["status"] == "missing"
 assert data["evidence"][0]["kind"] == "artifact-only"
 assert data["evidence"][0]["usableForValidation"] is False
+PY
+
+./bin/shipguard verify \
+  --task "$tmp_dir/prepare/shipguard-task.json" \
+  --diff "$tmp_dir/good.diff" \
+  --evidence "$tmp_dir/logs/generic-swift-test-receipt.json" \
+  --claim "Implemented scoped notification onboarding source update." \
+  --out "$tmp_dir/verify-generic-permission-receipt" >/dev/null
+
+grep -q 'Status: review' "$tmp_dir/verify-generic-permission-receipt/shipguard-verdict.md"
+grep -q 'permission-state-validation: missing' "$tmp_dir/verify-generic-permission-receipt/shipguard-verdict.md"
+python3 - <<'PY' "$tmp_dir/verify-generic-permission-receipt/shipguard-verdict.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+assert data["status"] == "review"
+assert data["validationCoverage"]["status"] == "covered"
+workflow = data["notificationPermissionWorkflow"]
+assert workflow["reviewRequired"] is True
+lane_status = {item["id"]: item["status"] for item in workflow["proofLanes"]}
+assert lane_status["permission-state-validation"] == "missing"
+assert data["nextAction"]["priority"] == 4
+assert data["nextAction"]["resolves"] == ["permission-state-validation"]
 PY
 
 ./bin/shipguard verify \
@@ -166,6 +219,16 @@ assert analysis["validationCoverage"]["status"] == "covered"
 assert analysis["validationCoverage"]["coveredCommands"][0]["command"] == "swift test"
 assert analysis["claimDecisions"][0]["status"] == "accepted"
 assert analysis["evidenceCoverage"][0]["status"] == "proven"
+workflow = data["notificationPermissionWorkflow"]
+assert workflow["id"] == "ios-notification-permission-workflow"
+assert workflow["status"] == "local-pass-manual-device-proof-required"
+assert workflow["reviewRequired"] is False
+lane_status = {item["id"]: item["status"] for item in workflow["proofLanes"]}
+assert lane_status["permission-state-validation"] == "proven"
+assert lane_status["denied-state-recovery"] == "proven"
+assert lane_status["simulator-permission-reset"] == "proven"
+assert lane_status["physical-device-prompt"] == "manual-required"
+assert analysis["notificationPermissionWorkflow"]["status"] == workflow["status"]
 assert data["nextAction"]["expectedArtifact"] == "review-ready proof packet"
 assert data["nextAction"]["priority"] == 7
 PY
@@ -173,6 +236,8 @@ grep -q 'Merge allowed: True' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Behavior Categories' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Validation Coverage' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Claim Decisions' "$tmp_dir/verify-pass/shipguard-verdict.md"
+grep -q 'iOS Notification Permission Workflow' "$tmp_dir/verify-pass/shipguard-verdict.md"
+grep -q 'simulator-permission-reset: proven' "$tmp_dir/verify-pass/shipguard-verdict.md"
 
 cat > "$tmp_dir/protected.diff" <<'DIFF'
 diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml

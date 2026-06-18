@@ -92,7 +92,7 @@ grep -q 'Command-Family Runtime Output Receipts' "$tmp_dir/gauntlet/tool-value-g
 grep -q 'Trust-Hardening Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Task-Contract Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Report Quality Questions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
-grep -q 'notification and permission workflow' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'external pilot verdict bench' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
 import sys
@@ -124,13 +124,15 @@ if probe.get("question") != "Which ShipGuard command, skill, plugin, or action h
 for key in ("surfaceType", "identifier", "name", "baseScore", "depthScore", "depthChecks", "recommendation", "proofGuidance", "reason"):
     if key not in answer:
         raise SystemExit(f"probe answer missing {key}: {answer!r}")
-if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard ios notification-permission-workflow":
-    raise SystemExit(f"passing task-contract receipts should escalate to notification permission workflow: {answer!r}")
+if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard external-pilot-verdict-bench":
+    raise SystemExit(f"passing notification workflow receipts should escalate to external pilot verdict bench: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"diff-first verification should no longer be missing: {answer!r}")
-if "runtimeIOSNotificationPermissionWorkflow" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"notification permission workflow gap should be explicit: {answer!r}")
-for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract"):
+if "runtimeIOSNotificationPermissionWorkflow" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"notification permission workflow should no longer be missing: {answer!r}")
+if "runtimeExternalPilotVerdictBench" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"external pilot verdict bench gap should be explicit: {answer!r}")
+for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract", "runtimeIOSNotificationPermissionWorkflow"):
     if retired_signal in answer.get("missingDepthSignals", []):
         raise SystemExit(f"{retired_signal} should no longer be missing after fixture proof: {answer!r}")
 if not isinstance(probe.get("rankedSurfaces"), list) or not probe["rankedSurfaces"]:
@@ -573,8 +575,8 @@ for item in trust_hardening.get("receipts") or []:
             raise SystemExit(f"trust-hardening command should pass without missing checks: {command!r}")
 if task_contract.get("status") != "pass":
     raise SystemExit(f"task-contract receipts should pass: {task_contract!r}")
-if task_contract.get("receiptCount") != 1 or task_contract.get("passedReceiptCount") != 1 or task_contract.get("commandCount") != 4:
-    raise SystemExit(f"expected one task-contract receipt and four commands: {task_contract!r}")
+if task_contract.get("receiptCount") != 1 or task_contract.get("passedReceiptCount") != 1 or task_contract.get("commandCount") != 5:
+    raise SystemExit(f"expected one task-contract receipt and five commands: {task_contract!r}")
 task_contract_ids = {item.get("id") for item in task_contract.get("receipts") or []}
 if task_contract_ids != {"prepare-verify-proof-gate"}:
     raise SystemExit(f"unexpected task-contract receipt fixtures: {task_contract_ids!r}")
@@ -585,6 +587,7 @@ for item in task_contract.get("receipts") or []:
     expected_commands = {
         "prepare-ios-notification-task",
         "verify-scoped-diff-pass",
+        "verify-generic-permission-receipt-review",
         "verify-invalid-receipt-blocked",
         "verify-protected-diff-blocked",
     }
@@ -618,8 +621,8 @@ retired_phrases = (
 )
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
     raise SystemExit(f"answered runtime receipt questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
-if not any("notification and permission workflow" in question for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"expected notification permission workflow quality question: {data.get('reportQualityQuestions')!r}")
+if not any("external pilot verdict bench" in question for question in data.get("reportQualityQuestions", [])):
+    raise SystemExit(f"expected external pilot verdict bench quality question: {data.get('reportQualityQuestions')!r}")
 PY
 
 json_stdout="$(./bin/shipguard value-gauntlet --path . --json)"
@@ -636,6 +639,6 @@ grep -q '# ShipGuard Tool Value Gauntlet' <<<"$markdown_stdout"
 grep -q '"tool": "shipguard ios report-quality"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/quality/ios-report-quality.md"
-grep -q 'notification and permission workflow' "$tmp_dir/quality/ios-report-quality.md"
+grep -q 'external pilot verdict bench' "$tmp_dir/quality/ios-report-quality.md"
 
 echo "tool value gauntlet tests passed"

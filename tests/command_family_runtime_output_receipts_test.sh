@@ -61,14 +61,16 @@ for command in receipt.get("commands") or []:
 
 if trust_receipts.get("status") != "pass":
     raise SystemExit(f"trust-hardening receipts should also pass in the full gauntlet: {trust_receipts!r}")
-if answer.get("identifier") != "shipguard ios notification-permission-workflow":
-    raise SystemExit(f"passing command-family, trust, and task-contract receipts should escalate to notification permission workflow: {answer!r}")
+if answer.get("identifier") != "shipguard external-pilot-verdict-bench":
+    raise SystemExit(f"passing command-family, trust, task-contract, and notification workflow receipts should escalate to external pilot verdict bench: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"diff-first verification should no longer be missing: {answer!r}")
-if "runtimeIOSNotificationPermissionWorkflow" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"notification permission workflow gap should be explicit: {answer!r}")
+if "runtimeIOSNotificationPermissionWorkflow" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"notification permission workflow should no longer be missing: {answer!r}")
+if "runtimeExternalPilotVerdictBench" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"external pilot verdict bench gap should be explicit: {answer!r}")
 if "runtimeCommandFamilyOutputReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"command-family output receipts should no longer be missing: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):

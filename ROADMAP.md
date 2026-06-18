@@ -25,6 +25,28 @@ Near-term strategy:
 - Delay broad web/backend/CLI maturity until the core task/evidence schema and first iOS domain pack prove value.
 - Keep evaluation running beside every feature through gold fixtures, negative fixtures, model critique, and human review where useful.
 
+## Major-Version Arc
+
+The long-term ambition is larger than the current v3 release train:
+
+```text
+v3 = prove that ShipGuard changes real developer decisions
+v4 = become a stable local-first assurance product
+v5 = become an organization-wide AI change control plane
+v6 = become an open protocol and ecosystem for AI change assurance
+post-v6 = become trust infrastructure for autonomous software development
+```
+
+The invariant across all of those eras is the same: ShipGuard must connect intent, scope, execution, evidence, claims, verdict, and provenance for one software change. It should not become another generic AI coding agent, a cloud-only source-upload scanner, a dashboard without a strong local engine, or a report generator that does not change decisions.
+
+Major-version definitions:
+
+- v4 means product: a solo developer can trust and recommend ShipGuard without author help.
+- v5 means platform: teams can govern AI-generated changes across repositories, policies, agents, approvals, and releases.
+- v6 means standard: other tools can produce and consume ShipGuard-compatible task contracts, evidence receipts, verdicts, domain packs, and attestations.
+
+Keep the core open-source verdict engine honest. Future Pro, Team, or Enterprise surfaces can add Studio, Hub, policy simulation, registries, analytics, or hosted/self-hosted collaboration, but the local `prepare` -> `verify` decision loop must not become decorative or paywalled into uselessness.
+
 ## Phase Map
 
 The roadmap is intentionally larger than the current v3.105-v3.110 loop. The short loop is only the evaluation flywheel proving that real-app read-only evidence can become public ShipGuard fixtures. It is not the full product plan.
@@ -89,6 +111,34 @@ v4 should require stable schemas, migration support, clean package/install/unins
 ## Release Ladder
 
 Version numbers are planning bands, not promises. A release can skip ahead only when the exit gate for its current band is already proven.
+
+### Immediate v3 Sequence
+
+The current v3 line should remain decision-centered:
+
+```text
+v3.115  Notification/permission domain pack
+v3.116  External pilot and honest usefulness metrics
+v3.117  Domain Pack SDK and core extraction
+v3.118  Configuration, baselines, and suppressions
+v3.119  Structured evidence receipts v2
+v3.120  Codex-native task and trace adapter
+v3.121-v3.135  Simulator, device, Xcode, CI, Instruments evidence fabric
+v3.136-v3.165  StoreKit, persistence, lifecycle, shared-state, release packs
+v3.166-v3.180  Codex-native end-to-end UX
+v3.181-v3.190  CLI consolidation and packaging
+v3.191-v3.199  External benchmark, security review, v4 stabilization
+```
+
+Every release proposal must answer:
+
+1. Which developer decision changes?
+2. Which evidence supports that decision?
+3. Which task-object fields are added or enriched?
+4. What is the exact non-pass next action?
+5. Which public positive and negative fixtures prove it?
+6. Which existing surface should be merged, demoted, or retired?
+7. What is the exit gate?
 
 ### v3.110-v3.114: Report-Quality Discipline
 

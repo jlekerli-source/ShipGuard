@@ -14,6 +14,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from task_domain_packs import DomainPackContext, IOSNotificationPermissionPack
+
 
 SCHEMA_VERSION = 1
 PROFILES = ("auto", "ios", "web", "backend", "cli")
@@ -46,6 +48,8 @@ CLAIM_REQUIRES_PROOF = (
     "safe to ship",
     "no regressions",
 )
+
+DOMAIN_PACKS = [IOSNotificationPermissionPack()]
 
 SNAPSHOT_FILE_LIMIT = 10000
 SNAPSHOT_DIR_LIMIT = 4000
@@ -292,17 +296,39 @@ def redact_scope_pattern(pattern: str, sensitive_names: set[str]) -> str:
     return f"{scope_placeholder(pattern)}/{rest}"
 
 
+def collect_shareable_sensitive_names(root: Path) -> set[str]:
+    sensitive_names: set[str] = set()
+    if not root.exists():
+        return sensitive_names
+    for child in sorted(root.iterdir()):
+        if child.is_dir() and any(child.rglob("*.swift")):
+            sensitive_names.add(child.name)
+    for project in root.glob("*.xcodeproj"):
+        sensitive_names.add(project.stem)
+    return sensitive_names
+
+
+def redact_sensitive_name_occurrences(value: str, sensitive_names: set[str]) -> str:
+    redacted = value
+    structural_names = {"app", "ios", "source", "sources", "test", "tests", "src"}
+    for name in sorted(sensitive_names, key=len, reverse=True):
+        if not name or name.lower() in structural_names:
+            continue
+        redacted = re.sub(re.escape(name), "<ios-target>", redacted, flags=re.IGNORECASE)
+    return redacted
+
+
 def redact_top_level_name(path_value: str, sensitive_names: set[str]) -> str:
     if "/" not in path_value:
         stem = Path(path_value).stem
         suffix = "".join(Path(path_value).suffixes)
         if stem in sensitive_names:
             return f"<ios-project>{suffix}"
-        return path_value
+        return redact_sensitive_name_occurrences(path_value, sensitive_names)
     first, rest = path_value.split("/", 1)
     if first not in sensitive_names:
-        return path_value
-    return f"{scope_placeholder(path_value)}/{rest}"
+        return redact_sensitive_name_occurrences(path_value, sensitive_names)
+    return f"{scope_placeholder(path_value)}/{redact_sensitive_name_occurrences(rest, sensitive_names)}"
 
 
 def redact_validation_item(item: dict[str, Any], sensitive_names: set[str]) -> dict[str, Any]:
@@ -321,8 +347,42 @@ def redact_validation_item(item: dict[str, Any], sensitive_names: set[str]) -> d
     return redacted
 
 
+def domain_pack_context(root: Path, shareable: bool) -> DomainPackContext:
+    sensitive_names = collect_shareable_sensitive_names(root) if shareable else set()
+    return DomainPackContext(
+        root=root,
+        shareable=shareable,
+        snapshot_file_limit=SNAPSHOT_FILE_LIMIT,
+        rel=lambda path: rel(path, root),
+        redact_path=lambda value: redact_top_level_name(value, sensitive_names) if shareable else value,
+        should_skip_dir=should_skip_snapshot_dir,
+    )
+
+
+def build_prepare_domain_risk_pack(contract: dict[str, Any], root: Path, shareable: bool) -> dict[str, Any] | None:
+    context = domain_pack_context(root, shareable)
+    for pack in DOMAIN_PACKS:
+        risk_pack = pack.build_prepare_risk_pack(contract, context)
+        if risk_pack:
+            return risk_pack
+    return None
+
+
+def evaluate_domain_workflow(
+    task: dict[str, Any],
+    diff_files: list[dict[str, Any]],
+    evidence: list[dict[str, Any]],
+    coverage: dict[str, Any],
+) -> dict[str, Any] | None:
+    for pack in DOMAIN_PACKS:
+        workflow = pack.evaluate_verify(task, diff_files, evidence, coverage)
+        if workflow:
+            return workflow
+    return None
+
+
 def redact_external_shareable_contract(contract: dict[str, Any], root: Path) -> dict[str, Any]:
-    sensitive_names: set[str] = set()
+    sensitive_names = collect_shareable_sensitive_names(root)
     for pattern in contract.get("authorizedFiles") or []:
         if isinstance(pattern, str) and "/" in pattern:
             first = pattern.split("/", 1)[0]
@@ -617,6 +677,11 @@ def prepare_contract(args: argparse.Namespace) -> dict[str, Any]:
         ]
     if args.shareable and not path_is_within(root, Path.cwd()):
         contract = redact_external_shareable_contract(contract, root)
+    risk_pack = build_prepare_domain_risk_pack(contract, root, args.shareable)
+    if risk_pack:
+        contract["domainRiskPack"] = risk_pack
+        existing_questions = contract.get("reportQualityQuestions") or []
+        contract["reportQualityQuestions"] = existing_questions + risk_pack.get("reportQualityQuestions", [])
     return contract
 
 
@@ -865,7 +930,10 @@ def evidence_entries(paths: list[str]) -> list[dict[str, Any]]:
                 "startedAt": parsed.get("startedAt"),
                 "completedAt": parsed.get("completedAt"),
                 "repositoryCommit": parsed.get("repositoryCommit"),
+                "environment": parsed.get("environment"),
+                "proofType": parsed.get("proofType"),
                 "scope": parsed.get("scope") if isinstance(parsed.get("scope"), list) else [],
+                "proofScope": parsed.get("proofScope") if isinstance(parsed.get("proofScope"), list) else [],
                 "artifact": {
                     "path": artifact.get("path"),
                     "present": artifact_path.is_file(),
@@ -1087,6 +1155,7 @@ def build_diff_first_analysis(
     next_action: dict[str, str],
     blocking_reasons: list[str],
     review_reasons: list[str],
+    notification_permission_workflow: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     deleted_tests = deleted_test_changes(diff_files)
     file_summaries = diff_file_summaries(diff_files, allowed, forbidden)
@@ -1111,7 +1180,7 @@ def build_diff_first_analysis(
         }
         for item in coverage.get("uncoveredCommands") or []
     )
-    return {
+    analysis = {
         "status": status,
         "summary": "; ".join(blocking_reasons or review_reasons or ["diff, validation coverage, evidence, and claims match the task contract"]),
         "changedFileCount": len(diff_files),
@@ -1146,6 +1215,10 @@ def build_diff_first_analysis(
             "Can a reviewer decide the next action from shipguard-verdict.md without reading the raw patch first?",
         ],
     }
+    if notification_permission_workflow:
+        analysis["notificationPermissionWorkflow"] = notification_permission_workflow
+        analysis["reportQualityQuestions"].extend(notification_permission_workflow.get("reportQualityQuestions") or [])
+    return analysis
 
 
 def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
@@ -1175,6 +1248,7 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
     )
     manual_claims = [item["claim"] for item in claim_results if item["status"] == "needs-manual-proof"]
     deleted_tests = deleted_test_changes(diff_files)
+    notification_permission_workflow = evaluate_domain_workflow(task, diff_files, evidence, coverage)
 
     blocking_reasons: list[str] = []
     review_reasons: list[str] = []
@@ -1194,6 +1268,8 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         review_reasons.append("one or more evidence files were not found")
     if deleted_tests and not coverage_ok:
         review_reasons.append("deleted tests require validation coverage proof")
+    if notification_permission_workflow and notification_permission_workflow.get("reviewRequired"):
+        review_reasons.append("iOS notification permission workflow proof missing")
     if manual_claims:
         review_reasons.append("broad completion claim still needs manual/device proof")
 
@@ -1218,6 +1294,7 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         coverage=coverage,
         rejected_claims=rejected_claims,
         manual_claims=manual_claims,
+        notification_permission_workflow=notification_permission_workflow,
     )
     diff_first = build_diff_first_analysis(
         status,
@@ -1233,6 +1310,7 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         next_action,
         blocking_reasons,
         review_reasons,
+        notification_permission_workflow,
     )
     return {
         "schemaVersion": SCHEMA_VERSION,
@@ -1258,6 +1336,7 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
             "requiredProofPhrases": list(CLAIM_REQUIRES_PROOF),
         },
         "diffFirstAnalysis": diff_first,
+        "notificationPermissionWorkflow": notification_permission_workflow,
         "blockingReasons": blocking_reasons,
         "reviewReasons": review_reasons,
         "verdict": {
@@ -1281,6 +1360,7 @@ def build_next_action(
     coverage: dict[str, Any] | None = None,
     rejected_claims: list[str] | None = None,
     manual_claims: list[str] | None = None,
+    notification_permission_workflow: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     required = (task.get("validationContract") or {}).get("required") or []
     first_command = str((required[0] or {}).get("command") or "run the targeted validation command") if required else "attach validation evidence"
@@ -1290,6 +1370,7 @@ def build_next_action(
     coverage = coverage or {}
     rejected_claims = rejected_claims or []
     manual_claims = manual_claims or []
+    notification_permission_workflow = notification_permission_workflow or {}
     if forbidden_touched or out_of_scope:
         return {
             "owner": "developer",
@@ -1333,6 +1414,8 @@ def build_next_action(
             "resolves": [str(first_missing.get("requirementId") or "missing-validation")],
             "priority": 3,
         }
+    if notification_permission_workflow.get("reviewRequired"):
+        return dict(notification_permission_workflow.get("nextAction") or {})
     if manual_claims:
         return {
             "owner": "developer",
@@ -1395,6 +1478,36 @@ def render_prepare_markdown(contract: dict[str, Any]) -> str:
         lines.append(f"- `{item.get('command')}`")
         lines.append(f"  Expected: {item.get('expectedArtifact')}")
         lines.append(f"  Success: {item.get('successCondition')}")
+    risk_pack = contract.get("domainRiskPack") or {}
+    if risk_pack:
+        lines.extend(["", "## iOS Notification Permission Workflow", ""])
+        lines.append(f"- Status: {risk_pack.get('status')}")
+        triggers = ", ".join(risk_pack.get("triggerSignals") or [])
+        lines.append(f"- Trigger signals: {triggers}")
+        candidates = ((risk_pack.get("candidateEvidence") or {}).get("permissionSensitiveFiles") or [])
+        if candidates:
+            lines.append("- Permission-sensitive source signals:")
+            for item in candidates[:8]:
+                signals = "; ".join(item.get("signals") or [])
+                lines.append(f"  - `{item.get('path')}`: {signals}")
+        scope = risk_pack.get("scopeRecommendations") or {}
+        lines.append("- Scope recommendations:")
+        for item in scope.get("authorized") or []:
+            lines.append(f"  - Authorized candidate `{item.get('pattern')}`: {item.get('reason')}")
+        for item in scope.get("reviewOnly") or []:
+            lines.append(f"  - Review only `{item.get('pattern')}`: {item.get('reason')}")
+        for item in scope.get("forbiddenUnlessExplicit") or []:
+            lines.append(f"  - Forbidden unless explicit `{item.get('pattern')}`: {item.get('reason')}")
+        lines.append("- Receipt requirements:")
+        for item in risk_pack.get("validationReceiptRequirements") or []:
+            required_scope = ", ".join(item.get("requiredReceiptScope") or [item.get("proofType") or item.get("environment") or ""])
+            lines.append(f"  - {item.get('id')}: {required_scope}")
+            lines.append(f"    Expected: {item.get('expectedArtifact')}")
+        boundaries = risk_pack.get("proofBoundaries") or {}
+        if boundaries:
+            lines.append("- Proof boundaries:")
+            for key, value in boundaries.items():
+                lines.append(f"  - {key}: {value}")
     scan_scope = (contract.get("projectSnapshot") or {}).get("scanScope") or {}
     if scan_scope:
         lines.extend(["", "## Snapshot Scope", ""])
@@ -1477,6 +1590,27 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
         for item in claim_decisions:
             lines.append(f"- {item.get('status')}: {item.get('claim')}")
             lines.append(f"  Reason: {item.get('reason')}")
+    workflow = verdict.get("notificationPermissionWorkflow") or {}
+    if workflow:
+        lines.extend(["", "## iOS Notification Permission Workflow", ""])
+        lines.append(f"- Status: {workflow.get('status')}")
+        lines.append(f"- Source: {workflow.get('source')}")
+        changed_permission_files = workflow.get("changedPermissionFiles") or []
+        if changed_permission_files:
+            lines.append("- Permission-sensitive changed files:")
+            lines.extend(f"  - `{path}`" for path in changed_permission_files[:12])
+        lines.append("- Proof lanes:")
+        for item in workflow.get("proofLanes") or []:
+            required_scope = ", ".join(item.get("requiredReceiptScope") or [])
+            lines.append(f"  - {item.get('id')}: {item.get('status')} ({item.get('proofBoundary')})")
+            if required_scope:
+                lines.append(f"    Required receipt scope: {required_scope}")
+            lines.append(f"    Failure meaning: {item.get('failureMeaning')}")
+        boundary = workflow.get("proofBoundary") or {}
+        if boundary:
+            lines.append("- Proof boundary:")
+            for key, value in boundary.items():
+                lines.append(f"  - {key}: {value}")
     lines.extend(["", "## Evidence Receipts", ""])
     evidence = verdict.get("evidence") or []
     if evidence:

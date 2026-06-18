@@ -52,6 +52,16 @@ For iOS, the default authorized scope is discovered from Swift source/test owner
 
 If no `--validation` is supplied, ShipGuard emits an executable default when it can: ShipGuard self-validation for this repo, a shared Xcode scheme test for iOS projects with shared schemes, or `swift test` for SwiftPM packages. When no runnable command can be inferred, it emits an explicit selection requirement such as `shipguard choose-ios-validation-scheme` instead of a fake placeholder command.
 
+For iOS notification, permission, authorization, denied-state, or provisional-flow goals, `prepare` adds `domainRiskPack.id = ios-notification-permission-workflow`. That pack records:
+
+- trigger signals from the goal and iOS profile
+- permission-sensitive source candidates when discoverable
+- authorized, review-only, and forbidden-unless-explicit scope recommendations
+- required receipt scopes for permission-state, denied-state, not-determined-state, and simulator permission-reset proof
+- a physical-device prompt boundary so simulator/source evidence is not treated as release proof
+
+The notification workflow is implemented as a domain pack in `scripts/task_domain_packs.py`, not as another standalone report family. The generic task contract passes bounded scan helpers, shareable redaction helpers, and skip rules through `DomainPackContext`; the pack supplies the iOS-specific applicability, scope, proof requirements, proof-lane evaluation, and next action. Future StoreKit, persistence, lifecycle, performance, design, and modernization packs should follow that contract instead of growing `scripts/task_contract.py`.
+
 Use `--shipguard-eval` when a target app is only being used to evaluate ShipGuard output quality; that boundary says the report is not app-work authorization.
 
 When `--shareable` points at an external target checkout, ShipGuard also redacts target names in authorized scope, skipped directories, Xcode projects, and scheme validation commands. Use the redacted contract for product QA or sharing; run without `--shareable` when you need the machine-verification contract for the private checkout.
@@ -93,12 +103,23 @@ Plain logs are review context only. Validation coverage requires a JSON receipt 
   "startedAt": "2026-06-18T12:00:00Z",
   "completedAt": "2026-06-18T12:00:10Z",
   "repositoryCommit": "abcdef123456",
+  "environment": "simulator",
+  "proofType": "ios-permission-simulator-reset",
   "artifact": {"path": "swift-test.log", "sha256": "<optional-sha256>"},
-  "scope": ["NotificationPermissionTests"]
+  "scope": ["NotificationPermissionTests", "permission-state", "denied-state", "not-determined-state", "simulator-permission-reset"]
 }
 ```
 
 The receipt is usable only when the command or `validationId` matches a required validation item, `status` is `pass`, `exitCode` is `0`, the artifact exists and matches its digest when supplied, and `completedAt` is not older than the task contract. A plain log with "passed" text does not prove the command passed.
+
+For notification-permission workflows, a generic matching receipt such as `scope: ["NotificationPermissionTests"]` proves that the required command ran, but it does not prove the domain workflow. `verify` returns `review` until the receipt metadata proves the relevant lanes:
+
+- `permission-state-validation`: needs permission-state, denied-state, and not-determined-state scope labels.
+- `denied-state-recovery`: needs denied-state recovery proof.
+- `simulator-permission-reset`: needs simulator reset proof, for example `environment: "simulator"` and `proofType: "ios-permission-simulator-reset"`.
+- `physical-device-prompt`: remains `manual-required` unless physical-device prompt proof is attached.
+
+When the first three lanes are proven, the task can still pass locally while `notificationPermissionWorkflow.status` reports `local-pass-manual-device-proof-required`. Do not make release or "fully verified" claims until the physical-device prompt lane is proven.
 
 `shipguard-verdict.json` includes `diffFirstAnalysis` with changed file summaries, behavior categories, deleted-test warnings, validation coverage, evidence coverage, claim decisions, protected-boundary crossings, merge verdict, and the next action priority.
 

@@ -17,7 +17,7 @@ test -f "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 grep -q '"trustHardeningReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q 'Trust-Hardening Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
-grep -q 'notification and permission workflow' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'external pilot verdict bench' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
@@ -65,16 +65,18 @@ for command in receipt.get("commands") or []:
     if command.get("status") != "pass" or command.get("missing"):
         raise SystemExit(f"trust command should pass without missing checks: {command!r}")
 
-if answer.get("identifier") != "shipguard ios notification-permission-workflow":
-    raise SystemExit(f"passing trust and task-contract receipts should escalate to notification permission workflow: {answer!r}")
+if answer.get("identifier") != "shipguard external-pilot-verdict-bench":
+    raise SystemExit(f"passing trust, task-contract, and notification workflow receipts should escalate to external pilot verdict bench: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"trust-hardening should no longer be missing: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"diff-first verification should no longer be missing: {answer!r}")
-if "runtimeIOSNotificationPermissionWorkflow" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"notification permission workflow gap should be explicit: {answer!r}")
+if "runtimeIOSNotificationPermissionWorkflow" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"notification permission workflow should no longer be missing: {answer!r}")
+if "runtimeExternalPilotVerdictBench" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"external pilot verdict bench gap should be explicit: {answer!r}")
 PY
 
 echo "trust hardening receipt tests passed"

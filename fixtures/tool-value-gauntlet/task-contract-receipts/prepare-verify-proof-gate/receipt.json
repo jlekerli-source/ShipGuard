@@ -56,13 +56,15 @@
         {
           "path": "prepare/shipguard-task.json",
           "type": "json",
-          "requiredJsonKeys": ["schemaVersion", "tool", "taskId", "goal", "projectSnapshot", "riskClassification", "authorizedFiles", "authorizedScope", "protectedBoundaries", "validationContract", "nextAction"],
-          "requiredNonEmptyJsonPaths": ["taskId", "projectSnapshot.profile", "projectSnapshot.scanScope", "riskClassification.level", "authorizedFiles", "authorizedScope", "validationContract.required", "nextAction.command"],
+          "requiredJsonKeys": ["schemaVersion", "tool", "taskId", "goal", "projectSnapshot", "riskClassification", "authorizedFiles", "authorizedScope", "protectedBoundaries", "validationContract", "domainRiskPack", "nextAction"],
+          "requiredNonEmptyJsonPaths": ["taskId", "projectSnapshot.profile", "projectSnapshot.scanScope", "riskClassification.level", "authorizedFiles", "authorizedScope", "validationContract.required", "domainRiskPack.validationReceiptRequirements", "domainRiskPack.scopeRecommendations.reviewOnly", "domainRiskPack.proofBoundaries", "nextAction.command"],
           "requiredValues": [
             {"path": "tool", "equals": "shipguard prepare"},
             {"path": "surface", "equals": "ShipGuard Task Contract"},
             {"path": "projectSnapshot.profile", "equals": "ios"},
             {"path": "projectSnapshot.root", "equals": "<target-repo>"},
+            {"path": "domainRiskPack.id", "equals": "ios-notification-permission-workflow"},
+            {"path": "domainRiskPack.status", "equals": "active"},
             {"path": "scopeBoundary.shipguardOnly", "equals": true},
             {"path": "scopeBoundary.targetAppsReadOnly", "equals": true}
           ]
@@ -73,6 +75,8 @@
           "requiredPhrases": [
             "# ShipGuard Task Contract",
             "Required Proof",
+            "iOS Notification Permission Workflow",
+            "Receipt requirements",
             "ShipGuard Product-QA Boundary",
             "shipguard verify"
           ],
@@ -107,20 +111,22 @@
         },
         {
           "path": "logs/swift-test-receipt.json",
-          "text": "{\n  \"receiptId\": \"validation-unit-tests\",\n  \"validationId\": \"swift-test\",\n  \"command\": \"swift test\",\n  \"exitCode\": 0,\n  \"status\": \"pass\",\n  \"startedAt\": \"2099-01-01T00:00:00Z\",\n  \"completedAt\": \"2099-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"artifact\": {\"path\": \"swift-test.log\"},\n  \"scope\": [\"DemoPermissionsTests\"]\n}\n"
+          "text": "{\n  \"receiptId\": \"validation-unit-tests\",\n  \"validationId\": \"swift-test\",\n  \"command\": \"swift test\",\n  \"exitCode\": 0,\n  \"status\": \"pass\",\n  \"startedAt\": \"2099-01-01T00:00:00Z\",\n  \"completedAt\": \"2099-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"environment\": \"simulator\",\n  \"proofType\": \"ios-permission-simulator-reset\",\n  \"artifact\": {\"path\": \"swift-test.log\"},\n  \"scope\": [\"DemoPermissionsTests\", \"permission-state\", \"denied-state\", \"not-determined-state\", \"simulator-permission-reset\"]\n}\n"
         }
       ],
       "artifacts": [
         {
           "path": "verify-pass/shipguard-verdict.json",
           "type": "json",
-          "requiredJsonKeys": ["tool", "taskId", "status", "changedFiles", "scopeChecks", "evidence", "validationCoverage", "claimChecks", "diffFirstAnalysis", "nextAction"],
-          "requiredNonEmptyJsonPaths": ["taskId", "changedFiles", "evidence", "validationCoverage.coveredCommands", "diffFirstAnalysis.changedFiles", "diffFirstAnalysis.changedBehaviorCategories", "diffFirstAnalysis.validationCoverage.coveredCommands", "diffFirstAnalysis.evidenceCoverage", "diffFirstAnalysis.mergeVerdict", "diffFirstAnalysis.nextAction.command", "nextAction.command"],
+          "requiredJsonKeys": ["tool", "taskId", "status", "changedFiles", "scopeChecks", "evidence", "validationCoverage", "claimChecks", "diffFirstAnalysis", "notificationPermissionWorkflow", "nextAction"],
+          "requiredNonEmptyJsonPaths": ["taskId", "changedFiles", "evidence", "validationCoverage.coveredCommands", "diffFirstAnalysis.changedFiles", "diffFirstAnalysis.changedBehaviorCategories", "diffFirstAnalysis.validationCoverage.coveredCommands", "diffFirstAnalysis.evidenceCoverage", "diffFirstAnalysis.mergeVerdict", "diffFirstAnalysis.notificationPermissionWorkflow.proofLanes", "notificationPermissionWorkflow.proofLanes", "diffFirstAnalysis.nextAction.command", "nextAction.command"],
           "requiredValues": [
             {"path": "tool", "equals": "shipguard verify"},
             {"path": "surface", "equals": "ShipGuard Task Contract Verdict"},
             {"path": "status", "equals": "pass"},
             {"path": "validationCoverage.status", "equals": "covered"},
+            {"path": "notificationPermissionWorkflow.status", "equals": "local-pass-manual-device-proof-required"},
+            {"path": "notificationPermissionWorkflow.reviewRequired", "equals": false},
             {"path": "diffFirstAnalysis.validationCoverage.status", "equals": "covered"},
             {"path": "diffFirstAnalysis.mergeVerdict.allowedToMerge", "equals": true},
             {"path": "nextAction.priority", "equals": 7}
@@ -132,7 +138,66 @@
           "requiredPhrases": [
             "# ShipGuard Task Verdict",
             "Status: pass",
+            "iOS Notification Permission Workflow",
+            "simulator-permission-reset",
             "Attach shipguard-verdict.json"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "verify-generic-permission-receipt-review",
+      "display": "./bin/shipguard verify --task <out>/prepare/shipguard-task.json --diff <out>/diffs/good.diff --evidence <out>/logs/generic-swift-test-receipt.json --out <out>/verify-generic-permission-receipt",
+      "args": [
+        "verify",
+        "--task",
+        "{out}/prepare/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/good.diff",
+        "--evidence",
+        "{out}/logs/generic-swift-test-receipt.json",
+        "--claim",
+        "Implemented scoped notification onboarding source update.",
+        "--out",
+        "{out}/verify-generic-permission-receipt"
+      ],
+      "prepareFiles": [
+        {
+          "path": "diffs/good.diff",
+          "text": "diff --git a/Sources/DemoShipGuardApp/DemoPermissions.swift b/Sources/DemoShipGuardApp/DemoPermissions.swift\n--- a/Sources/DemoShipGuardApp/DemoPermissions.swift\n+++ b/Sources/DemoShipGuardApp/DemoPermissions.swift\n@@ -1,3 +1,4 @@\n+// scoped proof fixture\n"
+        },
+        {
+          "path": "logs/swift-test.log",
+          "text": "swift test passed for DemoPermissionsTests\n"
+        },
+        {
+          "path": "logs/generic-swift-test-receipt.json",
+          "text": "{\n  \"receiptId\": \"validation-unit-tests-generic\",\n  \"validationId\": \"swift-test\",\n  \"command\": \"swift test\",\n  \"exitCode\": 0,\n  \"status\": \"pass\",\n  \"startedAt\": \"2099-01-01T00:00:00Z\",\n  \"completedAt\": \"2099-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"artifact\": {\"path\": \"swift-test.log\"},\n  \"scope\": [\"DemoPermissionsTests\"]\n}\n"
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "verify-generic-permission-receipt/shipguard-verdict.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "taskId", "status", "changedFiles", "validationCoverage", "notificationPermissionWorkflow", "reviewReasons", "nextAction"],
+          "requiredNonEmptyJsonPaths": ["changedFiles", "validationCoverage.coveredCommands", "notificationPermissionWorkflow.proofLanes", "reviewReasons", "nextAction.command"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard verify"},
+            {"path": "status", "equals": "review"},
+            {"path": "validationCoverage.status", "equals": "covered"},
+            {"path": "notificationPermissionWorkflow.reviewRequired", "equals": true},
+            {"path": "nextAction.priority", "equals": 4}
+          ]
+        },
+        {
+          "path": "verify-generic-permission-receipt/shipguard-verdict.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard Task Verdict",
+            "Status: review",
+            "permission-state-validation: missing",
+            "structured validation receipt with permission-state"
           ],
           "forbidLocalPaths": true
         }

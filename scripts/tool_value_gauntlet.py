@@ -85,7 +85,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add a notification and permission workflow that turns iOS permission-risk discovery into prepare/verify task contracts, focused validation receipts, and device-proof guidance?",
+    "Should ShipGuard add an external pilot verdict bench that scores whether real read-only task traces improve scope, evidence, claim checking, and next-action quality without leaking private app details?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -2464,6 +2464,26 @@ def surface_probe_row(
     }
 
 
+def receipt_command_ids(receipts: dict[str, Any]) -> set[str]:
+    ids: set[str] = set()
+    for receipt in receipts.get("receipts") or []:
+        for command in receipt.get("commands") or []:
+            if command.get("status") == "pass" and not command.get("missing"):
+                ids.add(str(command.get("id") or ""))
+    return ids
+
+
+def notification_permission_workflow_receipt_passed(task_contract_receipts: dict[str, Any]) -> bool:
+    if task_contract_receipts.get("status") != "pass":
+        return False
+    required = {
+        "prepare-ios-notification-task",
+        "verify-scoped-diff-pass",
+        "verify-generic-permission-receipt-review",
+    }
+    return required.issubset(receipt_command_ids(task_contract_receipts))
+
+
 def command_depth_rows(
     commands: list[dict[str, Any]],
     text_index: dict[str, str],
@@ -3282,6 +3302,40 @@ def lowest_value_surface_probe(
             depth_checks=depth_checks,
             recommendation="Add an iOS notification and permission workflow that discovers permission-sensitive code, prepares scoped task contracts, requires focused validation receipts, and separates simulator proof from physical-device proof.",
             proof="Run value-gauntlet plus focused notification/permission workflow receipts that prove discovery, prepare handoff, validation receipt requirements, blocked bad claims, and manual device-proof guidance on public fixtures.",
+        )
+    if (
+        answer
+        and answer.get("identifier") == "shipguard ios notification-permission-workflow"
+        and notification_permission_workflow_receipt_passed(task_contract_receipts)
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeIOSNotificationPermissionWorkflow":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeIOSNotificationPermissionWorkflow",
+                        True,
+                        "task-contract receipts prove notification-permission risk pack output plus generic-receipt review behavior",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeExternalPilotVerdictBench",
+                False,
+                "external pilot verdict traces still need a public-safe bench that scores scope, evidence, claim checking, and next-action quality",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="cross-cutting",
+            identifier="shipguard external-pilot-verdict-bench",
+            name="External pilot verdict bench",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Add an external pilot verdict bench that turns read-only real-app task traces into public-safe verdict-quality scores and fixture candidates.",
+            proof="Run value-gauntlet plus focused external-pilot verdict fixtures that grade scope precision, evidence requirements, claim rejection, redaction, and one-next-action usefulness without modifying private apps.",
         )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"

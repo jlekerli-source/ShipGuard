@@ -463,7 +463,7 @@ grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/package-value-gauntlet/to
 grep -q '"surface": "ShipGuard Tool Value Gauntlet"' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
 grep -q '"priorityActions":' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
 grep -q '"taskContractReceipts":' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
-grep -q 'notification and permission workflow' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
+grep -q 'external pilot verdict bench' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
 package_score_output="$("$package_root/bin/shipguard" score "$package_root/examples/scored-run.md")"
 printf '%s\n' "$package_score_output" | grep -q 'Total score: 11/12'
