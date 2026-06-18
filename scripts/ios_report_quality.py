@@ -20,6 +20,7 @@ SOURCE_SCANNER_TOOLS = {
     "shipguard ios modernize",
     "shipguard ios app-intelligence",
     "shipguard ios ai-readiness",
+    "shipguard ios external-audit",
     "shipguard ios spec-workflow",
 }
 DECLARED_SHAREABILITY_TOOLS = SOURCE_SCANNER_TOOLS | {
@@ -93,8 +94,9 @@ TOOL_NEXT_ACTION_PRIORITY = {
     "shipguard ios modernize": 2,
     "shipguard ios app-intelligence": 3,
     "shipguard ios ai-readiness": 4,
-    "shipguard ios spec-workflow": 5,
-    "shipguard ios devspace-check": 6,
+    "shipguard ios external-audit": 5,
+    "shipguard ios spec-workflow": 6,
+    "shipguard ios devspace-check": 7,
 }
 SPEC_WORKFLOW_PLACEHOLDER_RE = re.compile(r"(?im)^\s*(?:[-*]\s*)?(?:TODO|TBD|FIXME)\b")
 TOKEN_RISK_PATTERNS = {

@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-17T23:44:14Z
+- Generated: 2026-06-17T23:57:35Z
 - Current toolkit version: 3.70.1
-- Target release: v3.71.0
-- Title: Report Quality Fixture Expansion
+- Target release: v3.72.0
+- Title: Native External Workflow Replacement Audit
 
 ## Slash Plan
 
 ```text
-/plan v3.71.0 Report Quality Fixture Expansion for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add report-quality fixtureCandidates so fresh read-only Ringly/Ilmify product-QA questions become public synthetic fixture recipes with fixture type, public path, validation commands, and private-data policy instead of manual guesswork or private app leakage.
+/plan v3.72.0 Native External Workflow Replacement Audit for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add shipguard ios external-audit so Spec Kit, CodexPro, Expo, native iOS workflow skills, X posts, and other external workflow ideas become a ShipGuard-native source audit with capability matrix, replacement ledger, implementation backlog, license boundary, and report-quality questions before integration is claimed.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.71.0 Report Quality Fixture Expansion for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add report-quality fixtureCandidates so fresh read-only Ringly/Ilmify product-QA questions become public synthetic fixture recipes with fixture type, public path, validation commands, and private-data policy instead of manual guesswork or private app leakage, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.72.0 Native External Workflow Replacement Audit for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add shipguard ios external-audit so Spec Kit, CodexPro, Expo, native iOS workflow skills, X posts, and other external workflow ideas become a ShipGuard-native source audit with capability matrix, replacement ledger, implementation backlog, license boundary, and report-quality questions before integration is claimed, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add report-quality fixtureCandidates so fresh read-only Ringly/Ilmify product-QA questions become public synthetic fixture recipes with fixture type, public path, validation commands, and private-data policy instead of manual guesswork or private app leakage.
+Add shipguard ios external-audit so Spec Kit, CodexPro, Expo, native iOS workflow skills, X posts, and other external workflow ideas become a ShipGuard-native source audit with capability matrix, replacement ledger, implementation backlog, license boundary, and report-quality questions before integration is claimed.
 
 ## Completion Receipt
 
-- Completed scope: Add report-quality fixtureCandidates so fresh read-only Ringly/Ilmify product-QA questions become public synthetic fixture recipes with fixture type, public path, validation commands, and private-data policy instead of manual guesswork or private app leakage.
-- Evidence: Fresh read-only Ringly/Ilmify product-QA pass under /tmp/shipguard-loop-3 produced 10 shareable reports and report-quality status=pass with 0 findings; implemented fixtureCandidates in ios report-quality JSON and Markdown; regenerated report-quality output emitted 8 fixture candidates including eval-boundary, performance, design, preview/Devspace, and actionability fixture types; spec workflow generated from the updated report-quality output passed report-quality with 0 findings; validation passed: git diff --check, python3 -m py_compile scripts/ios_report_quality.py, ./tests/ios_report_quality_test.sh, ./tests/ios_spec_workflow_test.sh, ./bin/shipguard validate, ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-loop-3, ./tests/cli_smoke_test.sh, ./tests/self_audit_test.sh, ./tests/package_release_test.sh.
+- Completed scope: Add shipguard ios external-audit so Spec Kit, CodexPro, Expo, native iOS workflow skills, X posts, and other external workflow ideas become a ShipGuard-native source audit with capability matrix, replacement ledger, implementation backlog, license boundary, and report-quality questions before integration is claimed.
+- Evidence: Implemented ios external-audit with shareable output, scan scope, source inputs, capability matrix, replacement ledger, implementation backlog, and no-vendoring boundary; ran real read-only source audit against local Spec Kit and CodexPro clones plus Expo and X URLs; report-quality passed with 0 findings and 10 replacement-ledger entries; spec-workflow generated from the audit quality output passed report-quality with 0 findings; validation passed: python3 -m py_compile scripts/ios_external_audit.py scripts/ios_report_quality.py, ./tests/ios_external_audit_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.72.0 Native External Workflow Replacement Audit for jlekerli-source/ShipGuard:
+/plan v3.73.0 External Audit Fixture Expansion for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add report-quality fixtureCandidates so fresh read-only Ringly/Ilmify product-QA
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.72.0 Native External Workflow Replacement Audit for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.73.0 External Audit Fixture Expansion for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.72.0 --title "Native External Workflow Replacement Audit" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.73.0 --title "External Audit Fixture Expansion" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -131,12 +131,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.71.0.
+1. Open or update the tracking issue for v3.72.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.71.0` and upload `dist/shipguard-v3.71.0.tar.gz`.
+6. Create release `v3.72.0` and upload `dist/shipguard-v3.72.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

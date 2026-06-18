@@ -129,6 +129,25 @@ Proof:
 - Convert useful observations into ShipGuard rules, report shape, docs, or public fixtures only.
 - Do not edit the scanned app or present its findings as the active app-work target.
 
+## external-source-audit
+
+Use when the user points ShipGuard at Spec Kit, CodexPro, Expo, X posts, plugins, skills, or another workflow/tooling project and asks to integrate it into ShipGuard.
+
+Ask:
+
+- Is the external source available as a local read-only checkout, a public URL, or only a post/screenshot?
+- Which ShipGuard surface should this influence: CLI command, report-quality gate, Devspace, spec workflow, plugin skill guidance, docs, fixtures, or release/package proof?
+- Does the user want native adaptation only, or have they explicitly approved vendoring with license/package review?
+
+Proof:
+
+- Run `shipguard ios external-audit --path <shipguard-repo> --source-path <external-checkout> --source-url <url> --out <dir> --shareable` when local source or URLs are available.
+- Treat `replacement-ledger.md` as the adoption contract: a source is not integrated until each claimed capability has a decision, native action, and validation command.
+- Run `shipguard ios report-quality --reports <external-audit-dir> --out <quality-dir> --shareable`.
+- Run `shipguard ios spec-workflow --from-report <quality-dir> --shipguard-eval --shareable` before implementing replacement work from that audit.
+- Keep the default path as native ShipGuard implementation. Do not copy external code, templates, assets, or docs unless a separate license and packaging decision explicitly approves it.
+- For X/social posts, capture them as source URLs and convert the idea into a public fixture or ShipGuard report-quality question before implementation; do not rely on a post alone as proof.
+
 ## design-audit
 
 Use for UI/UX coherence, app-type fit, motion, haptics, visual DNA, app icon direction, preview routing, and design proof planning.

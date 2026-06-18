@@ -85,6 +85,7 @@ commands=(
   "ios modernize --help"
   "ios app-intelligence --help"
   "ios ai-readiness --help"
+  "ios external-audit --help"
   "ios spec-workflow --help"
   "ios report-quality --help"
   "ios redact --help"

@@ -72,6 +72,7 @@ Common loops:
 | Review iOS performance evidence | `./bin/shipguard ios performance --help` |
 | Review UI/UX, motion, haptics, and icon direction | `./bin/shipguard ios design --help` |
 | Grade ShipGuard report usefulness | `./bin/shipguard ios report-quality --help` |
+| Audit external workflow sources for native adoption | `./bin/shipguard ios external-audit --help` |
 | Generate governed spec/plan/task artifacts | `./bin/shipguard ios spec-workflow --help` |
 | Prepare release proof | `./bin/shipguard release-proof --help` |
 | Check docs-heavy changes | `./bin/shipguard docs-check --help` |

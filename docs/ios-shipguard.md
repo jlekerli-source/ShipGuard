@@ -162,6 +162,26 @@ Those reports add a ShipGuard evaluation boundary. Findings from those runs must
 
 In `--shareable` report-quality mode, supported source reports that are missing `shareability` metadata receive `declared-shareability-missing`, and reports that declare `mode=local` or `localAbsolutePathsIncluded=true` receive `declared-shareability-local-mode`. Regenerate those source reports with `--shareable`; redaction remains the right path only for actual token or local-path findings.
 
+## External Source Audit
+
+Use `ios external-audit` before claiming ShipGuard has integrated another repo, post, or workflow idea:
+
+```bash
+./bin/shipguard ios external-audit \
+  --path . \
+  --source-path /tmp/spec-kit \
+  --source-path /tmp/codexpro \
+  --source-url https://github.com/expo/expo \
+  --source-url https://x.com/example/status/1234567890 \
+  --shipguard-eval \
+  --shareable \
+  --out /tmp/ios-shipguard-external-audit
+```
+
+The command is read-only against source checkouts and writes only to `--out`. It creates `ios-external-audit.json`, `ios-external-audit.md`, and `replacement-ledger.md`. The report records source inputs, local evidence signals, license boundaries, a capability matrix, replacement decisions, a ShipGuard-native implementation backlog, and report-quality questions. It treats sources such as Spec Kit, CodexPro, Expo, native iOS workflow skills, and social posts as product inputs; ShipGuard adoption means a capability has a native ShipGuard action plus validation, not that external source code or templates were copied into this repo.
+
+Use `--source-path` for a local read-only checkout when available; use `--source-url` for a public repo or post that still needs a source snapshot. Use `--shareable` before sending the audit to ChatGPT, GitHub, docs, release evidence, or `ios report-quality`. Feed the audit into `ios report-quality --shareable` and then into `ios spec-workflow --from-report` when a replacement decision needs implementation work.
+
 ## Spec Workflow
 
 Use `ios spec-workflow` when a ShipGuard report-quality pass has useful actionability questions but the next implementation still needs a governed spec, plan, and task breakdown:

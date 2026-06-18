@@ -4,6 +4,7 @@
 
 - Expanded `ios spec-workflow` into a fuller ShipGuard-native integration of external workflow inspiration: it now emits `requirements-checklist.md`, `integration-decisions.md`, and `consistency-analysis.md`, records ShipGuard-owned adaptations from Spec Kit, CodexPro, Expo, Xcode Build Optimization Agent Skills, and the OpenAI native iOS preview loop, and keeps those ideas as native proof/report-quality artifacts rather than vendored code.
 - Tightened `ios report-quality` so spec-workflow bundles must declare and include the requirements checklist, integration decisions, and consistency analysis, preserve report-quality questions through those artifacts, and fail review when those native integration files are missing or placeholder-only.
+- Added `shipguard ios external-audit` so external repos, workflow projects, and post URLs become a ShipGuard-native source audit with capability matrix, replacement ledger, implementation backlog, license boundary, and report-quality questions before any integration claim.
 - Added report-quality `fixtureCandidates` so private read-only Ringly/Ilmify observations can be converted into public synthetic fixture recipes with validation commands and private-data policy instead of copying private code or app-specific details.
 - Deduplicated repeated report-quality actionability questions while preserving duplicate counts and duplicate source reports, so real-app product-QA output stays prioritized without hiding later unique questions.
 
