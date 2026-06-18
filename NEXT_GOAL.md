@@ -1,7 +1,7 @@
 # Next Goal
 
-- Generated: 2026-06-18T19:07:58Z
-- Current toolkit version: 3.114.0
+- Generated: 2026-06-18T19:19:08Z
+- Current toolkit version: 3.114.1
 - Target release: v3.115.0
 - Title: ShipGuard iOS Notification Permission Workflow
 
@@ -28,8 +28,8 @@ Build the first domain-specific vertical workflow on top of diff-first prepare/v
 
 ## Completion Receipt
 
-- Completed scope: v3.114.0 ShipGuard Diff-First Verification Verdict shipped with structured validation receipts and diff-first merge verdicts.
-- Evidence: v3.114.0 shipped diff-first task contracts with bounded project snapshots, generic iOS scope discovery, structured validation receipts, evidence coverage, diffFirstAnalysis, strict pass/review/blocked/incomplete verdicts, and release proof at https://github.com/jlekerli-source/ShipGuard/releases/tag/v3.114.0. Consumer release verification passed for shipguard-v3.114.0.tar.gz with SHA-256 06b2cbaf0f499457b2790c6561574a4b8e067a6054d913807b176497f556079f. Post-release starter hygiene also moved initialized PLANS.md and SUBAGENTS.md to neutral templates/common files and validated package receipts.
+- Completed scope: v3.114.1 Starter Template and NextRail hotfix prepared after v3.114.0 diff-first verification shipped.
+- Evidence: v3.114.0 shipped diff-first task contracts with bounded project snapshots, generic iOS scope discovery, structured validation receipts, evidence coverage, diffFirstAnalysis, strict pass/review/blocked/incomplete verdicts, and release proof at https://github.com/jlekerli-source/ShipGuard/releases/tag/v3.114.0. Consumer release verification passed for shipguard-v3.114.0.tar.gz with SHA-256 06b2cbaf0f499457b2790c6561574a4b8e067a6054d913807b176497f556079f. v3.114.1 keeps the same product direction while aligning the release with neutral templates/common starter files, explicit next-goal completed-scope support, local package proof, and Codex status proof.
 
 ## Following Slash Plan
 

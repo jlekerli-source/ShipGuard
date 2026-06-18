@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Bumped the release line to v3.114.1 so latest release artifacts include the neutral starter planning templates under `templates/common/`, the `shipguard init` copy fix for `PLANS.md` and `SUBAGENTS.md`, and explicit `shipguard next-goal --completed-scope` support for release-loop handoffs.
 - Added public `fixtures/ios-report-quality/design-coherence-boundary` coverage after read-only product-QA showed the next uncovered design question was boundary separation: `shipguard ios design` reports now expose `designCoherenceBoundary` with separate source inventory, coherence risks, ShipGuard next action, app-work authorization, proof boundary, and `targetRemediationStatus: not-authorized-from-this-run`.
 - Tightened `shipguard ios report-quality` so ShipGuard-evaluation design reports missing the coherence boundary, separation checks, ShipGuard-owned next action, app-work authorization status, proof boundary, or Markdown rendering receive review findings; regenerated read-only Ringly/Ilmify product-QA output now has fixture coverage for runtime boundary, grouped performance, evidence promotion, app-type tailoring, and design coherence boundaries.
 - Added public `fixtures/ios-report-quality/design-app-type-tailoring` coverage after read-only product-QA showed the next uncovered design question was app-type tailoring: `shipguard ios design` reports now expose a machine-readable `designTailoring` contract with source signals, guidance profile, tailored motion/haptics/visual-density/copy dimensions, and one exact next proof action.
