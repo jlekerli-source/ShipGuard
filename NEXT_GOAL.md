@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T00:16:58Z
+- Generated: 2026-06-18T00:30:42Z
 - Current toolkit version: 3.70.1
-- Target release: v3.73.0
-- Title: Native Motion Source Profile And Gates
+- Target release: v3.74.0
+- Title: External Source Routing Eval Fixture
 
 ## Slash Plan
 
 ```text
-/plan v3.73.0 Native Motion Source Profile And Gates for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add a Design Motion Principles external-audit source profile, harden source signal matching so short source tokens such as EAS do not match inside unrelated words, and make ios design emit ShipGuard-native motionQualityGates for frequency, purpose, keyboard, Reduce Motion, AI-slop, performance, and proof guidance.
+/plan v3.74.0 External Source Routing Eval Fixture for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add a public ios eval fixture and routing support so requests to integrate Spec Kit, CodexPro, Expo, Design Motion Principles, X posts, or other external sources route to external-source-audit with read-only source inputs, replacement-ledger decisions, report-quality scoring, capability-matrix proof, and validation-command boundaries instead of drifting into Devspace or generic planning.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.73.0 Native Motion Source Profile And Gates for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add a Design Motion Principles external-audit source profile, harden source signal matching so short source tokens such as EAS do not match inside unrelated words, and make ios design emit ShipGuard-native motionQualityGates for frequency, purpose, keyboard, Reduce Motion, AI-slop, performance, and proof guidance, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.74.0 External Source Routing Eval Fixture for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add a public ios eval fixture and routing support so requests to integrate Spec Kit, CodexPro, Expo, Design Motion Principles, X posts, or other external sources route to external-source-audit with read-only source inputs, replacement-ledger decisions, report-quality scoring, capability-matrix proof, and validation-command boundaries instead of drifting into Devspace or generic planning, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add a Design Motion Principles external-audit source profile, harden source signal matching so short source tokens such as EAS do not match inside unrelated words, and make ios design emit ShipGuard-native motionQualityGates for frequency, purpose, keyboard, Reduce Motion, AI-slop, performance, and proof guidance.
+Add a public ios eval fixture and routing support so requests to integrate Spec Kit, CodexPro, Expo, Design Motion Principles, X posts, or other external sources route to external-source-audit with read-only source inputs, replacement-ledger decisions, report-quality scoring, capability-matrix proof, and validation-command boundaries instead of drifting into Devspace or generic planning.
 
 ## Completion Receipt
 
-- Completed scope: Add a Design Motion Principles external-audit source profile, harden source signal matching so short source tokens such as EAS do not match inside unrelated words, and make ios design emit ShipGuard-native motionQualityGates for frequency, purpose, keyboard, Reduce Motion, AI-slop, performance, and proof guidance.
-- Evidence: Read-only audit of the installed design-motion-principles skill plus Expo URL initially misclassified the skill as Expo because EAS matched inside easing; implemented boundary-aware source signal matching, added a Design Motion Principles source profile, expanded Expo source capabilities, added ios design motionQualityGates, and updated the iOS ShipGuard plugin skill routing so design-audit and external-source-audit surface those native gates. After the patch, external-audit classified Design Motion Principles and Expo separately, report-quality passed with 0 findings, full source audit over Spec Kit/CodexPro/Design Motion/Expo/X URLs passed report-quality with 0 findings and 15 ledger entries, spec-workflow generated from that audit passed report-quality with 0 findings, ios design report-quality passed with motionQualityGates present, Codex plugin refresh passed, and public ios design wording now presents the gates as native ShipGuard functionality.
+- Completed scope: Add a public ios eval fixture and routing support so requests to integrate Spec Kit, CodexPro, Expo, Design Motion Principles, X posts, or other external sources route to external-source-audit with read-only source inputs, replacement-ledger decisions, report-quality scoring, capability-matrix proof, and validation-command boundaries instead of drifting into Devspace or generic planning.
+- Evidence: A fresh read-only external-audit over local Spec Kit, CodexPro, and Design Motion Principles inputs plus the Expo URL passed, report-quality passed with 0 findings, spec-workflow generated from that report-quality pass passed, and spec-workflow report-quality passed. A temporary eval case for external-source native adoption failed before the patch by routing to preview-devspace and missing external-audit, replacement-ledger, report-quality, capability-matrix, and validation-command proof. Implemented external-source-audit mode commands, proof boundaries, questions, and claim boundaries in ios eval; added a permanent external-source-native-adoption public fixture; updated docs, roadmap, changelog, and stale plugin cache version text. After the patch, ios eval passed with 10 cases, 0 failures, and the external-source case routed to external-source-audit.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.74.0 External Audit Fixture Expansion for jlekerli-source/ShipGuard:
+/plan v3.75.0 Report Quality Fixture Candidate Materialization for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add a Design Motion Principles external-audit source profile, harden source sign
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.74.0 External Audit Fixture Expansion for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.75.0 Report Quality Fixture Candidate Materialization for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.74.0 --title "External Audit Fixture Expansion" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.75.0 --title "Report Quality Fixture Candidate Materialization" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -131,12 +131,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.73.0.
+1. Open or update the tracking issue for v3.74.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.73.0` and upload `dist/shipguard-v3.73.0.tar.gz`.
+6. Create release `v3.74.0` and upload `dist/shipguard-v3.74.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

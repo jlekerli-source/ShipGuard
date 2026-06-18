@@ -31,6 +31,11 @@ MODE_COMMANDS = {
         "shipguard ios preview --out /tmp/ios-shipguard-preview",
         "shipguard ios devspace --port 8787 --preview-out /tmp/ios-shipguard-preview --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN",
     ],
+    "external-source-audit": [
+        "shipguard ios external-audit --path <shipguard-repo> --source-path <external-checkout> --source-url <url> --out <dir> --shareable",
+        "shipguard ios report-quality --reports <external-audit-dir> --out <quality-dir> --shareable",
+        "shipguard ios spec-workflow --path <shipguard-repo> --feature <feature> --from-report <quality-dir> --shipguard-eval --shareable --out <dir>",
+    ],
     "preview-bridge": [
         "shipguard ios preview --out /tmp/ios-shipguard-preview",
         "shipguard ios target-match --handoff <handoff.json> --snapshot <ui.json> --out <dir>",
@@ -81,6 +86,13 @@ MODE_PROOF = {
         "ios preview evidence for visual claims",
         "Devspace handoff when ChatGPT should plan from the phone widget",
         "physical-device proof for haptic quality claims",
+    ],
+    "external-source-audit": [
+        "read-only source checkout or public URL capture",
+        "capability matrix and replacement ledger",
+        "license and no-vendoring boundary review",
+        "validation command for every adopted external capability",
+        "report-quality scoring before implementation claims",
     ],
     "preview-bridge": [
         "preview-events.jsonl receipt",
@@ -164,6 +176,27 @@ def contains_any(text: str, terms: list[str]) -> bool:
 
 
 def classify_mode(text: str) -> str:
+    if contains_any(
+        text,
+        [
+            "external-audit",
+            "external source",
+            "source-path",
+            "source-url",
+            "replacement ledger",
+            "capability matrix",
+            "spec kit",
+            "codexpro",
+            "x posts",
+            "public repo",
+            "read-only inputs",
+            "read-only source",
+            "native adoption",
+            "vendor external",
+            "vendored external",
+        ],
+    ) or ("shipguard" in text.lower() and contains_any(text, ["integrate", "adopt", "adoption"]) and contains_any(text, ["expo", "design motion principles", "github"])):
+        return "external-source-audit"
     if contains_any(text, ["spec-workflow", "spec workflow", "spec-driven", "constitution", "feature spec", "tasks.md", "report-quality questions", "actionability questions"]):
         return "preview-devspace"
     if contains_any(text, ["redact", "public issue", "share the", "token", "team id", "bundle id", "local path", "privacy leak"]):
@@ -226,6 +259,11 @@ def questions_for(mode: str, text: str) -> list[str]:
             "Is the inferred app type correct, or should --app-type override it?",
             "Is there an ios preview output directory, or should ShipGuard start the phone-shaped preview first?",
         ]
+    if mode == "external-source-audit":
+        return [
+            "Is each external source available as a local read-only checkout, a public URL, or only a post/screenshot?",
+            "Which ShipGuard surface should this influence: CLI command, report-quality gate, Devspace, spec workflow, plugin skill guidance, docs, fixtures, or release/package proof?",
+        ]
     if mode == "preview-bridge":
         return [
             "Which simulator, scheme, and app state should be previewed?",
@@ -263,6 +301,9 @@ def claim_boundaries_for(mode: str, text: str) -> list[str]:
         claims.append("Do not claim 10/10 smoothness from source review alone; name profiler output, sampled stacks, before/after proof, and device-only gaps.")
     if mode == "design-audit":
         claims.append("Do not claim visual coherence, app icon quality, or haptic quality without preview, ImageGen review, or physical-device evidence as applicable.")
+    if mode == "external-source-audit":
+        claims.append("Do not claim an external source is integrated unless each adopted capability has a replacement-ledger decision, native ShipGuard action, and validation command.")
+        claims.append("Do not vendor external code, templates, assets, or docs without explicit license and packaging approval.")
     if mode in {"preview-bridge", "preview-devspace"}:
         claims.append("Do not use raw coordinates as simulator proof or run Codex automatically from the preview.")
     if mode == "privacy-security":
