@@ -1,6 +1,6 @@
 # Next Goal
 
-- Generated: 2026-06-18T04:48:37Z
+- Generated: 2026-06-18T05:00:51Z
 - Current toolkit version: 3.86.0
 - Target release: v3.86.0
 - Title: ShipGuard Surface Depth Audits
@@ -9,7 +9,7 @@
 
 ```text
 /plan v3.86.0 ShipGuard Surface Depth Audits for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Promote the ShipGuard Tool Value Gauntlet actionability question into a public synthetic report-quality fixture so low-value surface concerns become reusable eval coverage without copying private app evidence.
+1. Implement this bounded improvement: Promote the ShipGuard Tool Value Gauntlet actionability question into a public synthetic report-quality fixture, and fix the release-proof optional-link forwarding bug found while publishing the release proof bundle.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,18 +18,18 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.86.0 ShipGuard Surface Depth Audits for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the ShipGuard Tool Value Gauntlet actionability question into a public synthetic report-quality fixture so low-value surface concerns become reusable eval coverage without copying private app evidence, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.86.0 ShipGuard Surface Depth Audits for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the ShipGuard Tool Value Gauntlet actionability question into a public synthetic report-quality fixture, and fix the release-proof optional-link forwarding bug found while publishing the release proof bundle, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Promote the ShipGuard Tool Value Gauntlet actionability question into a public synthetic report-quality fixture so low-value surface concerns become reusable eval coverage without copying private app evidence.
+Promote the ShipGuard Tool Value Gauntlet actionability question into a public synthetic report-quality fixture, and fix the release-proof optional-link forwarding bug found while publishing the release proof bundle.
 
 ## Completion Receipt
 
-- Completed scope: Promote the ShipGuard Tool Value Gauntlet actionability question into a public synthetic report-quality fixture so low-value surface concerns become reusable eval coverage without copying private app evidence.
-- Evidence: Promoted fixtures/ios-report-quality/value-gauntlet-actionability with README, fixture-candidate.json, fixture-report.json, and fixture-report.md. Report-quality validates the fixture at pass status, preserves the value-gauntlet actionability question, marks sourceMaterializedFixture true, emits no recursive fixtureCandidates, and keeps the fixture free of local paths or private app identifiers. Validation passed: git diff --check, ./tests/ios_report_quality_test.sh, ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/value-gauntlet-actionability --out /tmp/value-gauntlet-actionability-quality --shareable, and ./bin/shipguard validate.
+- Completed scope: Promote the ShipGuard Tool Value Gauntlet actionability question into a public synthetic report-quality fixture, and fix the release-proof optional-link forwarding bug found while publishing the release proof bundle.
+- Evidence: Promoted fixtures/ios-report-quality/value-gauntlet-actionability with README, fixture-candidate.json, fixture-report.json, and fixture-report.md. Report-quality validates the fixture at pass status, preserves the value-gauntlet actionability question, marks sourceMaterializedFixture true, emits no recursive fixtureCandidates, and keeps the fixture free of local paths or private app identifiers. Fixed release-proof build so optional proof links like --issue-url are only forwarded when present while --ci-run-url can still be supplied for passing replay proof. Validation passed: git diff --check, ./bin/shipguard validate, ./tests/ios_report_quality_test.sh, ./tests/release_proof_test.sh, ./tests/package_release_test.sh, ./tests/cli_smoke_test.sh, ./tests/next_goal_test.sh, ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/value-gauntlet-actionability --out /tmp/value-gauntlet-actionability-quality --shareable, ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet-fixture, and ./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet-fixture --out /tmp/shipguard-value-quality-fixture --shareable.
 
 ## Following Slash Plan
 

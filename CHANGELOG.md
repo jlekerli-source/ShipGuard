@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed `release-proof build` so optional proof links like `--issue-url` and `--ci-run-url` are only forwarded when present, matching the documented release command and allowing proof bundles without a tracking issue URL.
 - Promoted the ShipGuard Tool Value Gauntlet actionability question into a public `fixtures/ios-report-quality/value-gauntlet-actionability` synthetic fixture so report-quality proves low-value surface concerns can become reusable eval coverage without copying private app evidence.
 - Added ShipGuard Tool Value Gauntlet with `shipguard value-gauntlet`, JSON/Markdown output, command/skill/plugin/action/doc/package-proof scoring, report-quality routing, package proof, self-audit coverage, and deterministic eval routing for "test every skill/plugin" product-QA requests.
 - Expanded ShipGuard Brand Deck into a toolkit-wide naming system with `shipguard brand`, 51 public command-family surface names, compatibility for `shipguard ios brand`, public-command coverage checks, docs coverage, package proof, self-audit coverage, and routing eval support for funny/vibey/techy naming requests.

@@ -119,16 +119,24 @@ cmd_build() {
   local replay_dir="$out_dir/replay"
   local attestation_dir="$out_dir/attestation"
 
-  "$tool_root/bin/shipguard" release-manifest \
-    --tarball "$release_tarball" \
-    --out "$proof_dir" \
-    --version "$version" \
-    --tag "$tag" \
-    --commit "$commit" \
-    --ci-run-url "$ci_run_url" \
-    --release-url "$release_url" \
-    --issue-url "$issue_url" \
+  local manifest_args=(
+    release-manifest
+    --tarball "$release_tarball"
+    --out "$proof_dir"
+    --version "$version"
+    --tag "$tag"
+    --commit "$commit"
+    --release-url "$release_url"
     --notes "$notes"
+  )
+  if [[ -n "$ci_run_url" ]]; then
+    manifest_args+=(--ci-run-url "$ci_run_url")
+  fi
+  if [[ -n "$issue_url" ]]; then
+    manifest_args+=(--issue-url "$issue_url")
+  fi
+
+  "$tool_root/bin/shipguard" "${manifest_args[@]}"
 
   "$tool_root/bin/shipguard" release-manifest verify \
     --manifest "$proof_dir/release-manifest.json" \
