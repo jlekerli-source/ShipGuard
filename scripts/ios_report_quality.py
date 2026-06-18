@@ -1735,11 +1735,52 @@ def safe_candidate_metadata(candidate: dict[str, Any]) -> dict[str, Any]:
     metadata["publicFixturePath"] = f"fixtures/ios-report-quality/{candidate_id}"
     metadata["sourceReportCount"] = len(source_reports) if isinstance(source_reports, list) else 0
     metadata["sourceReportsRedacted"] = True
+    metadata["promotion"] = promotion_metadata(candidate_id)
     metadata["privateDataPolicy"] = (
         "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy "
         "private app code, local paths, screenshots, app-specific identifiers, or proprietary text."
     )
     return metadata
+
+
+def promotion_target_path(candidate_id: str) -> str:
+    return f"fixtures/ios-report-quality/{candidate_id}"
+
+
+def promotion_metadata(candidate_id: str) -> dict[str, Any]:
+    target_path = promotion_target_path(candidate_id)
+    files = [
+        "README.md",
+        "fixture-candidate.json",
+        "fixture-report.json",
+        "fixture-report.md",
+    ]
+    return {
+        "candidateId": candidate_id,
+        "sourceDirectory": f"<materialized-fixture-output>/{candidate_id}",
+        "suggestedFixturePath": target_path,
+        "files": files,
+        "copyCommands": [
+            f"mkdir -p {target_path}",
+            *[
+                f"cp <materialized-candidate-dir>/{name} {target_path}/{name}"
+                for name in files
+            ],
+        ],
+        "validationCommands": [
+            f"./bin/shipguard ios report-quality --reports {target_path} --out <quality-dir> --shareable",
+            "./tests/ios_report_quality_test.sh",
+            "./bin/shipguard validate",
+        ],
+        "reviewChecklist": [
+            "Confirm the fixture is synthetic and public-safe.",
+            "Confirm no private app code, screenshots, local paths, tokens, app identifiers, or proprietary text were copied.",
+            "Confirm scopeBoundary.shipguardOnly and targetAppsReadOnly remain explicit.",
+            "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates.",
+            "Register the fixture in validation only after the report-quality check passes.",
+        ],
+        "promotionPolicy": "Promotion is explicit maintainer work. ShipGuard writes starter files only to the requested output directory and does not auto-copy them into the repository.",
+    }
 
 
 def sanitize_materialized_text(value: object) -> str:
@@ -1827,6 +1868,7 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
 def fixture_readme(candidate: dict[str, Any]) -> str:
     candidate_id = materialized_candidate_id(candidate)
     validation = candidate.get("validationCommands") if isinstance(candidate.get("validationCommands"), list) else []
+    promotion = promotion_metadata(candidate_id)
     lines = [
         f"# {candidate_id}",
         "",
@@ -1851,6 +1893,68 @@ def fixture_readme(candidate: dict[str, Any]) -> str:
         lines.extend(f"- `{command}`" for command in validation)
     else:
         lines.append("- `./bin/shipguard ios report-quality --reports <fixture-dir> --out <quality-dir> --shareable`")
+    lines.extend(
+        [
+            "",
+            "## Promotion",
+            "",
+            f"- Suggested repo path: `{promotion['suggestedFixturePath']}`",
+            "- Promotion is explicit maintainer work; generated candidates are not auto-copied into the repo.",
+            "",
+            "Copy commands:",
+            "",
+        ]
+    )
+    lines.extend(f"- `{command}`" for command in promotion["copyCommands"])
+    lines.extend(["", "Promotion validation:", ""])
+    lines.extend(f"- `{command}`" for command in promotion["validationCommands"])
+    lines.extend(["", "Review checklist:", ""])
+    lines.extend(f"- {item}" for item in promotion["reviewChecklist"])
+    lines.append("")
+    return "\n".join(lines)
+
+
+def render_promotion_markdown(entries: list[dict[str, Any]]) -> str:
+    lines = [
+        "# Fixture Promotion Guide",
+        "",
+        "These generated fixtures are public-safe starters. Promotion remains explicit maintainer work; ShipGuard does not auto-copy candidates into the repository.",
+        "",
+        "## Candidates",
+        "",
+        "| Candidate | Suggested Repo Path |",
+        "| --- | --- |",
+    ]
+    for item in entries:
+        promotion = item.get("promotion") or {}
+        lines.append(
+            f"| `{item.get('candidateId') or 'unknown'}` | `{promotion.get('suggestedFixturePath') or '-'}` |"
+        )
+    lines.extend(["", "## Copy Commands", ""])
+    for item in entries:
+        promotion = item.get("promotion") or {}
+        lines.append(f"### {item.get('candidateId') or 'unknown'}")
+        lines.append("")
+        for command in promotion.get("copyCommands") or []:
+            lines.append(f"- `{command}`")
+        lines.append("")
+    lines.extend(["## Validation", ""])
+    seen_commands: set[str] = set()
+    for item in entries:
+        promotion = item.get("promotion") or {}
+        for command in promotion.get("validationCommands") or []:
+            if command in seen_commands:
+                continue
+            seen_commands.add(command)
+            lines.append(f"- `{command}`")
+    lines.extend(["", "## Review Checklist", ""])
+    checklist: list[str] = []
+    for item in entries:
+        promotion = item.get("promotion") or {}
+        for check in promotion.get("reviewChecklist") or []:
+            if check not in checklist:
+                checklist.append(check)
+    lines.extend(f"- {check}" for check in checklist)
     lines.append("")
     return "\n".join(lines)
 
@@ -1877,8 +1981,18 @@ def write_fixture_candidate_files(report: dict[str, Any], output_dir: Path) -> d
                 "candidateId": candidate_id,
                 "directory": candidate_id,
                 "files": sorted(files),
+                "promotion": promotion_metadata(candidate_id),
             }
         )
+    promotion_manifest = {
+        "schemaVersion": SCHEMA_VERSION,
+        "tool": REPORT_QUALITY_TOOL,
+        "generatedAt": utc_now(),
+        "status": "pass",
+        "candidateCount": len(entries),
+        "promotionPolicy": "Generated candidates are public-safe starters. Promotion into fixtures/ios-report-quality is explicit maintainer work and must pass validation first.",
+        "candidates": [item["promotion"] for item in entries],
+    }
     index = {
         "schemaVersion": SCHEMA_VERSION,
         "tool": REPORT_QUALITY_TOOL,
@@ -1887,13 +2001,23 @@ def write_fixture_candidate_files(report: dict[str, Any], output_dir: Path) -> d
         "output": "<fixture-output-dir>",
         "candidateCount": len(entries),
         "candidates": entries,
+        "promotionManifest": "fixture-promotion-manifest.json",
+        "promotionGuide": "PROMOTION.md",
         "privateDataPolicy": "Generated fixtures are synthetic and path-safe. Source reports are not copied into fixture files.",
     }
     (output_dir / "fixture-candidates-index.json").write_text(json.dumps(index, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (output_dir / "fixture-promotion-manifest.json").write_text(
+        json.dumps(promotion_manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (output_dir / "PROMOTION.md").write_text(render_promotion_markdown(entries), encoding="utf-8")
     index_lines = [
         "# Fixture Candidates Index",
         "",
         "Synthetic public fixture starters generated from report-quality fixtureCandidates.",
+        "",
+        "- `fixture-promotion-manifest.json`: machine-readable suggested repo paths, placeholder copy commands, validation commands, and review checklist.",
+        "- `PROMOTION.md`: human-readable promotion guide. Promotion is explicit maintainer work.",
         "",
         "| Candidate | Directory |",
         "| --- | --- |",

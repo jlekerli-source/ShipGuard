@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T01:14:42Z
+- Generated: 2026-06-18T01:25:07Z
 - Current toolkit version: 3.70.1
-- Target release: v3.76.0
-- Title: Report Quality Materialized Fixture Promotion
+- Target release: v3.77.0
+- Title: Report Quality Fixture Promotion Workflow
 
 ## Slash Plan
 
 ```text
-/plan v3.76.0 Report Quality Materialized Fixture Promotion for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Promote materialized report-quality fixture candidates into permanent public fixtures and prevent already-materialized synthetic fixture reports from recursively producing another fixtureCandidates entry while preserving their actionability questions as ShipGuard product-QA evidence.
+/plan v3.77.0 Report Quality Fixture Promotion Workflow for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add a promotion manifest and guide to report-quality materialized fixture output so public-safe synthetic fixtures have suggested repo-relative fixture paths, placeholder copy commands, validation commands, and a review checklist without auto-writing into the repository or copying private app details.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.76.0 Report Quality Materialized Fixture Promotion for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote materialized report-quality fixture candidates into permanent public fixtures and prevent already-materialized synthetic fixture reports from recursively producing another fixtureCandidates entry while preserving their actionability questions as ShipGuard product-QA evidence, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.77.0 Report Quality Fixture Promotion Workflow for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add a promotion manifest and guide to report-quality materialized fixture output so public-safe synthetic fixtures have suggested repo-relative fixture paths, placeholder copy commands, validation commands, and a review checklist without auto-writing into the repository or copying private app details, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Promote materialized report-quality fixture candidates into permanent public fixtures and prevent already-materialized synthetic fixture reports from recursively producing another fixtureCandidates entry while preserving their actionability questions as ShipGuard product-QA evidence.
+Add a promotion manifest and guide to report-quality materialized fixture output so public-safe synthetic fixtures have suggested repo-relative fixture paths, placeholder copy commands, validation commands, and a review checklist without auto-writing into the repository or copying private app details.
 
 ## Completion Receipt
 
-- Completed scope: Promote materialized report-quality fixture candidates into permanent public fixtures and prevent already-materialized synthetic fixture reports from recursively producing another fixtureCandidates entry while preserving their actionability questions as ShipGuard product-QA evidence.
-- Evidence: A fresh read-only external-audit over local Spec Kit, CodexPro, and Design Motion Principles inputs plus the Expo URL passed; report-quality materialized a clean synthetic external-audit fixture, and scoring that materialized fixture exposed a recursive fixture-candidate loop. Implemented materialized synthetic fixture detection in ios report-quality, preserved sourceMaterializedFixture actionability evidence, suppressed recursive fixtureCandidates for already-materialized fixture reports, added fixtures/ios-report-quality/materialized-external-audit as a permanent public fixture, registered it in bundle validation, and updated docs/tests. Validation proved materialized fixture scoring now returns pass with fixtureCandidates=0 and sourceMaterializedFixture=true, with no local paths or private app names.
+- Completed scope: Add a promotion manifest and guide to report-quality materialized fixture output so public-safe synthetic fixtures have suggested repo-relative fixture paths, placeholder copy commands, validation commands, and a review checklist without auto-writing into the repository or copying private app details.
+- Evidence: A fresh read-only external-audit over local Spec Kit, CodexPro, and Design Motion Principles inputs plus the Expo URL passed; report-quality materialized clean synthetic fixtures and scoring them passed with no recursive fixture candidates, but the materialized output still only listed directories/files and left promotion into fixtures/ios-report-quality as manual guesswork. Added fixture-promotion-manifest.json, PROMOTION.md, and per-candidate promotion metadata with repo-relative suggested paths, placeholder copy commands, validation commands, and privacy/review checklist; tests assert no local paths or private app names leak into generated promotion artifacts.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.77.0 Report Quality Fixture Promotion Workflow for jlekerli-source/ShipGuard:
+/plan v3.78.0 Report Quality Promotion Manifest Consumption for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Promote materialized report-quality fixture candidates into permanent public fix
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.77.0 Report Quality Fixture Promotion Workflow for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.78.0 Report Quality Promotion Manifest Consumption for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.77.0 --title "Report Quality Fixture Promotion Workflow" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.78.0 --title "Report Quality Promotion Manifest Consumption" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -131,12 +131,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.76.0.
+1. Open or update the tracking issue for v3.77.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.76.0` and upload `dist/shipguard-v3.76.0.tar.gz`.
+6. Create release `v3.77.0` and upload `dist/shipguard-v3.77.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

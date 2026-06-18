@@ -202,7 +202,35 @@ grep -q 'Fixture Candidates' "$tmp_dir/dedupe-quality/ios-report-quality.md"
 grep -q 'Fixture Materialization' "$tmp_dir/dedupe-quality/ios-report-quality.md"
 grep -q 'fixtures/ios-report-quality/' "$tmp_dir/dedupe-quality/ios-report-quality.md"
 test -f "$tmp_dir/materialized-fixtures/fixture-candidates-index.json"
+test -f "$tmp_dir/materialized-fixtures/fixture-promotion-manifest.json"
+test -f "$tmp_dir/materialized-fixtures/PROMOTION.md"
 test -f "$tmp_dir/materialized-fixtures/README.md"
+grep -q 'Fixture Promotion Guide' "$tmp_dir/materialized-fixtures/PROMOTION.md"
+grep -q 'fixtures/ios-report-quality/' "$tmp_dir/materialized-fixtures/PROMOTION.md"
+python3 - <<'PY' "$tmp_dir/materialized-fixtures/fixture-promotion-manifest.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("candidateCount", 0) < 1:
+    raise SystemExit(f"expected promotion candidates: {data!r}")
+candidate = data["candidates"][0]
+path = candidate.get("suggestedFixturePath") or ""
+if not path.startswith("fixtures/ios-report-quality/"):
+    raise SystemExit(f"unexpected suggested fixture path: {candidate!r}")
+copy_commands = "\n".join(candidate.get("copyCommands") or [])
+if "<materialized-candidate-dir>" not in copy_commands:
+    raise SystemExit(f"copy commands must use path-safe placeholder: {candidate!r}")
+local_home_pattern = "/" + "Users/"
+if "/tmp/" in copy_commands or local_home_pattern in copy_commands:
+    raise SystemExit(f"copy commands leaked local path: {candidate!r}")
+validation_commands = "\n".join(candidate.get("validationCommands") or [])
+if "ios report-quality" not in validation_commands or "./tests/ios_report_quality_test.sh" not in validation_commands:
+    raise SystemExit(f"missing validation commands: {candidate!r}")
+checklist = " ".join(candidate.get("reviewChecklist") or []).lower()
+if "no private app code" not in checklist:
+    raise SystemExit(f"missing private-data review checklist: {candidate!r}")
+PY
 materialized_candidate_dir="$(find "$tmp_dir/materialized-fixtures" -mindepth 1 -maxdepth 1 -type d | sort | head -n 1)"
 test -n "$materialized_candidate_dir"
 test -f "$materialized_candidate_dir/README.md"
@@ -210,6 +238,9 @@ test -f "$materialized_candidate_dir/fixture-candidate.json"
 test -f "$materialized_candidate_dir/fixture-report.json"
 test -f "$materialized_candidate_dir/fixture-report.md"
 grep -q '"sourceReportsRedacted": true' "$materialized_candidate_dir/fixture-candidate.json"
+grep -q '"promotion":' "$materialized_candidate_dir/fixture-candidate.json"
+grep -q '"suggestedFixturePath": "fixtures/ios-report-quality/' "$materialized_candidate_dir/fixture-candidate.json"
+grep -q '## Promotion' "$materialized_candidate_dir/README.md"
 grep -q '"tool": "shipguard ios ' "$materialized_candidate_dir/fixture-report.json"
 grep -q '"shipguardOnly": true' "$materialized_candidate_dir/fixture-report.json"
 grep -q '"targetAppsReadOnly": true' "$materialized_candidate_dir/fixture-report.json"
