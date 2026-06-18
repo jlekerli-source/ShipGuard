@@ -79,6 +79,8 @@ A later read-only Ringly/Ilmify pass showed two additional ShipGuard weaknesses:
 
 A subsequent read-only Ringly/Ilmify report-quality pass showed `ios design --shipguard-eval` was still useful but not shareable by default because the JSON carried the local app root. `ios design --shareable` now omits local absolute roots and preview directories from report fields before report-quality scoring or external planning, while default local reports keep operator paths.
 
+The Build iOS Apps integration pass showed ShipGuard had useful references to XcodeBuildMCP, simulator browser, SwiftUI preview, and profiler workflows, but no single ShipGuard command that made those workflows feel native. `shipguard ios build-apps` now inspects repo topology, recommends the right Build iOS Apps route, emits XcodeBuildMCP build/run, debugger/log, simulator browser, SwiftUI preview hot reload, and performance profiler handoffs, and keeps the execution boundary honest: ShipGuard owns routing and proof reports, while Build iOS Apps executes Codex simulator/debugger/profiler tools.
+
 The next read-only loop showed the report-quality artifact itself still carried absolute input/report paths even when its source design reports were shareable. `ios report-quality --shareable` now omits local absolute input and report paths from its own JSON, Markdown, findings, and redaction commands before ChatGPT/GitHub/docs/release-evidence sharing.
 
 A follow-up read-only loop over the full Ringly/Ilmify report set showed another report-quality gap: the source reports carried useful `reportQualityQuestions`, but the quality artifact ended with only generic next actions. `ios report-quality` now aggregates those questions into an `Actionability Questions` section so the next ShipGuard rule, fixture, report section, or docs improvement is explicit.
@@ -180,6 +182,7 @@ The Codex plugin source and local cache are now clean enough for local use. The 
 - A marketplace source entry for `ios-shipguard`.
 - A plugin install or refresh handoff that says exactly when Codex must be restarted or cache-cleared.
 - Keep the restored `shipguard ios` helper commands covered by tests, docs, package proof, and plugin guidance.
+- `shipguard ios build-apps` as the native ShipGuard front door for Build iOS Apps build/run/debug/preview/profiler workflows without vendoring the plugin or faking MCP execution from the CLI.
 - `shipguard ios performance` as a read-only source scanner for ranked SwiftUI/runtime performance hotspots before Codex chooses edits.
 - `--shipguard-eval` as the explicit ShipGuard-only product QA mode for private real-app samples across `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, and `ios ai-readiness`.
 - `shipguard ios design` for genre-aware UI/UX coherence, design DNA, motion, haptics, preview routing, and ImageGen app-icon handoff.
@@ -258,6 +261,7 @@ Status: started.
 - Added `fixtures/arena/storekit-entitlement-regression` to exercise regression-awareness and proof honesty around subscription restore behavior.
 - Added `fixtures/arena/data-migration-loss-regression` plus an Autopsy `destructive_migration_risk` finding for migrations that drop persistent user data without backup, rollback, or rehearsal proof.
 - Added `shipguard ios performance` after real-app read-only checks showed the previous `performance-audit` route produced proof guidance but not enough concrete source findings.
+- Added `shipguard ios build-apps` after integration review showed Build iOS Apps should be reachable through a native ShipGuard command that records topology, workflow routing, proof boundaries, and report-quality questions before Codex executes simulator or profiler tools.
 - Added `--shipguard-eval` so private Ringly/Ilmify-style checks are explicitly ShipGuard-only QA, not target-app remediation work.
 - Changed the performance report shape to include rule summaries, capped repeated rules in Markdown, exact evidence snippets, and full JSON findings for deeper follow-up.
 - Added grouped performance `firstExperiment` output after report-quality kept prioritizing whether grouped actions named the smallest reversible proof step before broad refactors.

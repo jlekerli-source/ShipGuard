@@ -13,6 +13,7 @@
 | Inventory risky iOS surfaces | `ios inventory` | Permission, entitlement, target risk, modernization, and ask-before-editing report |
 | Generate Codex iOS brief | `ios plan` | Mode, owner files, blocked questions, proof route, and task brief |
 | Route iOS proof claims | `ios prove` | Source, simulator, performance, StoreKit, privacy, release, and blocked-manual evidence lane |
+| Route iOS build/debug/preview/profiler work | `ios build-apps` | ShipGuard-native Build iOS Apps bridge for XcodeBuildMCP build/run, simulator browser, SwiftUI preview hot reload, debugger/log capture, performance profiler routes, proof boundaries, and report-quality questions |
 | Audit iOS performance hotspots | `ios performance` | Ranked SwiftUI, body-work, GPU composition, image decoding, notification-cleanup findings with impact explanations, high-severity reasons, local/manual proof boundaries, grouped next actions with first experiments, validation routes, stop conditions, optional ShipGuard-only eval boundary, and shareable path-safe output |
 | Audit iOS design quality | `ios design` | App-type inference, design DNA, ShipGuard-native motion quality gates, haptics, preview routing, and ImageGen icon handoff |
 | Run iOS preview bridge | `ios preview`, `ios target-match` | Local phone preview, visual event receipts, semantic target matching, and proof handoff around Build iOS Apps live preview/hot reload loops |

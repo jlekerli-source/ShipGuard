@@ -4,7 +4,7 @@ ShipGuard is a local-first workflow kit for using Codex on production iOS apps w
 
 It gives AI-assisted development a repeatable operating loop:
 
-- Map risky surfaces before editing: permissions, notifications, StoreKit, widgets, App Intents, background modes, performance, design, and release proof.
+- Map risky surfaces before editing: build/run/debug routes, permissions, notifications, StoreKit, widgets, App Intents, background modes, performance, design, and release proof.
 - Generate plans, specs, tasks, slash goals, and validation commands before implementation.
 - Run read-only product-QA reports against real apps without turning findings into accidental app work.
 - Score report quality, redact/share safely, promote public-safe fixtures, and package release evidence.
@@ -69,6 +69,7 @@ Common loops:
 | --- | --- |
 | Audit an AI coding run | `./bin/shipguard autopsy --help` |
 | Inspect risky iOS surfaces | `./bin/shipguard ios doctor --help` |
+| Route iOS build, debug, preview, and profiler work | `./bin/shipguard ios build-apps --help` |
 | Review iOS performance evidence | `./bin/shipguard ios performance --help` |
 | Review UI/UX, motion, haptics, and icon direction | `./bin/shipguard ios design --help` |
 | Grade ShipGuard report usefulness | `./bin/shipguard ios report-quality --help` |

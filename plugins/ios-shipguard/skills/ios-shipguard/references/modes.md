@@ -98,6 +98,7 @@ Ask:
 
 Proof:
 
+- `shipguard ios build-apps --path . --workflow performance --out /tmp/ios-shipguard-build-apps` to choose the Build iOS Apps profiler route before tracing
 - `shipguard ios performance --path . --out <dir>` for ranked source hotspots before choosing edits; add `--shareable` before report-quality scoring or external planning
 - Add `--shipguard-eval` to `shipguard ios performance`, `shipguard ios design`, `shipguard ios modernize`, `shipguard ios app-intelligence`, or `shipguard ios ai-readiness` when a private app is only a read-only sample for improving ShipGuard itself; add `--shareable` to any report that will be scored or shared
 - XcodeBuildMCP project/scheme/simulator selection before build/run
@@ -107,6 +108,28 @@ Proof:
 - source audit for continuous redraw, expensive body work, formatter/image decoding, large blur/shadow/material layers, main-actor blocking work, and protected-runtime boundaries
 - before/after comparison using the same build configuration, seed data, route, and device state
 - physical-device Instruments trace before claiming 10/10 smoothness, touch latency, ProMotion behavior, thermal behavior, display-specific behavior, sensors, audio, or wake-path timing
+
+## build-apps-bridge
+
+Use when the user wants ShipGuard to be the front door for building, running, debugging, previewing, or investigating an iOS repo with the Build iOS Apps plugin.
+
+Ask:
+
+- Is the desired lane build/run, debugger/log investigation, live simulator browser preview, SwiftUI preview hot reload, or performance profiling?
+- Which scheme, simulator, app state, or route should be used if the repo exposes more than one option?
+- Is this app work, or is the target app only a read-only sample for judging ShipGuard output quality?
+
+Proof:
+
+- `shipguard ios build-apps --path . --out /tmp/ios-shipguard-build-apps`
+- Add `--workflow build-run`, `--workflow debug`, `--workflow preview`, or `--workflow performance` when the lane is known.
+- Add `--shipguard-eval --shareable` when a private app is only product-QA evidence for improving ShipGuard.
+- Use the report's XcodeBuildMCP section before calling `session_show_defaults`, `session_set_defaults`, and `build_run_sim`.
+- Use the report's simulator browser or SwiftUI preview hot reload section before launching `serve-sim` or `swiftui-preview-browser.mjs`.
+- Use the report's performance profiling section before recording Animation Hitches, Time Profiler, sample/log fallback evidence, or physical-device traces.
+- Run `shipguard ios report-quality --reports <build-apps-report-dir> --out <quality-dir> --shareable` when judging whether the bridge itself is useful.
+- ShipGuard owns routing, proof boundaries, shareability, and report quality; Build iOS Apps owns actual simulator/debugger/browser/profiler execution inside Codex.
+- Do not claim the CLI performed a simulator build, debug session, or profiler capture unless the corresponding Build iOS Apps or XcodeBuildMCP proof actually ran.
 
 ## ShipGuard product QA
 
@@ -186,6 +209,7 @@ Ask:
 
 Proof:
 
+- `shipguard ios build-apps --path . --workflow preview --out /tmp/ios-shipguard-build-apps` when choosing between app build, simulator browser, and SwiftUI preview hot reload
 - Build iOS Apps `serve-sim` browser proof or SwiftUI preview hot reload proof when that skill is available and live rendering is the goal
 - `shipguard ios preview --out /tmp/ios-shipguard-preview`
 - Codex in-app browser opened to the printed localhost URL

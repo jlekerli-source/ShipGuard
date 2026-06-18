@@ -43,6 +43,7 @@ Usage:
   shipguard ios codex-handoff --prompt-file <file>|--prompt <text> --out <dir> [--execute]
   shipguard ios plan --mode <mode> --inventory <ios-inventory.json> --out <file-or-dir>
   shipguard ios prove --plan <ios-plan.json> --out <dir>
+  shipguard ios build-apps --path <repo> --out <dir> [--workflow auto|build-run|debug|preview|performance] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard ios performance --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard ios design --path <repo> --out <dir> [--app-type auto|utility|game|fitness|health|education|kids|creative|commerce|social|finance|saas] [--preview-out <dir>] [--icon-brief] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard ios modernize --focus swift --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
@@ -91,7 +92,7 @@ Commands:
   check-run   Generate or optionally post GitHub Checks API payloads from gate JSON.
   sarif       Convert an autopsy report JSON file into SARIF 2.1.0.
   docs-check  Check Markdown files for broken local links.
-  ios         iOS-focused Codex planning helpers for permission, preview, performance, and runtime surfaces.
+  ios         iOS-focused Codex planning helpers for build, debug, permission, preview, performance, and runtime surfaces.
   codex      Check local Codex plugin install status for ShipGuard.
   leaderboard Build a stable leaderboard JSON file from arena results.
   release-manifest
@@ -123,6 +124,10 @@ fail() {
 
 run_py() {
   "${PYTHON:-python3}" "$@"
+}
+
+run_sh() {
+  bash "$@"
 }
 
 copy_file() {
@@ -194,7 +199,7 @@ cmd_init_profile() {
 
 cmd_validate() {
   local target="${1:-.}"
-  "$tool_root/scripts/validate_workflow_bundle.sh" "$target"
+  run_sh "$tool_root/scripts/validate_workflow_bundle.sh" "$target"
 }
 
 cmd_doctor() {
@@ -309,11 +314,11 @@ cmd_score() {
 }
 
 cmd_autopsy() {
-  "$tool_root/scripts/autopsy_report.sh" "$@"
+  run_sh "$tool_root/scripts/autopsy_report.sh" "$@"
 }
 
 cmd_policy() {
-  "$tool_root/scripts/policy.sh" "$@"
+  run_sh "$tool_root/scripts/policy.sh" "$@"
 }
 
 cmd_arena() {
@@ -322,19 +327,19 @@ cmd_arena() {
   shift || true
   case "$subcommand" in
     run)
-      "$tool_root/scripts/arena_run.sh" "$@"
+      run_sh "$tool_root/scripts/arena_run.sh" "$@"
       ;;
     import)
-      "$tool_root/scripts/arena_import.sh" "$@"
+      run_sh "$tool_root/scripts/arena_import.sh" "$@"
       ;;
     sign)
-      "$tool_root/scripts/arena_sign.sh" "$@"
+      run_sh "$tool_root/scripts/arena_sign.sh" "$@"
       ;;
     verify)
-      "$tool_root/scripts/arena_verify.sh" "$@"
+      run_sh "$tool_root/scripts/arena_verify.sh" "$@"
       ;;
     compare)
-      "$tool_root/scripts/arena_compare.sh" "$@"
+      run_sh "$tool_root/scripts/arena_compare.sh" "$@"
       ;;
   esac
 }
@@ -345,44 +350,44 @@ cmd_transcript() {
   shift || true
   case "$subcommand" in
     redact)
-      "$tool_root/scripts/transcript_redact.sh" "$@"
+      run_sh "$tool_root/scripts/transcript_redact.sh" "$@"
       ;;
     verify)
-      "$tool_root/scripts/transcript_verify.sh" "$@"
+      run_sh "$tool_root/scripts/transcript_verify.sh" "$@"
       ;;
     corpus)
-      "$tool_root/scripts/transcript_corpus.sh" "$@"
+      run_sh "$tool_root/scripts/transcript_corpus.sh" "$@"
       ;;
   esac
 }
 
 cmd_review_comment() {
-  "$tool_root/scripts/review_comment.sh" "$@"
+  run_sh "$tool_root/scripts/review_comment.sh" "$@"
 }
 
 cmd_ci_gate() {
-  "$tool_root/scripts/ci_gate.sh" "$@"
+  run_sh "$tool_root/scripts/ci_gate.sh" "$@"
 }
 
 cmd_ci_summary() {
-  "$tool_root/scripts/ci_summary.sh" "$@"
+  run_sh "$tool_root/scripts/ci_summary.sh" "$@"
 }
 
 cmd_check_run() {
-  "$tool_root/scripts/check_run.sh" "$@"
+  run_sh "$tool_root/scripts/check_run.sh" "$@"
 }
 
 cmd_sarif() {
-  "$tool_root/scripts/sarif.sh" "$@"
+  run_sh "$tool_root/scripts/sarif.sh" "$@"
 }
 
 cmd_docs_check() {
-  "$tool_root/scripts/docs_check.sh" "$@"
+  run_sh "$tool_root/scripts/docs_check.sh" "$@"
 }
 
 cmd_ios() {
   local subcommand="${1:-}"
-  [[ "$subcommand" == "doctor" || "$subcommand" == "inventory" || "$subcommand" == "preview" || "$subcommand" == "devspace" || "$subcommand" == "devspace-check" || "$subcommand" == "target-match" || "$subcommand" == "codex-handoff" || "$subcommand" == "plan" || "$subcommand" == "prove" || "$subcommand" == "performance" || "$subcommand" == "design" || "$subcommand" == "modernize" || "$subcommand" == "app-intelligence" || "$subcommand" == "ai-readiness" || "$subcommand" == "external-audit" || "$subcommand" == "spec-workflow" || "$subcommand" == "report-quality" || "$subcommand" == "redact" || "$subcommand" == "eval" || "$subcommand" == "demo" || "$subcommand" == "goals" ]] || fail "ios requires subcommand: doctor, inventory, preview, devspace, devspace-check, target-match, codex-handoff, plan, prove, performance, design, modernize, app-intelligence, ai-readiness, external-audit, spec-workflow, report-quality, redact, eval, demo, or goals"
+  [[ "$subcommand" == "doctor" || "$subcommand" == "inventory" || "$subcommand" == "preview" || "$subcommand" == "devspace" || "$subcommand" == "devspace-check" || "$subcommand" == "target-match" || "$subcommand" == "codex-handoff" || "$subcommand" == "plan" || "$subcommand" == "prove" || "$subcommand" == "build-apps" || "$subcommand" == "performance" || "$subcommand" == "design" || "$subcommand" == "modernize" || "$subcommand" == "app-intelligence" || "$subcommand" == "ai-readiness" || "$subcommand" == "external-audit" || "$subcommand" == "spec-workflow" || "$subcommand" == "report-quality" || "$subcommand" == "redact" || "$subcommand" == "eval" || "$subcommand" == "demo" || "$subcommand" == "goals" ]] || fail "ios requires subcommand: doctor, inventory, preview, devspace, devspace-check, target-match, codex-handoff, plan, prove, build-apps, performance, design, modernize, app-intelligence, ai-readiness, external-audit, spec-workflow, report-quality, redact, eval, demo, or goals"
   shift || true
   case "$subcommand" in
     doctor)
@@ -411,6 +416,9 @@ cmd_ios() {
       ;;
     prove)
       run_py "$tool_root/scripts/ios_prove.py" "$@"
+      ;;
+    build-apps)
+      run_py "$tool_root/scripts/ios_build_apps.py" "$@"
       ;;
     performance)
       run_py "$tool_root/scripts/ios_performance.py" "$@"
@@ -455,54 +463,54 @@ cmd_codex() {
   local subcommand="${1:-}"
   [[ "$subcommand" == "status" ]] || fail "codex requires subcommand: status"
   shift || true
-  "$tool_root/scripts/codex_status.sh" "$@"
+  run_sh "$tool_root/scripts/codex_status.sh" "$@"
 }
 
 cmd_leaderboard() {
   local subcommand="${1:-}"
   [[ "$subcommand" == "build" ]] || fail "leaderboard requires subcommand: build"
   shift || true
-  "$tool_root/scripts/leaderboard_build.sh" "$@"
+  run_sh "$tool_root/scripts/leaderboard_build.sh" "$@"
 }
 
 cmd_release_manifest() {
-  "$tool_root/scripts/release_manifest.sh" "$@"
+  run_sh "$tool_root/scripts/release_manifest.sh" "$@"
 }
 
 cmd_release_index() {
-  "$tool_root/scripts/release_index.sh" "$@"
+  run_sh "$tool_root/scripts/release_index.sh" "$@"
 }
 
 cmd_release_replay() {
-  "$tool_root/scripts/release_replay.sh" "$@"
+  run_sh "$tool_root/scripts/release_replay.sh" "$@"
 }
 
 cmd_release_attest() {
-  "$tool_root/scripts/release_attest.sh" "$@"
+  run_sh "$tool_root/scripts/release_attest.sh" "$@"
 }
 
 cmd_release_proof() {
-  "$tool_root/scripts/release_proof.sh" "$@"
+  run_sh "$tool_root/scripts/release_proof.sh" "$@"
 }
 
 cmd_release_consume() {
-  "$tool_root/scripts/release_consume.sh" "$@"
+  run_sh "$tool_root/scripts/release_consume.sh" "$@"
 }
 
 cmd_release_diff() {
-  "$tool_root/scripts/release_diff.sh" "$@"
+  run_sh "$tool_root/scripts/release_diff.sh" "$@"
 }
 
 cmd_release_evidence() {
-  "$tool_root/scripts/release_evidence.sh" "$@"
+  run_sh "$tool_root/scripts/release_evidence.sh" "$@"
 }
 
 cmd_self_audit() {
-  "$tool_root/scripts/self_audit.sh" "$@"
+  run_sh "$tool_root/scripts/self_audit.sh" "$@"
 }
 
 cmd_next_goal() {
-  "$tool_root/scripts/next_goal.sh" "$@"
+  run_sh "$tool_root/scripts/next_goal.sh" "$@"
 }
 
 cmd_version() {

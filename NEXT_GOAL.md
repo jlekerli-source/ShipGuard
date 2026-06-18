@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T01:41:24Z
+- Generated: 2026-06-18T02:07:19Z
 - Current toolkit version: 3.70.1
-- Target release: v3.78.0
-- Title: Report Quality Promotion Manifest Consumption
+- Target release: v3.79.0
+- Title: Build iOS Apps Native Integration
 
 ## Slash Plan
 
 ```text
-/plan v3.78.0 Report Quality Promotion Manifest Consumption for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Consume report-quality fixture promotion manifests as materialized-fixture metadata instead of grading them as source reports, validate promotion paths, copy placeholders, validation commands, review checklist coverage, guide synchronization, and materialized files, and keep generated outputs path-safe and ShipGuard-only.
+/plan v3.79.0 Build iOS Apps Native Integration for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make ShipGuard the native front door for Build iOS Apps workflows by adding ios build-apps, repo topology discovery, XcodeBuildMCP build/run handoff, debugger/log capture handoff, simulator browser and SwiftUI preview hot reload handoff, performance-profiler routing, ShipGuard-only eval boundaries, shareable output, report-quality scoring, plugin skill routing, deterministic eval coverage, and package proof.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.78.0 Report Quality Promotion Manifest Consumption for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Consume report-quality fixture promotion manifests as materialized-fixture metadata instead of grading them as source reports, validate promotion paths, copy placeholders, validation commands, review checklist coverage, guide synchronization, and materialized files, and keep generated outputs path-safe and ShipGuard-only, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.79.0 Build iOS Apps Native Integration for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make ShipGuard the native front door for Build iOS Apps workflows by adding ios build-apps, repo topology discovery, XcodeBuildMCP build/run handoff, debugger/log capture handoff, simulator browser and SwiftUI preview hot reload handoff, performance-profiler routing, ShipGuard-only eval boundaries, shareable output, report-quality scoring, plugin skill routing, deterministic eval coverage, and package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Consume report-quality fixture promotion manifests as materialized-fixture metadata instead of grading them as source reports, validate promotion paths, copy placeholders, validation commands, review checklist coverage, guide synchronization, and materialized files, and keep generated outputs path-safe and ShipGuard-only.
+Make ShipGuard the native front door for Build iOS Apps workflows by adding ios build-apps, repo topology discovery, XcodeBuildMCP build/run handoff, debugger/log capture handoff, simulator browser and SwiftUI preview hot reload handoff, performance-profiler routing, ShipGuard-only eval boundaries, shareable output, report-quality scoring, plugin skill routing, deterministic eval coverage, and package proof.
 
 ## Completion Receipt
 
-- Completed scope: Consume report-quality fixture promotion manifests as materialized-fixture metadata instead of grading them as source reports, validate promotion paths, copy placeholders, validation commands, review checklist coverage, guide synchronization, and materialized files, and keep generated outputs path-safe and ShipGuard-only.
-- Evidence: A fresh read-only external-audit over ShipGuard plus the Expo URL and Design Motion Principles source generated materialized report-quality fixtures. Scoring the full materialized fixture root exposed that fixture-promotion-manifest.json was being graded as an ordinary report-quality source report, producing false self-report-skipped and markdown-companion-missing findings. Report-quality now excludes promotion manifests from source report discovery, consumes them under fixturePromotionManifests, renders a Fixture Promotion Manifests Markdown section, passes clean materialized roots, and flags broken manifest metadata such as unsafe suggestedFixturePath or missing copy placeholders with fixture-promotion-* findings. Focused tests, clean-root proof, broken-manifest proof, docs check, bundle validation, CLI smoke, self-audit, Codex status, and package release proof passed.
+- Completed scope: Make ShipGuard the native front door for Build iOS Apps workflows by adding ios build-apps, repo topology discovery, XcodeBuildMCP build/run handoff, debugger/log capture handoff, simulator browser and SwiftUI preview hot reload handoff, performance-profiler routing, ShipGuard-only eval boundaries, shareable output, report-quality scoring, plugin skill routing, deterministic eval coverage, and package proof.
+- Evidence: Implemented shipguard ios build-apps as a read-only report command that emits ios-build-apps.json and ios-build-apps.md, discovers Xcode workspaces/projects/packages/schemes and preview signals, maps Build iOS Apps capabilities to XcodeBuildMCP build_run_sim, simulator browser serve-sim, SwiftUI preview hot reload, debugger/log capture, and performance profiling routes, and keeps the boundary explicit that ShipGuard owns routing/proof reports while Build iOS Apps executes Codex MCP tools. Added report-quality support, CLI routing, iOS skill and mode guidance, router eval coverage, docs, changelog, roadmap, package allowlists, next-goal proof coverage, and shell-wrapper hardening for macOS provenance-killed helper scripts. Validation passed: python compile, git diff --check, ios_build_apps_test, ios_shipguard_eval_test, cli_smoke_test, self_audit_test, next_goal_test, docs-check, shipguard validate, and package_release_test.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.79.0 Build iOS Apps Native Integration for jlekerli-source/ShipGuard:
+/plan v3.80.0 Build Apps Execution Receipt Quality for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Consume report-quality fixture promotion manifests as materialized-fixture metad
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.79.0 Build iOS Apps Native Integration for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.80.0 Build Apps Execution Receipt Quality for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.79.0 --title "Build iOS Apps Native Integration" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.80.0 --title "Build Apps Execution Receipt Quality" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -88,6 +88,7 @@ Generate that follow-up file with:
 ./tests/ios_codex_handoff_test.sh
 ./tests/ios_plan_test.sh
 ./tests/ios_prove_test.sh
+./tests/ios_build_apps_test.sh
 ./tests/ios_performance_test.sh
 ./tests/ios_devspace_check_test.sh
 ./tests/ios_design_test.sh
@@ -131,12 +132,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.78.0.
+1. Open or update the tracking issue for v3.79.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.78.0` and upload `dist/shipguard-v3.78.0.tar.gz`.
+6. Create release `v3.79.0` and upload `dist/shipguard-v3.79.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

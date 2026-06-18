@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added `shipguard ios build-apps` as a ShipGuard-native front door for the Build iOS Apps plugin, emitting repo-aware XcodeBuildMCP build/run, debugger, simulator browser, SwiftUI preview hot reload, and performance-profiler handoffs with proof boundaries, shareable output, report-quality scoring, and package coverage.
+- Routed shell-backed `bin/shipguard` subcommands through `bash` from the wrapper so macOS provenance metadata cannot kill helper scripts before their help or validation paths run.
 - Expanded `ios spec-workflow` into a fuller ShipGuard-native integration of external workflow inspiration: it now emits `requirements-checklist.md`, `integration-decisions.md`, and `consistency-analysis.md`, records ShipGuard-owned adaptations from Spec Kit, CodexPro, Expo, Xcode Build Optimization Agent Skills, and the OpenAI native iOS preview loop, and keeps those ideas as native proof/report-quality artifacts rather than vendored code.
 - Tightened `ios report-quality` so spec-workflow bundles must declare and include the requirements checklist, integration decisions, and consistency analysis, preserve report-quality questions through those artifacts, and fail review when those native integration files are missing or placeholder-only.
 - Added `shipguard ios external-audit` so external repos, workflow projects, and post URLs become a ShipGuard-native source audit with capability matrix, replacement ledger, implementation backlog, license boundary, and report-quality questions before any integration claim.

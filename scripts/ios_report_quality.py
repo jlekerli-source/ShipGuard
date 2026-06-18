@@ -15,6 +15,7 @@ from typing import Any
 
 SCHEMA_VERSION = 1
 SOURCE_SCANNER_TOOLS = {
+    "shipguard ios build-apps",
     "shipguard ios performance",
     "shipguard ios design",
     "shipguard ios modernize",
@@ -89,14 +90,15 @@ SPEC_WORKFLOW_REQUIRED_ANALYSIS_GATES = [
 SEVERITY_PRIORITY = {"high": 0, "review": 1, "opportunity": 2}
 STATUS_PRIORITY = {"blocked": 0, "review": 1, "pass": 2}
 TOOL_NEXT_ACTION_PRIORITY = {
-    "shipguard ios performance": 0,
-    "shipguard ios design": 1,
-    "shipguard ios modernize": 2,
-    "shipguard ios app-intelligence": 3,
-    "shipguard ios ai-readiness": 4,
-    "shipguard ios external-audit": 5,
-    "shipguard ios spec-workflow": 6,
-    "shipguard ios devspace-check": 7,
+    "shipguard ios build-apps": 0,
+    "shipguard ios performance": 1,
+    "shipguard ios design": 2,
+    "shipguard ios modernize": 3,
+    "shipguard ios app-intelligence": 4,
+    "shipguard ios ai-readiness": 5,
+    "shipguard ios external-audit": 6,
+    "shipguard ios spec-workflow": 7,
+    "shipguard ios devspace-check": 8,
 }
 SPEC_WORKFLOW_PLACEHOLDER_RE = re.compile(r"(?im)^\s*(?:[-*]\s*)?(?:TODO|TBD|FIXME)\b")
 TOKEN_RISK_PATTERNS = {

@@ -1,6 +1,6 @@
 ---
 name: ios-shipguard
-description: Solo iOS development workflow for Codex. Use when planning, implementing, reviewing, or validating iOS app changes that touch permissions, notifications, AlarmKit, widgets, App Intents, StoreKit, background modes, Live Activities, UI/UX, motion, haptics, app icons, simulator proof, release readiness, or any risky user-trust surface.
+description: Solo iOS development workflow for Codex. Use when planning, implementing, reviewing, or validating iOS app changes that touch build/run/debug routes, permissions, notifications, AlarmKit, widgets, App Intents, StoreKit, background modes, Live Activities, UI/UX, motion, haptics, app icons, simulator proof, release readiness, or any risky user-trust surface.
 ---
 
 # iOS ShipGuard
@@ -32,7 +32,7 @@ fi
 
 4. If `SHIPGUARD_CLI` is empty, say that the ShipGuard CLI is not installed in this Codex environment, do not invent iOS CLI proof, and continue with source inspection, `AGENTS.md`, XcodeBuildMCP, and explicit manual blockers. The fix is to install ShipGuard from a release/source checkout with `PREFIX="$HOME/.local" ./scripts/install.sh`, then start a new Codex thread.
 5. Read `/tmp/ios-shipguard-inventory/ios-inventory.md` if it exists.
-6. Classify exactly one primary mode: `permission-audit`, `simulator-debug`, `release-proof`, `storekit-commerce`, `widgets-intents-shared-store`, `performance-audit`, `design-audit`, `external-source-audit`, `preview-bridge`, `preview-devspace`, `privacy-security`, or `ui-polish`.
+6. Classify exactly one primary mode: `permission-audit`, `simulator-debug`, `build-apps-bridge`, `release-proof`, `storekit-commerce`, `widgets-intents-shared-store`, `performance-audit`, `design-audit`, `external-source-audit`, `preview-bridge`, `preview-devspace`, `privacy-security`, or `ui-polish`.
 7. If the inventory says `needs-user-answer`, stop and ask the required question before editing.
 8. Prefer Codex-native features for execution: XcodeBuildMCP for simulator driving, the Build iOS Apps `ios-simulator-browser` skill for in-app browser mirroring, SwiftUI previews, and package-backed hot reload when available, built-in Git diff comments for requested changes, worktrees for experiments, and computer use only when a GUI path cannot be verified from files or structured tools. Use ShipGuard preview/Devspace when you need typed visual receipts, target-resolution handoff, report-quality evidence, ChatGPT planning, redaction, or release-proof boundaries. Do not claim hot reload proof unless the launcher output and a browser-visible frame prove the updated UI rendered.
 
@@ -44,6 +44,7 @@ Default routing:
 
 - `permission-audit`: Info.plist usage descriptions, entitlements, authorization copy, denied states.
 - `simulator-debug`: UI reproduction, navigation bugs, screenshots, logs, UI hierarchy, LLDB.
+- `build-apps-bridge`: ShipGuard-native routing into Build iOS Apps for XcodeBuildMCP build/run, debugger/log capture, simulator browser, SwiftUI preview hot reload, and profiler proof.
 - `release-proof`: TestFlight/App Store handoff, physical device evidence, release claims.
 - `storekit-commerce`: product IDs, purchases, restore, current entitlements, sandbox account proof.
 - `widgets-intents-shared-store`: WidgetKit, App Intents, app groups, stale data, shared persistence.
@@ -73,12 +74,13 @@ Do not turn a missing answer into an assumption. Ask one short question, wait, t
 Use the smallest proof that matches the mode:
 
 - Inventory/plan/proof: run `ios inventory`, then `ios plan`, then `ios prove` for blocked questions, owner files, proof routes, and honest local-vs-manual evidence.
-- Existing Xcode project: use XcodeBuildMCP to confirm project/workspace, scheme, and simulator before building or running.
+- Build iOS Apps bridge: run `ios build-apps --path . --out /tmp/ios-shipguard-build-apps` before build/run/debug/preview/performance investigation when the route is unclear. Add `--workflow build-run|debug|preview|performance` when the user already named the lane, and `--shipguard-eval --shareable` when a private app is only a read-only sample for improving ShipGuard.
+- Existing Xcode project: use the `ios build-apps` report to choose XcodeBuildMCP defaults, then use XcodeBuildMCP to confirm project/workspace, scheme, and simulator before building or running.
 - Source reports: use `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, or `ios ai-readiness` before related work. Add `--shareable` before report-quality scoring or external planning. Performance smoothness still needs matching route proof and physical-device Instruments evidence before 10/10 claims.
 - ShipGuard product QA: for read-only private-app samples, add `--shipguard-eval --shareable`, then run `ios report-quality --shareable`. Improve ShipGuard rules, fields, Markdown, docs, fixtures, or redaction, not the scanned app.
 - External source adoption: run `ios external-audit --shareable` with `--source-path` for local read-only checkouts and `--source-url` for public repos/posts before claiming an external idea is integrated. Feed the audit into `ios report-quality --shareable`, then `ios spec-workflow --from-report` for implementation work. When auditing Design Motion Principles, useful motion ideas should land as `ios design` report fields and tests, not as a copied branded audit. Do not vendor external code unless a separate license/package decision explicitly approves it.
 - Spec workflow: run `ios spec-workflow --from-report <report-quality-dir>` before implementing a ShipGuard improvement from report-quality questions. The bundle must preserve questions in acceptance criteria, tasks, validation commands, analysis gates, and `/plan` plus `/goal` handoff text.
-- Preview loop: prefer Build iOS Apps `ios-simulator-browser` for live mirror, SwiftUI preview, or hot reload when available. Use `ios preview`, `ios target-match`, and `handoff.md` when you need ShipGuard receipts, target matching, redaction, or Codex handoff proof.
+- Preview loop: run `ios build-apps --workflow preview` when the correct live-render route is unclear, then prefer Build iOS Apps `ios-simulator-browser` for live mirror, SwiftUI preview, or hot reload when available. Use `ios preview`, `ios target-match`, and `handoff.md` when you need ShipGuard receipts, target matching, redaction, or Codex handoff proof.
 - Devspace loop: run `ios devspace-check --shareable` before sharing a tunnel, then `ios devspace` with bearer auth for ChatGPT planning. Use `preview_handoff_markdown`, `preview_target_resolution`, `preview_match_target`, and `codex_prepare_handoff`; execute Codex only through an explicit local handoff.
 - Redaction/evals/demo: use `ios redact` before public sharing, `ios eval` before routing or proof-language changes, and `ios demo` for clean package proof without Xcode or credentials.
 - Simulator UI bug: build, launch, inspect UI, execute the reproduction path, capture screenshot or logs, then rerun after the fix.
