@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added report-quality fixture coverage detection so questions already covered by promoted public fixtures under `fixtures/ios-report-quality` keep their actionability evidence, suppress duplicate fixtureCandidates, render a `Fixture Coverage` section, and move the priority action to the next uncovered question.
 - Fixed `release-proof build` so optional proof links like `--issue-url` and `--ci-run-url` are only forwarded when present, matching the documented release command and allowing proof bundles without a tracking issue URL.
 - Promoted the ShipGuard Tool Value Gauntlet actionability question into a public `fixtures/ios-report-quality/value-gauntlet-actionability` synthetic fixture so report-quality proves low-value surface concerns can become reusable eval coverage without copying private app evidence.
 - Added ShipGuard Tool Value Gauntlet with `shipguard value-gauntlet`, JSON/Markdown output, command/skill/plugin/action/doc/package-proof scoring, report-quality routing, package proof, self-audit coverage, and deterministic eval routing for "test every skill/plugin" product-QA requests.

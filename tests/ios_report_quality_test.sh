@@ -1235,6 +1235,39 @@ if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$value
   exit 1
 fi
 
+./bin/shipguard value-gauntlet \
+  --path . \
+  --out "$tmp_dir/value-gauntlet-fresh" >/dev/null
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/value-gauntlet-fresh" \
+  --out "$tmp_dir/value-gauntlet-fresh-quality" \
+  --shareable >/dev/null
+grep -q '"fixtureCoverage":' "$tmp_dir/value-gauntlet-fresh-quality/ios-report-quality.json"
+grep -q 'fixtures/ios-report-quality/value-gauntlet-actionability' "$tmp_dir/value-gauntlet-fresh-quality/ios-report-quality.json"
+grep -q 'Fixture Coverage' "$tmp_dir/value-gauntlet-fresh-quality/ios-report-quality.md"
+grep -q 'value-gauntlet-actionability' "$tmp_dir/value-gauntlet-fresh-quality/ios-report-quality.md"
+python3 - <<'PY' "$tmp_dir/value-gauntlet-fresh-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+covered_question = "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?"
+coverage = data.get("fixtureCoverage") or []
+if not any(item.get("question") == covered_question for item in coverage):
+    raise SystemExit(f"expected value-gauntlet question to be covered by a promoted fixture: {coverage!r}")
+for item in coverage:
+    if item.get("question") == covered_question and item.get("publicFixturePath") != "fixtures/ios-report-quality/value-gauntlet-actionability":
+        raise SystemExit(f"unexpected coverage path: {item!r}")
+for candidate in data.get("fixtureCandidates") or []:
+    if candidate.get("sourceQuestion") == covered_question:
+        raise SystemExit(f"covered value-gauntlet question should not create a duplicate fixture candidate: {candidate!r}")
+priority = data.get("priorityAction") or {}
+if priority.get("question") == covered_question:
+    raise SystemExit(f"covered value-gauntlet question should not remain the priority action: {priority!r}")
+if "lowest developer-value score" not in priority.get("question", ""):
+    raise SystemExit(f"expected next uncovered value-gauntlet question as priority: {priority!r}")
+PY
+
 json_stdout="$(./bin/shipguard ios report-quality --reports "$reports" --json)"
 printf '%s\n' "$json_stdout" | python3 -m json.tool >/dev/null
 printf '%s\n' "$json_stdout" | grep -q '"tool": "shipguard ios report-quality"'

@@ -1685,8 +1685,13 @@ def build_priority_action(issues: list[dict[str, Any]], ranked_questions: list[d
             "report": issue.get("report"),
             "recommendation": issue.get("recommendation"),
         }
-    if ranked_questions:
-        question = ranked_questions[0]
+    next_questions = [
+        row
+        for row in ranked_questions
+        if not row.get("existingFixture") and not row.get("sourceMaterializedFixture")
+    ]
+    if next_questions:
+        question = next_questions[0]
         return {
             "kind": "answer-actionability-question",
             "summary": (
@@ -1699,6 +1704,24 @@ def build_priority_action(issues: list[dict[str, Any]], ranked_questions: list[d
             "reportQualityStatus": question["reportQualityStatus"],
             "question": question["question"],
             "priorityReason": question["priorityReason"],
+        }
+    covered_questions = [row for row in ranked_questions if row.get("existingFixture") or row.get("sourceMaterializedFixture")]
+    if covered_questions:
+        question = covered_questions[0]
+        fixture = question.get("existingFixture") if isinstance(question.get("existingFixture"), dict) else {}
+        fixture_path = fixture.get("publicFixturePath") or question.get("existingFixturePath") or "<materialized-fixture>"
+        return {
+            "kind": "review-existing-fixture",
+            "summary": (
+                f"Use existing fixture `{fixture_path}` for `{question.get('tool') or 'unknown'}` "
+                f"question #{question.get('priority') or 1}, then look for the next uncovered actionability gap."
+            ),
+            "tool": question.get("tool"),
+            "report": question.get("report"),
+            "sourceStatus": question.get("sourceStatus"),
+            "reportQualityStatus": question.get("reportQualityStatus"),
+            "question": question.get("question"),
+            "existingFixturePath": fixture_path,
         }
     return {
         "kind": "add-actionability-questions",
@@ -1721,8 +1744,15 @@ def build_next_actions(priority_action: dict[str, Any], ranked_questions: list[d
         return [
             priority_action["summary"],
             "Answer the actionability questions above in priority order instead of choosing from an unranked list.",
-            "Convert the top answer into a public fixture, eval case, report section, or docs change before editing ShipGuard rules.",
+            "If the top question is not already covered by Fixture Coverage, convert the answer into a public fixture, eval case, report section, or docs change before editing ShipGuard rules.",
             "If implementation needs planning, feed this report-quality output into ios spec-workflow with --from-report.",
+            "Run private-app reports with --shipguard-eval and keep unredacted reports local.",
+        ]
+    if kind == "review-existing-fixture":
+        return [
+            priority_action["summary"],
+            "Run the existing fixture through ios report-quality before creating another fixture for the same question.",
+            "Move to the next uncovered actionability question once the existing fixture still passes.",
             "Run private-app reports with --shipguard-eval and keep unredacted reports local.",
         ]
     if ranked_questions:
@@ -1832,11 +1862,73 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
     }
 
 
+def existing_public_fixture_index(cwd: Path) -> dict[str, dict[str, Any]]:
+    root = cwd / "fixtures" / "ios-report-quality"
+    if not root.is_dir():
+        return {}
+
+    fixtures: dict[str, dict[str, Any]] = {}
+    for candidate_path in sorted(root.rglob("fixture-candidate.json")):
+        metadata = read_json(candidate_path)
+        if not isinstance(metadata, dict):
+            continue
+        source_question = str(metadata.get("sourceQuestion") or "").strip()
+        if not source_question:
+            continue
+        key = normalized_question_text(source_question)
+        if not key or key in fixtures:
+            continue
+        try:
+            public_path = candidate_path.parent.relative_to(cwd).as_posix()
+        except ValueError:
+            public_path = "<public-fixture-path>"
+        fixtures[key] = {
+            "candidateId": metadata.get("candidateId") or candidate_path.parent.name,
+            "fixtureType": metadata.get("fixtureType") or "report-quality-actionability-fixture",
+            "publicFixturePath": public_path,
+            "sourceQuestion": source_question,
+            "sourceTool": metadata.get("sourceTool") or "unknown",
+        }
+    return fixtures
+
+
+def annotate_existing_fixture_coverage(
+    ranked_questions: list[dict[str, Any]],
+    *,
+    existing_fixtures: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    coverage: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for row in ranked_questions:
+        key = normalized_question_text(row.get("question") or "")
+        match = existing_fixtures.get(key)
+        if not match:
+            continue
+        row["existingFixture"] = dict(match)
+        row["existingFixturePath"] = match.get("publicFixturePath")
+        if key in seen:
+            continue
+        seen.add(key)
+        coverage.append(
+            {
+                "priority": row.get("priority"),
+                "tool": row.get("tool"),
+                "report": row.get("report"),
+                "question": row.get("question"),
+                "publicFixturePath": match.get("publicFixturePath"),
+                "fixtureType": match.get("fixtureType"),
+                "candidateId": match.get("candidateId"),
+                "sourceTool": match.get("sourceTool"),
+            }
+        )
+    return coverage
+
+
 def build_fixture_candidates(ranked_questions: list[dict[str, Any]]) -> list[dict[str, Any]]:
     candidates: list[dict[str, Any]] = []
     seen_types: set[str] = set()
     for row in ranked_questions:
-        if row.get("sourceMaterializedFixture"):
+        if row.get("sourceMaterializedFixture") or row.get("existingFixture"):
             continue
         question = str(row.get("question") or "")
         if not should_create_fixture_candidate(question):
@@ -1877,6 +1969,10 @@ def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any
     status = report_status(issues)
     actionability_questions = dedupe_question_rows(actionability_questions)
     ranked_questions = ranked_actionability_questions(graded)
+    fixture_coverage = annotate_existing_fixture_coverage(
+        ranked_questions,
+        existing_fixtures=existing_public_fixture_index(cwd),
+    )
     fixture_candidates = build_fixture_candidates(ranked_questions)
     priority_action = build_priority_action(issues, ranked_questions)
     return {
@@ -1911,6 +2007,7 @@ def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any
         },
         "actionabilityQuestions": actionability_questions[:30],
         "prioritizedActionabilityQuestions": ranked_questions[:30],
+        "fixtureCoverage": fixture_coverage[:30],
         "fixtureCandidates": fixture_candidates,
         "priorityAction": priority_action,
         "nextActions": build_next_actions(priority_action, ranked_questions),
@@ -1997,6 +2094,19 @@ def render_markdown(report: dict[str, Any]) -> str:
             )
     else:
         lines.append("No report-quality questions were found in the input reports.")
+
+    lines.extend(["", "## Fixture Coverage", ""])
+    fixture_coverage = report.get("fixtureCoverage") or []
+    if fixture_coverage:
+        lines.extend(["| Priority | Tool | Existing Fixture | Source Question |", "| ---: | --- | --- | --- |"])
+        for item in fixture_coverage:
+            lines.append(
+                f"| {item.get('priority') or '-'} | `{table_cell(item.get('tool') or 'unknown', 40)}` | `{table_cell(item.get('publicFixturePath') or '-', 72)}` | {table_cell(item.get('question') or '-', 160)} |"
+            )
+        lines.append("")
+        lines.append("Covered questions keep their actionability evidence, but they do not create duplicate fixture candidates.")
+    else:
+        lines.append("No existing promoted fixtures matched the current actionability questions.")
 
     lines.extend(["", "## Fixture Candidates", ""])
     fixture_candidates = report.get("fixtureCandidates") or []
