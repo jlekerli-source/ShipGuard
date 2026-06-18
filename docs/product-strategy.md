@@ -139,14 +139,14 @@ Run the device notification proof checklist and attach the resulting receipt.
 1. Repo understanding and task routing:
    project map, ownership map, validation lane discovery, protected boundaries, risk classification, and exact next action.
 
-2. The iOS notification and permission workflow:
-   use it as the first evaluated domain pack because it combines permission truth, lifecycle state, simulator/device limits, background behavior, and agent overclaim risk.
+2. Diff-first verification:
+   keep it as the core merge gate. It maps exact AI-generated diffs to behavior categories, deleted tests, validation coverage, protected boundaries, evidence receipts, agent claims, one next action, and a merge verdict.
 
-3. Evaluation as a permanent parallel track:
+3. The iOS notification and permission workflow:
+   use it as the first evaluated domain pack on top of prepare/verify because it combines permission truth, lifecycle state, simulator/device limits, background behavior, and agent overclaim risk.
+
+4. Evaluation as a permanent parallel track:
    every feature needs gold fixtures, negative fixtures, mutation cases, human or expert labels when appropriate, model critique, actionability scoring, and regression gates.
-
-4. Diff-first verification:
-   after the proof-gated task contract, the next architecture step is deeper verification of the exact AI-generated diff: changed behaviors, deleted tests, validation coverage, protected boundaries, evidence, agent claims, exact next action, and verdict.
 
 ## What To Delay
 

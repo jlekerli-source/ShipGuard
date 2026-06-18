@@ -33,8 +33,8 @@ The naming style is intentional: stable commands and paths stay literal, while p
 Install from a release tarball, then validate the bundle:
 
 ```bash
-tar -xzf shipguard-v3.113.0.tar.gz
-cd shipguard-v3.113.0
+tar -xzf shipguard-v3.114.0.tar.gz
+cd shipguard-v3.114.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" version
 ./bin/shipguard validate
@@ -63,7 +63,7 @@ For a risky change, start with the proof-gated task loop:
 ```bash
 ./bin/shipguard prepare "Add provisional notification onboarding flow" --path ../my-ios-app --out /tmp/shipguard-task --profile ios --shareable
 # after Codex edits
-./bin/shipguard verify --task /tmp/shipguard-task/shipguard-task.json --diff /tmp/change.diff --evidence /tmp/validation.log --out /tmp/shipguard-verdict
+./bin/shipguard verify --task /tmp/shipguard-task/shipguard-task.json --diff /tmp/change.diff --evidence /tmp/validation-receipt.json --out /tmp/shipguard-verdict
 ```
 
 1. Start each non-trivial Codex thread from `CODEX_TASK_TEMPLATE.md`.

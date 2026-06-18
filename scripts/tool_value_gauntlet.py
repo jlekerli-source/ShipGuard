@@ -85,7 +85,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add diff-first verification that maps exact AI-generated changes, deleted tests, validation coverage, evidence, and claims into one merge verdict?",
+    "Should ShipGuard add a notification and permission workflow that turns iOS permission-risk discovery into prepare/verify task contracts, focused validation receipts, and device-proof guidance?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -2146,7 +2146,7 @@ def task_contract_receipt_probe(root: Path) -> dict[str, Any]:
         },
         "receipts": receipts,
         "nextAction": (
-            "Task-contract receipts are passing; continue with diff-first verification that explains exact AI-generated changes."
+            "Task-contract receipts are passing; continue with the iOS notification and permission workflow on top of diff-first prepare/verify."
             if status == "pass"
             else "Fix task-contract receipts so prepare/verify produce durable, useful, proof-gated verdicts."
         ),
@@ -3262,19 +3262,26 @@ def lowest_value_surface_probe(
         depth_checks.append(
             depth_check(
                 "runtimeDiffFirstVerification",
+                True,
+                "task-contract receipts now require diffFirstAnalysis, structured validation coverage, evidence coverage, merge verdict, and priority next action",
+            )
+        )
+        depth_checks.append(
+            depth_check(
+                "runtimeIOSNotificationPermissionWorkflow",
                 False,
-                "verify still needs a deeper diff-first verdict that maps behavior changes, deleted tests, validation coverage, and agent claims into one merge decision",
+                "iOS notification and permission risks still need a native workflow that creates focused task contracts, validation receipt requirements, simulator/device proof guidance, and report-quality fixtures",
             )
         )
         answer = surface_probe_row(
             surface_type="cross-cutting",
-            identifier="shipguard verify diff-first-change-review",
-            name="Diff-first change verification",
+            identifier="shipguard ios notification-permission-workflow",
+            name="iOS notification and permission workflow",
             base_score=100,
             base_status="pass",
             depth_checks=depth_checks,
-            recommendation="Add diff-first verification that explains the exact AI-generated change, deleted tests, validation coverage, and unsupported claims before merge.",
-            proof="Run value-gauntlet plus focused diff-first verification receipts that prove safe diffs pass, risky diffs block, and missing evidence returns one exact next action.",
+            recommendation="Add an iOS notification and permission workflow that discovers permission-sensitive code, prepares scoped task contracts, requires focused validation receipts, and separates simulator proof from physical-device proof.",
+            proof="Run value-gauntlet plus focused notification/permission workflow receipts that prove discovery, prepare handoff, validation receipt requirements, blocked bad claims, and manual device-proof guidance on public fixtures.",
         )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"

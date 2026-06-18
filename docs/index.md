@@ -94,7 +94,7 @@ Start here:
 19. Run `./bin/shipguard ios design --path fixtures/demo-ios-repo --out /tmp/ios-shipguard-design --icon-brief`.
 20. Run `./bin/shipguard brand --path . --out /tmp/shipguard-brand --strict` before adding or renaming public ShipGuard surfaces.
 21. Run `./bin/shipguard prepare "Add provisional notification onboarding flow" --path fixtures/demo-ios-repo --out /tmp/shipguard-task --profile ios --shareable`.
-22. Run `./bin/shipguard verify --task /tmp/shipguard-task/shipguard-task.json --diff /tmp/change.diff --evidence /tmp/validation.log --out /tmp/shipguard-verdict` after Codex has a diff and proof receipt.
+22. Run `./bin/shipguard verify --task /tmp/shipguard-task/shipguard-task.json --diff /tmp/change.diff --evidence /tmp/validation-receipt.json --out /tmp/shipguard-verdict` after Codex has a diff and proof receipt.
 23. Use `--shipguard-eval` with `ios performance`, `ios design`, `ios modernize`, `ios app-intelligence`, or `ios ai-readiness` only when a private app is a read-only sample for improving ShipGuard.
 24. Run `./bin/shipguard ios report-quality --reports /tmp/ios-shipguard-performance --reports /tmp/ios-shipguard-design --out /tmp/ios-shipguard-report-quality` to grade ShipGuard report usefulness.
 25. Run `./bin/shipguard ios external-audit --path . --source-url https://github.com/github/spec-kit --source-url https://github.com/rebel0789/codexpro --source-url https://github.com/expo/expo --out /tmp/ios-shipguard-external-audit --shareable` before treating external workflow ideas as integrated.

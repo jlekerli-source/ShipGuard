@@ -18,7 +18,8 @@
     "ShipGuard Task Contract",
     "unsupported completion claim",
     "nextAction",
-    "diff-first verification"
+    "structured validation receipt",
+    "notification and permission workflow"
   ],
   "scopeBoundary": {
     "shipguardOnly": true,
@@ -55,8 +56,8 @@
         {
           "path": "prepare/shipguard-task.json",
           "type": "json",
-          "requiredJsonKeys": ["schemaVersion", "tool", "taskId", "goal", "projectSnapshot", "riskClassification", "authorizedFiles", "protectedBoundaries", "validationContract", "nextAction"],
-          "requiredNonEmptyJsonPaths": ["taskId", "projectSnapshot.profile", "riskClassification.level", "authorizedFiles", "validationContract.required", "nextAction.command"],
+          "requiredJsonKeys": ["schemaVersion", "tool", "taskId", "goal", "projectSnapshot", "riskClassification", "authorizedFiles", "authorizedScope", "protectedBoundaries", "validationContract", "nextAction"],
+          "requiredNonEmptyJsonPaths": ["taskId", "projectSnapshot.profile", "projectSnapshot.scanScope", "riskClassification.level", "authorizedFiles", "authorizedScope", "validationContract.required", "nextAction.command"],
           "requiredValues": [
             {"path": "tool", "equals": "shipguard prepare"},
             {"path": "surface", "equals": "ShipGuard Task Contract"},
@@ -81,7 +82,7 @@
     },
     {
       "id": "verify-scoped-diff-pass",
-      "display": "./bin/shipguard verify --task <out>/prepare/shipguard-task.json --diff <out>/diffs/good.diff --evidence <out>/logs/swift-test.log --out <out>/verify-pass",
+      "display": "./bin/shipguard verify --task <out>/prepare/shipguard-task.json --diff <out>/diffs/good.diff --evidence <out>/logs/swift-test-receipt.json --out <out>/verify-pass",
       "args": [
         "verify",
         "--task",
@@ -89,7 +90,7 @@
         "--diff",
         "{out}/diffs/good.diff",
         "--evidence",
-        "{out}/logs/swift-test.log",
+        "{out}/logs/swift-test-receipt.json",
         "--claim",
         "Implemented scoped notification onboarding source update.",
         "--out",
@@ -103,18 +104,26 @@
         {
           "path": "logs/swift-test.log",
           "text": "swift test passed for DemoPermissionsTests\n"
+        },
+        {
+          "path": "logs/swift-test-receipt.json",
+          "text": "{\n  \"receiptId\": \"validation-unit-tests\",\n  \"validationId\": \"swift-test\",\n  \"command\": \"swift test\",\n  \"exitCode\": 0,\n  \"status\": \"pass\",\n  \"startedAt\": \"2099-01-01T00:00:00Z\",\n  \"completedAt\": \"2099-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"artifact\": {\"path\": \"swift-test.log\"},\n  \"scope\": [\"DemoPermissionsTests\"]\n}\n"
         }
       ],
       "artifacts": [
         {
           "path": "verify-pass/shipguard-verdict.json",
           "type": "json",
-          "requiredJsonKeys": ["tool", "taskId", "status", "changedFiles", "scopeChecks", "evidence", "claimChecks", "nextAction"],
-          "requiredNonEmptyJsonPaths": ["taskId", "changedFiles", "evidence", "nextAction.command"],
+          "requiredJsonKeys": ["tool", "taskId", "status", "changedFiles", "scopeChecks", "evidence", "validationCoverage", "claimChecks", "diffFirstAnalysis", "nextAction"],
+          "requiredNonEmptyJsonPaths": ["taskId", "changedFiles", "evidence", "validationCoverage.coveredCommands", "diffFirstAnalysis.changedFiles", "diffFirstAnalysis.changedBehaviorCategories", "diffFirstAnalysis.validationCoverage.coveredCommands", "diffFirstAnalysis.evidenceCoverage", "diffFirstAnalysis.mergeVerdict", "diffFirstAnalysis.nextAction.command", "nextAction.command"],
           "requiredValues": [
             {"path": "tool", "equals": "shipguard verify"},
             {"path": "surface", "equals": "ShipGuard Task Contract Verdict"},
-            {"path": "status", "equals": "pass"}
+            {"path": "status", "equals": "pass"},
+            {"path": "validationCoverage.status", "equals": "covered"},
+            {"path": "diffFirstAnalysis.validationCoverage.status", "equals": "covered"},
+            {"path": "diffFirstAnalysis.mergeVerdict.allowedToMerge", "equals": true},
+            {"path": "nextAction.priority", "equals": 7}
           ]
         },
         {
@@ -124,6 +133,64 @@
             "# ShipGuard Task Verdict",
             "Status: pass",
             "Attach shipguard-verdict.json"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "verify-invalid-receipt-blocked",
+      "display": "./bin/shipguard verify --task <out>/prepare/shipguard-task.json --diff <out>/diffs/good.diff --evidence <out>/logs/failing-swift-test-receipt.json --out <out>/verify-invalid-receipt",
+      "args": [
+        "verify",
+        "--task",
+        "{out}/prepare/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/good.diff",
+        "--evidence",
+        "{out}/logs/failing-swift-test-receipt.json",
+        "--claim",
+        "Implemented scoped notification onboarding source update.",
+        "--out",
+        "{out}/verify-invalid-receipt"
+      ],
+      "expectedExitCode": 2,
+      "prepareFiles": [
+        {
+          "path": "diffs/good.diff",
+          "text": "diff --git a/Sources/DemoShipGuardApp/DemoPermissions.swift b/Sources/DemoShipGuardApp/DemoPermissions.swift\n--- a/Sources/DemoShipGuardApp/DemoPermissions.swift\n+++ b/Sources/DemoShipGuardApp/DemoPermissions.swift\n@@ -1,3 +1,4 @@\n+// scoped proof fixture\n"
+        },
+        {
+          "path": "logs/failing-swift-test.log",
+          "text": "all tests passed, but command failed\n"
+        },
+        {
+          "path": "logs/failing-swift-test-receipt.json",
+          "text": "{\n  \"receiptId\": \"validation-unit-tests-failed\",\n  \"validationId\": \"swift-test\",\n  \"command\": \"swift test\",\n  \"exitCode\": 1,\n  \"status\": \"pass\",\n  \"startedAt\": \"2099-01-01T00:00:00Z\",\n  \"completedAt\": \"2099-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"artifact\": {\"path\": \"failing-swift-test.log\"},\n  \"scope\": [\"DemoPermissionsTests\"]\n}\n"
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "verify-invalid-receipt/shipguard-verdict.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "taskId", "status", "changedFiles", "validationCoverage", "diffFirstAnalysis", "blockingReasons", "nextAction"],
+          "requiredNonEmptyJsonPaths": ["changedFiles", "validationCoverage.invalidReceipts", "diffFirstAnalysis.validationCoverage.invalidReceipts", "blockingReasons", "nextAction.command"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard verify"},
+            {"path": "status", "equals": "blocked"},
+            {"path": "validationCoverage.status", "equals": "invalid"},
+            {"path": "diffFirstAnalysis.mergeVerdict.allowedToMerge", "equals": false},
+            {"path": "nextAction.priority", "equals": 3}
+          ]
+        },
+        {
+          "path": "verify-invalid-receipt/shipguard-verdict.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard Task Verdict",
+            "Status: blocked",
+            "Validation Coverage",
+            "invalid"
           ],
           "forbidLocalPaths": true
         }

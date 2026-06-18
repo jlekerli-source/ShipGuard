@@ -16,11 +16,11 @@ Ask:
 
 Proof:
 
-- `shipguard prepare "<goal>" --path . --out /tmp/shipguard-task --profile ios --shareable` before edits
+- `shipguard prepare "<goal>" --path . --out /tmp/shipguard-task --profile ios` before edits; add `--shareable` only for product-QA sharing, because external shareable contracts redact private target names
 - pass `--allowed`, `--forbidden`, and `--validation` when the task scope is known
-- after Codex edits, capture the diff and validation receipt
+- after Codex edits, capture the diff and a structured validation receipt JSON; plain logs are review context only
 - `shipguard verify --task /tmp/shipguard-task/shipguard-task.json --diff <patch> --evidence <receipt> --out /tmp/shipguard-verdict`
-- blocked or review verdicts are not passes; follow `nextAction` exactly before merge or release claims
+- blocked, review, or incomplete verdicts are not passes; follow `nextAction` exactly before merge or release claims
 
 ## permission-audit
 
