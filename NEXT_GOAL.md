@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T15:19:51Z
-- Current toolkit version: 3.109.0
-- Target release: v3.109.0
-- Title: ShipGuard Performance Runtime Boundary Fixtures
+- Generated: 2026-06-18T15:50:48Z
+- Current toolkit version: 3.110.0
+- Target release: v3.110.0
+- Title: ShipGuard Grouped Performance Observation Fixtures
 
 ## Slash Plan
 
 ```text
-/plan v3.109.0 ShipGuard Performance Runtime Boundary Fixtures for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add a runtime-evidence boundary to shipguard ios performance, enforce it in ios report-quality, and promote a public synthetic fixture from read-only Ringly/Ilmify product-QA evidence without editing either app.
+/plan v3.110.0 ShipGuard Grouped Performance Observation Fixtures for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Upgrade report-quality materialized performance fixtures so grouped performance observations become public synthetic evals with repeated findings, groupedActionPlan, firstExperiment, validationRoute, stopCondition, and split local/manual proof boundaries, then promote fixtures/ios-report-quality/grouped-performance-observation without editing private app checkouts.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.109.0 ShipGuard Performance Runtime Boundary Fixtures for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add a runtime-evidence boundary to shipguard ios performance, enforce it in ios report-quality, and promote a public synthetic fixture from read-only Ringly/Ilmify product-QA evidence without editing either app, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.110.0 ShipGuard Grouped Performance Observation Fixtures for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Upgrade report-quality materialized performance fixtures so grouped performance observations become public synthetic evals with repeated findings, groupedActionPlan, firstExperiment, validationRoute, stopCondition, and split local/manual proof boundaries, then promote fixtures/ios-report-quality/grouped-performance-observation without editing private app checkouts, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add a runtime-evidence boundary to shipguard ios performance, enforce it in ios report-quality, and promote a public synthetic fixture from read-only Ringly/Ilmify product-QA evidence without editing either app.
+Upgrade report-quality materialized performance fixtures so grouped performance observations become public synthetic evals with repeated findings, groupedActionPlan, firstExperiment, validationRoute, stopCondition, and split local/manual proof boundaries, then promote fixtures/ios-report-quality/grouped-performance-observation without editing private app checkouts.
 
 ## Completion Receipt
 
-- Completed scope: Add a runtime-evidence boundary to shipguard ios performance, enforce it in ios report-quality, and promote a public synthetic fixture from read-only Ringly/Ilmify product-QA evidence without editing either app.
-- Evidence: Validated generated performance reports expose source-heuristic/runtime-proof-missing/non-blocking boundaries, report-quality flags missing boundaries, the public performance-runtime-boundary fixture passes without recursive candidates, and regenerated read-only Ringly/Ilmify reports score 100/100 with the next uncovered priority on grouped performance observation fixtures.
+- Completed scope: Upgrade report-quality materialized performance fixtures so grouped performance observations become public synthetic evals with repeated findings, groupedActionPlan, firstExperiment, validationRoute, stopCondition, and split local/manual proof boundaries, then promote fixtures/ios-report-quality/grouped-performance-observation without editing private app checkouts.
+- Evidence: Validated generated performance fixture candidates now include synthetic swiftui-repeat-forever-animation findings, ruleSummary, groupedActionPlan, Markdown Grouped Next Actions, and Proof Boundaries; the public grouped-performance-observation fixture passes report-quality without recursive candidates; rerunning read-only product-QA report-quality shows fixture coverage for both runtime-boundary and grouped-performance questions and moves the next priority to performance evidence promotion.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.110.0 ShipGuard Grouped Performance Observation Fixtures for jlekerli-source/ShipGuard:
+/plan v3.111.0 ShipGuard Performance Evidence Promotion Fixtures for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add a runtime-evidence boundary to shipguard ios performance, enforce it in ios 
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.110.0 ShipGuard Grouped Performance Observation Fixtures for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.111.0 ShipGuard Performance Evidence Promotion Fixtures for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.110.0 --title "ShipGuard Grouped Performance Observation Fixtures" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.111.0 --title "ShipGuard Performance Evidence Promotion Fixtures" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -145,12 +145,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.109.0.
+1. Open or update the tracking issue for v3.110.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.109.0` and upload `dist/shipguard-v3.109.0.tar.gz`.
+6. Create release `v3.110.0` and upload `dist/shipguard-v3.110.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

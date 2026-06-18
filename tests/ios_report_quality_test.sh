@@ -347,6 +347,13 @@ grep -q '"tool": "shipguard ios ' "$materialized_candidate_dir/fixture-report.js
 grep -q '"shipguardOnly": true' "$materialized_candidate_dir/fixture-report.json"
 grep -q '"targetAppsReadOnly": true' "$materialized_candidate_dir/fixture-report.json"
 grep -q 'Synthetic Report-Quality Fixture' "$materialized_candidate_dir/fixture-report.md"
+grep -q '"groupedActionPlan":' "$materialized_candidate_dir/fixture-report.json"
+grep -q '"ruleId": "swiftui-repeat-forever-animation"' "$materialized_candidate_dir/fixture-report.json"
+grep -q 'Grouped Next Actions' "$materialized_candidate_dir/fixture-report.md"
+grep -q 'First experiment' "$materialized_candidate_dir/fixture-report.md"
+grep -q 'Validation route' "$materialized_candidate_dir/fixture-report.md"
+grep -q 'Stop condition' "$materialized_candidate_dir/fixture-report.md"
+grep -q 'Proof Boundaries' "$materialized_candidate_dir/fixture-report.md"
 ./bin/shipguard ios report-quality \
   --reports "$materialized_candidate_dir" \
   --out "$tmp_dir/materialized-quality" \
@@ -474,6 +481,39 @@ if not questions or questions[0].get("sourceMaterializedFixture") is not True:
 PY
 if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$performance_boundary_fixture"; then
   echo "performance runtime boundary fixture must not include local paths or private app identifiers" >&2
+  exit 1
+fi
+
+grouped_performance_fixture="fixtures/ios-report-quality/grouped-performance-observation"
+./bin/shipguard ios report-quality \
+  --reports "$grouped_performance_fixture" \
+  --out "$tmp_dir/grouped-performance-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/grouped-performance-quality/ios-report-quality.json"
+grep -q '"sourceMaterializedFixture": true' "$tmp_dir/grouped-performance-quality/ios-report-quality.json"
+grep -q 'Grouped Next Actions' "$grouped_performance_fixture/fixture-report.md"
+grep -q 'First experiment' "$grouped_performance_fixture/fixture-report.md"
+grep -q 'Validation route' "$grouped_performance_fixture/fixture-report.md"
+grep -q 'Stop condition' "$grouped_performance_fixture/fixture-report.md"
+grep -q 'Proof Boundaries' "$grouped_performance_fixture/fixture-report.md"
+grep -q '"groupedActionPlan":' "$grouped_performance_fixture/fixture-report.json"
+grep -q '"ruleId": "swiftui-repeat-forever-animation"' "$grouped_performance_fixture/fixture-report.json"
+python3 - <<'PY' "$tmp_dir/grouped-performance-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"grouped performance fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+if not questions or questions[0].get("sourceMaterializedFixture") is not True:
+    raise SystemExit(f"grouped performance fixture should retain sourceMaterializedFixture question evidence: {questions!r}")
+source_rules = {item.get("ruleId") for item in data.get("sourceFindings") or []}
+if "swiftui-repeat-forever-animation" not in source_rules:
+    raise SystemExit(f"grouped performance source finding was not preserved: {source_rules!r}")
+PY
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$grouped_performance_fixture"; then
+  echo "grouped performance fixture must not include local paths or private app identifiers" >&2
   exit 1
 fi
 

@@ -10,9 +10,9 @@ Example workflow step:
 
 ```yaml
 - name: Build release proof
-  uses: jlekerli-source/ShipGuard/actions/release-proof@v3.109.0
+  uses: jlekerli-source/ShipGuard/actions/release-proof@v3.110.0
   with:
-    release-url: https://github.com/owner/repo/releases/tag/v3.109.0
+    release-url: https://github.com/owner/repo/releases/tag/v3.110.0
     issue-url: https://github.com/owner/repo/issues/123
     out: artifacts/shipguard-release-proof
 ```

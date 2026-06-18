@@ -1,0 +1,21 @@
+{
+  "candidateId": "grouped-performance-observation",
+  "expectedAssertions": [
+    "report-quality preserves the grouped performance actionability question in JSON and Markdown",
+    "report-quality does not emit recursive fixtureCandidates for an already-materialized synthetic fixture",
+    "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+    "performance reports expose groupedActionPlan with firstExperiment, validationRoute, and stopCondition",
+    "performance findings separate Codex local proof from manual/device proof",
+    "shareable output contains no local absolute paths or private app identifiers"
+  ],
+  "fixtureType": "ios-performance-report-quality-fixture",
+  "privateDataPolicy": "Synthetic public fixture. No private app code, local paths, screenshots, app-specific identifiers, or proprietary text were copied.",
+  "publicFixturePath": "fixtures/ios-report-quality/grouped-performance-observation",
+  "sourceQuestion": "Which grouped performance observation should become a public fixture or eval case before changing scanner heuristics again?",
+  "sourceReportsRedacted": true,
+  "sourceTool": "shipguard ios performance",
+  "validationCommands": [
+    "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/grouped-performance-observation --out <quality-dir> --shareable",
+    "./tests/ios_report_quality_test.sh"
+  ]
+}

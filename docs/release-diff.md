@@ -7,7 +7,7 @@ Use it when you want to answer what changed between two published or locally bui
 ```bash
 ./bin/shipguard release-diff compare \
   --left /tmp/shipguard-old \
-  --right /tmp/shipguard-v3.109.0 \
+  --right /tmp/shipguard-v3.110.0 \
   --out /tmp/shipguard-release-diff
 ```
 

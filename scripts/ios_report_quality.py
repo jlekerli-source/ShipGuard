@@ -2381,9 +2381,107 @@ def materialized_candidate_id(candidate: dict[str, Any]) -> str:
     return slugify(f"{prefix}-{fixture_type}", limit=96)
 
 
+def synthetic_performance_findings() -> list[dict[str, Any]]:
+    local_proof = (
+        "Record the synthetic screen at rest and during one interaction, then compare samples after gating the animation."
+    )
+    manual_proof = (
+        "Use physical-device Instruments before making FPS, ProMotion, thermal, battery, or hardware-display claims."
+    )
+    findings: list[dict[str, Any]] = []
+    for line in (12, 28, 44, 60):
+        findings.append(
+            {
+                "severity": "review",
+                "category": "SwiftUI Rendering",
+                "ruleId": "swiftui-repeat-forever-animation",
+                "title": "Review continuous repeatForever animation",
+                "file": "Sources/SyntheticPerformanceFixture/LoopingMotionView.swift",
+                "line": line,
+                "evidence": ".repeatForever(autoreverses: true)",
+                "severityReason": (
+                    "Review because repeatForever can keep the render loop active until it is gated by visibility, "
+                    "Reduce Motion, or user value."
+                ),
+                "impact": (
+                    "Always-on decorative motion can keep rendering work alive and combine poorly with blur, material, "
+                    "or tab backgrounds."
+                ),
+                "recommendation": (
+                    "Gate decorative repeatForever motion behind Reduce Motion, active screen visibility, and measurable "
+                    "interaction value before changing broader animation architecture."
+                ),
+                "localProof": local_proof,
+                "manualProof": manual_proof,
+                "proof": f"{local_proof} {manual_proof}",
+                "proofGuidance": f"Codex local proof: {local_proof} Manual/device proof: {manual_proof}",
+            }
+        )
+    return findings
+
+
+def synthetic_performance_rule_summary() -> list[dict[str, Any]]:
+    return [
+        {
+            "ruleId": "swiftui-repeat-forever-animation",
+            "count": 4,
+            "highestSeverity": "review",
+            "severityMix": {"review": 4},
+            "firstLocations": [
+                "Sources/SyntheticPerformanceFixture/LoopingMotionView.swift:12",
+                "Sources/SyntheticPerformanceFixture/LoopingMotionView.swift:28",
+                "Sources/SyntheticPerformanceFixture/LoopingMotionView.swift:44",
+            ],
+        }
+    ]
+
+
+def synthetic_performance_grouped_action_plan() -> list[dict[str, Any]]:
+    local_proof = (
+        "Capture the same synthetic screen at rest and during one interaction before and after the animation gate."
+    )
+    manual_proof = (
+        "Attach physical-device Instruments proof before promoting the source suspicion into FPS, thermal, battery, "
+        "or hardware-display guidance."
+    )
+    return [
+        {
+            "ruleId": "swiftui-repeat-forever-animation",
+            "count": 4,
+            "severity": "review",
+            "firstLocations": [
+                "Sources/SyntheticPerformanceFixture/LoopingMotionView.swift:12",
+                "Sources/SyntheticPerformanceFixture/LoopingMotionView.swift:28",
+                "Sources/SyntheticPerformanceFixture/LoopingMotionView.swift:44",
+            ],
+            "recommendation": (
+                "Start with one decorative repeatForever animation and prove that gating it changes the measured route "
+                "before broad animation cleanup."
+            ),
+            "firstExperiment": (
+                "Disable or gate one decorative repeatForever animation behind Reduce Motion and active-screen visibility, "
+                "then compare an at-rest screen recording plus a same-route sample."
+            ),
+            "validationRoute": (
+                "Run the same local sample or trace before and after the single gate; use device Instruments before "
+                "claiming FPS, ProMotion, battery, or thermal improvement."
+            ),
+            "stopCondition": (
+                "Stop after the first gated animation unless the same-route proof shows a measurable improvement and "
+                "the UI still communicates the intended state."
+            ),
+            "recommendedFirstMove": "Gate one animation, do not rewrite the full motion system.",
+            "localProof": local_proof,
+            "manualProof": manual_proof,
+            "proofGuidance": f"Codex local proof: {local_proof} Manual/device proof: {manual_proof}",
+        }
+    ]
+
+
 def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
     question = materialized_source_question(candidate)
     source_tool = sanitize_materialized_text(candidate.get("sourceTool")) or "shipguard ios report-quality"
+    fixture_type = sanitize_materialized_text(candidate.get("fixtureType")) or "report-quality-actionability-fixture"
     report = {
         "schemaVersion": 1,
         "tool": source_tool,
@@ -2424,6 +2522,11 @@ def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
                 "Physical-device Instruments or equivalent proof for FPS, ProMotion, thermal, battery, wake-path, or hardware-display claims.",
             ],
         }
+    if source_tool == "shipguard ios performance" and fixture_type == "ios-performance-report-quality-fixture":
+        report["status"] = "review"
+        report["findings"] = synthetic_performance_findings()
+        report["ruleSummary"] = synthetic_performance_rule_summary()
+        report["groupedActionPlan"] = synthetic_performance_grouped_action_plan()
     return report
 
 
@@ -2466,6 +2569,43 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "",
             ]
         )
+        if fixture_type == "ios-performance-report-quality-fixture":
+            lines.extend(
+                [
+                    "## Grouped Next Actions",
+                    "",
+                    "| Rule | Count | Severity | First experiment | Validation route | Stop condition |",
+                    "| --- | ---: | --- | --- | --- | --- |",
+                    (
+                        "| `swiftui-repeat-forever-animation` | 4 | review | Disable or gate one decorative repeatForever animation behind Reduce Motion and active-screen visibility, then compare an at-rest screen recording plus a same-route sample. | Run the same local sample or trace before and after the single gate; use device Instruments before claiming FPS, ProMotion, battery, or thermal improvement. | Stop after the first gated animation unless the same-route proof shows a measurable improvement and the UI still communicates the intended state. |"
+                    ),
+                    "",
+                    "## Top Findings",
+                    "",
+                    "| Severity | Rule | Location | Why severity | Why it matters |",
+                    "| --- | --- | --- | --- | --- |",
+                ]
+            )
+            for line in (12, 28, 44, 60):
+                lines.append(
+                    (
+                        "| review | `swiftui-repeat-forever-animation` | `Sources/SyntheticPerformanceFixture/LoopingMotionView.swift:"
+                        f"{line}` | Review because repeatForever can keep the render loop active until it is gated by visibility, Reduce Motion, or user value. | Always-on decorative motion can keep rendering work alive and combine poorly with blur, material, or tab backgrounds. |"
+                    )
+                )
+            lines.extend(
+                [
+                    "",
+                    "## Proof Boundaries",
+                    "",
+                    "| Severity | Rule | Codex local proof | Manual/device proof |",
+                    "| --- | --- | --- | --- |",
+                    (
+                        "| review | `swiftui-repeat-forever-animation` | Record the synthetic screen at rest and during one interaction, then compare samples after gating the animation. | Use physical-device Instruments before making FPS, ProMotion, thermal, battery, or hardware-display claims. |"
+                    ),
+                    "",
+                ]
+            )
     return "\n".join(lines)
 
 
