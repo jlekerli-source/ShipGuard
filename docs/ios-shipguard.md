@@ -19,7 +19,7 @@ Run ShipGuard Tool Value Gauntlet when the question is whether the ShipYard itse
 ./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --out /tmp/shipguard-value-quality --shareable
 ```
 
-That report grades ShipGuard commands, skills, plugin metadata, GitHub Actions, docs, tests, package proof, and proof boundaries. It also emits a Lowest-Value Surface Probe: first it ranks deeper evidence signals across the ShipYard, then it escalates all-green static coverage into a runtime-output usefulness probe so ShipGuard keeps testing whether the reports themselves are specific, prioritized, proof-oriented, and non-decorative. Use its priority actions to upgrade ShipGuard itself; do not turn private Ringly or Ilmify evidence into app work unless a later task explicitly asks for app changes.
+That report grades ShipGuard commands, skills, plugin metadata, GitHub Actions, docs, tests, package proof, and proof boundaries. It also emits a Lowest-Value Surface Probe and a `runtimeOutputProbe`: first it ranks deeper evidence signals across the ShipYard, then it executes representative ShipGuard commands on public/demo inputs and scores whether their generated JSON/Markdown is specific, prioritized, proof-oriented, and machine-readable. When that probe passes, the next priority becomes negative runtime-output fixtures so decorative but low-value reports cannot pass by looking complete. Use its priority actions to upgrade ShipGuard itself; do not turn private Ringly or Ilmify evidence into app work unless a later task explicitly asks for app changes.
 
 ## What Codex Already Does
 

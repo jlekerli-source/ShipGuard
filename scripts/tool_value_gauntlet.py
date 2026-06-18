@@ -7,7 +7,10 @@ import argparse
 import datetime as dt
 import json
 import re
+import subprocess
 import sys
+import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -70,10 +73,67 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should the lowest-value surface probe execute representative commands and compare actual output against usefulness criteria instead of relying on static metadata only?",
+    "Should the runtime output probe include negative fixtures for decorative but low-value reports so output scoring cannot become ceremonial?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
+]
+
+RUNTIME_OUTPUT_SPECS: list[dict[str, Any]] = [
+    {
+        "id": "brand-deck",
+        "surface": "ShipGuard Brand Deck",
+        "displayCommand": "./bin/shipguard brand --path . --out <probe-out>/brand --strict",
+        "args": ["brand", "--path", ".", "--out", "{out}/brand", "--strict"],
+        "jsonPath": "brand/ios-branding.json",
+        "markdownPath": "brand/ios-branding.md",
+        "requiredJsonKeys": ["tool", "status", "surface", "reportQualityQuestions"],
+        "markdownPhrases": ["# ShipGuard", "Report Quality Questions"],
+        "usefulnessSignals": ["ShipGuard", "proof", "question", "command"],
+    },
+    {
+        "id": "ios-doctor-demo",
+        "surface": "ShipGuard DockCheck",
+        "displayCommand": "./bin/shipguard ios doctor --path fixtures/demo-ios-repo --out <probe-out>/doctor",
+        "args": ["ios", "doctor", "--path", "fixtures/demo-ios-repo", "--out", "{out}/doctor"],
+        "jsonPath": "doctor/ios-doctor.json",
+        "markdownPath": "doctor/ios-doctor.md",
+        "requiredJsonKeys": ["status", "projects", "packages", "schemes"],
+        "markdownPhrases": ["# iOS Doctor", "Status:"],
+        "usefulnessSignals": ["project", "scheme", "package", "validation"],
+    },
+    {
+        "id": "ios-design-demo",
+        "surface": "ShipGuard VibeCheck",
+        "displayCommand": "./bin/shipguard ios design --path fixtures/demo-ios-repo --out <probe-out>/design --shipguard-eval --shareable",
+        "args": ["ios", "design", "--path", "fixtures/demo-ios-repo", "--out", "{out}/design", "--shipguard-eval", "--shareable"],
+        "jsonPath": "design/ios-design.json",
+        "markdownPath": "design/ios-design.md",
+        "requiredJsonKeys": ["tool", "status", "appType", "designDNA", "findings", "reportQualityQuestions"],
+        "markdownPhrases": ["# iOS Design QA", "Report Quality Questions"],
+        "usefulnessSignals": ["motion", "haptics", "proof", "recommendation"],
+        "expectShipGuardBoundary": True,
+    },
+    {
+        "id": "report-quality-fixture",
+        "surface": "ShipGuard QualityRadar",
+        "displayCommand": "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/value-gauntlet-actionability --out <probe-out>/quality --shareable",
+        "args": [
+            "ios",
+            "report-quality",
+            "--reports",
+            "fixtures/ios-report-quality/value-gauntlet-actionability",
+            "--out",
+            "{out}/quality",
+            "--shareable",
+        ],
+        "jsonPath": "quality/ios-report-quality.json",
+        "markdownPath": "quality/ios-report-quality.md",
+        "requiredJsonKeys": ["tool", "status", "priorityAction", "actionabilityQuestions", "fixtureCoverage"],
+        "markdownPhrases": ["# iOS ShipGuard Report Quality", "Priority Action", "Fixture Coverage"],
+        "usefulnessSignals": ["priority", "actionability", "fixture", "proof"],
+        "expectShipGuardBoundary": True,
+    },
 ]
 
 PLACEHOLDER_PATTERNS = [
@@ -212,6 +272,155 @@ def count_hits_in_paths(text_index: dict[str, str], prefixes: tuple[str, ...], n
             continue
         total += count_hits(text, needles)
     return total
+
+
+def compact_error(text: str, limit: int = 180) -> str:
+    cleaned = re.sub(r"\s+", " ", text).strip()
+    if not cleaned:
+        return ""
+    if len(cleaned) <= limit:
+        return cleaned
+    return cleaned[: limit - 1].rstrip() + "..."
+
+
+def runtime_probe_check(check_id: str, passed: bool, evidence: str) -> dict[str, Any]:
+    return {"id": check_id, "passed": passed, "evidence": evidence}
+
+
+def value_at_path(data: dict[str, Any], path: str) -> Any:
+    current: Any = data
+    for part in path.split("."):
+        if not isinstance(current, dict):
+            return None
+        current = current.get(part)
+    return current
+
+
+def run_runtime_output_spec(root: Path, probe_root: Path, spec: dict[str, Any]) -> dict[str, Any]:
+    command_args = [str(part).format(out=probe_root.as_posix()) for part in spec["args"]]
+    command = [str(root / "bin" / "shipguard"), *command_args]
+    started = time.monotonic()
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=root,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=60,
+            check=False,
+        )
+        exit_code: int | str = completed.returncode
+        stdout = completed.stdout or ""
+        stderr = completed.stderr or ""
+        timed_out = False
+    except subprocess.TimeoutExpired as exc:
+        exit_code = "timeout"
+        stdout = exc.stdout if isinstance(exc.stdout, str) else ""
+        stderr = exc.stderr if isinstance(exc.stderr, str) else ""
+        timed_out = True
+    duration_ms = round((time.monotonic() - started) * 1000)
+
+    json_path = probe_root / str(spec["jsonPath"])
+    markdown_path = probe_root / str(spec["markdownPath"])
+    loaded = load_json(json_path)
+    markdown = read_text(markdown_path)
+    combined = (json.dumps(loaded, sort_keys=True) + "\n" + markdown).lower()
+
+    checks = [
+        runtime_probe_check("exitZero", exit_code == 0, f"exit code {exit_code}"),
+        runtime_probe_check("jsonArtifact", bool(loaded), f"{spec['jsonPath']} parsed" if loaded else f"{spec['jsonPath']} missing or invalid"),
+        runtime_probe_check(
+            "markdownArtifact",
+            bool(markdown.strip()),
+            f"{spec['markdownPath']} written" if markdown.strip() else f"{spec['markdownPath']} missing or empty",
+        ),
+        runtime_probe_check("machineStatus", bool(loaded.get("status")), f"status={loaded.get('status') or 'missing'}"),
+    ]
+    for key in spec.get("requiredJsonKeys", []):
+        checks.append(
+            runtime_probe_check(
+                f"json:{key}",
+                value_at_path(loaded, str(key)) is not None,
+                f"{key} present" if value_at_path(loaded, str(key)) is not None else f"{key} missing",
+            )
+        )
+    for phrase in spec.get("markdownPhrases", []):
+        checks.append(
+            runtime_probe_check(
+                f"markdown:{phrase}",
+                phrase.lower() in markdown.lower(),
+                f"Markdown contains {phrase!r}" if phrase.lower() in markdown.lower() else f"Markdown missing {phrase!r}",
+            )
+        )
+    signal_hits = sum(1 for signal in spec.get("usefulnessSignals", []) if str(signal).lower() in combined)
+    checks.append(
+        runtime_probe_check(
+            "usefulnessSignals",
+            signal_hits >= min(3, len(spec.get("usefulnessSignals", []))),
+            f"{signal_hits}/{len(spec.get('usefulnessSignals', []))} usefulness signals found",
+        )
+    )
+    if spec.get("expectShipGuardBoundary"):
+        boundary = loaded.get("scopeBoundary") if isinstance(loaded.get("scopeBoundary"), dict) else {}
+        checks.append(
+            runtime_probe_check(
+                "shipguardBoundary",
+                boundary.get("shipguardOnly") is True,
+                "scopeBoundary.shipguardOnly=true" if boundary.get("shipguardOnly") is True else "scopeBoundary.shipguardOnly missing",
+            )
+        )
+
+    score = score_from_checks(checks)
+    missing = [check["id"] for check in checks if not check["passed"]]
+    return {
+        "id": spec["id"],
+        "surface": spec["surface"],
+        "command": spec["displayCommand"],
+        "durationMs": duration_ms,
+        "exitCode": exit_code,
+        "timedOut": timed_out,
+        "score": score,
+        "status": "pass" if score >= 85 and not timed_out and exit_code == 0 else "review" if exit_code == 0 else "blocked",
+        "checks": checks,
+        "missing": missing,
+        "artifacts": {
+            "json": f"<probe-out>/{spec['jsonPath']}",
+            "markdown": f"<probe-out>/{spec['markdownPath']}",
+        },
+        "stdoutLineCount": len(stdout.splitlines()),
+        "stderrLineCount": len(stderr.splitlines()),
+        "errorSummary": compact_error(stderr or stdout) if exit_code != 0 or timed_out else "",
+    }
+
+
+def runtime_output_probe(root: Path) -> dict[str, Any]:
+    with tempfile.TemporaryDirectory(prefix="shipguard-value-runtime-") as tmp:
+        probe_root = Path(tmp)
+        rows = [run_runtime_output_spec(root, probe_root, spec) for spec in RUNTIME_OUTPUT_SPECS]
+    average = round(sum(row["score"] for row in rows) / len(rows), 1) if rows else 0
+    blocked_count = sum(1 for row in rows if row["status"] == "blocked")
+    review_count = sum(1 for row in rows if row["status"] == "review")
+    status = "blocked" if blocked_count else "review" if review_count else "pass"
+    lowest = min(rows, key=lambda row: (row["score"], row["id"])) if rows else {}
+    return {
+        "status": status,
+        "averageScore": average,
+        "commandCount": len(rows),
+        "purpose": "Execute representative ShipGuard commands on public/demo inputs and grade whether their generated outputs are specific, prioritized, proof-oriented, and machine-readable.",
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["ShipGuard checkout", "fixtures/demo-ios-repo", "fixtures/ios-report-quality/value-gauntlet-actionability"],
+        },
+        "commands": rows,
+        "lowestScoringCommand": lowest,
+        "nextAction": (
+            "Add negative runtime-output fixtures that prove decorative but low-value reports fail the probe."
+            if status == "pass"
+            else f"Improve runtime output for `{lowest.get('id') or 'unknown'}` before expanding the probe."
+        ),
+    }
 
 
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
@@ -704,6 +913,7 @@ def lowest_value_surface_probe(
     plugins: list[dict[str, Any]],
     actions: list[dict[str, Any]],
     docs: list[dict[str, Any]],
+    runtime_probe: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -725,19 +935,45 @@ def lowest_value_surface_probe(
     )
     all_static_green = bool(ranked) and all(int(row["baseScore"]) >= 90 and int(row["depthScore"]) >= 100 for row in ranked)
     if all_static_green:
-        answer = surface_probe_row(
-            surface_type="cross-cutting",
-            identifier="shipguard value-gauntlet runtime-output-probe",
-            name="Runtime output usefulness probe",
-            base_score=100,
-            base_status="pass",
-            depth_checks=[
-                depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
-                depth_check("runtimeOutputProbe", False, "representative commands are not executed and judged for output usefulness yet"),
-            ],
-            recommendation="Add a read-only runtime output probe that executes representative ShipGuard commands and grades whether their reports are specific, prioritized, proof-oriented, and non-decorative.",
-            proof="Run the new output probe against public fixtures plus `./tests/tool_value_gauntlet_test.sh` and `./tests/ios_report_quality_test.sh`.",
-        )
+        runtime_passed = runtime_probe.get("status") == "pass"
+        if runtime_passed:
+            answer = surface_probe_row(
+                surface_type="cross-cutting",
+                identifier="shipguard value-gauntlet runtime-regression-fixtures",
+                name="Runtime output regression fixtures",
+                base_score=100,
+                base_status="pass",
+                depth_checks=[
+                    depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
+                    depth_check(
+                        "runtimeOutputProbe",
+                        True,
+                        f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100",
+                    ),
+                    depth_check("runtimeRegressionFixtures", False, "negative fixtures for decorative but low-value reports are not present yet"),
+                ],
+                recommendation="Add negative runtime-output fixtures that prove decorative but low-value reports fail the probe before the probe is treated as mature.",
+                proof="Run value-gauntlet, ios report-quality, and a focused runtime-output fixture test after adding the negative cases.",
+            )
+        else:
+            lowest_runtime = runtime_probe.get("lowestScoringCommand") if isinstance(runtime_probe.get("lowestScoringCommand"), dict) else {}
+            answer = surface_probe_row(
+                surface_type="cross-cutting",
+                identifier="shipguard value-gauntlet runtime-output-probe",
+                name="Runtime output usefulness probe",
+                base_score=100,
+                base_status="pass",
+                depth_checks=[
+                    depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
+                    depth_check(
+                        "runtimeOutputProbe",
+                        False,
+                        f"runtime output probe status={runtime_probe.get('status') or 'missing'} lowest={lowest_runtime.get('id') or 'unknown'}",
+                    ),
+                ],
+                recommendation="Fix the representative runtime output probe so generated reports are specific, prioritized, proof-oriented, and non-decorative.",
+                proof="Run the runtime output probe through `./tests/tool_value_gauntlet_test.sh` and inspect runtimeOutputProbe.lowestScoringCommand.",
+            )
     else:
         answer = ranked[0] if ranked else {}
     if answer:
@@ -798,6 +1034,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     plugins = evaluate_plugins(root, findings)
     actions = evaluate_actions(root, text_index, findings)
     docs = evaluate_docs(root, findings)
+    runtime_probe = runtime_output_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -806,6 +1043,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         plugins=plugins,
         actions=actions,
         docs=docs,
+        runtime_probe=runtime_probe,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -840,6 +1078,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "plugins": plugins,
         "actions": actions,
         "docs": docs,
+        "runtimeOutputProbe": runtime_probe,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -897,6 +1136,20 @@ def render_markdown(report: dict[str, Any]) -> str:
             )
     else:
         lines.append("- No surfaces were available for depth probing.")
+    runtime_probe = report.get("runtimeOutputProbe") or {}
+    lines.extend(["", "## Runtime Output Probe", ""])
+    lines.append(f"- Status: {runtime_probe.get('status') or 'unknown'}")
+    lines.append(f"- Average score: {runtime_probe.get('averageScore', 0)}/100")
+    lines.append(f"- Commands executed: {runtime_probe.get('commandCount', 0)}")
+    if runtime_probe.get("nextAction"):
+        lines.append(f"- Next action: {runtime_probe['nextAction']}")
+    lines.extend(["", "| Score | Status | Runtime Command | Output Artifacts | Missing |", "| ---: | --- | --- | --- | --- |"])
+    for item in runtime_probe.get("commands", []):
+        artifacts = item.get("artifacts") if isinstance(item.get("artifacts"), dict) else {}
+        artifact_text = ", ".join(value for value in (artifacts.get("json"), artifacts.get("markdown")) if value)
+        lines.append(
+            f"| {item.get('score')} | {item.get('status')} | `{table_cell(item.get('command'), 82)}` | {table_cell(artifact_text or '-', 90)} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
     lines.extend(
         [
             "",

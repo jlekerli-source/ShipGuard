@@ -10,7 +10,7 @@ Current checkout:
 
 ```bash
 ./bin/shipguard version
-# 3.88.0
+# 3.89.0
 
 ./bin/shipguard validate
 # workflow bundle validation passed
@@ -155,13 +155,15 @@ The next read-only Ringly/Ilmify report-quality pass still left a manual gap: it
 
 The next read-only full-report pass showed report-quality could score all source reports as structurally valid while leaving 21 actionability questions unranked and even suggesting "fix high report-quality issues" when there were no findings. `ios report-quality` now emits `priorityAction` and `prioritizedActionabilityQuestions`, ranks report-quality findings before questions, and ranks questions from blocked/review source reports before lower-risk output so the next ShipGuard improvement is concrete.
 
-The installed Codex cache now has `ios-shipguard` metadata version `0.2.3+codex.20260618043203`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, source-path MCP sidecar, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
+The installed Codex cache now has `ios-shipguard` metadata version `0.2.4+codex.20260618055324`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, source-path MCP sidecar, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
 
 The next value-gauntlet pass scored the ShipYard at 100.0 but still prioritized whether low-value patterns should become public fixtures. That question is now promoted into `fixtures/ios-report-quality/value-gauntlet-actionability`, a synthetic report-quality fixture that keeps `shipguard value-gauntlet` actionability visible while proving materialized fixtures do not recursively emit more fixture candidates.
 
 The next command-depth probe showed the loop could still waste time by asking for the same value-gauntlet fixture again even after promotion. `ios report-quality` now detects promoted public fixtures under `fixtures/ios-report-quality`, renders `Fixture Coverage`, suppresses duplicate fixtureCandidates for covered questions, and moves the priority action to the next uncovered question.
 
 The next ShipYard value loop showed `shipguard value-gauntlet` needed to answer its own "which surface is weakest?" question instead of handing a human an unranked all-green report. It now emits `lowestValueSurfaceProbe`, upgrades the copied starter skills with ShipGuard QA hooks, verifies starter-skill docs/test linkage, and escalates all-green static coverage into a runtime-output usefulness probe for the next implementation slice.
+
+The runtime-output slice now executes representative ShipGuard commands on public/demo inputs: Brand Deck, DockCheck, VibeCheck, and QualityRadar. `runtimeOutputProbe` scores their generated JSON/Markdown for exit status, artifacts, machine-readable status, required keys, boundary language, Markdown sections, and usefulness signals. This exposed thin machine output in Brand Deck and DockCheck, so those reports now include top-level surface/status summary fields. With representative runtime output passing, the next weakness is negative runtime-output fixtures that fail decorative but low-value reports instead of letting them pass because they look complete.
 
 ## Verdict
 

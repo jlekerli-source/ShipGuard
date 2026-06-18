@@ -30,6 +30,7 @@ grep -q 'Plain Purpose' "$tmp_dir/brand/ios-branding.md"
 grep -q 'proof boundary' "$tmp_dir/brand/ios-branding.md"
 
 grep -q '"tool": "shipguard brand"' "$tmp_dir/brand/ios-branding.json"
+grep -q '"surface": "ShipGuard Brand Deck"' "$tmp_dir/brand/ios-branding.json"
 grep -q '"compatibilityCommands":' "$tmp_dir/brand/ios-branding.json"
 grep -q '"shipguard ios brand"' "$tmp_dir/brand/ios-branding.json"
 grep -q '"status": "pass"' "$tmp_dir/brand/ios-branding.json"
@@ -123,10 +124,12 @@ done
 json_stdout="$(./bin/shipguard brand --path . --json)"
 printf '%s\n' "$json_stdout" | python3 -m json.tool >/dev/null
 printf '%s\n' "$json_stdout" | grep -q '"tool": "shipguard brand"'
+printf '%s\n' "$json_stdout" | grep -q '"surface": "ShipGuard Brand Deck"'
 
 compat_stdout="$(./bin/shipguard ios brand --path . --json)"
 printf '%s\n' "$compat_stdout" | python3 -m json.tool >/dev/null
 printf '%s\n' "$compat_stdout" | grep -q '"tool": "shipguard brand"'
+printf '%s\n' "$compat_stdout" | grep -q '"surface": "ShipGuard Brand Deck"'
 
 if rg -n 'Shipyard|Shipcard|Illumify|InweFi|Build iOS Apps bridge|Build iOS Apps front door' \
   README.md docs/cli.md docs/command-matrix.md docs/ios-shipguard.md docs/shipguard-naming.md \

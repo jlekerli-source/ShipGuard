@@ -388,6 +388,14 @@ def build_next_actions(report: dict[str, Any]) -> list[str]:
     return actions
 
 
+def report_status(findings: list[dict[str, str]]) -> str:
+    if any(finding["severity"] == "high" for finding in findings):
+        return "blocked"
+    if any(finding["severity"] == "review" for finding in findings):
+        return "review"
+    return "pass"
+
+
 def build_report(root: Path) -> dict[str, Any]:
     files = iter_files(root)
     projects = [parse_project(path, root) for path in iter_dirs(root, ".xcodeproj")]
@@ -403,6 +411,7 @@ def build_report(root: Path) -> dict[str, Any]:
     report: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "tool": "shipguard ios doctor",
+        "surface": "ShipGuard DockCheck",
         "project": str(root),
         "xcodebuild_available": shutil.which("xcodebuild") is not None,
         "counts": {
@@ -420,6 +429,9 @@ def build_report(root: Path) -> dict[str, Any]:
         "xcode_projects": projects,
         "xcode_workspaces": workspaces,
         "swift_packages": packages,
+        "projects": projects,
+        "packages": packages,
+        "schemes": unique_sorted([scheme for project in projects for scheme in project["schemes"]]),
         "test_plans": [rel(path, root) for path in test_plans],
         "storekit_configs": [rel(path, root) for path in storekit_configs],
         "privacy_manifests": [plist_summary(path, root) for path in privacy_manifests],
@@ -428,6 +440,7 @@ def build_report(root: Path) -> dict[str, Any]:
         "swift_imports": source_imports(swift_files),
     }
     report["findings"] = build_findings(report)
+    report["status"] = report_status(report["findings"])
     report["next_actions"] = build_next_actions(report)
     return report
 
@@ -443,6 +456,7 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines = [
         "# iOS Doctor",
         "",
+        f"- Status: {report['status']}",
         f"- Project: `{report['project']}`",
         f"- Xcode projects: {counts['xcode_projects']}",
         f"- Xcode workspaces: {counts['xcode_workspaces']}",

@@ -862,6 +862,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     return {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard brand",
+        "surface": "ShipGuard Brand Deck",
         "compatibilityCommands": ["shipguard ios brand"],
         "intent": "shipguard-product-qa",
         "generatedAt": utc_now(),
