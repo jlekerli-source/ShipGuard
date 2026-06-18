@@ -26,27 +26,30 @@ The iOS profile includes alarm, notification, release, bug-triage, and UI-polish
 ```bash
 ./bin/shipguard init web ../my-web-app
 ./bin/shipguard doctor web ../my-web-app
+./bin/shipguard web audit --path ../my-web-app --out /tmp/shipguard-web-audit --shareable
 ```
 
-The web profile copies the shared maintainer workflow files, `SHIPGUARD_PROFILE.md`, and a web-specific `AGENTS.md` that covers routing, auth, payments, migrations, browser validation, and build proof.
+The web profile copies the shared maintainer workflow files, `SHIPGUARD_PROFILE.md`, and a web-specific `AGENTS.md` that covers routing, auth, payments, migrations, browser validation, and build proof. ShipGuard WebScan then turns that starter state into a read-only first audit with framework, auth/payment, validation, starter-health, and next-command evidence.
 
 ## Backend
 
 ```bash
 ./bin/shipguard init backend ../my-service
 ./bin/shipguard doctor backend ../my-service
+./bin/shipguard backend audit --path ../my-service --out /tmp/shipguard-backend-audit --shareable
 ```
 
-The backend profile writes `SHIPGUARD_PROFILE.md` and covers API endpoints, auth boundaries, migrations, queues, jobs, webhooks, observability, rollout risk, and operational proof.
+The backend profile writes `SHIPGUARD_PROFILE.md` and covers API endpoints, auth boundaries, migrations, queues, jobs, webhooks, observability, rollout risk, and operational proof. ShipGuard ServiceRadar then turns those signals into a read-only first audit with validation guidance and backend-specific next commands.
 
 ## CLI
 
 ```bash
 ./bin/shipguard init cli ../my-tool
 ./bin/shipguard doctor cli ../my-tool
+./bin/shipguard cli audit --path ../my-tool --out /tmp/shipguard-cli-audit --shareable
 ```
 
-The CLI profile writes `SHIPGUARD_PROFILE.md` and covers command dispatch, argument parsing, file safety, stdout and stderr contracts, exit codes, token redaction, cross-platform behavior, and package proof.
+The CLI profile writes `SHIPGUARD_PROFILE.md` and covers command dispatch, argument parsing, file safety, stdout and stderr contracts, exit codes, token redaction, cross-platform behavior, and package proof. ShipGuard CommandLens then turns those signals into a read-only first audit with contract, redaction, packaging, validation, and next-command guidance.
 
 ## Compatibility
 

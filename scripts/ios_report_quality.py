@@ -92,6 +92,9 @@ STATUS_PRIORITY = {"blocked": 0, "review": 1, "pass": 2}
 TOOL_NEXT_ACTION_PRIORITY = {
     "shipguard brand": 0,
     "shipguard value-gauntlet": 0,
+    "shipguard web audit": 1,
+    "shipguard backend audit": 1,
+    "shipguard cli audit": 1,
     "shipguard ios brand": 1,
     "shipguard ios launchdeck": 2,
     "shipguard ios performance": 3,
@@ -106,6 +109,9 @@ TOOL_NEXT_ACTION_PRIORITY = {
 ROOT_REPORT_TOOLS = {
     "shipguard brand",
     "shipguard value-gauntlet",
+    "shipguard web audit",
+    "shipguard backend audit",
+    "shipguard cli audit",
 }
 SPEC_WORKFLOW_PLACEHOLDER_RE = re.compile(r"(?im)^\s*(?:[-*]\s*)?(?:TODO|TBD|FIXME)\b")
 TOKEN_RISK_PATTERNS = {

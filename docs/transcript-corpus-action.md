@@ -6,7 +6,7 @@ Use it when public transcript examples should be verified on every PR or before 
 
 ```yaml
 - name: Verify transcript corpus
-  uses: jlekerli-source/ShipGuard/actions/transcript-corpus@v3.99.0
+  uses: jlekerli-source/ShipGuard/actions/transcript-corpus@v3.100.0
   with:
     source: fixtures/transcripts
     require-report: true

@@ -83,6 +83,22 @@ Check whether a target repo has the starter workflow files:
 
 `doctor` without a profile defaults to `ios` for compatibility with older releases.
 
+## Profile Audits
+
+After a starter profile is installed, run the profile-native first audit for non-iOS targets:
+
+```bash
+./bin/shipguard web audit --path ../my-web-app --out /tmp/shipguard-web-audit --shareable
+./bin/shipguard backend audit --path ../my-service --out /tmp/shipguard-backend-audit --shareable
+./bin/shipguard cli audit --path ../my-tool --out /tmp/shipguard-cli-audit --shareable
+```
+
+- `shipguard web audit` writes ShipGuard WebScan reports with framework, auth/payment, validation, starter-health, and next-command evidence.
+- `shipguard backend audit` writes ShipGuard ServiceRadar reports with API, auth, migration, queue, webhook, observability, validation, and next-command evidence.
+- `shipguard cli audit` writes ShipGuard CommandLens reports with dispatch, argument parsing, stdout/stderr, exit-code, redaction, packaging, and next-command evidence.
+
+Add `--shipguard-eval` when using a target repo only as ShipGuard product QA, and use `shipguard ios report-quality --reports <audit-dir> --out <quality-dir> --shareable` to grade whether the report itself is actionable.
+
 ## iOS ShipGuard
 
 Run iOS-specific topology, inventory, planning, proof, preview, and privacy helpers before risky Codex edits:
@@ -95,6 +111,9 @@ Run iOS-specific topology, inventory, planning, proof, preview, and privacy help
 ./bin/shipguard ios prove --plan /tmp/ios-shipguard-plan/ios-plan.json --out /tmp/ios-shipguard-proof
 ./bin/shipguard brand --path . --out /tmp/shipguard-brand --strict
 ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet
+./bin/shipguard web audit --path ../my-web-app --out /tmp/shipguard-web-audit --shipguard-eval --shareable
+./bin/shipguard backend audit --path ../my-service --out /tmp/shipguard-backend-audit --shipguard-eval --shareable
+./bin/shipguard cli audit --path ../my-tool --out /tmp/shipguard-cli-audit --shipguard-eval --shareable
 ./bin/shipguard ios launchdeck --path ../my-ios-app --out /tmp/ios-shipguard-launchdeck
 ./bin/shipguard ios performance --path ../my-ios-app --out /tmp/ios-shipguard-performance
 ./bin/shipguard ios design --path ../my-ios-app --out /tmp/ios-shipguard-design --icon-brief
@@ -114,7 +133,8 @@ Run iOS-specific topology, inventory, planning, proof, preview, and privacy help
 The iOS namespace also includes:
 
 - `brand` or `ios brand`: run ShipGuard Brand Deck, the toolkit-wide naming contract for future surfaces. It audits the branded surface scheme, public-command coverage, active docs coverage, stale active wording, and the rule that fun names must sit beside plain purpose and proof boundaries.
-- `value-gauntlet`: run ShipGuard Tool Value Gauntlet, a read-only ShipYard product-QA report that grades every command, skill, plugin, GitHub Action, doc, test, package proof, and proof boundary for real developer usefulness before new surfaces are treated as mature. Its Lowest-Value Surface Probe ranks deeper evidence signals, executes representative ShipGuard commands on public/demo inputs through `runtimeOutputProbe`, rejects decorative or boundaryless reports through `runtimeOutputNegativeFixtures`, executes `--help` for all public commands through `runtimeCommandFamilyCoverage`, executes skill/plugin workflow receipts through `skillPluginRuntimeReceipts`, proves report-quality-to-spec-to-next-goal handoffs through `workflowChainReceipts`, runs complete public maintainer-loop proof through `scenarioMatrixReceipts`, proves bad evidence is blocked through `scenarioFailureReceipts`, proves repair and successful rerun paths through `scenarioRemediationReceipts`, proves fresh package install/plugin/audit handoff through `adoptionReceipts`, proves fresh iOS target starter onboarding through `targetOnboardingReceipts`, proves iOS/web/backend/CLI starter onboarding through `multiProfileOnboardingReceipts`, and then escalates to profile-native first-audit receipts instead of declaring the ShipYard finished.
+- `value-gauntlet`: run ShipGuard Tool Value Gauntlet, a read-only ShipYard product-QA report that grades every command, skill, plugin, GitHub Action, doc, test, package proof, and proof boundary for real developer usefulness before new surfaces are treated as mature. Its Lowest-Value Surface Probe ranks deeper evidence signals, executes representative ShipGuard commands on public/demo inputs through `runtimeOutputProbe`, rejects decorative or boundaryless reports through `runtimeOutputNegativeFixtures`, executes `--help` for all public commands through `runtimeCommandFamilyCoverage`, executes skill/plugin workflow receipts through `skillPluginRuntimeReceipts`, proves report-quality-to-spec-to-next-goal handoffs through `workflowChainReceipts`, runs complete public maintainer-loop proof through `scenarioMatrixReceipts`, proves bad evidence is blocked through `scenarioFailureReceipts`, proves repair and successful rerun paths through `scenarioRemediationReceipts`, proves fresh package install/plugin/audit handoff through `adoptionReceipts`, proves fresh iOS target starter onboarding through `targetOnboardingReceipts`, proves iOS/web/backend/CLI starter onboarding through `multiProfileOnboardingReceipts`, proves web/backend/CLI first-audit reports through `profileNativeFirstAuditReceipts`, and then escalates to profile-native fix-plan receipts instead of declaring the ShipYard finished.
+- `web audit`, `backend audit`, and `cli audit`: run ShipGuard WebScan, ServiceRadar, and CommandLens for non-iOS repos. These are read-only first audits that turn starter-profile installation into concrete source signals, validation guidance, next commands, and report-quality questions instead of stopping at `init` and `doctor`.
 - `ios preview`: serve a local simulator screenshot preview for the Codex in-app browser.
 - `ios devspace`: expose the preview bridge as a local MCP/App surface.
 - `ios devspace-check`: statically grade ShipGuard Devspace connector readiness, public URL safety, widget metadata, handoff boundaries, and preview evidence without starting the server or grading a target app; add `--shareable` to omit local absolute paths before external sharing.
@@ -390,7 +410,7 @@ Generate release proof files for a tarball:
 
 ```bash
 ./bin/shipguard release-manifest \
-  --tarball dist/shipguard-v3.99.0.tar.gz \
+  --tarball dist/shipguard-v3.100.0.tar.gz \
   --out /tmp/shipguard-release-proof
 ```
 
@@ -399,7 +419,7 @@ Verify the manifest against the tarball:
 ```bash
 ./bin/shipguard release-manifest verify \
   --manifest /tmp/shipguard-release-proof/release-manifest.json \
-  --tarball dist/shipguard-v3.99.0.tar.gz
+  --tarball dist/shipguard-v3.100.0.tar.gz
 ```
 
 The command writes `release-manifest.json` and `proof-ledger.md`. Add `--ci-run-url`, `--release-url`, and `--issue-url` after publishing to bind the local artifact digest to public release proof. See `release-manifest.md`.
@@ -409,7 +429,7 @@ Build a release proof catalog from manifests:
 ```bash
 ./bin/shipguard release-index build \
   --manifest dist/release-proof-v3.5.0/release-manifest.json \
-  --manifest dist/release-proof-v3.99.0/release-manifest.json \
+  --manifest dist/release-proof-v3.100.0/release-manifest.json \
   --out /tmp/shipguard-release-index
 ```
 
@@ -420,7 +440,7 @@ Replay-verify downloaded release assets:
 ```bash
 ./bin/shipguard release-replay verify \
   --manifest /tmp/shipguard-release-proof/release-manifest.json \
-  --tarball /tmp/shipguard-release-assets/shipguard-v3.99.0.tar.gz \
+  --tarball /tmp/shipguard-release-assets/shipguard-v3.100.0.tar.gz \
   --index /tmp/shipguard-release-index/release-index.json \
   --ledger /tmp/shipguard-release-proof/proof-ledger.md \
   --out /tmp/shipguard-release-replay
@@ -444,7 +464,7 @@ Build the full release proof bundle in one command:
 ```bash
 ./bin/shipguard release-proof build \
   --out /tmp/shipguard-release-proof-bundle \
-  --release-url https://github.com/owner/repo/releases/tag/v3.99.0
+  --release-url https://github.com/owner/repo/releases/tag/v3.100.0
 ```
 
 The command writes the release tarball, manifest, release index, replay report, attestation, and attestation badge. See `release-proof.md`.
@@ -455,9 +475,9 @@ Verify a flat directory of downloaded release assets and write a consumer report
 
 ```bash
 ./bin/shipguard release-consume verify \
-  --dir /tmp/shipguard-v3.99.0 \
-  --out /tmp/shipguard-v3.99.0/consumer-proof \
-  --version 3.99.0
+  --dir /tmp/shipguard-v3.100.0 \
+  --out /tmp/shipguard-v3.100.0/consumer-proof \
+  --version 3.100.0
 ```
 
 The command writes `consumer-report.json`, `consumer-report.md`, `asset-digests.json`, `asset-digests.md`, `sha256.txt`, replay outputs, and attestation outputs. It also cross-checks downloaded replay, attestation, and badge assets when they are present. Use `actions/release-consume` when this verification should run in GitHub Actions. See `release-consume.md` and `release-consume-action.md`.
@@ -469,7 +489,7 @@ Compare two release proof asset directories and write JSON/Markdown diff reports
 ```bash
 ./bin/shipguard release-diff compare \
   --left /tmp/shipguard-old \
-  --right /tmp/shipguard-v3.99.0 \
+  --right /tmp/shipguard-v3.100.0 \
   --out /tmp/shipguard-release-diff
 ```
 
@@ -481,7 +501,7 @@ Export release proof reports as a static evidence page:
 
 ```bash
 ./bin/shipguard release-evidence site \
-  --consume /tmp/shipguard-v3.99.0/consumer-proof \
+  --consume /tmp/shipguard-v3.100.0/consumer-proof \
   --diff /tmp/shipguard-release-diff \
   --out /tmp/shipguard-release-site
 ```
@@ -493,7 +513,7 @@ Build a static index from one or more evidence site exports:
 ```bash
 ./bin/shipguard release-evidence index \
   --site /tmp/shipguard-previous-site \
-  --site /tmp/shipguard-v3.99.0-site \
+  --site /tmp/shipguard-v3.100.0-site \
   --out /tmp/shipguard-release-history
 ```
 
@@ -503,11 +523,11 @@ Build the full local evidence path from downloaded release assets:
 
 ```bash
 ./bin/shipguard release-evidence bundle \
-  --assets /tmp/shipguard-v3.99.0 \
+  --assets /tmp/shipguard-v3.100.0 \
   --left /tmp/shipguard-old \
   --out /tmp/shipguard-release-evidence-bundle \
-  --version 3.99.0 \
-  --title "ShipGuard v3.99.0 Evidence"
+  --version 3.100.0 \
+  --title "ShipGuard v3.100.0 Evidence"
 ```
 
 The command writes consumer proof, optional release-diff proof, `site/index.html`, `index/evidence-index.json`, `bundle.json`, and `README.md`. See `release-evidence-bundle.md`.
@@ -541,28 +561,28 @@ Use `actions/release-evidence-negative-index` when this guardrail index should r
 Download a published release bundle, verify the tarball digest, replay the proof, and rebuild the compact attestation:
 
 ```bash
-gh release download v3.99.0 \
+gh release download v3.100.0 \
   --repo jlekerli-source/ShipGuard \
-  --pattern 'shipguard-v3.99.0.tar.gz' \
+  --pattern 'shipguard-v3.100.0.tar.gz' \
   --pattern 'release-manifest.json' \
   --pattern 'release-index.json' \
   --pattern 'proof-ledger.md' \
   --pattern 'attestation-badge.json' \
-  --dir /tmp/shipguard-v3.99.0
+  --dir /tmp/shipguard-v3.100.0
 
-shasum -a 256 /tmp/shipguard-v3.99.0/shipguard-v3.99.0.tar.gz
+shasum -a 256 /tmp/shipguard-v3.100.0/shipguard-v3.100.0.tar.gz
 
 ./bin/shipguard release-replay verify \
-  --manifest /tmp/shipguard-v3.99.0/release-manifest.json \
-  --tarball /tmp/shipguard-v3.99.0/shipguard-v3.99.0.tar.gz \
-  --index /tmp/shipguard-v3.99.0/release-index.json \
-  --ledger /tmp/shipguard-v3.99.0/proof-ledger.md \
-  --out /tmp/shipguard-v3.99.0/consumer-replay
+  --manifest /tmp/shipguard-v3.100.0/release-manifest.json \
+  --tarball /tmp/shipguard-v3.100.0/shipguard-v3.100.0.tar.gz \
+  --index /tmp/shipguard-v3.100.0/release-index.json \
+  --ledger /tmp/shipguard-v3.100.0/proof-ledger.md \
+  --out /tmp/shipguard-v3.100.0/consumer-replay
 
 ./bin/shipguard release-attest build \
-  --manifest /tmp/shipguard-v3.99.0/release-manifest.json \
-  --replay /tmp/shipguard-v3.99.0/consumer-replay/replay-report.json \
-  --out /tmp/shipguard-v3.99.0/consumer-attestation
+  --manifest /tmp/shipguard-v3.100.0/release-manifest.json \
+  --replay /tmp/shipguard-v3.100.0/consumer-replay/replay-report.json \
+  --out /tmp/shipguard-v3.100.0/consumer-attestation
 ```
 
 See `release-proof-consumption.md` for the rejection rules and trust model.
@@ -630,8 +650,8 @@ The command writes a Markdown plan with `/plan` and `/goal` blocks, optional bou
 Download and extract a release package:
 
 ```bash
-tar -xzf shipguard-v3.99.0.tar.gz
-cd shipguard-v3.99.0
+tar -xzf shipguard-v3.100.0.tar.gz
+cd shipguard-v3.100.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 ```
 

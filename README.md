@@ -24,8 +24,8 @@ The naming style is intentional: stable commands and paths stay literal, while p
 Install from a release tarball, then validate the bundle:
 
 ```bash
-tar -xzf shipguard-v3.99.0.tar.gz
-cd shipguard-v3.99.0
+tar -xzf shipguard-v3.100.0.tar.gz
+cd shipguard-v3.100.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" version
 ./bin/shipguard validate
@@ -44,6 +44,9 @@ Copy a starter workflow into your app:
 ```bash
 ./bin/shipguard init ios ../my-ios-app
 ./bin/shipguard init web ../my-web-app
+./bin/shipguard web audit --path ../my-web-app --out /tmp/shipguard-web-audit --shareable
+./bin/shipguard backend audit --path ../my-service --out /tmp/shipguard-backend-audit --shareable
+./bin/shipguard cli audit --path ../my-tool --out /tmp/shipguard-cli-audit --shareable
 ```
 
 1. Start each non-trivial Codex thread from `CODEX_TASK_TEMPLATE.md`.
@@ -74,6 +77,7 @@ Common loops:
 | Inspect risky iOS surfaces | `./bin/shipguard ios doctor --help` |
 | Check the branded naming scheme | `./bin/shipguard brand --help` |
 | Audit actual ShipGuard developer value | `./bin/shipguard value-gauntlet --help` |
+| First-audit a web, backend, or CLI repo | `./bin/shipguard web audit --help`, `./bin/shipguard backend audit --help`, `./bin/shipguard cli audit --help` |
 | Route and grade iOS build, debug, preview, and profiler proof | `./bin/shipguard ios launchdeck --help` |
 | Review iOS performance evidence | `./bin/shipguard ios performance --help` |
 | Review UI/UX, motion, haptics, and icon direction | `./bin/shipguard ios design --help` |
@@ -90,6 +94,7 @@ Read `docs/cli.md` for the full command reference and `examples/demo-walkthrough
 
 - `bin/shipguard`: the local CLI for validation, iOS analysis, report quality, spec workflow generation, release proof, and handoff creation.
 - `scripts/tool_value_gauntlet.py`: the ShipGuard Tool Value Gauntlet for grading every command, skill, plugin, action, doc, and proof path for real developer usefulness, running representative commands, every public command help path, skill/plugin receipts, workflow chains, scenario failure/remediation, and fresh package adoption before probing the weakest next workflow layer.
+- `scripts/profile_audit.py`: ShipGuard WebScan, ServiceRadar, and CommandLens first-audit reports for web, backend, and CLI starter targets.
 - `plugins/ios-shipguard/`: the Codex plugin bundle for the iOS ShipGuard skill and metadata.
 - `.agents/skills/`: reusable skill templates for risky app maintenance workflows.
 - `templates/`: starter profiles for adapting ShipGuard into another app.

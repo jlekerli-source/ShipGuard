@@ -167,6 +167,7 @@ grep -q "^$package_name/scripts/docs_check.sh$" "$tar_list"
 grep -q "^$package_name/scripts/ios_ai_readiness.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_app_intelligence.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_branding.py$" "$tar_list"
+grep -q "^$package_name/scripts/profile_audit.py$" "$tar_list"
 grep -q "^$package_name/scripts/tool_value_gauntlet.py$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/skill-plugin-receipts/ios-shipguard-design-audit/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/skill-plugin-receipts/plugin-cache-status/receipt.json$" "$tar_list"
@@ -178,6 +179,7 @@ grep -q "^$package_name/fixtures/tool-value-gauntlet/scenario-remediation-receip
 grep -q "^$package_name/fixtures/tool-value-gauntlet/adoption-receipts/fresh-package-first-audit/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/target-onboarding-receipts/fresh-ios-target-first-plan/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/multi-profile-onboarding-receipts/all-starter-profiles-init-doctor/receipt.json$" "$tar_list"
+grep -q "^$package_name/fixtures/tool-value-gauntlet/profile-native-first-audit-receipts/web-backend-cli-first-audits/receipt.json$" "$tar_list"
 grep -q "^$package_name/scripts/ios_launchdeck.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_codex_handoff.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_devspace_check.py$" "$tar_list"
@@ -255,6 +257,7 @@ grep -q "^$package_name/tests/ios_target_risk_map_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/leaderboard_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/next_goal_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/policy_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/profile_audit_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_attest_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_consume_action_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_consume_test.sh$" "$tar_list"
@@ -725,6 +728,7 @@ grep -q 'actions/upload-artifact@v4' "$package_root/actions/release-consume/acti
 "$package_root/tests/transcript_verify_action_test.sh" >/dev/null
 "$package_root/tests/transcript_corpus_test.sh" >/dev/null
 "$package_root/tests/transcript_corpus_action_test.sh" >/dev/null
+"$package_root/tests/profile_audit_test.sh" >/dev/null
 package_raw_transcript="$tmp_dir/package-raw-transcript.md"
 package_home_prefix="/""home"
 package_home_path="$package_home_prefix/runner/AcmePrivateApp"
@@ -763,6 +767,9 @@ grep -q '"message": "pass 4/4"' "$tmp_dir/package-transcript-corpus/badge.json"
 "$package_root/bin/shipguard" self-audit \
   --out "$tmp_dir/package-self-audit" >/dev/null
 grep -q '"status": "pass"' "$tmp_dir/package-self-audit/self-audit.json"
+grep -q '| shipguard web audit --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| shipguard backend audit --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| shipguard cli audit --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard transcript redact --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard transcript verify --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard transcript corpus --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -862,6 +869,7 @@ grep -q '| fixtures/tool-value-gauntlet/scenario-remediation-receipts/blocked-to
 grep -q '| fixtures/tool-value-gauntlet/adoption-receipts/fresh-package-first-audit/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/target-onboarding-receipts/fresh-ios-target-first-plan/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/multi-profile-onboarding-receipts/all-starter-profiles-init-doctor/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| fixtures/tool-value-gauntlet/profile-native-first-audit-receipts/web-backend-cli-first-audits/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/ios-devspace/complete-preview/handoff.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/ios-devspace/complete-preview/handoff.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| examples/demo-reports/transcripts/corpus.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -874,6 +882,7 @@ grep -q '| scripts/transcript_redact.sh | pass |' "$tmp_dir/package-self-audit/s
 grep -q '| scripts/transcript_verify.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/transcript_corpus.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/docs_check.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| scripts/profile_audit.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/ios_doctor.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/ios_inventory.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/ios_launchdeck.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -886,6 +895,10 @@ grep -q '| scripts/ios_spec_workflow.py | pass |' "$tmp_dir/package-self-audit/s
 grep -q '| scripts/ios_shipguard_demo.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/shipguard_devspace_mcp.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/codex_status.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| tests/profile_audit_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q 'shipguard web audit' "$package_root/docs/cli.md"
+grep -q 'shipguard backend audit' "$package_root/docs/cli.md"
+grep -q 'shipguard cli audit' "$package_root/docs/cli.md"
 "$package_root/bin/shipguard" sarif \
   --report "$tmp_dir/package-autopsy/report.json" \
   --out "$tmp_dir/package-sarif/results.sarif" >/dev/null

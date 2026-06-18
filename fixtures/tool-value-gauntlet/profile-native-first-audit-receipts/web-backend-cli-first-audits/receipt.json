@@ -1,0 +1,311 @@
+{
+  "id": "web-backend-cli-first-audits",
+  "kind": "profile-native-first-audit",
+  "surface": "ShipGuard profile-native first-audit path",
+  "selectedSkill": "ios-shipguard",
+  "selectedMode": "profile-native-first-audit",
+  "trigger": "User asks whether web, backend, and CLI profiles are genuinely useful beyond init and doctor.",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/profile_audit.py",
+    "templates/web/README.md",
+    "templates/backend/README.md",
+    "templates/cli/README.md",
+    "docs/template-profiles.md",
+    "docs/command-matrix.md",
+    "tests/profile_audit_test.sh",
+    "scripts/tool_value_gauntlet.py"
+  ],
+  "expectedSourcePhrases": [
+    "shipguard web audit",
+    "shipguard backend audit",
+    "shipguard cli audit",
+    "ShipGuard WebScan",
+    "ShipGuard ServiceRadar",
+    "ShipGuard CommandLens",
+    "profile-native"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppDetailsAllowed": false,
+    "freshTargetRequired": true
+  },
+  "commands": [
+    {
+      "id": "init-web-starter",
+      "display": "./bin/shipguard init web <fresh-web-target> --force",
+      "args": [
+        "init",
+        "web",
+        "{out}/target-web",
+        "--force"
+      ],
+      "expectedOutputPhrases": [
+        "initialized web Codex workflow starter"
+      ]
+    },
+    {
+      "id": "web-first-audit",
+      "display": "./bin/shipguard web audit --path <fresh-web-target> --out <receipt-out>/web-audit --shipguard-eval --shareable",
+      "prepareFiles": [
+        {
+          "path": "target-web/package.json",
+          "text": "{\n  \"scripts\": {\"lint\": \"eslint .\", \"test\": \"vitest\", \"build\": \"next build\", \"e2e\": \"playwright test\"},\n  \"dependencies\": {\"next\": \"latest\", \"stripe\": \"latest\"}\n}\n"
+        },
+        {
+          "path": "target-web/src/AuthPanel.tsx",
+          "text": "export const authPaymentSurface = true\n"
+        }
+      ],
+      "args": [
+        "web",
+        "audit",
+        "--path",
+        "{out}/target-web",
+        "--out",
+        "{out}/web-audit",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "web-audit/web-audit.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "profile",
+            "signals",
+            "recommendedFirstCommands",
+            "reportQualityQuestions"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "signals.validation",
+            "recommendedFirstCommands",
+            "reportQualityQuestions"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard web audit"
+            },
+            {
+              "path": "profile",
+              "equals": "web"
+            }
+          ]
+        },
+        {
+          "path": "web-audit/web-audit.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard WebScan",
+            "Recommended First Commands",
+            "shipguard web audit --path .",
+            "Report Quality Questions"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "init-backend-starter",
+      "display": "./bin/shipguard init backend <fresh-backend-target> --force",
+      "args": [
+        "init",
+        "backend",
+        "{out}/target-backend",
+        "--force"
+      ],
+      "expectedOutputPhrases": [
+        "initialized backend Codex workflow starter"
+      ]
+    },
+    {
+      "id": "backend-first-audit",
+      "display": "./bin/shipguard backend audit --path <fresh-backend-target> --out <receipt-out>/backend-audit --shipguard-eval --shareable",
+      "prepareFiles": [
+        {
+          "path": "target-backend/pyproject.toml",
+          "text": "[project]\nname = \"demo-service\"\n\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n"
+        },
+        {
+          "path": "target-backend/app/routes/webhook.py",
+          "text": "def auth_webhook_queue_handler():\n    return 'ok'\n"
+        }
+      ],
+      "args": [
+        "backend",
+        "audit",
+        "--path",
+        "{out}/target-backend",
+        "--out",
+        "{out}/backend-audit",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "backend-audit/backend-audit.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "profile",
+            "signals",
+            "recommendedFirstCommands",
+            "reportQualityQuestions"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "signals.validation",
+            "recommendedFirstCommands",
+            "reportQualityQuestions"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard backend audit"
+            },
+            {
+              "path": "profile",
+              "equals": "backend"
+            }
+          ]
+        },
+        {
+          "path": "backend-audit/backend-audit.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard ServiceRadar",
+            "Recommended First Commands",
+            "shipguard backend audit --path .",
+            "Report Quality Questions"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "init-cli-starter",
+      "display": "./bin/shipguard init cli <fresh-cli-target> --force",
+      "args": [
+        "init",
+        "cli",
+        "{out}/target-cli",
+        "--force"
+      ],
+      "expectedOutputPhrases": [
+        "initialized cli Codex workflow starter"
+      ]
+    },
+    {
+      "id": "cli-first-audit",
+      "display": "./bin/shipguard cli audit --path <fresh-cli-target> --out <receipt-out>/cli-audit --shipguard-eval --shareable",
+      "prepareFiles": [
+        {
+          "path": "target-cli/package.json",
+          "text": "{\n  \"bin\": {\"demo-cli\": \"bin/demo-cli.js\"},\n  \"scripts\": {\"test\": \"node tests/demo.test.js\", \"lint\": \"shellcheck scripts/*.sh\"},\n  \"dependencies\": {\"commander\": \"latest\"}\n}\n"
+        },
+        {
+          "path": "target-cli/bin/demo-cli.js",
+          "text": "#!/usr/bin/env node\nconsole.log('stdout stderr exit code token redaction')\n"
+        }
+      ],
+      "args": [
+        "cli",
+        "audit",
+        "--path",
+        "{out}/target-cli",
+        "--out",
+        "{out}/cli-audit",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "cli-audit/cli-audit.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "profile",
+            "signals",
+            "recommendedFirstCommands",
+            "reportQualityQuestions"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "signals.validation",
+            "recommendedFirstCommands",
+            "reportQualityQuestions"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard cli audit"
+            },
+            {
+              "path": "profile",
+              "equals": "cli"
+            }
+          ]
+        },
+        {
+          "path": "cli-audit/cli-audit.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard CommandLens",
+            "Recommended First Commands",
+            "shipguard cli audit --path .",
+            "Report Quality Questions"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "profile-report-quality",
+      "display": "./bin/shipguard ios report-quality --reports <web/backend/cli audit reports> --out <receipt-out>/profile-quality --shareable",
+      "args": [
+        "ios",
+        "report-quality",
+        "--reports",
+        "{out}/web-audit",
+        "--reports",
+        "{out}/backend-audit",
+        "--reports",
+        "{out}/cli-audit",
+        "--out",
+        "{out}/profile-quality",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "profile-quality/ios-report-quality.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "reports",
+            "actionabilityQuestions"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "reports",
+            "actionabilityQuestions"
+          ]
+        },
+        {
+          "path": "profile-quality/ios-report-quality.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# iOS ShipGuard Report Quality",
+            "ShipGuard WebScan",
+            "ShipGuard ServiceRadar",
+            "ShipGuard CommandLens"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}

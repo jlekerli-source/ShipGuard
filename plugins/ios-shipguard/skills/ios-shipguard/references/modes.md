@@ -161,7 +161,8 @@ Ask:
 
 Proof:
 
-- `shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet` to grade command wiring, docs, tests, package proof, self-audit coverage, skills, plugin metadata, actions, proof boundaries, runtime receipts, adoption receipts, and fresh target-onboarding receipts
+- `shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet` to grade command wiring, docs, tests, package proof, self-audit coverage, skills, plugin metadata, actions, proof boundaries, runtime receipts, adoption receipts, fresh target-onboarding receipts, multi-profile onboarding receipts, and profile-native first-audit receipts
+- `shipguard web audit --path <web-target> --out <dir> --shipguard-eval --shareable`, `shipguard backend audit --path <backend-target> --out <dir> --shipguard-eval --shareable`, and `shipguard cli audit --path <cli-target> --out <dir> --shipguard-eval --shareable` when the gauntlet asks whether non-iOS starter profiles produce useful first reports
 - `shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --out /tmp/shipguard-value-quality --shareable` to score the gauntlet report itself and surface prioritized actionability questions
 - focused tests for any upgraded surface, plus `tests/tool_value_gauntlet_test.sh`, self-audit, package proof, docs-check, and plugin status before claiming the ShipYard is stronger
 - do not use Ringly, Ilmify, or another private app as the implementation target unless a later task explicitly authorizes app work

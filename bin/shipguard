@@ -36,6 +36,9 @@ Usage:
   shipguard docs-check [path] [--out <dir>]
   shipguard brand [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
   shipguard value-gauntlet [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
+  shipguard web audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard backend audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard cli audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard ios doctor [--path <ios-project>] [--out <dir>] [--json|--markdown]
   shipguard ios inventory [--path <ios-project>] [--doctor <ios-doctor.json>] [--out <dir>] [--json|--markdown]
   shipguard ios preview --out <dir> [--device booted] [--host 127.0.0.1] [--port 8765]
@@ -98,6 +101,9 @@ Commands:
   brand       Audit the full ShipGuard branded naming scheme.
   value-gauntlet
               Grade every ShipGuard command, skill, plugin, action, and proof surface for developer value.
+  web         Web-focused first-audit report for starter repos.
+  backend     Backend-focused first-audit report for starter repos.
+  cli         CLI-focused first-audit report for starter repos.
   ios         iOS-focused Codex planning helpers for branded build, debug, permission, preview, performance, and runtime surfaces.
   codex      Check local Codex plugin install status for ShipGuard.
   leaderboard Build a stable leaderboard JSON file from arena results.
@@ -402,6 +408,15 @@ cmd_value_gauntlet() {
   run_py "$tool_root/scripts/tool_value_gauntlet.py" "$@"
 }
 
+cmd_profile_audit() {
+  local profile="$1"
+  shift || true
+  local subcommand="${1:-}"
+  [[ "$subcommand" == "audit" ]] || fail "$profile requires subcommand: audit"
+  shift || true
+  run_py "$tool_root/scripts/profile_audit.py" "$profile" "$@"
+}
+
 cmd_ios() {
   local subcommand="${1:-}"
   [[ "$subcommand" == "doctor" || "$subcommand" == "inventory" || "$subcommand" == "preview" || "$subcommand" == "devspace" || "$subcommand" == "devspace-check" || "$subcommand" == "brand" || "$subcommand" == "target-match" || "$subcommand" == "codex-handoff" || "$subcommand" == "plan" || "$subcommand" == "prove" || "$subcommand" == "launchdeck" || "$subcommand" == "performance" || "$subcommand" == "design" || "$subcommand" == "modernize" || "$subcommand" == "app-intelligence" || "$subcommand" == "ai-readiness" || "$subcommand" == "external-audit" || "$subcommand" == "spec-workflow" || "$subcommand" == "report-quality" || "$subcommand" == "redact" || "$subcommand" == "eval" || "$subcommand" == "demo" || "$subcommand" == "goals" ]] || fail "ios requires subcommand: doctor, inventory, preview, devspace, devspace-check, brand, target-match, codex-handoff, plan, prove, launchdeck, performance, design, modernize, app-intelligence, ai-readiness, external-audit, spec-workflow, report-quality, redact, eval, demo, or goals"
@@ -599,6 +614,15 @@ main() {
       ;;
     value-gauntlet)
       cmd_value_gauntlet "$@"
+      ;;
+    web)
+      cmd_profile_audit web "$@"
+      ;;
+    backend)
+      cmd_profile_audit backend "$@"
+      ;;
+    cli)
+      cmd_profile_audit cli "$@"
       ;;
     ios)
       cmd_ios "$@"
