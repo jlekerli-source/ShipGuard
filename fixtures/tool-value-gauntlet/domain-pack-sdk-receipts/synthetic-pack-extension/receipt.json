@@ -16,7 +16,7 @@
     "SyntheticDomainPackSDKFixturePack",
     "domainPackSDK",
     "syntheticDomainPackWorkflow",
-    "Domain Pack SDK Core Extraction"
+    "Domain Pack SDK extensibility"
   ],
   "scopeBoundary": {
     "shipguardOnly": true,

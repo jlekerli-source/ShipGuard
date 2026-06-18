@@ -186,6 +186,7 @@ grep -q "^$package_name/scripts/profile_audit.py$" "$tar_list"
 grep -q "^$package_name/scripts/profile_fix_plan.py$" "$tar_list"
 grep -q "^$package_name/scripts/task_domain_packs.py$" "$tar_list"
 grep -q "^$package_name/scripts/task_contract.py$" "$tar_list"
+grep -q "^$package_name/scripts/shipguard_baseline.py$" "$tar_list"
 grep -q "^$package_name/scripts/external_pilot_verdict_bench.py$" "$tar_list"
 grep -q "^$package_name/scripts/tool_value_gauntlet.py$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/skill-plugin-receipts/ios-shipguard-design-audit/receipt.json$" "$tar_list"
@@ -208,6 +209,7 @@ grep -q "^$package_name/fixtures/tool-value-gauntlet/trust-hardening-receipts/ac
 grep -q "^$package_name/fixtures/tool-value-gauntlet/task-contract-receipts/prepare-verify-proof-gate/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/external-pilot-verdict-bench-receipts/public-verdict-traces/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/domain-pack-sdk-receipts/synthetic-pack-extension/receipt.json$" "$tar_list"
+grep -q "^$package_name/fixtures/tool-value-gauntlet/configuration-baseline-receipts/accepted-expired-regression/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/external-pilot-verdict-bench/notification-permission-review/trace.json$" "$tar_list"
 grep -q "^$package_name/fixtures/external-pilot-verdict-bench/protected-scope-overclaim/trace.json$" "$tar_list"
 grep -q "^$package_name/scripts/ios_launchdeck.py$" "$tar_list"
@@ -296,6 +298,7 @@ grep -q "^$package_name/tests/profile_proof_handoff_receipts_test.sh$" "$tar_lis
 grep -q "^$package_name/tests/command_family_runtime_output_receipts_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/trust_hardening_receipts_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/domain_pack_sdk_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/configuration_baseline_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/task_contract_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/task_contract_receipts_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_attest_test.sh$" "$tar_list"
@@ -789,6 +792,7 @@ grep -q 'actions/upload-artifact@v4' "$package_root/actions/release-consume/acti
 "$package_root/tests/command_family_runtime_output_receipts_test.sh" >/dev/null
 "$package_root/tests/trust_hardening_receipts_test.sh" >/dev/null
 "$package_root/tests/domain_pack_sdk_test.sh" >/dev/null
+"$package_root/tests/configuration_baseline_test.sh" >/dev/null
 "$package_root/tests/task_contract_test.sh" >/dev/null
 "$package_root/tests/task_contract_receipts_test.sh" >/dev/null
 package_raw_transcript="$tmp_dir/package-raw-transcript.md"
@@ -956,6 +960,7 @@ grep -q '| scripts/profile_audit.py | pass |' "$tmp_dir/package-self-audit/self-
 grep -q '| scripts/profile_fix_plan.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/task_domain_packs.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/task_contract.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| scripts/shipguard_baseline.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/ios_doctor.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/ios_inventory.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/ios_launchdeck.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -977,6 +982,7 @@ grep -q '| tests/profile_proof_handoff_receipts_test.sh | pass |' "$tmp_dir/pack
 grep -q '| tests/command_family_runtime_output_receipts_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| tests/trust_hardening_receipts_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| tests/domain_pack_sdk_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| tests/configuration_baseline_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| tests/task_contract_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| tests/task_contract_receipts_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| tests/external_pilot_verdict_bench_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -988,6 +994,7 @@ grep -q '| fixtures/tool-value-gauntlet/trust-hardening-receipts/action-devspace
 grep -q '| fixtures/tool-value-gauntlet/task-contract-receipts/prepare-verify-proof-gate/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/external-pilot-verdict-bench-receipts/public-verdict-traces/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/domain-pack-sdk-receipts/synthetic-pack-extension/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| fixtures/tool-value-gauntlet/configuration-baseline-receipts/accepted-expired-regression/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/external-pilot-verdict-bench/notification-permission-review/trace.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/external-pilot-verdict-bench/protected-scope-overclaim/trace.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q 'shipguard web audit' "$package_root/docs/cli.md"

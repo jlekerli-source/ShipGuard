@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from shipguard_baseline import apply_configuration_baseline, load_configuration, make_finding
 from task_domain_packs import DEFAULT_DOMAIN_PACK_REGISTRY, DomainPackContext
 
 
@@ -642,6 +643,14 @@ def prepare_contract(args: argparse.Namespace) -> dict[str, Any]:
         "authorizedFiles": allowed,
         "authorizedScope": authorized_scope_details,
         "validationContract": build_validation_contract(args.validation, default_validation(profile, root)),
+        "configurationPolicy": load_configuration(
+            root,
+            shareable=args.shareable,
+            redact_value=lambda value: redact_sensitive_name_occurrences(
+                value,
+                collect_shareable_sensitive_names(root),
+            ),
+        ),
         "domainPackSDK": DEFAULT_DOMAIN_PACK_REGISTRY.manifest(),
         "agentClaims": args.claim,
         "evidence": [],
@@ -1112,6 +1121,191 @@ def deleted_test_changes(diff_files: list[dict[str, Any]]) -> list[dict[str, Any
     return deleted
 
 
+def contract_findings(
+    *,
+    changed: list[str],
+    forbidden_touched: list[str],
+    out_of_scope: list[str],
+    coverage: dict[str, Any],
+    deleted_tests: list[dict[str, Any]],
+    rejected_claims: list[str],
+    manual_claims: list[str],
+    domain_workflows: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    findings: list[dict[str, Any]] = []
+    for path in forbidden_touched:
+        findings.append(
+            make_finding(
+                rule_id="task-contract.protected-boundary",
+                severity="block",
+                subject=path,
+                source_key=f"protected:{path}",
+                path=path,
+                reason="Changed file touches a protected boundary from the task contract.",
+                proof_boundary="Suppression applies only to this exact protected path fingerprint and does not authorize other protected files.",
+            )
+        )
+    for path in out_of_scope:
+        findings.append(
+            make_finding(
+                rule_id="task-contract.out-of-scope-diff",
+                severity="block",
+                subject=path,
+                source_key=f"scope:{path}",
+                path=path,
+                reason="Changed file is outside the authorized task scope.",
+                proof_boundary="Suppression applies only to this exact out-of-scope path fingerprint and does not expand the task scope.",
+            )
+        )
+    for item in coverage.get("invalidReceipts") or []:
+        requirement_id = str(item.get("requirementId") or item.get("command") or "invalid-validation-receipt")
+        findings.append(
+            make_finding(
+                rule_id="task-contract.invalid-validation-receipt",
+                severity="block",
+                subject=requirement_id,
+                source_key=f"validation-invalid:{requirement_id}",
+                requirement_id=requirement_id,
+                reason=str(item.get("reason") or "Structured validation receipt is invalid."),
+                proof_boundary="Suppression applies only to this validation requirement; other invalid receipts remain blocking.",
+            )
+        )
+    for item in coverage.get("uncoveredCommands") or []:
+        requirement_id = str(item.get("requirementId") or item.get("command") or "missing-validation")
+        findings.append(
+            make_finding(
+                rule_id="task-contract.missing-validation",
+                severity="review",
+                subject=requirement_id,
+                source_key=f"validation-missing:{requirement_id}",
+                requirement_id=requirement_id,
+                reason=str(item.get("failureMeaning") or "Required validation remains uncovered."),
+                proof_boundary="Suppression applies only to this missing validation requirement; new validation gaps remain visible.",
+            )
+        )
+    for path in coverage.get("missingEvidenceFiles") or []:
+        findings.append(
+            make_finding(
+                rule_id="task-contract.missing-evidence-file",
+                severity="review",
+                subject=str(path),
+                source_key=f"missing-evidence:{path}",
+                path=str(path),
+                reason="Evidence file referenced by verify was not found.",
+                proof_boundary="Suppression applies only to this missing evidence path fingerprint.",
+            )
+        )
+    for item in deleted_tests:
+        path = str(item.get("path") or "deleted-test")
+        findings.append(
+            make_finding(
+                rule_id="task-contract.deleted-test",
+                severity="review",
+                subject=path,
+                source_key=f"deleted-test:{path}",
+                path=path,
+                reason=str(item.get("reason") or "Test coverage was deleted or reduced."),
+                proof_boundary="Suppression applies only to this exact deleted-test fingerprint; other removed tests remain visible.",
+            )
+        )
+    for phrase in rejected_claims:
+        findings.append(
+            make_finding(
+                rule_id="task-contract.unsupported-claim",
+                severity="block",
+                subject=phrase,
+                source_key=f"unsupported-claim:{phrase}",
+                reason="Completion claim exceeds attached evidence.",
+                proof_boundary="Suppression applies only to this exact claim phrase and does not prove the claimed behavior.",
+            )
+        )
+    for claim in manual_claims:
+        findings.append(
+            make_finding(
+                rule_id="task-contract.manual-proof-claim",
+                severity="review",
+                subject=claim,
+                source_key=f"manual-claim:{claim}",
+                reason="Broad completion claim still needs manual or device-only proof.",
+                proof_boundary="Suppression applies only to this exact manual-proof claim and does not replace device proof.",
+            )
+        )
+    if not changed:
+        findings.append(
+            make_finding(
+                rule_id="task-contract.incomplete-diff",
+                severity="review",
+                subject="no-changed-files",
+                source_key="incomplete-diff:no-changed-files",
+                reason="No usable diff was provided or no changed files were detected.",
+                proof_boundary="Suppression applies only to an intentionally empty-diff review packet.",
+            )
+        )
+    for field, workflow in domain_workflows.items():
+        if workflow.get("reviewRequired"):
+            workflow_id = str(workflow.get("id") or field)
+            findings.append(
+                make_finding(
+                    rule_id="task-contract.domain-workflow-proof",
+                    severity="review",
+                    subject=workflow_id,
+                    source_key=f"domain-workflow:{field}",
+                    reason=f"{workflow_id} proof lanes are not fully satisfied.",
+                    proof_boundary="Suppression applies only to this domain workflow result; new domain gaps remain visible.",
+                )
+            )
+    return findings
+
+
+def accepted_source_keys(baseline_result: dict[str, Any]) -> set[str]:
+    return {str(item.get("sourceKey") or "") for item in baseline_result.get("acceptedFindings") or []}
+
+
+def adjusted_validation_coverage(coverage: dict[str, Any], accepted: set[str]) -> dict[str, Any]:
+    adjusted = dict(coverage)
+    invalid = []
+    for item in coverage.get("invalidReceipts") or []:
+        requirement_id = str(item.get("requirementId") or item.get("command") or "invalid-validation-receipt")
+        if f"validation-invalid:{requirement_id}" not in accepted:
+            invalid.append(item)
+    uncovered = []
+    for item in coverage.get("uncoveredCommands") or []:
+        requirement_id = str(item.get("requirementId") or item.get("command") or "missing-validation")
+        if f"validation-missing:{requirement_id}" not in accepted:
+            uncovered.append(item)
+    missing_files = [
+        item
+        for item in coverage.get("missingEvidenceFiles") or []
+        if f"missing-evidence:{item}" not in accepted
+    ]
+    adjusted["invalidReceipts"] = invalid
+    adjusted["uncoveredCommands"] = uncovered
+    adjusted["missingEvidenceFiles"] = missing_files
+    original_status = str(coverage.get("status") or "")
+    if invalid:
+        adjusted["status"] = "invalid"
+    elif uncovered:
+        adjusted["status"] = "missing"
+    elif original_status in {"invalid", "missing"}:
+        adjusted["status"] = "suppressed"
+    else:
+        adjusted["status"] = original_status
+    adjusted["baselineAdjusted"] = adjusted["status"] != original_status
+    adjusted["originalStatus"] = original_status
+    return adjusted
+
+
+def adjusted_domain_workflows(domain_workflows: dict[str, dict[str, Any]], accepted: set[str]) -> dict[str, dict[str, Any]]:
+    adjusted: dict[str, dict[str, Any]] = {}
+    for field, workflow in domain_workflows.items():
+        item = dict(workflow)
+        if item.get("reviewRequired") and f"domain-workflow:{field}" in accepted:
+            item["reviewRequired"] = False
+            item["baselineAccepted"] = True
+        adjusted[field] = item
+    return adjusted
+
+
 def diff_file_summaries(diff_files: list[dict[str, Any]], allowed: list[str], forbidden: list[str]) -> list[dict[str, Any]]:
     summaries = []
     for item in diff_files:
@@ -1237,8 +1431,6 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
     required_validation = (task.get("validationContract") or {}).get("required") or []
     manual_proof = (task.get("validationContract") or {}).get("manualProof") or []
     coverage = validation_coverage(required_validation, evidence, task.get("generatedAt"))
-    missing_evidence = coverage["missingEvidenceFiles"]
-    coverage_ok = coverage["status"] in {"covered", "not-required"}
     claim_results = claim_decisions(args.claim, coverage, bool(manual_proof))
     rejected_claims = sorted(
         {
@@ -1251,34 +1443,62 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
     manual_claims = [item["claim"] for item in claim_results if item["status"] == "needs-manual-proof"]
     deleted_tests = deleted_test_changes(diff_files)
     domain_workflows = evaluate_domain_workflows(task, diff_files, evidence, coverage)
-    notification_permission_workflow = domain_workflows.get("notificationPermissionWorkflow")
+    baseline_findings = contract_findings(
+        changed=changed,
+        forbidden_touched=forbidden_touched,
+        out_of_scope=out_of_scope,
+        coverage=coverage,
+        deleted_tests=deleted_tests,
+        rejected_claims=rejected_claims,
+        manual_claims=manual_claims,
+        domain_workflows=domain_workflows,
+    )
+    baseline_result = apply_configuration_baseline(task.get("configurationPolicy"), baseline_findings)
+    accepted = accepted_source_keys(baseline_result)
+    effective_forbidden_touched = [path for path in forbidden_touched if f"protected:{path}" not in accepted]
+    effective_out_of_scope = [path for path in out_of_scope if f"scope:{path}" not in accepted]
+    effective_deleted_tests = [
+        item for item in deleted_tests if f"deleted-test:{item.get('path')}" not in accepted
+    ]
+    effective_rejected_claims = [
+        phrase for phrase in rejected_claims if f"unsupported-claim:{phrase}" not in accepted
+    ]
+    effective_manual_claims = [
+        claim for claim in manual_claims if f"manual-claim:{claim}" not in accepted
+    ]
+    effective_coverage = adjusted_validation_coverage(coverage, accepted)
+    missing_evidence = effective_coverage["missingEvidenceFiles"]
+    coverage_ok = effective_coverage["status"] in {"covered", "not-required", "suppressed"}
+    effective_domain_workflows = adjusted_domain_workflows(domain_workflows, accepted)
+    notification_permission_workflow = effective_domain_workflows.get("notificationPermissionWorkflow")
 
     blocking_reasons: list[str] = []
     review_reasons: list[str] = []
-    if forbidden_touched:
+    if effective_forbidden_touched:
         blocking_reasons.append("forbidden protected boundary touched")
-    if out_of_scope:
+    if effective_out_of_scope:
         blocking_reasons.append("changed files outside authorized scope")
-    if coverage["status"] == "invalid":
+    if effective_coverage["status"] == "invalid":
         blocking_reasons.append("invalid validation receipt")
-    if rejected_claims:
+    if effective_rejected_claims:
         blocking_reasons.append("unsupported completion claim without evidence")
     if not changed:
-        review_reasons.append("no usable diff was provided or no changed files were detected")
+        if "incomplete-diff:no-changed-files" not in accepted:
+            review_reasons.append("no usable diff was provided or no changed files were detected")
     if required_validation and not coverage_ok:
         review_reasons.append("validation coverage missing")
     if missing_evidence:
         review_reasons.append("one or more evidence files were not found")
-    if deleted_tests and not coverage_ok:
+    if effective_deleted_tests and not coverage_ok:
         review_reasons.append("deleted tests require validation coverage proof")
     if notification_permission_workflow and notification_permission_workflow.get("reviewRequired"):
         review_reasons.append("iOS notification permission workflow proof missing")
-    for field, workflow in domain_workflows.items():
+    for field, workflow in effective_domain_workflows.items():
         if field == "notificationPermissionWorkflow":
             continue
         if workflow.get("reviewRequired"):
             review_reasons.append(f"{workflow.get('id') or field} proof missing")
-    if manual_claims:
+    if effective_manual_claims:
         review_reasons.append("broad completion claim still needs manual/device proof")
 
     if not changed:
@@ -1296,14 +1516,14 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         args,
         blocking_reasons,
         review_reasons,
-        forbidden_touched=forbidden_touched,
-        out_of_scope=out_of_scope,
-        deleted_tests=deleted_tests,
-        coverage=coverage,
-        rejected_claims=rejected_claims,
-        manual_claims=manual_claims,
+        forbidden_touched=effective_forbidden_touched,
+        out_of_scope=effective_out_of_scope,
+        deleted_tests=effective_deleted_tests,
+        coverage=effective_coverage,
+        rejected_claims=effective_rejected_claims,
+        manual_claims=effective_manual_claims,
         notification_permission_workflow=notification_permission_workflow,
-        domain_workflows=domain_workflows,
+        domain_workflows=effective_domain_workflows,
     )
     diff_first = build_diff_first_analysis(
         status,
@@ -1311,17 +1531,18 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         diff_files,
         allowed,
         forbidden,
-        out_of_scope,
-        forbidden_touched,
+        effective_out_of_scope,
+        effective_forbidden_touched,
         evidence,
-        coverage,
+        effective_coverage,
         claim_results,
         next_action,
         blocking_reasons,
         review_reasons,
         notification_permission_workflow,
-        domain_workflows,
+        effective_domain_workflows,
     )
+    diff_first["configurationBaseline"] = baseline_result
     report = {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard verify",
@@ -1338,19 +1559,24 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         "scopeChecks": {
             "authorizedFiles": allowed,
             "protectedBoundaries": forbidden,
-            "outOfScope": out_of_scope,
-            "forbiddenTouched": forbidden_touched,
+            "outOfScope": effective_out_of_scope,
+            "forbiddenTouched": effective_forbidden_touched,
+            "rawOutOfScope": out_of_scope,
+            "rawForbiddenTouched": forbidden_touched,
         },
         "evidence": public_evidence_entries(evidence),
-        "validationCoverage": coverage,
+        "validationCoverage": effective_coverage,
         "agentClaims": args.claim,
         "claimChecks": {
-            "rejectedClaims": rejected_claims,
+            "rejectedClaims": effective_rejected_claims,
+            "rawRejectedClaims": rejected_claims,
             "claimDecisions": claim_results,
             "requiredProofPhrases": list(CLAIM_REQUIRES_PROOF),
         },
         "diffFirstAnalysis": diff_first,
-        "domainWorkflows": domain_workflows,
+        "configurationBaseline": baseline_result,
+        "contractFindings": baseline_findings,
+        "domainWorkflows": effective_domain_workflows,
         "notificationPermissionWorkflow": notification_permission_workflow,
         "blockingReasons": blocking_reasons,
         "reviewReasons": review_reasons,
@@ -1502,6 +1728,23 @@ def render_prepare_markdown(contract: dict[str, Any]) -> str:
         lines.append(f"- `{item.get('command')}`")
         lines.append(f"  Expected: {item.get('expectedArtifact')}")
         lines.append(f"  Success: {item.get('successCondition')}")
+    configuration = contract.get("configurationPolicy") or {}
+    if configuration:
+        baseline = configuration.get("baseline") or {}
+        lines.extend(["", "## Configuration Baseline", ""])
+        lines.append(f"- Status: {configuration.get('status')}")
+        lines.append(f"- Config path: `{configuration.get('configPath') or 'default'}`")
+        lines.append(f"- Baseline path: `{configuration.get('baselinePath')}`")
+        lines.append(f"- Suppressions: {baseline.get('suppressionCount', 0)}")
+        policy = configuration.get("policy") or {}
+        lines.append(
+            "- Policy: owner={owner}, reason={reason}, expiresAt={expires}, proofBoundary={boundary}".format(
+                owner=policy.get("requireOwner"),
+                reason=policy.get("requireReason"),
+                expires=policy.get("requireExpiresAt"),
+                boundary=policy.get("requireProofBoundary"),
+            )
+        )
     sdk = contract.get("domainPackSDK") or {}
     if sdk:
         lines.extend(["", "## Domain Pack SDK", ""])
@@ -1615,6 +1858,8 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
     lines.extend(["", "## Validation Coverage", ""])
     coverage = verdict.get("validationCoverage") or {}
     lines.append(f"- Status: {coverage.get('status')}")
+    if coverage.get("baselineAdjusted"):
+        lines.append(f"- Original status before baseline: {coverage.get('originalStatus')}")
     for item in coverage.get("coveredCommands") or []:
         receipts = ", ".join(f"`{match.get('path')}`" for match in item.get("matchedEvidence") or [])
         lines.append(f"- Covered: `{item.get('command')}` via {receipts}")
@@ -1628,6 +1873,39 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
         for item in claim_decisions:
             lines.append(f"- {item.get('status')}: {item.get('claim')}")
             lines.append(f"  Reason: {item.get('reason')}")
+    baseline = verdict.get("configurationBaseline") or {}
+    if baseline:
+        lines.extend(["", "## Configuration Baseline", ""])
+        lines.append(f"- Status: {baseline.get('status')}")
+        lines.append(f"- Baseline path: `{baseline.get('baselinePath')}`")
+        lines.append(f"- Findings: {baseline.get('findingCount', 0)} total")
+        lines.append(f"- Accepted findings: {baseline.get('acceptedFindingCount', 0)}")
+        lines.append(f"- Unsuppressed findings: {baseline.get('unsuppressedFindingCount', 0)}")
+        accepted = baseline.get("acceptedFindings") or []
+        if accepted:
+            lines.append("- Accepted:")
+            for item in accepted[:12]:
+                suppression = item.get("suppression") or {}
+                lines.append(
+                    f"  - `{item.get('ruleId')}` `{item.get('fingerprint')}`: {item.get('subject')} "
+                    f"(owner: {suppression.get('owner')}, expires: {suppression.get('expiresAt')})"
+                )
+                lines.append(f"    Boundary: {suppression.get('proofBoundary')}")
+        unsuppressed = baseline.get("unsuppressedFindings") or []
+        if unsuppressed:
+            lines.append("- Unsuppressed:")
+            for item in unsuppressed[:12]:
+                lines.append(
+                    f"  - `{item.get('ruleId')}` `{item.get('fingerprint')}`: {item.get('subject')} "
+                    f"({item.get('baselineStatus')})"
+                )
+                lines.append(f"    Reason: {item.get('reason')}")
+        if baseline.get("expiredSuppressions"):
+            lines.append(f"- Expired suppressions: {len(baseline.get('expiredSuppressions') or [])}")
+        if baseline.get("invalidSuppressions"):
+            lines.append(f"- Invalid suppressions: {len(baseline.get('invalidSuppressions') or [])}")
+        if baseline.get("unmatchedSuppressions"):
+            lines.append(f"- Unmatched active suppressions: {len(baseline.get('unmatchedSuppressions') or [])}")
     sdk = verdict.get("domainPackSDK") or {}
     if sdk:
         lines.extend(["", "## Domain Pack SDK", ""])

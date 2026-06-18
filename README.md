@@ -33,8 +33,8 @@ The naming style is intentional: stable commands and paths stay literal, while p
 Install from a release tarball, then validate the bundle:
 
 ```bash
-tar -xzf shipguard-v3.117.0.tar.gz
-cd shipguard-v3.117.0
+tar -xzf shipguard-v3.118.0.tar.gz
+cd shipguard-v3.118.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" version
 ./bin/shipguard validate
@@ -115,8 +115,9 @@ Read `docs/cli.md` for the full command reference and `examples/demo-walkthrough
 
 - `bin/shipguard`: the local CLI for validation, iOS analysis, report quality, spec workflow generation, release proof, and handoff creation.
 - `scripts/task_contract.py`: the durable `prepare`/`verify` task contract and verdict engine for proof-gated Codex changes.
+- `scripts/shipguard_baseline.py`: the configuration-baseline engine for exact accepted findings, owner/reason/expiry/proof-boundary metadata, expired suppression blocking, and new-risk regression behavior.
 - `scripts/task_domain_packs.py`: the Domain Pack SDK registry and iOS notification-permission pack boundary, with public synthetic extension proof for future packs.
-- `scripts/tool_value_gauntlet.py`: the ShipGuard Tool Value Gauntlet for grading every command, skill, plugin, action, doc, and proof path for real developer usefulness, running representative commands, every public command help path, skill/plugin receipts, workflow chains, scenario failure/remediation, fresh package adoption, PilotBench receipts, Domain Pack SDK receipts, and profile-native repair/rerun receipts before probing the weakest next workflow layer.
+- `scripts/tool_value_gauntlet.py`: the ShipGuard Tool Value Gauntlet for grading every command, skill, plugin, action, doc, and proof path for real developer usefulness, running representative commands, every public command help path, skill/plugin receipts, workflow chains, scenario failure/remediation, fresh package adoption, PilotBench receipts, Domain Pack SDK receipts, configuration-baseline receipts, and profile-native repair/rerun receipts before probing the weakest next workflow layer.
 - `scripts/external_pilot_verdict_bench.py`: ShipGuard PilotBench for scoring public-safe read-only task traces across owner detection, scope, proof, claims, redaction, next action, false positives, and first useful verdict time.
 - `scripts/profile_audit.py`: ShipGuard WebScan, ServiceRadar, and CommandLens first-audit reports for web, backend, and CLI starter targets, with scan transparency that excludes generated ShipGuard starter files from target evidence.
 - `scripts/profile_fix_plan.py`: ShipGuard WebForge, ServiceForge, and CommandForge fix-plan reports that turn profile audits into scoped tasks, validation commands, read-only validation receipts, validation rerun receipts, stop conditions, and report-quality questions.

@@ -17,8 +17,10 @@ test -f "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 grep -q '"taskContractReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"domainPackSDKReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"configurationBaselineReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q 'Task-Contract Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Domain Pack SDK' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Configuration Baseline Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
@@ -27,6 +29,7 @@ import sys
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 receipts = data.get("taskContractReceipts") or {}
 domain_pack_sdk = data.get("domainPackSDKReceipts") or {}
+configuration_baseline = data.get("configurationBaselineReceipts") or {}
 probe = data.get("lowestValueSurfaceProbe") or {}
 answer = probe.get("answer") or {}
 
@@ -62,8 +65,13 @@ if domain_pack_sdk.get("status") != "pass":
 if domain_pack_sdk.get("receiptCount") != 1 or domain_pack_sdk.get("passedReceiptCount") != 1 or domain_pack_sdk.get("commandCount") != 3:
     raise SystemExit(f"expected one Domain Pack SDK receipt and three commands: {domain_pack_sdk!r}")
 
-if answer.get("identifier") != "shipguard configuration-baseline-and-suppressions":
-    raise SystemExit(f"passing Domain Pack SDK receipts should escalate to configuration baselines and suppressions: {answer!r}")
+if configuration_baseline.get("status") != "pass":
+    raise SystemExit(f"configuration baseline receipts should pass: {configuration_baseline!r}")
+if configuration_baseline.get("receiptCount") != 1 or configuration_baseline.get("passedReceiptCount") != 1 or configuration_baseline.get("commandCount") != 6:
+    raise SystemExit(f"expected one configuration baseline receipt and six commands: {configuration_baseline!r}")
+
+if answer.get("identifier") != "shipguard structured-evidence-receipts-v2":
+    raise SystemExit(f"passing configuration baseline receipts should escalate to structured evidence receipts v2: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -74,8 +82,10 @@ if "runtimeExternalPilotVerdictBench" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"PilotBench should no longer be missing: {answer!r}")
 if "runtimeDomainPackSDK" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"Domain Pack SDK should no longer be missing: {answer!r}")
-if "runtimeConfigurationBaselineSuppressions" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"configuration baseline/suppression gap should be explicit: {answer!r}")
+if "runtimeConfigurationBaselineSuppressions" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"configuration baseline/suppression should no longer be missing: {answer!r}")
+if "runtimeStructuredEvidenceReceiptsV2" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"structured evidence receipts v2 gap should be explicit: {answer!r}")
 PY
 
 echo "task contract receipt tests passed"

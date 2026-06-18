@@ -1,0 +1,318 @@
+{
+  "id": "accepted-expired-regression",
+  "kind": "configuration-baseline-receipt",
+  "surface": "ShipGuard Configuration Baseline",
+  "selectedMode": "value-gauntlet configuration-baseline receipts",
+  "trigger": "Prove configuration baselines can accept exact findings with owners, expiry, and proof boundaries without hiding expired suppressions or new protected-file regressions.",
+  "sourcePaths": [
+    "scripts/shipguard_baseline.py",
+    "scripts/task_contract.py",
+    "scripts/tool_value_gauntlet.py",
+    "tests/configuration_baseline_test.sh",
+    "docs/task-contract.md",
+    "ROADMAP.md"
+  ],
+  "expectedSourcePhrases": [
+    "configurationBaseline",
+    "acceptedFindings",
+    "expiredSuppressions",
+    "unmatchedSuppressions",
+    "runtimeConfigurationBaselineSuppressions"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppsUsed": false,
+    "inputs": [
+      "synthetic task-contract repo",
+      "exact protected-boundary fingerprints",
+      "synthetic validation receipt"
+    ]
+  },
+  "prepareFiles": [
+    {
+      "path": "fixture/Sources/BaselineApp/App.swift",
+      "text": "public struct BaselineApp {}\n"
+    },
+    {
+      "path": "fixture/Tests/BaselineAppTests/AppTests.swift",
+      "text": "import XCTest\nfinal class BaselineAppTests: XCTestCase {}\n"
+    },
+    {
+      "path": "fixture/.github/workflows/release.yml",
+      "text": "name: release\n"
+    },
+    {
+      "path": "fixture/.github/workflows/deploy.yml",
+      "text": "name: deploy\n"
+    },
+    {
+      "path": "logs/swift-test.log",
+      "text": "swift test passed for baseline receipt fixture\n"
+    },
+    {
+      "path": "logs/swift-test-receipt.json",
+      "text": "{\n  \"receiptId\": \"baseline-swift-test\",\n  \"validationId\": \"swift-test\",\n  \"command\": \"swift test\",\n  \"exitCode\": 0,\n  \"status\": \"pass\",\n  \"startedAt\": \"2099-01-01T00:00:00Z\",\n  \"completedAt\": \"2099-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"artifact\": {\"path\": \"swift-test.log\"},\n  \"scope\": [\"BaselineAppTests\"]\n}\n"
+    },
+    {
+      "path": "diffs/release-only.diff",
+      "text": "diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml\n--- a/.github/workflows/release.yml\n+++ b/.github/workflows/release.yml\n@@ -1 +1,2 @@\n name: release\n+# accepted baseline receipt fixture\n"
+    },
+    {
+      "path": "diffs/release-and-deploy.diff",
+      "text": "diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml\n--- a/.github/workflows/release.yml\n+++ b/.github/workflows/release.yml\n@@ -1 +1,2 @@\n name: release\n+# accepted baseline receipt fixture\ndiff --git a/.github/workflows/deploy.yml b/.github/workflows/deploy.yml\n--- a/.github/workflows/deploy.yml\n+++ b/.github/workflows/deploy.yml\n@@ -1 +1,2 @@\n name: deploy\n+# unsuppressed regression fixture\n"
+    }
+  ],
+  "commands": [
+    {
+      "id": "prepare-baseline-active",
+      "display": "./bin/shipguard prepare baseline fixture with active suppression",
+      "args": [
+        "prepare",
+        "Exercise configuration baseline suppressions",
+        "--path",
+        "{out}/fixture",
+        "--out",
+        "{out}/prepare-active",
+        "--profile",
+        "ios",
+        "--allowed",
+        "Sources/**",
+        "--allowed",
+        "Tests/**",
+        "--allowed",
+        ".github/workflows/**",
+        "--forbidden",
+        ".github/workflows/**",
+        "--validation",
+        "swift test"
+      ],
+      "prepareFiles": [
+        {
+          "path": "fixture/.shipguard.yml",
+          "text": "baseline:\n  path: .shipguard-baseline.json\nsuppressions:\n  requireOwner: true\n  requireReason: true\n  requireExpiresAt: true\n  requireProofBoundary: true\n"
+        },
+        {
+          "path": "fixture/.shipguard-baseline.json",
+          "text": "{\n  \"schemaVersion\": \"1.0\",\n  \"suppressions\": [\n    {\n      \"id\": \"accepted-release-workflow-touch\",\n      \"ruleId\": \"task-contract.protected-boundary\",\n      \"fingerprint\": \"a37a1282251f3570\",\n      \"owner\": \"release-owner\",\n      \"reason\": \"Synthetic fixture accepts this exact release workflow touch.\",\n      \"expiresAt\": \"2099-01-01\",\n      \"proofBoundary\": \"Only .github/workflows/release.yml is accepted; other workflow files remain regressions.\"\n    }\n  ]\n}\n"
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "prepare-active/shipguard-task.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "configurationPolicy", "validationContract", "authorizedFiles"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard prepare"},
+            {"path": "configurationPolicy.status", "equals": "configured"},
+            {"path": "configurationPolicy.baseline.present", "equals": true},
+            {"path": "configurationPolicy.baseline.suppressionCount", "equals": 1},
+            {"path": "configurationPolicy.policy.requireOwner", "equals": true}
+          ]
+        },
+        {
+          "path": "prepare-active/shipguard-task.md",
+          "type": "markdown",
+          "requiredPhrases": ["# ShipGuard Task Contract", "Configuration Baseline", "Suppressions: 1"]
+        }
+      ]
+    },
+    {
+      "id": "verify-baseline-accepted-pass",
+      "display": "./bin/shipguard verify accepted baseline finding",
+      "args": [
+        "verify",
+        "--task",
+        "{out}/prepare-active/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/release-only.diff",
+        "--evidence",
+        "{out}/logs/swift-test-receipt.json",
+        "--claim",
+        "Scoped release workflow touch is covered by accepted risk.",
+        "--out",
+        "{out}/verify-active"
+      ],
+      "artifacts": [
+        {
+          "path": "verify-active/shipguard-verdict.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "configurationBaseline", "contractFindings", "diffFirstAnalysis"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard verify"},
+            {"path": "status", "equals": "pass"},
+            {"path": "configurationBaseline.status", "equals": "pass"},
+            {"path": "configurationBaseline.acceptedFindingCount", "equals": 1},
+            {"path": "configurationBaseline.unsuppressedFindingCount", "equals": 0},
+            {"path": "scopeChecks.forbiddenTouched", "equals": []},
+            {"path": "scopeChecks.rawForbiddenTouched", "equals": [".github/workflows/release.yml"]},
+            {"path": "diffFirstAnalysis.configurationBaseline.acceptedFindingCount", "equals": 1}
+          ]
+        },
+        {
+          "path": "verify-active/shipguard-verdict.md",
+          "type": "markdown",
+          "requiredPhrases": ["# ShipGuard Task Verdict", "Status: pass", "Configuration Baseline", "Accepted findings: 1", "Unsuppressed findings: 0"]
+        }
+      ]
+    },
+    {
+      "id": "prepare-baseline-expired",
+      "display": "./bin/shipguard prepare baseline fixture with expired suppression",
+      "args": [
+        "prepare",
+        "Exercise configuration baseline suppressions",
+        "--path",
+        "{out}/fixture",
+        "--out",
+        "{out}/prepare-expired",
+        "--profile",
+        "ios",
+        "--allowed",
+        "Sources/**",
+        "--allowed",
+        "Tests/**",
+        "--allowed",
+        ".github/workflows/**",
+        "--forbidden",
+        ".github/workflows/**",
+        "--validation",
+        "swift test"
+      ],
+      "prepareFiles": [
+        {
+          "path": "fixture/.shipguard-baseline.json",
+          "text": "{\n  \"schemaVersion\": \"1.0\",\n  \"suppressions\": [\n    {\n      \"id\": \"accepted-release-workflow-touch\",\n      \"ruleId\": \"task-contract.protected-boundary\",\n      \"fingerprint\": \"a37a1282251f3570\",\n      \"owner\": \"release-owner\",\n      \"reason\": \"Synthetic fixture accepts this exact release workflow touch.\",\n      \"expiresAt\": \"2000-01-01\",\n      \"proofBoundary\": \"Only .github/workflows/release.yml is accepted; other workflow files remain regressions.\"\n    }\n  ]\n}\n"
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "prepare-expired/shipguard-task.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "configurationPolicy"],
+          "requiredValues": [
+            {"path": "configurationPolicy.status", "equals": "configured"},
+            {"path": "configurationPolicy.baseline.suppressionCount", "equals": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "verify-baseline-expired-blocked",
+      "display": "./bin/shipguard verify expired baseline suppression blocks",
+      "args": [
+        "verify",
+        "--task",
+        "{out}/prepare-expired/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/release-only.diff",
+        "--evidence",
+        "{out}/logs/swift-test-receipt.json",
+        "--claim",
+        "Expired accepted risk should not pass.",
+        "--out",
+        "{out}/verify-expired"
+      ],
+      "expectedExitCode": 2,
+      "artifacts": [
+        {
+          "path": "verify-expired/shipguard-verdict.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "configurationBaseline", "nextAction"],
+          "requiredValues": [
+            {"path": "status", "equals": "blocked"},
+            {"path": "configurationBaseline.status", "equals": "blocked"},
+            {"path": "configurationBaseline.acceptedFindingCount", "equals": 0},
+            {"path": "configurationBaseline.unsuppressedFindingCount", "equals": 1},
+            {"path": "scopeChecks.forbiddenTouched", "equals": [".github/workflows/release.yml"]}
+          ]
+        },
+        {
+          "path": "verify-expired/shipguard-verdict.md",
+          "type": "markdown",
+          "requiredPhrases": ["Status: blocked", "Configuration Baseline", "Unsuppressed findings: 1", "Expired suppressions: 1"]
+        }
+      ]
+    },
+    {
+      "id": "prepare-baseline-regression",
+      "display": "./bin/shipguard prepare baseline fixture with active suppression for regression case",
+      "args": [
+        "prepare",
+        "Exercise configuration baseline suppressions",
+        "--path",
+        "{out}/fixture",
+        "--out",
+        "{out}/prepare-regression",
+        "--profile",
+        "ios",
+        "--allowed",
+        "Sources/**",
+        "--allowed",
+        "Tests/**",
+        "--allowed",
+        ".github/workflows/**",
+        "--forbidden",
+        ".github/workflows/**",
+        "--validation",
+        "swift test"
+      ],
+      "prepareFiles": [
+        {
+          "path": "fixture/.shipguard-baseline.json",
+          "text": "{\n  \"schemaVersion\": \"1.0\",\n  \"suppressions\": [\n    {\n      \"id\": \"accepted-release-workflow-touch\",\n      \"ruleId\": \"task-contract.protected-boundary\",\n      \"fingerprint\": \"a37a1282251f3570\",\n      \"owner\": \"release-owner\",\n      \"reason\": \"Synthetic fixture accepts this exact release workflow touch.\",\n      \"expiresAt\": \"2099-01-01\",\n      \"proofBoundary\": \"Only .github/workflows/release.yml is accepted; other workflow files remain regressions.\"\n    }\n  ]\n}\n"
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "prepare-regression/shipguard-task.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "configurationPolicy"],
+          "requiredValues": [
+            {"path": "configurationPolicy.status", "equals": "configured"},
+            {"path": "configurationPolicy.baseline.suppressionCount", "equals": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "verify-baseline-regression-blocked",
+      "display": "./bin/shipguard verify new protected-file regression still blocks",
+      "args": [
+        "verify",
+        "--task",
+        "{out}/prepare-regression/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/release-and-deploy.diff",
+        "--evidence",
+        "{out}/logs/swift-test-receipt.json",
+        "--claim",
+        "Only one workflow change is accepted.",
+        "--out",
+        "{out}/verify-regression"
+      ],
+      "expectedExitCode": 2,
+      "artifacts": [
+        {
+          "path": "verify-regression/shipguard-verdict.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "configurationBaseline", "nextAction"],
+          "requiredValues": [
+            {"path": "status", "equals": "blocked"},
+            {"path": "configurationBaseline.status", "equals": "blocked"},
+            {"path": "configurationBaseline.acceptedFindingCount", "equals": 1},
+            {"path": "configurationBaseline.unsuppressedFindingCount", "equals": 1},
+            {"path": "configurationBaseline.regressionBehavior.newFindingsBlock", "equals": true},
+            {"path": "scopeChecks.forbiddenTouched", "equals": [".github/workflows/deploy.yml"]},
+            {"path": "scopeChecks.rawForbiddenTouched", "equals": [".github/workflows/deploy.yml", ".github/workflows/release.yml"]}
+          ]
+        },
+        {
+          "path": "verify-regression/shipguard-verdict.md",
+          "type": "markdown",
+          "requiredPhrases": ["Status: blocked", "Configuration Baseline", "Unsuppressed findings: 1", ".github/workflows/deploy.yml"]
+        }
+      ]
+    }
+  ]
+}

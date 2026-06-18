@@ -86,7 +86,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add configuration baselines and suppressions so accepted findings have owners, expiry, proof boundaries, and regression behavior instead of becoming invisible noise?",
+    "Should ShipGuard add structured evidence receipts v2 so validation, runtime, manual, simulator, and release proof share one schema?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -172,6 +172,7 @@ TRUST_HARDENING_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "trust
 TASK_CONTRACT_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "task-contract-receipts"
 EXTERNAL_PILOT_VERDICT_BENCH_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "external-pilot-verdict-bench-receipts"
 DOMAIN_PACK_SDK_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "domain-pack-sdk-receipts"
+CONFIGURATION_BASELINE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "configuration-baseline-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -909,6 +910,18 @@ def load_external_pilot_verdict_bench_receipts(root: Path) -> list[tuple[Path, d
 
 def load_domain_pack_sdk_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / DOMAIN_PACK_SDK_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_configuration_baseline_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / CONFIGURATION_BASELINE_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -2242,6 +2255,37 @@ def domain_pack_sdk_receipt_probe(root: Path) -> dict[str, Any]:
     }
 
 
+def configuration_baseline_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [
+        run_skill_plugin_receipt(root, fixture_dir, meta)
+        for fixture_dir, meta in load_configuration_baseline_receipts(root)
+    ]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public configuration baseline receipts that prove exact accepted findings, expiry, and new-risk regression behavior.",
+        "fixtureRoot": CONFIGURATION_BASELINE_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public synthetic task-contract fixture", "exact protected-boundary fingerprints", "synthetic validation receipts"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Configuration baseline receipts are passing; add structured evidence receipts v2 next."
+            if status == "pass"
+            else "Fix configuration baseline receipts so accepted findings, expired suppressions, and new risks are proven."
+        ),
+    }
+
+
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
     slug = command_slug(command)
     tokens = command_tokens(command)
@@ -2584,6 +2628,20 @@ def domain_pack_sdk_receipt_passed(domain_pack_sdk_receipts: dict[str, Any]) -> 
     return required.issubset(receipt_command_ids(domain_pack_sdk_receipts))
 
 
+def configuration_baseline_receipt_passed(configuration_baseline_receipts: dict[str, Any]) -> bool:
+    if configuration_baseline_receipts.get("status") != "pass":
+        return False
+    required = {
+        "prepare-baseline-active",
+        "verify-baseline-accepted-pass",
+        "prepare-baseline-expired",
+        "verify-baseline-expired-blocked",
+        "prepare-baseline-regression",
+        "verify-baseline-regression-blocked",
+    }
+    return required.issubset(receipt_command_ids(configuration_baseline_receipts))
+
+
 def command_depth_rows(
     commands: list[dict[str, Any]],
     text_index: dict[str, str],
@@ -2784,6 +2842,7 @@ def lowest_value_surface_probe(
     task_contract_receipts: dict[str, Any],
     external_pilot_verdict_bench_receipts: dict[str, Any],
     domain_pack_sdk_receipts: dict[str, Any],
+    configuration_baseline_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -3507,6 +3566,40 @@ def lowest_value_surface_probe(
             recommendation="Add configuration baselines and suppression receipts so teams can record accepted findings, expiry, ownership, and regression behavior without muting new risk.",
             proof="Run value-gauntlet plus focused baseline/suppression fixtures that prove accepted findings are tracked, expired suppressions fail, and new findings are not hidden by old waivers.",
         )
+    if (
+        answer
+        and answer.get("identifier") == "shipguard configuration-baseline-and-suppressions"
+        and configuration_baseline_receipt_passed(configuration_baseline_receipts)
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeConfigurationBaselineSuppressions":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeConfigurationBaselineSuppressions",
+                        True,
+                        f"{configuration_baseline_receipts.get('passedReceiptCount') or 0}/{configuration_baseline_receipts.get('receiptCount') or 0} configuration baseline receipts executed",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeStructuredEvidenceReceiptsV2",
+                False,
+                "validation, runtime, manual, simulator, and release proof still need one shared receipt schema with compatibility checks",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="cross-cutting",
+            identifier="shipguard structured-evidence-receipts-v2",
+            name="Structured evidence receipts v2",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Unify ShipGuard evidence receipts so task-contract, iOS runtime proof, manual proof, and release proof share one schema and compatibility story.",
+            proof="Run value-gauntlet plus focused structured-evidence fixtures that prove v2 receipts validate, downgrade unsupported proof honestly, and remain backward compatible.",
+        )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
         answer = {
@@ -3586,6 +3679,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     task_contract_receipts = task_contract_receipt_probe(root)
     external_pilot_verdict_bench_receipts = external_pilot_verdict_bench_receipt_probe(root)
     domain_pack_sdk_receipts = domain_pack_sdk_receipt_probe(root)
+    configuration_baseline_receipts = configuration_baseline_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -3615,6 +3709,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         task_contract_receipts=task_contract_receipts,
         external_pilot_verdict_bench_receipts=external_pilot_verdict_bench_receipts,
         domain_pack_sdk_receipts=domain_pack_sdk_receipts,
+        configuration_baseline_receipts=configuration_baseline_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -3670,6 +3765,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "taskContractReceipts": task_contract_receipts,
         "externalPilotVerdictBenchReceipts": external_pilot_verdict_bench_receipts,
         "domainPackSDKReceipts": domain_pack_sdk_receipts,
+        "configurationBaselineReceipts": configuration_baseline_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -4231,6 +4327,31 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_domain_pack_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_domain_pack_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+
+    configuration_baseline_receipts = report.get("configurationBaselineReceipts") or {}
+    lines.extend(["", "## Configuration Baseline Receipts", ""])
+    lines.append(f"- Status: {configuration_baseline_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {configuration_baseline_receipts.get('passedReceiptCount', 0)}/{configuration_baseline_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {configuration_baseline_receipts.get('commandCount', 0)}")
+    if configuration_baseline_receipts.get("nextAction"):
+        lines.append(f"- Next action: {configuration_baseline_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in configuration_baseline_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 44)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_configuration_baseline_commands = [
+        (receipt, command)
+        for receipt in configuration_baseline_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_configuration_baseline_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_configuration_baseline_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

@@ -69,8 +69,8 @@ for command in receipt.get("commands") or []:
 
 if domain_pack_sdk.get("status") != "pass":
     raise SystemExit(f"Domain Pack SDK receipts should pass: {domain_pack_sdk!r}")
-if answer.get("identifier") != "shipguard configuration-baseline-and-suppressions":
-    raise SystemExit(f"passing Domain Pack SDK receipts should escalate to configuration baselines and suppressions: {answer!r}")
+if answer.get("identifier") != "shipguard structured-evidence-receipts-v2":
+    raise SystemExit(f"passing configuration baseline receipts should escalate to structured evidence receipts v2: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"trust-hardening should no longer be missing: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
@@ -83,8 +83,10 @@ if "runtimeExternalPilotVerdictBench" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"PilotBench should no longer be missing: {answer!r}")
 if "runtimeDomainPackSDK" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"Domain Pack SDK should no longer be missing: {answer!r}")
-if "runtimeConfigurationBaselineSuppressions" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"configuration baseline/suppression gap should be explicit: {answer!r}")
+if "runtimeConfigurationBaselineSuppressions" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"configuration baseline/suppression receipts should no longer be missing: {answer!r}")
+if "runtimeStructuredEvidenceReceiptsV2" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"structured evidence receipts v2 gap should be explicit: {answer!r}")
 PY
 
 echo "trust hardening receipt tests passed"

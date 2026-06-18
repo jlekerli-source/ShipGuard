@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added configuration baselines and suppressions to the proof-gated task contract: `shipguard prepare` now records `.shipguard.yml` / `.shipguard-baseline.json`, and `shipguard verify` emits `configurationBaseline`, exact finding fingerprints, accepted findings, expired/invalid suppressions, unmatched suppressions, and raw/effective scope checks.
+- Added `scripts/shipguard_baseline.py`, focused `tests/configuration_baseline_test.sh`, and Tool Value Gauntlet `configurationBaselineReceipts` proving exact accepted findings can pass, expired suppressions block, and new protected-file regressions are not hidden by old waivers.
+- Advanced `shipguard value-gauntlet` beyond the v3.118 gap: once configuration-baseline receipts pass, the lowest-value probe now points to v3.119 structured evidence receipts v2.
 - Extracted the Domain Pack SDK core for `shipguard prepare` / `shipguard verify`: `scripts/task_domain_packs.py` now exposes `DomainPackRegistry`, `domainPackSDK` metadata, pack-specific result fields, and a public synthetic fixture pack that proves new packs can register prepare/verify hooks without editing the generic verdict engine.
 - Added Domain Pack SDK focused tests and Tool Value Gauntlet receipts; once synthetic pack receipts pass, the lowest-value probe now advances to configuration baselines and suppressions instead of reporting the SDK as missing.
 - Added shared ShipGuard-eval shareable redaction via `scripts/ios_shareable.py` and tightened `shipguard ios report-quality --shareable` so read-only Ringly/Ilmify product-QA evidence cannot leak private app names, local paths, or target identifiers into packaged reports.

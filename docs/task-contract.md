@@ -41,6 +41,7 @@ The JSON includes:
 - `authorizedScope`
 - `protectedBoundaries`
 - `validationContract`
+- `configurationPolicy`
 - `domainPackSDK`
 - `agentClaims`
 - `evidence`
@@ -76,6 +77,41 @@ The notification workflow is implemented as a domain pack in `scripts/task_domai
 Use `--shipguard-eval` when a target app is only being used to evaluate ShipGuard output quality; that boundary says the report is not app-work authorization.
 
 When `--shareable` points at an external target checkout, ShipGuard also redacts target names in authorized scope, skipped directories, Xcode projects, and scheme validation commands. Use the redacted contract for product QA or sharing; run without `--shareable` when you need the machine-verification contract for the private checkout.
+
+## Configuration Baselines
+
+ShipGuard reads `.shipguard.yml` and `.shipguard-baseline.json` during `prepare` and stores the policy inside the task object. The first supported shape is intentionally small:
+
+```yaml
+baseline:
+  path: .shipguard-baseline.json
+suppressions:
+  requireOwner: true
+  requireReason: true
+  requireExpiresAt: true
+  requireProofBoundary: true
+```
+
+The baseline file records exact accepted findings:
+
+```json
+{
+  "schemaVersion": "1.0",
+  "suppressions": [
+    {
+      "id": "accepted-release-workflow-touch",
+      "ruleId": "task-contract.protected-boundary",
+      "fingerprint": "a37a1282251f3570",
+      "owner": "release-owner",
+      "reason": "Synthetic fixture accepts this exact release workflow touch.",
+      "expiresAt": "2099-01-01",
+      "proofBoundary": "Only .github/workflows/release.yml is accepted; other workflow files remain regressions."
+    }
+  ]
+}
+```
+
+`verify` emits finding fingerprints in `contractFindings` and evaluates them through `configurationBaseline`. A valid suppression must match both `ruleId` and `fingerprint`, include the required metadata, and be unexpired. Accepted findings are not hidden: Markdown and JSON still show the rule, fingerprint, owner, expiry, and proof boundary. New findings, expired suppressions, invalid suppressions, and unmatched protected files remain visible and keep their normal `review` or `blocked` behavior.
 
 ## Verify
 
@@ -133,6 +169,8 @@ For notification-permission workflows, a generic matching receipt such as `scope
 When the first three lanes are proven, the task can still pass locally while `notificationPermissionWorkflow.status` reports `local-pass-manual-device-proof-required`. Do not make release or "fully verified" claims until the physical-device prompt lane is proven.
 
 `shipguard-verdict.json` includes `domainWorkflows` for every active pack, preserves compatibility fields such as `notificationPermissionWorkflow`, and includes `diffFirstAnalysis` with changed file summaries, behavior categories, deleted-test warnings, validation coverage, evidence coverage, claim decisions, protected-boundary crossings, merge verdict, domain workflow results, and the next action priority.
+
+`shipguard-verdict.json` also includes `configurationBaseline`, `contractFindings`, and raw/effective scope checks. For example, `scopeChecks.rawForbiddenTouched` records all protected files in the diff, while `scopeChecks.forbiddenTouched` records only the unsuppressed protected files that still affect the verdict.
 
 Blocked and review results always include `nextAction` with:
 
