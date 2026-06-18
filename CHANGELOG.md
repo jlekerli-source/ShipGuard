@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added the proof-gated task contract core: `shipguard prepare` writes one durable task object with repo context, risk, authorized files, protected boundaries, validation contract, claims, and next action; `shipguard verify` checks the exact diff, evidence receipts, and claims against that object and returns pass/review/blocked with an exact next action.
+- Added `taskContractReceipts` to `shipguard value-gauntlet`: the public receipt proves prepare/verify pass a scoped diff with evidence, block a protected/out-of-scope diff plus unsupported "fully verified" claim, and advance the lowest-value probe to diff-first verification.
+- Added `docs/task-contract.md`, direct task-contract tests, package/self-audit coverage, and roadmap updates that center ShipGuard on the proof-gated Codex change loop before broader iOS packs or multi-stack expansion.
 - Added `trustHardeningReceipts` to `shipguard value-gauntlet`: the public receipt fixture now proves composite GitHub Actions do not interpolate raw inputs inside shell bodies, Devspace blocks token-bearing public URLs, unsafe archive extraction is rejected, and release provenance rejects bad or mismatched release URLs. With those receipts green, the lowest-value probe now advances to the persistent proof-gated task contract.
 - Added `docs/product-strategy.md` from the 5.5 Pro roadmap critique: ShipGuard's product center is now the proof-gated Codex change loop with a persistent task object, `prepare`/`verify` direction, iOS notification/permission wedge, trust-hardening priority, and a narrower public-command expansion rule.
 - Packaged `NEXT_GOAL.md` and added it to validation/self-audit proof so extracted release packages preserve the same value-gauntlet doc surface as the source checkout.

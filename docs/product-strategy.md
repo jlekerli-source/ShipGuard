@@ -49,7 +49,7 @@ For every new public surface, answer:
 
 ## Persistent Task Object
 
-The next major architecture step is a durable local task object that connects the whole change:
+The first implementation of the durable local task object is `shipguard prepare` plus `shipguard verify`. It connects the whole change:
 
 ```json
 {
@@ -66,7 +66,7 @@ The next major architecture step is a durable local task object that connects th
 }
 ```
 
-Every command in the primary workflow should read or enrich that object instead of producing disconnected report folders.
+Every command in the primary workflow should eventually read or enrich that object instead of producing disconnected report folders. Diagnostics that cannot affect scope, evidence, claims, or verdict should remain secondary.
 
 ## Primary Workflow
 
@@ -129,8 +129,8 @@ Run the device notification proof checklist and attach the resulting receipt.
 3. Evaluation as a permanent parallel track:
    every feature needs gold fixtures, negative fixtures, mutation cases, human or expert labels when appropriate, model critique, actionability scoring, and regression gates.
 
-4. Proof-gated task contract:
-   after the trust-hardening receipts, the next architecture step is the durable object that connects allowed files, protected boundaries, validation, evidence, agent claims, exact next action, and verdict.
+4. Diff-first verification:
+   after the proof-gated task contract, the next architecture step is deeper verification of the exact AI-generated diff: changed behaviors, deleted tests, validation coverage, protected boundaries, evidence, agent claims, exact next action, and verdict.
 
 ## What To Delay
 

@@ -27,6 +27,8 @@ COMMANDS: list[dict[str, str]] = [
     {"command": "shipguard init", "surface": "ShipGuard StarterBay", "family": "starter"},
     {"command": "shipguard validate", "surface": "ShipGuard RigCheck", "family": "validation"},
     {"command": "shipguard doctor", "surface": "ShipGuard RepoVitals", "family": "validation"},
+    {"command": "shipguard prepare", "surface": "ShipGuard Task Contract", "family": "core"},
+    {"command": "shipguard verify", "surface": "ShipGuard Task Verdict", "family": "core"},
     {"command": "shipguard web audit", "surface": "ShipGuard WebScan", "family": "profile"},
     {"command": "shipguard web plan", "surface": "ShipGuard WebForge", "family": "profile"},
     {"command": "shipguard backend audit", "surface": "ShipGuard ServiceRadar", "family": "profile"},
@@ -83,7 +85,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add a persistent proof-gated task contract that connects prepare, verify, scope, evidence, and verdict?",
+    "Should ShipGuard add diff-first verification that maps exact AI-generated changes, deleted tests, validation coverage, evidence, and claims into one merge verdict?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -166,6 +168,7 @@ PROFILE_NATIVE_VALIDATION_RERUN_RECEIPT_ROOT = Path("fixtures") / "tool-value-ga
 PROFILE_NATIVE_PROOF_HANDOFF_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "profile-native-proof-handoff-receipts"
 COMMAND_FAMILY_RUNTIME_OUTPUT_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "command-family-runtime-output-receipts"
 TRUST_HARDENING_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "trust-hardening-receipts"
+TASK_CONTRACT_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "task-contract-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -867,6 +870,18 @@ def load_command_family_runtime_output_receipts(root: Path) -> list[tuple[Path, 
 
 def load_trust_hardening_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / TRUST_HARDENING_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_task_contract_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / TASK_CONTRACT_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -2110,6 +2125,34 @@ def trust_hardening_receipt_probe(root: Path) -> dict[str, Any]:
     }
 
 
+def task_contract_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [run_skill_plugin_receipt(root, fixture_dir, meta) for fixture_dir, meta in load_task_contract_receipts(root)]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run proof-gated task-contract receipts that prove prepare and verify share one durable object across scope, evidence, claims, and verdict.",
+        "fixtureRoot": TASK_CONTRACT_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public task-contract fixture", "synthetic diffs", "synthetic evidence receipts"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Task-contract receipts are passing; continue with diff-first verification that explains exact AI-generated changes."
+            if status == "pass"
+            else "Fix task-contract receipts so prepare/verify produce durable, useful, proof-gated verdicts."
+        ),
+    }
+
+
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
     slug = command_slug(command)
     tokens = command_tokens(command)
@@ -2618,6 +2661,7 @@ def lowest_value_surface_probe(
     profile_native_proof_handoff_receipts: dict[str, Any],
     command_family_runtime_output_receipts: dict[str, Any],
     trust_hardening_receipts: dict[str, Any],
+    task_contract_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -3198,6 +3242,40 @@ def lowest_value_surface_probe(
             recommendation="Add a persistent proof-gated task contract so prepare/verify share one durable object instead of disconnected reports.",
             proof="Run value-gauntlet plus focused task-contract receipts that prove repo context, risk, authorized scope, validation, evidence, and verdict survive one end-to-end loop.",
         )
+    if (
+        answer
+        and answer.get("identifier") == "shipguard prepare-verify proof-gated-task-contract"
+        and task_contract_receipts.get("status") == "pass"
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeProofGatedTaskContract":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeProofGatedTaskContract",
+                        True,
+                        f"{task_contract_receipts.get('passedReceiptCount') or 0}/{task_contract_receipts.get('receiptCount') or 0} task-contract receipts executed",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeDiffFirstVerification",
+                False,
+                "verify still needs a deeper diff-first verdict that maps behavior changes, deleted tests, validation coverage, and agent claims into one merge decision",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="cross-cutting",
+            identifier="shipguard verify diff-first-change-review",
+            name="Diff-first change verification",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Add diff-first verification that explains the exact AI-generated change, deleted tests, validation coverage, and unsupported claims before merge.",
+            proof="Run value-gauntlet plus focused diff-first verification receipts that prove safe diffs pass, risky diffs block, and missing evidence returns one exact next action.",
+        )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
         answer = {
@@ -3274,6 +3352,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     profile_native_proof_handoff_receipts = profile_native_proof_handoff_receipt_probe(root)
     command_family_runtime_output_receipts = command_family_runtime_output_receipt_probe(root)
     trust_hardening_receipts = trust_hardening_receipt_probe(root)
+    task_contract_receipts = task_contract_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -3300,6 +3379,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         profile_native_proof_handoff_receipts=profile_native_proof_handoff_receipts,
         command_family_runtime_output_receipts=command_family_runtime_output_receipts,
         trust_hardening_receipts=trust_hardening_receipts,
+        task_contract_receipts=task_contract_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -3352,6 +3432,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "profileNativeProofHandoffReceipts": profile_native_proof_handoff_receipts,
         "commandFamilyRuntimeOutputReceipts": command_family_runtime_output_receipts,
         "trustHardeningReceipts": trust_hardening_receipts,
+        "taskContractReceipts": task_contract_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -3839,6 +3920,30 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_trust_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_trust_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+    task_contract_receipts = report.get("taskContractReceipts") or {}
+    lines.extend(["", "## Task-Contract Receipts", ""])
+    lines.append(f"- Status: {task_contract_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {task_contract_receipts.get('passedReceiptCount', 0)}/{task_contract_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {task_contract_receipts.get('commandCount', 0)}")
+    if task_contract_receipts.get("nextAction"):
+        lines.append(f"- Next action: {task_contract_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in task_contract_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 44)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_task_contract_commands = [
+        (receipt, command)
+        for receipt in task_contract_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_task_contract_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_task_contract_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

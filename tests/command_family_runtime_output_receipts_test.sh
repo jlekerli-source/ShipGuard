@@ -61,10 +61,12 @@ for command in receipt.get("commands") or []:
 
 if trust_receipts.get("status") != "pass":
     raise SystemExit(f"trust-hardening receipts should also pass in the full gauntlet: {trust_receipts!r}")
-if answer.get("identifier") != "shipguard prepare-verify proof-gated-task-contract":
-    raise SystemExit(f"passing command-family and trust receipts should escalate to proof-gated task contract: {answer!r}")
-if "runtimeProofGatedTaskContract" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"proof-gated task contract gap should be explicit: {answer!r}")
+if answer.get("identifier") != "shipguard verify diff-first-change-review":
+    raise SystemExit(f"passing command-family, trust, and task-contract receipts should escalate to diff-first verification: {answer!r}")
+if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
+if "runtimeDiffFirstVerification" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"diff-first verification gap should be explicit: {answer!r}")
 if "runtimeCommandFamilyOutputReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"command-family output receipts should no longer be missing: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):

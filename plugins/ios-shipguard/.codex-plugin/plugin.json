@@ -1,6 +1,6 @@
 {
   "name": "ios-shipguard",
-  "version": "0.2.21+codex.20260618143000",
+  "version": "0.2.22+codex.20260618152000",
   "description": "ShipGuard guardrails and live-preview handoffs for solo iOS developers shipping permission-heavy apps.",
   "author": {
     "name": "ShipGuard",

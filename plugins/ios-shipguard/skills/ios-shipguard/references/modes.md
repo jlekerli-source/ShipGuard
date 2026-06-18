@@ -4,6 +4,24 @@ Use this reference when a task touches multiple iOS trust surfaces or when the p
 
 The `shipguard ios ...` proof commands are part of this ShipGuard checkout. If a target app repo only copied starter files and does not include the ShipGuard CLI, run the commands from a ShipGuard checkout against that target path, or fall back to source inspection, XcodeBuildMCP, existing project tests, and explicit manual blockers.
 
+## task-contract
+
+Use when the user wants a risky Codex change prepared, constrained, or verified with one durable object instead of disconnected reports.
+
+Ask:
+
+- What exact behavior should Codex change?
+- Which files or boundaries are explicitly authorized or forbidden?
+- Which validation command or manual proof receipt will be accepted?
+
+Proof:
+
+- `shipguard prepare "<goal>" --path . --out /tmp/shipguard-task --profile ios --shareable` before edits
+- pass `--allowed`, `--forbidden`, and `--validation` when the task scope is known
+- after Codex edits, capture the diff and validation receipt
+- `shipguard verify --task /tmp/shipguard-task/shipguard-task.json --diff <patch> --evidence <receipt> --out /tmp/shipguard-verdict`
+- blocked or review verdicts are not passes; follow `nextAction` exactly before merge or release claims
+
 ## permission-audit
 
 Use for Info.plist usage descriptions, entitlements, authorization state, onboarding permission copy, settings copy, and denied-state behavior.
@@ -161,7 +179,7 @@ Ask:
 
 Proof:
 
-- `shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet` to grade command wiring, docs, tests, package proof, self-audit coverage, skills, plugin metadata, actions, proof boundaries, runtime receipts, adoption receipts, fresh target-onboarding receipts, multi-profile onboarding receipts, profile-native first-audit receipts, profile-native fix-plan receipts, profile-native validation receipts, profile-native validation rerun receipts, profile-native proof handoff receipts, command-family runtime-output receipts, and trust-hardening receipts
+- `shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet` to grade command wiring, docs, tests, package proof, self-audit coverage, skills, plugin metadata, actions, proof boundaries, runtime receipts, adoption receipts, fresh target-onboarding receipts, multi-profile onboarding receipts, profile-native first-audit receipts, profile-native fix-plan receipts, profile-native validation receipts, profile-native validation rerun receipts, profile-native proof handoff receipts, command-family runtime-output receipts, trust-hardening receipts, and task-contract receipts
 - `shipguard web audit --path <web-target> --out <dir> --shipguard-eval --shareable`, `shipguard backend audit --path <backend-target> --out <dir> --shipguard-eval --shareable`, and `shipguard cli audit --path <cli-target> --out <dir> --shipguard-eval --shareable` when the gauntlet asks whether non-iOS starter profiles produce useful first reports
 - `shipguard web plan --report <web-audit-dir> --target <web-target> --out <dir> --shipguard-eval --shareable`, `shipguard backend plan --report <backend-audit-dir> --target <backend-target> --out <dir> --shipguard-eval --shareable`, and `shipguard cli plan --report <cli-audit-dir> --target <cli-target> --out <dir> --shipguard-eval --shareable` when the gauntlet asks whether first reports become scoped tasks, validation commands, validation receipts, validation rerun receipts, and stop conditions
 - `shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --out /tmp/shipguard-value-quality --shareable` to score the gauntlet report itself and surface prioritized actionability questions

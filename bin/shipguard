@@ -15,6 +15,8 @@ Usage:
   shipguard init cli [target] [--force]
   shipguard validate [path]
   shipguard doctor [ios|web|backend|cli] [path]
+  shipguard prepare "task goal" --out <dir> [--path <repo>] [--profile auto|ios|web|backend|cli] [--allowed <glob> ...] [--forbidden <glob> ...] [--validation <cmd> ...] [--claim <text> ...] [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard verify --task <shipguard-task.json-or-dir> --out <dir> [--diff <patch.diff>] [--evidence <file> ...] [--claim <text> ...] [--json|--markdown]
   shipguard policy init [target] [--force]
   shipguard policy show [policy.conf]
   shipguard score <run.md>
@@ -89,6 +91,8 @@ Commands:
   init        Copy a workflow starter profile into a target repo.
   validate    Validate this workflow bundle or another checkout of it.
   doctor      Check whether a target repo has starter workflow files.
+  prepare     Create a proof-gated task contract before Codex edits.
+  verify      Verify a diff, evidence, and claims against a task contract.
   policy      Initialize or inspect shipguard policy config.
   score       Score a Codex run markdown file using SCORECARD.md categories.
   autopsy     Generate Markdown and JSON evidence reports for an AI coding run.
@@ -411,6 +415,14 @@ cmd_value_gauntlet() {
   run_py "$tool_root/scripts/tool_value_gauntlet.py" "$@"
 }
 
+cmd_prepare() {
+  run_py "$tool_root/scripts/task_contract.py" prepare "$@"
+}
+
+cmd_verify() {
+  run_py "$tool_root/scripts/task_contract.py" verify "$@"
+}
+
 cmd_profile() {
   local profile="$1"
   shift || true
@@ -585,6 +597,12 @@ main() {
       ;;
     doctor)
       cmd_doctor "$@"
+      ;;
+    prepare)
+      cmd_prepare "$@"
+      ;;
+    verify)
+      cmd_verify "$@"
       ;;
     policy)
       cmd_policy "$@"

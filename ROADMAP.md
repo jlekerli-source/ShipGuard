@@ -25,6 +25,65 @@ Near-term strategy:
 - Delay broad web/backend/CLI maturity until the core task/evidence schema and first iOS domain pack prove value.
 - Keep evaluation running beside every feature through gold fixtures, negative fixtures, model critique, and human review where useful.
 
+## Phase Map
+
+### Phase A: Trustworthy Foundation
+
+Next three to five releases should harden the core before broadening the surface:
+
+- Separate maintainer-only ShipYard tools from the public app-developer story.
+- Keep GitHub Action, archive, Devspace, and release-provenance trust receipts green.
+- Introduce and stabilize the canonical task object through `shipguard prepare`.
+- Make `shipguard verify` the default post-Codex verdict path.
+- Establish schema, compatibility, and deprecation rules before adding more public verbs.
+
+Exit gate: a new developer can install ShipGuard, initialize a repo, prepare a risky task, and get a useful verify verdict without reading internal ShipYard docs.
+
+### Phase B: Killer Workflow
+
+The first killer workflow is proof-gated iOS notification and permission work:
+
+- Identify owner files and protected boundaries.
+- Generate a task-specific Codex contract.
+- Capture diff, validation receipts, simulator proof, and manual/device gaps.
+- Reject unsupported completion claims.
+- Return one exact next action.
+
+Exit gate: independent iOS developers complete risky notification changes using ShipGuard without author assistance.
+
+### Phase C: iOS Assurance Packs
+
+Add one evaluated iOS domain pack at a time:
+
+1. Notifications and permissions.
+2. StoreKit and entitlements.
+3. Persistence and migrations.
+4. Widgets, App Intents, and shared state.
+5. Background execution and lifecycle.
+6. Performance with runtime evidence.
+7. Design with screenshots and flow evidence.
+8. Modernization with compiler-backed validation.
+
+Each stable pack needs gold fixtures, negative fixtures, mutation cases, and precision/actionability thresholds.
+
+### Parallel Track: Evaluation Flywheel
+
+Every product slice should ship with:
+
+- Real or synthetic task traces.
+- Human or expert labels where useful.
+- Model critique only as calibrated input, not automatic truth.
+- Public-safe fixture promotion.
+- False-positive and next-action quality checks.
+
+### Phase D: Multi-Stack Expansion
+
+Do not mature web, backend, and CLI equally by default. Expand after the core task/evidence schema and the first iOS pack show measurable value.
+
+### Phase E: v4 Productization
+
+v4 should require stable schemas, migration support, clean package/install/uninstall behavior, strong security posture, independent benchmark results, and external adoption proof.
+
 ## Now
 
 - Keep the CLI stable for `init`, `validate`, `doctor`, and `score`.
@@ -51,7 +110,8 @@ Near-term strategy:
 - Keep fixture-pack integrity and optional signer metadata deterministic and verifiable.
 - Keep self-audit output stable enough to prove release readiness from source and extracted packages.
 - Keep next-goal output deterministic enough to restart the improvement loop after each release, including scoped plans, completion receipts, and following-goal handoffs when evidence is supplied.
-- Keep value-gauntlet runtime proof moving beyond names: adoption receipts prove a fresh package can be installed from an extracted tarball, paired with a fresh Codex plugin cache, used for a first Brand Deck audit, and routed through report-quality to the next action. Target-onboarding receipts prove a fresh iOS app repo can install starter files, pass starter doctor, validate the toolkit, run iOS doctor/inventory, and get the first scoped permission-audit plan without maintainer context. Multi-profile onboarding receipts now prove iOS, web, backend, and CLI starter profiles each install, pass doctor, and leave `SHIPGUARD_PROFILE.md` next commands. Profile-native first-audit receipts now prove web, backend, and CLI targets get real WebScan, ServiceRadar, and CommandLens reports beyond init/doctor starter files, while the scanners exclude generated ShipGuard starter files from target validation and risk signals. Profile-native fix-plan receipts now prove those first audits become WebForge, ServiceForge, and CommandForge scoped tasks with validation commands, stop conditions, and report-quality handoff. Profile-native validation receipts now prove those plans classify runnable, blocked, manual, and unchecked validation lanes without executing arbitrary target commands. Profile-native validation rerun receipts now prove blocked lanes expose the smallest repair and clear after rerunning the plan. Profile-native proof handoff receipts now prove repaired plans emit copy-ready evidence packets for Codex and maintainers. Command-family runtime-output receipts now prove major report-producing families emit useful JSON/Markdown output, not only `--help` wiring. Trust-hardening receipts now prove GitHub Action input handoff, Devspace public URL boundaries, archive extraction safety, and release provenance failure paths. The next expansion should create the persistent proof-gated task contract that connects prepare, verify, scope, evidence, and verdict.
+- Keep `shipguard prepare` and `shipguard verify` as the first public core loop: prepare writes one durable task object with repo context, risk, authorized files, protected boundaries, validation contract, tracked claims, and next action; verify checks the exact diff, evidence receipts, and claims against that object before returning pass, review, or blocked.
+- Keep value-gauntlet runtime proof moving beyond names: adoption receipts prove a fresh package can be installed from an extracted tarball, paired with a fresh Codex plugin cache, used for a first Brand Deck audit, and routed through report-quality to the next action. Target-onboarding receipts prove a fresh iOS app repo can install starter files, pass starter doctor, validate the toolkit, run iOS doctor/inventory, and get the first scoped permission-audit plan without maintainer context. Multi-profile onboarding receipts now prove iOS, web, backend, and CLI starter profiles each install, pass doctor, and leave `SHIPGUARD_PROFILE.md` next commands. Profile-native first-audit receipts now prove web, backend, and CLI targets get real WebScan, ServiceRadar, and CommandLens reports beyond init/doctor starter files, while the scanners exclude generated ShipGuard starter files from target validation and risk signals. Profile-native fix-plan receipts now prove those first audits become WebForge, ServiceForge, and CommandForge scoped tasks with validation commands, stop conditions, and report-quality handoff. Profile-native validation receipts now prove those plans classify runnable, blocked, manual, and unchecked validation lanes without executing arbitrary target commands. Profile-native validation rerun receipts now prove blocked lanes expose the smallest repair and clear after rerunning the plan. Profile-native proof handoff receipts now prove repaired plans emit copy-ready evidence packets for Codex and maintainers. Command-family runtime-output receipts now prove major report-producing families emit useful JSON/Markdown output, not only `--help` wiring. Trust-hardening receipts now prove GitHub Action input handoff, Devspace public URL boundaries, archive extraction safety, and release provenance failure paths. Task-contract receipts now prove prepare/verify share scope, evidence, claims, and verdict through one object. The next expansion should make verification diff-first so the exact AI-generated change is explained before merge.
 - Keep the ShipGuard Brand Deck naming contract current so new public surfaces get a branded name, plain purpose, proof boundary, docs coverage, skill/eval routing when needed, self-audit coverage, and package proof before release.
 - Keep `ios launchdeck` as the native ShipGuard front door for LaunchDeck workflows: it should inspect repo topology, recommend XcodeBuildMCP build/run defaults, simulator browser proof, SwiftUI preview hot reload, debugger/log capture, and profiler routes, while keeping execution ownership in Codex iOS execution tools and proof/report ownership in ShipGuard.
 - Keep improving `ios launchdeck --receipt` until every LaunchDeck execution lane has concrete receipt grading: build/run logs, UI snapshots, simulator-browser frames, SwiftUI hot-reload output, profiler traces, fallback samples, and explicit device-only proof gaps.

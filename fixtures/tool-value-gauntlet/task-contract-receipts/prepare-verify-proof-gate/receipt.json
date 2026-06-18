@@ -1,0 +1,179 @@
+{
+  "id": "prepare-verify-proof-gate",
+  "kind": "task-contract-receipt",
+  "surface": "ShipGuard Task Contract",
+  "selectedMode": "value-gauntlet task-contract receipts",
+  "trigger": "Prove that ShipGuard prepare and verify share one durable task object across repo context, risk, authorized scope, validation, evidence, claims, verdict, and exact next action.",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/task_contract.py",
+    "scripts/tool_value_gauntlet.py",
+    "docs/task-contract.md",
+    "docs/product-strategy.md",
+    "docs/oss-evaluation.md"
+  ],
+  "expectedSourcePhrases": [
+    "shipguard prepare",
+    "shipguard verify",
+    "ShipGuard Task Contract",
+    "unsupported completion claim",
+    "nextAction",
+    "diff-first verification"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppsUsed": false,
+    "inputs": [
+      "fixtures/demo-ios-repo",
+      "synthetic allowed diff",
+      "synthetic protected-boundary diff",
+      "synthetic validation receipt"
+    ]
+  },
+  "commands": [
+    {
+      "id": "prepare-ios-notification-task",
+      "display": "./bin/shipguard prepare \"Add provisional notification onboarding flow\" --path fixtures/demo-ios-repo --out <out>/prepare --profile ios --shipguard-eval --shareable",
+      "args": [
+        "prepare",
+        "Add provisional notification onboarding flow",
+        "--path",
+        "fixtures/demo-ios-repo",
+        "--out",
+        "{out}/prepare",
+        "--profile",
+        "ios",
+        "--forbidden",
+        ".github/workflows/**",
+        "--validation",
+        "swift test",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "prepare/shipguard-task.json",
+          "type": "json",
+          "requiredJsonKeys": ["schemaVersion", "tool", "taskId", "goal", "projectSnapshot", "riskClassification", "authorizedFiles", "protectedBoundaries", "validationContract", "nextAction"],
+          "requiredNonEmptyJsonPaths": ["taskId", "projectSnapshot.profile", "riskClassification.level", "authorizedFiles", "validationContract.required", "nextAction.command"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard prepare"},
+            {"path": "surface", "equals": "ShipGuard Task Contract"},
+            {"path": "projectSnapshot.profile", "equals": "ios"},
+            {"path": "projectSnapshot.root", "equals": "<target-repo>"},
+            {"path": "scopeBoundary.shipguardOnly", "equals": true},
+            {"path": "scopeBoundary.targetAppsReadOnly", "equals": true}
+          ]
+        },
+        {
+          "path": "prepare/shipguard-task.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard Task Contract",
+            "Required Proof",
+            "ShipGuard Product-QA Boundary",
+            "shipguard verify"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "verify-scoped-diff-pass",
+      "display": "./bin/shipguard verify --task <out>/prepare/shipguard-task.json --diff <out>/diffs/good.diff --evidence <out>/logs/swift-test.log --out <out>/verify-pass",
+      "args": [
+        "verify",
+        "--task",
+        "{out}/prepare/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/good.diff",
+        "--evidence",
+        "{out}/logs/swift-test.log",
+        "--claim",
+        "Implemented scoped notification onboarding source update.",
+        "--out",
+        "{out}/verify-pass"
+      ],
+      "prepareFiles": [
+        {
+          "path": "diffs/good.diff",
+          "text": "diff --git a/Sources/DemoShipGuardApp/DemoPermissions.swift b/Sources/DemoShipGuardApp/DemoPermissions.swift\n--- a/Sources/DemoShipGuardApp/DemoPermissions.swift\n+++ b/Sources/DemoShipGuardApp/DemoPermissions.swift\n@@ -1,3 +1,4 @@\n+// scoped proof fixture\n"
+        },
+        {
+          "path": "logs/swift-test.log",
+          "text": "swift test passed for DemoPermissionsTests\n"
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "verify-pass/shipguard-verdict.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "taskId", "status", "changedFiles", "scopeChecks", "evidence", "claimChecks", "nextAction"],
+          "requiredNonEmptyJsonPaths": ["taskId", "changedFiles", "evidence", "nextAction.command"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard verify"},
+            {"path": "surface", "equals": "ShipGuard Task Contract Verdict"},
+            {"path": "status", "equals": "pass"}
+          ]
+        },
+        {
+          "path": "verify-pass/shipguard-verdict.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard Task Verdict",
+            "Status: pass",
+            "Attach shipguard-verdict.json"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "verify-protected-diff-blocked",
+      "display": "./bin/shipguard verify --task <out>/prepare/shipguard-task.json --diff <out>/diffs/protected.diff --claim \"Notification flow is fully verified.\" --out <out>/verify-blocked",
+      "args": [
+        "verify",
+        "--task",
+        "{out}/prepare/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/protected.diff",
+        "--claim",
+        "Notification flow is fully verified.",
+        "--out",
+        "{out}/verify-blocked"
+      ],
+      "expectedExitCode": 2,
+      "prepareFiles": [
+        {
+          "path": "diffs/protected.diff",
+          "text": "diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml\n--- a/.github/workflows/release.yml\n+++ b/.github/workflows/release.yml\n@@ -1,3 +1,4 @@\n+name: unsafe-release-change\n"
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "verify-blocked/shipguard-verdict.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "taskId", "status", "changedFiles", "scopeChecks", "claimChecks", "blockingReasons", "nextAction"],
+          "requiredNonEmptyJsonPaths": ["changedFiles", "scopeChecks.outOfScope", "scopeChecks.forbiddenTouched", "claimChecks.rejectedClaims", "blockingReasons", "nextAction.command"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard verify"},
+            {"path": "status", "equals": "blocked"}
+          ]
+        },
+        {
+          "path": "verify-blocked/shipguard-verdict.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard Task Verdict",
+            "Status: blocked",
+            "Protected boundary touched",
+            "fully verified",
+            "Update the task contract scope"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}

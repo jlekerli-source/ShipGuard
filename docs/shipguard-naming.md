@@ -28,6 +28,8 @@ The rule is simple: a fun name is allowed only when its plain job and proof boun
 | `shipguard init` | ShipGuard StarterBay | Install starter workflow profiles into iOS, web, backend, or CLI repos. |
 | `shipguard validate` | ShipGuard RigCheck | Validate that a ShipGuard checkout or package contains the required workflow bundle. |
 | `shipguard doctor` | ShipGuard RepoVitals | Check whether a target repo has the starter workflow files it should have. |
+| `shipguard prepare` | ShipGuard Task Contract | Create a durable proof-gated Codex task object before edits. |
+| `shipguard verify` | ShipGuard Task Verdict | Verify the exact diff, evidence receipts, and agent claims against a task contract. |
 | `shipguard web audit` | ShipGuard WebScan | Run a first web-app audit for framework signals, auth/payment risks, validation lanes, starter workflow health, and next commands. |
 | `shipguard web plan` | ShipGuard WebForge | Turn WebScan output into scoped web tasks, validation commands, stop conditions, and report-quality questions. |
 | `shipguard backend audit` | ShipGuard ServiceRadar | Run a first backend-service audit for API, auth, migration, queue, webhook, observability, validation, and next-command signals. |

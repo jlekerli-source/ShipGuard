@@ -13,6 +13,7 @@ ShipGuard is a local-first workflow kit for using Codex on production iOS apps w
 It gives AI-assisted development a repeatable operating loop:
 
 - Map risky surfaces before editing: build/run/debug routes, permissions, notifications, StoreKit, widgets, App Intents, background modes, performance, design, and release proof.
+- Prepare one durable task contract before Codex edits, then verify the exact diff, evidence, and claims after Codex works.
 - Generate plans, specs, tasks, slash goals, and validation commands before implementation.
 - Run read-only product-QA reports against real apps without turning findings into accidental app work.
 - Score report quality, redact/share safely, promote public-safe fixtures, and package release evidence.
@@ -32,8 +33,8 @@ The naming style is intentional: stable commands and paths stay literal, while p
 Install from a release tarball, then validate the bundle:
 
 ```bash
-tar -xzf shipguard-v3.106.0.tar.gz
-cd shipguard-v3.106.0
+tar -xzf shipguard-v3.107.0.tar.gz
+cd shipguard-v3.107.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" version
 ./bin/shipguard validate
@@ -57,6 +58,14 @@ Copy a starter workflow into your app:
 ./bin/shipguard cli audit --path ../my-tool --out /tmp/shipguard-cli-audit --shareable
 ```
 
+For a risky change, start with the proof-gated task loop:
+
+```bash
+./bin/shipguard prepare "Add provisional notification onboarding flow" --path ../my-ios-app --out /tmp/shipguard-task --profile ios --shareable
+# after Codex edits
+./bin/shipguard verify --task /tmp/shipguard-task/shipguard-task.json --diff /tmp/change.diff --evidence /tmp/validation.log --out /tmp/shipguard-verdict
+```
+
 1. Start each non-trivial Codex thread from `CODEX_TASK_TEMPLATE.md`.
 2. Copy `AGENTS.md` into your repo root and replace the sample project names, paths, commands, and protected areas with your own.
 3. Use `PLANS.md` before risky work, release work, or changes that touch persistence, notifications, payments, or app lifecycle code.
@@ -67,6 +76,7 @@ Copy a starter workflow into your app:
 Start with these docs:
 
 - `docs/adoption-guide.md`: first 30 minutes with ShipGuard.
+- `docs/task-contract.md`: proof-gated `prepare` and `verify` loop.
 - `docs/command-matrix.md`: map maintainer jobs to CLI commands.
 - `docs/ios-shipguard.md`: iOS plugin, skill, and CLI workflow.
 - `docs/shipguard-devspace.md`: ChatGPT visual-planning bridge from the iPhone preview.
@@ -82,6 +92,7 @@ Common loops:
 | Job | Command |
 | --- | --- |
 | Audit an AI coding run | `./bin/shipguard autopsy --help` |
+| Prepare and verify a Codex task | `./bin/shipguard prepare --help`, `./bin/shipguard verify --help` |
 | Inspect risky iOS surfaces | `./bin/shipguard ios doctor --help` |
 | Check the branded naming scheme | `./bin/shipguard brand --help` |
 | Audit actual ShipGuard developer value | `./bin/shipguard value-gauntlet --help` |
@@ -102,6 +113,7 @@ Read `docs/cli.md` for the full command reference and `examples/demo-walkthrough
 ## What Is Inside
 
 - `bin/shipguard`: the local CLI for validation, iOS analysis, report quality, spec workflow generation, release proof, and handoff creation.
+- `scripts/task_contract.py`: the durable `prepare`/`verify` task contract and verdict engine for proof-gated Codex changes.
 - `scripts/tool_value_gauntlet.py`: the ShipGuard Tool Value Gauntlet for grading every command, skill, plugin, action, doc, and proof path for real developer usefulness, running representative commands, every public command help path, skill/plugin receipts, workflow chains, scenario failure/remediation, fresh package adoption, and profile-native repair/rerun receipts before probing the weakest next workflow layer.
 - `scripts/profile_audit.py`: ShipGuard WebScan, ServiceRadar, and CommandLens first-audit reports for web, backend, and CLI starter targets, with scan transparency that excludes generated ShipGuard starter files from target evidence.
 - `scripts/profile_fix_plan.py`: ShipGuard WebForge, ServiceForge, and CommandForge fix-plan reports that turn profile audits into scoped tasks, validation commands, read-only validation receipts, validation rerun receipts, stop conditions, and report-quality questions.
@@ -119,10 +131,11 @@ Read `docs/cli.md` for the full command reference and `examples/demo-walkthrough
 request
   -> read AGENTS.md
   -> choose risk lane
+  -> prepare a ShipGuard task contract
   -> write or update PLANS.md
   -> make the smallest scoped change
   -> run the narrowest proof command
-  -> review the diff and evidence
+  -> verify the diff, evidence, and claims
   -> ship only what is proven
 ```
 

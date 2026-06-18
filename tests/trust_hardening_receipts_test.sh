@@ -17,7 +17,7 @@ test -f "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 grep -q '"trustHardeningReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q 'Trust-Hardening Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
-grep -q 'proof-gated task contract' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'diff-first verification' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
@@ -65,12 +65,14 @@ for command in receipt.get("commands") or []:
     if command.get("status") != "pass" or command.get("missing"):
         raise SystemExit(f"trust command should pass without missing checks: {command!r}")
 
-if answer.get("identifier") != "shipguard prepare-verify proof-gated-task-contract":
-    raise SystemExit(f"passing trust receipts should escalate to proof-gated task contract: {answer!r}")
+if answer.get("identifier") != "shipguard verify diff-first-change-review":
+    raise SystemExit(f"passing trust and task-contract receipts should escalate to diff-first verification: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"trust-hardening should no longer be missing: {answer!r}")
-if "runtimeProofGatedTaskContract" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"proof-gated task contract gap should be explicit: {answer!r}")
+if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
+if "runtimeDiffFirstVerification" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"diff-first verification gap should be explicit: {answer!r}")
 PY
 
 echo "trust hardening receipt tests passed"

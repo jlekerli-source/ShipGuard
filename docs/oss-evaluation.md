@@ -10,7 +10,7 @@ Current checkout:
 
 ```bash
 ./bin/shipguard version
-# 3.106.0
+# 3.107.0
 
 ./bin/shipguard validate
 # workflow bundle validation passed
@@ -157,7 +157,7 @@ The next read-only Ringly/Ilmify report-quality pass still left a manual gap: it
 
 The next read-only full-report pass showed report-quality could score all source reports as structurally valid while leaving 21 actionability questions unranked and even suggesting "fix high report-quality issues" when there were no findings. `ios report-quality` now emits `priorityAction` and `prioritizedActionabilityQuestions`, ranks report-quality findings before questions, and ranks questions from blocked/review source reports before lower-risk output so the next ShipGuard improvement is concrete.
 
-The installed Codex cache now has `ios-shipguard` metadata version `0.2.21+codex.20260618143000`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, source-path MCP sidecar, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
+The installed Codex cache now has `ios-shipguard` metadata version `0.2.22+codex.20260618152000`, repository `https://github.com/jlekerli-source/ShipGuard`, display name `iOS ShipGuard`, and no stale `ringly-codex-workflows`, `Shipguard`, source-path MCP sidecar, or primary `codex-maintainer` guidance. The tracked checkout includes `plugins/ios-shipguard`, and package proof requires that plugin source.
 
 The next value-gauntlet pass scored the ShipYard at 100.0 but still prioritized whether low-value patterns should become public fixtures. That question is now promoted into `fixtures/ios-report-quality/value-gauntlet-actionability`, a synthetic report-quality fixture that keeps `shipguard value-gauntlet` actionability visible while proving materialized fixtures do not recursively emit more fixture candidates.
 
@@ -199,7 +199,9 @@ The profile-native proof handoff receipt slice adds a public fixture under `fixt
 
 The command-family runtime-output receipt slice adds a public fixture under `fixtures/tool-value-gauntlet/command-family-runtime-output-receipts`. `commandFamilyRuntimeOutputReceipts` runs Brand Deck, DockCheck, VibeCheck, WebScan, WebForge, LinkSweep, and ManifestForge against public or synthetic inputs, then requires useful JSON/Markdown artifacts, local-path-safe shareable reports where applicable, and machine-readable proof that each command produced actionable output beyond `--help`.
 
-The trust-hardening receipt slice adds a public fixture under `fixtures/tool-value-gauntlet/trust-hardening-receipts`. `trustHardeningReceipts` scans composite action shell bodies for raw `${{ inputs.* }}` interpolation, runs the Devspace public URL token blocker, exercises unsafe archive extraction rejection, and proves release provenance rejects bad or tag-mismatched release URLs while still emitting valid provenance for a synthetic release manifest. With those receipts green, the next weakness is the persistent proof-gated task contract that connects prepare, verify, scope, evidence, and verdict.
+The trust-hardening receipt slice adds a public fixture under `fixtures/tool-value-gauntlet/trust-hardening-receipts`. `trustHardeningReceipts` scans composite action shell bodies for raw `${{ inputs.* }}` interpolation, runs the Devspace public URL token blocker, exercises unsafe archive extraction rejection, and proves release provenance rejects bad or tag-mismatched release URLs while still emitting valid provenance for a synthetic release manifest. With those receipts green, the next weakness was the persistent proof-gated task contract that connects prepare, verify, scope, evidence, and verdict.
+
+The proof-gated task-contract slice adds `shipguard prepare`, `shipguard verify`, `scripts/task_contract.py`, `docs/task-contract.md`, focused task-contract tests, and `fixtures/tool-value-gauntlet/task-contract-receipts`. `taskContractReceipts` now proves a public iOS task can create one durable task object, pass a scoped diff with validation evidence, and block a protected/out-of-scope diff plus unsupported "fully verified" claim with an exact next action. With those receipts green, the next weakness is diff-first verification that explains the exact AI-generated change before merge.
 
 ## Verdict
 

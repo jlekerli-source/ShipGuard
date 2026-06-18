@@ -115,6 +115,7 @@ grep -q "^$package_name/docs/command-matrix.md$" "$tar_list"
 grep -q "^$package_name/docs/demo-reports.md$" "$tar_list"
 grep -q "^$package_name/docs/docs-check.md$" "$tar_list"
 grep -q "^$package_name/docs/shipguard-naming.md$" "$tar_list"
+grep -q "^$package_name/docs/task-contract.md$" "$tar_list"
 grep -q "^$package_name/docs/ios-preview.md$" "$tar_list"
 grep -q "^$package_name/docs/ios-shipguard.md$" "$tar_list"
 grep -q "^$package_name/docs/shipguard-devspace.md$" "$tar_list"
@@ -171,6 +172,7 @@ grep -q "^$package_name/scripts/ios_app_intelligence.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_branding.py$" "$tar_list"
 grep -q "^$package_name/scripts/profile_audit.py$" "$tar_list"
 grep -q "^$package_name/scripts/profile_fix_plan.py$" "$tar_list"
+grep -q "^$package_name/scripts/task_contract.py$" "$tar_list"
 grep -q "^$package_name/scripts/tool_value_gauntlet.py$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/skill-plugin-receipts/ios-shipguard-design-audit/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/skill-plugin-receipts/plugin-cache-status/receipt.json$" "$tar_list"
@@ -189,6 +191,7 @@ grep -q "^$package_name/fixtures/tool-value-gauntlet/profile-native-validation-r
 grep -q "^$package_name/fixtures/tool-value-gauntlet/profile-native-proof-handoff-receipts/web-backend-cli-proof-handoffs/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/command-family-runtime-output-receipts/major-family-report-outputs/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/trust-hardening-receipts/action-devspace-archive-release-provenance/receipt.json$" "$tar_list"
+grep -q "^$package_name/fixtures/tool-value-gauntlet/task-contract-receipts/prepare-verify-proof-gate/receipt.json$" "$tar_list"
 grep -q "^$package_name/scripts/ios_launchdeck.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_codex_handoff.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_devspace_check.py$" "$tar_list"
@@ -273,6 +276,8 @@ grep -q "^$package_name/tests/profile_validation_rerun_receipts_test.sh$" "$tar_
 grep -q "^$package_name/tests/profile_proof_handoff_receipts_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/command_family_runtime_output_receipts_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/trust_hardening_receipts_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/task_contract_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/task_contract_receipts_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_attest_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_consume_action_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/release_consume_test.sh$" "$tar_list"
@@ -410,6 +415,8 @@ fi
 test "$("$package_root/bin/shipguard" version)" = "$version"
 test "$("$package_root/bin/codex-maintainer" version)" = "$version"
 "$package_root/bin/shipguard" policy show >/dev/null
+"$package_root/bin/shipguard" prepare --help >/dev/null
+"$package_root/bin/shipguard" verify --help >/dev/null
 "$package_root/bin/shipguard" validate "$package_root" >/dev/null
 "$package_root/bin/shipguard" init ios "$tmp_dir/demo-target" --force >/dev/null
 "$package_root/bin/shipguard" doctor "$tmp_dir/demo-target" >/dev/null
@@ -443,6 +450,8 @@ grep -q 'Engine Tapes' "$tmp_dir/package-brand/ios-branding.md"
 grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
 grep -q '"surface": "ShipGuard Tool Value Gauntlet"' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
 grep -q '"priorityActions":' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
+grep -q '"taskContractReceipts":' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
+grep -q 'diff-first verification' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
 package_score_output="$("$package_root/bin/shipguard" score "$package_root/examples/scored-run.md")"
 printf '%s\n' "$package_score_output" | grep -q 'Total score: 11/12'
@@ -750,6 +759,8 @@ grep -q 'actions/upload-artifact@v4' "$package_root/actions/release-consume/acti
 "$package_root/tests/profile_proof_handoff_receipts_test.sh" >/dev/null
 "$package_root/tests/command_family_runtime_output_receipts_test.sh" >/dev/null
 "$package_root/tests/trust_hardening_receipts_test.sh" >/dev/null
+"$package_root/tests/task_contract_test.sh" >/dev/null
+"$package_root/tests/task_contract_receipts_test.sh" >/dev/null
 package_raw_transcript="$tmp_dir/package-raw-transcript.md"
 package_home_prefix="/""home"
 package_home_path="$package_home_prefix/runner/AcmePrivateApp"
@@ -878,6 +889,7 @@ grep -q '| docs/release-proof-workflows.md | pass |' "$tmp_dir/package-self-audi
 grep -q '| docs/oss-evaluation.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/product-strategy.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/security-threat-model.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| docs/task-contract.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| examples/workflows/release-proof-on-tag.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| examples/workflows/arena-compare.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| examples/workflows/transcript-corpus.yml | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -911,6 +923,7 @@ grep -q '| scripts/transcript_corpus.sh | pass |' "$tmp_dir/package-self-audit/s
 grep -q '| scripts/docs_check.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/profile_audit.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/profile_fix_plan.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| scripts/task_contract.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/ios_doctor.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/ios_inventory.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/ios_launchdeck.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -930,11 +943,14 @@ grep -q '| tests/profile_validation_rerun_receipts_test.sh | pass |' "$tmp_dir/p
 grep -q '| tests/profile_proof_handoff_receipts_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| tests/command_family_runtime_output_receipts_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| tests/trust_hardening_receipts_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| tests/task_contract_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| tests/task_contract_receipts_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/profile-native-validation-receipts/web-backend-cli-validation-receipts/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/profile-native-validation-rerun-receipts/web-backend-cli-validation-rerun-receipts/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/profile-native-proof-handoff-receipts/web-backend-cli-proof-handoffs/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/command-family-runtime-output-receipts/major-family-report-outputs/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/trust-hardening-receipts/action-devspace-archive-release-provenance/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| fixtures/tool-value-gauntlet/task-contract-receipts/prepare-verify-proof-gate/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q 'shipguard web audit' "$package_root/docs/cli.md"
 grep -q 'shipguard web plan' "$package_root/docs/cli.md"
 grep -q 'shipguard backend audit' "$package_root/docs/cli.md"
@@ -971,6 +987,8 @@ grep -q './tests/profile_validation_rerun_receipts_test.sh' "$tmp_dir/package-ne
 grep -q './tests/profile_proof_handoff_receipts_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/command_family_runtime_output_receipts_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/trust_hardening_receipts_test.sh' "$tmp_dir/package-next-goal.md"
+grep -q './tests/task_contract_test.sh' "$tmp_dir/package-next-goal.md"
+grep -q './tests/task_contract_receipts_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/tool_value_gauntlet_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/ios_launchdeck_test.sh' "$tmp_dir/package-next-goal.md"
 grep -q './tests/ios_performance_test.sh' "$tmp_dir/package-next-goal.md"

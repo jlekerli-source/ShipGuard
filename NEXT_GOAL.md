@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T13:49:01Z
-- Current toolkit version: 3.106.0
-- Target release: v3.106.0
-- Title: ShipGuard Trust-Hardening Receipts And Proof-Gated Task Contract
+- Generated: 2026-06-18T14:29:10Z
+- Current toolkit version: 3.107.0
+- Target release: v3.107.0
+- Title: ShipGuard Proof-Gated Task Contract
 
 ## Slash Plan
 
 ```text
-/plan v3.106.0 ShipGuard Trust-Hardening Receipts And Proof-Gated Task Contract for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add trustHardeningReceipts to value-gauntlet, harden composite action shell input handoff, add public Devspace/archive/release provenance trust receipts, advance the next weak surface to the proof-gated task contract, and keep package/self-audit proof aligned.
+/plan v3.107.0 ShipGuard Proof-Gated Task Contract for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add shipguard prepare and shipguard verify as a durable proof-gated task contract, prove taskContractReceipts in value-gauntlet, connect scope/evidence/claims/verdict into one artifact, and advance the next weak surface to diff-first verification.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.106.0 ShipGuard Trust-Hardening Receipts And Proof-Gated Task Contract for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add trustHardeningReceipts to value-gauntlet, harden composite action shell input handoff, add public Devspace/archive/release provenance trust receipts, advance the next weak surface to the proof-gated task contract, and keep package/self-audit proof aligned, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.107.0 ShipGuard Proof-Gated Task Contract for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add shipguard prepare and shipguard verify as a durable proof-gated task contract, prove taskContractReceipts in value-gauntlet, connect scope/evidence/claims/verdict into one artifact, and advance the next weak surface to diff-first verification, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add trustHardeningReceipts to value-gauntlet, harden composite action shell input handoff, add public Devspace/archive/release provenance trust receipts, advance the next weak surface to the proof-gated task contract, and keep package/self-audit proof aligned.
+Add shipguard prepare and shipguard verify as a durable proof-gated task contract, prove taskContractReceipts in value-gauntlet, connect scope/evidence/claims/verdict into one artifact, and advance the next weak surface to diff-first verification.
 
 ## Completion Receipt
 
-- Completed scope: Add trustHardeningReceipts to value-gauntlet, harden composite action shell input handoff, add public Devspace/archive/release provenance trust receipts, advance the next weak surface to the proof-gated task contract, and keep package/self-audit proof aligned.
-- Evidence: git diff --check; python3 -m py_compile scripts/tool_value_gauntlet.py scripts/ios_devspace_check.py; ./tests/trust_hardening_receipts_test.sh; ./tests/command_family_runtime_output_receipts_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard validate; ./tests/self_audit_test.sh; ./tests/next_goal_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3106; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet-v3106-final; ./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet-v3106-final --out /tmp/shipguard-value-quality-v3106-final --shareable; action-focused tests; ./tests/release_proof_consumption_test.sh; ./tests/package_release_test.sh
+- Completed scope: Add shipguard prepare and shipguard verify as a durable proof-gated task contract, prove taskContractReceipts in value-gauntlet, connect scope/evidence/claims/verdict into one artifact, and advance the next weak surface to diff-first verification.
+- Evidence: git diff --check; python3 -m py_compile scripts/task_contract.py scripts/tool_value_gauntlet.py; ./tests/task_contract_test.sh; ./tests/task_contract_receipts_test.sh; ./tests/tool_value_gauntlet_test.sh; ./tests/trust_hardening_receipts_test.sh; ./tests/command_family_runtime_output_receipts_test.sh; ./bin/shipguard validate; ./tests/self_audit_test.sh; ./tests/next_goal_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3107; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet-v3107-final; ./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet-v3107-final --out /tmp/shipguard-value-quality-v3107-final --shareable; ./tests/package_release_test.sh
 
 ## Following Slash Plan
 
 ```text
-/plan v3.107.0 ShipGuard Proof-Gated Task Contract for jlekerli-source/ShipGuard:
+/plan v3.108.0 ShipGuard Diff-First Verification for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add trustHardeningReceipts to value-gauntlet, harden composite action shell inpu
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.107.0 ShipGuard Proof-Gated Task Contract for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.108.0 ShipGuard Diff-First Verification for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.107.0 --title "ShipGuard Proof-Gated Task Contract" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.108.0 --title "ShipGuard Diff-First Verification" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -91,6 +91,8 @@ Generate that follow-up file with:
 ./tests/profile_proof_handoff_receipts_test.sh
 ./tests/command_family_runtime_output_receipts_test.sh
 ./tests/trust_hardening_receipts_test.sh
+./tests/task_contract_test.sh
+./tests/task_contract_receipts_test.sh
 ./tests/tool_value_gauntlet_test.sh
 ./tests/ios_doctor_test.sh
 ./tests/ios_inventory_test.sh
@@ -143,12 +145,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.106.0.
+1. Open or update the tracking issue for v3.107.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.106.0` and upload `dist/shipguard-v3.106.0.tar.gz`.
+6. Create release `v3.107.0` and upload `dist/shipguard-v3.107.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
