@@ -26,6 +26,7 @@ MODE_COMMANDS = {
     "shipyard-value-audit": [
         "shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet",
         "shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --out /tmp/shipguard-value-quality --shareable",
+        "shipguard web/backend/cli audit and plan receipts when the gauntlet points at profile-native gaps",
         "Upgrade ShipGuard docs, tests, skills, package proof, or command behavior from the gauntlet priority actions",
     ],
     "launchdeck": [

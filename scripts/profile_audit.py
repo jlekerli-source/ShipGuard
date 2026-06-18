@@ -25,6 +25,7 @@ PROFILE_CONFIG: dict[str, dict[str, Any]] = {
         },
         "firstCommands": [
             "shipguard web audit --path . --out /tmp/shipguard-web-audit",
+            "shipguard web plan --report /tmp/shipguard-web-audit --out /tmp/shipguard-web-plan --shareable",
             "shipguard ios report-quality --reports /tmp/shipguard-web-audit --out /tmp/shipguard-web-quality --shareable",
         ],
         "recommendedValidation": ["npm run lint", "npm test", "npm run build", "npx playwright test"],
@@ -42,6 +43,7 @@ PROFILE_CONFIG: dict[str, dict[str, Any]] = {
         },
         "firstCommands": [
             "shipguard backend audit --path . --out /tmp/shipguard-backend-audit",
+            "shipguard backend plan --report /tmp/shipguard-backend-audit --out /tmp/shipguard-backend-plan --shareable",
             "shipguard ios report-quality --reports /tmp/shipguard-backend-audit --out /tmp/shipguard-backend-quality --shareable",
         ],
         "recommendedValidation": ["lint/typecheck", "unit tests", "integration tests", "migration dry-run", "deployment preflight"],
@@ -59,6 +61,7 @@ PROFILE_CONFIG: dict[str, dict[str, Any]] = {
         },
         "firstCommands": [
             "shipguard cli audit --path . --out /tmp/shipguard-cli-audit",
+            "shipguard cli plan --report /tmp/shipguard-cli-audit --out /tmp/shipguard-cli-plan --shareable",
             "shipguard ios report-quality --reports /tmp/shipguard-cli-audit --out /tmp/shipguard-cli-quality --shareable",
         ],
         "recommendedValidation": ["--help smoke test", "version smoke test", "golden stdout/stderr test", "package install test"],

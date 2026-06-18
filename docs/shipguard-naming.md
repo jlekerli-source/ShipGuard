@@ -29,8 +29,11 @@ The rule is simple: a fun name is allowed only when its plain job and proof boun
 | `shipguard validate` | ShipGuard RigCheck | Validate that a ShipGuard checkout or package contains the required workflow bundle. |
 | `shipguard doctor` | ShipGuard RepoVitals | Check whether a target repo has the starter workflow files it should have. |
 | `shipguard web audit` | ShipGuard WebScan | Run a first web-app audit for framework signals, auth/payment risks, validation lanes, starter workflow health, and next commands. |
+| `shipguard web plan` | ShipGuard WebForge | Turn WebScan output into scoped web tasks, validation commands, stop conditions, and report-quality questions. |
 | `shipguard backend audit` | ShipGuard ServiceRadar | Run a first backend-service audit for API, auth, migration, queue, webhook, observability, validation, and next-command signals. |
+| `shipguard backend plan` | ShipGuard ServiceForge | Turn ServiceRadar output into scoped backend tasks, validation commands, stop conditions, and report-quality questions. |
 | `shipguard cli audit` | ShipGuard CommandLens | Run a first CLI-tool audit for command dispatch, argument parsing, stdout/stderr contracts, exit codes, redaction, packaging, and next commands. |
+| `shipguard cli plan` | ShipGuard CommandForge | Turn CommandLens output into scoped CLI tasks, smoke commands, contract checks, stop conditions, and report-quality questions. |
 | `shipguard policy` | ShipGuard RuleHarbor | Initialize or inspect policy config for scoped agent behavior. |
 | `shipguard score` | ShipGuard RunScore | Score a Codex run against scope, ownership, risk, validation, and handoff quality. |
 | `shipguard transcript` | ShipGuard TraceVault | Redact, verify, and index maintainer transcripts for public-safe evidence. |

@@ -37,8 +37,11 @@ Usage:
   shipguard brand [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
   shipguard value-gauntlet [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
   shipguard web audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard web plan --report <web-audit-json-or-dir> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard backend audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard backend plan --report <backend-audit-json-or-dir> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard cli audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard cli plan --report <cli-audit-json-or-dir> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard ios doctor [--path <ios-project>] [--out <dir>] [--json|--markdown]
   shipguard ios inventory [--path <ios-project>] [--doctor <ios-doctor.json>] [--out <dir>] [--json|--markdown]
   shipguard ios preview --out <dir> [--device booted] [--host 127.0.0.1] [--port 8765]
@@ -101,9 +104,9 @@ Commands:
   brand       Audit the full ShipGuard branded naming scheme.
   value-gauntlet
               Grade every ShipGuard command, skill, plugin, action, and proof surface for developer value.
-  web         Web-focused first-audit report for starter repos.
-  backend     Backend-focused first-audit report for starter repos.
-  cli         CLI-focused first-audit report for starter repos.
+  web         Web-focused first-audit and fix-plan reports for starter repos.
+  backend     Backend-focused first-audit and fix-plan reports for starter repos.
+  cli         CLI-focused first-audit and fix-plan reports for starter repos.
   ios         iOS-focused Codex planning helpers for branded build, debug, permission, preview, performance, and runtime surfaces.
   codex      Check local Codex plugin install status for ShipGuard.
   leaderboard Build a stable leaderboard JSON file from arena results.
@@ -408,13 +411,20 @@ cmd_value_gauntlet() {
   run_py "$tool_root/scripts/tool_value_gauntlet.py" "$@"
 }
 
-cmd_profile_audit() {
+cmd_profile() {
   local profile="$1"
   shift || true
   local subcommand="${1:-}"
-  [[ "$subcommand" == "audit" ]] || fail "$profile requires subcommand: audit"
+  [[ "$subcommand" == "audit" || "$subcommand" == "plan" ]] || fail "$profile requires subcommand: audit or plan"
   shift || true
-  run_py "$tool_root/scripts/profile_audit.py" "$profile" "$@"
+  case "$subcommand" in
+    audit)
+      run_py "$tool_root/scripts/profile_audit.py" "$profile" "$@"
+      ;;
+    plan)
+      run_py "$tool_root/scripts/profile_fix_plan.py" "$profile" "$@"
+      ;;
+  esac
 }
 
 cmd_ios() {
@@ -616,13 +626,13 @@ main() {
       cmd_value_gauntlet "$@"
       ;;
     web)
-      cmd_profile_audit web "$@"
+      cmd_profile web "$@"
       ;;
     backend)
-      cmd_profile_audit backend "$@"
+      cmd_profile backend "$@"
       ;;
     cli)
-      cmd_profile_audit cli "$@"
+      cmd_profile cli "$@"
       ;;
     ios)
       cmd_ios "$@"

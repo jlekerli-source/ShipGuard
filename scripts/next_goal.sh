@@ -198,6 +198,8 @@ cat >> "$out_file" <<EOF
 ./bin/shipguard brand --path . --out /tmp/shipguard-brand --strict
 ./tests/ios_branding_test.sh
 ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet
+./tests/profile_audit_test.sh
+./tests/profile_fix_plan_test.sh
 ./tests/tool_value_gauntlet_test.sh
 ./tests/ios_doctor_test.sh
 ./tests/ios_inventory_test.sh

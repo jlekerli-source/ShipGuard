@@ -1,0 +1,364 @@
+{
+  "id": "web-backend-cli-fix-plans",
+  "kind": "profile-native-fix-plan",
+  "surface": "ShipGuard profile-native fix-plan path",
+  "selectedSkill": "ios-shipguard",
+  "selectedMode": "profile-native-fix-plan",
+  "trigger": "User asks whether web, backend, and CLI audits become genuinely useful work plans rather than decorative reports.",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/profile_audit.py",
+    "scripts/profile_fix_plan.py",
+    "docs/template-profiles.md",
+    "docs/command-matrix.md",
+    "docs/cli.md",
+    "tests/profile_fix_plan_test.sh",
+    "scripts/tool_value_gauntlet.py"
+  ],
+  "expectedSourcePhrases": [
+    "shipguard web plan",
+    "shipguard backend plan",
+    "shipguard cli plan",
+    "ShipGuard WebForge",
+    "ShipGuard ServiceForge",
+    "ShipGuard CommandForge",
+    "profile-native fix-plan"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppDetailsAllowed": false,
+    "freshTargetRequired": true
+  },
+  "commands": [
+    {
+      "id": "init-web-starter",
+      "display": "./bin/shipguard init web <fresh-web-target> --force",
+      "args": [
+        "init",
+        "web",
+        "{out}/target-web",
+        "--force"
+      ],
+      "expectedOutputPhrases": [
+        "initialized web Codex workflow starter"
+      ]
+    },
+    {
+      "id": "web-first-audit",
+      "display": "./bin/shipguard web audit --path <fresh-web-target> --out <receipt-out>/web-audit --shipguard-eval --shareable",
+      "prepareFiles": [
+        {
+          "path": "target-web/package.json",
+          "text": "{\n  \"scripts\": {\"lint\": \"eslint .\", \"test\": \"vitest\", \"build\": \"next build\", \"e2e\": \"playwright test\"},\n  \"dependencies\": {\"next\": \"latest\", \"stripe\": \"latest\"}\n}\n"
+        },
+        {
+          "path": "target-web/src/AuthPanel.tsx",
+          "text": "export const authPaymentSurface = true\n"
+        }
+      ],
+      "args": [
+        "web",
+        "audit",
+        "--path",
+        "{out}/target-web",
+        "--out",
+        "{out}/web-audit",
+        "--shipguard-eval",
+        "--shareable"
+      ]
+    },
+    {
+      "id": "web-fix-plan",
+      "display": "./bin/shipguard web plan --report <web-audit> --out <receipt-out>/web-plan --shipguard-eval --shareable",
+      "args": [
+        "web",
+        "plan",
+        "--report",
+        "{out}/web-audit",
+        "--out",
+        "{out}/web-plan",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "web-plan/web-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "surface",
+            "profile",
+            "sourceAudit",
+            "fixPlan",
+            "validationCommands",
+            "stopConditions",
+            "reportQualityQuestions"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "fixPlan.tasks",
+            "validationCommands",
+            "reportQualityQuestions"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard web plan"
+            },
+            {
+              "path": "profile",
+              "equals": "web"
+            }
+          ]
+        },
+        {
+          "path": "web-plan/web-plan.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard WebForge",
+            "Scoped Fix Plan",
+            "Validation Commands",
+            "Stop Conditions",
+            "Report Quality Questions"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "init-backend-starter",
+      "display": "./bin/shipguard init backend <fresh-backend-target> --force",
+      "args": [
+        "init",
+        "backend",
+        "{out}/target-backend",
+        "--force"
+      ],
+      "expectedOutputPhrases": [
+        "initialized backend Codex workflow starter"
+      ]
+    },
+    {
+      "id": "backend-first-audit",
+      "display": "./bin/shipguard backend audit --path <fresh-backend-target> --out <receipt-out>/backend-audit --shipguard-eval --shareable",
+      "prepareFiles": [
+        {
+          "path": "target-backend/pyproject.toml",
+          "text": "[project]\nname = \"demo-service\"\n\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n"
+        },
+        {
+          "path": "target-backend/app/routes/webhook.py",
+          "text": "def auth_webhook_queue_handler():\n    return 'ok'\n"
+        }
+      ],
+      "args": [
+        "backend",
+        "audit",
+        "--path",
+        "{out}/target-backend",
+        "--out",
+        "{out}/backend-audit",
+        "--shipguard-eval",
+        "--shareable"
+      ]
+    },
+    {
+      "id": "backend-fix-plan",
+      "display": "./bin/shipguard backend plan --report <backend-audit> --out <receipt-out>/backend-plan --shipguard-eval --shareable",
+      "args": [
+        "backend",
+        "plan",
+        "--report",
+        "{out}/backend-audit",
+        "--out",
+        "{out}/backend-plan",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "backend-plan/backend-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "surface",
+            "profile",
+            "sourceAudit",
+            "fixPlan",
+            "validationCommands",
+            "stopConditions",
+            "reportQualityQuestions"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "fixPlan.tasks",
+            "validationCommands",
+            "reportQualityQuestions"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard backend plan"
+            },
+            {
+              "path": "profile",
+              "equals": "backend"
+            }
+          ]
+        },
+        {
+          "path": "backend-plan/backend-plan.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard ServiceForge",
+            "Scoped Fix Plan",
+            "Validation Commands",
+            "Stop Conditions",
+            "Report Quality Questions"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "init-cli-starter",
+      "display": "./bin/shipguard init cli <fresh-cli-target> --force",
+      "args": [
+        "init",
+        "cli",
+        "{out}/target-cli",
+        "--force"
+      ],
+      "expectedOutputPhrases": [
+        "initialized cli Codex workflow starter"
+      ]
+    },
+    {
+      "id": "cli-first-audit",
+      "display": "./bin/shipguard cli audit --path <fresh-cli-target> --out <receipt-out>/cli-audit --shipguard-eval --shareable",
+      "prepareFiles": [
+        {
+          "path": "target-cli/package.json",
+          "text": "{\n  \"bin\": {\"demo-cli\": \"bin/demo-cli.js\"},\n  \"scripts\": {\"test\": \"node tests/demo.test.js\", \"lint\": \"shellcheck scripts/*.sh\"},\n  \"dependencies\": {\"commander\": \"latest\"}\n}\n"
+        },
+        {
+          "path": "target-cli/bin/demo-cli.js",
+          "text": "#!/usr/bin/env node\nconsole.log('stdout stderr exit code token redaction')\n"
+        }
+      ],
+      "args": [
+        "cli",
+        "audit",
+        "--path",
+        "{out}/target-cli",
+        "--out",
+        "{out}/cli-audit",
+        "--shipguard-eval",
+        "--shareable"
+      ]
+    },
+    {
+      "id": "cli-fix-plan",
+      "display": "./bin/shipguard cli plan --report <cli-audit> --out <receipt-out>/cli-plan --shipguard-eval --shareable",
+      "args": [
+        "cli",
+        "plan",
+        "--report",
+        "{out}/cli-audit",
+        "--out",
+        "{out}/cli-plan",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "cli-plan/cli-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "surface",
+            "profile",
+            "sourceAudit",
+            "fixPlan",
+            "validationCommands",
+            "stopConditions",
+            "reportQualityQuestions"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "fixPlan.tasks",
+            "validationCommands",
+            "reportQualityQuestions"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard cli plan"
+            },
+            {
+              "path": "profile",
+              "equals": "cli"
+            }
+          ]
+        },
+        {
+          "path": "cli-plan/cli-plan.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard CommandForge",
+            "Scoped Fix Plan",
+            "Validation Commands",
+            "Stop Conditions",
+            "Report Quality Questions"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "profile-fix-plan-quality",
+      "display": "./bin/shipguard ios report-quality --reports <web/backend/cli plans> --out <receipt-out>/profile-plan-quality --shareable",
+      "args": [
+        "ios",
+        "report-quality",
+        "--reports",
+        "{out}/web-plan",
+        "--reports",
+        "{out}/backend-plan",
+        "--reports",
+        "{out}/cli-plan",
+        "--out",
+        "{out}/profile-plan-quality",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "profile-plan-quality/ios-report-quality.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "reports",
+            "actionabilityQuestions"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "reports",
+            "actionabilityQuestions"
+          ]
+        },
+        {
+          "path": "profile-plan-quality/ios-report-quality.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# iOS ShipGuard Report Quality",
+            "ShipGuard WebForge",
+            "ShipGuard ServiceForge",
+            "ShipGuard CommandForge"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}

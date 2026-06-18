@@ -28,8 +28,11 @@ test "$(./bin/codex-maintainer version)" = "$(sed -n '1p' VERSION)"
 ./bin/shipguard brand --help >/dev/null
 ./bin/shipguard value-gauntlet --help >/dev/null
 ./bin/shipguard web audit --help >/dev/null
+./bin/shipguard web plan --help >/dev/null
 ./bin/shipguard backend audit --help >/dev/null
+./bin/shipguard backend plan --help >/dev/null
 ./bin/shipguard cli audit --help >/dev/null
+./bin/shipguard cli plan --help >/dev/null
 ./bin/shipguard ios doctor --help >/dev/null
 ./bin/shipguard ios inventory --help >/dev/null
 ./bin/shipguard ios preview --help >/dev/null
