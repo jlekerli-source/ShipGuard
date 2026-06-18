@@ -118,7 +118,7 @@ The current v3 line should remain decision-centered:
 
 ```text
 v3.115  Notification/permission domain pack
-v3.116  External pilot and honest usefulness metrics
+v3.116  ShipGuard PilotBench and honest usefulness metrics
 v3.117  Domain Pack SDK and core extraction
 v3.118  Configuration, baselines, and suppressions
 v3.119  Structured evidence receipts v2
@@ -129,6 +129,8 @@ v3.166-v3.180  Codex-native end-to-end UX
 v3.181-v3.190  CLI consolidation and packaging
 v3.191-v3.199  External benchmark, security review, v4 stabilization
 ```
+
+Current state: v3.116 adds ShipGuard PilotBench as the public-safe verdict-quality measurement layer. Once PilotBench receipts are green, the next architectural priority is v3.117 Domain Pack SDK extraction so StoreKit, persistence, lifecycle, performance, design, and modernization packs plug into one task-contract verdict engine instead of becoming disconnected report families.
 
 Every release proposal must answer:
 

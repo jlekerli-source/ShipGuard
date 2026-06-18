@@ -17,7 +17,7 @@ test -f "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 grep -q '"taskContractReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q 'Task-Contract Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
-grep -q 'external pilot verdict bench' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Domain Pack SDK' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
@@ -55,16 +55,18 @@ for command in receipt.get("commands") or []:
     if command.get("status") != "pass" or command.get("missing"):
         raise SystemExit(f"task-contract command should pass without missing checks: {command!r}")
 
-if answer.get("identifier") != "shipguard external-pilot-verdict-bench":
-    raise SystemExit(f"passing notification workflow receipts should escalate to external pilot verdict bench: {answer!r}")
+if answer.get("identifier") != "shipguard domain-pack-sdk-core":
+    raise SystemExit(f"passing notification workflow and PilotBench receipts should escalate to Domain Pack SDK: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"diff-first verification should no longer be missing: {answer!r}")
 if "runtimeIOSNotificationPermissionWorkflow" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"notification permission workflow should no longer be missing: {answer!r}")
-if "runtimeExternalPilotVerdictBench" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"external pilot verdict bench gap should be explicit: {answer!r}")
+if "runtimeExternalPilotVerdictBench" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"PilotBench should no longer be missing: {answer!r}")
+if "runtimeDomainPackSDK" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"Domain Pack SDK gap should be explicit: {answer!r}")
 PY
 
 echo "task contract receipt tests passed"

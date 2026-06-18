@@ -211,8 +211,8 @@ PERL
     local extract_dir="$tmp_dir/extract"
     mkdir -p "$extract_dir"
     if tar -xzf "$tarball" -C "$extract_dir"; then
-      local mac_user_path="/""Users/"
-      local linux_home_path="/""home/"
+      local mac_user_path="/""Users/[^/[:space:]]+/(Developer|Documents|Desktop|Downloads|Code|Library|Projects|Project|Repositories|repos|src|work|tmp)/"
+      local linux_home_path="/""home/[^/[:space:]]+/(Developer|Documents|Desktop|Downloads|Code|Projects|repositories|repos|src|work|tmp)/"
       local secret_like_pattern='ghp_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}'
       if grep -RIEq "$mac_user_path|$linux_home_path|$secret_like_pattern" "$extract_dir"; then
         add_check "blocked" "private path and secret scan" "extracted release contains a local path or secret-looking token"

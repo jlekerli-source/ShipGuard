@@ -45,6 +45,7 @@ COMMANDS: list[dict[str, str]] = [
     {"command": "shipguard sarif", "surface": "ShipGuard AlertBeacon", "family": "ci"},
     {"command": "shipguard docs-check", "surface": "ShipGuard LinkSweep", "family": "docs"},
     {"command": "shipguard value-gauntlet", "surface": "ShipGuard Tool Value Gauntlet", "family": "shipyard"},
+    {"command": "shipguard pilot-bench", "surface": "ShipGuard PilotBench", "family": "shipyard"},
     {"command": "shipguard ios doctor", "surface": "ShipGuard DockCheck", "family": "ios"},
     {"command": "shipguard ios inventory", "surface": "ShipGuard CargoScan", "family": "ios"},
     {"command": "shipguard ios plan", "surface": "ShipGuard BriefForge", "family": "ios"},
@@ -85,7 +86,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add an external pilot verdict bench that scores whether real read-only task traces improve scope, evidence, claim checking, and next-action quality without leaking private app details?",
+    "Should ShipGuard extract a Domain Pack SDK so new StoreKit, persistence, lifecycle, performance, design, and modernization packs can plug into the task-contract verdict engine without bespoke report families?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -169,6 +170,7 @@ PROFILE_NATIVE_PROOF_HANDOFF_RECEIPT_ROOT = Path("fixtures") / "tool-value-gaunt
 COMMAND_FAMILY_RUNTIME_OUTPUT_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "command-family-runtime-output-receipts"
 TRUST_HARDENING_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "trust-hardening-receipts"
 TASK_CONTRACT_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "task-contract-receipts"
+EXTERNAL_PILOT_VERDICT_BENCH_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "external-pilot-verdict-bench-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -882,6 +884,18 @@ def load_trust_hardening_receipts(root: Path) -> list[tuple[Path, dict[str, Any]
 
 def load_task_contract_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / TASK_CONTRACT_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_external_pilot_verdict_bench_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / EXTERNAL_PILOT_VERDICT_BENCH_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -2153,6 +2167,37 @@ def task_contract_receipt_probe(root: Path) -> dict[str, Any]:
     }
 
 
+def external_pilot_verdict_bench_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [
+        run_skill_plugin_receipt(root, fixture_dir, meta)
+        for fixture_dir, meta in load_external_pilot_verdict_bench_receipts(root)
+    ]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public ShipGuard PilotBench receipts that score read-only task traces for scope, proof, claims, redaction, false positives, and first useful verdict time.",
+        "fixtureRoot": EXTERNAL_PILOT_VERDICT_BENCH_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public synthetic pilot traces", "ShipGuard pilot-bench command"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "ShipGuard PilotBench receipts are passing; extract the Domain Pack SDK core next."
+            if status == "pass"
+            else "Fix PilotBench receipts so private read-only observations can become public-safe verdict-quality fixtures."
+        ),
+    }
+
+
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
     slug = command_slug(command)
     tokens = command_tokens(command)
@@ -2682,6 +2727,7 @@ def lowest_value_surface_probe(
     command_family_runtime_output_receipts: dict[str, Any],
     trust_hardening_receipts: dict[str, Any],
     task_contract_receipts: dict[str, Any],
+    external_pilot_verdict_bench_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -3337,6 +3383,40 @@ def lowest_value_surface_probe(
             recommendation="Add an external pilot verdict bench that turns read-only real-app task traces into public-safe verdict-quality scores and fixture candidates.",
             proof="Run value-gauntlet plus focused external-pilot verdict fixtures that grade scope precision, evidence requirements, claim rejection, redaction, and one-next-action usefulness without modifying private apps.",
         )
+    if (
+        answer
+        and answer.get("identifier") == "shipguard external-pilot-verdict-bench"
+        and external_pilot_verdict_bench_receipts.get("status") == "pass"
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeExternalPilotVerdictBench":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeExternalPilotVerdictBench",
+                        True,
+                        f"{external_pilot_verdict_bench_receipts.get('passedReceiptCount') or 0}/{external_pilot_verdict_bench_receipts.get('receiptCount') or 0} ShipGuard PilotBench receipts executed",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeDomainPackSDK",
+                False,
+                "domain-specific task-contract logic still needs a reusable SDK with stable extension points and compatibility tests",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="cross-cutting",
+            identifier="shipguard domain-pack-sdk-core",
+            name="Domain Pack SDK core",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Extract task-contract domain-pack extension points so StoreKit, persistence, lifecycle, performance, design, and modernization packs plug into one verdict engine.",
+            proof="Run value-gauntlet plus focused Domain Pack SDK fixtures that prove a synthetic pack can be added without editing the core verdict engine and without breaking notification-permission compatibility.",
+        )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
         answer = {
@@ -3414,6 +3494,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     command_family_runtime_output_receipts = command_family_runtime_output_receipt_probe(root)
     trust_hardening_receipts = trust_hardening_receipt_probe(root)
     task_contract_receipts = task_contract_receipt_probe(root)
+    external_pilot_verdict_bench_receipts = external_pilot_verdict_bench_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -3441,6 +3522,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         command_family_runtime_output_receipts=command_family_runtime_output_receipts,
         trust_hardening_receipts=trust_hardening_receipts,
         task_contract_receipts=task_contract_receipts,
+        external_pilot_verdict_bench_receipts=external_pilot_verdict_bench_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -3494,6 +3576,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "commandFamilyRuntimeOutputReceipts": command_family_runtime_output_receipts,
         "trustHardeningReceipts": trust_hardening_receipts,
         "taskContractReceipts": task_contract_receipts,
+        "externalPilotVerdictBenchReceipts": external_pilot_verdict_bench_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -4005,6 +4088,31 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_task_contract_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_task_contract_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+
+    pilot_bench_receipts = report.get("externalPilotVerdictBenchReceipts") or {}
+    lines.extend(["", "## ShipGuard PilotBench Receipts", ""])
+    lines.append(f"- Status: {pilot_bench_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {pilot_bench_receipts.get('passedReceiptCount', 0)}/{pilot_bench_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {pilot_bench_receipts.get('commandCount', 0)}")
+    if pilot_bench_receipts.get("nextAction"):
+        lines.append(f"- Next action: {pilot_bench_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in pilot_bench_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 44)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_pilot_bench_commands = [
+        (receipt, command)
+        for receipt in pilot_bench_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_pilot_bench_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_pilot_bench_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

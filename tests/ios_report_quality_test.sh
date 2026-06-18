@@ -1828,8 +1828,8 @@ for candidate in data.get("fixtureCandidates") or []:
 priority = data.get("priorityAction") or {}
 if priority.get("question") == covered_question:
     raise SystemExit(f"covered value-gauntlet question should not remain the priority action: {priority!r}")
-if "external pilot verdict bench" not in priority.get("question", ""):
-    raise SystemExit(f"expected next uncovered external pilot verdict bench question as priority: {priority!r}")
+if "Domain Pack SDK" not in priority.get("question", ""):
+    raise SystemExit(f"expected next uncovered Domain Pack SDK question as priority: {priority!r}")
 PY
 
 json_stdout="$(./bin/shipguard ios report-quality --reports "$reports" --json)"

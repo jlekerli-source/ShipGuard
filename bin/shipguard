@@ -38,6 +38,7 @@ Usage:
   shipguard docs-check [path] [--out <dir>]
   shipguard brand [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
   shipguard value-gauntlet [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
+  shipguard pilot-bench [--trace <trace.json-or-dir> ...] [--out <dir>] [--shareable] [--json|--markdown]
   shipguard web audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard web plan --report <web-audit-json-or-dir> --out <dir> [--target <repo>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard backend audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
@@ -108,6 +109,8 @@ Commands:
   brand       Audit the full ShipGuard branded naming scheme.
   value-gauntlet
               Grade every ShipGuard command, skill, plugin, action, and proof surface for developer value.
+  pilot-bench
+              Score public-safe read-only task traces for PilotBench verdict usefulness.
   web         Web-focused first-audit and fix-plan reports for starter repos.
   backend     Backend-focused first-audit and fix-plan reports for starter repos.
   cli         CLI-focused first-audit and fix-plan reports for starter repos.
@@ -415,6 +418,10 @@ cmd_value_gauntlet() {
   run_py "$tool_root/scripts/tool_value_gauntlet.py" "$@"
 }
 
+cmd_pilot_bench() {
+  run_py "$tool_root/scripts/external_pilot_verdict_bench.py" "$@"
+}
+
 cmd_prepare() {
   run_py "$tool_root/scripts/task_contract.py" prepare "$@"
 }
@@ -642,6 +649,9 @@ main() {
       ;;
     value-gauntlet)
       cmd_value_gauntlet "$@"
+      ;;
+    pilot-bench)
+      cmd_pilot_bench "$@"
       ;;
     web)
       cmd_profile web "$@"

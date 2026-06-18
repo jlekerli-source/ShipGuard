@@ -112,6 +112,9 @@ TOOL_NEXT_ACTION_PRIORITY = {
 ROOT_REPORT_TOOLS = {
     "shipguard brand",
     "shipguard value-gauntlet",
+    "shipguard prepare",
+    "shipguard verify",
+    "shipguard pilot-bench",
     "shipguard web audit",
     "shipguard web plan",
     "shipguard backend audit",

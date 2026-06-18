@@ -1,0 +1,132 @@
+{
+  "events": [
+    {
+      "type": "prepare"
+    },
+    {
+      "type": "diff"
+    },
+    {
+      "type": "verdict",
+      "usefulVerdict": true
+    }
+  ],
+  "labels": {
+    "expectedBenchStatus": "pass",
+    "expectedFalsePositiveMax": 0,
+    "expectedForbiddenPatterns": [
+      ".github/workflows/**"
+    ],
+    "expectedMinScore": 90,
+    "expectedNextActionContains": [
+      "Update the task contract scope"
+    ],
+    "expectedOwnerPatterns": [
+      "Sources/DemoShipGuardApp/**"
+    ],
+    "firstUsefulVerdictMaxEvents": 3,
+    "forbiddenPrivateTerms": [
+      "/Users/",
+      "Ringly",
+      "Ilmify"
+    ],
+    "requiredProofScopes": [
+      "permission-state",
+      "denied-state"
+    ],
+    "unsupportedClaims": [
+      "safe to ship"
+    ]
+  },
+  "source": "public synthetic fixture from read-only product-QA pattern",
+  "task": {
+    "agentClaims": [
+      "The notification workflow is safe to ship."
+    ],
+    "authorizedFiles": [
+      "Sources/DemoShipGuardApp/**"
+    ],
+    "domainRiskPack": {
+      "id": "ios-notification-permission-workflow",
+      "validationReceiptRequirements": [
+        {
+          "id": "permission-state-validation",
+          "requiredReceiptScope": [
+            "permission-state",
+            "denied-state"
+          ]
+        }
+      ]
+    },
+    "nextAction": {
+      "command": "Run Codex under the task contract, then run shipguard verify.",
+      "expectedArtifact": "shipguard-verdict.json",
+      "failureMeaning": "The change remains unbounded.",
+      "owner": "developer",
+      "successCondition": "Verify returns pass or one exact blocker."
+    },
+    "protectedBoundaries": [
+      ".github/workflows/**"
+    ],
+    "scopeBoundary": {
+      "shipguardOnly": true,
+      "targetAppsReadOnly": true
+    },
+    "status": "prepared",
+    "tool": "shipguard prepare"
+  },
+  "traceId": "protected-scope-overclaim",
+  "verdict": {
+    "agentClaims": [
+      "The notification workflow is safe to ship."
+    ],
+    "claimChecks": {
+      "rejectedClaims": [
+        {
+          "claim": "The notification workflow is safe to ship.",
+          "reason": "protected workflow diff and missing release proof"
+        }
+      ]
+    },
+    "nextAction": {
+      "command": "Update the task contract scope or remove the protected workflow edit, then rerun shipguard verify with permission-state evidence.",
+      "expectedArtifact": "shipguard-verdict.json",
+      "failureMeaning": "ShipGuard cannot distinguish authorized app work from release-infrastructure changes.",
+      "owner": "developer",
+      "successCondition": "No protected workflow file is changed without explicit authorization."
+    },
+    "notificationPermissionWorkflow": {
+      "proofLanes": [
+        {
+          "id": "permission-state-validation",
+          "status": "missing"
+        },
+        {
+          "id": "denied-state-recovery",
+          "status": "missing"
+        }
+      ],
+      "reviewRequired": true
+    },
+    "scopeChecks": {
+      "authorizedFiles": [
+        "Sources/DemoShipGuardApp/**"
+      ],
+      "forbiddenTouched": [
+        ".github/workflows/release.yml"
+      ],
+      "protectedBoundaries": [
+        ".github/workflows/**"
+      ]
+    },
+    "status": "blocked",
+    "tool": "shipguard verify",
+    "validationCoverage": {
+      "requiredScopes": [
+        "permission-state",
+        "denied-state"
+      ],
+      "status": "missing"
+    }
+  }
+}

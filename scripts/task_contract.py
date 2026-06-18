@@ -642,6 +642,7 @@ def prepare_contract(args: argparse.Namespace) -> dict[str, Any]:
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard prepare",
         "surface": "ShipGuard Task Contract",
+        "status": "prepared",
         "taskId": make_task_id(goal, profile, root),
         "generatedAt": utc_now(),
         "goal": goal,

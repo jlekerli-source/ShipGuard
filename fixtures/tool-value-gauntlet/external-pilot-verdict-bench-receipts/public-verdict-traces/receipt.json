@@ -1,0 +1,108 @@
+{
+  "commands": [
+    {
+      "args": [
+        "pilot-bench",
+        "--trace",
+        "fixtures/external-pilot-verdict-bench",
+        "--out",
+        "{out}/pilot-bench",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "pilot-bench/pilot-bench.json",
+          "requiredJsonKeys": [
+            "schemaVersion",
+            "tool",
+            "surface",
+            "status",
+            "traceCount",
+            "averageVerdictScore",
+            "metrics",
+            "traces",
+            "scopeBoundary",
+            "reportQualityQuestions"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "metrics",
+            "traces",
+            "scopeBoundary.privateTracePolicy",
+            "reportQualityQuestions"
+          ],
+          "requiredValues": [
+            {
+              "equals": "shipguard pilot-bench",
+              "path": "tool"
+            },
+            {
+              "equals": "ShipGuard PilotBench",
+              "path": "surface"
+            },
+            {
+              "equals": "pass",
+              "path": "status"
+            },
+            {
+              "equals": 2,
+              "path": "traceCount"
+            },
+            {
+              "equals": true,
+              "path": "scopeBoundary.shipguardOnly"
+            },
+            {
+              "equals": true,
+              "path": "scopeBoundary.targetAppsReadOnly"
+            }
+          ],
+          "type": "json"
+        },
+        {
+          "forbidLocalPaths": true,
+          "path": "pilot-bench/pilot-bench.md",
+          "requiredPhrases": [
+            "# ShipGuard PilotBench",
+            "ownerDetection",
+            "requiredProofCoverage",
+            "claimChecking",
+            "firstUsefulVerdictTime",
+            "Private trace policy"
+          ],
+          "type": "markdown"
+        }
+      ],
+      "display": "./bin/shipguard pilot-bench --trace fixtures/external-pilot-verdict-bench --out <out>/pilot-bench --shareable",
+      "id": "pilot-bench-public-traces"
+    }
+  ],
+  "expectedSourcePhrases": [
+    "ownerDetection",
+    "requiredProofCoverage",
+    "claimChecking",
+    "firstUsefulVerdictTime",
+    "Private app traces may be scored locally only after shareable redaction"
+  ],
+  "id": "public-verdict-traces",
+  "kind": "external-pilot-verdict-bench-receipt",
+  "scopeBoundary": {
+    "inputs": [
+      "public synthetic pilot traces",
+      "ShipGuard pilot-bench command"
+    ],
+    "privateAppsUsed": false,
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "selectedMode": "value-gauntlet external pilot verdict bench receipts",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/external_pilot_verdict_bench.py",
+    "fixtures/external-pilot-verdict-bench/notification-permission-review/trace.json",
+    "fixtures/external-pilot-verdict-bench/protected-scope-overclaim/trace.json",
+    "docs/command-matrix.md",
+    "docs/cli.md"
+  ],
+  "surface": "ShipGuard PilotBench",
+  "trigger": "Prove that ShipGuard can score public-safe read-only task traces for owner detection, scope, proof coverage, claim checking, redaction, exact next action, false positives, and first useful verdict time."
+}

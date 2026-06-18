@@ -22,7 +22,7 @@ grep -q '"surface": "ShipGuard Tool Value Gauntlet"' "$tmp_dir/gauntlet/tool-val
 grep -q '"intent": "shipguard-product-qa"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"shipguardOnly": true' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"targetAppsReadOnly": true' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
-grep -q '"commandCount": 59' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"commandCount": 60' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"pluginCount": 1' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"actions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"skills":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -47,6 +47,7 @@ grep -q '"profileNativeProofHandoffReceipts":' "$tmp_dir/gauntlet/tool-value-gau
 grep -q '"commandFamilyRuntimeOutputReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"trustHardeningReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"taskContractReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"externalPilotVerdictBenchReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"priorityActions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"reportQualityQuestions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard score"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -91,8 +92,9 @@ grep -q 'Profile-Native Proof Handoff Receipts' "$tmp_dir/gauntlet/tool-value-ga
 grep -q 'Command-Family Runtime Output Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Trust-Hardening Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Task-Contract Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'ShipGuard PilotBench Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Report Quality Questions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
-grep -q 'external pilot verdict bench' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'ShipGuard PilotBench' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
 import sys
@@ -119,20 +121,21 @@ profile_proof_handoff = data.get("profileNativeProofHandoffReceipts") or {}
 command_family_output = data.get("commandFamilyRuntimeOutputReceipts") or {}
 trust_hardening = data.get("trustHardeningReceipts") or {}
 task_contract = data.get("taskContractReceipts") or {}
+pilot_bench = data.get("externalPilotVerdictBenchReceipts") or {}
 if probe.get("question") != "Which ShipGuard command, skill, plugin, or action has the lowest developer-value score and should be upgraded next?":
     raise SystemExit(f"unexpected probe question: {probe!r}")
 for key in ("surfaceType", "identifier", "name", "baseScore", "depthScore", "depthChecks", "recommendation", "proofGuidance", "reason"):
     if key not in answer:
         raise SystemExit(f"probe answer missing {key}: {answer!r}")
-if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard external-pilot-verdict-bench":
-    raise SystemExit(f"passing notification workflow receipts should escalate to external pilot verdict bench: {answer!r}")
+if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard domain-pack-sdk-core":
+    raise SystemExit(f"passing PilotBench receipts should escalate to Domain Pack SDK core: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"diff-first verification should no longer be missing: {answer!r}")
 if "runtimeIOSNotificationPermissionWorkflow" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"notification permission workflow should no longer be missing: {answer!r}")
-if "runtimeExternalPilotVerdictBench" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"external pilot verdict bench gap should be explicit: {answer!r}")
-for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract", "runtimeIOSNotificationPermissionWorkflow"):
+if "runtimeDomainPackSDK" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"Domain Pack SDK gap should be explicit: {answer!r}")
+for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract", "runtimeIOSNotificationPermissionWorkflow", "runtimeExternalPilotVerdictBench"):
     if retired_signal in answer.get("missingDepthSignals", []):
         raise SystemExit(f"{retired_signal} should no longer be missing after fixture proof: {answer!r}")
 if not isinstance(probe.get("rankedSurfaces"), list) or not probe["rankedSurfaces"]:
@@ -160,7 +163,7 @@ for item in negative.get("cases") or []:
         raise SystemExit(f"negative fixture should fail report scoring but pass fixture expectation: {item!r}")
 if command_family.get("status") != "pass":
     raise SystemExit(f"runtime command-family coverage should pass: {command_family!r}")
-if command_family.get("commandCount") != 59 or command_family.get("passedCommandCount") != 59:
+if command_family.get("commandCount") != 60 or command_family.get("passedCommandCount") != 60:
     raise SystemExit(f"expected all public command help paths to pass: {command_family!r}")
 for item in command_family.get("commands") or []:
     if item.get("status") != "pass" or item.get("missing"):
@@ -596,6 +599,22 @@ for item in task_contract.get("receipts") or []:
     for command in item.get("commands") or []:
         if command.get("status") != "pass" or command.get("missing"):
             raise SystemExit(f"task-contract command should pass without missing checks: {command!r}")
+if pilot_bench.get("status") != "pass":
+    raise SystemExit(f"PilotBench receipts should pass: {pilot_bench!r}")
+if pilot_bench.get("receiptCount") != 1 or pilot_bench.get("passedReceiptCount") != 1 or pilot_bench.get("commandCount") != 1:
+    raise SystemExit(f"expected one PilotBench receipt and one command: {pilot_bench!r}")
+pilot_receipt_ids = {item.get("id") for item in pilot_bench.get("receipts") or []}
+if pilot_receipt_ids != {"public-verdict-traces"}:
+    raise SystemExit(f"unexpected PilotBench receipt fixtures: {pilot_receipt_ids!r}")
+for item in pilot_bench.get("receipts") or []:
+    if item.get("status") != "pass" or item.get("missing"):
+        raise SystemExit(f"PilotBench receipt should pass without missing checks: {item!r}")
+    command_ids = {command.get("id") for command in item.get("commands") or []}
+    if command_ids != {"pilot-bench-public-traces"}:
+        raise SystemExit(f"unexpected PilotBench command set: {command_ids!r}")
+    for command in item.get("commands") or []:
+        if command.get("status") != "pass" or command.get("missing"):
+            raise SystemExit(f"PilotBench command should pass without missing checks: {command!r}")
 if "Which ShipGuard command" in data.get("reportQualityQuestions", []):
     raise SystemExit("the answered lowest-value question should not remain a report-quality question")
 retired_phrases = (
@@ -618,11 +637,12 @@ retired_phrases = (
     "command-family runtime-output receipts so every major public family",
     "trust-hardening receipts for GitHub Action input interpolation",
     "proof-gated task contract",
+    "external pilot verdict bench",
 )
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
     raise SystemExit(f"answered runtime receipt questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
-if not any("external pilot verdict bench" in question for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"expected external pilot verdict bench quality question: {data.get('reportQualityQuestions')!r}")
+if not any("Domain Pack SDK" in question for question in data.get("reportQualityQuestions", [])):
+    raise SystemExit(f"expected Domain Pack SDK quality question: {data.get('reportQualityQuestions')!r}")
 PY
 
 json_stdout="$(./bin/shipguard value-gauntlet --path . --json)"
@@ -639,6 +659,6 @@ grep -q '# ShipGuard Tool Value Gauntlet' <<<"$markdown_stdout"
 grep -q '"tool": "shipguard ios report-quality"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/quality/ios-report-quality.md"
-grep -q 'external pilot verdict bench' "$tmp_dir/quality/ios-report-quality.md"
+grep -q 'Domain Pack SDK' "$tmp_dir/quality/ios-report-quality.md"
 
 echo "tool value gauntlet tests passed"

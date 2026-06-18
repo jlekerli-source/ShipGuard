@@ -185,6 +185,7 @@ grep -q "^$package_name/scripts/ios_branding.py$" "$tar_list"
 grep -q "^$package_name/scripts/profile_audit.py$" "$tar_list"
 grep -q "^$package_name/scripts/profile_fix_plan.py$" "$tar_list"
 grep -q "^$package_name/scripts/task_contract.py$" "$tar_list"
+grep -q "^$package_name/scripts/external_pilot_verdict_bench.py$" "$tar_list"
 grep -q "^$package_name/scripts/tool_value_gauntlet.py$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/skill-plugin-receipts/ios-shipguard-design-audit/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/skill-plugin-receipts/plugin-cache-status/receipt.json$" "$tar_list"
@@ -204,6 +205,9 @@ grep -q "^$package_name/fixtures/tool-value-gauntlet/profile-native-proof-handof
 grep -q "^$package_name/fixtures/tool-value-gauntlet/command-family-runtime-output-receipts/major-family-report-outputs/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/trust-hardening-receipts/action-devspace-archive-release-provenance/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/task-contract-receipts/prepare-verify-proof-gate/receipt.json$" "$tar_list"
+grep -q "^$package_name/fixtures/tool-value-gauntlet/external-pilot-verdict-bench-receipts/public-verdict-traces/receipt.json$" "$tar_list"
+grep -q "^$package_name/fixtures/external-pilot-verdict-bench/notification-permission-review/trace.json$" "$tar_list"
+grep -q "^$package_name/fixtures/external-pilot-verdict-bench/protected-scope-overclaim/trace.json$" "$tar_list"
 grep -q "^$package_name/scripts/ios_launchdeck.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_codex_handoff.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_devspace_check.py$" "$tar_list"
@@ -418,8 +422,9 @@ fi
 tar -xzf "$tarball" -C "$tmp_dir"
 package_root="$tmp_dir/$package_name"
 
-local_path_pattern="/""Users/"
-if grep -RIEq "$local_path_pattern|ghp_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}" "$package_root"; then
+local_path_pattern="/""Users/[^/[:space:]]+/(Developer|Documents|Desktop|Downloads|Code|Library|Projects|Project|Repositories|repos|src|work|tmp)/"
+linux_home_path="/""home/[^/[:space:]]+/(Developer|Documents|Desktop|Downloads|Code|Projects|repositories|repos|src|work|tmp)/"
+if grep -RIEq "$local_path_pattern|$linux_home_path|ghp_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}" "$package_root"; then
   echo "package includes a local path or secret-looking token" >&2
   exit 1
 fi
@@ -456,6 +461,14 @@ grep -q 'ShipGuard PluginRadar' "$tmp_dir/package-brand/ios-branding.md"
 grep -q 'ShipGuard ShipYard' "$tmp_dir/package-brand/ios-branding.md"
 grep -q 'Nitty-Gritty Call Signs' "$tmp_dir/package-brand/ios-branding.md"
 grep -q 'Engine Tapes' "$tmp_dir/package-brand/ios-branding.md"
+"$package_root/bin/shipguard" pilot-bench \
+  --trace "$package_root/fixtures/external-pilot-verdict-bench" \
+  --out "$tmp_dir/package-pilot-bench" \
+  --shareable >/dev/null
+grep -q '"tool": "shipguard pilot-bench"' "$tmp_dir/package-pilot-bench/pilot-bench.json"
+grep -q '"surface": "ShipGuard PilotBench"' "$tmp_dir/package-pilot-bench/pilot-bench.json"
+grep -q '"status": "pass"' "$tmp_dir/package-pilot-bench/pilot-bench.json"
+grep -q 'firstUsefulVerdictTime' "$tmp_dir/package-pilot-bench/pilot-bench.md"
 "$package_root/bin/shipguard" value-gauntlet \
   --path "$package_root" \
   --out "$tmp_dir/package-value-gauntlet" >/dev/null
@@ -463,7 +476,7 @@ grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/package-value-gauntlet/to
 grep -q '"surface": "ShipGuard Tool Value Gauntlet"' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
 grep -q '"priorityActions":' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
 grep -q '"taskContractReceipts":' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
-grep -q 'external pilot verdict bench' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
+grep -q 'Domain Pack SDK' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
 package_score_output="$("$package_root/bin/shipguard" score "$package_root/examples/scored-run.md")"
 printf '%s\n' "$package_score_output" | grep -q 'Total score: 11/12'
@@ -852,6 +865,7 @@ grep -q '| shipguard ios design --help | pass |' "$tmp_dir/package-self-audit/se
 grep -q '| shipguard ios modernize --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard ios app-intelligence --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard ios ai-readiness --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| shipguard pilot-bench --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard ios external-audit --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard ios spec-workflow --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard ios report-quality --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -957,12 +971,16 @@ grep -q '| tests/command_family_runtime_output_receipts_test.sh | pass |' "$tmp_
 grep -q '| tests/trust_hardening_receipts_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| tests/task_contract_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| tests/task_contract_receipts_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| tests/external_pilot_verdict_bench_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/profile-native-validation-receipts/web-backend-cli-validation-receipts/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/profile-native-validation-rerun-receipts/web-backend-cli-validation-rerun-receipts/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/profile-native-proof-handoff-receipts/web-backend-cli-proof-handoffs/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/command-family-runtime-output-receipts/major-family-report-outputs/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/trust-hardening-receipts/action-devspace-archive-release-provenance/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/task-contract-receipts/prepare-verify-proof-gate/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| fixtures/tool-value-gauntlet/external-pilot-verdict-bench-receipts/public-verdict-traces/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| fixtures/external-pilot-verdict-bench/notification-permission-review/trace.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| fixtures/external-pilot-verdict-bench/protected-scope-overclaim/trace.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q 'shipguard web audit' "$package_root/docs/cli.md"
 grep -q 'shipguard web plan' "$package_root/docs/cli.md"
 grep -q 'shipguard backend audit' "$package_root/docs/cli.md"

@@ -1,0 +1,138 @@
+{
+  "events": [
+    {
+      "type": "prepare"
+    },
+    {
+      "type": "verdict",
+      "usefulVerdict": true
+    }
+  ],
+  "labels": {
+    "expectedBenchStatus": "pass",
+    "expectedFalsePositiveMax": 0,
+    "expectedForbiddenPatterns": [
+      ".github/workflows/**"
+    ],
+    "expectedMinScore": 90,
+    "expectedNextActionContains": [
+      "structured validation receipt"
+    ],
+    "expectedOwnerPatterns": [
+      "Sources/DemoShipGuardApp/**",
+      "Tests/DemoShipGuardAppTests/**"
+    ],
+    "firstUsefulVerdictMaxEvents": 2,
+    "forbiddenPrivateTerms": [
+      "/Users/",
+      "Ringly",
+      "Ilmify"
+    ],
+    "requiredProofScopes": [
+      "permission-state",
+      "denied-state",
+      "simulator-permission-reset"
+    ],
+    "unsupportedClaims": [
+      "fully verified"
+    ]
+  },
+  "source": "public synthetic fixture from read-only product-QA pattern",
+  "task": {
+    "agentClaims": [
+      "Notification permission recovery is fully verified."
+    ],
+    "authorizedFiles": [
+      "Sources/DemoShipGuardApp/**",
+      "Tests/DemoShipGuardAppTests/**"
+    ],
+    "domainRiskPack": {
+      "id": "ios-notification-permission-workflow",
+      "validationReceiptRequirements": [
+        {
+          "id": "permission-state-validation",
+          "requiredReceiptScope": [
+            "permission-state",
+            "denied-state",
+            "simulator-permission-reset"
+          ]
+        }
+      ]
+    },
+    "nextAction": {
+      "command": "Run shipguard verify with a structured validation receipt covering permission-state and denied-state.",
+      "expectedArtifact": "shipguard-verdict.json",
+      "failureMeaning": "The permission claim remains unproven.",
+      "owner": "developer",
+      "successCondition": "Verify returns pass or a narrower missing proof lane."
+    },
+    "protectedBoundaries": [
+      ".github/workflows/**",
+      "*.entitlements"
+    ],
+    "scopeBoundary": {
+      "shipguardOnly": true,
+      "targetAppsReadOnly": true
+    },
+    "status": "prepared",
+    "tool": "shipguard prepare"
+  },
+  "traceId": "notification-permission-review",
+  "verdict": {
+    "agentClaims": [
+      "Notification permission recovery is fully verified."
+    ],
+    "claimChecks": {
+      "rejectedClaims": [
+        {
+          "claim": "Notification permission recovery is fully verified.",
+          "reason": "physical-device prompt proof is not present"
+        }
+      ]
+    },
+    "nextAction": {
+      "command": "Attach a structured validation receipt with permission-state, denied-state, and simulator-permission-reset scopes.",
+      "expectedArtifact": "validation-receipt.json",
+      "failureMeaning": "ShipGuard must keep the verdict in review.",
+      "owner": "developer",
+      "successCondition": "Receipt scope includes permission-state and denied-state."
+    },
+    "notificationPermissionWorkflow": {
+      "proofLanes": [
+        {
+          "id": "permission-state-validation",
+          "status": "missing"
+        },
+        {
+          "id": "denied-state-recovery",
+          "status": "missing"
+        },
+        {
+          "id": "simulator-permission-reset",
+          "status": "missing"
+        }
+      ],
+      "reviewRequired": true
+    },
+    "scopeChecks": {
+      "authorizedFiles": [
+        "Sources/DemoShipGuardApp/**",
+        "Tests/DemoShipGuardAppTests/**"
+      ],
+      "protectedBoundaries": [
+        ".github/workflows/**",
+        "*.entitlements"
+      ]
+    },
+    "status": "review",
+    "tool": "shipguard verify",
+    "validationCoverage": {
+      "requiredScopes": [
+        "permission-state",
+        "denied-state",
+        "simulator-permission-reset"
+      ],
+      "status": "missing"
+    }
+  }
+}

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added `shipguard pilot-bench` / ShipGuard PilotBench as the v3.116 evidence release: public-safe task traces now score owner detection, acceptable and forbidden scope, proof coverage, unsupported-claim rejection, redaction, false-positive risk, exact next-action completeness, and first useful verdict time.
+- Added public PilotBench trace fixtures and Tool Value Gauntlet receipts so external/read-only product-QA evidence is tested through reusable synthetic traces instead of private Ringly or Ilmify app details.
+- Tightened `shipguard value-gauntlet` so passing PilotBench receipts advance the next weak surface to Domain Pack SDK core extraction instead of declaring the ShipYard finished.
+- Fixed `shipguard prepare` metadata and `shipguard ios report-quality` root-tool detection after read-only product-QA showed task contracts were being misclassified as generic/metadata-poor reports.
 - Added the first iOS domain risk pack on top of `shipguard prepare` / `shipguard verify`: notification, permission, authorization, denied-state, and provisional-flow goals now emit `domainRiskPack.id = ios-notification-permission-workflow` with scope recommendations, receipt requirements, simulator proof boundaries, and physical-device prompt boundaries.
 - Tightened task-contract verification for iOS notification-permission work: a generic structured `swift test` receipt can cover the command but still returns `review` until the evidence proves permission-state, denied-state, not-determined-state, and simulator permission-reset lanes; local passes now explicitly report when physical-device prompt proof remains manual-required.
 - Introduced `scripts/task_domain_packs.py` as the first domain-pack boundary: the notification-permission workflow now plugs into the generic task contract through `DomainPackContext` instead of embedding all domain logic directly in `scripts/task_contract.py`.
