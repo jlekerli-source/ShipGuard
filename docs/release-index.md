@@ -5,7 +5,7 @@
 ```bash
 ./bin/shipguard release-index build \
   --manifest dist/release-proof-v3.6.0/release-manifest.json \
-  --manifest dist/release-proof-v3.97.0/release-manifest.json \
+  --manifest dist/release-proof-v3.98.0/release-manifest.json \
   --out /tmp/shipguard-release-index
 ```
 

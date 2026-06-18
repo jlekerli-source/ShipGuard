@@ -77,7 +77,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add target-onboarding receipts that prove a fresh app repo can install starter files, run doctor/validate, and get the first scoped plan without maintainer context?",
+    "Should ShipGuard add multi-profile onboarding receipts that prove iOS, web, backend, and CLI starter profiles each install, pass doctor, and name first useful commands without maintainer context?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -151,6 +151,7 @@ SCENARIO_MATRIX_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "scena
 SCENARIO_FAILURE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "scenario-failure-receipts"
 SCENARIO_REMEDIATION_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "scenario-remediation-receipts"
 ADOPTION_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "adoption-receipts"
+TARGET_ONBOARDING_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "target-onboarding-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -754,6 +755,18 @@ def load_adoption_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     return receipts
 
 
+def load_target_onboarding_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / TARGET_ONBOARDING_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
 def format_receipt_value(value: object, *, out_dir: Path, cache_dir: Path) -> str:
     return str(value).format(out=out_dir.as_posix(), cache=cache_dir.as_posix())
 
@@ -810,6 +823,44 @@ def prepare_receipt_tarballs(out_dir: Path, meta: dict[str, Any]) -> list[dict[s
         checks.append(runtime_probe_check(f"preparedTarball:{relative.as_posix()}", target.is_file(), f"{relative.as_posix()} prepared with {len(entries)} entrie(s)"))
         if unsafe_entry:
             checks.append(runtime_probe_check(f"preparedTarballEntry:{unsafe_entry}", False, "tarball entry path must be relative and portable"))
+    return checks
+
+
+def prepare_receipt_fixture_copies(root: Path, out_dir: Path, meta: dict[str, Any]) -> list[dict[str, Any]]:
+    checks: list[dict[str, Any]] = []
+    for item in meta.get("prepareFixtureCopies") or []:
+        source_relative = safe_receipt_relative_path(item.get("sourcePath"))
+        target_relative = safe_receipt_relative_path(item.get("path"))
+        check_id = f"preparedFixtureCopy:{item.get('sourcePath') or 'missing'}->{item.get('path') or 'missing'}"
+        if source_relative is None or target_relative is None:
+            checks.append(runtime_probe_check(check_id, False, "fixture copy source and target must be relative and stay inside allowed roots"))
+            continue
+        source = root / source_relative
+        target = out_dir / target_relative
+        if not source.exists():
+            checks.append(runtime_probe_check(check_id, False, f"{source_relative.as_posix()} missing"))
+            continue
+        if target.exists():
+            if target.is_dir():
+                shutil.rmtree(target)
+            else:
+                target.unlink()
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if source.is_dir():
+            shutil.copytree(
+                source,
+                target,
+                ignore=shutil.ignore_patterns(".git", "dist", ".DS_Store", ".cache", "DerivedData", "__pycache__", "*.pyc"),
+            )
+        else:
+            shutil.copy2(source, target)
+        checks.append(
+            runtime_probe_check(
+                f"preparedFixtureCopy:{source_relative.as_posix()}->{target_relative.as_posix()}",
+                target.exists(),
+                f"{source_relative.as_posix()} copied to {target_relative.as_posix()}" if target.exists() else f"{target_relative.as_posix()} missing after copy",
+            )
+        )
     return checks
 
 
@@ -996,7 +1047,7 @@ def evaluate_remediation_pairs(meta: dict[str, Any], commands: list[dict[str, An
 def run_skill_plugin_receipt(root: Path, fixture_dir: Path, meta: dict[str, Any]) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix=f"shipguard-receipt-{fixture_dir.name}-") as tmp:
         out_dir = Path(tmp)
-        prepared_checks = prepare_receipt_files(out_dir, meta) + prepare_receipt_tarballs(out_dir, meta)
+        prepared_checks = prepare_receipt_files(out_dir, meta) + prepare_receipt_tarballs(out_dir, meta) + prepare_receipt_fixture_copies(root, out_dir, meta)
         cache_dir = prepare_receipt_codex_cache(root, out_dir, meta)
         source_paths = [str(path) for path in meta.get("sourcePaths") or []]
         source_text = "\n".join(read_text(root / path) for path in source_paths)
@@ -1536,9 +1587,37 @@ def adoption_receipt_probe(root: Path) -> dict[str, Any]:
         },
         "receipts": receipts,
         "nextAction": (
-            "Add target-onboarding receipts so a fresh app repo proves starter install, doctor/validate, and first scoped plan without maintainer context."
+            "Fresh-user package adoption is passing; inspect targetOnboardingReceipts for fresh target-app onboarding proof before expanding the matrix."
             if status == "pass"
             else "Fix adoption receipts so install, plugin refresh, first audit, and next-command handoff are proven from packaged artifacts."
+        ),
+    }
+
+
+def target_onboarding_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [run_skill_plugin_receipt(root, fixture_dir, meta) for fixture_dir, meta in load_target_onboarding_receipts(root)]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public target-onboarding receipts that prove a fresh app repo can receive ShipGuard starter files, pass starter validation, run iOS discovery, and receive a first scoped plan without maintainer context.",
+        "fixtureRoot": TARGET_ONBOARDING_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public target-onboarding receipt fixtures", "fixtures/demo-ios-repo copied into a temporary fresh target repo", "starter profile files", "iOS doctor, inventory, and plan artifacts"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Add multi-profile onboarding receipts that prove iOS, web, backend, and CLI starter profiles each install, pass doctor, and name first useful commands without maintainer context."
+            if status == "pass"
+            else "Fix target-onboarding receipts so fresh app onboarding proves starter install, doctor/validate, and first scoped plan."
         ),
     }
 
@@ -2042,6 +2121,7 @@ def lowest_value_surface_probe(
     scenario_failure_receipts: dict[str, Any],
     scenario_remediation_receipts: dict[str, Any],
     adoption_receipts: dict[str, Any],
+    target_onboarding_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -2081,28 +2161,54 @@ def lowest_value_surface_probe(
                                     if scenario_remediation_receipts_passed:
                                         adoption_receipts_passed = adoption_receipts.get("status") == "pass"
                                         if adoption_receipts_passed:
-                                            answer = surface_probe_row(
-                                                surface_type="cross-cutting",
-                                                identifier="shipguard value-gauntlet target-onboarding-receipts",
-                                                name="Fresh target-repo onboarding receipts",
-                                                base_score=100,
-                                                base_status="pass",
-                                                depth_checks=[
-                                                    depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
-                                                    depth_check("runtimeOutputProbe", True, f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100"),
-                                                    depth_check("runtimeRegressionFixtures", True, f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output"),
-                                                    depth_check("runtimeCommandCoverage", True, f"{command_family_probe.get('passedCommandCount') or 0}/{command_family_probe.get('commandCount') or 0} public command help paths executed"),
-                                                    depth_check("runtimeSkillPluginReceipts", True, f"{skill_plugin_receipts.get('passedReceiptCount') or 0}/{skill_plugin_receipts.get('receiptCount') or 0} skill/plugin receipts executed"),
-                                                    depth_check("runtimeWorkflowChainReceipts", True, f"{workflow_chain_receipts.get('passedReceiptCount') or 0}/{workflow_chain_receipts.get('receiptCount') or 0} workflow-chain receipts executed"),
-                                                    depth_check("runtimeScenarioMatrixReceipts", True, f"{scenario_matrix_receipts.get('passedReceiptCount') or 0}/{scenario_matrix_receipts.get('receiptCount') or 0} scenario-matrix receipts executed"),
-                                                    depth_check("runtimeScenarioFailureReceipts", True, f"{scenario_failure_receipts.get('passedReceiptCount') or 0}/{scenario_failure_receipts.get('receiptCount') or 0} scenario-failure receipts executed"),
-                                                    depth_check("runtimeScenarioRemediationReceipts", True, f"{scenario_remediation_receipts.get('passedRemediationPairCount') or 0}/{scenario_remediation_receipts.get('remediationPairCount') or 0} remediation pairs executed"),
-                                                    depth_check("runtimeAdoptionReceipts", True, f"{adoption_receipts.get('passedReceiptCount') or 0}/{adoption_receipts.get('receiptCount') or 0} fresh-user adoption receipts executed"),
-                                                    depth_check("runtimeTargetOnboardingReceipts", False, "fresh target-repo starter install, doctor/validate, and first scoped plan are not yet proven as one receipt"),
-                                                ],
-                                                recommendation="Add target-onboarding receipts that prove a fresh app repo can install starter files, run doctor/validate, and get the first scoped plan without maintainer context.",
-                                                proof="Run value-gauntlet plus focused target-onboarding receipts from a synthetic fresh app repo and packaged ShipGuard install.",
-                                            )
+                                            target_onboarding_receipts_passed = target_onboarding_receipts.get("status") == "pass"
+                                            if target_onboarding_receipts_passed:
+                                                answer = surface_probe_row(
+                                                    surface_type="cross-cutting",
+                                                    identifier="shipguard value-gauntlet multi-profile-onboarding-receipts",
+                                                    name="Multi-profile onboarding receipts",
+                                                    base_score=100,
+                                                    base_status="pass",
+                                                    depth_checks=[
+                                                        depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
+                                                        depth_check("runtimeOutputProbe", True, f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100"),
+                                                        depth_check("runtimeRegressionFixtures", True, f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output"),
+                                                        depth_check("runtimeCommandCoverage", True, f"{command_family_probe.get('passedCommandCount') or 0}/{command_family_probe.get('commandCount') or 0} public command help paths executed"),
+                                                        depth_check("runtimeSkillPluginReceipts", True, f"{skill_plugin_receipts.get('passedReceiptCount') or 0}/{skill_plugin_receipts.get('receiptCount') or 0} skill/plugin receipts executed"),
+                                                        depth_check("runtimeWorkflowChainReceipts", True, f"{workflow_chain_receipts.get('passedReceiptCount') or 0}/{workflow_chain_receipts.get('receiptCount') or 0} workflow-chain receipts executed"),
+                                                        depth_check("runtimeScenarioMatrixReceipts", True, f"{scenario_matrix_receipts.get('passedReceiptCount') or 0}/{scenario_matrix_receipts.get('receiptCount') or 0} scenario-matrix receipts executed"),
+                                                        depth_check("runtimeScenarioFailureReceipts", True, f"{scenario_failure_receipts.get('passedReceiptCount') or 0}/{scenario_failure_receipts.get('receiptCount') or 0} scenario-failure receipts executed"),
+                                                        depth_check("runtimeScenarioRemediationReceipts", True, f"{scenario_remediation_receipts.get('passedRemediationPairCount') or 0}/{scenario_remediation_receipts.get('remediationPairCount') or 0} remediation pairs executed"),
+                                                        depth_check("runtimeAdoptionReceipts", True, f"{adoption_receipts.get('passedReceiptCount') or 0}/{adoption_receipts.get('receiptCount') or 0} fresh-user adoption receipts executed"),
+                                                        depth_check("runtimeTargetOnboardingReceipts", True, f"{target_onboarding_receipts.get('passedReceiptCount') or 0}/{target_onboarding_receipts.get('receiptCount') or 0} target-onboarding receipts executed"),
+                                                        depth_check("runtimeMultiProfileOnboardingReceipts", False, "iOS, web, backend, and CLI starter profiles are not yet proven through one multi-profile onboarding receipt set"),
+                                                    ],
+                                                    recommendation="Add multi-profile onboarding receipts that prove iOS, web, backend, and CLI starter profiles each install, pass doctor, and name first useful commands without maintainer context.",
+                                                    proof="Run value-gauntlet plus focused multi-profile onboarding receipts across public synthetic target repos and starter profiles.",
+                                                )
+                                            else:
+                                                answer = surface_probe_row(
+                                                    surface_type="cross-cutting",
+                                                    identifier="shipguard value-gauntlet target-onboarding-receipts",
+                                                    name="Fresh target-repo onboarding receipts",
+                                                    base_score=100,
+                                                    base_status="pass",
+                                                    depth_checks=[
+                                                        depth_check("staticSurfaceCoverage", True, f"{len(ranked)} command/skill/plugin/action/doc surfaces passed static depth checks"),
+                                                        depth_check("runtimeOutputProbe", True, f"{runtime_probe.get('commandCount') or 0} representative runtime outputs scored {runtime_probe.get('averageScore')}/100"),
+                                                        depth_check("runtimeRegressionFixtures", True, f"{negative_fixture_probe.get('passedFixtureCount') or 0}/{negative_fixture_probe.get('fixtureCount') or 0} negative runtime-output fixtures rejected decorative output"),
+                                                        depth_check("runtimeCommandCoverage", True, f"{command_family_probe.get('passedCommandCount') or 0}/{command_family_probe.get('commandCount') or 0} public command help paths executed"),
+                                                        depth_check("runtimeSkillPluginReceipts", True, f"{skill_plugin_receipts.get('passedReceiptCount') or 0}/{skill_plugin_receipts.get('receiptCount') or 0} skill/plugin receipts executed"),
+                                                        depth_check("runtimeWorkflowChainReceipts", True, f"{workflow_chain_receipts.get('passedReceiptCount') or 0}/{workflow_chain_receipts.get('receiptCount') or 0} workflow-chain receipts executed"),
+                                                        depth_check("runtimeScenarioMatrixReceipts", True, f"{scenario_matrix_receipts.get('passedReceiptCount') or 0}/{scenario_matrix_receipts.get('receiptCount') or 0} scenario-matrix receipts executed"),
+                                                        depth_check("runtimeScenarioFailureReceipts", True, f"{scenario_failure_receipts.get('passedReceiptCount') or 0}/{scenario_failure_receipts.get('receiptCount') or 0} scenario-failure receipts executed"),
+                                                        depth_check("runtimeScenarioRemediationReceipts", True, f"{scenario_remediation_receipts.get('passedRemediationPairCount') or 0}/{scenario_remediation_receipts.get('remediationPairCount') or 0} remediation pairs executed"),
+                                                        depth_check("runtimeAdoptionReceipts", True, f"{adoption_receipts.get('passedReceiptCount') or 0}/{adoption_receipts.get('receiptCount') or 0} fresh-user adoption receipts executed"),
+                                                        depth_check("runtimeTargetOnboardingReceipts", False, f"{target_onboarding_receipts.get('passedReceiptCount') or 0}/{target_onboarding_receipts.get('receiptCount') or 0} target-onboarding receipts passed"),
+                                                    ],
+                                                    recommendation="Add target-onboarding receipts that prove a fresh app repo can install starter files, run doctor/validate, and get the first scoped plan without maintainer context.",
+                                                    proof="Run value-gauntlet plus focused target-onboarding receipts from a synthetic fresh app repo and packaged ShipGuard install.",
+                                                )
                                         else:
                                             answer = surface_probe_row(
                                                 surface_type="cross-cutting",
@@ -2419,6 +2525,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     scenario_failure_receipts = scenario_failure_receipt_probe(root)
     scenario_remediation_receipts = scenario_remediation_receipt_probe(root)
     adoption_receipts = adoption_receipt_probe(root)
+    target_onboarding_receipts = target_onboarding_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -2436,6 +2543,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         scenario_failure_receipts=scenario_failure_receipts,
         scenario_remediation_receipts=scenario_remediation_receipts,
         adoption_receipts=adoption_receipts,
+        target_onboarding_receipts=target_onboarding_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -2479,6 +2587,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "scenarioFailureReceipts": scenario_failure_receipts,
         "scenarioRemediationReceipts": scenario_remediation_receipts,
         "adoptionReceipts": adoption_receipts,
+        "targetOnboardingReceipts": target_onboarding_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -2736,6 +2845,30 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_adoption_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_adoption_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+    target_onboarding_receipts = report.get("targetOnboardingReceipts") or {}
+    lines.extend(["", "## Target Onboarding Receipts", ""])
+    lines.append(f"- Status: {target_onboarding_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {target_onboarding_receipts.get('passedReceiptCount', 0)}/{target_onboarding_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {target_onboarding_receipts.get('commandCount', 0)}")
+    if target_onboarding_receipts.get("nextAction"):
+        lines.append(f"- Next action: {target_onboarding_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in target_onboarding_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 32)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_target_onboarding_commands = [
+        (receipt, command)
+        for receipt in target_onboarding_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_target_onboarding_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_target_onboarding_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

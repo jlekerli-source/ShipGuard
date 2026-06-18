@@ -3,7 +3,7 @@ description: Download and verify ShipGuard release proof assets with consumer re
 
 inputs:
   release-tag:
-    description: Release tag to verify, such as v3.97.0.
+    description: Release tag to verify, such as v3.98.0.
     required: true
   repo:
     description: GitHub repository containing the release assets.

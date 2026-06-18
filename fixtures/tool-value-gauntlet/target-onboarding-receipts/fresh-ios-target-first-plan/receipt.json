@@ -1,0 +1,233 @@
+{
+  "id": "fresh-ios-target-first-plan",
+  "kind": "target-onboarding",
+  "surface": "ShipGuard fresh iOS target onboarding path",
+  "selectedSkill": "ios-shipguard",
+  "selectedMode": "target-onboarding",
+  "trigger": "User asks whether ShipGuard can help a fresh app repo without maintainer context.",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/ios_doctor.py",
+    "scripts/ios_inventory.py",
+    "scripts/ios_plan.py",
+    "templates/ios/AGENTS.md",
+    "docs/template-profiles.md",
+    "docs/ios-shipguard.md",
+    "scripts/tool_value_gauntlet.py"
+  ],
+  "expectedSourcePhrases": [
+    "init ios",
+    "doctor",
+    "ios inventory",
+    "ios plan",
+    "permission-audit",
+    "target-onboarding"
+  ],
+  "prepareFixtureCopies": [
+    {
+      "sourcePath": "fixtures/demo-ios-repo",
+      "path": "target-app"
+    }
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppDetailsAllowed": false,
+    "freshTargetRequired": true
+  },
+  "commands": [
+    {
+      "id": "init-ios-starter",
+      "display": "./bin/shipguard init ios <fresh-target> --force",
+      "args": [
+        "init",
+        "ios",
+        "{out}/target-app",
+        "--force"
+      ],
+      "expectedOutputPhrases": [
+        "initialized ios Codex workflow starter"
+      ],
+      "artifacts": [
+        {
+          "path": "target-app/AGENTS.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "Template For iOS App Work",
+            "Validation Commands"
+          ]
+        },
+        {
+          "path": "target-app/.agents/skills/ui-polish/SKILL.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "ShipGuard QA Hooks",
+            "value-gauntlet"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "starter-doctor",
+      "display": "./bin/shipguard doctor ios <fresh-target>",
+      "args": [
+        "doctor",
+        "ios",
+        "{out}/target-app"
+      ],
+      "expectedOutputPhrases": [
+        "doctor passed for ios",
+        "ok: AGENTS.md",
+        "ok: .agents/skills/ui-polish/SKILL.md"
+      ]
+    },
+    {
+      "id": "toolkit-validate",
+      "display": "./bin/shipguard validate <shipguard-root>",
+      "args": [
+        "validate",
+        "."
+      ],
+      "expectedOutputPhrases": [
+        "workflow bundle validation passed"
+      ]
+    },
+    {
+      "id": "ios-doctor-target",
+      "display": "./bin/shipguard ios doctor --path <fresh-target> --out <receipt-out>/ios-doctor",
+      "args": [
+        "ios",
+        "doctor",
+        "--path",
+        "{out}/target-app",
+        "--out",
+        "{out}/ios-doctor"
+      ],
+      "artifacts": [
+        {
+          "path": "ios-doctor/ios-doctor.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "status",
+            "projects",
+            "packages",
+            "schemes"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "projects",
+            "packages",
+            "schemes"
+          ]
+        },
+        {
+          "path": "ios-doctor/ios-doctor.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# iOS Doctor",
+            "Status:",
+            "Next Codex Actions"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ios-inventory-target",
+      "display": "./bin/shipguard ios inventory --path <fresh-target> --doctor <ios-doctor.json> --out <receipt-out>/ios-inventory",
+      "args": [
+        "ios",
+        "inventory",
+        "--path",
+        "{out}/target-app",
+        "--doctor",
+        "{out}/ios-doctor/ios-doctor.json",
+        "--out",
+        "{out}/ios-inventory"
+      ],
+      "artifacts": [
+        {
+          "path": "ios-inventory/ios-inventory.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "surfaces",
+            "targets"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "surfaces",
+            "targets"
+          ]
+        },
+        {
+          "path": "ios-inventory/ios-inventory.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# iOS Permission And Runtime Inventory",
+            "Target Risk Map",
+            "Detected Surfaces"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "first-scoped-plan",
+      "display": "./bin/shipguard ios plan --mode permission-audit --inventory <ios-inventory.json> --out <receipt-out>/first-plan",
+      "args": [
+        "ios",
+        "plan",
+        "--mode",
+        "permission-audit",
+        "--inventory",
+        "{out}/ios-inventory/ios-inventory.json",
+        "--out",
+        "{out}/first-plan"
+      ],
+      "expectedOutputPhrases": [
+        "status: needs-user-answer"
+      ],
+      "artifacts": [
+        {
+          "path": "first-plan/ios-plan.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "mode",
+            "blockedQuestions",
+            "proofRoute",
+            "codexBrief"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "blockedQuestions",
+            "proofRoute.commands",
+            "codexBrief"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard ios plan"
+            },
+            {
+              "path": "mode",
+              "equals": "permission-audit"
+            },
+            {
+              "path": "status",
+              "equals": "needs-user-answer"
+            }
+          ]
+        },
+        {
+          "path": "first-plan/ios-plan.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# iOS ShipGuard Plan",
+            "Permission Audit",
+            "What user-visible feature justifies location access",
+            "source-plus-simulator",
+            "Do not claim release, purchase, device, App Store, or preview proof without the required evidence."
+          ]
+        }
+      ]
+    }
+  ]
+}
