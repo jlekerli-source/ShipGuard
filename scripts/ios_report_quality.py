@@ -3420,6 +3420,7 @@ def synthetic_performance_evidence_promotion() -> dict[str, Any]:
         "nextAction": {
             "owner": "developer",
             "kind": "manual-proof",
+            "command": "shipguard ios launchdeck --path <repo> --workflow performance --out <launchdeck-performance-out>",
             "manualProof": (
                 "Run the same local sample or trace before and after the single animation gate; attach device "
                 "Instruments proof before claiming FPS, ProMotion, battery, thermal, or hardware-display improvement."
@@ -3632,10 +3633,7 @@ def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
         report["findings"] = synthetic_performance_findings()
         report["ruleSummary"] = synthetic_performance_rule_summary()
         report["groupedActionPlan"] = synthetic_performance_grouped_action_plan()
-    if source_tool == "shipguard ios design" and fixture_type in {
-        "ios-design-report-quality-fixture",
-        "ios-design-coherence-boundary-fixture",
-    }:
+    if source_tool == "shipguard ios design":
         report.update(synthetic_design_report_fields())
     return report
 
@@ -3727,10 +3725,7 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                     "",
                 ]
             )
-    if source_tool == "shipguard ios design" and fixture_type in {
-        "ios-design-report-quality-fixture",
-        "ios-design-coherence-boundary-fixture",
-    }:
+    if source_tool == "shipguard ios design":
         lines.extend(
             [
                 "## App Type Signals",

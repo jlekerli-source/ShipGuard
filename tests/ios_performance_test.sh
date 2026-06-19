@@ -120,6 +120,14 @@ report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 groups = {item["ruleId"]: item for item in report["groupedActionPlan"]}
 promotion = report.get("evidencePromotion") or {}
 next_action = promotion.get("nextAction") or {}
+result_ux = report.get("resultUX") or {}
+next_command = result_ux.get("nextCommand") or ""
+if not next_command.startswith("shipguard ios launchdeck --path <repo> --workflow performance "):
+    raise SystemExit(f"resultUX.nextCommand should be a runnable ShipGuard command template, got {next_command!r}")
+if "Attach the resulting trace" in next_command or "Compare launch" in next_command or "Capture an at-rest" in next_command:
+    raise SystemExit(f"resultUX.nextCommand must not contain manual proof prose: {next_command!r}")
+if "Attach the resulting trace" not in (result_ux.get("nextActionSummary") or ""):
+    raise SystemExit(f"resultUX.nextActionSummary should keep the manual proof recipe: {result_ux!r}")
 if promotion.get("sourceEvidence") != "source heuristic":
     raise SystemExit(f"unexpected evidence promotion source: {promotion!r}")
 if promotion.get("promotionStatus") != "missing-runtime-proof":

@@ -932,6 +932,73 @@ if manifest_rows[0].get("issueCount") != 0:
 if any(report.get("tool") == "shipguard ios report-quality" for report in data.get("reports", [])):
     raise SystemExit(f"promotion manifest was graded as a source report: {data.get('reports')!r}")
 PY
+preview_design_report="$tmp_dir/preview-design-report"
+mkdir -p "$preview_design_report"
+cat > "$preview_design_report/ios-design.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard ios design",
+  "intent": "shipguard-evaluation",
+  "status": "review",
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "appType": {
+    "value": "education"
+  },
+  "designTailoring": {
+    "tailoredFor": "education",
+    "guidanceProfile": "learning-progress",
+    "sourceSignals": [],
+    "dimensions": {},
+    "nextAction": {
+      "expectedArtifact": "preview receipt"
+    }
+  },
+  "designCoherenceBoundary": {
+    "targetRemediationStatus": "not-authorized-from-this-run"
+  },
+  "findings": [],
+  "reportQualityQuestions": [
+    "Did preview and Devspace guidance make the iPhone visual proof path obvious?"
+  ]
+}
+JSON
+cat > "$preview_design_report/ios-design.md" <<'MD'
+# iOS Design Audit
+
+## ShipGuard Evaluation Boundary
+
+Do not edit the scanned app.
+
+## Design Tailoring Contract
+
+Tailored for education.
+
+## Design Coherence Boundary
+
+Target remediation status is not authorized from this run.
+
+## Report Quality Questions
+
+- Did preview and Devspace guidance make the iPhone visual proof path obvious?
+MD
+./bin/shipguard ios report-quality \
+  --reports "$preview_design_report" \
+  --out "$tmp_dir/preview-design-quality" \
+  --write-fixture-candidates "$tmp_dir/preview-design-fixtures" \
+  --shareable >/dev/null
+preview_design_fixture="$(find "$tmp_dir/preview-design-fixtures" -mindepth 1 -maxdepth 1 -type d | sort | head -n 1)"
+test -n "$preview_design_fixture"
+grep -q '"appType":' "$preview_design_fixture/fixture-report.json"
+grep -q '"designTailoring":' "$preview_design_fixture/fixture-report.json"
+grep -q '"designCoherenceBoundary":' "$preview_design_fixture/fixture-report.json"
+./bin/shipguard ios report-quality \
+  --reports "$preview_design_fixture" \
+  --out "$tmp_dir/preview-design-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/preview-design-fixture-quality/ios-report-quality.json"
 broken_materialized="$tmp_dir/broken-materialized-fixtures"
 cp -R "$tmp_dir/materialized-fixtures" "$broken_materialized"
 python3 - <<'PY' "$broken_materialized/fixture-promotion-manifest.json"

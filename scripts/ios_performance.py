@@ -439,6 +439,7 @@ def runtime_evidence_boundary() -> dict[str, Any]:
 
 
 def evidence_promotion_contract(groups: list[dict[str, Any]]) -> dict[str, Any]:
+    proof_command = "shipguard ios launchdeck --path <repo> --workflow performance --out <launchdeck-performance-out>"
     if not groups:
         return {
             "sourceEvidence": "source heuristic",
@@ -448,6 +449,7 @@ def evidence_promotion_contract(groups: list[dict[str, Any]]) -> dict[str, Any]:
             "nextAction": {
                 "owner": "developer",
                 "kind": "no-op",
+                "command": "shipguard ios performance --path <repo> --out <performance-report-out> --shipguard-eval --shareable",
                 "manualProof": "No performance findings were emitted, so there is no source suspicion to promote.",
                 "expectedArtifact": "No runtime artifact required until a future report emits a source performance finding.",
                 "successCondition": "Report remains pass with no source performance findings.",
@@ -468,6 +470,7 @@ def evidence_promotion_contract(groups: list[dict[str, Any]]) -> dict[str, Any]:
         "nextAction": {
             "owner": "developer",
             "kind": "manual-proof",
+            "command": proof_command,
             "manualProof": f"{validation_route} Attach the resulting trace, sample, log, or device Instruments receipt before broadening the work.",
             "expectedArtifact": f"Same-route before/after evidence for `{rule_id}` after this first experiment: {first_experiment}",
             "successCondition": f"{stop_condition} Runtime evidence must confirm the source suspicion before it is promoted into broader work.",
@@ -651,8 +654,12 @@ def build_report(root: Path, *, shipguard_eval: bool = False, shareable: bool = 
         summary=f"{len(findings)} source performance finding(s); first candidate group `{first_group}`.",
         proof_source="evidencePromotion.nextAction + groupedActionPlan + source scan",
         why_it_matters="Performance reports must separate source suspicion from runtime proof before target-app remediation.",
-        next_command=str(next_action.get("manualProof") or "Run same-route Simulator trace or physical-device Instruments proof before editing app code."),
-        next_action_summary=str(next_action.get("successCondition") or "Promote only the first source suspicion that runtime evidence confirms."),
+        next_command=str(next_action.get("command") or "shipguard ios launchdeck --path <repo> --workflow performance --out <launchdeck-performance-out>"),
+        next_action_summary=str(
+            next_action.get("manualProof")
+            or next_action.get("successCondition")
+            or "Promote only the first source suspicion that runtime evidence confirms."
+        ),
     )
     report = {
         "schemaVersion": SCHEMA_VERSION,
