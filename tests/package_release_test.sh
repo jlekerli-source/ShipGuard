@@ -33,6 +33,23 @@ tar_list="$tmp_dir/tar-list.txt"
 }
 
 tar -tzf "$tarball" > "$tar_list"
+python3 - "$tarball" <<'PY'
+import sys
+import tarfile
+
+tarball = sys.argv[1]
+with tarfile.open(tarball, "r:gz") as archive:
+    bad = [
+        member.name
+        for member in archive.getmembers()
+        if "/._" in member.name
+        or member.name.startswith("._")
+        or "/__MACOSX" in member.name
+        or member.name.endswith(".DS_Store")
+        or member.name.endswith(".pyc")
+    ]
+assert not bad, bad[:10]
+PY
 grep -q "^$package_name/bin/shipguard$" "$tar_list"
 grep -q "^$package_name/bin/codex-maintainer$" "$tar_list"
 grep -q "^$package_name/AGENTS.md$" "$tar_list"

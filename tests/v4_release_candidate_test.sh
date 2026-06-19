@@ -149,7 +149,7 @@ old_version="0.0.0"
 mkdir -p "$tmp_dir/old-package-work"
 tar -xzf "$tmp_dir/proof-bundle/shipguard-v$version.tar.gz" -C "$tmp_dir/old-package-work"
 printf '%s\n' "$old_version" > "$tmp_dir/old-package-work/shipguard-v$version/VERSION"
-(cd "$tmp_dir/old-package-work" && tar -czf "$tmp_dir/shipguard-v$old_version.tar.gz" "shipguard-v$version")
+(cd "$tmp_dir/old-package-work" && COPYFILE_DISABLE=1 tar -czf "$tmp_dir/shipguard-v$old_version.tar.gz" "shipguard-v$version")
 
 SHIPGUARD_GENERATED_AT="2026-06-19T00:00:00Z" \
   ./bin/shipguard v4 release-candidate \
@@ -302,7 +302,7 @@ grep -q '"freshInstallPackageProof": "blocked"' "$tmp_dir/missing-tarball/v4-rel
 mkdir -p "$tmp_dir/unsafe-package/shipguard-v$version/scripts"
 printf '#!/usr/bin/env bash\nexit 0\n' > "$tmp_dir/unsafe-package/shipguard-v$version/scripts/install.sh"
 ln -s /tmp "$tmp_dir/unsafe-package/shipguard-v$version/unsafe-link"
-(cd "$tmp_dir/unsafe-package" && tar -czf "$tmp_dir/unsafe-package.tar.gz" "shipguard-v$version")
+(cd "$tmp_dir/unsafe-package" && COPYFILE_DISABLE=1 tar -czf "$tmp_dir/unsafe-package.tar.gz" "shipguard-v$version")
 if ./bin/shipguard v4 release-candidate \
   --path . \
   --out "$tmp_dir/unsafe-tarball" \
@@ -314,6 +314,26 @@ fi
 test -f "$tmp_dir/unsafe-tarball/v4-release-candidate.json"
 grep -q '"freshInstallPackageProof": "blocked"' "$tmp_dir/unsafe-tarball/v4-release-candidate.json"
 grep -q 'unsafe tarball member is a link or device' "$tmp_dir/unsafe-tarball/v4-release-candidate.json"
+
+mkdir -p "$tmp_dir/appledouble-package/shipguard-v$version/scripts"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$tmp_dir/appledouble-package/shipguard-v$version/scripts/install.sh"
+printf 'sidecar metadata\n' > "$tmp_dir/appledouble-package/shipguard-v$version/scripts/._install.sh"
+(cd "$tmp_dir/appledouble-package" && COPYFILE_DISABLE=1 tar -czf "$tmp_dir/appledouble-package.tar.gz" "shipguard-v$version")
+if ./bin/shipguard v4 release-candidate \
+  --path . \
+  --out "$tmp_dir/appledouble-tarball" \
+  --package-tarball "$tmp_dir/appledouble-package.tar.gz" \
+  --shipguard-eval \
+  --json >/dev/null 2>&1; then
+  echo "expected AppleDouble package tarball to fail release-candidate proof" >&2
+  exit 1
+fi
+test -f "$tmp_dir/appledouble-tarball/v4-release-candidate.json"
+grep -q '"freshInstallPackageProof": "blocked"' "$tmp_dir/appledouble-tarball/v4-release-candidate.json"
+grep -q '"blockingProof":' "$tmp_dir/appledouble-tarball/v4-release-candidate.json"
+grep -q '"receipt": "freshInstallPackageProof"' "$tmp_dir/appledouble-tarball/v4-release-candidate.json"
+grep -q 'unsafe tarball member is generated metadata/cache' "$tmp_dir/appledouble-tarball/v4-release-candidate.json"
+grep -q 'Rebuild the release package with ./scripts/package_release.sh' "$tmp_dir/appledouble-tarball/v4-release-candidate.json"
 
 if ./bin/shipguard v4 release-candidate \
   --path . \

@@ -90,6 +90,17 @@ def short_output(value: str, limit: int = 1200) -> str:
     return value[: limit - 3].rstrip() + "..."
 
 
+def is_forbidden_archive_member(name: str) -> bool:
+    path = Path(name)
+    return (
+        "__MACOSX" in path.parts
+        or any(part.startswith("._") for part in path.parts)
+        or path.name == ".DS_Store"
+        or path.name.endswith(".pyc")
+        or path.name in {".git", ".cache", "DerivedData", "__pycache__"}
+    )
+
+
 def safe_extract_tarball(tarball: Path, destination: Path) -> tuple[bool, str]:
     destination.mkdir(parents=True, exist_ok=True)
     destination_root = destination.resolve()
@@ -101,6 +112,8 @@ def safe_extract_tarball(tarball: Path, destination: Path) -> tuple[bool, str]:
                     return False, f"unsafe tarball member escapes destination: {member.name}"
                 if member.issym() or member.islnk() or member.isdev():
                     return False, f"unsafe tarball member is a link or device: {member.name}"
+                if is_forbidden_archive_member(member.name):
+                    return False, f"unsafe tarball member is generated metadata/cache: {member.name}"
             archive.extractall(destination_root)
     except (tarfile.TarError, OSError) as exc:
         return False, f"tarball extraction failed: {exc}"
@@ -728,6 +741,95 @@ def build_published_release_asset_proof(args: argparse.Namespace, root: Path, ve
     return proof
 
 
+def failed_process_excerpt(proof: dict[str, Any]) -> str:
+    for key in (
+        "validateResult",
+        "installResult",
+        "previousInstallResult",
+        "candidateInstallResult",
+        "versionResult",
+        "legacyVersionResult",
+        "previousVersionResult",
+        "upgradedVersionResult",
+    ):
+        result = proof.get(key)
+        if not isinstance(result, dict):
+            continue
+        exit_code = result.get("exitCode")
+        if exit_code in (0, None):
+            continue
+        stderr = short_output(str(result.get("stderr") or ""), 280)
+        stdout = short_output(str(result.get("stdout") or ""), 280)
+        detail = stderr or stdout
+        if detail:
+            return detail
+    error = proof.get("error")
+    if error:
+        return short_output(str(error), 280)
+    evidence = proof.get("extractEvidence")
+    if evidence and proof.get("extractStatus") == "blocked":
+        return short_output(str(evidence), 280)
+    return ""
+
+
+def build_blocking_proof_detail(
+    fresh_install_package_proof: dict[str, Any],
+    upgrade_package_proof: dict[str, Any],
+    rollback_package_proof: dict[str, Any],
+    published_release_asset_proof: dict[str, Any],
+) -> dict[str, Any] | None:
+    candidates = [
+        (
+            "freshInstallPackageProof",
+            fresh_install_package_proof,
+            "Supplied release package failed fresh-install validation.",
+            "Rebuild the release package with ./scripts/package_release.sh, verify it with ./tests/package_release_test.sh, then rerun LaunchKey against the rebuilt package or downloaded assets.",
+            "./scripts/package_release.sh && ./tests/package_release_test.sh",
+            "supplied release package fresh-install receipt",
+        ),
+        (
+            "upgradePackageProof",
+            upgrade_package_proof,
+            "Supplied previous/candidate package pair failed same-prefix upgrade validation.",
+            "Rebuild the package pair, verify package release tests, then rerun LaunchKey with --upgrade-from-tarball against the previous release tarball.",
+            "./tests/v4_release_candidate_test.sh",
+            "same-prefix package upgrade receipt",
+        ),
+        (
+            "rollbackPackageProof",
+            rollback_package_proof,
+            "Supplied release package failed rollback cleanup proof.",
+            "Fix package install/uninstall cleanup so the wrapper binaries and lib/shipguard tree can be removed without leaving package state behind.",
+            "./tests/v4_release_candidate_test.sh",
+            "rollback cleanup receipt",
+        ),
+        (
+            "publishedReleaseAssetProof",
+            published_release_asset_proof,
+            "Downloaded release assets failed consumer-side verification.",
+            "Redownload the release assets, verify release-consume locally, and only reuse the assets after manifest, tarball SHA-256, replay, and attestation all pass.",
+            published_release_asset_proof.get("consumeCommand", "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>"),
+            "downloaded release asset consumer receipt",
+        ),
+    ]
+    for receipt, proof, headline, remedy, next_command, proof_source in candidates:
+        if not proof.get("provided") or proof.get("status") == "pass":
+            continue
+        failure_evidence = failed_process_excerpt(proof)
+        failure = proof.get("summary") or headline
+        return {
+            "receipt": receipt,
+            "status": proof.get("status"),
+            "summary": headline,
+            "failure": failure,
+            "failureEvidence": failure_evidence,
+            "nextAction": remedy,
+            "nextCommand": next_command,
+            "proofSource": proof_source,
+        }
+    return None
+
+
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
     root = Path(args.path).expanduser().resolve()
     home = Path.home().resolve()
@@ -1049,7 +1151,23 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "What stable v4 product release proof remains after release-candidate readiness passes?",
         ]
     )
-    if status == "pass" and fresh_install_package_proof["status"] == "not-provided":
+    blocking_proof = build_blocking_proof_detail(
+        fresh_install_package_proof,
+        upgrade_package_proof,
+        rollback_package_proof,
+        published_release_asset_proof,
+    )
+    if status != "pass" and blocking_proof:
+        evidence_sentence = (
+            f" Failure evidence: {blocking_proof['failureEvidence']}"
+            if blocking_proof.get("failureEvidence")
+            else ""
+        )
+        priority_action = f"{blocking_proof['nextAction']}{evidence_sentence}"
+        next_command = str(blocking_proof["nextCommand"])
+        summary = f"{blocking_proof['summary']} {blocking_proof['failure']}"
+        proof_source = str(blocking_proof["proofSource"])
+    elif status == "pass" and fresh_install_package_proof["status"] == "not-provided":
         priority_action = (
             "Attach a real fresh-install receipt from the release package before any stable v4 claim; "
             "downloaded release-asset proof, external adoption evidence, final security review, rollback proof, and release proof consumption still remain stabilization gates."
@@ -1110,6 +1228,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         next_action_summary=priority_action,
     )
     result_ux["priorityAction"] = priority_action
+    if blocking_proof:
+        result_ux["blockingProof"] = blocking_proof
 
     report: dict[str, Any] = {
         "schemaVersion": SCHEMA_VERSION,
@@ -1135,6 +1255,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "pluginRefreshProof": readiness_proof["pluginRefreshProof"],
         "releaseReadiness": release_readiness,
         "blockedClaims": blocked_claims,
+        "blockingProof": blocking_proof,
         "scopeBoundary": scope_boundary,
         "reportQualityQuestions": report_quality_questions,
         "resultUX": result_ux,
@@ -1207,6 +1328,22 @@ def render_markdown(report: dict[str, Any]) -> str:
         "## Readiness Proof",
         "",
     ]
+    blocking_proof = report.get("blockingProof")
+    if blocking_proof:
+        lines.extend(
+            [
+                "## Blocking Proof",
+                "",
+                f"- Receipt: `{blocking_proof.get('receipt')}`",
+                f"- Status: `{blocking_proof.get('status')}`",
+                f"- Failure: {blocking_proof.get('failure')}",
+            ]
+        )
+        if blocking_proof.get("failureEvidence"):
+            lines.append(f"- Failure evidence: `{blocking_proof.get('failureEvidence')}`")
+        lines.append(f"- Next command: `{blocking_proof.get('nextCommand')}`")
+        lines.append(f"- Next action: {blocking_proof.get('nextAction')}")
+        lines.append("")
     for key, proof in report["readinessProof"].items():
         title = key[0].upper() + key[1:]
         lines.append(f"- {title}: `{proof.get('status')}`")

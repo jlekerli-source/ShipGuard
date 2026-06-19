@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added LaunchKey downloaded-asset blocking proof detail: `shipguard v4 release-candidate` now rejects generated archive members such as AppleDouble `._*`, `.DS_Store`, `__MACOSX`, bytecode, and cache paths before install, and result UX now names the exact blocked receipt plus the next package-rebuild command when supplied release/package proof fails.
 - Added LaunchKey upgrade and rollback receipt attachment: `shipguard v4 release-candidate` can now accept `--upgrade-from-tarball`, prove same-prefix upgrade from a previous package to the candidate package, attach rollback cleanup proof from the candidate package, and keep generated upgrade/rollback proof directories out of recursive report-quality scoring.
 - Fixed `ios report-quality` recursive scoring for LaunchKey package-proof outputs. Report-quality now skips generated `fresh-install-prefix`, `fresh-install-work`, and `release-consume` directories under a report output so v4 candidate QA grades the root LaunchKey report instead of the embedded installed ShipGuard package or consumer-proof receipts.
 - Refined GitHub-facing presentation for the current post-`v3.131.0` state: README, docs index, GitHub Presentation, and roadmap now distinguish the published LaunchKey release from active `main` hardening, and the recommended About copy is app-maintenance oriented instead of iOS-only.

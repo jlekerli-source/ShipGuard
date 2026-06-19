@@ -55,6 +55,8 @@ The command checks these gates:
 
 Without `--package-tarball`, the command can still pass release-candidate readiness, but `freshInstallPackageProof.status` is `not-provided`. Stable-v4 proof needs a real package tarball to install into a fresh prefix, report the expected version through both `shipguard` and the compatibility alias, run `shipguard validate`, and prove the installed tree omits generated, VCS, cache, bytecode, dist, and AppleDouble files.
 
+LaunchKey screens package tarballs before install. Archive members such as AppleDouble `._*`, `.DS_Store`, `__MACOSX`, bytecode, `.git`, `.cache`, `DerivedData`, and `__pycache__` block extraction even if a normal shell `tar -t` listing hides them. This matters for downloaded release assets: the release manifest and attestation can verify while the package is still unsafe to install on a clean machine. In that case, the report includes `blockingProof` and the result UX points to the exact blocked receipt, failure evidence, and package rebuild command.
+
 When `--package-tarball` is supplied, LaunchKey runs:
 
 ```bash
@@ -65,6 +67,13 @@ PREFIX=<fresh-prefix> <package>/scripts/install.sh
 ```
 
 The report then records `freshInstallPackageProof`, including installed version, legacy alias version, validation result, forbidden installed path count, and redacted install paths. If install or validation fails, the release-candidate report returns review instead of treating static package docs as fresh-install proof.
+
+When a supplied package, upgrade, rollback, or downloaded release-asset proof fails, the JSON contains:
+
+- `blockingProof.receipt`: the failing receipt, such as `freshInstallPackageProof`.
+- `blockingProof.failureEvidence`: the shortest useful stderr, extraction error, or consumer-proof failure.
+- `blockingProof.nextCommand`: the next command to repair or reproduce the failure.
+- `resultUX.blockingProof`: the same detail in the top result block for agent and UI consumers.
 
 When `--fresh-install-prefix`, `--fresh-install-work-dir`, `--upgrade-prefix`, `--upgrade-work-dir`, `--rollback-prefix`, `--rollback-work-dir`, or `--release-consume-out` are omitted, LaunchKey writes generated proof directories under the candidate output. Those directories are evidence attachments, not report-quality source reports. `shipguard ios report-quality --reports <candidate-out>` skips `fresh-install-prefix`, `fresh-install-work`, `upgrade-prefix`, `upgrade-work`, `rollback-prefix`, `rollback-work`, and `release-consume` so it grades the root `v4-release-candidate.json` instead of recursively scoring installed packages or consumer-proof receipts.
 
