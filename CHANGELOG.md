@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed `ios report-quality` recursive scoring for LaunchKey package-proof outputs. Report-quality now skips generated `fresh-install-prefix`, `fresh-install-work`, and `release-consume` directories under a report output so v4 candidate QA grades the root LaunchKey report instead of the embedded installed ShipGuard package or consumer-proof receipts.
 - Added LaunchKey fresh-install receipt attachment: `shipguard v4 release-candidate` now accepts `--package-tarball`, `--fresh-install-prefix`, and `--fresh-install-work-dir`, installs the package into a fresh prefix, checks both CLI aliases, runs installed `shipguard validate`, and records `freshInstallPackageProof`.
 - Hardened package/install hygiene after fresh-install proof exposed macOS AppleDouble sidecars during package install. `package_release.sh` and `install.sh` now disable/cull `._*` files, and package release tests require installed `shipguard validate` to pass.
 - Added LaunchKey published release-asset proof attachment: `shipguard v4 release-candidate` now accepts `--release-assets`, `--release-version`, and `--release-consume-out`, runs `shipguard release-consume verify`, and records `publishedReleaseAssetProof` so stable-v4 release asset proof is attached to the v4 candidate report instead of living only as a separate manual instruction.

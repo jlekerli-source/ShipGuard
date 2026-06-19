@@ -61,6 +61,8 @@ PREFIX=<fresh-prefix> <package>/scripts/install.sh
 
 The report then records `freshInstallPackageProof`, including installed version, legacy alias version, validation result, forbidden installed path count, and redacted install paths. If install or validation fails, the release-candidate report returns review instead of treating static package docs as fresh-install proof.
 
+When `--fresh-install-prefix`, `--fresh-install-work-dir`, or `--release-consume-out` are omitted, LaunchKey writes generated proof directories under the candidate output. Those directories are evidence attachments, not report-quality source reports. `shipguard ios report-quality --reports <candidate-out>` skips `fresh-install-prefix`, `fresh-install-work`, and `release-consume` so it grades the root `v4-release-candidate.json` instead of recursively scoring the installed package or consumer-proof receipts.
+
 Without `--release-assets`, the command can still pass release-candidate readiness, but `publishedReleaseAssetProof.status` is `not-provided`. That is intentional: candidate readiness is not the same as stable-v4 proof. Stable-v4 release proof needs downloaded release assets to pass consumer-side verification.
 
 When `--release-assets` is supplied, LaunchKey runs:

@@ -208,8 +208,15 @@ SOURCE_REPORT_SKIP_NAMES = {
     "fixture-promotion-manifest.json",
 }
 SOURCE_REPORT_SKIP_DIR_NAMES = {
+    "fresh-install-prefix",
+    "fresh-install-work",
+    "release-consume",
     "stage-receipts",
 }
+
+
+def is_skipped_report_path(path: Path) -> bool:
+    return any(parent.name in SOURCE_REPORT_SKIP_DIR_NAMES for parent in path.parents)
 
 
 def report_json_files(inputs: list[str]) -> list[Path]:
@@ -226,7 +233,7 @@ def report_json_files(inputs: list[str]) -> list[Path]:
         for candidate in sorted(path.rglob("*.json")):
             if candidate.name in SOURCE_REPORT_SKIP_NAMES:
                 continue
-            if any(parent.name in SOURCE_REPORT_SKIP_DIR_NAMES for parent in candidate.parents):
+            if is_skipped_report_path(candidate):
                 continue
             paths.append(candidate)
     unique = sorted({path for path in paths})
@@ -245,7 +252,7 @@ def fixture_promotion_manifest_files(inputs: list[str]) -> list[Path]:
             if path.name == "fixture-promotion-manifest.json":
                 paths.append(path)
             continue
-        paths.extend(sorted(path.rglob("fixture-promotion-manifest.json")))
+        paths.extend(candidate for candidate in sorted(path.rglob("fixture-promotion-manifest.json")) if not is_skipped_report_path(candidate))
     return sorted({path for path in paths})
 
 
