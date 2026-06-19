@@ -69,8 +69,8 @@ for command in receipt.get("commands") or []:
 
 if domain_pack_sdk.get("status") != "pass":
     raise SystemExit(f"Domain Pack SDK receipts should pass: {domain_pack_sdk!r}")
-if answer.get("identifier") != "shipguard xcodebuildmcp-evidence-adapter":
-    raise SystemExit(f"passing agent adapter receipts should escalate to XcodeBuildMCP evidence adapter: {answer!r}")
+if answer.get("identifier") != "shipguard expo-mcp-eas-assurance-adapter":
+    raise SystemExit(f"passing XcodeBuildMCP receipts should escalate to Expo MCP and EAS assurance adapter: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"trust-hardening should no longer be missing: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
@@ -89,8 +89,10 @@ if "runtimeStructuredEvidenceReceiptsV2" in answer.get("missingDepthSignals", []
     raise SystemExit(f"structured evidence receipts v2 should no longer be missing: {answer!r}")
 if "runtimeCodexNativeTaskTraceAdapter" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"Codex-native task/trace adapter should no longer be missing: {answer!r}")
-if "runtimeXcodeBuildMCPEvidenceAdapter" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"XcodeBuildMCP evidence adapter gap should be explicit: {answer!r}")
+if "runtimeXcodeBuildMCPEvidenceAdapter" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"XcodeBuildMCP evidence adapter should no longer be missing: {answer!r}")
+if "runtimeExpoMCPAndEASAdapter" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"Expo MCP and EAS adapter gap should be explicit: {answer!r}")
 PY
 
 echo "trust hardening receipt tests passed"

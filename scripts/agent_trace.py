@@ -21,6 +21,55 @@ ADAPTERS = ("auto", "codex", "generic")
 MAX_NORMAL_WORKERS = 5
 RECOMMENDED_WORKERS = "2-3"
 TRACE_FILENAMES = ("trace.json", "codex-trace.json", "agent-trace.json")
+MAX_XCODE_EVIDENCE_FILES = 200
+MAX_XCODE_EVIDENCE_BYTES = 256 * 1024
+TEXT_EVIDENCE_SUFFIXES = {
+    ".json",
+    ".log",
+    ".md",
+    ".txt",
+    ".stdout",
+    ".stderr",
+    ".trace",
+    ".xml",
+}
+XCODEBUILD_MCP_SIGNALS = {
+    "sessionDefaultsProof": {
+        "title": "Session defaults proof",
+        "tokens": ["session_show_defaults", "session_set_defaults", "project", "workspace", "scheme", "simulator"],
+        "proofBoundary": "Shows XcodeBuildMCP was pointed at an explicit project/workspace, scheme, and simulator before execution.",
+    },
+    "buildRunProof": {
+        "title": "Build/run proof",
+        "tokens": ["build_run_sim", "build succeeded", "** build succeeded **", "launch_app_sim", "install_app_sim", "launching "],
+        "proofBoundary": "Shows simulator build/run execution happened; it is not physical-device, TestFlight, or App Store proof.",
+    },
+    "uiSnapshotProof": {
+        "title": "UI snapshot proof",
+        "tokens": ["describe_ui", "snapshot_ui", "elementref", "\"elements\"", "ui snapshot", "accessibility"],
+        "proofBoundary": "Shows structured simulator UI state; visual claims still need screenshot review when layout or polish matters.",
+    },
+    "screenshotProof": {
+        "title": "Screenshot proof",
+        "tokens": ["screenshot", "simctl io", "preview-screenshot"],
+        "proofBoundary": "Shows a captured simulator frame; redact or keep local when screenshots contain private app content.",
+    },
+    "logProof": {
+        "title": "Runtime log proof",
+        "tokens": ["start_sim_log_cap", "stop_sim_log_cap", "runtime log", "os_log", "console output", "log stream"],
+        "proofBoundary": "Shows focused runtime evidence; logs can include private data and should be redacted before sharing.",
+    },
+    "profilerProof": {
+        "title": "Profiler proof",
+        "tokens": ["animation hitches", "time profiler", "xctrace", "instruments", "ettrace", "sample ", "spindump", "flamegraph"],
+        "proofBoundary": "Shows simulator or local profiler evidence; physical-device proof is still required for haptics, thermal, touch latency, and ProMotion claims.",
+    },
+    "deviceProof": {
+        "title": "Physical-device proof",
+        "tokens": ["physical device", "connected device", "device run", "thermal", "haptic", "promotion", "pro motion", "touch latency"],
+        "proofBoundary": "Shows device-related evidence is present, but ShipGuard still treats device claims as manual unless the receipt names the device route.",
+    },
+}
 
 
 def utc_now() -> str:
@@ -169,6 +218,7 @@ def count_categories(timeline: list[dict[str, Any]]) -> dict[str, int]:
         "verdictCount": sum(1 for item in timeline if item["category"] == "verdict"),
         "nextActionCount": sum(1 for item in timeline if item["category"] == "next_action"),
         "workerSpawnCount": sum(1 for item in timeline if item["category"] == "worker_spawn"),
+        "xcodeBuildMCPEvidenceCount": sum(1 for item in timeline if item["category"] == "xcodebuildmcp_evidence"),
     }
 
 
@@ -234,6 +284,253 @@ def normalized_receipts(paths: list[str], *, shareable: bool) -> tuple[list[dict
                 artifact_path = Path(str(artifact["path"]))
                 artifact["path"] = artifact_path.name
     return entries, summary
+
+
+def iter_evidence_files(path: Path) -> tuple[list[Path], bool]:
+    if path.is_file():
+        return [path], False
+    if not path.is_dir():
+        return [], False
+    files: list[Path] = []
+    truncated = False
+    for candidate in sorted(path.rglob("*")):
+        if not candidate.is_file():
+            continue
+        files.append(candidate)
+        if len(files) >= MAX_XCODE_EVIDENCE_FILES:
+            truncated = True
+            break
+    return files, truncated
+
+
+def evidence_path_label(path: Path, *, inputs: list[Path], shareable: bool) -> str:
+    if not shareable:
+        return path.as_posix()
+    for index, input_path in enumerate(inputs, start=1):
+        base = input_path if input_path.is_dir() else input_path.parent
+        try:
+            relative = path.relative_to(base)
+        except ValueError:
+            continue
+        suffix = relative.as_posix()
+        return f"<xcodebuildmcp-evidence-{index}>" if not suffix or suffix == "." else f"<xcodebuildmcp-evidence-{index}>/{suffix}"
+    return "<xcodebuildmcp-evidence>"
+
+
+def read_evidence_text(path: Path) -> str:
+    try:
+        size = path.stat().st_size
+    except OSError:
+        return ""
+    suffix = path.suffix.lower()
+    if suffix not in TEXT_EVIDENCE_SUFFIXES and size > MAX_XCODE_EVIDENCE_BYTES:
+        return ""
+    try:
+        data = path.read_bytes()[:MAX_XCODE_EVIDENCE_BYTES]
+    except OSError:
+        return ""
+    if b"\x00" in data[:2048]:
+        return ""
+    return data.decode("utf-8", errors="ignore")
+
+
+def xcode_signal_matches(path: Path, text: str) -> dict[str, list[str]]:
+    name = path.name.lower()
+    suffix = path.suffix.lower()
+    lowered = text.lower()
+    matches: dict[str, list[str]] = {signal: [] for signal in XCODEBUILD_MCP_SIGNALS}
+
+    def mark(signal: str, marker: str) -> None:
+        if marker and marker not in matches[signal]:
+            matches[signal].append(marker)
+
+    if suffix in {".png", ".jpg", ".jpeg", ".heic"} or "screenshot" in name:
+        mark("screenshotProof", "screenshot artifact")
+    if suffix in {".trace", ".xcresult"} or name.endswith(".trace") or name.endswith(".xcresult"):
+        mark("profilerProof", suffix or "trace artifact")
+    if suffix == ".log" or "log" in name:
+        mark("logProof", "log artifact")
+    if suffix == ".json" and text.strip():
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            data = None
+        serialized = json.dumps(data, sort_keys=True).lower() if data is not None else lowered
+        if "elementref" in serialized or '"elements"' in serialized or "snapshot_ui" in serialized or "describe_ui" in serialized:
+            mark("uiSnapshotProof", "structured UI JSON")
+        if "build_run_sim" in serialized or "session_show_defaults" in serialized:
+            mark("buildRunProof", "XcodeBuildMCP JSON")
+    for signal, config in XCODEBUILD_MCP_SIGNALS.items():
+        for token in config["tokens"]:
+            if token in lowered or token in name:
+                mark(signal, token.strip())
+    return matches
+
+
+def collect_xcodebuildmcp_evidence(raw_inputs: list[str], *, shareable: bool) -> dict[str, Any]:
+    if not raw_inputs:
+        return {
+            "status": "not-provided",
+            "adapter": "xcodebuildmcp",
+            "inputs": [],
+            "summary": {
+                "inputCount": 0,
+                "existingInputCount": 0,
+                "fileCount": 0,
+                "filesScanned": 0,
+                "truncated": False,
+                **{signal: False for signal in XCODEBUILD_MCP_SIGNALS},
+            },
+            "signals": [
+                {
+                    "id": signal,
+                    "title": config["title"],
+                    "present": False,
+                    "evidence": [],
+                    "proofBoundary": config["proofBoundary"],
+                }
+                for signal, config in XCODEBUILD_MCP_SIGNALS.items()
+            ],
+            "nextActions": [
+                "After Codex/XcodeBuildMCP executes build/run, UI, log, or profiler tools, rerun with --xcodebuildmcp-evidence <proof-dir> to attach typed proof to this timeline.",
+            ],
+        }
+
+    resolved_inputs = [Path(item).expanduser().resolve() for item in raw_inputs]
+    files: list[Path] = []
+    inputs: list[dict[str, Any]] = []
+    existing_count = 0
+    any_truncated = False
+    for index, path in enumerate(resolved_inputs, start=1):
+        exists = path.exists()
+        input_files: list[Path] = []
+        truncated = False
+        if exists:
+            existing_count += 1
+            input_files, truncated = iter_evidence_files(path)
+            files.extend(input_files)
+            any_truncated = any_truncated or truncated
+        inputs.append(
+            {
+                "index": index,
+                "path": f"<xcodebuildmcp-evidence-{index}>" if shareable else path.as_posix(),
+                "kind": "directory" if path.is_dir() else "file" if path.is_file() else "missing",
+                "exists": exists,
+                "fileCount": len(input_files),
+                "truncated": truncated,
+            }
+        )
+
+    unique_files = sorted({path for path in files})
+    signal_evidence: dict[str, list[dict[str, str]]] = {signal: [] for signal in XCODEBUILD_MCP_SIGNALS}
+    for path in unique_files[:MAX_XCODE_EVIDENCE_FILES]:
+        text = read_evidence_text(path)
+        matches = xcode_signal_matches(path, text)
+        label = evidence_path_label(path, inputs=resolved_inputs, shareable=shareable)
+        for signal, markers in matches.items():
+            for marker in markers:
+                if len(signal_evidence[signal]) >= 8:
+                    continue
+                row = {"path": label, "marker": marker}
+                if row not in signal_evidence[signal]:
+                    signal_evidence[signal].append(row)
+
+    summary = {
+        "inputCount": len(raw_inputs),
+        "existingInputCount": existing_count,
+        "fileCount": len(unique_files),
+        "filesScanned": min(len(unique_files), MAX_XCODE_EVIDENCE_FILES),
+        "truncated": any_truncated or len(unique_files) > MAX_XCODE_EVIDENCE_FILES,
+    }
+    for signal in XCODEBUILD_MCP_SIGNALS:
+        summary[signal] = bool(signal_evidence[signal])
+    visual = bool(summary["uiSnapshotProof"] or summary["screenshotProof"])
+    status = "missing" if not existing_count or not unique_files else "pass" if any(summary[signal] for signal in XCODEBUILD_MCP_SIGNALS) else "review"
+    next_actions: list[str] = []
+    if status == "missing":
+        next_actions.append("Point --xcodebuildmcp-evidence at the proof directory or files produced by Codex/XcodeBuildMCP.")
+    if not summary["buildRunProof"]:
+        next_actions.append("Attach session_show_defaults/session_set_defaults plus build_run_sim output before claiming simulator build/run proof.")
+    if not visual:
+        next_actions.append("Attach describe_ui, snapshot_ui, or screenshot evidence before making UI-state or visual claims.")
+    if not summary["profilerProof"]:
+        next_actions.append("Attach xctrace, Instruments, sample, or ETTrace output before making performance-proof claims.")
+    if summary["profilerProof"] and not summary["deviceProof"]:
+        next_actions.append("Keep profiler claims scoped to simulator/local proof unless physical-device evidence is also attached.")
+    return {
+        "status": status,
+        "adapter": "xcodebuildmcp",
+        "inputs": inputs,
+        "summary": summary,
+        "signals": [
+            {
+                "id": signal,
+                "title": config["title"],
+                "present": bool(signal_evidence[signal]),
+                "evidence": signal_evidence[signal],
+                "proofBoundary": config["proofBoundary"],
+            }
+            for signal, config in XCODEBUILD_MCP_SIGNALS.items()
+        ],
+        "nextActions": next_actions,
+    }
+
+
+def xcodebuildmcp_timeline(start_index: int, evidence: dict[str, Any]) -> list[dict[str, Any]]:
+    if evidence.get("status") == "not-provided":
+        return []
+    items: list[dict[str, Any]] = []
+    index = start_index
+    for signal in evidence.get("signals") or []:
+        if not signal.get("present"):
+            continue
+        first = (signal.get("evidence") or [{}])[0]
+        items.append(
+            {
+                "index": index,
+                "category": "xcodebuildmcp_evidence",
+                "type": signal["id"],
+                "role": "runtime-proof",
+                "tool": "XcodeBuildMCP",
+                "command": signal["title"],
+                "path": first.get("path"),
+                "status": "pass",
+                "receiptId": None,
+                "summary": f"{signal['title']}: {first.get('marker') or 'typed proof present'}",
+            }
+        )
+        index += 1
+    return items
+
+
+def xcodebuildmcp_findings(evidence: dict[str, Any]) -> list[dict[str, Any]]:
+    if evidence.get("status") in {"not-provided", "pass"}:
+        return []
+    summary = evidence.get("summary") if isinstance(evidence.get("summary"), dict) else {}
+    findings: list[dict[str, Any]] = []
+    if evidence.get("status") == "missing":
+        findings.append(
+            {
+                "severity": "review",
+                "category": "xcodebuildmcp-evidence",
+                "ruleId": "xcodebuildmcp-evidence-input-missing",
+                "evidence": "XcodeBuildMCP evidence inputs were supplied, but none resolved to readable files.",
+                "recommendation": "Attach the proof directory produced by Codex/XcodeBuildMCP or remove the input until proof exists.",
+                "proofGuidance": "Rerun with --xcodebuildmcp-evidence <dir> containing build logs, UI snapshots, screenshots, runtime logs, or profiler output.",
+            }
+        )
+    if not any(bool(summary.get(signal)) for signal in XCODEBUILD_MCP_SIGNALS):
+        findings.append(
+            {
+                "severity": "review",
+                "category": "xcodebuildmcp-evidence",
+                "ruleId": "xcodebuildmcp-evidence-untyped",
+                "evidence": "Supplied evidence did not match build/run, UI, screenshot, log, profiler, or device signals.",
+                "recommendation": "Keep XcodeBuildMCP proof explicit enough that ShipGuard can classify the receipt type.",
+                "proofGuidance": "Attach session_show_defaults, build_run_sim, describe_ui/snapshot_ui, screenshots, log capture, or xctrace/sample outputs.",
+            }
+        )
+    return findings
 
 
 def load_task_summary(task_path: Path | None, *, shareable: bool) -> dict[str, Any]:
@@ -401,11 +698,15 @@ def sha256_file(path: Path) -> str:
 
 
 def write_runtime_receipt(out_dir: Path, report_path: Path, report: dict[str, Any]) -> dict[str, Any]:
+    xcode_status = (report.get("xcodeBuildMCPEvidence") or {}).get("status")
+    scope = ["agent-trace", "task-contract", "receipts", "verdict-handoff", "agent-budget"]
+    if xcode_status != "not-provided":
+        scope.append("xcodebuildmcp-evidence")
     receipt = {
         "schemaVersion": RECEIPT_SCHEMA_VERSION,
         "receiptId": "agent-trace-runtime",
         "receiptType": "runtime",
-        "requirementId": "codex-task-trace-adapter",
+        "requirementId": "xcodebuildmcp-evidence-adapter" if xcode_status != "not-provided" else "codex-task-trace-adapter",
         "command": report.get("tool"),
         "exitCode": 0,
         "status": report.get("status"),
@@ -418,11 +719,18 @@ def write_runtime_receipt(out_dir: Path, report_path: Path, report: dict[str, An
             "bytes": report_path.stat().st_size,
             "sha256": sha256_file(report_path),
         },
-        "scope": ["agent-trace", "task-contract", "receipts", "verdict-handoff", "agent-budget"],
+        "scope": scope,
     }
     receipt_path = out_dir / "agent-trace-receipt.json"
     write_json(receipt_path, receipt)
     return receipt
+
+
+def table_cell(value: object, limit: int = 120) -> str:
+    text = str(value).replace("\n", " ").replace("|", "\\|").strip()
+    if len(text) <= limit:
+        return text
+    return text[: limit - 1].rstrip() + "..."
 
 
 def render_markdown(report: dict[str, Any]) -> str:
@@ -469,6 +777,26 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"- Verdict status: {verify.get('verdictStatus') or '-'}",
             f"- Verdict path: {verify.get('verdictPath') or '-'}",
             "",
+            "## XcodeBuildMCP Evidence",
+            "",
+            f"- Status: {report['xcodeBuildMCPEvidence']['status']}",
+            f"- Files scanned: {report['xcodeBuildMCPEvidence']['summary']['filesScanned']}",
+            "",
+            "| Signal | Present | Evidence |",
+            "| --- | --- | --- |",
+        ]
+    )
+    for signal in report["xcodeBuildMCPEvidence"]["signals"]:
+        evidence_rows = signal.get("evidence") or []
+        evidence_text = ", ".join(f"{item.get('path')} ({item.get('marker')})" for item in evidence_rows[:3]) or "-"
+        lines.append(f"| {signal['title']} | {str(signal['present']).lower()} | {table_cell(evidence_text, 160)} |")
+    if report["xcodeBuildMCPEvidence"]["nextActions"]:
+        lines.extend(["", "Next proof actions:"])
+        for item in report["xcodeBuildMCPEvidence"]["nextActions"]:
+            lines.append(f"- {item}")
+    lines.extend(
+        [
+            "",
             "## Receipt Handoff",
             "",
             f"- Schema: {report['receiptHandoff']['schema'].get('schemaVersion')}",
@@ -491,7 +819,9 @@ def render_markdown(report: dict[str, Any]) -> str:
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
     trace_path = resolve_trace(args.trace)
     trace_root, events, source_format = load_trace(trace_path)
-    timeline = [timeline_item(index, event) for index, event in enumerate(events, start=1)]
+    base_timeline = [timeline_item(index, event) for index, event in enumerate(events, start=1)]
+    xcodebuildmcp_evidence = collect_xcodebuildmcp_evidence(args.xcodebuildmcp_evidence or [], shareable=args.shareable)
+    timeline = base_timeline + xcodebuildmcp_timeline(len(base_timeline) + 1, xcodebuildmcp_evidence)
     adapter = infer_adapter(args.adapter, trace_root, timeline, trace_path)
     task_path = resolve_file(args.task, "shipguard-task.json")
     verdict_path = resolve_file(args.verdict, "shipguard-verdict.json")
@@ -499,7 +829,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     receipts, receipt_schema = normalized_receipts(evidence_paths, shareable=args.shareable)
     verify_handoff = run_verify(args, task_path, evidence_paths, shareable=args.shareable)
     budget = budget_report(args, trace_root, timeline)
-    findings = trace_findings(timeline, verify_handoff) + budget["findings"]
+    findings = trace_findings(timeline, verify_handoff) + xcodebuildmcp_findings(xcodebuildmcp_evidence) + budget["findings"]
     status = status_from_findings(findings, budget, verify_handoff)
     counts = count_categories(timeline)
     task_id = text_value(
@@ -534,6 +864,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "toolTimeline": [item for item in timeline if item["category"] == "tool_call"],
             "receiptTimeline": [item for item in timeline if item["category"] == "receipt"],
             "verdictTimeline": [item for item in timeline if item["category"] == "verdict"],
+            "xcodeBuildMCPEvidenceTimeline": [item for item in timeline if item["category"] == "xcodebuildmcp_evidence"],
             "nextActions": [item for item in timeline if item["category"] == "next_action"],
         },
         "taskHandoff": load_task_summary(task_path, shareable=args.shareable),
@@ -542,16 +873,17 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "path": display_path(verdict_path, shareable=args.shareable, label="verdict"),
         },
         "receiptHandoff": {"schema": receipt_schema, "receipts": receipts},
+        "xcodeBuildMCPEvidence": xcodebuildmcp_evidence,
         "verifyHandoff": verify_handoff,
         "agentBudget": budget,
         "findings": findings,
         "reportQualityQuestions": [
             "Does this trace connect the user prompt, tools, evidence receipts, verdict, and next action without relying on pasted summaries?",
-            "Can this adapter pass its receipt to the next XcodeBuildMCP evidence adapter without losing proof boundaries?",
+            "Does XcodeBuildMCP build/run, UI snapshot, screenshot, log, or profiler proof attach to the same task trace timeline with local-path redaction?",
             "Does the worker budget improve results per agent instead of maximizing agent count?",
         ],
-        "slashPlan": "/plan v3.121.0 XcodeBuildMCP Evidence Adapter for jlekerli-source/ShipGuard: build the next thin adapter that attaches simulator/build/UI/profiler receipts to the same agent trace timeline, then validate with public fixtures.",
-        "slashGoal": "/goal Implement v3.121.0 XcodeBuildMCP Evidence Adapter for jlekerli-source/ShipGuard: connect XcodeBuildMCP build/run/UI/profiler proof into ShipGuard receipts and agent traces without modifying private target apps.",
+        "slashPlan": "/plan v3.122.0 Expo MCP And EAS Assurance Adapter for jlekerli-source/ShipGuard: build the next thin adapter that maps Expo MCP, EAS build, and native runtime assurance receipts into the same proof timeline, then validate with public fixtures.",
+        "slashGoal": "/goal Implement v3.122.0 Expo MCP And EAS Assurance Adapter for jlekerli-source/ShipGuard: connect Expo/EAS proof into ShipGuard receipts and agent traces without modifying private target apps.",
         "runtimeReceiptPath": "agent-trace-receipt.json",
     }
     if args.shareable:
@@ -562,6 +894,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             roots.append(Path(args.diff).parent)
         for evidence_path in args.evidence or []:
             roots.append(Path(evidence_path).parent)
+        for evidence_path in args.xcodebuildmcp_evidence or []:
+            roots.append(Path(evidence_path).expanduser())
         report = redact_paths(report, roots)
     return report
 
@@ -574,6 +908,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--task", help="shipguard-task.json or directory containing it")
     parser.add_argument("--diff", help="Unified diff to pass into shipguard verify")
     parser.add_argument("--evidence", action="append", default=[], help="Evidence receipt JSON to normalize and optionally pass to verify")
+    parser.add_argument(
+        "--xcodebuildmcp-evidence",
+        action="append",
+        default=[],
+        help="File or directory containing XcodeBuildMCP build/run, UI snapshot, screenshot, log, or profiler proof to attach to the trace",
+    )
     parser.add_argument("--verdict", help="shipguard-verdict.json or directory containing it")
     parser.add_argument("--run-verify", action="store_true", help="Run shipguard verify from --task, --diff, and --evidence")
     parser.add_argument("--budget-workers", type=int, help="Worker count to grade for this trace")

@@ -49,7 +49,7 @@ Keep the core open-source verdict engine honest. Future Pro, Team, or Enterprise
 
 ## Phase Map
 
-The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.120 as shipped foundations and v3.121 as the active XcodeBuildMCP evidence-adapter slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, or agent-adapter work.
+The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.121 as shipped foundations and v3.122 as the active Expo MCP and EAS assurance-adapter slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, or XcodeBuildMCP evidence-adapter work.
 
 ### Phase A: Trustworthy Foundation
 
@@ -134,7 +134,7 @@ v3.128  External benchmark v2
 v3.129-v3.130  v4 preview, stabilization, security, and schema freeze
 ```
 
-Current state: v3.120 adds the Agent Adapter Kernel through `shipguard agent trace` and `shipguard codex trace`. TraceBridge consumes exported or synthetic Codex-style traces, maps prompts, tool calls, receipts, optional `shipguard verify` output, verdicts, next actions, runtime receipts, and worker-budget state into one reviewable timeline. The active architectural priority is v3.121 XcodeBuildMCP evidence adapter so build/run, UI snapshot, screenshot, log, and profiler proof can attach to that same task timeline without turning target-app findings into app work.
+Current state: v3.121 adds the XcodeBuildMCP evidence adapter through `shipguard agent trace --xcodebuildmcp-evidence` and `shipguard codex trace --xcodebuildmcp-evidence`. TraceBridge now consumes exported or synthetic Codex-style traces, maps prompts, tool calls, receipts, optional `shipguard verify` output, verdicts, next actions, runtime receipts, worker-budget state, and typed simulator build/run, UI snapshot, screenshot, runtime log, and profiler proof into one reviewable timeline. The active architectural priority is v3.122 Expo MCP and EAS assurance so Expo prebuild, EAS build/update, and native runtime proof can attach to the same task timeline without turning target-app findings into app work.
 
 Every release proposal must answer:
 

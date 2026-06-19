@@ -236,7 +236,7 @@ The current product directive is:
 - Treat agent efficiency as a product feature: standard mode should normally use 2-3 workers, cap normal workflows at 5, avoid recursive worker spawning, and measure duplicate reads, cache hits, time to first useful verdict, and accepted findings per model turn.
 - Keep full repository audits explicit opt-in through the future `shipguard inspect --full` path; routine `verify` stays diff-first.
 
-The current baseline is v3.120 Agent Adapter Kernel and Codex-native task/trace adapter. The active next slice is v3.121 XcodeBuildMCP evidence adapter, followed by v3.122 Expo MCP and EAS assurance adapter, v3.123 universal agent packaging, and v3.124 efficient full-audit orchestration.
+The current baseline is v3.121 XcodeBuildMCP evidence adapter. The active next slice is v3.122 Expo MCP and EAS assurance adapter, followed by v3.123 universal agent packaging and v3.124 efficient full-audit orchestration.
 
 ## Revised Roadmap
 

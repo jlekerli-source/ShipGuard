@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added the v3.121 XcodeBuildMCP evidence adapter: `shipguard agent trace` and `shipguard codex trace` now accept `--xcodebuildmcp-evidence <file-or-dir>` and attach simulator build/run, UI snapshot, screenshot, runtime log, and profiler proof to the same TraceBridge task timeline.
+- Added Tool Value Gauntlet `xcodeBuildMCPEvidenceReceipts` with a public synthetic fixture proving agent and Codex trace aliases attach typed XcodeBuildMCP evidence while keeping physical-device proof separate from simulator proof.
+- Advanced `shipguard value-gauntlet` beyond the v3.121 gap: once XcodeBuildMCP receipts pass, the lowest-value probe now points to the v3.122 Expo MCP and EAS assurance adapter.
 - Added ShipGuard TraceBridge: `shipguard agent trace` and `shipguard codex trace` now normalize exported/synthetic agent traces into prompt, tool-call, receipt, optional verify verdict, next-action, runtime-receipt, and worker-budget timelines.
 - Added `scripts/agent_trace.py`, `docs/agent-trace.md`, focused `tests/agent_trace_test.sh`, and Tool Value Gauntlet `agentAdapterReceipts` proving prepare, trace-with-verify, over-budget blocking, and Codex alias behavior on public synthetic fixtures.
 - Advanced `shipguard value-gauntlet` beyond the v3.120 gap: once agent adapter receipts pass, the lowest-value probe now points to the v3.121 XcodeBuildMCP evidence adapter.

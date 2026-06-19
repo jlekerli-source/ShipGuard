@@ -8,7 +8,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 cd "$repo_root"
 
-mkdir -p "$tmp_dir/fixture/Sources/AgentTraceFixture" "$tmp_dir/diffs" "$tmp_dir/logs"
+mkdir -p "$tmp_dir/fixture/Sources/AgentTraceFixture" "$tmp_dir/diffs" "$tmp_dir/logs" "$tmp_dir/xcodebuildmcp"
 printf 'public struct AgentTraceFixture {}\n' > "$tmp_dir/fixture/Sources/AgentTraceFixture/App.swift"
 printf 'diff --git a/Sources/AgentTraceFixture/App.swift b/Sources/AgentTraceFixture/App.swift\n--- a/Sources/AgentTraceFixture/App.swift\n+++ b/Sources/AgentTraceFixture/App.swift\n@@ -1 +1,2 @@\n public struct AgentTraceFixture {}\n+// trace adapter fixture\n' > "$tmp_dir/diffs/good.diff"
 printf 'swift test passed for agent trace fixture\n' > "$tmp_dir/logs/swift-test.log"
@@ -53,12 +53,33 @@ cat > "$tmp_dir/trace.json" <<JSON
   ]
 }
 JSON
+cat > "$tmp_dir/xcodebuildmcp/session-build.log" <<'EOF'
+session_show_defaults
+session_set_defaults with workspace=DemoShipGuardApp.xcworkspace, scheme=DemoShipGuardApp, simulator=iPhone 15
+build_run_sim
+** BUILD SUCCEEDED **
+Launching DemoShipGuardApp
+EOF
+cat > "$tmp_dir/xcodebuildmcp/describe-ui.json" <<'EOF'
+{"tool":"snapshot_ui","elements":[{"elementRef":"button.start","label":"Start"}]}
+EOF
+printf 'png proof\n' > "$tmp_dir/xcodebuildmcp/screenshot.png"
+cat > "$tmp_dir/xcodebuildmcp/runtime.log" <<'EOF'
+start_sim_log_cap
+runtime log contains focused os_log output
+stop_sim_log_cap
+EOF
+cat > "$tmp_dir/xcodebuildmcp/profile.trace" <<'EOF'
+xctrace record --template 'Animation Hitches'
+Time Profiler and Animation Hitches summaries preserved.
+EOF
 
 ./bin/shipguard agent trace \
   --trace "$tmp_dir/trace.json" \
   --task "$tmp_dir/prepare/shipguard-task.json" \
   --diff "$tmp_dir/diffs/good.diff" \
   --evidence "$tmp_dir/logs/v2-validation-receipt.json" \
+  --xcodebuildmcp-evidence "$tmp_dir/xcodebuildmcp" \
   --run-verify \
   --out "$tmp_dir/agent-trace" \
   --shipguard-eval \
@@ -87,6 +108,14 @@ for key in ("promptCount", "toolCallCount", "receiptCount", "verdictCount", "nex
         raise SystemExit(f"unexpected {key}: {summary}")
 if report["agentBudget"]["status"] != "pass" or report["agentBudget"]["workerCount"] != 3:
     raise SystemExit(report["agentBudget"])
+summary = report["xcodeBuildMCPEvidence"]["summary"]
+for key in ("sessionDefaultsProof", "buildRunProof", "uiSnapshotProof", "screenshotProof", "logProof", "profilerProof"):
+    if summary.get(key) is not True:
+        raise SystemExit(f"missing XcodeBuildMCP proof {key}: {summary}")
+if report["traceSummary"]["xcodeBuildMCPEvidenceCount"] < 5:
+    raise SystemExit(report["traceSummary"])
+if not report["taskTrace"]["xcodeBuildMCPEvidenceTimeline"]:
+    raise SystemExit(report["taskTrace"])
 if report["verifyHandoff"]["status"] != "pass" or report["verifyHandoff"]["verdictStatus"] != "pass":
     raise SystemExit(report["verifyHandoff"])
 if report["receiptHandoff"]["schema"]["v2Count"] != 1:
@@ -94,6 +123,8 @@ if report["receiptHandoff"]["schema"]["v2Count"] != 1:
 if report["scopeBoundary"]["shipguardOnly"] is not True or report["scopeBoundary"]["targetAppsReadOnly"] is not True:
     raise SystemExit(report["scopeBoundary"])
 if receipt["receiptType"] != "runtime" or receipt["artifact"]["path"] != "agent-trace.json":
+    raise SystemExit(receipt)
+if receipt["requirementId"] != "xcodebuildmcp-evidence-adapter" or "xcodebuildmcp-evidence" not in receipt["scope"]:
     raise SystemExit(receipt)
 serialized = json.dumps(report, sort_keys=True)
 if tmp_dir in serialized:
@@ -103,6 +134,8 @@ PY
 grep -q '# ShipGuard Agent Trace' "$tmp_dir/agent-trace/agent-trace.md"
 grep -q 'Agent Budget' "$tmp_dir/agent-trace/agent-trace.md"
 grep -q 'Verify Handoff' "$tmp_dir/agent-trace/agent-trace.md"
+grep -q 'XcodeBuildMCP Evidence' "$tmp_dir/agent-trace/agent-trace.md"
+grep -q 'Build/run proof' "$tmp_dir/agent-trace/agent-trace.md"
 
 ./bin/shipguard agent trace \
   --trace "$tmp_dir/trace.json" \

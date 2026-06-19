@@ -87,7 +87,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add an XcodeBuildMCP evidence adapter so simulator build/run/UI/profiler proof can attach to the same task trace timeline?",
+    "Should ShipGuard add an Expo MCP and EAS assurance adapter so Expo/EAS proof can attach to the same task trace timeline?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -176,6 +176,7 @@ DOMAIN_PACK_SDK_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "domai
 CONFIGURATION_BASELINE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "configuration-baseline-receipts"
 STRUCTURED_EVIDENCE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "structured-evidence-receipts"
 AGENT_ADAPTER_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "agent-adapter-receipts"
+XCODEBUILDMCP_EVIDENCE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "xcodebuildmcp-evidence-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -949,6 +950,18 @@ def load_structured_evidence_receipts(root: Path) -> list[tuple[Path, dict[str, 
 
 def load_agent_adapter_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / AGENT_ADAPTER_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_xcodebuildmcp_evidence_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / XCODEBUILDMCP_EVIDENCE_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -2375,6 +2388,37 @@ def agent_adapter_receipt_probe(root: Path) -> dict[str, Any]:
     }
 
 
+def xcodebuildmcp_evidence_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [
+        run_skill_plugin_receipt(root, fixture_dir, meta)
+        for fixture_dir, meta in load_xcodebuildmcp_evidence_receipts(root)
+    ]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public XcodeBuildMCP evidence adapter fixtures that prove simulator build/run, UI snapshot, screenshot, log, and profiler proof attach to ShipGuard task traces.",
+        "fixtureRoot": XCODEBUILDMCP_EVIDENCE_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public synthetic Codex trace", "synthetic XcodeBuildMCP proof cargo", "synthetic task contract", "v2 validation receipt"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "XcodeBuildMCP evidence receipts are passing; add the Expo MCP and EAS assurance adapter next."
+            if status == "pass"
+            else "Fix XcodeBuildMCP evidence receipts so build/run, UI, screenshot, log, and profiler proof attach to the task trace timeline."
+        ),
+    }
+
+
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
     slug = command_slug(command)
     tokens = command_tokens(command)
@@ -2757,6 +2801,17 @@ def agent_adapter_receipt_passed(agent_adapter_receipts: dict[str, Any]) -> bool
     return required.issubset(receipt_command_ids(agent_adapter_receipts))
 
 
+def xcodebuildmcp_evidence_receipt_passed(xcodebuildmcp_evidence_receipts: dict[str, Any]) -> bool:
+    if xcodebuildmcp_evidence_receipts.get("status") != "pass":
+        return False
+    required = {
+        "prepare-xcodebuildmcp-trace-task",
+        "agent-trace-xcodebuildmcp-proof-pass",
+        "codex-trace-xcodebuildmcp-proof-pass",
+    }
+    return required.issubset(receipt_command_ids(xcodebuildmcp_evidence_receipts))
+
+
 def command_depth_rows(
     commands: list[dict[str, Any]],
     text_index: dict[str, str],
@@ -2960,6 +3015,7 @@ def lowest_value_surface_probe(
     configuration_baseline_receipts: dict[str, Any],
     structured_evidence_receipts: dict[str, Any],
     agent_adapter_receipts: dict[str, Any],
+    xcodebuildmcp_evidence_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -3785,6 +3841,40 @@ def lowest_value_surface_probe(
             recommendation="Add an XcodeBuildMCP evidence adapter so build/run, UI snapshot, screenshot, log, and profiler proof can attach to ShipGuard task traces and receipts.",
             proof="Run value-gauntlet plus focused XcodeBuildMCP adapter fixtures that prove simulator evidence is typed, redacted, budget-aware, and mapped into the same verdict handoff.",
         )
+    if (
+        answer
+        and answer.get("identifier") == "shipguard xcodebuildmcp-evidence-adapter"
+        and xcodebuildmcp_evidence_receipt_passed(xcodebuildmcp_evidence_receipts)
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeXcodeBuildMCPEvidenceAdapter":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeXcodeBuildMCPEvidenceAdapter",
+                        True,
+                        f"{xcodebuildmcp_evidence_receipts.get('passedReceiptCount') or 0}/{xcodebuildmcp_evidence_receipts.get('receiptCount') or 0} XcodeBuildMCP evidence receipts executed",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeExpoMCPAndEASAdapter",
+                False,
+                "Expo MCP and EAS proof still needs a native adapter that maps Expo/EAS build and assurance receipts into the same task trace timeline",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="cross-cutting",
+            identifier="shipguard expo-mcp-eas-assurance-adapter",
+            name="Expo MCP and EAS assurance adapter",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Add an Expo MCP and EAS assurance adapter so Expo prebuild, EAS build/update, and native runtime proof can attach to ShipGuard task traces and receipts.",
+            proof="Run value-gauntlet plus focused Expo/EAS adapter fixtures that prove external build artifacts are typed, redacted, and mapped into the same verdict handoff.",
+        )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
         answer = {
@@ -3867,6 +3957,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     configuration_baseline_receipts = configuration_baseline_receipt_probe(root)
     structured_evidence_receipts = structured_evidence_receipt_probe(root)
     agent_adapter_receipts = agent_adapter_receipt_probe(root)
+    xcodebuildmcp_evidence_receipts = xcodebuildmcp_evidence_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -3899,6 +3990,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         configuration_baseline_receipts=configuration_baseline_receipts,
         structured_evidence_receipts=structured_evidence_receipts,
         agent_adapter_receipts=agent_adapter_receipts,
+        xcodebuildmcp_evidence_receipts=xcodebuildmcp_evidence_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -3957,6 +4049,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "configurationBaselineReceipts": configuration_baseline_receipts,
         "structuredEvidenceReceipts": structured_evidence_receipts,
         "agentAdapterReceipts": agent_adapter_receipts,
+        "xcodeBuildMCPEvidenceReceipts": xcodebuildmcp_evidence_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -4593,6 +4686,31 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_agent_adapter_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_agent_adapter_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+
+    xcodebuildmcp_evidence_receipts = report.get("xcodeBuildMCPEvidenceReceipts") or {}
+    lines.extend(["", "## XcodeBuildMCP Evidence Receipts", ""])
+    lines.append(f"- Status: {xcodebuildmcp_evidence_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {xcodebuildmcp_evidence_receipts.get('passedReceiptCount', 0)}/{xcodebuildmcp_evidence_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {xcodebuildmcp_evidence_receipts.get('commandCount', 0)}")
+    if xcodebuildmcp_evidence_receipts.get("nextAction"):
+        lines.append(f"- Next action: {xcodebuildmcp_evidence_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in xcodebuildmcp_evidence_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 44)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_xcodebuildmcp_evidence_commands = [
+        (receipt, command)
+        for receipt in xcodebuildmcp_evidence_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_xcodebuildmcp_evidence_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_xcodebuildmcp_evidence_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )
