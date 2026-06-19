@@ -82,6 +82,7 @@ Product and open-source posture:
 - [ShipGuard V4 Preview](v4-preview.md)
 - [V4 Schema Freeze](v4-schema-freeze.md)
 - [V4 Release Candidate](v4-release-candidate.md)
+- [V4 Stable Publication](v4-stable-publication.md)
 - [Codex Marketplace Readiness](codex-marketplace-readiness.md)
 - [GitHub Presentation](github-presentation.md)
 - [Open Source Operating Model](open-source.md)
@@ -95,7 +96,7 @@ Product and open-source posture:
 - Starter profiles for iOS, web, backend, and CLI projects.
 - Proof-gated `prepare` / `verify` task contracts for scoped AI changes.
 - iOS reports for inventory, launch routing, performance, design, modernization, app intelligence, AI readiness, preview handoff, Devspace, and report quality.
-- ShipYard QA reports: Tool Value Gauntlet, Full Audit, InspectDeck, MarketplaceDeck, PilotBench, TraceBridge, and v4 preview/schema/release-candidate gates.
+- ShipYard QA reports: Tool Value Gauntlet, Full Audit, InspectDeck, MarketplaceDeck, PilotBench, TraceBridge, and v4 preview/schema/release-candidate/stable-publication gates.
 - Release-proof tooling for manifests, indexes, replay, attestations, consumer verification, diffs, evidence sites, evidence bundles, and GitHub Actions.
 - Public fixtures, demo reports, and evals that prove behavior without private app code.
 

@@ -22,7 +22,7 @@ grep -q '"surface": "ShipGuard Tool Value Gauntlet"' "$tmp_dir/gauntlet/tool-val
 grep -q '"intent": "shipguard-product-qa"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"shipguardOnly": true' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"targetAppsReadOnly": true' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
-grep -q '"commandCount": 66' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"commandCount": 67' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"pluginCount": 1' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"actions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"skills":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -72,6 +72,7 @@ grep -q '"command": "shipguard value-gauntlet"' "$tmp_dir/gauntlet/tool-value-ga
 grep -q '"command": "shipguard v4 preview"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard v4 schema-freeze"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard v4 release-candidate"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"command": "shipguard v4 stable-publication"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"name": "alarm-testing"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"path": ".agents/skills/alarm-testing/SKILL.md"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"name": "notification-permissions"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -241,7 +242,7 @@ for item in negative.get("cases") or []:
         raise SystemExit(f"negative fixture should fail report scoring but pass fixture expectation: {item!r}")
 if command_family.get("status") != "pass":
     raise SystemExit(f"runtime command-family coverage should pass: {command_family!r}")
-if command_family.get("commandCount") != 66 or command_family.get("passedCommandCount") != 66:
+if command_family.get("commandCount") != 67 or command_family.get("passedCommandCount") != 67:
     raise SystemExit(f"expected all public command help paths to pass: {command_family!r}")
 for item in command_family.get("commands") or []:
     if item.get("status") != "pass" or item.get("missing"):

@@ -147,6 +147,7 @@ grep -q "^$package_name/docs/inspect.md$" "$tar_list"
 grep -q "^$package_name/docs/v4-preview.md$" "$tar_list"
 grep -q "^$package_name/docs/v4-schema-freeze.md$" "$tar_list"
 grep -q "^$package_name/docs/v4-release-candidate.md$" "$tar_list"
+grep -q "^$package_name/docs/v4-stable-publication.md$" "$tar_list"
 grep -q "^$package_name/docs/compatibility.md$" "$tar_list"
 grep -q "^$package_name/docs/command-matrix.md$" "$tar_list"
 grep -q "^$package_name/docs/demo-reports.md$" "$tar_list"
@@ -223,6 +224,7 @@ grep -q "^$package_name/scripts/shipguard_inspect.py$" "$tar_list"
 grep -q "^$package_name/scripts/v4_preview.py$" "$tar_list"
 grep -q "^$package_name/scripts/v4_schema_freeze.py$" "$tar_list"
 grep -q "^$package_name/scripts/v4_release_candidate.py$" "$tar_list"
+grep -q "^$package_name/scripts/v4_stable_publication.py$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/skill-plugin-receipts/ios-shipguard-design-audit/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/skill-plugin-receipts/plugin-cache-status/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/skill-plugin-receipts/starter-ui-polish-plan/receipt.json$" "$tar_list"
@@ -321,6 +323,7 @@ grep -q "^$package_name/tests/inspect_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/v4_preview_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/v4_schema_freeze_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/v4_release_candidate_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/v4_stable_publication_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/concise_verdict_result_ux_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ios_launchdeck_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ios_codex_handoff_test.sh$" "$tar_list"
@@ -601,6 +604,18 @@ grep -q '"status": "pass"' "$tmp_dir/package-v4-release-candidate/v4-release-can
 grep -q '"releaseClaim": "candidate-ready"' "$tmp_dir/package-v4-release-candidate/v4-release-candidate.json"
 grep -q '"stableV4Release": false' "$tmp_dir/package-v4-release-candidate/v4-release-candidate.json"
 grep -q 'ShipGuard V4 Release Candidate Readiness' "$tmp_dir/package-v4-release-candidate/v4-release-candidate.md"
+if "$package_root/bin/shipguard" v4 stable-publication \
+  --path "$package_root" \
+  --out "$tmp_dir/package-v4-stable-publication" \
+  --shipguard-eval \
+  --shareable >/dev/null 2>&1; then
+  echo "expected packaged stable-publication without release evidence to return review" >&2
+  exit 1
+fi
+grep -q '"tool": "shipguard v4 stable-publication"' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
+grep -q '"status": "review"' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
+grep -q '"stableV4Release": false' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
+grep -q 'ShipGuard V4 Stable Publication Proof' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.md"
 "$package_root/bin/shipguard" inspect \
   --path "$package_root" \
   --out "$tmp_dir/package-inspect" \
@@ -1002,6 +1017,7 @@ grep -q '| shipguard inspect --help | pass |' "$tmp_dir/package-self-audit/self-
 grep -q '| shipguard v4 preview --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard v4 schema-freeze --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard v4 release-candidate --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| shipguard v4 stable-publication --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard ios doctor --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard ios inventory --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard ios preview --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -1051,6 +1067,7 @@ grep -q '| docs/inspect.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/v4-preview.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/v4-schema-freeze.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/v4-release-candidate.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| docs/v4-stable-publication.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/codex-status.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/codex-marketplace-readiness.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/github-presentation.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -1124,6 +1141,7 @@ grep -q '| scripts/shipguard_inspect.py | pass |' "$tmp_dir/package-self-audit/s
 grep -q '| scripts/v4_preview.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/v4_schema_freeze.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/v4_release_candidate.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| scripts/v4_stable_publication.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/ios_doctor.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/ios_inventory.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/ios_launchdeck.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -1156,6 +1174,7 @@ grep -q '| tests/inspect_test.sh | pass |' "$tmp_dir/package-self-audit/self-aud
 grep -q '| tests/v4_preview_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| tests/v4_schema_freeze_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| tests/v4_release_candidate_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| tests/v4_stable_publication_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| tests/concise_verdict_result_ux_test.sh | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/profile-native-validation-receipts/web-backend-cli-validation-receipts/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/profile-native-validation-rerun-receipts/web-backend-cli-validation-rerun-receipts/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"

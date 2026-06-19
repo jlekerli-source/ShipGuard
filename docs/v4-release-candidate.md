@@ -223,5 +223,7 @@ Passing this report means ShipGuard is candidate-ready. It does not mean:
 - OpenAI accepted ShipGuard into a public marketplace.
 - External adoption has been proven by independent users.
 - Third-party security certification has been completed.
+
+After this report passes and a release is published, run `shipguard v4 stable-publication`. Stable publication is a separate proof gate that checks public GitHub release metadata, stable-v4 release notes, the LaunchKey candidate packet, downloaded release assets, post-release consumer proof, independent adoption evidence, and final security-review evidence before allowing the local stable-v4 claim.
 - Any private app has been validated.
 - Physical-device iOS behavior has been proven.

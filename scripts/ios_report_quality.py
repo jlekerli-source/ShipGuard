@@ -106,6 +106,7 @@ TOOL_NEXT_ACTION_PRIORITY = {
     "shipguard v4 preview": 3,
     "shipguard v4 schema-freeze": 3,
     "shipguard v4 release-candidate": 3,
+    "shipguard v4 stable-publication": 3,
     "shipguard ios brand": 3,
     "shipguard ios launchdeck": 4,
     "shipguard ios performance": 5,
@@ -128,6 +129,7 @@ ROOT_REPORT_TOOLS = {
     "shipguard v4 preview",
     "shipguard v4 schema-freeze",
     "shipguard v4 release-candidate",
+    "shipguard v4 stable-publication",
     "shipguard codex marketplace-readiness",
     "shipguard agent trace",
     "shipguard codex trace",
@@ -697,6 +699,21 @@ def source_priority_signal(report: dict[str, Any]) -> dict[str, Any]:
                 "kind": "launchkey-stable-v4-proof-gap",
                 "priority": -30,
                 "reason": "LaunchKey release-readiness evidence still has stable-v4 proof gaps",
+            }
+
+    if tool == "shipguard v4 stable-publication":
+        combined = " ".join((result_text, question_text, json.dumps(report.get("stablePublicationGates") or [], sort_keys=True)))
+        if report.get("status") != "pass" or report.get("stableV4Release") is not True:
+            return {
+                "kind": "stable-publication-proof-gap",
+                "priority": -45,
+                "reason": "stable-publication report blocks the stable-v4 claim until real publication evidence passes",
+            }
+        if "stable-publication" in normalized_question_text(combined):
+            return {
+                "kind": "stable-publication-proof-passed",
+                "priority": -25,
+                "reason": "stable-publication proof is the current release proof source",
             }
 
     if release_stabilization_signal_text(f"{result_text} {question_text}"):

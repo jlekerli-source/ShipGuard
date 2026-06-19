@@ -43,6 +43,7 @@ Usage:
   shipguard v4 preview --path <shipguard-repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard v4 schema-freeze --path <shipguard-repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard v4 release-candidate --path <shipguard-repo> --out <dir> [--package-tarball <release.tar.gz>] [--fresh-install-prefix <dir>] [--fresh-install-work-dir <dir>] [--upgrade-from-tarball <previous-release.tar.gz>] [--upgrade-prefix <dir>] [--upgrade-work-dir <dir>] [--rollback-prefix <dir>] [--rollback-work-dir <dir>] [--release-assets <downloaded-assets-dir>] [--release-version <version>] [--release-consume-out <dir>] [--download-release-assets] [--github-release-repo <owner/repo>] [--download-release-assets-dir <dir>] [--github-api-url <url>] [--github-token-env <env>] [--external-adoption-evidence <json-or-dir>] [--security-review-evidence <json-or-dir>] [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard v4 stable-publication --path <shipguard-repo> --out <dir> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <json-or-dir> [--release-assets <downloaded-assets-dir>|--download-release-assets] --external-adoption-evidence <json-or-dir> --security-review-evidence <json-or-dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard pilot-bench [--trace <trace.json-or-dir> ...] [--out <dir>] [--shareable] [--benchmark-v2] [--min-lift <points>] [--json|--markdown]
   shipguard agent trace --trace <trace.json-or-jsonl-or-dir> --out <dir> [--adapter auto|codex|claude|gemini|cursor|mcp|generic] [--task <shipguard-task.json-or-dir>] [--diff <patch.diff>] [--evidence <file> ...] [--xcodebuildmcp-evidence <file-or-dir> ...] [--expo-eas-evidence <file-or-dir> ...] [--verdict <shipguard-verdict.json-or-dir>] [--run-verify] [--budget-workers <n>] [--max-workers <n>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard web audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
@@ -119,7 +120,7 @@ Commands:
               Grade every ShipGuard command, skill, plugin, action, and proof surface for developer value.
   full-audit  Run or plan one resumable validation, value-gauntlet, report-quality, package, plugin, CI, and release-proof lane.
   inspect     Summarize repo state, proof receipts, plugin state, release state, and exact next action from one concise surface.
-  v4          Generate preview stabilization, schema freeze, release-candidate, migration, deprecation, and release-readiness reports.
+  v4          Generate preview stabilization, schema freeze, release-candidate, stable-publication, migration, deprecation, and release-readiness reports.
   pilot-bench
               Score public-safe read-only task traces for PilotBench verdict usefulness.
   agent      Normalize Codex, Claude, Gemini, Cursor, and MCP traces into task, receipt, verdict, next-action, budget, XcodeBuildMCP evidence, and Expo/EAS assurance proof.
@@ -440,7 +441,7 @@ cmd_inspect() {
 
 cmd_v4() {
   local subcommand="${1:-}"
-  [[ "$subcommand" == "preview" || "$subcommand" == "schema-freeze" || "$subcommand" == "release-candidate" ]] || fail "v4 requires subcommand: preview, schema-freeze, or release-candidate"
+  [[ "$subcommand" == "preview" || "$subcommand" == "schema-freeze" || "$subcommand" == "release-candidate" || "$subcommand" == "stable-publication" ]] || fail "v4 requires subcommand: preview, schema-freeze, release-candidate, or stable-publication"
   shift || true
   case "$subcommand" in
     preview)
@@ -451,6 +452,9 @@ cmd_v4() {
       ;;
     release-candidate)
       run_py "$tool_root/scripts/v4_release_candidate.py" "$@"
+      ;;
+    stable-publication)
+      run_py "$tool_root/scripts/v4_stable_publication.py" "$@"
       ;;
   esac
 }

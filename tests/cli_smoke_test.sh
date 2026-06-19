@@ -32,6 +32,7 @@ test "$(./bin/codex-maintainer version)" = "$(sed -n '1p' VERSION)"
 ./bin/shipguard v4 preview --help >/dev/null
 ./bin/shipguard v4 schema-freeze --help >/dev/null
 ./bin/shipguard v4 release-candidate --help >/dev/null
+./bin/shipguard v4 stable-publication --help >/dev/null
 ./bin/shipguard prepare --help >/dev/null
 ./bin/shipguard verify --help >/dev/null
 ./bin/shipguard web audit --help >/dev/null
