@@ -428,6 +428,46 @@ if data.get("fixtureCandidates"):
     raise SystemExit(f"design coherence fixture should not recurse: {data['fixtureCandidates']!r}")
 PY
 
+preview_devspace_fixture="fixtures/ios-report-quality/preview-devspace-routing"
+./bin/shipguard ios report-quality \
+  --reports "$preview_devspace_fixture" \
+  --out "$tmp_dir/preview-devspace-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/preview-devspace-quality/ios-report-quality.json"
+grep -q '"sourceMaterializedFixture": true' "$tmp_dir/preview-devspace-quality/ios-report-quality.json"
+grep -q '"previewEvidence":' "$preview_devspace_fixture/fixture-report.json"
+grep -q 'shipguard ios preview' "$preview_devspace_fixture/fixture-report.json"
+grep -q 'shipguard ios devspace' "$preview_devspace_fixture/fixture-report.json"
+grep -q 'Preview And Devspace' "$preview_devspace_fixture/fixture-report.md"
+grep -q 'model selection happens in ChatGPT' "$preview_devspace_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/preview-devspace-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"preview/devspace fixture should not recurse: {data['fixtureCandidates']!r}")
+PY
+
+broken_preview_routing="$tmp_dir/broken-preview-routing"
+cp -R "$preview_devspace_fixture" "$broken_preview_routing"
+python3 - <<'PY' "$broken_preview_routing/fixture-report.json"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data.pop("previewEvidence", None)
+path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$broken_preview_routing" \
+  --out "$tmp_dir/broken-preview-routing-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/broken-preview-routing-quality/ios-report-quality.json"
+grep -q '"ruleId": "design-preview-evidence-missing"' "$tmp_dir/broken-preview-routing-quality/ios-report-quality.json"
+
 ./bin/shipguard brand \
   --path . \
   --out "$tmp_dir/brand-report" \
@@ -989,16 +1029,26 @@ MD
   --out "$tmp_dir/preview-design-quality" \
   --write-fixture-candidates "$tmp_dir/preview-design-fixtures" \
   --shareable >/dev/null
-preview_design_fixture="$(find "$tmp_dir/preview-design-fixtures" -mindepth 1 -maxdepth 1 -type d | sort | head -n 1)"
-test -n "$preview_design_fixture"
-grep -q '"appType":' "$preview_design_fixture/fixture-report.json"
-grep -q '"designTailoring":' "$preview_design_fixture/fixture-report.json"
-grep -q '"designCoherenceBoundary":' "$preview_design_fixture/fixture-report.json"
-./bin/shipguard ios report-quality \
-  --reports "$preview_design_fixture" \
-  --out "$tmp_dir/preview-design-fixture-quality" \
-  --shareable >/dev/null
-grep -q '"status": "pass"' "$tmp_dir/preview-design-fixture-quality/ios-report-quality.json"
+grep -q '"ruleId": "design-preview-evidence-missing"' "$tmp_dir/preview-design-quality/ios-report-quality.json"
+grep -q '"fixtureCoverage":' "$tmp_dir/preview-design-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/preview-devspace-routing"' "$tmp_dir/preview-design-quality/ios-report-quality.json"
+grep -q 'Fixture Coverage' "$tmp_dir/preview-design-quality/ios-report-quality.md"
+python3 - <<'PY' "$tmp_dir/preview-design-quality/ios-report-quality.json" "$tmp_dir/preview-design-fixtures"
+import json
+import sys
+from pathlib import Path
+
+data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+fixture_root = Path(sys.argv[2])
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"covered preview/devspace question should not emit duplicate fixture candidates: {data['fixtureCandidates']!r}")
+coverage = data.get("fixtureCoverage") or []
+if not any(item.get("publicFixturePath") == "fixtures/ios-report-quality/preview-devspace-routing" for item in coverage):
+    raise SystemExit(f"preview/devspace fixture coverage missing: {coverage!r}")
+candidate_dirs = [p for p in fixture_root.iterdir() if p.is_dir()]
+if candidate_dirs:
+    raise SystemExit(f"covered preview/devspace question should not materialize duplicate candidate dirs: {candidate_dirs!r}")
+PY
 broken_materialized="$tmp_dir/broken-materialized-fixtures"
 cp -R "$tmp_dir/materialized-fixtures" "$broken_materialized"
 python3 - <<'PY' "$broken_materialized/fixture-promotion-manifest.json"

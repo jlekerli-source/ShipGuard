@@ -4,6 +4,17 @@ Generated: 2026-06-17
 
 This is the current usefulness and refinement evaluation for ShipGuard after the rename and README repositioning work.
 
+## Current Design Preview/Devspace Routing Fixture
+
+The latest read-only ShipGuard product-QA loop against local app checkouts showed the next ShipGuard-owned design gap after app-type tailoring and coherence boundaries: `ios design` mentioned the iPhone preview and Devspace bridge, but `ios report-quality` did not yet enforce whether that visual-proof path was obvious, authenticated, and honest about ChatGPT-side model selection.
+
+This slice fixes the ShipGuard report contract and public eval coverage, not either target app:
+
+- `ios report-quality` now checks `shipguard ios design` reports for `previewEvidence`, preview and Devspace recommended commands, bearer-token Devspace guidance, Markdown preview routing, and the statement that model selection happens in ChatGPT rather than inside ShipGuard.
+- Generated design fixture candidates now include synthetic `previewEvidence`, a preview `resultUX.nextCommand`, authenticated Devspace guidance, and a Markdown `Preview And Devspace` section.
+- A public `fixtures/ios-report-quality/preview-devspace-routing` fixture covers the repeated read-only product-QA question without copying private app code, paths, screenshots, or app identifiers.
+- Regenerating the same read-only design report-quality set scored 100/100; fixture coverage now suppresses app-type, coherence-boundary, and preview/Devspace questions, moving the next uncovered priority to deciding which private-app observation should become the next public design fixture or eval case.
+
 ## v3.113.0 Design Coherence Boundary Fixtures
 
 The next read-only ShipGuard product-QA loop against local app checkouts showed the expected next ShipGuard-owned design gap: `ios design` reports had app-type tailoring, but report-quality still needed a durable proof that design-system coherence findings remain ShipGuard product QA evidence and do not become target-app redesign tasks.
@@ -574,6 +585,7 @@ Status: started.
 - Added `shipguard ios spec-workflow` after clean read-only report-quality runs showed the missing step was converting actionability questions into proof-gated ShipGuard specs, tasks, slash plans, and Devspace guardrails.
 - Added spec-workflow adoption quality findings after a misuse probe showed report-quality needed to distinguish report-grounded spec workflows from standalone polished plans.
 - Added modernization rule summaries and capped Markdown for modernize, app-intelligence, and AI-readiness reports so private-app findings stay useful for improving ShipGuard without becoming app remediation tasks.
+- Added the preview/Devspace routing fixture after read-only design-QA reports showed the iPhone visual-proof path needed to be enforced as a report-quality contract, not repeated as private-app advice.
 - Improved first-run adoption docs around CLI versus plugin usage.
 - Upgraded `shipguard next-goal` so the next improvement loop emits a reviewable `/plan` before the `/goal`, and can now carry bounded scope, completion evidence, and the following `/goal` handoff.
 - Added Brand Deck actionability questions after a read-only `shipguard brand` plus `ios report-quality` pass showed the naming report was structurally clean but still produced the generic "add reportQualityQuestions" priority action instead of a concrete naming-system improvement.

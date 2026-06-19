@@ -1804,6 +1804,113 @@ def design_coherence_boundary_issues(
     return issues
 
 
+def design_preview_routing_issues(
+    report: dict[str, Any], *, markdown: str, path_name: str
+) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    questions = report.get("reportQualityQuestions")
+    findings = report.get("findings")
+    preview_question = (
+        isinstance(questions, list)
+        and any(
+            "preview" in normalized_question_text(item)
+            or "devspace" in normalized_question_text(item)
+            for item in questions
+        )
+    )
+    preview_finding = (
+        isinstance(findings, list)
+        and any(isinstance(item, dict) and item.get("ruleId") == "preview-proof-not-provided" for item in findings)
+    )
+    has_preview_evidence = isinstance(report.get("previewEvidence"), dict)
+    if not (preview_question or preview_finding or has_preview_evidence):
+        return issues
+
+    preview = report.get("previewEvidence")
+    if not isinstance(preview, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-preview-evidence-missing",
+            evidence=f"{path_name} has preview/devspace guidance but no previewEvidence object",
+            recommendation="Emit previewEvidence so report-quality can distinguish missing visual proof from supplied preview receipts.",
+        )
+        return issues
+
+    status = normalized_question_text(preview.get("status") or "")
+    if status not in {"not-provided", "provided", "missing"}:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-preview-evidence-status-missing",
+            evidence=f"{path_name} previewEvidence.status={preview.get('status')!r}",
+            recommendation="Set previewEvidence.status to not-provided, provided, or missing.",
+        )
+
+    if status == "not-provided":
+        commands = preview.get("recommendedCommands")
+        command_text = "\n".join(str(item) for item in commands) if isinstance(commands, list) else ""
+        if "shipguard ios preview" not in command_text:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="design-preview-command-missing",
+                evidence=f"{path_name} previewEvidence has no shipguard ios preview command",
+                recommendation="Recommend `shipguard ios preview --out <preview-out>` when no visual proof is attached.",
+            )
+        if "shipguard ios devspace" not in command_text or "SHIPGUARD_DEVSPACE_TOKEN" not in command_text:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="design-devspace-command-missing",
+                evidence=f"{path_name} previewEvidence has no authenticated shipguard ios devspace command",
+                recommendation="Recommend the Devspace bridge with --preview-out and bearer-token env guidance when ChatGPT should plan from the phone widget.",
+            )
+        markdown_visible = (
+            "Preview And Devspace" in markdown
+            and "shipguard ios preview" in markdown
+            and "shipguard ios devspace" in markdown
+            and "model selection happens in ChatGPT" in markdown
+        )
+        if not markdown_visible:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="design-preview-devspace-markdown-missing",
+                evidence=f"{path_name} previewEvidence JSON exists but Markdown does not make preview/devspace routing obvious",
+                recommendation="Render a Preview And Devspace section with the preview command, Devspace command, and model-choice boundary.",
+            )
+
+    if status == "provided":
+        for key in ("path", "sessionFound", "handoffFound", "screenshotFound", "eventCount"):
+            if key not in preview:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id=f"design-preview-provided-{kebab_case(key)}-missing",
+                    evidence=f"{path_name} previewEvidence.status=provided but {key} is missing",
+                    recommendation="Expose supplied preview receipt facts so visual claims can be checked without opening local files.",
+                )
+        markdown_visible = (
+            "Preview And Devspace" in markdown
+            and "Preview directory" in markdown
+            and "Session found" in markdown
+            and "Handoff found" in markdown
+            and "Screenshot found" in markdown
+            and "Event count" in markdown
+        )
+        if not markdown_visible:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="design-preview-provided-markdown-missing",
+                evidence=f"{path_name} has provided previewEvidence but Markdown does not show the receipt facts",
+                recommendation="Render preview receipt status in Markdown so reviewers can see session, handoff, screenshot, and event proof at a glance.",
+            )
+
+    return issues
+
+
 def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     inputs = report.get("reportInputs")
@@ -2354,6 +2461,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     if tool == "shipguard ios design":
         issues.extend(design_app_type_tailoring_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(design_coherence_boundary_issues(loaded, markdown=markdown, path_name=path.name))
+        issues.extend(design_preview_routing_issues(loaded, markdown=markdown, path_name=path.name))
 
     if has_local_path(raw_text):
         add_issue(
@@ -3552,6 +3660,15 @@ def synthetic_design_coherence_boundary() -> dict[str, Any]:
 def synthetic_design_report_fields() -> dict[str, Any]:
     return {
         "status": "review",
+        "resultUX": {
+            "status": "review",
+            "sourceStatus": "review",
+            "verdict": "REVIEW: Synthetic design fixture needs preview proof before visual claims.",
+            "proofSource": "designTailoring.nextAction + designDNA + optional previewEvidence",
+            "whyItMatters": "Design QA must route visual claims through phone-shaped preview or Devspace proof.",
+            "nextCommand": "shipguard ios preview --out /tmp/ios-shipguard-preview",
+            "nextActionSummary": "Run preview for phone-shaped visual evidence; use Devspace when ChatGPT should plan from the preview widget.",
+        },
         "appType": {
             "value": "education",
             "inferred": "education",
@@ -3568,6 +3685,13 @@ def synthetic_design_report_fields() -> dict[str, Any]:
             "layout": {"roundedSignals": 8, "shadowSignals": 2, "blurSignals": 1, "cardNameSignals": 3},
             "copyTone": {"visibleStringCount": 9, "localizationSignals": 2, "samples": ["Lesson complete", "Try again"]},
         },
+        "previewEvidence": {
+            "status": "not-provided",
+            "recommendedCommands": [
+                "shipguard ios preview --out /tmp/ios-shipguard-preview",
+                "shipguard ios devspace --port 8787 --preview-out /tmp/ios-shipguard-preview --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN",
+            ],
+        },
         "findings": [
             {
                 "severity": "review",
@@ -3578,6 +3702,16 @@ def synthetic_design_report_fields() -> dict[str, Any]:
                 "recommendation": "Improve ShipGuard report-quality rules or public fixtures before using this as target-app implementation guidance.",
                 "proof": "Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.",
                 "proofGuidance": "Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.",
+            },
+            {
+                "severity": "opportunity",
+                "category": "Preview",
+                "ruleId": "preview-proof-not-provided",
+                "title": "Design audit has no live iPhone preview evidence",
+                "evidence": "No synthetic preview receipt was supplied.",
+                "recommendation": "Run shipguard ios preview for a phone-shaped visual proof loop; use ios devspace when ChatGPT should plan from that widget.",
+                "proof": "Attach preview-events.jsonl, handoff.md, and refreshed screenshot evidence for visual claims.",
+                "proofGuidance": "Attach preview-events.jsonl, handoff.md, and refreshed screenshot evidence for visual claims.",
             }
         ],
     }
@@ -3789,6 +3923,13 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "- Local proof: Run shipguard ios report-quality on this synthetic design fixture.",
                 "- Manual proof: A human may later authorize target-app design work, but this fixture does not authorize it.",
                 "- Expected artifact: ios-report-quality.json plus fixture coverage for design coherence boundaries.",
+                "",
+                "## Preview And Devspace",
+                "",
+                "- No preview directory was supplied.",
+                "- Run `shipguard ios preview --out /tmp/ios-shipguard-preview` for a phone-shaped visual proof loop.",
+                "- Run `shipguard ios devspace --port 8787 --preview-out /tmp/ios-shipguard-preview --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN` when ChatGPT should plan from the preview widget.",
+                "- ChatGPT model selection happens in ChatGPT; ShipGuard exposes the MCP/App bridge but cannot force a model.",
                 "",
             ]
         )

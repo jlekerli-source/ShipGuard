@@ -62,7 +62,7 @@ Proof Commands:
 ## Asset Checklist
 
 - README logo: `.github/assets/shipguard-icon.png`
-- GitHub social preview: upload `.github/assets/shipguard-icon.png` in repository Settings -> General -> Social preview when owner/admin access is available.
+- GitHub social preview: currently set to `.github/assets/shipguard-icon.png`; refresh it in Settings -> General -> Social preview only when replacing the tracked icon.
 - Plugin logo: `plugins/ios-shipguard/assets/app-icon.png`
 - Composer icon: `plugins/ios-shipguard/assets/composer-icon.png`
 - Screenshots: generate from a real demo, Devspace preview, or marketplace-requested capture when a public directory asks for screenshots.
