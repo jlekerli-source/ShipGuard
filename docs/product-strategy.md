@@ -236,7 +236,7 @@ The current product directive is:
 - Treat agent efficiency as a product feature: standard mode should normally use 2-3 workers, cap normal workflows at 5, avoid recursive worker spawning, and measure duplicate reads, cache hits, time to first useful verdict, and accepted findings per model turn.
 - Keep full repository audits explicit opt-in through the future `shipguard inspect --full` path; routine `verify` stays diff-first.
 
-The current baseline is v3.125 unified inspect: one concise InspectDeck surface for repo state, proof receipts, value-gauntlet state, installed plugin state, release proof state, underlying evidence, and the exact next action. The active next slice is v3.126 concise verdict and result UX: make every major report lead with pass, review, or blocked, why it matters, proof source, and the exact next command.
+The current baseline is v3.126 concise result UX: value-gauntlet, full-audit, InspectDeck, iOS design, and iOS performance lead with the same pass/review/blocked result contract before detailed evidence. The active next slice is v3.127 Codex marketplace readiness: make public plugin metadata, install proof, README/profile presentation, screenshots/assets, status checks, and submission packet quality adopter-ready.
 
 ## Revised Roadmap
 

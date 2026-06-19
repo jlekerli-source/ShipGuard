@@ -17,8 +17,10 @@ test -f "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 grep -q '"trustHardeningReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"domainPackSDKReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"conciseVerdictResultUXReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q 'Trust-Hardening Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Domain Pack SDK' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Concise Verdict Result UX Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
@@ -27,6 +29,7 @@ import sys
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 receipts = data.get("trustHardeningReceipts") or {}
 domain_pack_sdk = data.get("domainPackSDKReceipts") or {}
+concise_result_ux = data.get("conciseVerdictResultUXReceipts") or {}
 probe = data.get("lowestValueSurfaceProbe") or {}
 answer = probe.get("answer") or {}
 
@@ -69,8 +72,10 @@ for command in receipt.get("commands") or []:
 
 if domain_pack_sdk.get("status") != "pass":
     raise SystemExit(f"Domain Pack SDK receipts should pass: {domain_pack_sdk!r}")
-if answer.get("identifier") != "shipguard concise-verdict-result-ux":
-    raise SystemExit(f"passing unified inspect receipts should escalate to concise verdict UX: {answer!r}")
+if concise_result_ux.get("status") != "pass":
+    raise SystemExit(f"concise result UX receipts should pass: {concise_result_ux!r}")
+if answer.get("identifier") != "shipguard codex-marketplace-readiness":
+    raise SystemExit(f"passing concise result UX receipts should escalate to marketplace readiness: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"trust-hardening should no longer be missing: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
@@ -99,8 +104,10 @@ if "runtimeFullAuditOrchestrator" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"full-audit orchestrator should no longer be missing: {answer!r}")
 if "runtimeUnifiedInspectExperience" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"unified inspect should no longer be missing: {answer!r}")
-if "runtimeConciseVerdictResultUX" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"concise verdict UX gap should be explicit: {answer!r}")
+if "runtimeConciseVerdictResultUX" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"concise verdict UX should no longer be missing: {answer!r}")
+if "runtimeCodexMarketplaceReadiness" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"marketplace readiness gap should be explicit: {answer!r}")
 PY
 
 echo "trust hardening receipt tests passed"

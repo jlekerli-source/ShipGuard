@@ -8,7 +8,7 @@
   --out /tmp/shipguard-inspect \
   --value-gauntlet /tmp/shipguard-value-gauntlet \
   --full-audit /tmp/shipguard-full-audit \
-  --release-assets dist/release-proof-bundle-v3.125.0 \
+  --release-assets dist/release-proof-bundle-v3.126.0 \
   --shipguard-eval \
   --shareable
 ```
@@ -45,6 +45,7 @@ Use `--shareable` before moving the report into ChatGPT, GitHub, docs, benchmark
 InspectDeck leads with:
 
 - one `status`
+- one `resultUX` object
 - one concise verdict
 - one `nextAction`
 - the proof source behind that action

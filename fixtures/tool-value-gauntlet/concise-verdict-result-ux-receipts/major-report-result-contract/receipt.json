@@ -1,0 +1,190 @@
+{
+  "id": "major-report-result-contract",
+  "kind": "concise-verdict-result-ux-receipt",
+  "surface": "ShipGuard concise verdict and result UX",
+  "selectedMode": "value-gauntlet concise result UX receipts",
+  "trigger": "Prove major ShipGuard reports lead with one compact result contract before detailed evidence.",
+  "sourcePaths": [
+    "scripts/shipguard_result.py",
+    "scripts/tool_value_gauntlet.py",
+    "scripts/full_audit.py",
+    "scripts/shipguard_inspect.py",
+    "scripts/ios_design.py",
+    "scripts/ios_performance.py",
+    "tests/concise_verdict_result_ux_test.sh",
+    "docs/cli.md",
+    "ROADMAP.md"
+  ],
+  "expectedSourcePhrases": [
+    "resultUX",
+    "Concise Verdict Result UX Receipts",
+    "runtimeConciseVerdictResultUX",
+    "runtimeCodexMarketplaceReadiness"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppsUsed": false,
+    "inputs": [
+      "public ShipGuard checkout",
+      "fixtures/demo-ios-repo",
+      "synthetic value-gauntlet receipt",
+      "synthetic release proof manifest"
+    ]
+  },
+  "prepareFiles": [
+    {
+      "path": "value/tool-value-gauntlet.json",
+      "text": "{\n  \"tool\": \"shipguard value-gauntlet\",\n  \"surface\": \"ShipGuard Tool Value Gauntlet\",\n  \"status\": \"pass\",\n  \"resultUX\": {\n    \"status\": \"pass\",\n    \"verdict\": \"PASS: Synthetic value-gauntlet receipt is readable.\",\n    \"proofSource\": \"synthetic fixture\",\n    \"whyItMatters\": \"Inspect can consume the same result contract.\",\n    \"nextCommand\": \"./tests/concise_verdict_result_ux_test.sh\",\n    \"nextActionSummary\": \"Use focused result UX proof.\"\n  },\n  \"summary\": {\n    \"averageScore\": 100,\n    \"commandCount\": 63\n  },\n  \"lowestValueSurfaceProbe\": {\n    \"answer\": {\n      \"identifier\": \"shipguard concise-verdict-result-ux\",\n      \"name\": \"Concise verdict and result UX\",\n      \"surfaceType\": \"cross-cutting\",\n      \"depthScore\": 80,\n      \"missingDepthSignals\": [\"runtimeConciseVerdictResultUX\"],\n      \"recommendation\": \"Add one result contract across ShipGuard reports.\",\n      \"proofGuidance\": \"./tests/concise_verdict_result_ux_test.sh\",\n      \"reason\": \"Reports use inconsistent result shapes.\"\n    }\n  },\n  \"reportQualityQuestions\": [\n    \"Do major reports expose the same result contract?\"\n  ]\n}\n"
+    },
+    {
+      "path": "release/proof/release-manifest.json",
+      "text": "{\n  \"schema_version\": \"1.0\",\n  \"version\": \"3.126.0\",\n  \"tag\": \"v3.126.0\",\n  \"commit\": \"0123456789abcdef0123456789abcdef01234567\",\n  \"artifact\": {\n    \"name\": \"shipguard-v3.126.0.tar.gz\",\n    \"sha256\": \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"\n  },\n  \"proofs\": {\n    \"release_url\": \"https://github.com/jlekerli-source/ShipGuard/releases/tag/v3.126.0\",\n    \"ci_run_url\": \"https://github.com/jlekerli-source/ShipGuard/actions/runs/1\"\n  }\n}\n"
+    },
+    {
+      "path": "release/attestation/attestation-badge.json",
+      "text": "{\n  \"status\": \"pass\"\n}\n"
+    }
+  ],
+  "commands": [
+    {
+      "id": "full-audit-result-ux-pass",
+      "display": "./bin/shipguard full-audit --profile quick --plan-only emits resultUX",
+      "args": [
+        "full-audit",
+        "--path",
+        ".",
+        "--out",
+        "{out}/full-audit",
+        "--profile",
+        "quick",
+        "--plan-only",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "full-audit/shipguard-full-audit.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "resultUX", "verdict", "scopeBoundary", "reportQualityQuestions"],
+          "requiredNonEmptyJsonPaths": ["resultUX.status", "resultUX.verdict", "resultUX.proofSource", "resultUX.whyItMatters", "resultUX.nextCommand", "resultUX.nextActionSummary"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard full-audit"},
+            {"path": "resultUX.status", "equals": "pass"}
+          ],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "full-audit/shipguard-full-audit.md",
+          "type": "markdown",
+          "requiredPhrases": ["# ShipGuard Full Audit", "## Result", "Verdict:", "Proof source:", "Why it matters:", "Next command:"],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "ios-design-result-ux-pass",
+      "display": "./bin/shipguard ios design emits resultUX",
+      "args": [
+        "ios",
+        "design",
+        "--path",
+        "fixtures/demo-ios-repo",
+        "--out",
+        "{out}/ios-design",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "ios-design/ios-design.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "resultUX", "designTailoring", "designDNA", "findings", "scopeBoundary", "reportQualityQuestions"],
+          "requiredNonEmptyJsonPaths": ["resultUX.status", "resultUX.verdict", "resultUX.proofSource", "resultUX.whyItMatters", "resultUX.nextCommand", "resultUX.nextActionSummary"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard ios design"}
+          ],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "ios-design/ios-design.md",
+          "type": "markdown",
+          "requiredPhrases": ["# iOS Design QA Audit", "## Result", "Verdict:", "Proof source:", "Why it matters:", "Next command:", "ShipGuard Evaluation Boundary"],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "ios-performance-result-ux-pass",
+      "display": "./bin/shipguard ios performance emits resultUX",
+      "args": [
+        "ios",
+        "performance",
+        "--path",
+        "fixtures/demo-ios-repo",
+        "--out",
+        "{out}/ios-performance",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "ios-performance/ios-performance.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "resultUX", "runtimeEvidenceBoundary", "evidencePromotion", "groupedActionPlan", "scopeBoundary", "reportQualityQuestions"],
+          "requiredNonEmptyJsonPaths": ["resultUX.status", "resultUX.verdict", "resultUX.proofSource", "resultUX.whyItMatters", "resultUX.nextCommand", "resultUX.nextActionSummary"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard ios performance"}
+          ],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "ios-performance/ios-performance.md",
+          "type": "markdown",
+          "requiredPhrases": ["# iOS Performance Audit", "## Result", "Verdict:", "Proof source:", "Why it matters:", "Next command:", "Runtime Evidence Boundary"],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "inspect-result-ux-pass",
+      "display": "./bin/shipguard inspect consumes proof and emits resultUX",
+      "args": [
+        "inspect",
+        "--path",
+        ".",
+        "--out",
+        "{out}/inspect",
+        "--value-gauntlet",
+        "{out}/value",
+        "--full-audit",
+        "{out}/full-audit",
+        "--release-assets",
+        "{out}/release",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "inspect/shipguard-inspect.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "resultUX", "unifiedVerdict", "nextAction", "underlyingEvidence", "scopeBoundary", "reportQualityQuestions"],
+          "requiredNonEmptyJsonPaths": ["resultUX.status", "resultUX.verdict", "resultUX.proofSource", "resultUX.whyItMatters", "resultUX.nextCommand", "resultUX.nextActionSummary", "nextAction"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard inspect"},
+            {"path": "proofReceipts.valueGauntlet.lowestValueSurface.identifier", "equals": "shipguard concise-verdict-result-ux"},
+            {"path": "scopeBoundary.shipguardOnly", "equals": true},
+            {"path": "scopeBoundary.targetAppsReadOnly", "equals": true}
+          ],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "inspect/shipguard-inspect.md",
+          "type": "markdown",
+          "requiredPhrases": ["# ShipGuard InspectDeck", "## Result", "Verdict:", "Proof source:", "Why it matters:", "Next command:", "Next Action", "Underlying Evidence"],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}

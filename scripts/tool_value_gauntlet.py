@@ -18,6 +18,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from shipguard_result import build_result_ux, render_result_markdown
+
 
 SCHEMA_VERSION = 1
 LOWEST_VALUE_QUESTION = "Which ShipGuard command, skill, plugin, or action has the lowest developer-value score and should be upgraded next?"
@@ -89,7 +91,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add concise verdict and result UX so InspectDeck and source reports answer pass, review, or blocked with one sentence, proof source, and exact next command?",
+    "Should ShipGuard add Codex marketplace readiness receipts so public plugin metadata, install proof, screenshots/assets, status checks, and submission packet quality are adopter-ready?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -183,6 +185,7 @@ EXPO_EAS_ASSURANCE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "ex
 UNIVERSAL_AGENT_PACKAGING_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "universal-agent-packaging-receipts"
 FULL_AUDIT_ORCHESTRATOR_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "full-audit-orchestrator-receipts"
 UNIFIED_INSPECT_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "unified-inspect-receipts"
+CONCISE_VERDICT_RESULT_UX_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "concise-verdict-result-ux-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -1016,6 +1019,18 @@ def load_full_audit_orchestrator_receipts(root: Path) -> list[tuple[Path, dict[s
 
 def load_unified_inspect_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / UNIFIED_INSPECT_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_concise_verdict_result_ux_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / CONCISE_VERDICT_RESULT_UX_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -2590,9 +2605,40 @@ def unified_inspect_receipt_probe(root: Path) -> dict[str, Any]:
         },
         "receipts": receipts,
         "nextAction": (
-            "Unified inspect receipts are passing; add concise verdict and result UX next."
+            "Unified inspect receipts are passing; concise result UX receipts now prove the next report layer."
             if status == "pass"
             else "Fix InspectDeck receipts so repo, proof, plugin, release, and next-action state are readable from one shareable surface."
+        ),
+    }
+
+
+def concise_verdict_result_ux_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [
+        run_skill_plugin_receipt(root, fixture_dir, meta)
+        for fixture_dir, meta in load_concise_verdict_result_ux_receipts(root)
+    ]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public result-UX fixtures that prove major ShipGuard reports lead with the same compact verdict, proof source, why-it-matters, and next-command contract.",
+        "fixtureRoot": CONCISE_VERDICT_RESULT_UX_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public ShipGuard checkout", "fixtures/demo-ios-repo", "synthetic value/full-audit/release receipts"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Concise result UX receipts are passing; add Codex marketplace readiness next."
+            if status == "pass"
+            else "Fix result-UX receipts so reports answer verdict, proof source, why it matters, and one next command before detailed evidence."
         ),
     }
 
@@ -3032,6 +3078,18 @@ def unified_inspect_receipt_passed(unified_inspect_receipts: dict[str, Any]) -> 
     return required.issubset(receipt_command_ids(unified_inspect_receipts))
 
 
+def concise_verdict_result_ux_receipt_passed(concise_verdict_result_ux_receipts: dict[str, Any]) -> bool:
+    if concise_verdict_result_ux_receipts.get("status") != "pass":
+        return False
+    required = {
+        "full-audit-result-ux-pass",
+        "ios-design-result-ux-pass",
+        "ios-performance-result-ux-pass",
+        "inspect-result-ux-pass",
+    }
+    return required.issubset(receipt_command_ids(concise_verdict_result_ux_receipts))
+
+
 def command_depth_rows(
     commands: list[dict[str, Any]],
     text_index: dict[str, str],
@@ -3240,6 +3298,7 @@ def lowest_value_surface_probe(
     universal_agent_packaging_receipts: dict[str, Any],
     full_audit_orchestrator_receipts: dict[str, Any],
     unified_inspect_receipts: dict[str, Any],
+    concise_verdict_result_ux_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -4235,6 +4294,40 @@ def lowest_value_surface_probe(
             recommendation="Add a concise verdict/result UX layer so ShipGuard reports lead with pass, review, or blocked, the proof source, why it matters, and the exact next command.",
             proof="Run value-gauntlet plus focused concise-verdict fixtures that prove InspectDeck and major source reports share the same result hierarchy without hiding evidence.",
         )
+    if (
+        answer
+        and answer.get("identifier") == "shipguard concise-verdict-result-ux"
+        and concise_verdict_result_ux_receipt_passed(concise_verdict_result_ux_receipts)
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeConciseVerdictResultUX":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeConciseVerdictResultUX",
+                        True,
+                        f"{concise_verdict_result_ux_receipts.get('passedReceiptCount') or 0}/{concise_verdict_result_ux_receipts.get('receiptCount') or 0} concise result UX receipts executed",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeCodexMarketplaceReadiness",
+                False,
+                "ShipGuard still needs a public marketplace readiness pass that proves plugin metadata, install instructions, screenshots/assets, status checks, and submission packet are adopter-ready",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="cross-cutting",
+            identifier="shipguard codex-marketplace-readiness",
+            name="Codex marketplace readiness",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Add Codex marketplace readiness receipts that prove public plugin metadata, install proof, README/profile presentation, status checks, and submission packet quality.",
+            proof="Run value-gauntlet plus focused marketplace readiness fixtures that prove a fresh user can understand, install, verify, and evaluate ShipGuard from the public marketplace source.",
+        )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
         answer = {
@@ -4322,6 +4415,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     universal_agent_packaging_receipts = universal_agent_packaging_receipt_probe(root)
     full_audit_orchestrator_receipts = full_audit_orchestrator_receipt_probe(root)
     unified_inspect_receipts = unified_inspect_receipt_probe(root)
+    concise_verdict_result_ux_receipts = concise_verdict_result_ux_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -4359,11 +4453,26 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         universal_agent_packaging_receipts=universal_agent_packaging_receipts,
         full_audit_orchestrator_receipts=full_audit_orchestrator_receipts,
         unified_inspect_receipts=unified_inspect_receipts,
+        concise_verdict_result_ux_receipts=concise_verdict_result_ux_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
     review_count = sum(1 for finding in findings if finding["severity"] == "review")
     status = "blocked" if high_count else "review" if review_count else "pass"
+    priority_action_rows = priority_actions(findings, probe)
+    answer = (probe.get("answer") if isinstance(probe, dict) else {}) or {}
+    result_ux = build_result_ux(
+        status=status,
+        summary=(
+            f"Lowest-value surface is `{answer.get('identifier')}`; {answer.get('recommendation')}"
+            if answer
+            else "All tracked ShipGuard value surfaces passed the current gauntlet."
+        ),
+        proof_source="lowestValueSurfaceProbe.answer + runtime receipt families",
+        why_it_matters=str(answer.get("reason") if answer else "The gauntlet keeps ShipGuard focused on the next proven product weakness."),
+        next_command=str(answer.get("proofGuidance") or "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet"),
+        next_action_summary=str(answer.get("recommendation") or "Keep the next proof slice executable and public-fixture based."),
+    )
     return {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard value-gauntlet",
@@ -4371,6 +4480,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "intent": "shipguard-product-qa",
         "generatedAt": utc_now(),
         "status": status,
+        "resultUX": result_ux,
         "strict": strict,
         "scopeBoundary": {
             "shipguardOnly": True,
@@ -4422,9 +4532,10 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "universalAgentPackagingReceipts": universal_agent_packaging_receipts,
         "fullAuditOrchestratorReceipts": full_audit_orchestrator_receipts,
         "unifiedInspectReceipts": unified_inspect_receipts,
+        "conciseVerdictResultUXReceipts": concise_verdict_result_ux_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
-        "priorityActions": priority_actions(findings, probe),
+        "priorityActions": priority_action_rows,
         "reportQualityQuestions": REPORT_QUALITY_QUESTIONS,
     }
 
@@ -4449,9 +4560,9 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Actions: {summary['actionCount']}",
         f"- Findings: {summary['findingCount']} ({summary['highFindingCount']} high, {summary['reviewFindingCount']} review)",
         "",
-        "## Priority Actions",
-        "",
     ]
+    lines.extend(render_result_markdown(report["resultUX"]))
+    lines.extend(["## Priority Actions", ""])
     if report["priorityActions"]:
         for action in report["priorityActions"]:
             lines.append(f"{action['priority']}. [{action['severity']}] {action['summary']}")
@@ -5180,6 +5291,30 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_inspect_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_inspect_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+    concise_verdict_result_ux_receipts = report.get("conciseVerdictResultUXReceipts") or {}
+    lines.extend(["", "## Concise Verdict Result UX Receipts", ""])
+    lines.append(f"- Status: {concise_verdict_result_ux_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {concise_verdict_result_ux_receipts.get('passedReceiptCount', 0)}/{concise_verdict_result_ux_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {concise_verdict_result_ux_receipts.get('commandCount', 0)}")
+    if concise_verdict_result_ux_receipts.get("nextAction"):
+        lines.append(f"- Next action: {concise_verdict_result_ux_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in concise_verdict_result_ux_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 44)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_result_ux_commands = [
+        (receipt, command)
+        for receipt in concise_verdict_result_ux_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_result_ux_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_result_ux_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

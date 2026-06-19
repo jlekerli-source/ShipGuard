@@ -406,7 +406,9 @@ The universal-agent packaging slice answers the next weakness after Expo/EAS ass
 
 The full-audit slice answers the next weakness after universal packaging. `shipguard full-audit` now plans and runs validation, value-gauntlet, report-quality, package proof, install refresh, plugin status, CI proof, and release-proof preparation through resumable stage receipts. `fullAuditOrchestratorReceipts` prove plan-only release coverage, mini execution, and resume reuse on public fixtures. With those receipts green, the next value-gauntlet weakness was the v3.125 unified inspect experience: ShipGuard proof state was split across too many reports and needed one concise inspect surface without hiding underlying evidence.
 
-The unified inspect slice adds `shipguard inspect` and `fixtures/tool-value-gauntlet/unified-inspect-receipts`. `unifiedInspectReceipts` create synthetic value-gauntlet, full-audit, and release-proof inputs, run InspectDeck, and require one shareable report with repo state, proof inputs, plugin state, release state, underlying evidence, scope boundary, and one exact next action. With those receipts green, the next value-gauntlet weakness is v3.126 concise verdict and result UX.
+The unified inspect slice adds `shipguard inspect` and `fixtures/tool-value-gauntlet/unified-inspect-receipts`. `unifiedInspectReceipts` create synthetic value-gauntlet, full-audit, and release-proof inputs, run InspectDeck, and require one shareable report with repo state, proof inputs, plugin state, release state, underlying evidence, scope boundary, and one exact next action.
+
+The concise result-UX slice adds `scripts/shipguard_result.py` and `fixtures/tool-value-gauntlet/concise-verdict-result-ux-receipts`. `conciseVerdictResultUXReceipts` run full-audit, iOS design, iOS performance, and InspectDeck on public/synthetic inputs and require each report to lead with `resultUX` plus Markdown `## Result`: verdict, proof source, why it matters, and one next command. With those receipts green, the next value-gauntlet weakness is v3.127 Codex marketplace readiness.
 
 ## Verdict
 

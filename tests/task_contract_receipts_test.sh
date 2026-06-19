@@ -19,10 +19,12 @@ grep -q '"taskContractReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"domainPackSDKReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"configurationBaselineReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"structuredEvidenceReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"conciseVerdictResultUXReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q 'Task-Contract Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Domain Pack SDK' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Configuration Baseline Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Structured Evidence Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Concise Verdict Result UX Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
@@ -33,6 +35,7 @@ receipts = data.get("taskContractReceipts") or {}
 domain_pack_sdk = data.get("domainPackSDKReceipts") or {}
 configuration_baseline = data.get("configurationBaselineReceipts") or {}
 structured_evidence = data.get("structuredEvidenceReceipts") or {}
+concise_result_ux = data.get("conciseVerdictResultUXReceipts") or {}
 probe = data.get("lowestValueSurfaceProbe") or {}
 answer = probe.get("answer") or {}
 
@@ -78,8 +81,10 @@ if structured_evidence.get("status") != "pass":
 if structured_evidence.get("receiptCount") != 1 or structured_evidence.get("passedReceiptCount") != 1 or structured_evidence.get("commandCount") != 6:
     raise SystemExit(f"expected one structured evidence receipt and six commands: {structured_evidence!r}")
 
-if answer.get("identifier") != "shipguard concise-verdict-result-ux":
-    raise SystemExit(f"passing unified inspect receipts should escalate to concise verdict UX: {answer!r}")
+if concise_result_ux.get("status") != "pass":
+    raise SystemExit(f"concise result UX receipts should pass: {concise_result_ux!r}")
+if answer.get("identifier") != "shipguard codex-marketplace-readiness":
+    raise SystemExit(f"passing concise result UX receipts should escalate to marketplace readiness: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -106,8 +111,10 @@ if "runtimeFullAuditOrchestrator" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"full-audit orchestrator should no longer be missing: {answer!r}")
 if "runtimeUnifiedInspectExperience" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"unified inspect should no longer be missing: {answer!r}")
-if "runtimeConciseVerdictResultUX" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"concise verdict UX gap should be explicit: {answer!r}")
+if "runtimeConciseVerdictResultUX" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"concise verdict UX should no longer be missing: {answer!r}")
+if "runtimeCodexMarketplaceReadiness" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"marketplace readiness gap should be explicit: {answer!r}")
 PY
 
 echo "task contract receipt tests passed"

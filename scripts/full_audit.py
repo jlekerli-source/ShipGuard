@@ -14,6 +14,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from shipguard_result import build_result_ux, render_result_markdown
+
 
 SCHEMA_VERSION = 1
 PROFILE_STAGES = {
@@ -435,10 +437,21 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     else:
         status = "pass"
         next_action = "Use this single report as the release-loop receipt; rerun with --resume after making changes."
+    verdict_one_line = f"{counts.get('pass', 0)} passed, {counts.get('planned', 0)} planned, {counts.get('manual-required', 0)} manual, {counts.get('fail', 0)} failed."
+    resume_command = f"shipguard full-audit --path {repo} --out {out_dir} --profile {args.profile} --resume"
+    result_ux = build_result_ux(
+        status=status,
+        summary=verdict_one_line,
+        proof_source="stageStatusSummary + stage receipts",
+        why_it_matters="Full Audit collapses validation, release proof, slow lanes, and resumability into one maintainer receipt.",
+        next_command=resume_command,
+        next_action_summary=next_action,
+    )
     report: dict[str, Any] = {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard full-audit",
         "status": status,
+        "resultUX": result_ux,
         "generatedAt": utc_now(),
         "profile": args.profile,
         "planOnly": bool(args.plan_only),
@@ -452,7 +465,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "manualStages": len(manual),
             "plannedStages": len(planned),
             "collapsedCommandFamilies": sorted({item["stageId"] for item in stage_reports}),
-            "resumeCommand": f"shipguard full-audit --path {repo} --out {out_dir} --profile {args.profile} --resume",
+            "resumeCommand": resume_command,
         },
         "scopeBoundary": {
             "shipguardOnly": bool(args.shipguard_eval),
@@ -464,17 +477,17 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         },
         "verdict": {
             "status": status,
-            "oneLine": f"{counts.get('pass', 0)} passed, {counts.get('planned', 0)} planned, {counts.get('manual-required', 0)} manual, {counts.get('fail', 0)} failed.",
+            "oneLine": verdict_one_line,
             "nextAction": next_action,
         },
         "reportQualityQuestions": [
             "Does the full-audit report replace repeated manual validation ceremony with one resumable evidence lane?",
             "Are slow lanes summarized clearly enough for a solo developer to decide what to rerun?",
             "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?",
-            "Should the next ShipGuard slice make every major report lead with the same concise pass/review/blocked verdict and one exact next command?",
+            "Should the next ShipGuard slice prove Codex marketplace readiness with public install, metadata, status, screenshot/asset, and submission-packet receipts?",
         ],
-        "slashPlan": "/plan v3.126.0 Concise Verdict and Result UX for jlekerli-source/ShipGuard: make full-audit, value-gauntlet, InspectDeck, and source reports lead with one pass/review/blocked verdict, the proof source, why it matters, and one exact next command.",
-        "slashGoal": "/goal Implement v3.126.0 Concise Verdict and Result UX for jlekerli-source/ShipGuard: give ShipGuard reports the same compact result hierarchy without hiding underlying evidence.",
+        "slashPlan": "/plan v3.127.0 Codex Marketplace Readiness for jlekerli-source/ShipGuard: prove public plugin metadata, install proof, README/profile presentation, screenshots/assets, status checks, and submission packet quality with executable receipts.",
+        "slashGoal": "/goal Implement v3.127.0 Codex Marketplace Readiness for jlekerli-source/ShipGuard: make the Codex marketplace source adopter-ready with proof, without hiding install or status evidence.",
     }
     if args.shareable:
         replacements = [(str(repo), "<shipguard-repo>"), (str(out_dir), "<shipguard-full-audit-out>"), (str(Path.home()), "<home>")]
@@ -492,8 +505,16 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Verdict: {report['verdict']['oneLine']}",
         f"- Next action: {report['verdict']['nextAction']}",
         "",
-        "## Efficiency",
-        "",
+    ]
+    lines.extend(render_result_markdown(report["resultUX"]))
+    lines.extend(
+        [
+            "## Efficiency",
+            "",
+        ]
+    )
+    lines.extend(
+        [
         f"- Stages planned: {report['efficiency']['stagesPlanned']}",
         f"- Executed stages: {report['efficiency']['executedStages']}",
         f"- Manual stages: {report['efficiency']['manualStages']}",
@@ -503,7 +524,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         "| Status | Stage | Duration | Purpose |",
         "| --- | --- | ---: | --- |",
-    ]
+        ]
+    )
     for stage in report["stages"]:
         lines.append(
             f"| {stage['status']} | `{stage['stageId']}` {stage['title']} | {stage.get('durationSeconds', 0.0)}s | {stage['purpose']} |"

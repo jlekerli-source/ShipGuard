@@ -17,6 +17,7 @@ from typing import Any
 import ios_doctor
 import ios_scan_scope
 import ios_shareable
+from shipguard_result import build_result_ux, render_result_markdown
 
 
 SCHEMA_VERSION = 1
@@ -619,6 +620,17 @@ def build_report(root: Path, *, shipguard_eval: bool = False, shareable: bool = 
     review_count = sum(1 for item in findings if item["severity"] == "review")
     status = "blocked" if high_count else "review" if review_count else "pass"
     action_plan = grouped_action_plan(findings)
+    promotion = evidence_promotion_contract(action_plan)
+    first_group = action_plan[0]["ruleId"] if action_plan else "none"
+    next_action = promotion.get("nextAction") if isinstance(promotion.get("nextAction"), dict) else {}
+    result_ux = build_result_ux(
+        status=status,
+        summary=f"{len(findings)} source performance finding(s); first candidate group `{first_group}`.",
+        proof_source="evidencePromotion.nextAction + groupedActionPlan + source scan",
+        why_it_matters="Performance reports must separate source suspicion from runtime proof before target-app remediation.",
+        next_command=str(next_action.get("manualProof") or "Run same-route Simulator trace or physical-device Instruments proof before editing app code."),
+        next_action_summary=str(next_action.get("successCondition") or "Promote only the first source suspicion that runtime evidence confirms."),
+    )
     report = {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard ios performance",
@@ -633,6 +645,7 @@ def build_report(root: Path, *, shipguard_eval: bool = False, shareable: bool = 
             else "Local absolute project paths are omitted from report fields intended for external sharing.",
         },
         "status": status,
+        "resultUX": result_ux,
         "metrics": {
             **metrics,
             "xcodeProjects": len(doctor.get("xcode_projects", [])),
@@ -649,7 +662,7 @@ def build_report(root: Path, *, shipguard_eval: bool = False, shareable: bool = 
         "reportQualityQuestions": shipguard_eval_questions() if shipguard_eval else [],
         "ruleSummary": summarize_rules(findings),
         "groupedActionPlan": action_plan,
-        "evidencePromotion": evidence_promotion_contract(action_plan),
+        "evidencePromotion": promotion,
         "findings": findings,
         "nextSteps": shipguard_eval_next_steps() if shipguard_eval else app_development_next_steps(),
     }
@@ -693,6 +706,7 @@ def markdown_report(report: dict[str, Any]) -> str:
         f"- Skipped generated/proof/cache directories: {report['scanScope']['skippedDirectoryCount']}",
         "",
     ]
+    lines.extend(render_result_markdown(report["resultUX"]))
     boundary = report["runtimeEvidenceBoundary"]
     lines.extend(
         [

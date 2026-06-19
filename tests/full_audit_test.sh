@@ -22,13 +22,18 @@ test -f "$tmp_dir/plan/shipguard-full-audit.json"
 test -f "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q '"tool": "shipguard full-audit"' "$tmp_dir/plan/shipguard-full-audit.json"
 grep -q '"status": "pass"' "$tmp_dir/plan/shipguard-full-audit.json"
+grep -q '"resultUX":' "$tmp_dir/plan/shipguard-full-audit.json"
+grep -q '"proofSource":' "$tmp_dir/plan/shipguard-full-audit.json"
+grep -q '"nextCommand":' "$tmp_dir/plan/shipguard-full-audit.json"
 grep -q '"planned": 14' "$tmp_dir/plan/shipguard-full-audit.json"
 grep -q '"stageId": "release-proof"' "$tmp_dir/plan/shipguard-full-audit.json"
 grep -q '"doesNotPush": true' "$tmp_dir/plan/shipguard-full-audit.json"
 grep -q '"doesNotPublishRelease": true' "$tmp_dir/plan/shipguard-full-audit.json"
 grep -q 'ShipGuard Full Audit' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q '## Result' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Proof source:' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Slow Lanes' "$tmp_dir/plan/shipguard-full-audit.md"
-grep -q 'v3.126.0 Concise Verdict and Result UX' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'v3.127.0 Codex Marketplace Readiness' "$tmp_dir/plan/shipguard-full-audit.md"
 if grep -q "$repo_root" "$tmp_dir/plan/shipguard-full-audit.json" "$tmp_dir/plan/shipguard-full-audit.md"; then
   echo "shareable full-audit output leaked local repo path" >&2
   exit 1
@@ -62,6 +67,8 @@ if any(stage["durationSeconds"] < 0 for stage in data["stages"]):
     raise SystemExit(data["stages"])
 if not data["reportQualityQuestions"]:
     raise SystemExit("missing report quality questions")
+if not data.get("resultUX", {}).get("verdict", "").startswith("PASS:"):
+    raise SystemExit(data.get("resultUX"))
 PY
 
 ./bin/shipguard full-audit \

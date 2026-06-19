@@ -21,6 +21,8 @@ grep -q '"trustHardeningReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q 'Trust-Hardening Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q '"domainPackSDKReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q 'Domain Pack SDK Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q '"conciseVerdictResultUXReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q 'Concise Verdict Result UX Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
@@ -30,6 +32,7 @@ data = json.load(open(sys.argv[1], encoding="utf-8"))
 receipts = data.get("commandFamilyRuntimeOutputReceipts") or {}
 trust_receipts = data.get("trustHardeningReceipts") or {}
 domain_pack_sdk = data.get("domainPackSDKReceipts") or {}
+concise_result_ux = data.get("conciseVerdictResultUXReceipts") or {}
 probe = data.get("lowestValueSurfaceProbe") or {}
 answer = probe.get("answer") or {}
 
@@ -66,8 +69,10 @@ if trust_receipts.get("status") != "pass":
     raise SystemExit(f"trust-hardening receipts should also pass in the full gauntlet: {trust_receipts!r}")
 if domain_pack_sdk.get("status") != "pass":
     raise SystemExit(f"Domain Pack SDK receipts should also pass in the full gauntlet: {domain_pack_sdk!r}")
-if answer.get("identifier") != "shipguard concise-verdict-result-ux":
-    raise SystemExit(f"passing unified inspect receipts should escalate to concise verdict UX: {answer!r}")
+if concise_result_ux.get("status") != "pass":
+    raise SystemExit(f"concise result UX receipts should also pass in the full gauntlet: {concise_result_ux!r}")
+if answer.get("identifier") != "shipguard codex-marketplace-readiness":
+    raise SystemExit(f"passing concise result UX receipts should escalate to marketplace readiness: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -94,8 +99,10 @@ if "runtimeFullAuditOrchestrator" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"full-audit orchestrator should no longer be missing: {answer!r}")
 if "runtimeUnifiedInspectExperience" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"unified inspect should no longer be missing: {answer!r}")
-if "runtimeConciseVerdictResultUX" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"concise verdict UX gap should be explicit: {answer!r}")
+if "runtimeConciseVerdictResultUX" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"concise verdict UX should no longer be missing: {answer!r}")
+if "runtimeCodexMarketplaceReadiness" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"marketplace readiness gap should be explicit: {answer!r}")
 if "runtimeCommandFamilyOutputReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"command-family output receipts should no longer be missing: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):

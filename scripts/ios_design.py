@@ -15,6 +15,7 @@ from typing import Any
 import ios_doctor
 import ios_scan_scope
 import ios_shareable
+from shipguard_result import build_result_ux, render_result_markdown
 
 
 SCHEMA_VERSION = 1
@@ -961,12 +962,23 @@ def build_report(
     preview = preview_evidence(preview_out, root=root, shareable=shareable)
     icon = build_icon_brief(app_type["value"], app_type, dna) if icon_brief else None
     findings = build_findings(app_type["value"], dna, preview, icon_brief)
+    status = status_for(findings)
+    tailoring = design_tailoring_contract(app_type, dna)
+    result_ux = build_result_ux(
+        status=status,
+        summary=f"{len(findings)} design finding(s); `{tailoring['guidanceProfile']}` selected for `{app_type['value']}` from app-type signals.",
+        proof_source="designTailoring.nextAction + designDNA + optional previewEvidence",
+        why_it_matters="Design QA must produce app-type-specific coherence guidance instead of a universal UI checklist.",
+        next_command="shipguard ios preview --out /tmp/ios-shipguard-preview",
+        next_action_summary=tailoring["nextAction"]["manualProof"],
+    )
     report = {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard ios design",
         "generatedAt": utc_now(),
         "intent": "shipguard-evaluation" if shipguard_eval else "app-development",
-        "status": status_for(findings),
+        "status": status,
+        "resultUX": result_ux,
         "root": report_path(root, root=root, shareable=shareable, placeholder="scanned-app"),
         "shareability": {
             "mode": "shareable" if shareable else "local",
@@ -985,7 +997,7 @@ def build_report(
             "targets": facts["targetNames"],
             "bundleIds": facts["bundleIds"],
         },
-        "designTailoring": design_tailoring_contract(app_type, dna),
+        "designTailoring": tailoring,
         "designCoherenceBoundary": design_coherence_boundary_contract(app_type, dna, findings),
         "designDNA": dna,
         "findings": findings,
@@ -1053,6 +1065,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Skipped generated/proof/cache directories: {report['sourceSummary']['scanScope']['skippedDirectoryCount']}",
         "",
     ]
+    lines.extend(render_result_markdown(report["resultUX"]))
     if report["intent"] == "shipguard-evaluation":
         boundary = report["scopeBoundary"]
         lines.extend(

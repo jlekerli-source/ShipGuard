@@ -110,6 +110,9 @@ grep -q '"proofReceipts":' "$tmp_dir/inspect/shipguard-inspect.json"
 grep -q '"pluginState":' "$tmp_dir/inspect/shipguard-inspect.json"
 grep -q '"releaseState":' "$tmp_dir/inspect/shipguard-inspect.json"
 grep -q '"underlyingEvidence":' "$tmp_dir/inspect/shipguard-inspect.json"
+grep -q '"resultUX":' "$tmp_dir/inspect/shipguard-inspect.json"
+grep -q '"proofSource":' "$tmp_dir/inspect/shipguard-inspect.json"
+grep -q '"nextCommand":' "$tmp_dir/inspect/shipguard-inspect.json"
 grep -q '"nextAction":' "$tmp_dir/inspect/shipguard-inspect.json"
 grep -q '"source": "value-gauntlet.lowestValueSurfaceProbe.answer"' "$tmp_dir/inspect/shipguard-inspect.json"
 grep -q '"shipguardOnly": true' "$tmp_dir/inspect/shipguard-inspect.json"
@@ -119,6 +122,8 @@ grep -q '"doesNotPublishRelease": true' "$tmp_dir/inspect/shipguard-inspect.json
 grep -q '"reportQualityQuestions":' "$tmp_dir/inspect/shipguard-inspect.json"
 
 grep -q '# ShipGuard InspectDeck' "$tmp_dir/inspect/shipguard-inspect.md"
+grep -q '## Result' "$tmp_dir/inspect/shipguard-inspect.md"
+grep -q 'Proof source:' "$tmp_dir/inspect/shipguard-inspect.md"
 grep -q 'Next Action' "$tmp_dir/inspect/shipguard-inspect.md"
 grep -q 'Underlying Evidence' "$tmp_dir/inspect/shipguard-inspect.md"
 grep -q 'Scope Boundary' "$tmp_dir/inspect/shipguard-inspect.md"
@@ -139,6 +144,8 @@ if data["releaseState"]["version"] != "3.125.0":
     raise SystemExit(data["releaseState"])
 if data["nextAction"]["command"] != "./tests/inspect_test.sh":
     raise SystemExit(data["nextAction"])
+if not data.get("resultUX", {}).get("verdict"):
+    raise SystemExit(data.get("resultUX"))
 if not data["pluginState"].get("checked"):
     raise SystemExit(data["pluginState"])
 PY

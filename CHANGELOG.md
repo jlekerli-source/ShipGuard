@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added v3.126 concise result UX: major reports now emit a shared `resultUX` object and Markdown `## Result` block with normalized status, verdict, proof source, why it matters, and one next command before detailed evidence.
+- Added `scripts/shipguard_result.py` and wired result UX through `shipguard value-gauntlet`, `shipguard full-audit`, `shipguard inspect`, `shipguard ios design`, and `shipguard ios performance` while preserving existing report fields for compatibility.
+- Added Tool Value Gauntlet `conciseVerdictResultUXReceipts` with public result-contract fixtures; once those pass, the lowest-value probe now points to v3.127 Codex marketplace readiness.
 - Added v3.125 unified inspect experience: `shipguard inspect` now reads repo state, value-gauntlet output, full-audit output, local Codex plugin state, release proof state, and returns one concise verdict plus one exact next action without hiding underlying evidence.
 - Added Tool Value Gauntlet `unifiedInspectReceipts` with public synthetic proof-state fixtures; once those pass, the lowest-value probe now points to v3.126 concise verdict and result UX.
 - Added `docs/inspect.md`, focused inspect tests, CLI/docs/package/self-audit coverage, and shareable redaction for InspectDeck so proof-state review can happen without editing private target apps.

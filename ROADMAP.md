@@ -49,7 +49,7 @@ Keep the core open-source verdict engine honest. Future Pro, Team, or Enterprise
 
 ## Phase Map
 
-The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.125 as shipped foundations and v3.126 as the active concise verdict/result UX slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, universal-agent packaging, full-audit orchestration, or unified inspect work.
+The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.126 as shipped foundations and v3.127 as the active Codex marketplace readiness slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, universal-agent packaging, full-audit orchestration, unified inspect, or concise result-UX work.
 
 ### Phase A: Trustworthy Foundation
 
@@ -134,7 +134,7 @@ v3.128  External benchmark v2
 v3.129-v3.130  v4 preview, stabilization, security, and schema freeze
 ```
 
-Current state: v3.125 adds `shipguard inspect`, a read-only InspectDeck report that reads repo state, value-gauntlet state, full-audit state, local Codex plugin state, release proof state, underlying evidence pointers, and one exact next action. The active architectural priority is v3.126 concise verdict and result UX: make InspectDeck and major source reports lead with pass, review, or blocked, why it matters, proof source, and the next command.
+Current state: v3.126 adds a shared `resultUX` contract through `scripts/shipguard_result.py`; value-gauntlet, full-audit, InspectDeck, iOS design, and iOS performance now lead with pass/review/blocked status, one verdict, proof source, why it matters, and the next command before detailed evidence. The active architectural priority is v3.127 Codex marketplace readiness: prove the public plugin source, README, install path, screenshots/assets, status checks, and submission packet are adopter-ready.
 
 Every release proposal must answer:
 

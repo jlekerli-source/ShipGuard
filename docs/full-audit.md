@@ -45,6 +45,8 @@ Outputs:
 - `logs/<stage-id>.stdout.txt`
 - `logs/<stage-id>.stderr.txt`
 
+The JSON includes `resultUX`, and the Markdown starts with `## Result`. That block gives the normalized status, concise verdict, proof source, why the report matters, and the next resume command before the stage ledger.
+
 Profiles:
 
 - `quick`: version, diff check, Python compile, validate, docs-check, value-gauntlet, and report-quality.

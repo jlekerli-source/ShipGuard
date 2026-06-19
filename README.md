@@ -33,8 +33,8 @@ The naming style is intentional: stable commands and paths stay literal, while p
 Install from a release tarball, then validate the bundle:
 
 ```bash
-tar -xzf shipguard-v3.125.0.tar.gz
-cd shipguard-v3.125.0
+tar -xzf shipguard-v3.126.0.tar.gz
+cd shipguard-v3.126.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" version
 ./bin/shipguard validate
@@ -119,9 +119,10 @@ Read `docs/cli.md` for the full command reference and `examples/demo-walkthrough
 - `scripts/task_contract.py`: the durable `prepare`/`verify` task contract and verdict engine for proof-gated Codex changes.
 - `scripts/shipguard_baseline.py`: the configuration-baseline engine for exact accepted findings, owner/reason/expiry/proof-boundary metadata, expired suppression blocking, and new-risk regression behavior.
 - `scripts/task_domain_packs.py`: the Domain Pack SDK registry and iOS notification-permission pack boundary, with public synthetic extension proof for future packs.
-- `scripts/tool_value_gauntlet.py`: the ShipGuard Tool Value Gauntlet for grading every command, skill, plugin, action, doc, and proof path for real developer usefulness, running representative commands, every public command help path, skill/plugin receipts, workflow chains, scenario failure/remediation, fresh package adoption, PilotBench receipts, Domain Pack SDK receipts, configuration-baseline receipts, full-audit receipts, and profile-native repair/rerun receipts before probing the weakest next workflow layer.
-- `scripts/full_audit.py`: ShipGuard Full Audit, the resumable ShipYard proof lane for validation, value-gauntlet, report-quality, package, plugin, CI, and release-proof preparation.
-- `scripts/shipguard_inspect.py`: ShipGuard InspectDeck, the one-surface proof-state report for repo state, value-gauntlet proof, full-audit proof, Codex plugin status, release proof, underlying evidence, verdict, and exact next action.
+- `scripts/tool_value_gauntlet.py`: the ShipGuard Tool Value Gauntlet for grading every command, skill, plugin, action, doc, and proof path for real developer usefulness, running representative commands, every public command help path, skill/plugin receipts, workflow chains, scenario failure/remediation, fresh package adoption, PilotBench receipts, Domain Pack SDK receipts, configuration-baseline receipts, full-audit receipts, unified inspect receipts, concise result-UX receipts, and profile-native repair/rerun receipts before probing the weakest next workflow layer.
+- `scripts/shipguard_result.py`: the shared result contract used by major reports so they lead with status, verdict, proof source, why it matters, and one next command before detailed evidence.
+- `scripts/full_audit.py`: ShipGuard Full Audit, the resumable ShipYard proof lane for validation, value-gauntlet, report-quality, package, plugin, CI, and release-proof preparation, with a compact result block at the top.
+- `scripts/shipguard_inspect.py`: ShipGuard InspectDeck, the one-surface proof-state report for repo state, value-gauntlet proof, full-audit proof, Codex plugin status, release proof, underlying evidence, result verdict, and exact next action.
 - `scripts/external_pilot_verdict_bench.py`: ShipGuard PilotBench for scoring public-safe read-only task traces across owner detection, scope, proof, claims, redaction, next action, false positives, and first useful verdict time.
 - `scripts/agent_trace.py`: ShipGuard TraceBridge for normalizing agent/Codex traces into prompt, tool, receipt, verdict, next-action, verify-handoff, runtime-receipt, and worker-budget evidence.
 - `scripts/profile_audit.py`: ShipGuard WebScan, ServiceRadar, and CommandLens first-audit reports for web, backend, and CLI starter targets, with scan transparency that excludes generated ShipGuard starter files from target evidence.

@@ -11,6 +11,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from shipguard_result import build_result_ux, render_result_markdown
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 if sys.path and os.path.abspath(sys.path[0] or os.getcwd()) == SCRIPT_DIR:
     sys.path.pop(0)
@@ -300,8 +302,12 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Dirty worktree: {repo.get('dirty')}",
         f"- Verdict: {report['unifiedVerdict']['summary']}",
         "",
-        "## Next Action",
-        "",
+    ]
+    lines.extend(render_result_markdown(report["resultUX"]))
+    lines.extend(
+        [
+            "## Next Action",
+            "",
         f"- Source: {next_action.get('source')}",
         f"- Reason: {next_action.get('reason')}",
         f"- Command or proof: `{next_action.get('command')}`",
@@ -310,7 +316,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         "| Input | Provided | Found | Status |",
         "| --- | --- | --- | --- |",
-    ]
+        ]
+    )
     for item in report["proofInputs"]:
         lines.append(f"| {item['id']} | {item['provided']} | {item['found']} | {item['status']} |")
     lowest = value.get("lowestValueSurface") or {}
@@ -380,6 +387,14 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         if status == "pass"
         else "Inspect completed, but at least one proof input, plugin state, release state, or repo state needs review."
     )
+    result_ux = build_result_ux(
+        status=status,
+        summary=verdict_summary,
+        proof_source=str(next_action.get("source") or "proof receipts"),
+        why_it_matters="InspectDeck makes ShipGuard's proof state and next move readable from one surface.",
+        next_command=str(next_action.get("command") or "shipguard inspect --path . --out /tmp/shipguard-inspect"),
+        next_action_summary=str(next_action.get("reason") or verdict_summary),
+    )
     report: dict[str, Any] = {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard inspect",
@@ -400,6 +415,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "status": status,
             "summary": verdict_summary,
         },
+        "resultUX": result_ux,
         "nextAction": next_action,
         "underlyingEvidence": [
             {"id": "value-gauntlet", "path": value.get("path") or ""},
