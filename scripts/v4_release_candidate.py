@@ -4,12 +4,15 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
 import subprocess
 import sys
 import tarfile
+import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -88,6 +91,55 @@ def short_output(value: str, limit: int = 1200) -> str:
     if len(value) <= limit:
         return value
     return value[: limit - 3].rstrip() + "..."
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def normalize_release_tag(version: str) -> str:
+    value = version.strip()
+    if value.startswith("refs/tags/"):
+        value = value.removeprefix("refs/tags/")
+    return value if value.startswith("v") else f"v{value}"
+
+
+def join_api_url(api_url: str, path: str) -> str:
+    base = api_url.rstrip("/")
+    suffix = "/" + path.lstrip("/")
+    return base + suffix
+
+
+def request_json(url: str, headers: dict[str, str], timeout: int = 60) -> dict[str, Any]:
+    request = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        body = response.read()
+    try:
+        payload = json.loads(body.decode("utf-8"))
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"GitHub release response was not JSON: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise RuntimeError("GitHub release response was not a JSON object")
+    return payload
+
+
+def download_url_to_file(url: str, destination: Path, headers: dict[str, str], timeout: int = 120) -> None:
+    request = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        with destination.open("wb") as handle:
+            shutil.copyfileobj(response, handle)
+
+
+def safe_asset_name(name: str) -> str:
+    candidate = Path(name).name
+    if not candidate or candidate in {".", ".."}:
+        raise RuntimeError(f"unsafe release asset name: {name!r}")
+    return candidate
 
 
 def is_forbidden_archive_member(name: str) -> bool:
@@ -635,7 +687,128 @@ def build_rollback_package_proof(args: argparse.Namespace, version: str) -> dict
     return proof
 
 
-def build_published_release_asset_proof(args: argparse.Namespace, root: Path, version: str) -> dict[str, Any]:
+def build_github_release_asset_download_proof(args: argparse.Namespace, version: str) -> dict[str, Any]:
+    release_version = args.release_version or version
+    release_tag = normalize_release_tag(release_version)
+    command_template = (
+        "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate "
+        "--download-release-assets --github-release-repo <owner/repo> --release-version <version> --shipguard-eval --shareable"
+    )
+    if not args.download_release_assets:
+        return {
+            "status": "not-requested",
+            "requested": False,
+            "requiredForStableV4": False,
+            "summary": "Native GitHub release asset download was not requested; LaunchKey will use --release-assets when supplied.",
+            "nextCommand": command_template,
+        }
+
+    download_dir = (
+        Path(args.download_release_assets_dir).expanduser().resolve()
+        if args.download_release_assets_dir
+        else Path(args.release_assets).expanduser().resolve()
+        if args.release_assets
+        else Path(args.out).expanduser().resolve() / "downloaded-release-assets"
+    )
+    api_url = args.github_api_url.rstrip("/")
+    proof: dict[str, Any] = {
+        "status": "blocked",
+        "requested": True,
+        "requiredForStableV4": False,
+        "repo": args.github_release_repo or "",
+        "version": release_version,
+        "tag": release_tag,
+        "apiUrl": api_url,
+        "downloadDir": download_dir.as_posix(),
+        "nextCommand": command_template,
+        "downloadedAssets": [],
+    }
+    if not args.github_release_repo:
+        proof["summary"] = "GitHub release asset download was requested, but no repository was supplied."
+        proof["error"] = "missing --github-release-repo <owner/repo>"
+        return proof
+    if "/" not in args.github_release_repo:
+        proof["summary"] = "GitHub release repository must use owner/repo syntax."
+        proof["error"] = f"invalid --github-release-repo value: {args.github_release_repo}"
+        return proof
+    if download_dir.exists() and not download_dir.is_dir():
+        proof["summary"] = "GitHub release download destination exists but is not a directory."
+        proof["error"] = f"download destination is not a directory: {download_dir}"
+        return proof
+    if download_dir.exists() and any(download_dir.iterdir()):
+        proof["summary"] = "GitHub release download destination already exists and is not empty."
+        proof["error"] = f"download destination must be empty: {download_dir}"
+        return proof
+
+    token = os.environ.get(args.github_token_env or "")
+    api_headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "shipguard-launchkey",
+    }
+    asset_headers = {
+        "Accept": "application/octet-stream",
+        "User-Agent": "shipguard-launchkey",
+    }
+    if token:
+        api_headers["Authorization"] = f"Bearer {token}"
+        asset_headers["Authorization"] = f"Bearer {token}"
+
+    release_endpoint = join_api_url(api_url, f"/repos/{args.github_release_repo}/releases/tags/{release_tag}")
+    proof["releaseEndpoint"] = release_endpoint
+    try:
+        release = request_json(release_endpoint, api_headers)
+        assets = release.get("assets")
+        if not isinstance(assets, list) or not assets:
+            proof["summary"] = "GitHub release has no downloadable assets."
+            proof["error"] = "release asset list was empty"
+            return proof
+        download_dir.mkdir(parents=True, exist_ok=True)
+        downloaded_assets: list[dict[str, Any]] = []
+        for asset in assets:
+            if not isinstance(asset, dict):
+                continue
+            name = safe_asset_name(str(asset.get("name") or ""))
+            source_url = str(asset.get("browser_download_url") or asset.get("url") or "")
+            if not source_url:
+                raise RuntimeError(f"asset {name} has no download URL")
+            destination = download_dir / name
+            download_url_to_file(source_url, destination, asset_headers)
+            downloaded_assets.append(
+                {
+                    "name": name,
+                    "size": destination.stat().st_size,
+                    "sha256": sha256_file(destination),
+                    "source": source_url,
+                    "path": destination.as_posix(),
+                }
+            )
+        if not downloaded_assets:
+            proof["summary"] = "GitHub release asset response did not contain usable assets."
+            proof["error"] = "no usable asset objects were downloaded"
+            return proof
+        proof.update(
+            {
+                "status": "pass",
+                "summary": "GitHub release assets were downloaded into a local LaunchKey proof directory.",
+                "releaseUrl": release.get("html_url") or "",
+                "assetCount": len(downloaded_assets),
+                "downloadedAssets": downloaded_assets,
+            }
+        )
+    except (OSError, RuntimeError, urllib.error.URLError, urllib.error.HTTPError) as exc:
+        if download_dir.exists():
+            shutil.rmtree(download_dir, ignore_errors=True)
+        proof["summary"] = "GitHub release asset download failed."
+        proof["error"] = short_output(str(exc), 500)
+    return proof
+
+
+def build_published_release_asset_proof(
+    args: argparse.Namespace,
+    root: Path,
+    version: str,
+    github_release_asset_download_proof: dict[str, Any],
+) -> dict[str, Any]:
     command_template = (
         "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate "
         "--release-assets <downloaded-assets-dir> --release-version <version> --shipguard-eval --shareable"
@@ -644,7 +817,25 @@ def build_published_release_asset_proof(args: argparse.Namespace, root: Path, ve
         "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> "
         "--out <consume-dir> --version <version>"
     )
-    if not args.release_assets:
+    if github_release_asset_download_proof.get("requested") and github_release_asset_download_proof.get("status") != "pass":
+        return {
+            "status": "blocked",
+            "provided": True,
+            "requiredForStableV4": True,
+            "downloadSource": "github-release-assets",
+            "summary": "GitHub release assets could not be downloaded, so consumer-side release asset verification did not run.",
+            "nextCommand": github_release_asset_download_proof.get("nextCommand") or command_template,
+            "consumeCommand": consume_command_template,
+            "downloadProofStatus": github_release_asset_download_proof.get("status"),
+            "error": github_release_asset_download_proof.get("error", ""),
+        }
+
+    effective_release_assets = (
+        github_release_asset_download_proof.get("downloadDir")
+        if github_release_asset_download_proof.get("status") == "pass"
+        else args.release_assets
+    )
+    if not effective_release_assets:
         return {
             "status": "not-provided",
             "provided": False,
@@ -654,7 +845,7 @@ def build_published_release_asset_proof(args: argparse.Namespace, root: Path, ve
             "consumeCommand": consume_command_template,
         }
 
-    assets_dir = Path(args.release_assets).expanduser().resolve()
+    assets_dir = Path(str(effective_release_assets)).expanduser().resolve()
     consume_out = (
         Path(args.release_consume_out).expanduser().resolve()
         if args.release_consume_out
@@ -680,6 +871,8 @@ def build_published_release_asset_proof(args: argparse.Namespace, root: Path, ve
         "assetsDir": assets_dir.as_posix(),
         "consumeOut": consume_out.as_posix(),
         "version": release_version,
+        "downloadSource": "github-release-assets" if github_release_asset_download_proof.get("status") == "pass" else "supplied-directory",
+        "downloadProofStatus": github_release_asset_download_proof.get("status"),
         "command": " ".join(command),
         "commandTemplate": consume_command_template,
         "nextCommand": "./tests/v4_release_candidate_test.sh",
@@ -776,6 +969,7 @@ def build_blocking_proof_detail(
     fresh_install_package_proof: dict[str, Any],
     upgrade_package_proof: dict[str, Any],
     rollback_package_proof: dict[str, Any],
+    github_release_asset_download_proof: dict[str, Any],
     published_release_asset_proof: dict[str, Any],
 ) -> dict[str, Any] | None:
     candidates = [
@@ -804,6 +998,17 @@ def build_blocking_proof_detail(
             "rollback cleanup receipt",
         ),
         (
+            "githubReleaseAssetDownloadProof",
+            github_release_asset_download_proof,
+            "GitHub release asset download failed.",
+            "Fix the GitHub release repo, tag, API access, or empty destination, then rerun LaunchKey with native release-asset download.",
+            github_release_asset_download_proof.get(
+                "nextCommand",
+                "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --download-release-assets --github-release-repo <owner/repo> --release-version <version> --shipguard-eval --shareable",
+            ),
+            "GitHub release asset download receipt",
+        ),
+        (
             "publishedReleaseAssetProof",
             published_release_asset_proof,
             "Downloaded release assets failed consumer-side verification.",
@@ -813,7 +1018,10 @@ def build_blocking_proof_detail(
         ),
     ]
     for receipt, proof, headline, remedy, next_command, proof_source in candidates:
-        if not proof.get("provided") or proof.get("status") == "pass":
+        proof_participated = bool(proof.get("provided") or proof.get("requested"))
+        if not proof_participated or proof.get("status") == "pass":
+            continue
+        if proof.get("status") in {"not-provided", "not-requested"}:
             continue
         failure_evidence = failed_process_excerpt(proof)
         failure = proof.get("summary") or headline
@@ -854,7 +1062,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     fresh_install_package_proof = build_fresh_install_package_proof(args, version)
     upgrade_package_proof = build_upgrade_package_proof(args, version)
     rollback_package_proof = build_rollback_package_proof(args, version)
-    published_release_asset_proof = build_published_release_asset_proof(args, root, version)
+    github_release_asset_download_proof = build_github_release_asset_download_proof(args, version)
+    published_release_asset_proof = build_published_release_asset_proof(args, root, version, github_release_asset_download_proof)
 
     checks: list[dict[str, Any]] = []
     add_check(
@@ -1019,6 +1228,15 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             ["release-consume verify", "consumer-report.json", "asset-digests.json"],
             "Run consumer-side release proof against downloaded assets before using release-candidate readiness as stable-v4 evidence.",
         )
+    if github_release_asset_download_proof["requested"]:
+        add_check(
+            checks,
+            "github-release-assets-downloaded",
+            "GitHub release assets download natively",
+            github_release_asset_download_proof["status"] == "pass",
+            ["GitHub release API", "downloaded release assets directory"],
+            "Let LaunchKey download release assets from GitHub before consumer proof so maintainers do not need a separate manual `gh release download` step.",
+        )
 
     required_checks = [check for check in checks if check["required"]]
     failed_required = [check for check in required_checks if check["status"] != "pass"]
@@ -1088,6 +1306,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "rollbackPackageProof": rollback_package_proof["status"],
         "rollbackPackageProofRequiredForStableV4": True,
         "publishedReleaseAssetProof": published_release_asset_proof["status"],
+        "githubReleaseAssetDownloadProof": github_release_asset_download_proof["status"],
         "publishedReleaseAssetsRequiredForStableV4": True,
         "requiredProofCommands": [
             "git diff --check",
@@ -1103,6 +1322,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "./bin/shipguard codex status --strict",
             "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --shipguard-eval --shareable",
             "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --shipguard-eval --shareable",
+            "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --download-release-assets --github-release-repo <owner/repo> --release-version <version> --shipguard-eval --shareable",
             "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>",
         ],
     }
@@ -1155,6 +1375,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         fresh_install_package_proof,
         upgrade_package_proof,
         rollback_package_proof,
+        github_release_asset_download_proof,
         published_release_asset_proof,
     )
     if status != "pass" and blocking_proof:
@@ -1249,6 +1470,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "uninstallProof": readiness_proof["uninstall"],
         "rollbackPackageProof": rollback_package_proof,
         "releaseProofConsumption": readiness_proof["releaseProofConsumption"],
+        "githubReleaseAssetDownloadProof": github_release_asset_download_proof,
         "publishedReleaseAssetProof": published_release_asset_proof,
         "externalAdoptionPacket": external_adoption_packet,
         "finalSchemaDocs": readiness_proof["finalSchemaDocs"],
@@ -1272,10 +1494,27 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             root.as_posix(): "<repo>",
             home.as_posix(): "<home>",
         }
+        if github_release_asset_download_proof.get("downloadDir"):
+            replacements[str(github_release_asset_download_proof["downloadDir"])] = "<downloaded-release-assets>"
         if published_release_asset_proof.get("assetsDir"):
-            replacements[str(published_release_asset_proof["assetsDir"])] = "<release-assets>"
+            assets_replacement = (
+                "<downloaded-release-assets>"
+                if published_release_asset_proof.get("downloadSource") == "github-release-assets"
+                else "<release-assets>"
+            )
+            replacements[str(published_release_asset_proof["assetsDir"])] = assets_replacement
         if published_release_asset_proof.get("consumeOut"):
             replacements[str(published_release_asset_proof["consumeOut"])] = "<release-consume-out>"
+        if github_release_asset_download_proof.get("apiUrl") and str(github_release_asset_download_proof["apiUrl"]).startswith("file:"):
+            replacements[str(github_release_asset_download_proof["apiUrl"])] = "<github-api-url>"
+        if github_release_asset_download_proof.get("releaseEndpoint") and str(github_release_asset_download_proof["releaseEndpoint"]).startswith("file:"):
+            replacements[str(github_release_asset_download_proof["releaseEndpoint"])] = "<github-release-endpoint>"
+        for asset in github_release_asset_download_proof.get("downloadedAssets", []):
+            if isinstance(asset, dict):
+                if asset.get("path"):
+                    replacements[str(asset["path"])] = "<downloaded-release-assets>/" + Path(str(asset.get("path"))).name
+                if asset.get("source") and str(asset["source"]).startswith("file:"):
+                    replacements[str(asset["source"])] = "<github-asset-url>/" + str(asset.get("name") or "asset")
         if fresh_install_package_proof.get("packageTarball"):
             replacements[str(fresh_install_package_proof["packageTarball"])] = "<package-tarball>"
         if fresh_install_package_proof.get("installPrefix"):
@@ -1404,6 +1643,19 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.extend(["", "## Release Proof Consumption", ""])
     for command in report["releaseProofConsumption"].get("commands", []):
         lines.append(f"- `{command}`")
+    proof = report["githubReleaseAssetDownloadProof"]
+    lines.extend(["", "## GitHub Release Asset Download", ""])
+    lines.append(f"- Status: `{proof.get('status')}`")
+    lines.append(f"- Requested: `{proof.get('requested')}`")
+    lines.append(f"- Summary: {proof.get('summary')}")
+    if proof.get("requested"):
+        lines.append(f"- Repository: `{proof.get('repo')}`")
+        lines.append(f"- Tag: `{proof.get('tag')}`")
+        lines.append(f"- Asset count: `{proof.get('assetCount')}`")
+        if proof.get("downloadDir"):
+            lines.append(f"- Download directory: `{proof.get('downloadDir')}`")
+    else:
+        lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     proof = report["publishedReleaseAssetProof"]
     lines.extend(["", "## Published Release Asset Proof", ""])
     lines.append(f"- Status: `{proof.get('status')}`")
@@ -1471,6 +1723,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--release-assets", help="Optional downloaded release assets directory to verify with release-consume.")
     parser.add_argument("--release-version", help="Version to use when verifying --release-assets. Defaults to VERSION.")
     parser.add_argument("--release-consume-out", help="Output directory for embedded release-consume proof. Defaults under --out.")
+    parser.add_argument("--download-release-assets", action="store_true", help="Download GitHub release assets into a local proof directory before running release-consume.")
+    parser.add_argument("--github-release-repo", help="GitHub repository in owner/repo form for --download-release-assets.")
+    parser.add_argument("--download-release-assets-dir", help="Optional destination for downloaded GitHub release assets. Defaults under --out.")
+    parser.add_argument("--github-api-url", default="https://api.github.com", help="GitHub API base URL. Defaults to https://api.github.com.")
+    parser.add_argument("--github-token-env", default="GITHUB_TOKEN", help="Environment variable containing an optional GitHub API token.")
     parser.add_argument("--shipguard-eval", action="store_true", help="Include ShipGuard-only product QA boundaries.")
     parser.add_argument("--shareable", action="store_true", help="Redact local absolute paths for shareable output.")
     parser.add_argument("--json", action="store_true", help="Write only JSON output.")

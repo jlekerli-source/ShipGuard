@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added LaunchKey native GitHub release-asset download: `shipguard v4 release-candidate --download-release-assets --github-release-repo <owner/repo>` now downloads release assets from GitHub into a local proof directory, runs `release-consume verify`, records `githubReleaseAssetDownloadProof`, and keeps `downloaded-release-assets` out of recursive report-quality scoring.
 - Added LaunchKey downloaded-asset blocking proof detail: `shipguard v4 release-candidate` now rejects generated archive members such as AppleDouble `._*`, `.DS_Store`, `__MACOSX`, bytecode, and cache paths before install, and result UX now names the exact blocked receipt plus the next package-rebuild command when supplied release/package proof fails.
 - Added LaunchKey upgrade and rollback receipt attachment: `shipguard v4 release-candidate` can now accept `--upgrade-from-tarball`, prove same-prefix upgrade from a previous package to the candidate package, attach rollback cleanup proof from the candidate package, and keep generated upgrade/rollback proof directories out of recursive report-quality scoring.
 - Fixed `ios report-quality` recursive scoring for LaunchKey package-proof outputs. Report-quality now skips generated `fresh-install-prefix`, `fresh-install-work`, and `release-consume` directories under a report output so v4 candidate QA grades the root LaunchKey report instead of the embedded installed ShipGuard package or consumer-proof receipts.

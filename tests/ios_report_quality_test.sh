@@ -1963,6 +1963,7 @@ mkdir -p \
   "$launchkey_skip_dir/upgrade-work/candidate/shipguard-v0.0.0" \
   "$launchkey_skip_dir/rollback-prefix/lib/shipguard/examples/demo-reports/arena" \
   "$launchkey_skip_dir/rollback-work/extracted/shipguard-v0.0.0" \
+  "$launchkey_skip_dir/downloaded-release-assets" \
   "$launchkey_skip_dir/release-consume" \
   "$launchkey_skip_dir/fresh-install-prefix/lib/shipguard/fixtures/promotions" \
   "$launchkey_skip_dir/upgrade-prefix/lib/shipguard/fixtures/promotions" \
@@ -2039,6 +2040,11 @@ cat > "$launchkey_skip_dir/release-consume/consumer-report.json" <<'JSON'
   "consumer": "proof receipt, not a report-quality source report"
 }
 JSON
+cat > "$launchkey_skip_dir/downloaded-release-assets/attestation-badge.json" <<'JSON'
+{
+  "downloaded": "release asset, not a report-quality source report"
+}
+JSON
 cat > "$launchkey_skip_dir/fresh-install-prefix/lib/shipguard/fixtures/promotions/fixture-promotion-manifest.json" <<'JSON'
 {
   "candidateCount": "bad"
@@ -2061,7 +2067,7 @@ JSON
 grep -q '"status": "pass"' "$tmp_dir/launchkey-proof-dir-skip-quality/ios-report-quality.json"
 grep -q '"reportCount": 1' "$tmp_dir/launchkey-proof-dir-skip-quality/ios-report-quality.json"
 grep -q '"path": "<report-input-1>/v4-release-candidate.json"' "$tmp_dir/launchkey-proof-dir-skip-quality/ios-report-quality.json"
-if grep -q 'fresh-install-prefix\|fresh-install-work\|upgrade-prefix\|upgrade-work\|rollback-prefix\|rollback-work\|release-consume\|fixture-promotion-manifest' "$tmp_dir/launchkey-proof-dir-skip-quality/ios-report-quality.json"; then
+if grep -q 'fresh-install-prefix\|fresh-install-work\|upgrade-prefix\|upgrade-work\|rollback-prefix\|rollback-work\|downloaded-release-assets\|release-consume\|fixture-promotion-manifest' "$tmp_dir/launchkey-proof-dir-skip-quality/ios-report-quality.json"; then
   echo "report-quality must skip generated LaunchKey proof directories under report outputs" >&2
   exit 1
 fi

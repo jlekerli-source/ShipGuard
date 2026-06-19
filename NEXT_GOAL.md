@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-19T18:02:21Z
+- Generated: 2026-06-19T19:05:00Z
 - Current toolkit version: 3.131.0
-- Target release: v3.141.0
-- Title: LaunchKey Downloaded Asset Blocking Proof Detail
+- Target release: v3.142.0
+- Title: LaunchKey Native GitHub Release Asset Download
 
 ## Slash Plan
 
 ```text
-/plan v3.141.0 LaunchKey Downloaded Asset Blocking Proof Detail for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Improve ShipGuard after read-only public-release self-QA downloaded v3.131.0 assets and showed release-consume proof could pass while the package tarball still contained AppleDouble generated metadata that blocked installed validation. The old LaunchKey result UX named only generic missing release-candidate readiness instead of the exact failed receipt and repair command.
+/plan v3.142.0 LaunchKey Native GitHub Release Asset Download for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Improve ShipGuard after read-only LaunchKey self-QA showed package fresh-install, same-prefix upgrade, and rollback receipts can pass while published release-asset proof still requires a separate manually downloaded asset directory. Add native GitHub release-asset download and ensure report-quality treats downloaded assets as proof attachments, not source reports.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.141.0 LaunchKey Downloaded Asset Blocking Proof Detail for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Improve ShipGuard after read-only public-release self-QA downloaded v3.131.0 assets and showed release-consume proof could pass while the package tarball still contained AppleDouble generated metadata that blocked installed validation. The old LaunchKey result UX named only generic missing release-candidate readiness instead of the exact failed receipt and repair command, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.142.0 LaunchKey Native GitHub Release Asset Download for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Improve ShipGuard after read-only LaunchKey self-QA showed package fresh-install, same-prefix upgrade, and rollback receipts can pass while published release-asset proof still requires a separate manually downloaded asset directory. Add native GitHub release-asset download and ensure report-quality treats downloaded assets as proof attachments, not source reports, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Improve ShipGuard after read-only public-release self-QA downloaded v3.131.0 assets and showed release-consume proof could pass while the package tarball still contained AppleDouble generated metadata that blocked installed validation. The old LaunchKey result UX named only generic missing release-candidate readiness instead of the exact failed receipt and repair command.
+Improve ShipGuard after read-only LaunchKey self-QA showed package fresh-install, same-prefix upgrade, and rollback receipts can pass while published release-asset proof still requires a separate manually downloaded asset directory. Add native GitHub release-asset download and ensure report-quality treats downloaded assets as proof attachments, not source reports.
 
 ## Completion Receipt
 
-- Completed scope: shipguard v4 release-candidate now blocks generated archive members such as AppleDouble ._*, .DS_Store, __MACOSX, bytecode, and cache paths before installing release package tarballs. When any supplied fresh-install, upgrade, rollback, or downloaded release-asset receipt fails, LaunchKey emits blockingProof with the failing receipt, status, short failure evidence, proof source, next command, and next action, and the Markdown report renders a Blocking Proof section. Package release tests now inspect tarballs with Python tarfile so hidden AppleDouble entries cannot be missed by shell tar listings.
-- Evidence: Read-only public-release self-QA downloaded v3.131.0 assets to /tmp/shipguard-v3141-live and the previous package to /tmp/shipguard-v3141-live-prev. Before the fix, /tmp/shipguard-v3141-rc/v4-release-candidate.json reported publishedReleaseAssetProof=pass but freshInstallPackageProof=blocked and upgradePackageProof=blocked from installed validate stderr scripts/._arena_compare.sh cannot execute, while resultUX still said to complete generic release-candidate checks. After the fix, /tmp/shipguard-v3141-rc-after/v4-release-candidate.json reports blockingProof.receipt=freshInstallPackageProof, failureEvidence='unsafe tarball member is generated metadata/cache: ._shipguard-v3.131.0', and nextCommand='./scripts/package_release.sh && ./tests/package_release_test.sh'. A rebuilt local package pass at /tmp/shipguard-v3141-current-rc reports freshInstallPackageProof=pass, upgradePackageProof=pass, rollbackPackageProof=pass, blockingProof=null, and report-quality pass with zero findings. python3 -m py_compile scripts/v4_release_candidate.py scripts/ios_branding.py passed, ./tests/v4_release_candidate_test.sh passed, ./tests/package_release_test.sh passed, ./tests/ios_branding_test.sh passed, ./tests/next_goal_test.sh passed, ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3141 passed, ./bin/shipguard validate passed, ./tests/cli_smoke_test.sh passed, ./tests/self_audit_test.sh passed, ./tests/ios_report_quality_test.sh passed, codex plugin marketplace add . && codex plugin add ios-shipguard@shipguard && ./bin/shipguard codex status --strict passed, ./bin/shipguard brand --path . --out /tmp/shipguard-brand-v3141 --strict passed, ./tests/tool_value_gauntlet_test.sh passed, and dist/shipguard-v3.131.0.tar.gz was rebuilt with SHA-256 7e98cfc406fd283d3f53142c7d4456d9a915861b635122adebfdfe7f7102f797.
+- Completed scope: shipguard v4 release-candidate now supports native GitHub release-asset download with --download-release-assets, --github-release-repo, --download-release-assets-dir, --github-api-url, and --github-token-env. LaunchKey records githubReleaseAssetDownloadProof, feeds downloaded assets into release-consume, exposes download failures through blockingProof, keeps manual --release-assets as a fallback, and report-quality skips generated downloaded-release-assets proof directories.
+- Evidence: Read-only current-state QA at /tmp/shipguard-v3142-gap2 showed freshInstallPackageProof=pass, upgradePackageProof=pass, rollbackPackageProof=pass, publishedReleaseAssetProof=not-provided, and resultUX still required a downloaded-assets directory. Focused regression ./tests/v4_release_candidate_test.sh passed after adding deterministic file:// GitHub API fixture coverage. Live public-release QA at /tmp/shipguard-v3142-native-live-after ran ./bin/shipguard v4 release-candidate --download-release-assets --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 with local package, upgrade, and rollback proof; it reported freshInstallPackageProof=pass, upgradePackageProof=pass, rollbackPackageProof=pass, githubReleaseAssetDownloadProof=pass, publishedReleaseAssetProof=pass, 10 downloaded assets, artifact SHA-256 8a6fc4d34977e0ad8df09033f0f6bcdce5ffc94818843b3cafa1e74736ae5b14, and ios report-quality pass with zero findings after generated downloaded-release-assets directories were skipped. python3 -m py_compile scripts/v4_release_candidate.py scripts/ios_report_quality.py passed and ./tests/ios_report_quality_test.sh passed.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.142.0 LaunchKey Native GitHub Release Asset Download for jlekerli-source/ShipGuard:
+/plan v3.143.0 Stable V4 External Adoption Evidence Gate for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Improve ShipGuard after read-only public-release self-QA downloaded v3.131.0 ass
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.142.0 LaunchKey Native GitHub Release Asset Download for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.143.0 Stable V4 External Adoption Evidence Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.142.0 --title "LaunchKey Native GitHub Release Asset Download" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.143.0 --title "Stable V4 External Adoption Evidence Gate" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.141.0.
+1. Open or update the tracking issue for v3.142.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.141.0` and upload `dist/shipguard-v3.141.0.tar.gz`.
+6. Create release `v3.142.0` and upload `dist/shipguard-v3.142.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

@@ -39,6 +39,7 @@ grep -q 'Fresh Install Package Proof' "$tmp_dir/v4-release-candidate/v4-release-
 grep -q 'Upgrade Package Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Rollback Package Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Release Proof Consumption' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
+grep -q 'GitHub Release Asset Download' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Published Release Asset Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'External Adoption Packet' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Plugin Refresh Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
@@ -57,6 +58,7 @@ grep -q '"upgradePackageProof":' "$tmp_dir/v4-release-candidate/v4-release-candi
 grep -q '"uninstallProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"rollbackPackageProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"releaseProofConsumption":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
+grep -q '"githubReleaseAssetDownloadProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"publishedReleaseAssetProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"externalAdoptionPacket":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"pluginRefreshProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
@@ -87,6 +89,7 @@ assert report["releaseReadiness"]["stableV4Release"] is False
 assert report["releaseReadiness"]["freshInstallPackageProof"] == "not-provided"
 assert report["releaseReadiness"]["upgradePackageProof"] == "not-provided"
 assert report["releaseReadiness"]["rollbackPackageProof"] == "not-provided"
+assert report["releaseReadiness"]["githubReleaseAssetDownloadProof"] == "not-requested"
 assert report["releaseReadiness"]["publishedReleaseAssetProof"] == "not-provided"
 for key in [
     "freshInstall",
@@ -115,6 +118,9 @@ assert report["publishedReleaseAssetProof"]["status"] == "not-provided"
 assert report["publishedReleaseAssetProof"]["provided"] is False
 assert report["publishedReleaseAssetProof"]["requiredForStableV4"] is True
 assert "--release-assets <downloaded-assets-dir>" in report["publishedReleaseAssetProof"]["nextCommand"]
+assert report["githubReleaseAssetDownloadProof"]["status"] == "not-requested"
+assert report["githubReleaseAssetDownloadProof"]["requested"] is False
+assert "--download-release-assets" in report["githubReleaseAssetDownloadProof"]["nextCommand"]
 assert "codex status --strict" in " ".join(report["pluginRefreshProof"]["commands"])
 assert "external developer" in report["externalAdoptionPacket"]["supportBoundary"]
 assert any("stable v4 product release" in claim.lower() for claim in report["blockedClaims"])
@@ -237,6 +243,8 @@ assert rollback["packageRoot"] == "<rollback-package-root>"
 assert rollback["installedRoot"] == "<rollback-installed-root>"
 assert proof["status"] == "pass"
 assert proof["provided"] is True
+assert proof["downloadSource"] == "supplied-directory"
+assert proof["downloadProofStatus"] == "not-requested"
 assert proof["consumerReportStatus"] == "pass"
 assert proof["replayStatus"] == "pass"
 assert proof["attestationStatus"] == "pass"
@@ -249,6 +257,105 @@ questions = report["reportQualityQuestions"]
 assert not any("fresh user install, upgrade, uninstall" in question for question in questions)
 assert questions[0] == "Does the adoption packet tell an external developer the first command, proof bundle, support boundary, and non-claims?"
 PY
+
+api_root="$tmp_dir/github-api"
+release_endpoint_file="$api_root/repos/jlekerli-source/ShipGuard/releases/tags/v$version"
+mkdir -p "$(dirname "$release_endpoint_file")"
+python3 - "$release_endpoint_file" "$version" "$tmp_dir/downloaded" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+target = Path(sys.argv[1])
+version = sys.argv[2]
+downloaded = Path(sys.argv[3])
+asset_names = [
+    f"shipguard-v{version}.tar.gz",
+    "release-manifest.json",
+    "release-index.json",
+    "proof-ledger.md",
+    "replay-report.json",
+    "attestation.json",
+    "attestation-badge.json",
+]
+target.write_text(
+    json.dumps(
+        {
+            "tag_name": f"v{version}",
+            "html_url": f"https://github.com/jlekerli-source/ShipGuard/releases/tag/v{version}",
+            "assets": [
+                {
+                    "name": name,
+                    "browser_download_url": (downloaded / name).as_uri(),
+                }
+                for name in asset_names
+            ],
+        }
+    ),
+    encoding="utf-8",
+)
+PY
+
+SHIPGUARD_GENERATED_AT="2026-06-19T00:00:00Z" \
+  ./bin/shipguard v4 release-candidate \
+    --path . \
+    --package-tarball "$tmp_dir/proof-bundle/shipguard-v$version.tar.gz" \
+    --upgrade-from-tarball "$tmp_dir/shipguard-v$old_version.tar.gz" \
+    --fresh-install-prefix "$tmp_dir/native-fresh-prefix" \
+    --fresh-install-work-dir "$tmp_dir/native-fresh-work" \
+    --upgrade-prefix "$tmp_dir/native-upgrade-prefix" \
+    --upgrade-work-dir "$tmp_dir/native-upgrade-work" \
+    --rollback-prefix "$tmp_dir/native-rollback-prefix" \
+    --rollback-work-dir "$tmp_dir/native-rollback-work" \
+    --out "$tmp_dir/native-assets" \
+    --download-release-assets \
+    --github-release-repo jlekerli-source/ShipGuard \
+    --github-api-url "file://$api_root" \
+    --release-version "$version" \
+    --shipguard-eval \
+    --shareable
+
+test -f "$tmp_dir/native-assets/v4-release-candidate.json"
+test -f "$tmp_dir/native-assets/v4-release-candidate.md"
+test -f "$tmp_dir/native-assets/downloaded-release-assets/release-manifest.json"
+test -f "$tmp_dir/native-assets/release-consume/consumer-report.json"
+
+python3 - "$tmp_dir/native-assets/v4-release-candidate.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+download = report["githubReleaseAssetDownloadProof"]
+proof = report["publishedReleaseAssetProof"]
+assert report["status"] == "pass"
+assert report["releaseReadiness"]["githubReleaseAssetDownloadProof"] == "pass"
+assert report["releaseReadiness"]["publishedReleaseAssetProof"] == "pass"
+assert download["status"] == "pass"
+assert download["requested"] is True
+assert download["repo"] == "jlekerli-source/ShipGuard"
+assert download["downloadDir"] == "<downloaded-release-assets>"
+assert download["apiUrl"] == "<github-api-url>"
+assert download["releaseEndpoint"] == "<github-release-endpoint>"
+assert download["assetCount"] == 7
+assert all(asset["path"].startswith("<downloaded-release-assets>/") for asset in download["downloadedAssets"])
+assert all(asset["source"].startswith("<github-asset-url>/") for asset in download["downloadedAssets"])
+assert proof["status"] == "pass"
+assert proof["downloadSource"] == "github-release-assets"
+assert proof["downloadProofStatus"] == "pass"
+assert proof["assetsDir"] == "<downloaded-release-assets>"
+assert proof["consumerReportStatus"] == "pass"
+assert proof["replayStatus"] == "pass"
+assert proof["attestationStatus"] == "pass"
+PY
+
+if grep -R -F -q "$api_root" "$tmp_dir/native-assets"; then
+  echo "shareable v4 release-candidate output must redact local GitHub API fixture paths" >&2
+  exit 1
+fi
+if grep -R -F -q "$tmp_dir/native-assets/downloaded-release-assets" "$tmp_dir/native-assets/v4-release-candidate.json" "$tmp_dir/native-assets/v4-release-candidate.md"; then
+  echo "shareable v4 release-candidate output must redact native download directory paths" >&2
+  exit 1
+fi
 
 if grep -R -F -q "$tmp_dir/downloaded" "$tmp_dir/with-assets"; then
   echo "shareable v4 release-candidate output must redact release asset paths" >&2
@@ -361,5 +468,20 @@ fi
 test -f "$tmp_dir/missing-assets/v4-release-candidate.json"
 grep -q '"status": "review"' "$tmp_dir/missing-assets/v4-release-candidate.json"
 grep -q '"publishedReleaseAssetProof": "blocked"' "$tmp_dir/missing-assets/v4-release-candidate.json"
+
+if ./bin/shipguard v4 release-candidate \
+  --path . \
+  --out "$tmp_dir/native-missing-repo" \
+  --download-release-assets \
+  --release-version "$version" \
+  --json >/dev/null 2>&1; then
+  echo "expected native GitHub asset download without repo to fail release-candidate proof" >&2
+  exit 1
+fi
+test -f "$tmp_dir/native-missing-repo/v4-release-candidate.json"
+grep -q '"status": "review"' "$tmp_dir/native-missing-repo/v4-release-candidate.json"
+grep -q '"githubReleaseAssetDownloadProof": "blocked"' "$tmp_dir/native-missing-repo/v4-release-candidate.json"
+grep -q '"receipt": "githubReleaseAssetDownloadProof"' "$tmp_dir/native-missing-repo/v4-release-candidate.json"
+grep -q 'missing --github-release-repo' "$tmp_dir/native-missing-repo/v4-release-candidate.json"
 
 echo "v4 release-candidate test passed"

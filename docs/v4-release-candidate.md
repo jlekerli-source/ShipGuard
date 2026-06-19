@@ -14,7 +14,7 @@ It does not publish v4, change repository rules, edit private target apps, or cl
   --shareable
 ```
 
-To attach real downloaded release assets to the same readiness report:
+To let LaunchKey download GitHub release assets and attach consumer proof to the same readiness report:
 
 ```bash
 ./bin/shipguard v4 release-candidate \
@@ -25,7 +25,8 @@ To attach real downloaded release assets to the same readiness report:
   --fresh-install-prefix /tmp/shipguard-fresh-install \
   --upgrade-prefix /tmp/shipguard-upgrade-install \
   --rollback-prefix /tmp/shipguard-rollback-install \
-  --release-assets <downloaded-assets-dir> \
+  --download-release-assets \
+  --github-release-repo <owner/repo> \
   --release-version <version> \
   --release-consume-out /tmp/shipguard-v4-release-consume \
   --shipguard-eval \
@@ -39,7 +40,8 @@ Outputs:
 - `fresh-install-prefix/bin/shipguard` when `--package-tarball` is supplied and `--fresh-install-prefix` is omitted
 - `upgrade-prefix/bin/shipguard` when `--package-tarball` and `--upgrade-from-tarball` are supplied and `--upgrade-prefix` is omitted
 - `rollback-prefix/` rollback cleanup evidence when `--package-tarball` is supplied and `--rollback-prefix` is omitted
-- `release-consume/consumer-report.json` when `--release-assets` is supplied and `--release-consume-out` is omitted
+- `downloaded-release-assets/` when `--download-release-assets` is supplied and `--download-release-assets-dir` is omitted
+- `release-consume/consumer-report.json` when `--release-assets` or `--download-release-assets` is supplied and `--release-consume-out` is omitted
 
 ## Proof Contract
 
@@ -48,7 +50,7 @@ The command checks these gates:
 - Fresh install proof: a release package can install to a clean prefix and run validation from that prefix.
 - Upgrade proof: an existing install can be replaced by the candidate package and still report the intended version.
 - Uninstall proof: temporary install state can be removed cleanly without hidden required state.
-- Release proof consumption: downloaded release assets can pass `shipguard release-consume verify`.
+- Release proof consumption: native GitHub-downloaded or manually supplied release assets can pass `shipguard release-consume verify`.
 - External adoption packet: an outside developer can see the first command, proof bundle, support boundary, and non-claims.
 - Final schema docs: v4 schema-freeze docs remain linked and visible.
 - Plugin refresh proof: local Codex plugin refresh and `shipguard codex status --strict` remain part of the release lane.
@@ -75,7 +77,7 @@ When a supplied package, upgrade, rollback, or downloaded release-asset proof fa
 - `blockingProof.nextCommand`: the next command to repair or reproduce the failure.
 - `resultUX.blockingProof`: the same detail in the top result block for agent and UI consumers.
 
-When `--fresh-install-prefix`, `--fresh-install-work-dir`, `--upgrade-prefix`, `--upgrade-work-dir`, `--rollback-prefix`, `--rollback-work-dir`, or `--release-consume-out` are omitted, LaunchKey writes generated proof directories under the candidate output. Those directories are evidence attachments, not report-quality source reports. `shipguard ios report-quality --reports <candidate-out>` skips `fresh-install-prefix`, `fresh-install-work`, `upgrade-prefix`, `upgrade-work`, `rollback-prefix`, `rollback-work`, and `release-consume` so it grades the root `v4-release-candidate.json` instead of recursively scoring installed packages or consumer-proof receipts.
+When `--fresh-install-prefix`, `--fresh-install-work-dir`, `--upgrade-prefix`, `--upgrade-work-dir`, `--rollback-prefix`, `--rollback-work-dir`, `--download-release-assets-dir`, or `--release-consume-out` are omitted, LaunchKey writes generated proof directories under the candidate output. Those directories are evidence attachments, not report-quality source reports. `shipguard ios report-quality --reports <candidate-out>` skips `fresh-install-prefix`, `fresh-install-work`, `upgrade-prefix`, `upgrade-work`, `rollback-prefix`, `rollback-work`, `downloaded-release-assets`, and `release-consume` so it grades the root `v4-release-candidate.json` instead of recursively scoring installed packages, downloaded assets, or consumer-proof receipts.
 
 Without `--upgrade-from-tarball`, the command can still pass release-candidate readiness, but `upgradePackageProof.status` is `not-provided`. Stable-v4 proof needs a previous release tarball plus the candidate tarball so LaunchKey can prove the same prefix upgrades from the previous package to the candidate package.
 
@@ -105,7 +107,22 @@ test ! -e <rollback-prefix>/lib/shipguard
 
 If `--package-tarball` is omitted, `rollbackPackageProof.status` is `not-provided`.
 
-Without `--release-assets`, the command can still pass release-candidate readiness, but `publishedReleaseAssetProof.status` is `not-provided`. That is intentional: candidate readiness is not the same as stable-v4 proof. Stable-v4 release proof needs downloaded release assets to pass consumer-side verification.
+Without `--release-assets` or `--download-release-assets`, the command can still pass release-candidate readiness, but `publishedReleaseAssetProof.status` is `not-provided`. That is intentional: candidate readiness is not the same as stable-v4 proof. Stable-v4 release proof needs downloaded release assets to pass consumer-side verification.
+
+When `--download-release-assets` is supplied, LaunchKey uses the GitHub release API, downloads every asset for `--release-version` from `--github-release-repo`, records `githubReleaseAssetDownloadProof`, and then runs consumer-side verification against the downloaded directory:
+
+```bash
+./bin/shipguard v4 release-candidate \
+  --path . \
+  --out /tmp/shipguard-v4-release-candidate \
+  --download-release-assets \
+  --github-release-repo <owner/repo> \
+  --release-version <version> \
+  --shipguard-eval \
+  --shareable
+```
+
+Use `--download-release-assets-dir <dir>` to choose the destination, `--github-token-env <env>` to use a token for private or rate-limited release access, and `--github-api-url <url>` for GitHub Enterprise or deterministic fixture tests. If the download fails, `githubReleaseAssetDownloadProof.status` is `blocked` and `blockingProof.receipt` points at `githubReleaseAssetDownloadProof`.
 
 When `--release-assets` is supplied, LaunchKey runs:
 
@@ -151,6 +168,7 @@ For release assets, verify the consumer path too:
 ./bin/shipguard release-proof build --out /tmp/shipguard-release-proof --release-url <url> --version <version> --tag <tag> --commit <sha> --ci-run-url <url>
 ./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out /tmp/shipguard-release-consume --version <version>
 ./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --release-assets <downloaded-assets-dir> --release-version <version> --shipguard-eval --shareable
+./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --download-release-assets --github-release-repo <owner/repo> --release-version <version> --shipguard-eval --shareable
 ```
 
 ## Blocked Claims

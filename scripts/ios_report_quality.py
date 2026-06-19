@@ -214,6 +214,7 @@ SOURCE_REPORT_SKIP_DIR_NAMES = {
     "upgrade-work",
     "rollback-prefix",
     "rollback-work",
+    "downloaded-release-assets",
     "release-consume",
     "stage-receipts",
 }
