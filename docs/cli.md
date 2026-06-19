@@ -130,9 +130,17 @@ Use `v4 preview` to inspect the v4 stabilization contract, `v4 schema-freeze` to
   --out /tmp/shipguard-v4-release-candidate \
   --shipguard-eval \
   --shareable
+
+./bin/shipguard v4 release-candidate \
+  --path . \
+  --out /tmp/shipguard-v4-release-candidate \
+  --release-assets <downloaded-assets-dir> \
+  --release-version <version> \
+  --shipguard-eval \
+  --shareable
 ```
 
-`v4 schema-freeze` writes `v4-schema-freeze.json` and `v4-schema-freeze.md` with the schema registry, compatibility policy, compatibility fixtures, migration checks, changelog policy, deprecation policy, release-readiness commands, blocked claims, scope boundary, report-quality questions, and result UX. `v4 release-candidate` writes `v4-release-candidate.json` and `v4-release-candidate.md` with readiness proof, install proof, upgrade proof, uninstall proof, release proof consumption, external adoption packet, plugin refresh proof, blocked claims, and stable-v4 non-claims. See `v4-preview.md`, `v4-schema-freeze.md`, and `v4-release-candidate.md`.
+`v4 schema-freeze` writes `v4-schema-freeze.json` and `v4-schema-freeze.md` with the schema registry, compatibility policy, compatibility fixtures, migration checks, changelog policy, deprecation policy, release-readiness commands, blocked claims, scope boundary, report-quality questions, and result UX. `v4 release-candidate` writes `v4-release-candidate.json` and `v4-release-candidate.md` with readiness proof, install proof, upgrade proof, uninstall proof, release proof consumption, optional published release asset proof, external adoption packet, plugin refresh proof, blocked claims, and stable-v4 non-claims. Without `--release-assets`, published release proof is marked `not-provided`; with `--release-assets`, LaunchKey runs `release-consume verify` and attaches the consumer receipt. See `v4-preview.md`, `v4-schema-freeze.md`, and `v4-release-candidate.md`.
 
 ## Agent Trace
 

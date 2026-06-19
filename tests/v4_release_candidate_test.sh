@@ -36,6 +36,7 @@ grep -q '## Result' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Readiness Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Fresh Install' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Release Proof Consumption' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
+grep -q 'Published Release Asset Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'External Adoption Packet' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Plugin Refresh Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Blocked Claims' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
@@ -50,6 +51,7 @@ grep -q '"installProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.js
 grep -q '"upgradeProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"uninstallProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"releaseProofConsumption":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
+grep -q '"publishedReleaseAssetProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"externalAdoptionPacket":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"pluginRefreshProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"releaseClaim": "candidate-ready"' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
@@ -76,6 +78,7 @@ assert report["status"] == "pass"
 assert report["productStage"] == "v4-release-candidate-readiness"
 assert report["releaseReadiness"]["releaseClaim"] == "candidate-ready"
 assert report["releaseReadiness"]["stableV4Release"] is False
+assert report["releaseReadiness"]["publishedReleaseAssetProof"] == "not-provided"
 for key in [
     "freshInstall",
     "upgrade",
@@ -87,6 +90,11 @@ for key in [
 ]:
     assert report["readinessProof"][key]["status"] == "pass"
 assert "release-consume verify" in " ".join(report["releaseProofConsumption"]["commands"])
+assert report["publishedReleaseAssetProof"]["status"] == "not-provided"
+assert report["publishedReleaseAssetProof"]["provided"] is False
+assert report["publishedReleaseAssetProof"]["requiredForStableV4"] is True
+assert "--release-assets <downloaded-assets-dir>" in report["publishedReleaseAssetProof"]["nextCommand"]
+assert "--release-assets <downloaded-assets-dir>" in report["resultUX"]["nextCommand"]
 assert "codex status --strict" in " ".join(report["pluginRefreshProof"]["commands"])
 assert "external developer" in report["externalAdoptionPacket"]["supportBoundary"]
 assert any("stable v4 product release" in claim.lower() for claim in report["blockedClaims"])
@@ -96,5 +104,82 @@ assert report["scopeBoundary"]["privateAppsUsed"] is False
 assert report["scopeBoundary"]["doesNotPublishRelease"] is True
 assert "product release" in report["resultUX"]["priorityAction"].lower()
 PY
+
+version="$(sed -n '1p' VERSION)"
+SHIPGUARD_GENERATED_AT="2026-06-19T00:00:00Z" \
+  ./bin/shipguard release-proof build \
+    --out "$tmp_dir/proof-bundle" \
+    --version "$version" \
+    --tag "v$version" \
+    --commit 0123456789abcdef \
+    --ci-run-url "https://github.com/jlekerli-source/ShipGuard/actions/runs/123" \
+    --release-url "https://github.com/jlekerli-source/ShipGuard/releases/tag/v$version" \
+    --issue-url "https://github.com/jlekerli-source/ShipGuard/issues/99" >/dev/null
+
+mkdir -p "$tmp_dir/downloaded"
+cp "$tmp_dir/proof-bundle/shipguard-v$version.tar.gz" "$tmp_dir/downloaded/"
+cp "$tmp_dir/proof-bundle/proof/release-manifest.json" "$tmp_dir/downloaded/"
+cp "$tmp_dir/proof-bundle/index/release-index.json" "$tmp_dir/downloaded/"
+cp "$tmp_dir/proof-bundle/proof/proof-ledger.md" "$tmp_dir/downloaded/"
+cp "$tmp_dir/proof-bundle/replay/replay-report.json" "$tmp_dir/downloaded/"
+cp "$tmp_dir/proof-bundle/attestation/attestation.json" "$tmp_dir/downloaded/"
+cp "$tmp_dir/proof-bundle/attestation/attestation-badge.json" "$tmp_dir/downloaded/"
+
+SHIPGUARD_GENERATED_AT="2026-06-19T00:00:00Z" \
+  ./bin/shipguard v4 release-candidate \
+    --path . \
+    --out "$tmp_dir/with-assets" \
+    --release-assets "$tmp_dir/downloaded" \
+    --release-version "$version" \
+    --release-consume-out "$tmp_dir/with-assets-consume" \
+    --shipguard-eval \
+    --shareable
+
+test -f "$tmp_dir/with-assets/v4-release-candidate.json"
+test -f "$tmp_dir/with-assets/v4-release-candidate.md"
+test -f "$tmp_dir/with-assets-consume/consumer-report.json"
+test -f "$tmp_dir/with-assets-consume/asset-digests.json"
+
+python3 - "$tmp_dir/with-assets/v4-release-candidate.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+proof = report["publishedReleaseAssetProof"]
+assert report["status"] == "pass"
+assert report["releaseReadiness"]["publishedReleaseAssetProof"] == "pass"
+assert proof["status"] == "pass"
+assert proof["provided"] is True
+assert proof["consumerReportStatus"] == "pass"
+assert proof["replayStatus"] == "pass"
+assert proof["attestationStatus"] == "pass"
+assert proof["consumerReportPath"] == "<release-consume-out>/consumer-report.json"
+assert proof["assetDigestMatrixPath"] == "<release-consume-out>/asset-digests.json"
+assert proof["assetsDir"] == "<release-assets>"
+assert proof["consumeOut"] == "<release-consume-out>"
+assert report["resultUX"]["nextCommand"] == "./tests/v4_release_candidate_test.sh"
+PY
+
+if grep -R -F -q "$tmp_dir/downloaded" "$tmp_dir/with-assets"; then
+  echo "shareable v4 release-candidate output must redact release asset paths" >&2
+  exit 1
+fi
+if grep -R -F -q "$tmp_dir/with-assets-consume" "$tmp_dir/with-assets"; then
+  echo "shareable v4 release-candidate output must redact release-consume paths" >&2
+  exit 1
+fi
+
+if ./bin/shipguard v4 release-candidate \
+  --path . \
+  --out "$tmp_dir/missing-assets" \
+  --release-assets "$tmp_dir/does-not-exist" \
+  --release-version "$version" \
+  --json >/dev/null 2>&1; then
+  echo "expected missing release assets to fail release-candidate proof" >&2
+  exit 1
+fi
+test -f "$tmp_dir/missing-assets/v4-release-candidate.json"
+grep -q '"status": "review"' "$tmp_dir/missing-assets/v4-release-candidate.json"
+grep -q '"publishedReleaseAssetProof": "blocked"' "$tmp_dir/missing-assets/v4-release-candidate.json"
 
 echo "v4 release-candidate test passed"

@@ -14,10 +14,24 @@ It does not publish v4, change repository rules, edit private target apps, or cl
   --shareable
 ```
 
+To attach real downloaded release assets to the same readiness report:
+
+```bash
+./bin/shipguard v4 release-candidate \
+  --path . \
+  --out /tmp/shipguard-v4-release-candidate \
+  --release-assets <downloaded-assets-dir> \
+  --release-version <version> \
+  --release-consume-out /tmp/shipguard-v4-release-consume \
+  --shipguard-eval \
+  --shareable
+```
+
 Outputs:
 
 - `v4-release-candidate.json`
 - `v4-release-candidate.md`
+- `release-consume/consumer-report.json` when `--release-assets` is supplied and `--release-consume-out` is omitted
 
 ## Proof Contract
 
@@ -30,6 +44,19 @@ The command checks these gates:
 - External adoption packet: an outside developer can see the first command, proof bundle, support boundary, and non-claims.
 - Final schema docs: v4 schema-freeze docs remain linked and visible.
 - Plugin refresh proof: local Codex plugin refresh and `shipguard codex status --strict` remain part of the release lane.
+
+Without `--release-assets`, the command can still pass release-candidate readiness, but `publishedReleaseAssetProof.status` is `not-provided`. That is intentional: candidate readiness is not the same as stable-v4 proof. Stable-v4 release proof needs downloaded release assets to pass consumer-side verification.
+
+When `--release-assets` is supplied, LaunchKey runs:
+
+```bash
+./bin/shipguard release-consume verify \
+  --dir <downloaded-assets-dir> \
+  --out <consume-dir> \
+  --version <version>
+```
+
+The report then records `publishedReleaseAssetProof`, including consumer report status, replay status, attestation status, digest matrix path, and artifact SHA-256 when available. If consumer verification fails, the release-candidate report returns review instead of treating the supplied assets as stable proof.
 
 ## External Adoption Packet
 
@@ -63,6 +90,7 @@ For release assets, verify the consumer path too:
 ```bash
 ./bin/shipguard release-proof build --out /tmp/shipguard-release-proof --release-url <url> --version <version> --tag <tag> --commit <sha> --ci-run-url <url>
 ./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out /tmp/shipguard-release-consume --version <version>
+./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --release-assets <downloaded-assets-dir> --release-version <version> --shipguard-eval --shareable
 ```
 
 ## Blocked Claims

@@ -42,7 +42,7 @@ Usage:
   shipguard inspect --path <shipguard-repo> --out <dir> [--value-gauntlet <file-or-dir>] [--full-audit <file-or-dir>] [--release-assets <dir>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard v4 preview --path <shipguard-repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard v4 schema-freeze --path <shipguard-repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
-  shipguard v4 release-candidate --path <shipguard-repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard v4 release-candidate --path <shipguard-repo> --out <dir> [--release-assets <downloaded-assets-dir>] [--release-version <version>] [--release-consume-out <dir>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard pilot-bench [--trace <trace.json-or-dir> ...] [--out <dir>] [--shareable] [--benchmark-v2] [--min-lift <points>] [--json|--markdown]
   shipguard agent trace --trace <trace.json-or-jsonl-or-dir> --out <dir> [--adapter auto|codex|claude|gemini|cursor|mcp|generic] [--task <shipguard-task.json-or-dir>] [--diff <patch.diff>] [--evidence <file> ...] [--xcodebuildmcp-evidence <file-or-dir> ...] [--expo-eas-evidence <file-or-dir> ...] [--verdict <shipguard-verdict.json-or-dir>] [--run-verify] [--budget-workers <n>] [--max-workers <n>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard web audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -38,14 +39,15 @@ def contains_all(text: str, phrases: list[str]) -> bool:
     return all(phrase.lower() in lower for phrase in phrases)
 
 
-def scrub_value(value: Any, root: Path, home: Path) -> Any:
+def scrub_value(value: Any, replacements: dict[str, str]) -> Any:
     if isinstance(value, dict):
-        return {key: scrub_value(child, root, home) for key, child in value.items()}
+        return {key: scrub_value(child, replacements) for key, child in value.items()}
     if isinstance(value, list):
-        return [scrub_value(child, root, home) for child in value]
+        return [scrub_value(child, replacements) for child in value]
     if isinstance(value, str):
-        result = value.replace(root.as_posix(), "<repo>")
-        result = result.replace(home.as_posix(), "<home>")
+        result = value
+        for source, replacement in sorted(replacements.items(), key=lambda item: len(item[0]), reverse=True):
+            result = result.replace(source, replacement)
         return result
     return value
 
@@ -71,6 +73,126 @@ def add_check(
     )
 
 
+def load_json(path: Path) -> dict[str, Any]:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def short_output(value: str, limit: int = 1200) -> str:
+    value = value.strip()
+    if len(value) <= limit:
+        return value
+    return value[: limit - 3].rstrip() + "..."
+
+
+def build_published_release_asset_proof(args: argparse.Namespace, root: Path, version: str) -> dict[str, Any]:
+    command_template = (
+        "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate "
+        "--release-assets <downloaded-assets-dir> --release-version <version> --shipguard-eval --shareable"
+    )
+    consume_command_template = (
+        "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> "
+        "--out <consume-dir> --version <version>"
+    )
+    if not args.release_assets:
+        return {
+            "status": "not-provided",
+            "provided": False,
+            "requiredForStableV4": True,
+            "summary": "No downloaded release assets were supplied; stable v4 proof still needs consumer-side release asset verification.",
+            "nextCommand": command_template,
+            "consumeCommand": consume_command_template,
+        }
+
+    assets_dir = Path(args.release_assets).expanduser().resolve()
+    consume_out = (
+        Path(args.release_consume_out).expanduser().resolve()
+        if args.release_consume_out
+        else Path(args.out).expanduser().resolve() / "release-consume"
+    )
+    release_version = args.release_version or version
+    command = [
+        str(root / "bin" / "shipguard"),
+        "release-consume",
+        "verify",
+        "--dir",
+        str(assets_dir),
+        "--out",
+        str(consume_out),
+        "--version",
+        release_version,
+    ]
+
+    proof: dict[str, Any] = {
+        "status": "blocked",
+        "provided": True,
+        "requiredForStableV4": True,
+        "assetsDir": assets_dir.as_posix(),
+        "consumeOut": consume_out.as_posix(),
+        "version": release_version,
+        "command": " ".join(command),
+        "commandTemplate": consume_command_template,
+        "nextCommand": "./tests/v4_release_candidate_test.sh",
+        "consumerReport": "consumer-report.json",
+        "assetDigestMatrix": "asset-digests.json",
+    }
+    if not assets_dir.exists():
+        proof["summary"] = "Downloaded release assets directory was not found."
+        proof["error"] = f"release assets directory not found: {assets_dir}"
+        return proof
+    if not (root / "bin" / "shipguard").exists():
+        proof["summary"] = "ShipGuard CLI was not found in the inspected checkout."
+        proof["error"] = "bin/shipguard not found"
+        return proof
+
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=root,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+    except subprocess.TimeoutExpired as exc:
+        proof["summary"] = "Consumer-side release asset verification timed out."
+        proof["exitCode"] = "timeout"
+        proof["stdout"] = short_output(exc.stdout or "")
+        proof["stderr"] = short_output(exc.stderr or "")
+        return proof
+
+    consumer_report = load_json(consume_out / "consumer-report.json")
+    digest_report = load_json(consume_out / "asset-digests.json")
+    consumer_status = consumer_report.get("status")
+    consumer_summary = consumer_report.get("summary") if isinstance(consumer_report.get("summary"), dict) else {}
+    published_summary = consumer_report.get("published") if isinstance(consumer_report.get("published"), dict) else {}
+    proof.update(
+        {
+            "exitCode": completed.returncode,
+            "stdout": short_output(completed.stdout),
+            "stderr": short_output(completed.stderr),
+            "consumerReportStatus": consumer_status or "missing",
+            "consumerReportPath": (consume_out / "consumer-report.json").as_posix(),
+            "assetDigestMatrixPath": (consume_out / "asset-digests.json").as_posix(),
+            "artifactSha256": consumer_report.get("artifact_sha256") or consumer_report.get("artifact", {}).get("sha256"),
+            "replayStatus": consumer_report.get("replay_status") or consumer_summary.get("replay_status"),
+            "attestationStatus": consumer_report.get("attestation_status") or consumer_summary.get("attestation_status"),
+            "publishedReplayCrosscheck": consumer_report.get("published_assets", {}).get("replay_report") or published_summary.get("replay_report"),
+            "publishedAttestationCrosscheck": consumer_report.get("published_assets", {}).get("attestation") or published_summary.get("attestation"),
+            "publishedBadgeCrosscheck": consumer_report.get("published_assets", {}).get("attestation_badge") or published_summary.get("attestation_badge"),
+            "assetCount": len(digest_report.get("assets", [])) if isinstance(digest_report.get("assets"), list) else None,
+        }
+    )
+    if completed.returncode == 0 and consumer_status == "pass":
+        proof["status"] = "pass"
+        proof["summary"] = "Supplied downloaded release assets passed consumer-side verification."
+    else:
+        proof["summary"] = "Supplied downloaded release assets did not pass consumer-side verification."
+    return proof
+
+
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
     root = Path(args.path).expanduser().resolve()
     home = Path.home().resolve()
@@ -91,6 +213,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     plugin_text = read_text(root / "plugins" / "ios-shipguard" / "skills" / "ios-shipguard" / "SKILL.md")
     changelog_text = read_text(root / "CHANGELOG.md")
+
+    published_release_asset_proof = build_published_release_asset_proof(args, root, version)
 
     checks: list[dict[str, Any]] = []
     add_check(
@@ -219,6 +343,15 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ["CHANGELOG.md"],
         "Record the release-candidate readiness gate in the changelog.",
     )
+    if published_release_asset_proof["provided"]:
+        add_check(
+            checks,
+            "published-release-assets-consumed",
+            "Supplied release assets pass consumer proof",
+            published_release_asset_proof["status"] == "pass",
+            ["release-consume verify", "consumer-report.json", "asset-digests.json"],
+            "Run consumer-side release proof against downloaded assets before using release-candidate readiness as stable-v4 evidence.",
+        )
 
     required_checks = [check for check in checks if check["required"]]
     failed_required = [check for check in required_checks if check["status"] != "pass"]
@@ -279,6 +412,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "productStage": "v4-release-candidate-readiness",
         "releaseClaim": "candidate-ready" if status == "pass" else "not-ready",
         "stableV4Release": False,
+        "publishedReleaseAssetProof": published_release_asset_proof["status"],
+        "publishedReleaseAssetsRequiredForStableV4": True,
         "requiredProofCommands": [
             "git diff --check",
             "./tests/v4_release_candidate_test.sh",
@@ -325,21 +460,34 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "Does the adoption packet tell an external developer the first command, proof bundle, support boundary, and non-claims?",
         "What stable v4 product release proof remains after release-candidate readiness passes?",
     ]
-    priority_action = (
-        "Stabilize the v4 product release with external adoption evidence, final security review, package proof, rollback proof, and release proof consumption."
-        if status == "pass"
-        else "Complete the missing release-candidate readiness checks before calling v4 candidate-ready."
-    )
+    if status == "pass" and published_release_asset_proof["status"] == "not-provided":
+        priority_action = (
+            "Attach downloaded release assets to the v4 product release candidate before any stable v4 claim; "
+            "external adoption evidence, final security review, package proof, rollback proof, and release proof consumption still remain stabilization gates."
+        )
+        next_command = published_release_asset_proof["nextCommand"]
+        summary = (
+            "ShipGuard has release-candidate readiness proof, but no downloaded release assets were supplied for consumer-side stable-v4 proof."
+        )
+        proof_source = "v4 release-candidate checks plus documented release-consume boundary; published asset proof not supplied"
+    elif status == "pass":
+        priority_action = (
+            "Use the passing release-asset consumer receipt as one v4 stabilization input, then finish external adoption evidence, final security review, package proof, and rollback proof."
+        )
+        next_command = "./tests/v4_release_candidate_test.sh"
+        summary = "ShipGuard has release-candidate readiness proof and supplied release assets passed consumer-side verification."
+        proof_source = "v4 release-candidate checks plus release-consume consumer-report and asset digest matrix"
+    else:
+        priority_action = "Complete the missing release-candidate readiness checks before calling v4 candidate-ready."
+        next_command = "./tests/v4_release_candidate_test.sh"
+        summary = "ShipGuard v4 release-candidate readiness still has missing proof."
+        proof_source = "v4 release-candidate checks, value-gauntlet receipts, docs, package proof hooks, and release-consume boundaries"
     result_ux = build_result_ux(
         status=status,
-        summary=(
-            "ShipGuard has release-candidate readiness proof for install, upgrade, uninstall, release consumption, adoption packet, schema docs, and plugin refresh."
-            if status == "pass"
-            else "ShipGuard v4 release-candidate readiness still has missing proof."
-        ),
-        proof_source="v4 release-candidate checks plus value-gauntlet receipts, docs, package proof hooks, and release-consume boundaries",
+        summary=summary,
+        proof_source=proof_source,
         why_it_matters="This removes manual interpretation from the v4 gate: a release candidate must be installable, consumable, and externally understandable.",
-        next_command="./tests/v4_release_candidate_test.sh",
+        next_command=next_command,
         next_action_summary=priority_action,
     )
     result_ux["priorityAction"] = priority_action
@@ -359,6 +507,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "upgradeProof": readiness_proof["upgrade"],
         "uninstallProof": readiness_proof["uninstall"],
         "releaseProofConsumption": readiness_proof["releaseProofConsumption"],
+        "publishedReleaseAssetProof": published_release_asset_proof,
         "externalAdoptionPacket": external_adoption_packet,
         "finalSchemaDocs": readiness_proof["finalSchemaDocs"],
         "pluginRefreshProof": readiness_proof["pluginRefreshProof"],
@@ -376,7 +525,15 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "nextImprovement": priority_action,
         }
     if args.shareable:
-        report = scrub_value(report, root, home)
+        replacements = {
+            root.as_posix(): "<repo>",
+            home.as_posix(): "<home>",
+        }
+        if published_release_asset_proof.get("assetsDir"):
+            replacements[str(published_release_asset_proof["assetsDir"])] = "<release-assets>"
+        if published_release_asset_proof.get("consumeOut"):
+            replacements[str(published_release_asset_proof["consumeOut"])] = "<release-consume-out>"
+        report = scrub_value(report, replacements)
     return report
 
 
@@ -409,6 +566,20 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.extend(["", "## Release Proof Consumption", ""])
     for command in report["releaseProofConsumption"].get("commands", []):
         lines.append(f"- `{command}`")
+    proof = report["publishedReleaseAssetProof"]
+    lines.extend(["", "## Published Release Asset Proof", ""])
+    lines.append(f"- Status: `{proof.get('status')}`")
+    lines.append(f"- Required for stable v4: `{proof.get('requiredForStableV4')}`")
+    lines.append(f"- Summary: {proof.get('summary')}")
+    if proof.get("provided"):
+        lines.append(f"- Version: `{proof.get('version')}`")
+        lines.append(f"- Consumer report status: `{proof.get('consumerReportStatus')}`")
+        lines.append(f"- Replay status: `{proof.get('replayStatus')}`")
+        lines.append(f"- Attestation status: `{proof.get('attestationStatus')}`")
+        if proof.get("artifactSha256"):
+            lines.append(f"- Artifact SHA-256: `{proof.get('artifactSha256')}`")
+    else:
+        lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## External Adoption Packet", ""])
     packet = report["externalAdoptionPacket"]
     lines.append(f"- First command: `{packet['firstCommand']}`")
@@ -451,6 +622,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate ShipGuard v4 release-candidate readiness reports.")
     parser.add_argument("--path", default=".", help="ShipGuard repository path. Defaults to current directory.")
     parser.add_argument("--out", required=True, help="Output directory for v4-release-candidate reports.")
+    parser.add_argument("--release-assets", help="Optional downloaded release assets directory to verify with release-consume.")
+    parser.add_argument("--release-version", help="Version to use when verifying --release-assets. Defaults to VERSION.")
+    parser.add_argument("--release-consume-out", help="Output directory for embedded release-consume proof. Defaults under --out.")
     parser.add_argument("--shipguard-eval", action="store_true", help="Include ShipGuard-only product QA boundaries.")
     parser.add_argument("--shareable", action="store_true", help="Redact local absolute paths for shareable output.")
     parser.add_argument("--json", action="store_true", help="Write only JSON output.")

@@ -191,9 +191,9 @@ SURFACES: list[dict[str, Any]] = [
         "command": "shipguard v4 release-candidate",
         "surfaceName": "ShipGuard V4 Release Candidate Readiness",
         "codename": "launchkey",
-        "plainPurpose": "Prove install, upgrade, uninstall, release-consume, adoption packet, final schema docs, and plugin refresh readiness before calling v4 candidate-ready.",
+        "plainPurpose": "Prove install, upgrade, uninstall, release-consume, optional downloaded release-asset proof, adoption packet, final schema docs, and plugin refresh readiness before calling v4 candidate-ready.",
         "tone": "Launch-minded, strict, and careful about stable-release boundaries.",
-        "proofBoundary": "LaunchKey is read-only ShipGuard product QA; it proves candidate readiness without publishing v4, claiming marketplace acceptance, or validating private apps.",
+        "proofBoundary": "LaunchKey is read-only ShipGuard product QA; it proves candidate readiness and can attach consumer release-asset proof without publishing v4, claiming marketplace acceptance, or validating private apps.",
         "aliases": ["launchkey", "release candidate gate", "v4 candidate readiness"],
     },
     {

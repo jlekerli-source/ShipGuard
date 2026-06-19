@@ -20,7 +20,7 @@ It gives AI-assisted development a repeatable operating loop:
 
 ShipGuard is not tied to any single app. This repo is the ShipGuard ShipYard: the workshop for reusable CLI commands, Codex skills, plugin metadata, fixtures, tests, and GitHub Actions for developers who want agent work to be reviewable instead of vague.
 
-Latest published release: `v3.131.0`. That release adds ShipGuard V4 Release Candidate Readiness / LaunchKey: fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, release-readiness commands, and blocked stable-v4 claims. Active ShipYard work can move ahead on `main`, but v4 is not called stable until the published release assets prove it.
+Latest published release: `v3.131.0`. That release adds ShipGuard V4 Release Candidate Readiness / LaunchKey: fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, release-readiness commands, and blocked stable-v4 claims. Active ShipYard work can move ahead on `main`, but v4 is not called stable until downloaded release assets pass consumer proof through LaunchKey or `shipguard release-consume verify`.
 
 The naming style is intentional: stable commands and paths stay literal, while product surfaces get branded names like ShipGuard StarterBay, ShipGuard LaunchDeck, ShipGuard PulseRadar, ShipGuard VibeCheck, ShipGuard Tool Value Gauntlet, ShipGuard Full Audit, ShipGuard InspectDeck, ShipGuard PilotBench, ShipGuard TraceBridge, ShipGuard ReleaseDock, ShipGuard PluginRadar, and ShipGuard NextRail. The nitty-gritty gets call signs too: Deckhand Scripts, Gauntlet Runs, Blackbox Receipts, Bridge Notes, Engine Tapes, Cargo Crates, and Docking Gear. See `docs/shipguard-naming.md` or run `./bin/shipguard brand --strict` before adding new surfaces.
 
@@ -85,7 +85,7 @@ Start with these docs:
 - `docs/github-presentation.md`: GitHub About/sidebar, social-preview, icon, and release-page copy.
 - `docs/v4-preview.md`: v4 preview stabilization, schema-freeze posture, migration, deprecation, and release-readiness proof.
 - `docs/v4-schema-freeze.md`: v4 schema registry, compatibility policy, migration checks, changelog policy, deprecation policy, and blocked release claims.
-- `docs/v4-release-candidate.md`: v4 release-candidate readiness for install, upgrade, uninstall, release proof consumption, adoption packet, schema docs, and plugin refresh proof.
+- `docs/v4-release-candidate.md`: v4 release-candidate readiness for install, upgrade, uninstall, release proof consumption, optional downloaded release-asset consumer proof, adoption packet, schema docs, and plugin refresh proof.
 - `docs/shipguard-naming.md`: branded naming scheme and future naming contract.
 - `docs/open-source.md`: ShipGuard's native open-source operating model.
 - `docs/privacy.md`: local-first privacy boundary for reports, previews, and plugin use.
@@ -133,7 +133,7 @@ Read `docs/cli.md` for the full command reference and `examples/demo-walkthrough
 - `scripts/shipguard_result.py`: the shared result contract used by major reports so they lead with status, verdict, proof source, why it matters, and one next command before detailed evidence.
 - `scripts/v4_preview.py`: ShipGuard V4 Preview, the read-only product contract report for schema-freeze posture, security-review gates, migration, deprecation, release readiness, blocked claims, and next proof action before v4 is called stable.
 - `scripts/v4_schema_freeze.py`: ShipGuard V4 Schema Freeze, the read-only schema contract report for compatibility policy, compatibility fixtures, migration checks, changelog and deprecation rules, release-readiness commands, and blocked v4 product-release claims.
-- `scripts/v4_release_candidate.py`: ShipGuard V4 Release Candidate Readiness / LaunchKey, the read-only readiness report for fresh install, upgrade, uninstall, release proof consumption, external adoption packet, final schema docs, plugin refresh proof, and stable-v4 blocked claims.
+- `scripts/v4_release_candidate.py`: ShipGuard V4 Release Candidate Readiness / LaunchKey, the read-only readiness report for fresh install, upgrade, uninstall, release proof consumption, optional downloaded release-asset consumer proof, external adoption packet, final schema docs, plugin refresh proof, and stable-v4 blocked claims.
 - `scripts/codex_marketplace_readiness.py`: ShipGuard MarketplaceDeck for proving tracked Codex plugin metadata, local marketplace source, README/profile presentation, icon assets, screenshot policy, strict status proof, and the submission packet before publishing or submitting.
 - `scripts/full_audit.py`: ShipGuard Full Audit, the resumable ShipYard proof lane for validation, value-gauntlet, report-quality, package, plugin, CI, and release-proof preparation, with a compact result block at the top.
 - `scripts/shipguard_inspect.py`: ShipGuard InspectDeck, the one-surface proof-state report for repo state, value-gauntlet proof, full-audit proof, Codex plugin status, release proof, underlying evidence, result verdict, and exact next action.
