@@ -233,6 +233,38 @@ def proof_inputs(value_path: Path | None, value_data: dict[str, Any], full_path:
     ]
 
 
+def command_template_or_default(candidate: str, default: str) -> str:
+    text = candidate.strip()
+    if not text:
+        return default
+    command_prefixes = (
+        "./",
+        "/",
+        "shipguard ",
+        "codex ",
+        "gh ",
+        "git ",
+        "python ",
+        "python3 ",
+        "bash ",
+        "sh ",
+        "make ",
+        "pytest ",
+        "xcodebuild ",
+        "swift ",
+    )
+    if text.startswith(command_prefixes):
+        return text
+    return default
+
+
+def append_proof_guidance(reason: str, proof_guidance: str, command: str) -> str:
+    proof = proof_guidance.strip()
+    if not proof or proof == command:
+        return reason
+    return f"{reason} Proof guidance: {proof}"
+
+
 def choose_next_action(value_summary: dict[str, Any], full_summary: dict[str, Any], plugin: dict[str, Any], release: dict[str, Any]) -> dict[str, str]:
     if not value_summary.get("found"):
         return {
@@ -256,11 +288,16 @@ def choose_next_action(value_summary: dict[str, Any], full_summary: dict[str, An
         }
     lowest = value_summary.get("lowestValueSurface") or {}
     if lowest.get("recommendation"):
-        proof = lowest.get("proofGuidance") or "Run the focused tests and value-gauntlet again after the upgrade."
+        proof = str(lowest.get("proofGuidance") or "")
+        command = command_template_or_default(
+            proof,
+            "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet",
+        )
+        reason = append_proof_guidance(str(lowest.get("recommendation") or ""), proof, command)
         return {
             "source": "value-gauntlet.lowestValueSurfaceProbe.answer",
-            "command": proof,
-            "reason": str(lowest.get("recommendation") or ""),
+            "command": command,
+            "reason": reason,
         }
     if plugin.get("status") not in {"pass", "unknown"}:
         return {

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed InspectDeck result UX after read-only ShipGuard self-QA showed Value Gauntlet prose proof guidance could be copied into `resultUX.nextCommand`. InspectDeck now keeps prose in the action summary/reason and falls back to a runnable value-gauntlet command template.
 - Improved InspectDeck next-action ordering after read-only ShipGuard self-QA showed bare `shipguard inspect` runs jumped straight to release-proof build while value-gauntlet and full-audit receipts were also missing. InspectDeck now asks for the missing value-gauntlet receipt first, then full-audit, then release proof.
 - Refreshed GitHub-facing presentation docs for the latest published `v3.131.0` capabilities: README/current-state wording, GitHub About/sidebar copy, social-preview/icon guidance, release-page copy, docs index routing, roadmap baseline wording, and release-package demo commands. Removed the unused JPG social-preview mock so the tracked icon stays the presentation source of truth.
 - Added `ios report-quality` coverage for source report `resultUX.nextCommand` fields so report families that put prose in the command slot receive `result-ux-next-command-not-command`, and fixed `shipguard value-gauntlet` to emit an executable rerun command while keeping product-release guidance in `nextActionSummary`.

@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-19T14:28:31Z
+- Generated: 2026-06-19T15:10:46Z
 - Current toolkit version: 3.131.0
-- Target release: v3.135.0
-- Title: InspectDeck Missing Receipt Priority
+- Target release: v3.136.0
+- Title: InspectDeck Executable Next Commands
 
 ## Slash Plan
 
 ```text
-/plan v3.135.0 InspectDeck Missing Receipt Priority for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Improve InspectDeck after read-only ShipGuard self-QA showed bare shipguard inspect runs jumped directly to release-proof work even when value-gauntlet and full-audit receipts were missing.
+/plan v3.136.0 InspectDeck Executable Next Commands for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Improve InspectDeck after read-only ShipGuard self-QA showed Value Gauntlet prose proof guidance could be copied into resultUX.nextCommand, causing report-quality to flag result-ux-next-command-not-command.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.135.0 InspectDeck Missing Receipt Priority for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Improve InspectDeck after read-only ShipGuard self-QA showed bare shipguard inspect runs jumped directly to release-proof work even when value-gauntlet and full-audit receipts were missing, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.136.0 InspectDeck Executable Next Commands for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Improve InspectDeck after read-only ShipGuard self-QA showed Value Gauntlet prose proof guidance could be copied into resultUX.nextCommand, causing report-quality to flag result-ux-next-command-not-command, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Improve InspectDeck after read-only ShipGuard self-QA showed bare shipguard inspect runs jumped directly to release-proof work even when value-gauntlet and full-audit receipts were missing.
+Improve InspectDeck after read-only ShipGuard self-QA showed Value Gauntlet prose proof guidance could be copied into resultUX.nextCommand, causing report-quality to flag result-ux-next-command-not-command.
 
 ## Completion Receipt
 
-- Completed scope: Fixed InspectDeck next-action ordering so missing value-gauntlet receipts are requested first, missing full-audit receipts second, and release proof only after core ShipYard receipts exist.
-- Evidence: Read-only ShipGuard self-QA generated InspectDeck, Full Audit, Value Gauntlet, MarketplaceDeck, Brand Deck, V4 Preview, V4 Schema Freeze, and V4 Release Candidate reports under /tmp/shipguard-loop-*-4; ios report-quality passed but prioritized InspectDeck's review-state actionability question; bare InspectDeck previously used release-assets as the proof source with a release-proof build command despite missing value-gauntlet and full-audit inputs; after the fix /tmp/shipguard-loop-inspect-4-fixed reports nextAction.source=value-gauntlet.missing and nextAction.command=./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet; python3 -m py_compile scripts/shipguard_inspect.py; ./tests/inspect_test.sh; ios report-quality on the fixed bundle passed.
+- Completed scope: Fixed InspectDeck so Value Gauntlet prose proof guidance stays in nextAction.reason and resultUX.nextActionSummary while nextAction.command and resultUX.nextCommand fall back to a runnable value-gauntlet command template.
+- Evidence: Read-only ShipGuard self-QA generated Value Gauntlet, Full Audit, MarketplaceDeck, Brand Deck, V4 Preview, V4 Schema Freeze, V4 Release Candidate, and InspectDeck reports under /tmp/shipguard-loop-*-5; ios report-quality returned review with result-ux-next-command-not-command for /tmp/shipguard-loop-inspect-5/shipguard-inspect.json; after the fix /tmp/shipguard-loop-inspect-5-fixed reports resultUX.nextCommand=./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet while preserving the prose proof guidance in nextAction.reason; python3 -m py_compile scripts/shipguard_inspect.py; ./tests/inspect_test.sh; ios report-quality on the fixed bundle passed.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.136.0 v4 Product Release Stabilization Receipts for jlekerli-source/ShipGuard:
+/plan v3.137.0 v4 Product Release Stabilization Receipts for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Improve InspectDeck after read-only ShipGuard self-QA showed bare shipguard insp
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.136.0 v4 Product Release Stabilization Receipts for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.137.0 v4 Product Release Stabilization Receipts for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.136.0 --title "v4 Product Release Stabilization Receipts" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.137.0 --title "v4 Product Release Stabilization Receipts" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.135.0.
+1. Open or update the tracking issue for v3.136.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.135.0` and upload `dist/shipguard-v3.135.0.tar.gz`.
+6. Create release `v3.136.0` and upload `dist/shipguard-v3.136.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

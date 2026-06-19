@@ -183,4 +183,45 @@ PY
 grep -q 'value-gauntlet.missing' "$tmp_dir/missing-inputs/shipguard-inspect.md"
 grep -q './bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet' "$tmp_dir/missing-inputs/shipguard-inspect.md"
 
+python3 - <<'PY' "$tmp_dir/value/tool-value-gauntlet.json" "$tmp_dir/value/tool-value-gauntlet-prose.json"
+import json
+import sys
+
+source, target = sys.argv[1:3]
+data = json.load(open(source, encoding="utf-8"))
+answer = data["lowestValueSurfaceProbe"]["answer"]
+answer["identifier"] = "shipguard v4-product-release-stabilization"
+answer["recommendation"] = "Stabilize the v4 product release with adoption, rollback, and release proof."
+answer["proofGuidance"] = "Run value-gauntlet plus focused v4 product-release fixtures that prove install, rollback, and release consumption."
+json.dump(data, open(target, "w", encoding="utf-8"), indent=2, sort_keys=True)
+PY
+
+mkdir -p "$tmp_dir/value-prose"
+mv "$tmp_dir/value/tool-value-gauntlet-prose.json" "$tmp_dir/value-prose/tool-value-gauntlet.json"
+
+./bin/shipguard inspect \
+  --path . \
+  --out "$tmp_dir/prose-guidance" \
+  --value-gauntlet "$tmp_dir/value-prose" \
+  --full-audit "$tmp_dir/full" \
+  --release-assets "$tmp_dir/release" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+python3 - <<'PY' "$tmp_dir/prose-guidance/shipguard-inspect.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+next_action = data.get("nextAction") or {}
+result = data.get("resultUX") or {}
+expected = "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet"
+if next_action.get("command") != expected:
+    raise SystemExit(f"prose proof guidance should fall back to executable command: {next_action!r}")
+if result.get("nextCommand") != expected:
+    raise SystemExit(f"resultUX nextCommand should stay executable: {result!r}")
+if "Run value-gauntlet plus focused v4 product-release fixtures" not in next_action.get("reason", ""):
+    raise SystemExit(f"prose proof guidance should remain in reason: {next_action!r}")
+PY
+
 echo "inspect tests passed"
