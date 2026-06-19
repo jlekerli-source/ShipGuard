@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-19T18:50:05Z
+- Generated: 2026-06-19T19:18:27Z
 - Current toolkit version: 3.131.0
-- Target release: v3.143.0
-- Title: Stable V4 External Adoption Evidence Gate
+- Target release: v3.144.0
+- Title: Stable V4 Security Review Evidence Gate
 
 ## Slash Plan
 
 ```text
-/plan v3.143.0 Stable V4 External Adoption Evidence Gate for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Improve ShipGuard after read-only LaunchKey self-QA showed install, upgrade, rollback, and release-asset proof can pass while stable-v4 adoption evidence remains only prose. Add a structured external adoption evidence gate that validates independent redacted evidence, blocks private paths, fake adoption, and token-like strings, and gives a concrete next command when adoption proof is missing.
+/plan v3.144.0 Stable V4 Security Review Evidence Gate for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Improve ShipGuard after read-only LaunchKey self-QA showed install, upgrade, rollback, release-asset, and adoption evidence can pass while final security review remains prose with a generic test rerun. Add a structured security review evidence gate that validates redacted review records, required scope coverage, critical/high finding counts, fixture-vs-real evidence, and concrete next commands.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.143.0 Stable V4 External Adoption Evidence Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Improve ShipGuard after read-only LaunchKey self-QA showed install, upgrade, rollback, and release-asset proof can pass while stable-v4 adoption evidence remains only prose. Add a structured external adoption evidence gate that validates independent redacted evidence, blocks private paths, fake adoption, and token-like strings, and gives a concrete next command when adoption proof is missing, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.144.0 Stable V4 Security Review Evidence Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Improve ShipGuard after read-only LaunchKey self-QA showed install, upgrade, rollback, release-asset, and adoption evidence can pass while final security review remains prose with a generic test rerun. Add a structured security review evidence gate that validates redacted review records, required scope coverage, critical/high finding counts, fixture-vs-real evidence, and concrete next commands, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Improve ShipGuard after read-only LaunchKey self-QA showed install, upgrade, rollback, and release-asset proof can pass while stable-v4 adoption evidence remains only prose. Add a structured external adoption evidence gate that validates independent redacted evidence, blocks private paths, fake adoption, and token-like strings, and gives a concrete next command when adoption proof is missing.
+Improve ShipGuard after read-only LaunchKey self-QA showed install, upgrade, rollback, release-asset, and adoption evidence can pass while final security review remains prose with a generic test rerun. Add a structured security review evidence gate that validates redacted review records, required scope coverage, critical/high finding counts, fixture-vs-real evidence, and concrete next commands.
 
 ## Completion Receipt
 
-- Completed scope: shipguard v4 release-candidate now accepts --external-adoption-evidence JSON files or directories, records externalAdoptionEvidenceProof and externalAdoptionEvidenceStableGate, separates structurally valid synthetic fixture evidence from stable-v4 eligible independent evidence, blocks private paths, private app identifiers, token-like text, missing fields, non-independent actors, and unredacted records through blockingProof, redacts evidence paths in shareable reports, and updates README, GitHub presentation guidance, CLI docs, roadmap, changelog, and Codex skill guidance.
-- Evidence: Read-only current-state QA at /tmp/shipguard-v3143-qa-after reported freshInstallPackageProof=pass, upgradePackageProof=pass, rollbackPackageProof=pass, githubReleaseAssetDownloadProof=pass, publishedReleaseAssetProof=pass, externalAdoptionEvidenceProof=not-provided, externalAdoptionEvidenceStableGate=not-provided, and a next command requiring --external-adoption-evidence. Synthetic adoption QA at /tmp/shipguard-v3143-adoption-pass reported externalAdoptionEvidenceProof=pass and externalAdoptionEvidenceStableGate=pass with shareable redaction. Focused regression ./tests/v4_release_candidate_test.sh passed with not-provided, synthetic review, stable-eligible pass, missing-path blocked, and invalid-record blocked coverage.
+- Completed scope: shipguard v4 release-candidate now accepts --security-review-evidence JSON files or directories, records securityReviewEvidenceProof and securityReviewEvidenceStableGate, requires CLI/plugin/GitHub Actions/release-proof/package-install/redaction-privacy scope coverage, blocks open critical/high findings, private paths, private app identifiers, token-like text, missing methodology/artifacts/non-claims, and redacts evidence paths in shareable reports. Docs, README, roadmap, changelog, CLI help, tests, and Codex skill guidance now route final security review evidence explicitly.
+- Evidence: Read-only isolated QA at /tmp/shipguard-v3144-security-gap-isolated showed freshInstallPackageProof=pass, upgradePackageProof=pass, rollbackPackageProof=pass, githubReleaseAssetDownloadProof=pass, publishedReleaseAssetProof=pass, externalAdoptionEvidenceProof=pass, externalAdoptionEvidenceStableGate=pass, but priorityAction still said finish final security review and nextCommand was ./tests/v4_release_candidate_test.sh. Focused regression ./tests/v4_release_candidate_test.sh now passes with not-provided, synthetic review, stable-eligible pass, missing-path blocked, and invalid/open-high-finding blocked security evidence coverage. python3 -m py_compile scripts/v4_release_candidate.py passed.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.144.0 Stable V4 Security Review Evidence Gate for jlekerli-source/ShipGuard:
+/plan v3.145.0 Stable V4 Release Packet Readiness Gate for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Improve ShipGuard after read-only LaunchKey self-QA showed install, upgrade, rol
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.144.0 Stable V4 Security Review Evidence Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.145.0 Stable V4 Release Packet Readiness Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.144.0 --title "Stable V4 Security Review Evidence Gate" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.145.0 --title "Stable V4 Release Packet Readiness Gate" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.143.0.
+1. Open or update the tracking issue for v3.144.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.143.0` and upload `dist/shipguard-v3.143.0.tar.gz`.
+6. Create release `v3.144.0` and upload `dist/shipguard-v3.144.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

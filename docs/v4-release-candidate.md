@@ -29,6 +29,7 @@ To let LaunchKey download GitHub release assets and attach consumer proof to the
   --github-release-repo <owner/repo> \
   --release-version <version> \
   --external-adoption-evidence <evidence-json-or-dir> \
+  --security-review-evidence <evidence-json-or-dir> \
   --release-consume-out /tmp/shipguard-v4-release-consume \
   --shipguard-eval \
   --shareable
@@ -54,6 +55,7 @@ The command checks these gates:
 - Release proof consumption: native GitHub-downloaded or manually supplied release assets can pass `shipguard release-consume verify`.
 - External adoption packet: an outside developer can see the first command, proof bundle, support boundary, and non-claims.
 - External adoption evidence: redacted independent adoption records can be attached without pretending fixtures are real adoption or leaking private app details.
+- Security review evidence: redacted final security review records can be attached without pretending fixtures are real security proof, hiding open critical/high findings, or leaking private app details.
 - Final schema docs: v4 schema-freeze docs remain linked and visible.
 - Plugin refresh proof: local Codex plugin refresh and `shipguard codex status --strict` remain part of the release lane.
 
@@ -156,6 +158,25 @@ Each JSON record must include `schemaVersion`, `evidenceType`, `evidenceClass`, 
 
 Synthetic fixture records can pass the structural evidence contract while keeping `stableV4GateStatus: review`. That is intentional: tests should prove the gate without faking real adoption. Invalid records, local private paths, private app identifiers, and token-like strings block with `blockingProof.receipt = externalAdoptionEvidenceProof`.
 
+## Security Review Evidence
+
+Without `--security-review-evidence`, the command can still pass release-candidate readiness, but `securityReviewEvidenceProof.status` is `not-provided` and `securityReviewEvidenceStableGate` is `not-provided`. Stable-v4 proof needs final security review evidence for the ShipGuard surfaces that can affect installation, plugin behavior, release proof, and privacy.
+
+Attach security review evidence as JSON files:
+
+```bash
+./bin/shipguard v4 release-candidate \
+  --path . \
+  --out /tmp/shipguard-v4-release-candidate \
+  --security-review-evidence <evidence-json-or-dir> \
+  --shipguard-eval \
+  --shareable
+```
+
+Each JSON record must include `schemaVersion`, `evidenceType`, `evidenceClass`, `reviewerRelationship`, `generatedAt`, `status`, `privateDataRedacted`, `scope`, `methodology`, `commands`, `artifacts`, `findingsSummary`, and `nonClaims`. Stable-v4 eligible records must use `evidenceClass: public-security-review` or `private-redacted-security-review`, `reviewerRelationship: independent` or `maintainer-security-review`, `status: pass`, `privateDataRedacted: true`, and either `consentToShare: true` or `shareableSummaryOnly: true`.
+
+The stable scope must cover `cli`, `plugin`, `github-actions`, `release-proof`, `package-install`, and `redaction-privacy`. `findingsSummary.criticalOpen` and `findingsSummary.highOpen` must both be `0`. Synthetic fixture records can pass the structural evidence contract while keeping `stableV4GateStatus: review`; invalid records, local private paths, private app identifiers, token-like strings, missing scope, and open critical/high findings block with `blockingProof.receipt = securityReviewEvidenceProof`.
+
 ## External Adoption Packet
 
 Every release-candidate packet should answer:
@@ -191,6 +212,7 @@ For release assets, verify the consumer path too:
 ./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --release-assets <downloaded-assets-dir> --release-version <version> --shipguard-eval --shareable
 ./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --download-release-assets --github-release-repo <owner/repo> --release-version <version> --shipguard-eval --shareable
 ./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --external-adoption-evidence <evidence-json-or-dir> --shipguard-eval --shareable
+./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable
 ```
 
 ## Blocked Claims
@@ -200,5 +222,6 @@ Passing this report means ShipGuard is candidate-ready. It does not mean:
 - ShipGuard v4 is a stable product release.
 - OpenAI accepted ShipGuard into a public marketplace.
 - External adoption has been proven by independent users.
+- Third-party security certification has been completed.
 - Any private app has been validated.
 - Physical-device iOS behavior has been proven.

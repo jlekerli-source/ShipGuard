@@ -115,7 +115,7 @@ Do not call v4 stable on the release page until the stable-v4 gate is actually p
 For active `main` updates after `v3.131.0`, use a short maintenance note rather than rewriting the release headline:
 
 ```text
-Main now carries LaunchKey hardening for external adoption evidence gating, native GitHub release-asset download, published-release asset proof, fresh-install package receipts, same-prefix upgrade receipts, rollback cleanup receipts, generated archive-member screening, blocking-proof result UX, and report-quality exclusion of generated proof directories. These are v4 stabilization slices, not a stable-v4 release claim.
+Main now carries LaunchKey hardening for final security-review evidence gating, external adoption evidence gating, native GitHub release-asset download, published-release asset proof, fresh-install package receipts, same-prefix upgrade receipts, rollback cleanup receipts, generated archive-member screening, blocking-proof result UX, and report-quality exclusion of generated proof directories. These are v4 stabilization slices, not a stable-v4 release claim.
 ```
 
 ## Refresh Checklist

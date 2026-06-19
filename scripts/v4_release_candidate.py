@@ -1102,6 +1102,230 @@ def build_external_adoption_evidence_proof(args: argparse.Namespace) -> dict[str
     return proof
 
 
+SECURITY_SCOPE_REQUIRED = {
+    "cli",
+    "plugin",
+    "github-actions",
+    "release-proof",
+    "package-install",
+    "redaction-privacy",
+}
+
+
+def collect_security_review_evidence_files(raw_paths: list[str]) -> tuple[list[Path], list[str]]:
+    files: list[Path] = []
+    errors: list[str] = []
+    for raw in raw_paths:
+        path = Path(raw).expanduser().resolve()
+        if not path.exists():
+            errors.append(f"security review evidence path not found: {path}")
+            continue
+        if path.is_file():
+            if path.suffix.lower() == ".json":
+                files.append(path)
+            else:
+                errors.append(f"security review evidence must be JSON: {path}")
+            continue
+        if path.is_dir():
+            found = sorted(path.rglob("*.json"))
+            if found:
+                files.extend(found)
+            else:
+                errors.append(f"security review evidence directory has no JSON records: {path}")
+            continue
+        errors.append(f"security review evidence path is unsupported: {path}")
+    return files, errors
+
+
+def security_scope_values(scope: Any) -> set[str]:
+    if isinstance(scope, list):
+        return {str(item) for item in scope}
+    if isinstance(scope, dict):
+        raw = scope.get("areas") or scope.get("surfaces") or scope.get("scope")
+        if isinstance(raw, list):
+            return {str(item) for item in raw}
+    return set()
+
+
+def finding_count(summary: Any, key: str) -> int | None:
+    if not isinstance(summary, dict):
+        return None
+    value = summary.get(key)
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    return None
+
+
+def evaluate_security_review_record(path: Path) -> dict[str, Any]:
+    record: dict[str, Any] = {
+        "path": path.as_posix(),
+        "status": "blocked",
+        "stableV4Eligible": False,
+        "missingFields": [],
+        "errors": [],
+    }
+    raw_text = read_text(path)
+    if PRIVATE_OR_SECRET_RE.search(raw_text):
+        record["errors"].append("record contains local/private app paths, app identifiers, or token-like text")
+    data = load_json(path)
+    if not data:
+        record["errors"].append("record is not a JSON object")
+        return record
+
+    required_fields = [
+        "schemaVersion",
+        "evidenceType",
+        "evidenceClass",
+        "reviewerRelationship",
+        "generatedAt",
+        "status",
+        "privateDataRedacted",
+        "scope",
+        "methodology",
+        "commands",
+        "artifacts",
+        "findingsSummary",
+        "nonClaims",
+    ]
+    for field in required_fields:
+        if field not in data:
+            record["missingFields"].append(field)
+
+    commands = data.get("commands") if isinstance(data.get("commands"), list) else []
+    artifacts = data.get("artifacts") if isinstance(data.get("artifacts"), list) else []
+    methodology = data.get("methodology") if isinstance(data.get("methodology"), list) else []
+    non_claims = data.get("nonClaims") if isinstance(data.get("nonClaims"), list) else []
+    scope_values = security_scope_values(data.get("scope"))
+    findings_summary = data.get("findingsSummary") if isinstance(data.get("findingsSummary"), dict) else {}
+    critical_open = finding_count(findings_summary, "criticalOpen")
+    high_open = finding_count(findings_summary, "highOpen")
+    evidence_class = str(data.get("evidenceClass") or "")
+    reviewer_relationship = str(data.get("reviewerRelationship") or "")
+    fixture_synthetic = bool(data.get("fixtureSynthetic"))
+    missing_scope = sorted(SECURITY_SCOPE_REQUIRED - scope_values)
+
+    if data.get("status") != "pass":
+        record["errors"].append("record status must be pass")
+    if data.get("privateDataRedacted") is not True:
+        record["errors"].append("privateDataRedacted must be true")
+    if not scope_values:
+        record["errors"].append("scope must list reviewed ShipGuard security surfaces")
+    if not methodology:
+        record["errors"].append("methodology must name review methods")
+    if not any("shipguard" in str(command).lower() for command in commands):
+        record["errors"].append("commands must include at least one ShipGuard command")
+    if not artifacts:
+        record["errors"].append("artifacts must name at least one reviewed artifact")
+    if not non_claims:
+        record["errors"].append("nonClaims must state what this evidence does not prove")
+    if critical_open is None:
+        record["errors"].append("findingsSummary.criticalOpen must be an integer")
+    if high_open is None:
+        record["errors"].append("findingsSummary.highOpen must be an integer")
+    if isinstance(critical_open, int) and critical_open > 0:
+        record["errors"].append("criticalOpen must be 0 for stable-v4 security evidence")
+    if isinstance(high_open, int) and high_open > 0:
+        record["errors"].append("highOpen must be 0 for stable-v4 security evidence")
+
+    record.update(
+        {
+            "schemaVersion": data.get("schemaVersion"),
+            "evidenceType": data.get("evidenceType"),
+            "evidenceClass": evidence_class,
+            "reviewerRelationship": reviewer_relationship,
+            "generatedAt": data.get("generatedAt"),
+            "source": data.get("source", ""),
+            "reviewer": data.get("reviewer", ""),
+            "scope": sorted(scope_values),
+            "missingStableScope": missing_scope,
+            "methodologyCount": len(methodology),
+            "commandCount": len(commands),
+            "artifactCount": len(artifacts),
+            "criticalOpen": critical_open,
+            "highOpen": high_open,
+            "outcome": data.get("outcome", ""),
+            "fixtureSynthetic": fixture_synthetic,
+        }
+    )
+    if record["missingFields"] or record["errors"]:
+        return record
+
+    stable_eligible = (
+        evidence_class in {"public-security-review", "private-redacted-security-review"}
+        and reviewer_relationship in {"independent", "maintainer-security-review"}
+        and not fixture_synthetic
+        and not missing_scope
+        and critical_open == 0
+        and high_open == 0
+        and (data.get("consentToShare") is True or data.get("shareableSummaryOnly") is True)
+    )
+    record["status"] = "pass"
+    record["stableV4Eligible"] = stable_eligible
+    if not stable_eligible:
+        record["stableV4Reason"] = (
+            "Record is structurally valid but not stable-v4 eligible; use real public-security-review or private-redacted-security-review evidence with required scope coverage and no open critical/high findings."
+        )
+    return record
+
+
+def build_security_review_evidence_proof(args: argparse.Namespace) -> dict[str, Any]:
+    command_template = (
+        "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate "
+        "--security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable"
+    )
+    evidence_inputs = list(args.security_review_evidence or [])
+    if not evidence_inputs:
+        return {
+            "status": "not-provided",
+            "provided": False,
+            "requiredForStableV4": True,
+            "stableV4GateStatus": "not-provided",
+            "summary": "No final security review evidence was supplied; stable v4 proof still needs reviewed security evidence for CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy surfaces.",
+            "nextCommand": command_template,
+            "requiredScope": sorted(SECURITY_SCOPE_REQUIRED),
+            "evidenceContract": "Provide JSON records with evidenceType, evidenceClass, reviewerRelationship, status=pass, redaction, scope, methodology, commands, artifacts, findingsSummary.criticalOpen=0, findingsSummary.highOpen=0, and nonClaims.",
+        }
+
+    files, collection_errors = collect_security_review_evidence_files(evidence_inputs)
+    records = [evaluate_security_review_record(path) for path in files]
+    invalid_records = [record for record in records if record.get("status") != "pass"]
+    stable_records = [record for record in records if record.get("stableV4Eligible")]
+    proof: dict[str, Any] = {
+        "status": "blocked",
+        "provided": True,
+        "requiredForStableV4": True,
+        "stableV4GateStatus": "blocked",
+        "summary": "Security review evidence was supplied but did not pass the evidence contract.",
+        "nextCommand": command_template,
+        "requiredScope": sorted(SECURITY_SCOPE_REQUIRED),
+        "evidenceInputs": [Path(raw).expanduser().resolve().as_posix() for raw in evidence_inputs],
+        "evidenceRecordCount": len(records),
+        "validRecordCount": len(records) - len(invalid_records),
+        "invalidRecordCount": len(invalid_records),
+        "stableV4EligibleEvidenceCount": len(stable_records),
+        "collectionErrors": collection_errors,
+        "records": records,
+    }
+    if collection_errors or not files:
+        proof["error"] = collection_errors[0] if collection_errors else "no security review evidence records found"
+        return proof
+    if invalid_records:
+        first = invalid_records[0]
+        proof["error"] = "; ".join(first.get("missingFields", []) + first.get("errors", []))
+        return proof
+    proof["status"] = "pass"
+    if stable_records:
+        proof["stableV4GateStatus"] = "pass"
+        proof["summary"] = "Security review evidence passed the structural contract and includes stable-v4 eligible review evidence."
+    else:
+        proof["stableV4GateStatus"] = "review"
+        proof["summary"] = "Security review evidence is structurally valid, but none of the records are stable-v4 eligible review evidence."
+        proof["nextAction"] = "Attach real public-security-review or private-redacted-security-review evidence before any stable-v4 release claim."
+    return proof
+
+
 def failed_process_excerpt(proof: dict[str, Any]) -> str:
     for key in (
         "validateResult",
@@ -1140,6 +1364,7 @@ def build_blocking_proof_detail(
     github_release_asset_download_proof: dict[str, Any],
     published_release_asset_proof: dict[str, Any],
     external_adoption_evidence_proof: dict[str, Any],
+    security_review_evidence_proof: dict[str, Any],
 ) -> dict[str, Any] | None:
     candidates = [
         (
@@ -1193,6 +1418,14 @@ def build_blocking_proof_detail(
             external_adoption_evidence_proof.get("nextCommand", "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --external-adoption-evidence <evidence-json-or-dir> --shipguard-eval --shareable"),
             "external adoption evidence receipt",
         ),
+        (
+            "securityReviewEvidenceProof",
+            security_review_evidence_proof,
+            "Security review evidence failed the stable-v4 evidence contract.",
+            "Fix or replace the security review evidence record, then rerun LaunchKey with --security-review-evidence.",
+            security_review_evidence_proof.get("nextCommand", "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable"),
+            "security review evidence receipt",
+        ),
     ]
     for receipt, proof, headline, remedy, next_command, proof_source in candidates:
         proof_participated = bool(proof.get("provided") or proof.get("requested"))
@@ -1242,6 +1475,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     github_release_asset_download_proof = build_github_release_asset_download_proof(args, version)
     published_release_asset_proof = build_published_release_asset_proof(args, root, version, github_release_asset_download_proof)
     external_adoption_evidence_proof = build_external_adoption_evidence_proof(args)
+    security_review_evidence_proof = build_security_review_evidence_proof(args)
 
     checks: list[dict[str, Any]] = []
     add_check(
@@ -1424,6 +1658,15 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             ["external adoption evidence records", "redaction contract", "non-claims"],
             "Attach independent public or private-redacted adoption evidence before using LaunchKey as stable-v4 release evidence.",
         )
+    if security_review_evidence_proof["provided"]:
+        add_check(
+            checks,
+            "security-review-evidence-validated",
+            "Security review evidence passes the evidence contract",
+            security_review_evidence_proof["status"] == "pass",
+            ["security review evidence records", "required security scope", "critical/high finding summary"],
+            "Attach public or private-redacted security review evidence before using LaunchKey as stable-v4 release evidence.",
+        )
 
     required_checks = [check for check in checks if check["required"]]
     failed_required = [check for check in required_checks if check["status"] != "pass"]
@@ -1497,6 +1740,9 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "externalAdoptionEvidenceProof": external_adoption_evidence_proof["status"],
         "externalAdoptionEvidenceStableGate": external_adoption_evidence_proof["stableV4GateStatus"],
         "externalAdoptionEvidenceRequiredForStableV4": True,
+        "securityReviewEvidenceProof": security_review_evidence_proof["status"],
+        "securityReviewEvidenceStableGate": security_review_evidence_proof["stableV4GateStatus"],
+        "securityReviewEvidenceRequiredForStableV4": True,
         "publishedReleaseAssetsRequiredForStableV4": True,
         "requiredProofCommands": [
             "git diff --check",
@@ -1515,6 +1761,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --download-release-assets --github-release-repo <owner/repo> --release-version <version> --shipguard-eval --shareable",
             "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>",
             "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --external-adoption-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+            "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
         ],
     }
     external_adoption_packet = {
@@ -1529,7 +1776,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     }
     blocked_claims = [
         "This proves release-candidate readiness, not a stable v4 product release.",
-        "Marketplace acceptance, broad external adoption, and third-party security review remain outside this local report.",
+        "Marketplace acceptance, broad external adoption, and third-party security certification remain outside this local report.",
         "Private Ringly or Ilmify app validation is not part of this report.",
         "Physical-device iOS proof is not implied by package, docs, or local fixture proof.",
     ]
@@ -1560,6 +1807,10 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         report_quality_questions.append(
             "Which independent external adoption evidence can be attached without faking adoption, leaking private data, or claiming stable v4 too early?"
         )
+    if security_review_evidence_proof.get("stableV4GateStatus") != "pass":
+        report_quality_questions.append(
+            "Which final security review evidence can be attached without leaking private data, hiding critical/high findings, or claiming stable v4 too early?"
+        )
     report_quality_questions.extend(
         [
             "Does the adoption packet tell an external developer the first command, proof bundle, support boundary, and non-claims?",
@@ -1573,6 +1824,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         github_release_asset_download_proof,
         published_release_asset_proof,
         external_adoption_evidence_proof,
+        security_review_evidence_proof,
     )
     if status != "pass" and blocking_proof:
         evidence_sentence = (
@@ -1641,13 +1893,34 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             )
         next_command = external_adoption_evidence_proof["nextCommand"]
         proof_source = "v4 release-candidate checks plus package/release-asset receipts; external adoption evidence stable gate not satisfied"
+    elif status == "pass" and security_review_evidence_proof["stableV4GateStatus"] != "pass":
+        if security_review_evidence_proof["status"] == "not-provided":
+            priority_action = (
+                "Attach final security review evidence before any stable v4 claim; the evidence must cover CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy surfaces."
+            )
+            summary = (
+                "ShipGuard has release-candidate readiness proof and supplied package/release-asset/adoption proof, but no final security review evidence was supplied."
+            )
+        else:
+            priority_action = (
+                "Replace the supplied security review evidence with real public-security-review or private-redacted-security-review evidence before any stable v4 claim."
+            )
+            summary = (
+                "ShipGuard has structurally valid security review evidence, but it is not stable-v4 eligible final security review evidence."
+            )
+        next_command = security_review_evidence_proof["nextCommand"]
+        proof_source = "v4 release-candidate checks plus package/release-asset/adoption receipts; security review evidence stable gate not satisfied"
     elif status == "pass":
         priority_action = (
-            "Use the passing fresh-install, upgrade, rollback, release-asset, and external-adoption receipts as v4 stabilization inputs, then finish final security review."
+            "Use the passing fresh-install, upgrade, rollback, release-asset, external-adoption, and security-review receipts as v4 stabilization inputs, then prepare the final stable-v4 release proof packet."
         )
-        next_command = "./tests/v4_release_candidate_test.sh"
-        summary = "ShipGuard has release-candidate readiness proof, supplied package tarball passed fresh-install and rollback proof, supplied previous package upgraded to the candidate, supplied release assets passed consumer-side verification, and external adoption evidence passed the stable gate."
-        proof_source = "v4 release-candidate checks plus fresh-install package receipt, upgrade receipt, rollback receipt, release-consume consumer-report, asset digest matrix, and external adoption evidence receipt"
+        next_command = (
+            "./bin/shipguard full-audit --path . --out /tmp/shipguard-full-audit --profile release "
+            "--include-install --release-url <release-url> --version <version> --tag <tag> "
+            "--commit <commit-sha> --ci-run-url <ci-run-url> --shipguard-eval --shareable"
+        )
+        summary = "ShipGuard has release-candidate readiness proof, supplied package tarball passed fresh-install and rollback proof, supplied previous package upgraded to the candidate, supplied release assets passed consumer-side verification, external adoption evidence passed the stable gate, and security review evidence passed the stable gate."
+        proof_source = "v4 release-candidate checks plus fresh-install package receipt, upgrade receipt, rollback receipt, release-consume consumer-report, asset digest matrix, external adoption evidence receipt, and security review evidence receipt"
     else:
         priority_action = "Complete the missing release-candidate readiness checks before calling v4 candidate-ready."
         next_command = "./tests/v4_release_candidate_test.sh"
@@ -1687,6 +1960,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "publishedReleaseAssetProof": published_release_asset_proof,
         "externalAdoptionPacket": external_adoption_packet,
         "externalAdoptionEvidenceProof": external_adoption_evidence_proof,
+        "securityReviewEvidenceProof": security_review_evidence_proof,
         "finalSchemaDocs": readiness_proof["finalSchemaDocs"],
         "pluginRefreshProof": readiness_proof["pluginRefreshProof"],
         "releaseReadiness": release_readiness,
@@ -1768,6 +2042,11 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         for record in external_adoption_evidence_proof.get("records", []):
             if isinstance(record, dict) and record.get("path"):
                 replacements[str(record["path"])] = "<external-adoption-evidence>/" + Path(str(record["path"])).name
+        for evidence_input in security_review_evidence_proof.get("evidenceInputs", []):
+            replacements[str(evidence_input)] = "<security-review-evidence>"
+        for record in security_review_evidence_proof.get("records", []):
+            if isinstance(record, dict) and record.get("path"):
+                replacements[str(record["path"])] = "<security-review-evidence>/" + Path(str(record["path"])).name
         report = scrub_value(report, replacements)
     return report
 
@@ -1908,6 +2187,19 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append(f"- Stable-v4 eligible records: `{proof.get('stableV4EligibleEvidenceCount')}`")
     else:
         lines.append(f"- Next command: `{proof.get('nextCommand')}`")
+    proof = report["securityReviewEvidenceProof"]
+    lines.extend(["", "## Security Review Evidence", ""])
+    lines.append(f"- Status: `{proof.get('status')}`")
+    lines.append(f"- Stable v4 gate: `{proof.get('stableV4GateStatus')}`")
+    lines.append(f"- Required for stable v4: `{proof.get('requiredForStableV4')}`")
+    lines.append(f"- Summary: {proof.get('summary')}")
+    lines.append(f"- Required scope: `{', '.join(proof.get('requiredScope', []))}`")
+    if proof.get("provided"):
+        lines.append(f"- Evidence records: `{proof.get('evidenceRecordCount')}`")
+        lines.append(f"- Valid records: `{proof.get('validRecordCount')}`")
+        lines.append(f"- Stable-v4 eligible records: `{proof.get('stableV4EligibleEvidenceCount')}`")
+    else:
+        lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## Plugin Refresh Proof", ""])
     for command in report["pluginRefreshProof"].get("commands", []):
         lines.append(f"- `{command}`")
@@ -1960,6 +2252,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--github-api-url", default="https://api.github.com", help="GitHub API base URL. Defaults to https://api.github.com.")
     parser.add_argument("--github-token-env", default="GITHUB_TOKEN", help="Environment variable containing an optional GitHub API token.")
     parser.add_argument("--external-adoption-evidence", action="append", help="Optional external adoption evidence JSON file or directory. May be passed multiple times.")
+    parser.add_argument("--security-review-evidence", action="append", help="Optional final security review evidence JSON file or directory. May be passed multiple times.")
     parser.add_argument("--shipguard-eval", action="store_true", help="Include ShipGuard-only product QA boundaries.")
     parser.add_argument("--shareable", action="store_true", help="Redact local absolute paths for shareable output.")
     parser.add_argument("--json", action="store_true", help="Write only JSON output.")
