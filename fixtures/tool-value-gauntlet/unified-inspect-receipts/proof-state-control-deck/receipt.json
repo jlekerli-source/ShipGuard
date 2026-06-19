@@ -36,7 +36,7 @@
     },
     {
       "path": "full/shipguard-full-audit.json",
-      "text": "{\n  \"tool\": \"shipguard full-audit\",\n  \"status\": \"pass\",\n  \"profile\": \"release\",\n  \"planOnly\": true,\n  \"stageStatusSummary\": {\n    \"planned\": 14\n  },\n  \"slowLaneSummary\": {\n    \"slowDefaultStageCount\": 5\n  },\n  \"efficiency\": {\n    \"executedStages\": 0,\n    \"plannedStages\": 14\n  },\n  \"scopeBoundary\": {\n    \"targetAppsReadOnly\": true,\n    \"doesNotPush\": true,\n    \"doesNotPublishRelease\": true\n  },\n  \"stages\": [],\n  \"reportQualityQuestions\": [\n    \"Can the release plan be inspected from one surface?\"\n  ]\n}\n"
+      "text": "{\n  \"tool\": \"shipguard full-audit\",\n  \"status\": \"review\",\n  \"profile\": \"release\",\n  \"planOnly\": true,\n  \"stageStatusSummary\": {\n    \"planned\": 14\n  },\n  \"slowLaneSummary\": {\n    \"slowDefaultStageCount\": 5\n  },\n  \"efficiency\": {\n    \"executedStages\": 0,\n    \"plannedStages\": 14\n  },\n  \"scopeBoundary\": {\n    \"targetAppsReadOnly\": true,\n    \"doesNotPush\": true,\n    \"doesNotPublishRelease\": true\n  },\n  \"stages\": [],\n  \"reportQualityQuestions\": [\n    \"Can the release plan be inspected from one surface?\"\n  ]\n}\n"
     },
     {
       "path": "release/proof/release-manifest.json",
@@ -98,6 +98,7 @@
             {"path": "tool", "equals": "shipguard inspect"},
             {"path": "surface", "equals": "ShipGuard InspectDeck"},
             {"path": "proofReceipts.valueGauntlet.lowestValueSurface.identifier", "equals": "shipguard unified-inspect-experience"},
+            {"path": "proofReceipts.fullAudit.status", "equals": "review"},
             {"path": "proofReceipts.fullAudit.stageStatusSummary.planned", "equals": 14},
             {"path": "releaseState.version", "equals": "3.125.0"},
             {"path": "nextAction.source", "equals": "value-gauntlet.lowestValueSurfaceProbe.answer"},

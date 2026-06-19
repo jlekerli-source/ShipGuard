@@ -14,6 +14,8 @@ Typical planning run:
   --shareable
 ```
 
+Planning output is a `review` report, not a `pass` report. It writes the same stage ledger and slow-lane summary, but `resultUX.nextCommand` points to the executable release lane with missing CI/release metadata placeholders. Treat that as the next command to run before calling the report release proof.
+
 Typical local rerun after a failure:
 
 ```bash
@@ -45,7 +47,7 @@ Outputs:
 - `logs/<stage-id>.stdout.txt`
 - `logs/<stage-id>.stderr.txt`
 
-The JSON includes `resultUX`, and the Markdown starts with `## Result`. That block gives the normalized status, concise verdict, proof source, why the report matters, and the next resume command before the stage ledger.
+The JSON includes `resultUX`, and the Markdown starts with `## Result`. That block gives the normalized status, concise verdict, proof source, why the report matters, and the next run or resume command before the stage ledger.
 
 Profiles:
 
@@ -61,4 +63,4 @@ Boundary:
 - `release-proof` builds local assets only and requires release metadata.
 - Target apps remain read-only; this command is ShipGuard product QA.
 
-Use the `slowLaneSummary` section to decide what to rerun. Use `--resume` to skip passing stages when the stage command and working directory match the previous receipt.
+Use the `slowLaneSummary` section to decide what to rerun. Use `--resume` to skip passing stages when the stage command and working directory match the previous receipt. A plan-only report proves route shape only; an executed report proves stage behavior.

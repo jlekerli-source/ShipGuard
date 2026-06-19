@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-19T19:18:27Z
+- Generated: 2026-06-19T19:51:08Z
 - Current toolkit version: 3.131.0
-- Target release: v3.144.0
-- Title: Stable V4 Security Review Evidence Gate
+- Target release: v3.145.0
+- Title: Full Audit Release Packet Plan Honesty
 
 ## Slash Plan
 
 ```text
-/plan v3.144.0 Stable V4 Security Review Evidence Gate for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Improve ShipGuard after read-only LaunchKey self-QA showed install, upgrade, rollback, release-asset, and adoption evidence can pass while final security review remains prose with a generic test rerun. Add a structured security review evidence gate that validates redacted review records, required scope coverage, critical/high finding counts, fixture-vs-real evidence, and concrete next commands.
+/plan v3.145.0 Full Audit Release Packet Plan Honesty for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Improve ShipGuard after read-only release-packet self-QA showed Full Audit plan-only output returned status=pass with 0 executed stages and 14 planned stages, making planned release proof look like completed proof. Make plan-only and missing release-proof metadata states review-only, preserve exact selected profile or stage commands, and emit executable next commands with release metadata placeholders.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.144.0 Stable V4 Security Review Evidence Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Improve ShipGuard after read-only LaunchKey self-QA showed install, upgrade, rollback, release-asset, and adoption evidence can pass while final security review remains prose with a generic test rerun. Add a structured security review evidence gate that validates redacted review records, required scope coverage, critical/high finding counts, fixture-vs-real evidence, and concrete next commands, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.145.0 Full Audit Release Packet Plan Honesty for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Improve ShipGuard after read-only release-packet self-QA showed Full Audit plan-only output returned status=pass with 0 executed stages and 14 planned stages, making planned release proof look like completed proof. Make plan-only and missing release-proof metadata states review-only, preserve exact selected profile or stage commands, and emit executable next commands with release metadata placeholders, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Improve ShipGuard after read-only LaunchKey self-QA showed install, upgrade, rollback, release-asset, and adoption evidence can pass while final security review remains prose with a generic test rerun. Add a structured security review evidence gate that validates redacted review records, required scope coverage, critical/high finding counts, fixture-vs-real evidence, and concrete next commands.
+Improve ShipGuard after read-only release-packet self-QA showed Full Audit plan-only output returned status=pass with 0 executed stages and 14 planned stages, making planned release proof look like completed proof. Make plan-only and missing release-proof metadata states review-only, preserve exact selected profile or stage commands, and emit executable next commands with release metadata placeholders.
 
 ## Completion Receipt
 
-- Completed scope: shipguard v4 release-candidate now accepts --security-review-evidence JSON files or directories, records securityReviewEvidenceProof and securityReviewEvidenceStableGate, requires CLI/plugin/GitHub Actions/release-proof/package-install/redaction-privacy scope coverage, blocks open critical/high findings, private paths, private app identifiers, token-like text, missing methodology/artifacts/non-claims, and redacts evidence paths in shareable reports. Docs, README, roadmap, changelog, CLI help, tests, and Codex skill guidance now route final security review evidence explicitly.
-- Evidence: Read-only isolated QA at /tmp/shipguard-v3144-security-gap-isolated showed freshInstallPackageProof=pass, upgradePackageProof=pass, rollbackPackageProof=pass, githubReleaseAssetDownloadProof=pass, publishedReleaseAssetProof=pass, externalAdoptionEvidenceProof=pass, externalAdoptionEvidenceStableGate=pass, but priorityAction still said finish final security review and nextCommand was ./tests/v4_release_candidate_test.sh. Focused regression ./tests/v4_release_candidate_test.sh now passes with not-provided, synthetic review, stable-eligible pass, missing-path blocked, and invalid/open-high-finding blocked security evidence coverage. python3 -m py_compile scripts/v4_release_candidate.py passed.
+- Completed scope: shipguard full-audit now marks plan-only reports as review, keeps planned stage receipts visible, records efficiency.executeCommand, preserves selected --profile or --stage flags in resultUX.nextCommand, adds --include-install when the planned lane includes install refresh, and adds --release-url, --version, --tag, --commit, and --ci-run-url placeholders when release-proof or CI proof stages need metadata. Release-proof-only runs without metadata now stay review/manual-required with an executable placeholder command instead of a misleading generic resume command. Tests, fixtures, docs, roadmap, changelog, and public guidance now distinguish route planning from executed release proof.
+- Evidence: Read-only QA at /tmp/shipguard-v3145-full-audit-plan showed status=pass with stageStatusSummary={planned:14} and nextCommand=shipguard full-audit ... --profile release --resume despite 0 executed stages. After the fix, /tmp/shipguard-v3145-full-audit-plan-fixed reports status=review, stageStatusSummary={planned:14}, and nextCommand includes --profile release --include-install --release-url <release-url> --version <version> --tag <tag> --commit <commit-sha> --ci-run-url <ci-run-url>. /tmp/shipguard-v3145-full-audit-manual-fixed reports status=review, stageStatusSummary={manual-required:1}, and a --stage release-proof command with the same release metadata placeholders. Report-quality over both fixed reports passed. Focused tests passed: python3 -m py_compile scripts/full_audit.py scripts/tool_value_gauntlet.py; git diff --check; ./tests/full_audit_test.sh; ./tests/inspect_test.sh; ./tests/concise_verdict_result_ux_test.sh; ./tests/tool_value_gauntlet_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.145.0 Stable V4 Release Packet Readiness Gate for jlekerli-source/ShipGuard:
+/plan v3.146.0 Stable V4 Release Packet Execution Receipts for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Improve ShipGuard after read-only LaunchKey self-QA showed install, upgrade, rol
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.145.0 Stable V4 Release Packet Readiness Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.146.0 Stable V4 Release Packet Execution Receipts for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.145.0 --title "Stable V4 Release Packet Readiness Gate" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.146.0 --title "Stable V4 Release Packet Execution Receipts" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.144.0.
+1. Open or update the tracking issue for v3.145.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.144.0` and upload `dist/shipguard-v3.144.0.tar.gz`.
+6. Create release `v3.145.0` and upload `dist/shipguard-v3.145.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

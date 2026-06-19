@@ -107,6 +107,56 @@ def shell_join(command: list[str]) -> str:
     return " ".join(subprocess.list2cmdline([part]) if " " in part else part for part in command)
 
 
+def command_arg_value(args: argparse.Namespace, key: str, placeholder: str, force_placeholder: bool) -> str:
+    value = getattr(args, key)
+    if value:
+        return str(value)
+    return placeholder if force_placeholder else ""
+
+
+def full_audit_command(
+    repo: Path,
+    out_dir: Path,
+    args: argparse.Namespace,
+    selected_ids: list[str],
+    *,
+    resume: bool = False,
+    execute_plan: bool = False,
+) -> str:
+    parts = ["shipguard", "full-audit", "--path", str(repo), "--out", str(out_dir)]
+    if args.stage:
+        for stage_id in selected_ids:
+            parts.extend(["--stage", stage_id])
+    else:
+        parts.extend(["--profile", args.profile])
+    needs_install = "install-refresh" in selected_ids
+    needs_ci = "ci-proof" in selected_ids or "release-proof" in selected_ids
+    needs_release = "release-proof" in selected_ids
+    if args.include_install or (execute_plan and needs_install):
+        parts.append("--include-install")
+    if resume:
+        parts.append("--resume")
+    release_args = [
+        ("release_url", "--release-url", "<release-url>"),
+        ("version", "--version", "<version>"),
+        ("tag", "--tag", "<tag>"),
+        ("commit", "--commit", "<commit-sha>"),
+        ("ci_run_url", "--ci-run-url", "<ci-run-url>"),
+    ]
+    for key, flag, placeholder in release_args:
+        should_force = execute_plan and (needs_release or (key == "ci_run_url" and needs_ci))
+        value = command_arg_value(args, key, placeholder, should_force)
+        if value:
+            parts.extend([flag, value])
+    if args.shipguard_eval:
+        parts.append("--shipguard-eval")
+    if args.shareable:
+        parts.append("--shareable")
+    if args.strict:
+        parts.append("--strict")
+    return shell_join(parts)
+
+
 def redact_value(value: Any, replacements: list[tuple[str, str]]) -> Any:
     if isinstance(value, str):
         text = value
@@ -428,23 +478,31 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         for item in stage_reports
         if item.get("slowDefault") or item.get("durationSeconds", 0) >= args.slow_threshold_seconds
     ]
+    execute_command = full_audit_command(repo, out_dir, args, ids, execute_plan=True)
+    resume_command = full_audit_command(repo, out_dir, args, ids, resume=True)
     if failures:
         status = "fail"
         next_action = f"Fix `{failures[0]['stageId']}` then rerun with --resume."
+        next_command = resume_command
+    elif planned:
+        status = "review"
+        next_action = "Plan-only report created; run the planned stages before treating this as release proof."
+        next_command = execute_command
     elif manual and not args.plan_only:
         status = "review"
         next_action = f"Run or satisfy manual stage `{manual[0]['stageId']}` when that external proof is required."
+        next_command = execute_command
     else:
         status = "pass"
         next_action = "Use this single report as the release-loop receipt; rerun with --resume after making changes."
+        next_command = resume_command
     verdict_one_line = f"{counts.get('pass', 0)} passed, {counts.get('planned', 0)} planned, {counts.get('manual-required', 0)} manual, {counts.get('fail', 0)} failed."
-    resume_command = f"shipguard full-audit --path {repo} --out {out_dir} --profile {args.profile} --resume"
     result_ux = build_result_ux(
         status=status,
         summary=verdict_one_line,
         proof_source="stageStatusSummary + stage receipts",
         why_it_matters="Full Audit collapses validation, release proof, slow lanes, and resumability into one maintainer receipt.",
-        next_command=resume_command,
+        next_command=next_command,
         next_action_summary=next_action,
     )
     report: dict[str, Any] = {
@@ -466,6 +524,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "plannedStages": len(planned),
             "collapsedCommandFamilies": sorted({item["stageId"] for item in stage_reports}),
             "resumeCommand": resume_command,
+            "executeCommand": execute_command,
         },
         "scopeBoundary": {
             "shipguardOnly": bool(args.shipguard_eval),

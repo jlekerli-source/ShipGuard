@@ -31,7 +31,7 @@
   },
   "commands": [
     {
-      "id": "full-audit-release-plan-pass",
+      "id": "full-audit-release-plan-review",
       "display": "./bin/shipguard full-audit --profile release --plan-only",
       "args": [
         "full-audit",
@@ -53,9 +53,10 @@
           "requiredNonEmptyJsonPaths": ["stages", "slowLaneSummary", "reportQualityQuestions"],
           "requiredValues": [
             {"path": "tool", "equals": "shipguard full-audit"},
-            {"path": "status", "equals": "pass"},
+            {"path": "status", "equals": "review"},
             {"path": "planOnly", "equals": true},
             {"path": "stageStatusSummary.planned", "equals": 14},
+            {"path": "resultUX.status", "equals": "review"},
             {"path": "scopeBoundary.doesNotPush", "equals": true},
             {"path": "scopeBoundary.doesNotPublishRelease", "equals": true}
           ],

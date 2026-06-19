@@ -42,7 +42,7 @@ JSON
 cat > "$tmp_dir/full/shipguard-full-audit.json" <<'JSON'
 {
   "tool": "shipguard full-audit",
-  "status": "pass",
+  "status": "review",
   "profile": "release",
   "planOnly": true,
   "stageStatusSummary": {
@@ -139,6 +139,8 @@ if repo_root in json.dumps(data):
 if data["proofReceipts"]["valueGauntlet"]["lowestValueSurface"]["identifier"] != "shipguard unified-inspect-experience":
     raise SystemExit(data["proofReceipts"]["valueGauntlet"])
 if data["proofReceipts"]["fullAudit"]["stageStatusSummary"].get("planned") != 14:
+    raise SystemExit(data["proofReceipts"]["fullAudit"])
+if data["proofReceipts"]["fullAudit"]["status"] != "review":
     raise SystemExit(data["proofReceipts"]["fullAudit"])
 if data["releaseState"]["version"] != "3.125.0":
     raise SystemExit(data["releaseState"])

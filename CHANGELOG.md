@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Tightened Full Audit release-packet honesty: `shipguard full-audit --plan-only` now reports `review` instead of `pass`, preserves the exact selected profile or stages in `resultUX.nextCommand`, and adds missing release metadata placeholders so planned proof cannot be mistaken for executed proof.
 - Added LaunchKey final security-review evidence gate: `shipguard v4 release-candidate --security-review-evidence <json-or-dir>` now validates redacted security review evidence records, requires CLI/plugin/GitHub Actions/release-proof/package-install/redaction-privacy scope coverage, blocks open critical/high findings, separates synthetic fixtures from stable-v4 eligible review evidence, and turns missing final security proof into a concrete next command.
 - Added LaunchKey external adoption evidence gate: `shipguard v4 release-candidate --external-adoption-evidence <json-or-dir>` now validates redacted independent adoption evidence records, separates structurally valid fixture evidence from stable-v4 eligible evidence, and turns missing adoption proof into a concrete next command without faking adoption.
 - Added LaunchKey native GitHub release-asset download: `shipguard v4 release-candidate --download-release-assets --github-release-repo <owner/repo>` now downloads release assets from GitHub into a local proof directory, runs `release-consume verify`, records `githubReleaseAssetDownloadProof`, and keeps `downloaded-release-assets` out of recursive report-quality scoring.

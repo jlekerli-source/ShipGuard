@@ -21,7 +21,7 @@ cd "$repo_root"
 test -f "$tmp_dir/plan/shipguard-full-audit.json"
 test -f "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q '"tool": "shipguard full-audit"' "$tmp_dir/plan/shipguard-full-audit.json"
-grep -q '"status": "pass"' "$tmp_dir/plan/shipguard-full-audit.json"
+grep -q '"status": "review"' "$tmp_dir/plan/shipguard-full-audit.json"
 grep -q '"resultUX":' "$tmp_dir/plan/shipguard-full-audit.json"
 grep -q '"proofSource":' "$tmp_dir/plan/shipguard-full-audit.json"
 grep -q '"nextCommand":' "$tmp_dir/plan/shipguard-full-audit.json"
@@ -29,6 +29,31 @@ grep -q '"planned": 14' "$tmp_dir/plan/shipguard-full-audit.json"
 grep -q '"stageId": "release-proof"' "$tmp_dir/plan/shipguard-full-audit.json"
 grep -q '"doesNotPush": true' "$tmp_dir/plan/shipguard-full-audit.json"
 grep -q '"doesNotPublishRelease": true' "$tmp_dir/plan/shipguard-full-audit.json"
+python3 - <<'PY' "$tmp_dir/plan/shipguard-full-audit.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+result = data["resultUX"]
+if result["status"] != "review":
+    raise SystemExit(result)
+if "Plan-only report created" not in result["nextActionSummary"]:
+    raise SystemExit(result)
+next_command = result["nextCommand"]
+for expected in [
+    "--profile release",
+    "--include-install",
+    "--release-url <release-url>",
+    "--version <version>",
+    "--tag <tag>",
+    "--commit <commit-sha>",
+    "--ci-run-url <ci-run-url>",
+]:
+    if expected not in next_command:
+        raise SystemExit(next_command)
+if data["efficiency"]["executeCommand"] != next_command:
+    raise SystemExit(data["efficiency"])
+PY
 grep -q 'ShipGuard Full Audit' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q '## Result' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Proof source:' "$tmp_dir/plan/shipguard-full-audit.md"
@@ -83,6 +108,38 @@ PY
 
 ./bin/shipguard full-audit \
   --path . \
+  --out "$tmp_dir/release-proof-manual" \
+  --stage release-proof \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+python3 - <<'PY' "$tmp_dir/release-proof-manual/shipguard-full-audit.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data["status"] != "review":
+    raise SystemExit(data)
+if data["stageStatusSummary"] != {"manual-required": 1}:
+    raise SystemExit(data["stageStatusSummary"])
+stage = data["stages"][0]
+if stage["stageId"] != "release-proof" or stage["status"] != "manual-required":
+    raise SystemExit(stage)
+next_command = data["resultUX"]["nextCommand"]
+for expected in [
+    "--stage release-proof",
+    "--release-url <release-url>",
+    "--version <version>",
+    "--tag <tag>",
+    "--commit <commit-sha>",
+    "--ci-run-url <ci-run-url>",
+]:
+    if expected not in next_command:
+        raise SystemExit(next_command)
+PY
+
+./bin/shipguard full-audit \
+  --path . \
   --out "$tmp_dir/mini" \
   --stage version \
   --stage py-compile \
@@ -106,6 +163,8 @@ PY
 
 json_stdout="$(./bin/shipguard full-audit --path . --out "$tmp_dir/json" --stage version --plan-only --json)"
 grep -q '"tool": "shipguard full-audit"' <<<"$json_stdout"
+grep -q '"status": "review"' <<<"$json_stdout"
+grep -q -- '--stage version' <<<"$json_stdout"
 markdown_stdout="$(./bin/shipguard full-audit --path . --out "$tmp_dir/md" --stage version --plan-only --markdown)"
 grep -q '# ShipGuard Full Audit' <<<"$markdown_stdout"
 

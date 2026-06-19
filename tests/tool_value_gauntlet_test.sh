@@ -858,7 +858,7 @@ for item in full_audit_orchestrator.get("receipts") or []:
         raise SystemExit(f"full-audit orchestrator receipt should pass without missing checks: {item!r}")
     command_ids = {command.get("id") for command in item.get("commands") or []}
     expected_commands = {
-        "full-audit-release-plan-pass",
+        "full-audit-release-plan-review",
         "full-audit-mini-execution-pass",
         "full-audit-resume-reuse-pass",
     }
@@ -895,7 +895,7 @@ for item in concise_result_ux.get("receipts") or []:
         raise SystemExit(f"concise result UX receipt should pass without missing checks: {item!r}")
     command_ids = {command.get("id") for command in item.get("commands") or []}
     expected_commands = {
-        "full-audit-result-ux-pass",
+        "full-audit-result-ux-review",
         "ios-design-result-ux-pass",
         "ios-performance-result-ux-pass",
         "inspect-result-ux-pass",

@@ -48,7 +48,7 @@
   ],
   "commands": [
     {
-      "id": "full-audit-result-ux-pass",
+      "id": "full-audit-result-ux-review",
       "display": "./bin/shipguard full-audit --profile quick --plan-only emits resultUX",
       "args": [
         "full-audit",
@@ -70,7 +70,7 @@
           "requiredNonEmptyJsonPaths": ["resultUX.status", "resultUX.verdict", "resultUX.proofSource", "resultUX.whyItMatters", "resultUX.nextCommand", "resultUX.nextActionSummary"],
           "requiredValues": [
             {"path": "tool", "equals": "shipguard full-audit"},
-            {"path": "resultUX.status", "equals": "pass"}
+            {"path": "resultUX.status", "equals": "review"}
           ],
           "forbidLocalPaths": true
         },

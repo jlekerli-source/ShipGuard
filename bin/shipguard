@@ -38,7 +38,7 @@ Usage:
   shipguard docs-check [path] [--out <dir>]
   shipguard brand [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
   shipguard value-gauntlet [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
-  shipguard full-audit --out <dir> [--path <shipguard-repo>] [--profile quick|release|shipyard] [--stage <id> ...] [--resume] [--plan-only] [--include-install] [--release-url <url>] [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard full-audit --out <dir> [--path <shipguard-repo>] [--profile quick|release|shipyard] [--stage <id> ...] [--resume] [--plan-only] [--include-install] [--release-url <url>] [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--shipguard-eval] [--shareable] [--strict] [--json|--markdown]
   shipguard inspect --path <shipguard-repo> --out <dir> [--value-gauntlet <file-or-dir>] [--full-audit <file-or-dir>] [--release-assets <dir>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard v4 preview --path <shipguard-repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard v4 schema-freeze --path <shipguard-repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]

@@ -3287,7 +3287,7 @@ def full_audit_orchestrator_receipt_passed(full_audit_orchestrator_receipts: dic
     if full_audit_orchestrator_receipts.get("status") != "pass":
         return False
     required = {
-        "full-audit-release-plan-pass",
+        "full-audit-release-plan-review",
         "full-audit-mini-execution-pass",
         "full-audit-resume-reuse-pass",
     }
@@ -3305,7 +3305,7 @@ def concise_verdict_result_ux_receipt_passed(concise_verdict_result_ux_receipts:
     if concise_verdict_result_ux_receipts.get("status") != "pass":
         return False
     required = {
-        "full-audit-result-ux-pass",
+        "full-audit-result-ux-review",
         "ios-design-result-ux-pass",
         "ios-performance-result-ux-pass",
         "inspect-result-ux-pass",
