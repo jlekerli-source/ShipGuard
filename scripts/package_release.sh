@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+export COPYFILE_DISABLE=1
+export COPY_EXTENDED_ATTRIBUTES_DISABLE=1
+
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 version="$(sed -n '1p' "$repo_root/VERSION")"
 package_name="shipguard-v$version"
@@ -58,7 +61,7 @@ for path in "${paths[@]}"; do
 done
 
 find "$package_root" \
-  \( -name '.git' -o -name 'dist' -o -name '.DS_Store' -o -name '.cache' -o -name 'DerivedData' -o -name '__pycache__' \) \
+  \( -name '.git' -o -name 'dist' -o -name '.DS_Store' -o -name '._*' -o -name '.cache' -o -name 'DerivedData' -o -name '__pycache__' \) \
   -prune -exec rm -rf {} +
 find "$package_root" -type f -name '*.pyc' -delete
 

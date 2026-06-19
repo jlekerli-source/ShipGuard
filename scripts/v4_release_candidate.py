@@ -5,8 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import shutil
 import subprocess
 import sys
+import tarfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -85,6 +88,221 @@ def short_output(value: str, limit: int = 1200) -> str:
     if len(value) <= limit:
         return value
     return value[: limit - 3].rstrip() + "..."
+
+
+def safe_extract_tarball(tarball: Path, destination: Path) -> tuple[bool, str]:
+    destination.mkdir(parents=True, exist_ok=True)
+    destination_root = destination.resolve()
+    try:
+        with tarfile.open(tarball, "r:gz") as archive:
+            for member in archive.getmembers():
+                member_target = (destination_root / member.name).resolve()
+                if not member_target.is_relative_to(destination_root):
+                    return False, f"unsafe tarball member escapes destination: {member.name}"
+                if member.issym() or member.islnk() or member.isdev():
+                    return False, f"unsafe tarball member is a link or device: {member.name}"
+            archive.extractall(destination_root)
+    except (tarfile.TarError, OSError) as exc:
+        return False, f"tarball extraction failed: {exc}"
+    return True, f"extracted {tarball.name}"
+
+
+def find_package_root(extract_dir: Path, version: str) -> Path | None:
+    expected = extract_dir / f"shipguard-v{version}"
+    if (expected / "scripts" / "install.sh").is_file():
+        return expected
+    for child in (extract_dir.iterdir() if extract_dir.exists() else []):
+        if child.is_dir() and (child / "scripts" / "install.sh").is_file():
+            return child
+    return None
+
+
+def run_process(
+    command: list[str],
+    cwd: Path,
+    timeout: int,
+    env: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=cwd,
+            env=env,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        return {
+            "command": " ".join(command),
+            "exitCode": "timeout",
+            "stdout": short_output(exc.stdout or ""),
+            "stderr": short_output(exc.stderr or ""),
+        }
+    return {
+        "command": " ".join(command),
+        "exitCode": completed.returncode,
+        "stdout": short_output(completed.stdout),
+        "stderr": short_output(completed.stderr),
+    }
+
+
+def is_forbidden_install_name(name: str) -> bool:
+    return name.startswith("._")
+
+
+def find_forbidden_install_paths(install_root: Path) -> list[str]:
+    forbidden_names = {".git", "dist", ".DS_Store", ".cache", "DerivedData", "__pycache__"}
+    forbidden: list[str] = []
+    if not install_root.exists():
+        return forbidden
+    for current_root, dirs, files in os.walk(install_root):
+        current = Path(current_root)
+        for name in list(dirs):
+            if name in forbidden_names or is_forbidden_install_name(name):
+                forbidden.append((current / name).as_posix())
+        for name in files:
+            if name in forbidden_names or is_forbidden_install_name(name) or name.endswith(".pyc"):
+                forbidden.append((current / name).as_posix())
+    return forbidden
+
+
+def build_fresh_install_package_proof(args: argparse.Namespace, version: str) -> dict[str, Any]:
+    command_template = (
+        "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate "
+        "--package-tarball <release-tarball> --shipguard-eval --shareable"
+    )
+    if not args.package_tarball:
+        return {
+            "status": "not-provided",
+            "provided": False,
+            "requiredForStableV4": True,
+            "summary": "No release package tarball was supplied; stable v4 proof still needs a fresh install receipt from the package.",
+            "nextCommand": command_template,
+            "installCommand": "PREFIX=<fresh-prefix> <package>/scripts/install.sh",
+            "validateCommand": "<fresh-prefix>/bin/shipguard validate",
+        }
+
+    tarball = Path(args.package_tarball).expanduser().resolve()
+    install_prefix = (
+        Path(args.fresh_install_prefix).expanduser().resolve()
+        if args.fresh_install_prefix
+        else Path(args.out).expanduser().resolve() / "fresh-install-prefix"
+    )
+    work_dir = (
+        Path(args.fresh_install_work_dir).expanduser().resolve()
+        if args.fresh_install_work_dir
+        else Path(args.out).expanduser().resolve() / "fresh-install-work"
+    )
+    managed_prefix = args.fresh_install_prefix is None
+    managed_work_dir = args.fresh_install_work_dir is None
+    extract_dir = work_dir / "extracted"
+
+    proof: dict[str, Any] = {
+        "status": "blocked",
+        "provided": True,
+        "requiredForStableV4": True,
+        "packageTarball": tarball.as_posix(),
+        "installPrefix": install_prefix.as_posix(),
+        "workDir": work_dir.as_posix(),
+        "nextCommand": "./tests/v4_release_candidate_test.sh",
+        "installCommand": "PREFIX=<fresh-prefix> <package>/scripts/install.sh",
+        "validateCommand": "<fresh-prefix>/bin/shipguard validate",
+    }
+    if not tarball.is_file():
+        proof["summary"] = "Release package tarball was not found."
+        proof["error"] = f"package tarball not found: {tarball}"
+        return proof
+
+    if install_prefix.exists() and not install_prefix.is_dir():
+        proof["summary"] = "Fresh install prefix exists but is not a directory."
+        proof["error"] = f"fresh install prefix is not a directory: {install_prefix}"
+        return proof
+    if install_prefix.exists() and any(install_prefix.iterdir()):
+        if managed_prefix:
+            shutil.rmtree(install_prefix)
+        else:
+            proof["summary"] = "Fresh install prefix already exists and is not empty."
+            proof["error"] = f"fresh install prefix must be empty: {install_prefix}"
+            return proof
+    if work_dir.exists() and not work_dir.is_dir():
+        if managed_work_dir:
+            work_dir.unlink()
+        else:
+            proof["summary"] = "Fresh install work path exists but is not a directory."
+            proof["error"] = f"fresh install work path is not a directory: {work_dir}"
+            return proof
+    if work_dir.exists() and any(work_dir.iterdir()):
+        if managed_work_dir:
+            shutil.rmtree(work_dir)
+        else:
+            proof["summary"] = "Fresh install work directory already exists and is not empty."
+            proof["error"] = f"fresh install work directory must be empty: {work_dir}"
+            return proof
+    install_prefix.mkdir(parents=True, exist_ok=True)
+    work_dir.mkdir(parents=True, exist_ok=True)
+
+    extracted, extract_evidence = safe_extract_tarball(tarball, extract_dir)
+    proof["extractStatus"] = "pass" if extracted else "blocked"
+    proof["extractEvidence"] = extract_evidence
+    if not extracted:
+        proof["summary"] = "Release package tarball could not be safely extracted."
+        return proof
+
+    package_root = find_package_root(extract_dir, version)
+    if package_root is None:
+        proof["summary"] = "Extracted package did not contain scripts/install.sh."
+        proof["error"] = "package root not found"
+        return proof
+    proof["packageRoot"] = package_root.as_posix()
+
+    install_env = dict(os.environ, PREFIX=install_prefix.as_posix())
+    install_result = run_process(["bash", str(package_root / "scripts" / "install.sh")], package_root, 120, install_env)
+    proof["installResult"] = install_result
+    if install_result["exitCode"] != 0:
+        proof["summary"] = "Fresh package install failed."
+        return proof
+
+    installed_bin = install_prefix / "bin" / "shipguard"
+    installed_legacy_bin = install_prefix / "bin" / "codex-maintainer"
+    installed_root = install_prefix / "lib" / "shipguard"
+    proof["installedCli"] = installed_bin.as_posix()
+    proof["installedLegacyCli"] = installed_legacy_bin.as_posix()
+    proof["installedRoot"] = installed_root.as_posix()
+    if not installed_bin.is_file():
+        proof["summary"] = "Fresh install did not create the shipguard wrapper."
+        proof["error"] = f"installed CLI missing: {installed_bin}"
+        return proof
+
+    version_result = run_process([str(installed_bin), "version"], package_root, 30)
+    legacy_version_result = run_process([str(installed_legacy_bin), "version"], package_root, 30) if installed_legacy_bin.is_file() else {"exitCode": "missing"}
+    validate_result = run_process([str(installed_bin), "validate"], package_root, 120)
+    proof["versionResult"] = version_result
+    proof["legacyVersionResult"] = legacy_version_result
+    proof["validateResult"] = validate_result
+    proof["installedVersion"] = (version_result.get("stdout") or "").strip().splitlines()[0] if version_result.get("stdout") else ""
+    proof["installedLegacyVersion"] = (
+        (legacy_version_result.get("stdout") or "").strip().splitlines()[0] if legacy_version_result.get("stdout") else ""
+    )
+    forbidden_paths = find_forbidden_install_paths(installed_root)
+    proof["forbiddenInstalledPathCount"] = len(forbidden_paths)
+    proof["forbiddenInstalledPaths"] = forbidden_paths[:20]
+
+    version_ok = version_result["exitCode"] == 0 and proof["installedVersion"] == version
+    legacy_ok = legacy_version_result["exitCode"] == 0 and proof["installedLegacyVersion"] == version
+    validate_ok = validate_result["exitCode"] == 0
+    clean_ok = not forbidden_paths
+    if version_ok and legacy_ok and validate_ok and clean_ok:
+        proof["status"] = "pass"
+        proof["summary"] = "Release package installed into a fresh prefix, reported the expected version, validated, and omitted generated/VCS paths."
+    else:
+        proof["summary"] = "Fresh package install proof did not pass every check."
+        proof["versionMatches"] = version_ok
+        proof["legacyVersionMatches"] = legacy_ok
+        proof["validatePassed"] = validate_ok
+        proof["installTreeClean"] = clean_ok
+    return proof
 
 
 def build_published_release_asset_proof(args: argparse.Namespace, root: Path, version: str) -> dict[str, Any]:
@@ -214,6 +432,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     plugin_text = read_text(root / "plugins" / "ios-shipguard" / "skills" / "ios-shipguard" / "SKILL.md")
     changelog_text = read_text(root / "CHANGELOG.md")
 
+    fresh_install_package_proof = build_fresh_install_package_proof(args, version)
     published_release_asset_proof = build_published_release_asset_proof(args, root, version)
 
     checks: list[dict[str, Any]] = []
@@ -253,6 +472,15 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ["scripts/install.sh", "tests/package_release_test.sh", "scripts/tool_value_gauntlet.py"],
         "Keep a runnable fresh-package install proof so a new user can validate ShipGuard without maintainer context.",
     )
+    if fresh_install_package_proof["provided"]:
+        add_check(
+            checks,
+            "fresh-install-package-verified",
+            "Supplied package tarball passes fresh install proof",
+            fresh_install_package_proof["status"] == "pass",
+            ["package tarball", "scripts/install.sh", "installed shipguard validate"],
+            "Attach a real fresh-install receipt from the release package before using release-candidate readiness as stable-v4 evidence.",
+        )
     add_check(
         checks,
         "upgrade-proof-present",
@@ -412,6 +640,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "productStage": "v4-release-candidate-readiness",
         "releaseClaim": "candidate-ready" if status == "pass" else "not-ready",
         "stableV4Release": False,
+        "freshInstallPackageProof": fresh_install_package_proof["status"],
+        "freshInstallPackageProofRequiredForStableV4": True,
         "publishedReleaseAssetProof": published_release_asset_proof["status"],
         "publishedReleaseAssetsRequiredForStableV4": True,
         "requiredProofCommands": [
@@ -426,6 +656,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "codex plugin marketplace add .",
             "codex plugin add ios-shipguard@shipguard",
             "./bin/shipguard codex status --strict",
+            "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --shipguard-eval --shareable",
             "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>",
         ],
     }
@@ -460,7 +691,17 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "Does the adoption packet tell an external developer the first command, proof bundle, support boundary, and non-claims?",
         "What stable v4 product release proof remains after release-candidate readiness passes?",
     ]
-    if status == "pass" and published_release_asset_proof["status"] == "not-provided":
+    if status == "pass" and fresh_install_package_proof["status"] == "not-provided":
+        priority_action = (
+            "Attach a real fresh-install receipt from the release package before any stable v4 claim; "
+            "downloaded release-asset proof, external adoption evidence, final security review, rollback proof, and release proof consumption still remain stabilization gates."
+        )
+        next_command = fresh_install_package_proof["nextCommand"]
+        summary = (
+            "ShipGuard has release-candidate readiness proof, but no release package tarball was supplied for a fresh-install receipt."
+        )
+        proof_source = "v4 release-candidate checks plus documented package install boundary; fresh install package proof not supplied"
+    elif status == "pass" and published_release_asset_proof["status"] == "not-provided":
         priority_action = (
             "Attach downloaded release assets to the v4 product release candidate before any stable v4 claim; "
             "external adoption evidence, final security review, package proof, rollback proof, and release proof consumption still remain stabilization gates."
@@ -472,11 +713,11 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         proof_source = "v4 release-candidate checks plus documented release-consume boundary; published asset proof not supplied"
     elif status == "pass":
         priority_action = (
-            "Use the passing release-asset consumer receipt as one v4 stabilization input, then finish external adoption evidence, final security review, package proof, and rollback proof."
+            "Use the passing fresh-install and release-asset receipts as v4 stabilization inputs, then finish external adoption evidence, final security review, and rollback proof."
         )
         next_command = "./tests/v4_release_candidate_test.sh"
-        summary = "ShipGuard has release-candidate readiness proof and supplied release assets passed consumer-side verification."
-        proof_source = "v4 release-candidate checks plus release-consume consumer-report and asset digest matrix"
+        summary = "ShipGuard has release-candidate readiness proof, supplied package tarball passed fresh-install proof, and supplied release assets passed consumer-side verification."
+        proof_source = "v4 release-candidate checks plus fresh-install package receipt, release-consume consumer-report, and asset digest matrix"
     else:
         priority_action = "Complete the missing release-candidate readiness checks before calling v4 candidate-ready."
         next_command = "./tests/v4_release_candidate_test.sh"
@@ -504,6 +745,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "checks": checks,
         "readinessProof": readiness_proof,
         "installProof": readiness_proof["freshInstall"],
+        "freshInstallPackageProof": fresh_install_package_proof,
         "upgradeProof": readiness_proof["upgrade"],
         "uninstallProof": readiness_proof["uninstall"],
         "releaseProofConsumption": readiness_proof["releaseProofConsumption"],
@@ -533,6 +775,16 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             replacements[str(published_release_asset_proof["assetsDir"])] = "<release-assets>"
         if published_release_asset_proof.get("consumeOut"):
             replacements[str(published_release_asset_proof["consumeOut"])] = "<release-consume-out>"
+        if fresh_install_package_proof.get("packageTarball"):
+            replacements[str(fresh_install_package_proof["packageTarball"])] = "<package-tarball>"
+        if fresh_install_package_proof.get("installPrefix"):
+            replacements[str(fresh_install_package_proof["installPrefix"])] = "<fresh-install-prefix>"
+        if fresh_install_package_proof.get("workDir"):
+            replacements[str(fresh_install_package_proof["workDir"])] = "<fresh-install-work-dir>"
+        if fresh_install_package_proof.get("packageRoot"):
+            replacements[str(fresh_install_package_proof["packageRoot"])] = "<fresh-install-package-root>"
+        if fresh_install_package_proof.get("installedRoot"):
+            replacements[str(fresh_install_package_proof["installedRoot"])] = "<fresh-install-root>"
         report = scrub_value(report, replacements)
     return report
 
@@ -557,6 +809,21 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.extend(["", "## Fresh Install", ""])
     for command in report["installProof"].get("commands", []):
         lines.append(f"- `{command}`")
+    proof = report["freshInstallPackageProof"]
+    lines.extend(["", "## Fresh Install Package Proof", ""])
+    lines.append(f"- Status: `{proof.get('status')}`")
+    lines.append(f"- Required for stable v4: `{proof.get('requiredForStableV4')}`")
+    lines.append(f"- Summary: {proof.get('summary')}")
+    if proof.get("provided"):
+        lines.append(f"- Installed version: `{proof.get('installedVersion')}`")
+        lines.append(f"- Legacy alias version: `{proof.get('installedLegacyVersion')}`")
+        lines.append(f"- Forbidden installed paths: `{proof.get('forbiddenInstalledPathCount')}`")
+        if proof.get("packageTarball"):
+            lines.append(f"- Package tarball: `{proof.get('packageTarball')}`")
+        if proof.get("installPrefix"):
+            lines.append(f"- Install prefix: `{proof.get('installPrefix')}`")
+    else:
+        lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## Upgrade", ""])
     for command in report["upgradeProof"].get("commands", []):
         lines.append(f"- `{command}`")
@@ -622,6 +889,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate ShipGuard v4 release-candidate readiness reports.")
     parser.add_argument("--path", default=".", help="ShipGuard repository path. Defaults to current directory.")
     parser.add_argument("--out", required=True, help="Output directory for v4-release-candidate reports.")
+    parser.add_argument("--package-tarball", help="Optional release package tarball to verify with a fresh install.")
+    parser.add_argument("--fresh-install-prefix", help="Optional empty install prefix for --package-tarball proof. Defaults under --out.")
+    parser.add_argument("--fresh-install-work-dir", help="Optional extraction/work directory for --package-tarball proof. Defaults under --out.")
     parser.add_argument("--release-assets", help="Optional downloaded release assets directory to verify with release-consume.")
     parser.add_argument("--release-version", help="Version to use when verifying --release-assets. Defaults to VERSION.")
     parser.add_argument("--release-consume-out", help="Output directory for embedded release-consume proof. Defaults under --out.")

@@ -462,7 +462,7 @@ grep -q "^$package_name/evals/cases.jsonl$" "$tar_list"
 grep -q "^$package_name/evals/ios_shipguard_cases.jsonl$" "$tar_list"
 grep -q "^$package_name/evals/run_local.py$" "$tar_list"
 
-if grep -Eq '(^|/)(\\.git|dist|DerivedData|\\.cache|__pycache__)(/|$)|\\.pyc$' "$tar_list"; then
+if grep -Eq '(^|/)(\\.git|dist|DerivedData|\\.cache|__pycache__)(/|$)|(^|/)\\._|\\.pyc$' "$tar_list"; then
   echo "package includes forbidden generated or VCS paths" >&2
   exit 1
 fi
@@ -1264,8 +1264,9 @@ printf 'git sentinel\n' > "$package_root/.git/HEAD"
 PREFIX="$install_prefix" "$package_root/scripts/install.sh" >/dev/null
 test "$("$install_prefix/bin/shipguard" version)" = "$version"
 test "$("$install_prefix/bin/codex-maintainer" version)" = "$version"
+"$install_prefix/bin/shipguard" validate >/dev/null
 if find "$install_prefix/lib/shipguard" \
-  \( -name '.git' -o -name 'dist' -o -name '.DS_Store' -o -name '.cache' -o -name 'DerivedData' -o -name '__pycache__' -o -name '*.pyc' \) \
+  \( -name '.git' -o -name 'dist' -o -name '.DS_Store' -o -name '._*' -o -name '.cache' -o -name 'DerivedData' -o -name '__pycache__' -o -name '*.pyc' \) \
   -print -quit | grep -q .; then
   echo "installed toolkit includes forbidden generated or VCS paths" >&2
   exit 1

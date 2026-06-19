@@ -97,7 +97,7 @@ Do not generate CSS/SVG mock art for the social preview. Use the icon until a st
 Use the latest shipped capability as the release headline. For `v3.131.0`, the release story is:
 
 ```text
-ShipGuard v3.131.0 adds V4 Release Candidate Readiness / LaunchKey: fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, release-readiness commands, and blocked stable-v4 claims.
+ShipGuard v3.131.0 adds V4 Release Candidate Readiness / LaunchKey: fresh install, package-tarball fresh-install proof, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, release-readiness commands, and blocked stable-v4 claims.
 ```
 
 Mention supporting context only after the headline:

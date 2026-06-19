@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added LaunchKey fresh-install receipt attachment: `shipguard v4 release-candidate` now accepts `--package-tarball`, `--fresh-install-prefix`, and `--fresh-install-work-dir`, installs the package into a fresh prefix, checks both CLI aliases, runs installed `shipguard validate`, and records `freshInstallPackageProof`.
+- Hardened package/install hygiene after fresh-install proof exposed macOS AppleDouble sidecars during package install. `package_release.sh` and `install.sh` now disable/cull `._*` files, and package release tests require installed `shipguard validate` to pass.
 - Added LaunchKey published release-asset proof attachment: `shipguard v4 release-candidate` now accepts `--release-assets`, `--release-version`, and `--release-consume-out`, runs `shipguard release-consume verify`, and records `publishedReleaseAssetProof` so stable-v4 release asset proof is attached to the v4 candidate report instead of living only as a separate manual instruction.
 - Fixed InspectDeck result UX after read-only ShipGuard self-QA showed Value Gauntlet prose proof guidance could be copied into `resultUX.nextCommand`. InspectDeck now keeps prose in the action summary/reason and falls back to a runnable value-gauntlet command template.
 - Improved InspectDeck next-action ordering after read-only ShipGuard self-QA showed bare `shipguard inspect` runs jumped straight to release-proof build while value-gauntlet and full-audit receipts were also missing. InspectDeck now asks for the missing value-gauntlet receipt first, then full-audit, then release proof.

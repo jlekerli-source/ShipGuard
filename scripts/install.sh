@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+export COPYFILE_DISABLE=1
+export COPY_EXTENDED_ATTRIBUTES_DISABLE=1
+
 package_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 prefix="${PREFIX:-/usr/local}"
 bin_dir="$prefix/bin"
@@ -18,7 +21,7 @@ rm -rf "$lib_dir"
 mkdir -p "$lib_dir"
 tar -C "$package_root" -cf - . | tar -C "$lib_dir" -xf -
 find "$lib_dir" \
-  \( -name '.git' -o -name 'dist' -o -name '.DS_Store' -o -name '.cache' -o -name 'DerivedData' -o -name '__pycache__' \) \
+  \( -name '.git' -o -name 'dist' -o -name '.DS_Store' -o -name '._*' -o -name '.cache' -o -name 'DerivedData' -o -name '__pycache__' \) \
   -prune -exec rm -rf {} +
 find "$lib_dir" -type f -name '*.pyc' -delete
 

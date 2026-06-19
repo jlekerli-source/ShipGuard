@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-19T15:45:00Z
+- Generated: 2026-06-19T16:13:01Z
 - Current toolkit version: 3.131.0
-- Target release: v3.137.0
-- Title: LaunchKey Published Release-Asset Proof Attachment
+- Target release: v3.138.0
+- Title: LaunchKey Fresh Install Receipt Attachment
 
 ## Slash Plan
 
 ```text
-/plan v3.137.0 LaunchKey Published Release-Asset Proof Attachment for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Improve LaunchKey after read-only ShipGuard self-QA showed v4 release-candidate could point to release-consume as a separate command but could not attach downloaded release-asset consumer proof to the candidate report.
+/plan v3.138.0 LaunchKey Fresh Install Receipt Attachment for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Improve LaunchKey after read-only ShipGuard self-QA showed v4 release-candidate could ask whether a fresh user can install and validate the release package, but only exposed static install commands instead of attaching an actual package fresh-install receipt.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.137.0 LaunchKey Published Release-Asset Proof Attachment for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Improve LaunchKey after read-only ShipGuard self-QA showed v4 release-candidate could point to release-consume as a separate command but could not attach downloaded release-asset consumer proof to the candidate report, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.138.0 LaunchKey Fresh Install Receipt Attachment for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Improve LaunchKey after read-only ShipGuard self-QA showed v4 release-candidate could ask whether a fresh user can install and validate the release package, but only exposed static install commands instead of attaching an actual package fresh-install receipt, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Improve LaunchKey after read-only ShipGuard self-QA showed v4 release-candidate could point to release-consume as a separate command but could not attach downloaded release-asset consumer proof to the candidate report.
+Improve LaunchKey after read-only ShipGuard self-QA showed v4 release-candidate could ask whether a fresh user can install and validate the release package, but only exposed static install commands instead of attaching an actual package fresh-install receipt.
 
 ## Completion Receipt
 
-- Completed scope: LaunchKey now accepts downloaded release assets, runs release-consume verification, and records publishedReleaseAssetProof in the v4 release-candidate report while keeping stable-v4 claims blocked.
-- Evidence: Read-only ShipGuard self-QA generated /tmp/shipguard-loop-v4rc-6 and /tmp/shipguard-loop-quality-v4rc-6-fixed; report-quality passed but v4 stabilization still depended on separate published-asset proof. After the fix, /tmp/shipguard-loop-v4rc-assets-6/v4-release-candidate.json reports status=pass, publishedReleaseAssetProof.status=pass, consumerReportStatus=pass, and resultUX.nextCommand=./tests/v4_release_candidate_test.sh; /tmp/shipguard-loop-quality-v4rc-assets-6 passed report-quality; python3 -m py_compile scripts/v4_release_candidate.py scripts/ios_branding.py and ./tests/v4_release_candidate_test.sh passed.
+- Completed scope: LaunchKey now accepts package tarballs, safely extracts them, installs into a fresh prefix, checks both CLI aliases, runs installed validation, records freshInstallPackageProof, redacts fresh-install paths in shareable output, rejects unsafe tarballs, and package/install scripts block macOS AppleDouble sidecars.
+- Evidence: Read-only self-QA generated /tmp/shipguard-loop-v4rc-7 and /tmp/shipguard-loop-quality-v4rc-7; report-quality asked whether a fresh user can install and validate ShipGuard from the release package. After the fix, /tmp/shipguard-loop-v4rc-fresh-install-7/v4-release-candidate.json reports status=pass, freshInstallPackageProof.status=pass, publishedReleaseAssetProof.status=not-provided, and a next command for downloaded release assets; /tmp/shipguard-loop-quality-v4rc-fresh-install-7/ios-report-quality.json passed. python3 -m py_compile scripts/v4_release_candidate.py scripts/ios_branding.py passed, git diff --check passed, ./tests/v4_release_candidate_test.sh passed including package install, release-asset proof, redaction, missing tarball, missing assets, and unsafe tarball rejection, and ./tests/package_release_test.sh passed including installed-bundle validation and AppleDouble cleanup.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.138.0 LaunchKey Fresh Install Receipt Attachment for jlekerli-source/ShipGuard:
+/plan v3.139.0 LaunchKey Upgrade And Rollback Receipt Attachment for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Improve LaunchKey after read-only ShipGuard self-QA showed v4 release-candidate 
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.138.0 LaunchKey Fresh Install Receipt Attachment for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.139.0 LaunchKey Upgrade And Rollback Receipt Attachment for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.138.0 --title "LaunchKey Fresh Install Receipt Attachment" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.139.0 --title "LaunchKey Upgrade And Rollback Receipt Attachment" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.137.0.
+1. Open or update the tracking issue for v3.138.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.137.0` and upload `dist/shipguard-v3.137.0.tar.gz`.
+6. Create release `v3.138.0` and upload `dist/shipguard-v3.138.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

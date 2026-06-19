@@ -35,6 +35,7 @@ grep -q '# ShipGuard V4 Release Candidate Readiness' "$tmp_dir/v4-release-candid
 grep -q '## Result' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Readiness Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Fresh Install' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
+grep -q 'Fresh Install Package Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Release Proof Consumption' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Published Release Asset Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'External Adoption Packet' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
@@ -48,6 +49,7 @@ grep -q '"status": "pass"' "$tmp_dir/v4-release-candidate/v4-release-candidate.j
 grep -q '"productStage": "v4-release-candidate-readiness"' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"readinessProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"installProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
+grep -q '"freshInstallPackageProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"upgradeProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"uninstallProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"releaseProofConsumption":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
@@ -78,6 +80,7 @@ assert report["status"] == "pass"
 assert report["productStage"] == "v4-release-candidate-readiness"
 assert report["releaseReadiness"]["releaseClaim"] == "candidate-ready"
 assert report["releaseReadiness"]["stableV4Release"] is False
+assert report["releaseReadiness"]["freshInstallPackageProof"] == "not-provided"
 assert report["releaseReadiness"]["publishedReleaseAssetProof"] == "not-provided"
 for key in [
     "freshInstall",
@@ -90,11 +93,15 @@ for key in [
 ]:
     assert report["readinessProof"][key]["status"] == "pass"
 assert "release-consume verify" in " ".join(report["releaseProofConsumption"]["commands"])
+assert report["freshInstallPackageProof"]["status"] == "not-provided"
+assert report["freshInstallPackageProof"]["provided"] is False
+assert report["freshInstallPackageProof"]["requiredForStableV4"] is True
+assert "--package-tarball <release-tarball>" in report["freshInstallPackageProof"]["nextCommand"]
+assert "--package-tarball <release-tarball>" in report["resultUX"]["nextCommand"]
 assert report["publishedReleaseAssetProof"]["status"] == "not-provided"
 assert report["publishedReleaseAssetProof"]["provided"] is False
 assert report["publishedReleaseAssetProof"]["requiredForStableV4"] is True
 assert "--release-assets <downloaded-assets-dir>" in report["publishedReleaseAssetProof"]["nextCommand"]
-assert "--release-assets <downloaded-assets-dir>" in report["resultUX"]["nextCommand"]
 assert "codex status --strict" in " ".join(report["pluginRefreshProof"]["commands"])
 assert "external developer" in report["externalAdoptionPacket"]["supportBoundary"]
 assert any("stable v4 product release" in claim.lower() for claim in report["blockedClaims"])
@@ -102,7 +109,7 @@ assert report["scopeBoundary"]["shipguardOnly"] is True
 assert report["scopeBoundary"]["targetAppsReadOnly"] is True
 assert report["scopeBoundary"]["privateAppsUsed"] is False
 assert report["scopeBoundary"]["doesNotPublishRelease"] is True
-assert "product release" in report["resultUX"]["priorityAction"].lower()
+assert "fresh-install receipt" in report["resultUX"]["priorityAction"].lower()
 PY
 
 version="$(sed -n '1p' VERSION)"
@@ -128,6 +135,9 @@ cp "$tmp_dir/proof-bundle/attestation/attestation-badge.json" "$tmp_dir/download
 SHIPGUARD_GENERATED_AT="2026-06-19T00:00:00Z" \
   ./bin/shipguard v4 release-candidate \
     --path . \
+    --package-tarball "$tmp_dir/proof-bundle/shipguard-v$version.tar.gz" \
+    --fresh-install-prefix "$tmp_dir/fresh-prefix" \
+    --fresh-install-work-dir "$tmp_dir/fresh-work" \
     --out "$tmp_dir/with-assets" \
     --release-assets "$tmp_dir/downloaded" \
     --release-version "$version" \
@@ -139,15 +149,31 @@ test -f "$tmp_dir/with-assets/v4-release-candidate.json"
 test -f "$tmp_dir/with-assets/v4-release-candidate.md"
 test -f "$tmp_dir/with-assets-consume/consumer-report.json"
 test -f "$tmp_dir/with-assets-consume/asset-digests.json"
+test -x "$tmp_dir/fresh-prefix/bin/shipguard"
 
 python3 - "$tmp_dir/with-assets/v4-release-candidate.json" <<'PY'
 import json
 import sys
 
 report = json.load(open(sys.argv[1], encoding="utf-8"))
+fresh = report["freshInstallPackageProof"]
 proof = report["publishedReleaseAssetProof"]
 assert report["status"] == "pass"
+assert report["releaseReadiness"]["freshInstallPackageProof"] == "pass"
 assert report["releaseReadiness"]["publishedReleaseAssetProof"] == "pass"
+assert fresh["status"] == "pass"
+assert fresh["provided"] is True
+assert fresh["installedVersion"] == report["version"]
+assert fresh["installedLegacyVersion"] == report["version"]
+assert fresh["forbiddenInstalledPathCount"] == 0
+assert fresh["packageTarball"] == "<package-tarball>"
+assert fresh["installPrefix"] == "<fresh-install-prefix>"
+assert fresh["workDir"] == "<fresh-install-work-dir>"
+assert fresh["packageRoot"] == "<fresh-install-package-root>"
+assert fresh["installedRoot"] == "<fresh-install-root>"
+assert fresh["versionResult"]["exitCode"] == 0
+assert fresh["legacyVersionResult"]["exitCode"] == 0
+assert fresh["validateResult"]["exitCode"] == 0
 assert proof["status"] == "pass"
 assert proof["provided"] is True
 assert proof["consumerReportStatus"] == "pass"
@@ -168,10 +194,47 @@ if grep -R -F -q "$tmp_dir/with-assets-consume" "$tmp_dir/with-assets"; then
   echo "shareable v4 release-candidate output must redact release-consume paths" >&2
   exit 1
 fi
+if grep -R -F -q "$tmp_dir/fresh-prefix" "$tmp_dir/with-assets"; then
+  echo "shareable v4 release-candidate output must redact fresh install prefix paths" >&2
+  exit 1
+fi
+if grep -R -F -q "$tmp_dir/fresh-work" "$tmp_dir/with-assets"; then
+  echo "shareable v4 release-candidate output must redact fresh install work paths" >&2
+  exit 1
+fi
+
+if ./bin/shipguard v4 release-candidate \
+  --path . \
+  --out "$tmp_dir/missing-tarball" \
+  --package-tarball "$tmp_dir/does-not-exist.tar.gz" \
+  --json >/dev/null 2>&1; then
+  echo "expected missing package tarball to fail release-candidate proof" >&2
+  exit 1
+fi
+test -f "$tmp_dir/missing-tarball/v4-release-candidate.json"
+grep -q '"status": "review"' "$tmp_dir/missing-tarball/v4-release-candidate.json"
+grep -q '"freshInstallPackageProof": "blocked"' "$tmp_dir/missing-tarball/v4-release-candidate.json"
+
+mkdir -p "$tmp_dir/unsafe-package/shipguard-v$version/scripts"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$tmp_dir/unsafe-package/shipguard-v$version/scripts/install.sh"
+ln -s /tmp "$tmp_dir/unsafe-package/shipguard-v$version/unsafe-link"
+(cd "$tmp_dir/unsafe-package" && tar -czf "$tmp_dir/unsafe-package.tar.gz" "shipguard-v$version")
+if ./bin/shipguard v4 release-candidate \
+  --path . \
+  --out "$tmp_dir/unsafe-tarball" \
+  --package-tarball "$tmp_dir/unsafe-package.tar.gz" \
+  --json >/dev/null 2>&1; then
+  echo "expected unsafe package tarball to fail release-candidate proof" >&2
+  exit 1
+fi
+test -f "$tmp_dir/unsafe-tarball/v4-release-candidate.json"
+grep -q '"freshInstallPackageProof": "blocked"' "$tmp_dir/unsafe-tarball/v4-release-candidate.json"
+grep -q 'unsafe tarball member is a link or device' "$tmp_dir/unsafe-tarball/v4-release-candidate.json"
 
 if ./bin/shipguard v4 release-candidate \
   --path . \
   --out "$tmp_dir/missing-assets" \
+  --package-tarball "$tmp_dir/proof-bundle/shipguard-v$version.tar.gz" \
   --release-assets "$tmp_dir/does-not-exist" \
   --release-version "$version" \
   --json >/dev/null 2>&1; then

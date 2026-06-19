@@ -20,6 +20,8 @@ To attach real downloaded release assets to the same readiness report:
 ./bin/shipguard v4 release-candidate \
   --path . \
   --out /tmp/shipguard-v4-release-candidate \
+  --package-tarball <release-tarball> \
+  --fresh-install-prefix /tmp/shipguard-fresh-install \
   --release-assets <downloaded-assets-dir> \
   --release-version <version> \
   --release-consume-out /tmp/shipguard-v4-release-consume \
@@ -31,6 +33,7 @@ Outputs:
 
 - `v4-release-candidate.json`
 - `v4-release-candidate.md`
+- `fresh-install-prefix/bin/shipguard` when `--package-tarball` is supplied and `--fresh-install-prefix` is omitted
 - `release-consume/consumer-report.json` when `--release-assets` is supplied and `--release-consume-out` is omitted
 
 ## Proof Contract
@@ -44,6 +47,19 @@ The command checks these gates:
 - External adoption packet: an outside developer can see the first command, proof bundle, support boundary, and non-claims.
 - Final schema docs: v4 schema-freeze docs remain linked and visible.
 - Plugin refresh proof: local Codex plugin refresh and `shipguard codex status --strict` remain part of the release lane.
+
+Without `--package-tarball`, the command can still pass release-candidate readiness, but `freshInstallPackageProof.status` is `not-provided`. Stable-v4 proof needs a real package tarball to install into a fresh prefix, report the expected version through both `shipguard` and the compatibility alias, run `shipguard validate`, and prove the installed tree omits generated, VCS, cache, bytecode, dist, and AppleDouble files.
+
+When `--package-tarball` is supplied, LaunchKey runs:
+
+```bash
+PREFIX=<fresh-prefix> <package>/scripts/install.sh
+<fresh-prefix>/bin/shipguard version
+<fresh-prefix>/bin/codex-maintainer version
+<fresh-prefix>/bin/shipguard validate
+```
+
+The report then records `freshInstallPackageProof`, including installed version, legacy alias version, validation result, forbidden installed path count, and redacted install paths. If install or validation fails, the release-candidate report returns review instead of treating static package docs as fresh-install proof.
 
 Without `--release-assets`, the command can still pass release-candidate readiness, but `publishedReleaseAssetProof.status` is `not-provided`. That is intentional: candidate readiness is not the same as stable-v4 proof. Stable-v4 release proof needs downloaded release assets to pass consumer-side verification.
 
@@ -90,7 +106,7 @@ For release assets, verify the consumer path too:
 ```bash
 ./bin/shipguard release-proof build --out /tmp/shipguard-release-proof --release-url <url> --version <version> --tag <tag> --commit <sha> --ci-run-url <url>
 ./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out /tmp/shipguard-release-consume --version <version>
-./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --release-assets <downloaded-assets-dir> --release-version <version> --shipguard-eval --shareable
+./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --package-tarball <release-tarball> --release-assets <downloaded-assets-dir> --release-version <version> --shipguard-eval --shareable
 ```
 
 ## Blocked Claims
