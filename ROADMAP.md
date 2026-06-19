@@ -137,9 +137,10 @@ v3.131  v4 release-candidate readiness
 v3.132  v4 product release stabilization
 v3.133  root report-quality and bounded source-scan hardening
 v3.134  result-UX command-field polish for source reports
+v3.135  InspectDeck missing-receipt priority
 ```
 
-Current state: latest published release `v3.131.0` adds `shipguard v4 release-candidate` and V4 Release Candidate Readiness receipts that make fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, release-readiness commands, and blocked stable-release claims explicit. Active local ShipYard handoffs may target later v3 stabilization slices, but those are not stable-v4 release claims. The active architectural priority remains v4 product release stabilization: external adoption evidence, final security review, package proof, rollback proof, report-quality precision, result-UX command discipline, and release proof consumption on published assets before any stable v4 claim.
+Current state: latest published release `v3.131.0` adds `shipguard v4 release-candidate` and V4 Release Candidate Readiness receipts that make fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, release-readiness commands, and blocked stable-release claims explicit. Active local ShipYard handoffs may target later v3 stabilization slices, but those are not stable-v4 release claims. The current local handoff is v3.135 InspectDeck missing-receipt priority: make bare `shipguard inspect` guide maintainers toward missing value-gauntlet and full-audit receipts before release proof. The active architectural priority remains v4 product release stabilization: external adoption evidence, final security review, package proof, rollback proof, report-quality precision, result-UX command discipline, and release proof consumption on published assets before any stable v4 claim.
 
 Every release proposal must answer:
 

@@ -234,6 +234,18 @@ def proof_inputs(value_path: Path | None, value_data: dict[str, Any], full_path:
 
 
 def choose_next_action(value_summary: dict[str, Any], full_summary: dict[str, Any], plugin: dict[str, Any], release: dict[str, Any]) -> dict[str, str]:
+    if not value_summary.get("found"):
+        return {
+            "source": "value-gauntlet.missing",
+            "command": "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet",
+            "reason": "No value-gauntlet receipt was supplied to inspect; generate it first so InspectDeck can rank the weakest ShipGuard surface before release proof.",
+        }
+    if not full_summary.get("found"):
+        return {
+            "source": "full-audit.missing",
+            "command": "./bin/shipguard full-audit --path . --out /tmp/shipguard-full-audit --profile quick --plan-only --shipguard-eval --shareable",
+            "reason": "No full-audit receipt was supplied to inspect; generate it so InspectDeck can summarize the ShipYard lane before release proof.",
+        }
     failed = full_summary.get("failedStages") or []
     if failed:
         stage = failed[0]

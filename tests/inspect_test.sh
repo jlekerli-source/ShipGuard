@@ -155,4 +155,32 @@ grep -q '"tool": "shipguard inspect"' <<<"$json_stdout"
 markdown_stdout="$(./bin/shipguard inspect --path . --out "$tmp_dir/md" --value-gauntlet "$tmp_dir/value" --full-audit "$tmp_dir/full" --release-assets "$tmp_dir/release" --markdown)"
 grep -q '# ShipGuard InspectDeck' <<<"$markdown_stdout"
 
+./bin/shipguard inspect \
+  --path . \
+  --out "$tmp_dir/missing-inputs" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+python3 - <<'PY' "$tmp_dir/missing-inputs/shipguard-inspect.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("status") != "review":
+    raise SystemExit(f"missing-input inspect should be review: {data.get('status')!r}")
+next_action = data.get("nextAction") or {}
+if next_action.get("source") != "value-gauntlet.missing":
+    raise SystemExit(f"missing-input inspect should prioritize value-gauntlet receipt first: {next_action!r}")
+if next_action.get("command") != "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet":
+    raise SystemExit(f"missing-input inspect command should be executable: {next_action!r}")
+result = data.get("resultUX") or {}
+if result.get("proofSource") != "value-gauntlet.missing":
+    raise SystemExit(f"resultUX should expose missing value-gauntlet proof source: {result!r}")
+if result.get("nextCommand") != next_action.get("command"):
+    raise SystemExit(f"resultUX next command should mirror nextAction: {result!r} {next_action!r}")
+PY
+
+grep -q 'value-gauntlet.missing' "$tmp_dir/missing-inputs/shipguard-inspect.md"
+grep -q './bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet' "$tmp_dir/missing-inputs/shipguard-inspect.md"
+
 echo "inspect tests passed"
