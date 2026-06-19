@@ -13,6 +13,7 @@ from typing import Any
 
 import ios_doctor
 import ios_scan_scope
+import ios_shareable
 
 
 SCHEMA_VERSION = 1
@@ -160,7 +161,7 @@ def receipt_path_label(path: Path, *, inputs: list[Path], shareable: bool) -> st
 
 
 def read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8", errors="ignore")
+    return ios_scan_scope.read_text_limited(path).text
 
 
 def shell_quote(value: str) -> str:
@@ -426,18 +427,38 @@ def collect_preview_metrics(root: Path) -> dict[str, Any]:
     scan = ios_scan_scope.iter_files(root, {".swift"})
     preview_files: list[str] = []
     declaration_count = 0
+    truncated_files: list[Path] = []
+    omitted_files: list[Path] = []
+    timed_out_files: list[Path] = []
     for path in scan.files:
-        text = read_text(path)
+        source = ios_scan_scope.read_text_limited(path)
+        if source.omitted:
+            omitted_files.append(path)
+            if source.timed_out:
+                timed_out_files.append(path)
+            continue
+        if source.truncated:
+            truncated_files.append(path)
+        text = source.text
         count = text.count("#Preview") + text.count("PreviewProvider")
         if count:
             preview_files.append(rel(path, root))
             declaration_count += count
     return {
         "swiftFilesScanned": len(scan.files),
+        "truncatedSwiftFiles": len(truncated_files),
+        "omittedLargeSwiftFiles": len(omitted_files),
+        "timedOutSwiftFiles": len(timed_out_files),
         "previewDeclarationCount": declaration_count,
         "previewFiles": preview_files[:12],
         "previewFileListTruncated": len(preview_files) > 12,
-        "scanScope": ios_scan_scope.summary(scan),
+        "scanScope": ios_scan_scope.summary_with_text_limits(
+            scan,
+            root,
+            truncated_text_files=truncated_files,
+            omitted_large_text_files=omitted_files,
+            timed_out_text_files=timed_out_files,
+        ),
     }
 
 
@@ -818,7 +839,7 @@ def build_report(
     selected_workflow = workflow_id(workflow, target, preview)
     execution_receipts = collect_execution_receipts(receipts or [], shareable=shareable)
     receipt_quality = grade_receipt_quality(selected_workflow, execution_receipts)
-    return {
+    report = {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard ios launchdeck",
         "generatedAt": utc_now(),
@@ -861,6 +882,9 @@ def build_report(
         "reportQualityQuestions": shipguard_eval_questions() if shipguard_eval else [],
         "nextActions": next_actions(target, selected_workflow, receipt_quality),
     }
+    if shipguard_eval and shareable:
+        report = ios_shareable.redact_shipguard_eval_report(report)
+    return report
 
 
 def table_cell(value: object, limit: int = 120) -> str:
@@ -888,6 +912,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Xcode projects: {source['xcodeProjects']}",
         f"- Xcode workspaces: {source['xcodeWorkspaces']}",
         f"- Swift packages: {source['swiftPackages']}",
+        f"- Preview text scan budget: {preview['scanScope']['largeTextReadMode']} at {preview['scanScope']['textBytesPerFileLimit']} bytes",
+        f"- Preview Swift files sampled: {preview['truncatedSwiftFiles']}; large Swift files omitted: {preview['omittedLargeSwiftFiles']}; timed out: {preview['timedOutSwiftFiles']}",
         f"- Skipped generated/proof/cache directories: {source['scanScope']['skippedDirectoryCount']}",
         "",
     ]
@@ -953,6 +979,34 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- Skipped `{directory}`")
         if scan_scope["skippedDirectoryListTruncated"]:
             lines.append("- Additional skipped directories are listed in JSON.")
+    preview_scan_scope = preview["scanScope"]
+    if preview_scan_scope["truncatedTextFiles"]:
+        if not scan_scope["skippedDirectories"]:
+            lines.extend(["## Scan Scope", ""])
+        for file in preview_scan_scope["truncatedTextFiles"][:8]:
+            lines.append(f"- Sampled preview source `{file}` up to {preview_scan_scope['textBytesPerFileLimit']} bytes")
+        if preview_scan_scope["truncatedTextFileListTruncated"]:
+            lines.append("- Additional sampled preview files are listed in JSON.")
+    if preview_scan_scope["omittedLargeTextFiles"]:
+        if not scan_scope["skippedDirectories"] and not preview_scan_scope["truncatedTextFiles"]:
+            lines.extend(["## Scan Scope", ""])
+        for file in preview_scan_scope["omittedLargeTextFiles"][:8]:
+            lines.append(f"- Omitted large preview source `{file}` above {preview_scan_scope['textBytesPerFileLimit']} bytes")
+        if preview_scan_scope["omittedLargeTextFileListTruncated"]:
+            lines.append("- Additional omitted preview files are listed in JSON.")
+    if preview_scan_scope["timedOutTextFiles"]:
+        if not scan_scope["skippedDirectories"] and not preview_scan_scope["truncatedTextFiles"] and not preview_scan_scope["omittedLargeTextFiles"]:
+            lines.extend(["## Scan Scope", ""])
+        for file in preview_scan_scope["timedOutTextFiles"][:8]:
+            lines.append(f"- Timed out reading preview source `{file}` after {preview_scan_scope['textReadTimeoutSeconds']} seconds")
+        if preview_scan_scope["timedOutTextFileListTruncated"]:
+            lines.append("- Additional timed-out preview files are listed in JSON.")
+    if (
+        scan_scope["skippedDirectories"]
+        or preview_scan_scope["truncatedTextFiles"]
+        or preview_scan_scope["omittedLargeTextFiles"]
+        or preview_scan_scope["timedOutTextFiles"]
+    ):
         lines.append("")
 
     lines.extend(

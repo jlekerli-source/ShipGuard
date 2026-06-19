@@ -157,8 +157,10 @@ def read_text_limited(path: Path, *, max_bytes: int | None = None) -> TextRead:
         signal.setitimer(signal.ITIMER_REAL, timeout)
         with path.open("rb") as handle:
             payload = handle.read(limit + 1)
-    except TextReadTimeout:
+    except (TextReadTimeout, TimeoutError):
         return TextRead(text="", truncated=True, size_bytes=size, bytes_read=0, omitted=True, timed_out=True)
+    except OSError:
+        return TextRead(text="", truncated=True, size_bytes=size, bytes_read=0, omitted=True)
     finally:
         signal.setitimer(signal.ITIMER_REAL, 0)
         signal.signal(signal.SIGALRM, old_handler)

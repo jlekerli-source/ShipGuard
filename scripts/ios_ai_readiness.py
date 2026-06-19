@@ -51,7 +51,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8", errors="ignore")
+    return ios_scan_scope.read_text_limited(path).text
 
 
 def rel(path: Path, root: Path) -> str:
@@ -107,6 +107,9 @@ def scan_files(root: Path, files: list[Path]) -> dict[str, Any]:
     imports: dict[str, list[str]] = {}
     model_assets: list[str] = []
     source_files = [path for path in files if path.suffix in {".swift", ".m", ".mm", ".h", ".json", ".plist"}]
+    truncated_files: list[Path] = []
+    omitted_files: list[Path] = []
+    timed_out_files: list[Path] = []
 
     for path in files:
         if path.suffix in {".mlmodel", ".mlpackage"} or path.name.endswith(".mlmodelc"):
@@ -114,7 +117,15 @@ def scan_files(root: Path, files: list[Path]) -> dict[str, Any]:
             detections.append(token_detection("Core ML", path.suffix or path.name, path, root, 1, path.name))
 
     for path in source_files:
-        text = read_text(path)
+        source = ios_scan_scope.read_text_limited(path)
+        if source.omitted:
+            omitted_files.append(path)
+            if source.timed_out:
+                timed_out_files.append(path)
+            continue
+        if source.truncated:
+            truncated_files.append(path)
+        text = source.text
         rel_path = rel(path, root)
         if path.suffix == ".swift":
             imports[rel_path] = unique_sorted(re.findall(r"^\s*import\s+([A-Za-z0-9_]+)\b", text, re.M))
@@ -133,6 +144,9 @@ def scan_files(root: Path, files: list[Path]) -> dict[str, Any]:
         "modelAssets": model_assets,
         "counts": counts,
         "sourceFiles": len(source_files),
+        "truncatedFiles": truncated_files,
+        "omittedFiles": omitted_files,
+        "timedOutFiles": timed_out_files,
     }
 
 
@@ -399,6 +413,9 @@ def build_report(root: Path, *, shipguard_eval: bool = False, shareable: bool = 
         "recommendationSummary": choose_summary(counts),
         "summary": {
             "sourceFiles": scan["sourceFiles"],
+            "truncatedSourceFiles": len(scan["truncatedFiles"]),
+            "omittedLargeSourceFiles": len(scan["omittedFiles"]),
+            "timedOutSourceFiles": len(scan["timedOutFiles"]),
             "detections": len(scan["detections"]),
             "foundationModels": counts.get("Foundation Models", 0),
             "coreAI": counts.get("Core AI", 0),
@@ -408,7 +425,13 @@ def build_report(root: Path, *, shipguard_eval: bool = False, shareable: bool = 
             "modelAssets": len(scan["modelAssets"]),
             "privacyManifests": len(facts["privacyManifests"]),
         },
-        "scanScope": ios_scan_scope.summary(scan_scope),
+        "scanScope": ios_scan_scope.summary_with_text_limits(
+            scan_scope,
+            root,
+            truncated_text_files=scan["truncatedFiles"],
+            omitted_large_text_files=scan["omittedFiles"],
+            timed_out_text_files=scan["timedOutFiles"],
+        ),
         "detections": scan["detections"],
         "modelAssets": scan["modelAssets"],
         "decisionMatrix": matrix,
@@ -450,6 +473,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Shareability mode: `{report['shareability']['mode']}`",
         f"- Recommendation: {report['recommendationSummary']}",
         f"- Source files: {summary['sourceFiles']}",
+        f"- Text scan budget: {report['scanScope']['largeTextReadMode']} at {report['scanScope']['textBytesPerFileLimit']} bytes",
+        f"- Truncated source files: {summary['truncatedSourceFiles']}; large source files omitted: {summary['omittedLargeSourceFiles']}; timed out: {summary['timedOutSourceFiles']}",
         f"- AI detections: {summary['detections']}",
         f"- Foundation Models tokens: {summary['foundationModels']}",
         f"- Core ML tokens/assets: {summary['coreML'] + summary['modelAssets']}",
@@ -480,6 +505,33 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- Skipped `{directory}`")
         if report["scanScope"]["skippedDirectoryListTruncated"]:
             lines.append("- Additional skipped directories are listed in JSON.")
+    if report["scanScope"]["truncatedTextFiles"]:
+        if not report["scanScope"]["skippedDirectories"]:
+            lines.extend(["## Scan Scope", ""])
+        for file in report["scanScope"]["truncatedTextFiles"][:8]:
+            lines.append(f"- Sampled `{file}` up to {report['scanScope']['textBytesPerFileLimit']} bytes")
+        if report["scanScope"]["truncatedTextFileListTruncated"]:
+            lines.append("- Additional sampled/truncated files are listed in JSON.")
+    if report["scanScope"]["omittedLargeTextFiles"]:
+        if not report["scanScope"]["skippedDirectories"] and not report["scanScope"]["truncatedTextFiles"]:
+            lines.extend(["## Scan Scope", ""])
+        for file in report["scanScope"]["omittedLargeTextFiles"][:8]:
+            lines.append(f"- Omitted large source text `{file}` above {report['scanScope']['textBytesPerFileLimit']} bytes")
+        if report["scanScope"]["omittedLargeTextFileListTruncated"]:
+            lines.append("- Additional omitted large files are listed in JSON.")
+    if report["scanScope"]["timedOutTextFiles"]:
+        if not report["scanScope"]["skippedDirectories"] and not report["scanScope"]["truncatedTextFiles"] and not report["scanScope"]["omittedLargeTextFiles"]:
+            lines.extend(["## Scan Scope", ""])
+        for file in report["scanScope"]["timedOutTextFiles"][:8]:
+            lines.append(f"- Timed out reading source text `{file}` after {report['scanScope']['textReadTimeoutSeconds']} seconds")
+        if report["scanScope"]["timedOutTextFileListTruncated"]:
+            lines.append("- Additional timed-out files are listed in JSON.")
+    if (
+        report["scanScope"]["skippedDirectories"]
+        or report["scanScope"]["truncatedTextFiles"]
+        or report["scanScope"]["omittedLargeTextFiles"]
+        or report["scanScope"]["timedOutTextFiles"]
+    ):
         lines.append("")
     lines.extend(
         [

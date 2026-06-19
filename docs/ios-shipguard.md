@@ -132,7 +132,7 @@ Use `ios launchdeck` when the user wants ShipGuard to be the one command they re
   --out /tmp/ios-shipguard-launchdeck-receipts
 ```
 
-The command is read-only against `--path` and writes only to `--out`. It creates `ios-launchdeck.json` and `ios-launchdeck.md`. The report discovers Xcode projects, workspaces, Swift packages, schemes, test plans, StoreKit configs, privacy manifests, SwiftUI preview declarations, and skipped generated/proof/cache directories. It then recommends one LaunchDeck route:
+The command is read-only against `--path` and writes only to `--out`. It creates `ios-launchdeck.json` and `ios-launchdeck.md`. The report discovers Xcode projects, workspaces, Swift packages, schemes, test plans, StoreKit configs, privacy manifests, SwiftUI preview declarations, and skipped generated/proof/cache directories. SwiftUI preview-signal reads use the same bounded text budget as other iOS source scanners, and the report records sampled, omitted, or timed-out preview source files before claiming coverage. It then recommends one LaunchDeck route:
 
 - XcodeBuildMCP build/run through `session_show_defaults`, `session_set_defaults`, and `build_run_sim`.
 - Debugger and runtime investigation with focused log capture plus UI snapshot or screenshot evidence.
@@ -144,7 +144,7 @@ ShipGuard owns the front door: topology discovery, workflow selection, report qu
 
 Use `--workflow auto|build-run|debug|preview|performance` when the desired proof lane is known. After Codex executes the LaunchDeck route, add one or more `--receipt <file-or-dir>` inputs to grade whether the actual proof bundle contains the right signals for the selected lane: build/run logs and UI proof for build-run, log plus UI proof for debug, `serve-sim` plus screenshot proof for simulator browser, SwiftUI preview hot-reload output for preview lanes, and Animation Hitches, Time Profiler, `xctrace`, ETTrace, or sample proof for performance lanes. No `--receipt` means the report is only a route plan; supplied but incomplete receipts make the report status `review`.
 
-Use `--shipguard-eval --shareable` when a private app is only a read-only sample for improving ShipGuard's LaunchDeck output, then score the report with `ios report-quality --shareable`.
+Use `--shipguard-eval --shareable` when a private app is only a read-only sample for improving ShipGuard's LaunchDeck output, then score the report with `ios report-quality --shareable`. Shareable ShipGuard-eval LaunchDeck output redacts private target identifiers while preserving route shape, proof boundaries, scan budgets, and receipt-quality fields.
 
 ## Performance Audit Mode
 
@@ -369,7 +369,7 @@ Run an App Intents and system-surface audit before exposing app actions to Short
   --out /tmp/ios-shipguard-app-intelligence
 ```
 
-The report maps App Intent, AppEntity, App Shortcuts provider, WidgetKit, Spotlight, Siri, controls, and runtime handoff coverage. It also records candidate actions/entities and blocked privacy questions so Codex does not invent broad system exposure without a product decision.
+The report maps App Intent, AppEntity, App Shortcuts provider, WidgetKit, Spotlight, Siri, controls, and runtime handoff coverage. It also records candidate actions/entities and blocked privacy questions so Codex does not invent broad system exposure without a product decision. Source reads are bounded per file; JSON and Markdown disclose sampled, omitted, or timed-out Swift files so large apps stay fast without pretending the scan was exhaustive.
 
 Use `--shareable` when an app-intelligence report will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or `ios report-quality`.
 
@@ -383,7 +383,7 @@ Run an AI capability audit before choosing Foundation Models, Core AI, Core ML, 
   --out /tmp/ios-shipguard-ai-readiness
 ```
 
-The report scans local source and model assets for AI capability signals, then produces an on-device versus cloud matrix. It forces privacy, latency, cost, fallback, and proof questions before Codex implements model behavior or adds cloud data flow.
+The report scans local source and model assets for AI capability signals, then produces an on-device versus cloud matrix. It forces privacy, latency, cost, fallback, and proof questions before Codex implements model behavior or adds cloud data flow. Source reads are bounded across Swift, Objective-C, JSON, and plist inputs; JSON and Markdown disclose sampled, omitted, or timed-out source files before report-quality treats the output as honest evidence.
 
 Use `--shareable` when an AI-readiness report will move into ChatGPT, GitHub, docs, benchmark fixtures, release evidence, or `ios report-quality`.
 

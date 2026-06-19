@@ -50,12 +50,18 @@ export SHIPGUARD_IOS_SCAN_MAX_TEXT_BYTES=16384
 ./bin/shipguard ios performance --path "$fixture" --out "$tmp_dir/performance" --shipguard-eval --shareable >/dev/null
 ./bin/shipguard ios design --path "$fixture" --out "$tmp_dir/design" --shipguard-eval --shareable >/dev/null
 ./bin/shipguard ios modernize --focus swift --path "$fixture" --out "$tmp_dir/modernize" --shipguard-eval --shareable >/dev/null
+./bin/shipguard ios launchdeck --path "$fixture" --out "$tmp_dir/launchdeck" --shipguard-eval --shareable >/dev/null
+./bin/shipguard ios app-intelligence --path "$fixture" --out "$tmp_dir/app-intelligence" --shipguard-eval --shareable >/dev/null
+./bin/shipguard ios ai-readiness --path "$fixture" --out "$tmp_dir/ai-readiness" --shipguard-eval --shareable >/dev/null
 
 python3 - <<'PY' \
   "$tmp_dir/doctor/ios-doctor.json" \
   "$tmp_dir/performance/ios-performance.json" \
   "$tmp_dir/design/ios-design.json" \
-  "$tmp_dir/modernize/ios-modernize.json"
+  "$tmp_dir/modernize/ios-modernize.json" \
+  "$tmp_dir/launchdeck/ios-launchdeck.json" \
+  "$tmp_dir/app-intelligence/ios-app-intelligence.json" \
+  "$tmp_dir/ai-readiness/ios-ai-readiness.json"
 import json
 import sys
 from pathlib import Path
@@ -64,6 +70,9 @@ for raw in sys.argv[1:]:
     path = Path(raw)
     report = json.loads(path.read_text(encoding="utf-8"))
     scope = report.get("scanScope") or report.get("sourceSummary", {}).get("scanScope") or {}
+    preview_scope = report.get("previewSignals", {}).get("scanScope") or {}
+    if "textBytesPerFileLimit" not in scope and preview_scope:
+        scope = preview_scope
     if scope.get("textBytesPerFileLimit") != 16384:
         raise SystemExit(f"{path.name} did not record the scan byte limit: {scope!r}")
     if scope.get("largeTextReadMode") != "omit-large-files":
@@ -82,6 +91,42 @@ if not any(item.get("ruleId") == "swiftui-periodic-timeline" for item in perform
 modernize = json.loads(Path(sys.argv[4]).read_text(encoding="utf-8"))
 if modernize["summary"].get("omittedLargeSwiftFiles", 0) < 1:
     raise SystemExit("modernize summary did not expose omittedLargeSwiftFiles")
+
+launchdeck = json.loads(Path(sys.argv[5]).read_text(encoding="utf-8"))
+if launchdeck["previewSignals"].get("omittedLargeSwiftFiles", 0) < 1:
+    raise SystemExit("launchdeck previewSignals did not expose omittedLargeSwiftFiles")
+
+app_intelligence = json.loads(Path(sys.argv[6]).read_text(encoding="utf-8"))
+if app_intelligence["summary"].get("omittedLargeSwiftFiles", 0) < 1:
+    raise SystemExit("app-intelligence summary did not expose omittedLargeSwiftFiles")
+
+ai_readiness = json.loads(Path(sys.argv[7]).read_text(encoding="utf-8"))
+if ai_readiness["summary"].get("omittedLargeSourceFiles", 0) < 1:
+    raise SystemExit("ai-readiness summary did not expose omittedLargeSourceFiles")
+PY
+
+python3 - <<'PY'
+import sys
+from pathlib import Path
+
+sys.path.insert(0, "scripts")
+import ios_scan_scope  # noqa: E402
+
+original_open = Path.open
+
+
+def synthetic_timeout(self, *args, **kwargs):
+    raise TimeoutError("synthetic read timeout")
+
+
+Path.open = synthetic_timeout
+try:
+    result = ios_scan_scope.read_text_limited(Path("SyntheticSlowFile.swift"))
+finally:
+    Path.open = original_open
+
+if not result.omitted or not result.timed_out:
+    raise SystemExit(f"TimeoutError should be reported as an omitted timed-out text read: {result!r}")
 PY
 
 grep -q 'Truncated Swift files:' "$tmp_dir/performance/ios-performance.md"
@@ -89,6 +134,12 @@ grep -q 'large Swift files omitted:' "$tmp_dir/performance/ios-performance.md"
 grep -q 'Large text files omitted from source scoring:' "$tmp_dir/design/ios-design.md"
 grep -q 'Truncated Swift files:' "$tmp_dir/modernize/ios-modernize.md"
 grep -q 'large Swift files omitted:' "$tmp_dir/modernize/ios-modernize.md"
+grep -q 'Preview Swift files sampled:' "$tmp_dir/launchdeck/ios-launchdeck.md"
+grep -q 'large Swift files omitted:' "$tmp_dir/launchdeck/ios-launchdeck.md"
+grep -q 'Truncated Swift files:' "$tmp_dir/app-intelligence/ios-app-intelligence.md"
+grep -q 'large Swift files omitted:' "$tmp_dir/app-intelligence/ios-app-intelligence.md"
+grep -q 'Truncated source files:' "$tmp_dir/ai-readiness/ios-ai-readiness.md"
+grep -q 'large source files omitted:' "$tmp_dir/ai-readiness/ios-ai-readiness.md"
 grep -q 'Text files sampled:' "$tmp_dir/doctor/ios-doctor.md"
 
 echo "ios scan-scope budget tests passed"

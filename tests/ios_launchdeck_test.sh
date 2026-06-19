@@ -55,9 +55,9 @@ grep -q '"xcodeBuildMCP"' "$tmp_dir/launchdeck/ios-launchdeck.json"
 grep -q '"simulatorBrowser"' "$tmp_dir/launchdeck/ios-launchdeck.json"
 grep -q '"swiftUIPreviewHotReload"' "$tmp_dir/launchdeck/ios-launchdeck.json"
 grep -q '"performanceProfiling"' "$tmp_dir/launchdeck/ios-launchdeck.json"
-grep -q '"scheme": "DemoShipGuardApp"' "$tmp_dir/launchdeck/ios-launchdeck.json"
-grep -q '"workspacePath": "DemoShipGuardApp.xcworkspace"' "$tmp_dir/launchdeck/ios-launchdeck.json"
-grep -q '"projectPath": "DemoShipGuardApp.xcodeproj"' "$tmp_dir/launchdeck/ios-launchdeck.json"
+grep -q '"scheme": "<private-app>"' "$tmp_dir/launchdeck/ios-launchdeck.json"
+grep -q '"workspacePath": "<private-app>.xcworkspace"' "$tmp_dir/launchdeck/ios-launchdeck.json"
+grep -q '"projectPath": "<private-app>.xcodeproj"' "$tmp_dir/launchdeck/ios-launchdeck.json"
 grep -q '"preferredXcodeSelector": "workspace"' "$tmp_dir/launchdeck/ios-launchdeck.json"
 grep -q '"recommendedWorkflow": "xcodebuildmcp-build-run"' "$tmp_dir/launchdeck/ios-launchdeck.json"
 grep -q '"executionReceipts"' "$tmp_dir/launchdeck/ios-launchdeck.json"
@@ -72,6 +72,10 @@ grep -q '"release-artifacts"' "$tmp_dir/launchdeck/ios-launchdeck.json"
 
 if grep -R -F -q "$tmp_dir" "$tmp_dir/launchdeck"; then
   echo "shareable ios launchdeck output must not include local absolute fixture paths" >&2
+  exit 1
+fi
+if grep -R -q 'DemoShipGuardApp' "$tmp_dir/launchdeck"; then
+  echo "shareable ios launchdeck output must redact target identifiers" >&2
   exit 1
 fi
 
@@ -138,6 +142,10 @@ grep -q 'Animation Hitches' "$tmp_dir/launchdeck-receipts/ios-launchdeck.md"
 grep -q 'serve-sim' "$tmp_dir/launchdeck-receipts/ios-launchdeck.md"
 if grep -R -F -q "$tmp_dir" "$tmp_dir/launchdeck-receipts"; then
   echo "shareable receipt output must not include local absolute receipt paths" >&2
+  exit 1
+fi
+if grep -R -q 'DemoShipGuardApp' "$tmp_dir/launchdeck-receipts"; then
+  echo "shareable receipt output must redact target identifiers" >&2
   exit 1
 fi
 

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Extended bounded iOS source scanning to the remaining read-only product-QA report families exposed by the next Ringly/Ilmify loop: `ios launchdeck` now budgets SwiftUI preview-signal reads, `ios app-intelligence` budgets App Intents/system-surface scans, and `ios ai-readiness` budgets AI token scans, all with JSON/Markdown sampled/omitted/timed-out text evidence. `ios launchdeck --shipguard-eval --shareable` now also redacts private target identifiers before report-quality scoring.
 - Hardened iOS read-only source scanning after large Ringly/Ilmify product-QA inputs exposed slow unbounded text reads: `ios doctor`, `ios performance`, `ios design`, and `ios modernize` now use a shared per-file text budget plus per-file read timeout, report truncated/omitted/timed-out text files in JSON/Markdown, and have a public `ios_scan_scope_budget_test.sh` regression fixture.
 - Added v3.131 ShipGuard V4 Release Candidate Readiness / LaunchKey: `shipguard v4 release-candidate` now emits install, upgrade, uninstall, release proof consumption, external adoption packet, final schema docs, plugin refresh proof, blocked claims, scope boundary, report-quality questions, and result UX without claiming a stable v4 product release.
 - Added Tool Value Gauntlet `v4ReleaseCandidateReadinessReceipts` with public candidate-contract fixtures; once those pass, the lowest-value probe now points to v4 product release stabilization instead of repeatedly asking for release-candidate proof.
