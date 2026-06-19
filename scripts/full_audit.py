@@ -184,6 +184,77 @@ def write_json(path: Path, data: dict[str, Any]) -> None:
     path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def markdown_fenced_section(text: str, heading: str) -> str:
+    pattern = re.compile(rf"(?ms)^##\s+{re.escape(heading)}\s*\n+```text\n(.*?)\n```")
+    match = pattern.search(text)
+    return match.group(1).strip() if match else ""
+
+
+def slash_handoff_from_next_goal(repo: Path) -> tuple[str, str, dict[str, Any]]:
+    next_goal_path = repo / "NEXT_GOAL.md"
+    fallback_plan = (
+        "/plan Refresh ShipGuard next-goal handoff for jlekerli-source/ShipGuard: "
+        "run shipguard next-goal with the latest completed scope, evidence, and following title before using Full Audit as release-loop guidance."
+    )
+    fallback_goal = (
+        "/goal Refresh ShipGuard next-goal handoff for jlekerli-source/ShipGuard: "
+        "regenerate NEXT_GOAL.md from current ShipGuard proof before continuing the release loop."
+    )
+    if not next_goal_path.is_file():
+        return (
+            fallback_plan,
+            fallback_goal,
+            {
+                "status": "fallback",
+                "sourcePath": "NEXT_GOAL.md",
+                "reason": "NEXT_GOAL.md missing",
+                "section": "fallback",
+            },
+        )
+    try:
+        text = next_goal_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        return (
+            fallback_plan,
+            fallback_goal,
+            {
+                "status": "fallback",
+                "sourcePath": "NEXT_GOAL.md",
+                "reason": f"could not read NEXT_GOAL.md: {exc}",
+                "section": "fallback",
+            },
+        )
+    section_pairs = [
+        ("Following Slash Plan", "Following Slash Goal", "following"),
+        ("Slash Plan", "Slash Goal", "active"),
+    ]
+    for plan_heading, goal_heading, section in section_pairs:
+        plan = markdown_fenced_section(text, plan_heading)
+        goal = markdown_fenced_section(text, goal_heading)
+        if plan and goal:
+            return (
+                plan,
+                goal,
+                {
+                    "status": "loaded",
+                    "sourcePath": "NEXT_GOAL.md",
+                    "section": section,
+                    "planHeading": plan_heading,
+                    "goalHeading": goal_heading,
+                },
+            )
+    return (
+        fallback_plan,
+        fallback_goal,
+        {
+            "status": "fallback",
+            "sourcePath": "NEXT_GOAL.md",
+            "reason": "missing fenced slash plan or slash goal sections",
+            "section": "fallback",
+        },
+    )
+
+
 def stage_catalog(repo: Path, out_dir: Path, args: argparse.Namespace) -> dict[str, dict[str, Any]]:
     shipguard = str(repo / "bin" / "shipguard")
     python = os.environ.get("PYTHON", "python3")
@@ -505,6 +576,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         next_command=next_command,
         next_action_summary=next_action,
     )
+    slash_plan, slash_goal, slash_handoff_source = slash_handoff_from_next_goal(repo)
     report: dict[str, Any] = {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard full-audit",
@@ -543,10 +615,11 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the full-audit report replace repeated manual validation ceremony with one resumable evidence lane?",
             "Are slow lanes summarized clearly enough for a solo developer to decide what to rerun?",
             "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?",
-            "Should the next ShipGuard slice stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption on published assets?",
+            "Does the slash handoff come from the current NEXT_GOAL.md instead of stale hardcoded roadmap text?",
         ],
-        "slashPlan": "/plan v3.132.0 v4 Product Release Stabilization for jlekerli-source/ShipGuard: prove external adoption evidence, final security review, rollback proof, package proof, and release proof consumption on published assets before any stable v4 claim.",
-        "slashGoal": "/goal Implement v3.132.0 v4 Product Release Stabilization for jlekerli-source/ShipGuard: make the v4 product release externally adoptable, reversible, consumable, security-reviewed, and release-proof verified without claiming marketplace acceptance.",
+        "slashHandoffSource": slash_handoff_source,
+        "slashPlan": slash_plan,
+        "slashGoal": slash_goal,
     }
     if args.shareable:
         replacements = [(str(repo), "<shipguard-repo>"), (str(out_dir), "<shipguard-full-audit-out>"), (str(Path.home()), "<home>")]
@@ -612,6 +685,19 @@ def render_markdown(report: dict[str, Any]) -> str:
     )
     for question in report.get("reportQualityQuestions", []):
         lines.append(f"- {question}")
+    source = report.get("slashHandoffSource") or {}
+    lines.extend(
+        [
+            "",
+            "## Slash Handoff Source",
+            "",
+            f"- Status: `{source.get('status', 'unknown')}`",
+            f"- Source path: `{source.get('sourcePath', 'unknown')}`",
+            f"- Section: `{source.get('section', 'unknown')}`",
+        ]
+    )
+    if source.get("reason"):
+        lines.append(f"- Reason: {source['reason']}")
     lines.extend(["", "## Slash Plan", "", "```text", report["slashPlan"], "```", "", "## Slash Goal", "", "```text", report["slashGoal"], "```", ""])
     return "\n".join(lines)
 

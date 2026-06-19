@@ -53,12 +53,26 @@ for expected in [
         raise SystemExit(next_command)
 if data["efficiency"]["executeCommand"] != next_command:
     raise SystemExit(data["efficiency"])
+source = data.get("slashHandoffSource") or {}
+if source.get("status") != "loaded" or source.get("sourcePath") != "NEXT_GOAL.md":
+    raise SystemExit(source)
+if not data.get("slashPlan", "").startswith("/plan "):
+    raise SystemExit(data.get("slashPlan"))
+if not data.get("slashGoal", "").startswith("/goal "):
+    raise SystemExit(data.get("slashGoal"))
+if "v3.132.0 v4 Product Release Stabilization" in data.get("slashPlan", "") + data.get("slashGoal", ""):
+    raise SystemExit("stale full-audit slash handoff survived")
 PY
 grep -q 'ShipGuard Full Audit' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q '## Result' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Proof source:' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Slow Lanes' "$tmp_dir/plan/shipguard-full-audit.md"
-grep -q 'v3.132.0 v4 Product Release Stabilization' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Slash Handoff Source' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Source path: `NEXT_GOAL.md`' "$tmp_dir/plan/shipguard-full-audit.md"
+if grep -q 'v3.132.0 v4 Product Release Stabilization' "$tmp_dir/plan/shipguard-full-audit.md"; then
+  echo "full-audit output should not carry stale v3.132 slash handoff text" >&2
+  exit 1
+fi
 if grep -q "$repo_root" "$tmp_dir/plan/shipguard-full-audit.json" "$tmp_dir/plan/shipguard-full-audit.md"; then
   echo "shareable full-audit output leaked local repo path" >&2
   exit 1

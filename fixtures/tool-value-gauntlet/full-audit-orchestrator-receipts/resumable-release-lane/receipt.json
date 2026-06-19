@@ -15,6 +15,7 @@
     "shipguard full-audit",
     "stage-receipts",
     "slowLaneSummary",
+    "slashHandoffSource",
     "runtimeFullAuditOrchestrator",
     "runtimeUnifiedInspectExperience"
   ],
@@ -49,14 +50,16 @@
         {
           "path": "full-audit-plan/shipguard-full-audit.json",
           "type": "json",
-          "requiredJsonKeys": ["tool", "status", "stages", "slowLaneSummary", "efficiency", "scopeBoundary", "slashPlan"],
-          "requiredNonEmptyJsonPaths": ["stages", "slowLaneSummary", "reportQualityQuestions"],
+          "requiredJsonKeys": ["tool", "status", "stages", "slowLaneSummary", "efficiency", "scopeBoundary", "slashHandoffSource", "slashPlan", "slashGoal"],
+          "requiredNonEmptyJsonPaths": ["stages", "slowLaneSummary", "reportQualityQuestions", "slashHandoffSource.status", "slashPlan", "slashGoal"],
           "requiredValues": [
             {"path": "tool", "equals": "shipguard full-audit"},
             {"path": "status", "equals": "review"},
             {"path": "planOnly", "equals": true},
             {"path": "stageStatusSummary.planned", "equals": 14},
             {"path": "resultUX.status", "equals": "review"},
+            {"path": "slashHandoffSource.status", "equals": "loaded"},
+            {"path": "slashHandoffSource.sourcePath", "equals": "NEXT_GOAL.md"},
             {"path": "scopeBoundary.doesNotPush", "equals": true},
             {"path": "scopeBoundary.doesNotPublishRelease", "equals": true}
           ],
@@ -65,7 +68,7 @@
         {
           "path": "full-audit-plan/shipguard-full-audit.md",
           "type": "markdown",
-          "requiredPhrases": ["ShipGuard Full Audit", "Slow Lanes", "v3.132.0 v4 Product Release Stabilization"],
+          "requiredPhrases": ["ShipGuard Full Audit", "Slow Lanes", "Slash Handoff Source", "NEXT_GOAL.md"],
           "forbidLocalPaths": true
         }
       ]

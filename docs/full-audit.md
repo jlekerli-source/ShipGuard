@@ -16,6 +16,8 @@ Typical planning run:
 
 Planning output is a `review` report, not a `pass` report. It writes the same stage ledger and slow-lane summary, but `resultUX.nextCommand` points to the executable release lane with missing CI/release metadata placeholders. Treat that as the next command to run before calling the report release proof.
 
+Full Audit reads `NEXT_GOAL.md` for its `slashPlan` and `slashGoal` handoff. When `NEXT_GOAL.md` has a completion receipt, Full Audit uses the `Following Slash Plan` and `Following Slash Goal`; otherwise it uses the active `Slash Plan` and `Slash Goal`. JSON and Markdown include `slashHandoffSource` so report-quality can reject stale hardcoded handoff text.
+
 Typical local rerun after a failure:
 
 ```bash
@@ -47,7 +49,7 @@ Outputs:
 - `logs/<stage-id>.stdout.txt`
 - `logs/<stage-id>.stderr.txt`
 
-The JSON includes `resultUX`, and the Markdown starts with `## Result`. That block gives the normalized status, concise verdict, proof source, why the report matters, and the next run or resume command before the stage ledger.
+The JSON includes `resultUX` and `slashHandoffSource`, and the Markdown starts with `## Result`. That block gives the normalized status, concise verdict, proof source, why the report matters, and the next run or resume command before the stage ledger.
 
 Profiles:
 

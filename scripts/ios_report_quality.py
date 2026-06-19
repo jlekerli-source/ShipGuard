@@ -656,6 +656,41 @@ def result_ux_quality_issues(report: dict[str, Any], *, path_name: str) -> list[
     return issues
 
 
+def full_audit_slash_handoff_issues(report: dict[str, Any], *, path_name: str) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    if str(report.get("tool") or "") != "shipguard full-audit":
+        return issues
+    slash_plan = str(report.get("slashPlan") or "").strip()
+    slash_goal = str(report.get("slashGoal") or "").strip()
+    combined = normalized_question_text(f"{slash_plan} {slash_goal}")
+    if not slash_plan.startswith("/plan ") or not slash_goal.startswith("/goal "):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="full-audit-slash-handoff-incomplete",
+            evidence=f"{path_name} slashPlan or slashGoal is missing a copy-ready slash command",
+            recommendation="Regenerate Full Audit so it emits copy-ready /plan and /goal handoff text.",
+        )
+    source = report.get("slashHandoffSource")
+    if not isinstance(source, dict) or source.get("status") != "loaded" or source.get("sourcePath") != "NEXT_GOAL.md":
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="full-audit-slash-handoff-source-missing",
+            evidence=f"{path_name} does not prove slashPlan and slashGoal came from NEXT_GOAL.md",
+            recommendation="Load the slash handoff from NEXT_GOAL.md and include slashHandoffSource.status=loaded.",
+        )
+    if "v3.132.0 v4 product release stabilization" in combined:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="full-audit-slash-handoff-stale",
+            evidence=f"{path_name} still contains the old v3.132 Full Audit slash handoff",
+            recommendation="Replace hardcoded Full Audit slash handoff text with the current NEXT_GOAL.md handoff.",
+        )
+    return issues
+
+
 def source_report_findings(
     report: dict[str, Any],
     *,
@@ -2078,6 +2113,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
         )
     issues.extend(finding_quality_issues(loaded))
     issues.extend(result_ux_quality_issues(loaded, path_name=path.name))
+    issues.extend(full_audit_slash_handoff_issues(loaded, path_name=path.name))
     if tool == "shipguard ios performance":
         issues.extend(performance_runtime_evidence_boundary_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_evidence_promotion_issues(loaded, markdown=markdown, path_name=path.name))

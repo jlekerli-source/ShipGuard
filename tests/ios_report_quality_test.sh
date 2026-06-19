@@ -240,6 +240,70 @@ grep -q '"status": "review"' "$tmp_dir/broken-result-ux-quality/ios-report-quali
 grep -q '"ruleId": "result-ux-next-command-not-command"' "$tmp_dir/broken-result-ux-quality/ios-report-quality.json"
 grep -q 'resultUX.nextCommand is prose or Markdown instead of a command template' "$tmp_dir/broken-result-ux-quality/ios-report-quality.md"
 
+stale_full_audit="$tmp_dir/stale-full-audit"
+mkdir -p "$stale_full_audit"
+cat > "$stale_full_audit/shipguard-full-audit.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard full-audit",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "review",
+  "resultUX": {
+    "status": "review",
+    "verdict": "REVIEW: Synthetic Full Audit report needs execution.",
+    "proofSource": "stageStatusSummary + stage receipts",
+    "whyItMatters": "Full Audit drives the release-loop handoff.",
+    "nextCommand": "shipguard full-audit --path <shipguard-repo> --out <shipguard-full-audit-out> --profile release",
+    "nextActionSummary": "Execute the planned release lane."
+  },
+  "stageStatusSummary": {
+    "planned": 14
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "doesNotPush": true,
+    "doesNotPublishRelease": true
+  },
+  "reportQualityQuestions": [
+    "Does Full Audit keep release-loop slash handoff text current?"
+  ],
+  "slashPlan": "/plan v3.132.0 v4 Product Release Stabilization for jlekerli-source/ShipGuard: prove external adoption evidence, final security review, rollback proof, package proof, and release proof consumption on published assets before any stable v4 claim.",
+  "slashGoal": "/goal Implement v3.132.0 v4 Product Release Stabilization for jlekerli-source/ShipGuard: make the v4 product release externally adoptable, reversible, consumable, security-reviewed, and release-proof verified without claiming marketplace acceptance."
+}
+JSON
+cat > "$stale_full_audit/shipguard-full-audit.md" <<'MD'
+# ShipGuard Full Audit
+
+## Result
+
+- Verdict: REVIEW: Synthetic Full Audit report needs execution.
+- Proof source: stageStatusSummary + stage receipts
+- Why it matters: Full Audit drives the release-loop handoff.
+- Next command: `shipguard full-audit --path <shipguard-repo> --out <shipguard-full-audit-out> --profile release`
+- Next action: Execute the planned release lane.
+
+## Slash Plan
+
+```text
+/plan v3.132.0 v4 Product Release Stabilization for jlekerli-source/ShipGuard: prove external adoption evidence, final security review, rollback proof, package proof, and release proof consumption on published assets before any stable v4 claim.
+```
+
+## Slash Goal
+
+```text
+/goal Implement v3.132.0 v4 Product Release Stabilization for jlekerli-source/ShipGuard: make the v4 product release externally adoptable, reversible, consumable, security-reviewed, and release-proof verified without claiming marketplace acceptance.
+```
+MD
+./bin/shipguard ios report-quality \
+  --reports "$stale_full_audit" \
+  --out "$tmp_dir/stale-full-audit-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/stale-full-audit-quality/ios-report-quality.json"
+grep -q '"ruleId": "full-audit-slash-handoff-source-missing"' "$tmp_dir/stale-full-audit-quality/ios-report-quality.json"
+grep -q '"ruleId": "full-audit-slash-handoff-stale"' "$tmp_dir/stale-full-audit-quality/ios-report-quality.json"
+grep -q 'old v3.132 Full Audit slash handoff' "$tmp_dir/stale-full-audit-quality/ios-report-quality.md"
+
 design_tailoring_fixture="fixtures/ios-report-quality/design-app-type-tailoring"
 ./bin/shipguard ios report-quality \
   --reports "$design_tailoring_fixture" \
