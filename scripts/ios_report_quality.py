@@ -2462,6 +2462,28 @@ def build_next_actions(priority_action: dict[str, Any], ranked_questions: list[d
     ]
 
 
+def next_command_for_priority_action(priority_action: dict[str, Any]) -> str:
+    kind = str(priority_action.get("kind") or "")
+    if kind == "fix-report-quality-finding":
+        return "./bin/shipguard ios report-quality --reports <fixed-report-dir> --out <quality-dir> --shareable"
+    if kind == "answer-actionability-question":
+        question = str(priority_action.get("question") or "")
+        if should_create_fixture_candidate(question):
+            return (
+                "./bin/shipguard ios report-quality --reports <report-dir> --out <quality-dir> "
+                "--shareable --write-fixture-candidates <fixture-output-dir>"
+            )
+        return (
+            './bin/shipguard ios spec-workflow --path <repo> --feature "Answer report-quality priority action" '
+            "--from-report <report-quality-dir> --out <spec-dir> --shipguard-eval --shareable"
+        )
+    if kind == "review-existing-fixture":
+        return "./bin/shipguard ios report-quality --reports <next-report-dir> --out <quality-dir> --shareable"
+    if kind == "add-actionability-questions":
+        return "./bin/shipguard ios report-quality --reports <updated-report-dir> --out <quality-dir> --shareable"
+    return "./bin/shipguard ios report-quality --reports <report-dir> --out <quality-dir> --shareable"
+
+
 def slugify(value: object, *, limit: int = 72) -> str:
     text = re.sub(r"[^a-z0-9]+", "-", str(value).lower()).strip("-")
     return (text[:limit].strip("-") or "report-quality-fixture")
@@ -2672,7 +2694,8 @@ def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any
     fixture_candidates = build_fixture_candidates(ranked_questions)
     priority_action = build_priority_action(issues, ranked_questions)
     next_actions = build_next_actions(priority_action, ranked_questions)
-    next_command = str(next_actions[0]) if next_actions else "./bin/shipguard ios report-quality --reports <dir> --out <quality-dir> --shareable"
+    next_command = next_command_for_priority_action(priority_action)
+    priority_action["nextCommand"] = next_command
     result_ux = build_result_ux(
         status=status,
         summary=(

@@ -125,6 +125,21 @@ PY
   --out "$tmp_dir/broken-design-quality" \
   --shareable >/dev/null
 grep -q '"ruleId": "design-tailoring-contract-missing"' "$tmp_dir/broken-design-quality/ios-report-quality.json"
+python3 - <<'PY' "$tmp_dir/broken-design-quality/ios-report-quality.json" "$tmp_dir/broken-design-quality/ios-report-quality.md"
+import json
+import sys
+from pathlib import Path
+
+data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+markdown = Path(sys.argv[2]).read_text(encoding="utf-8")
+next_command = data["resultUX"]["nextCommand"]
+if not next_command.startswith("./bin/shipguard ios report-quality "):
+    raise SystemExit(f"finding-fix nextCommand should be rerunnable report-quality CLI, got {next_command!r}")
+if "`" in next_command:
+    raise SystemExit(f"nextCommand must not contain Markdown backticks: {next_command!r}")
+if "Next command: `Fix `" in markdown:
+    raise SystemExit("Markdown next command must not wrap prose finding summaries as a command")
+PY
 
 broken_coherence="$tmp_dir/broken-coherence"
 cp -R "$shareable_reports/design" "$broken_coherence"
@@ -159,6 +174,26 @@ grep -q 'Priority Action' "$tmp_dir/actionability-quality/ios-report-quality.md"
 grep -q 'Actionability Questions' "$tmp_dir/actionability-quality/ios-report-quality.md"
 grep -q 'safest default for this app type' "$tmp_dir/actionability-quality/ios-report-quality.md"
 grep -q 'Answer the actionability questions above' "$tmp_dir/actionability-quality/ios-report-quality.md"
+python3 - <<'PY' "$tmp_dir/actionability-quality/ios-report-quality.json" "$tmp_dir/actionability-quality/ios-report-quality.md"
+import json
+import sys
+from pathlib import Path
+
+data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+markdown = Path(sys.argv[2]).read_text(encoding="utf-8")
+next_command = data["resultUX"]["nextCommand"]
+priority_command = data["priorityAction"]["nextCommand"]
+if next_command != priority_command:
+    raise SystemExit(f"priorityAction nextCommand drifted from resultUX: {priority_command!r} != {next_command!r}")
+if not next_command.startswith("./bin/shipguard ios report-quality "):
+    raise SystemExit(f"fixture-worthy actionability nextCommand should rerun report-quality, got {next_command!r}")
+if "--write-fixture-candidates <fixture-output-dir>" not in next_command:
+    raise SystemExit(f"fixture-worthy actionability nextCommand should materialize fixture candidates, got {next_command!r}")
+if "`" in next_command:
+    raise SystemExit(f"nextCommand must not contain Markdown backticks: {next_command!r}")
+if "Next command: `Start with `" in markdown:
+    raise SystemExit("Markdown next command must not wrap prose actionability questions as a command")
+PY
 
 design_tailoring_fixture="fixtures/ios-report-quality/design-app-type-tailoring"
 ./bin/shipguard ios report-quality \
