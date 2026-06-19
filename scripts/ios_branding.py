@@ -157,6 +157,16 @@ SURFACES: list[dict[str, Any]] = [
         "aliases": ["unleash the beast", "shipyard proof lane", "release audit lane"],
     },
     {
+        "id": "inspect",
+        "command": "shipguard inspect",
+        "surfaceName": "ShipGuard InspectDeck",
+        "codename": "inspectdeck",
+        "plainPurpose": "Summarize repo state, proof receipts, plugin state, release state, underlying evidence, and one exact next action.",
+        "tone": "Concise, decisive, and evidence-linked.",
+        "proofBoundary": "InspectDeck reads existing ShipGuard proof state; it does not push, publish, validate private apps, or replace the underlying reports.",
+        "aliases": ["proof state", "control panel", "one next action"],
+    },
+    {
         "id": "pilot-bench",
         "command": "shipguard pilot-bench",
         "surfaceName": "ShipGuard PilotBench",

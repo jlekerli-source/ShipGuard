@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added v3.125 unified inspect experience: `shipguard inspect` now reads repo state, value-gauntlet output, full-audit output, local Codex plugin state, release proof state, and returns one concise verdict plus one exact next action without hiding underlying evidence.
+- Added Tool Value Gauntlet `unifiedInspectReceipts` with public synthetic proof-state fixtures; once those pass, the lowest-value probe now points to v3.126 concise verdict and result UX.
+- Added `docs/inspect.md`, focused inspect tests, CLI/docs/package/self-audit coverage, and shareable redaction for InspectDeck so proof-state review can happen without editing private target apps.
 - Added v3.124 full-audit orchestration: `shipguard full-audit` now plans and runs the ShipYard proof lane with resumable stage receipts, slow-lane summaries, shareable redaction, stage filtering, `--resume`, `--plan-only`, and `quick|release|shipyard` profiles.
 - Added Tool Value Gauntlet `fullAuditOrchestratorReceipts` with public plan-only, mini-execution, and resume-reuse proof; once those pass, the lowest-value probe now points to the v3.125 unified inspect experience.
 - Added docs, CLI help, self-audit, package proof, and smoke coverage for the full-audit surface so release/product-QA work can use one orchestrator instead of a long manual command ceremony.

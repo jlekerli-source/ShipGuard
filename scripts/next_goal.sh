@@ -217,6 +217,8 @@ cat >> "$out_file" <<EOF
 ./tests/task_contract_receipts_test.sh
 ./tests/structured_evidence_receipts_test.sh
 ./tests/tool_value_gauntlet_test.sh
+./tests/full_audit_test.sh
+./tests/inspect_test.sh
 ./tests/ios_doctor_test.sh
 ./tests/ios_inventory_test.sh
 ./tests/ios_preview_test.sh

@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-19T03:14:33Z
-- Current toolkit version: 3.124.0
-- Target release: v3.125.0
-- Title: Unified Inspect Experience
+- Generated: 2026-06-19T04:17:19Z
+- Current toolkit version: 3.125.0
+- Target release: v3.126.0
+- Title: Concise Verdict and Result UX
 
 ## Slash Plan
 
 ```text
-/plan v3.125.0 Unified Inspect Experience for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add one concise inspect command that reads repo state, proof receipts, value-gauntlet output, local Codex plugin state, release proof state, and the exact next action without hiding underlying evidence.
+/plan v3.126.0 Concise Verdict and Result UX for jlekerli-source/ShipGuard:
+1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,19 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.125.0 Unified Inspect Experience for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add one concise inspect command that reads repo state, proof receipts, value-gauntlet output, local Codex plugin state, release proof state, and the exact next action without hiding underlying evidence, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.126.0 Concise Verdict and Result UX for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
-## Bounded Scope
-
-Add one concise inspect command that reads repo state, proof receipts, value-gauntlet output, local Codex plugin state, release proof state, and the exact next action without hiding underlying evidence.
-
 ## Completion Receipt
 
-- Completed scope: v3.124.0 Efficient full-audit orchestrator
-- Evidence: Implemented shipguard full-audit with quick, release, and shipyard profiles; plan-only, stage filtering, resume support, shareable redaction, stage receipts, slow-lane summaries, package/self-audit coverage, and Tool Value Gauntlet fullAuditOrchestratorReceipts.
+- Completed scope: v3.125.0 Unified Inspect Experience
+- Evidence: Implemented shipguard inspect / ShipGuard InspectDeck with repo state, value-gauntlet, full-audit, Codex plugin, release proof, shareable redaction, package proof, and unified-inspect value-gauntlet receipts.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.126.0 Concise Verdict and Result UX for jlekerli-source/ShipGuard:
+/plan v3.127.0 Codex Marketplace Readiness for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +40,13 @@ Add one concise inspect command that reads repo state, proof receipts, value-gau
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.126.0 Concise Verdict and Result UX for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.127.0 Codex Marketplace Readiness for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.126.0 --title "Concise Verdict and Result UX" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.127.0 --title "Codex Marketplace Readiness" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -95,6 +91,8 @@ Generate that follow-up file with:
 ./tests/task_contract_receipts_test.sh
 ./tests/structured_evidence_receipts_test.sh
 ./tests/tool_value_gauntlet_test.sh
+./tests/full_audit_test.sh
+./tests/inspect_test.sh
 ./tests/ios_doctor_test.sh
 ./tests/ios_inventory_test.sh
 ./tests/ios_preview_test.sh
@@ -146,12 +144,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.125.0.
+1. Open or update the tracking issue for v3.126.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.125.0` and upload `dist/shipguard-v3.125.0.tar.gz`.
+6. Create release `v3.126.0` and upload `dist/shipguard-v3.126.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

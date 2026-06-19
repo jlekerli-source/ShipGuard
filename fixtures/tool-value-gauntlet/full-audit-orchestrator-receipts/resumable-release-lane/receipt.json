@@ -64,7 +64,7 @@
         {
           "path": "full-audit-plan/shipguard-full-audit.md",
           "type": "markdown",
-          "requiredPhrases": ["ShipGuard Full Audit", "Slow Lanes", "v3.125.0 Unified Inspect Experience"],
+          "requiredPhrases": ["ShipGuard Full Audit", "Slow Lanes", "v3.126.0 Concise Verdict and Result UX"],
           "forbidLocalPaths": true
         }
       ]

@@ -471,10 +471,10 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the full-audit report replace repeated manual validation ceremony with one resumable evidence lane?",
             "Are slow lanes summarized clearly enough for a solo developer to decide what to rerun?",
             "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?",
-            "Should the next ShipGuard slice unify inspect output across full-audit, value-gauntlet, and source reports?",
+            "Should the next ShipGuard slice make every major report lead with the same concise pass/review/blocked verdict and one exact next command?",
         ],
-        "slashPlan": "/plan v3.125.0 Unified Inspect Experience for jlekerli-source/ShipGuard: combine full-audit, value-gauntlet, source reports, and proof receipts into one concise inspect surface with filters and exact next actions.",
-        "slashGoal": "/goal Implement v3.125.0 Unified Inspect Experience for jlekerli-source/ShipGuard: make one readable inspect command that summarizes the current repo, proof state, weakest surface, and next action without hiding underlying receipts.",
+        "slashPlan": "/plan v3.126.0 Concise Verdict and Result UX for jlekerli-source/ShipGuard: make full-audit, value-gauntlet, InspectDeck, and source reports lead with one pass/review/blocked verdict, the proof source, why it matters, and one exact next command.",
+        "slashGoal": "/goal Implement v3.126.0 Concise Verdict and Result UX for jlekerli-source/ShipGuard: give ShipGuard reports the same compact result hierarchy without hiding underlying evidence.",
     }
     if args.shareable:
         replacements = [(str(repo), "<shipguard-repo>"), (str(out_dir), "<shipguard-full-audit-out>"), (str(Path.home()), "<home>")]

@@ -1,0 +1,127 @@
+{
+  "id": "proof-state-control-deck",
+  "kind": "unified-inspect-receipt",
+  "surface": "ShipGuard InspectDeck",
+  "selectedMode": "value-gauntlet unified inspect receipts",
+  "trigger": "Prove ShipGuard can summarize repo state, value-gauntlet proof, full-audit proof, Codex plugin state, release proof, and one exact next action from one concise surface.",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/shipguard_inspect.py",
+    "scripts/tool_value_gauntlet.py",
+    "tests/inspect_test.sh",
+    "docs/inspect.md"
+  ],
+  "expectedSourcePhrases": [
+    "shipguard inspect",
+    "ShipGuard InspectDeck",
+    "unifiedInspectReceipts",
+    "runtimeUnifiedInspectExperience",
+    "runtimeConciseVerdictResultUX"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppsUsed": false,
+    "inputs": [
+      "public ShipGuard checkout",
+      "synthetic value-gauntlet output",
+      "synthetic full-audit output",
+      "synthetic release proof manifest"
+    ]
+  },
+  "prepareFiles": [
+    {
+      "path": "value/tool-value-gauntlet.json",
+      "text": "{\n  \"tool\": \"shipguard value-gauntlet\",\n  \"surface\": \"ShipGuard Tool Value Gauntlet\",\n  \"status\": \"pass\",\n  \"summary\": {\n    \"averageScore\": 100,\n    \"commandCount\": 63\n  },\n  \"lowestValueSurfaceProbe\": {\n    \"answer\": {\n      \"identifier\": \"shipguard unified-inspect-experience\",\n      \"name\": \"Unified inspect experience\",\n      \"surfaceType\": \"cross-cutting\",\n      \"depthScore\": 80,\n      \"missingDepthSignals\": [\"runtimeUnifiedInspectExperience\"],\n      \"recommendation\": \"Add one concise inspect command that summarizes proof state and next action.\",\n      \"proofGuidance\": \"./tests/inspect_test.sh\",\n      \"reason\": \"ShipGuard proof state is split across reports.\"\n    }\n  },\n  \"reportQualityQuestions\": [\n    \"Should ShipGuard add a unified inspect experience?\"\n  ]\n}\n"
+    },
+    {
+      "path": "full/shipguard-full-audit.json",
+      "text": "{\n  \"tool\": \"shipguard full-audit\",\n  \"status\": \"pass\",\n  \"profile\": \"release\",\n  \"planOnly\": true,\n  \"stageStatusSummary\": {\n    \"planned\": 14\n  },\n  \"slowLaneSummary\": {\n    \"slowDefaultStageCount\": 5\n  },\n  \"efficiency\": {\n    \"executedStages\": 0,\n    \"plannedStages\": 14\n  },\n  \"scopeBoundary\": {\n    \"targetAppsReadOnly\": true,\n    \"doesNotPush\": true,\n    \"doesNotPublishRelease\": true\n  },\n  \"stages\": [],\n  \"reportQualityQuestions\": [\n    \"Can the release plan be inspected from one surface?\"\n  ]\n}\n"
+    },
+    {
+      "path": "release/proof/release-manifest.json",
+      "text": "{\n  \"schema_version\": \"1.0\",\n  \"version\": \"3.125.0\",\n  \"tag\": \"v3.125.0\",\n  \"commit\": \"0123456789abcdef0123456789abcdef01234567\",\n  \"artifact\": {\n    \"name\": \"shipguard-v3.125.0.tar.gz\",\n    \"sha256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n  },\n  \"proofs\": {\n    \"release_url\": \"https://github.com/jlekerli-source/ShipGuard/releases/tag/v3.125.0\",\n    \"ci_run_url\": \"https://github.com/jlekerli-source/ShipGuard/actions/runs/1\"\n  }\n}\n"
+    },
+    {
+      "path": "release/attestation/attestation-badge.json",
+      "text": "{\n  \"status\": \"pass\"\n}\n"
+    }
+  ],
+  "commands": [
+    {
+      "id": "inspect-proof-state-pass",
+      "display": "./bin/shipguard inspect --value-gauntlet <out>/value --full-audit <out>/full --release-assets <out>/release",
+      "args": [
+        "inspect",
+        "--path",
+        ".",
+        "--out",
+        "{out}/inspect",
+        "--value-gauntlet",
+        "{out}/value",
+        "--full-audit",
+        "{out}/full",
+        "--release-assets",
+        "{out}/release",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "inspect/shipguard-inspect.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "repoState",
+            "proofInputs",
+            "proofReceipts",
+            "pluginState",
+            "releaseState",
+            "unifiedVerdict",
+            "nextAction",
+            "underlyingEvidence",
+            "scopeBoundary",
+            "reportQualityQuestions"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "proofInputs",
+            "proofReceipts.valueGauntlet.lowestValueSurface",
+            "proofReceipts.fullAudit.stageStatusSummary",
+            "pluginState",
+            "releaseState",
+            "nextAction",
+            "underlyingEvidence",
+            "reportQualityQuestions"
+          ],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard inspect"},
+            {"path": "surface", "equals": "ShipGuard InspectDeck"},
+            {"path": "proofReceipts.valueGauntlet.lowestValueSurface.identifier", "equals": "shipguard unified-inspect-experience"},
+            {"path": "proofReceipts.fullAudit.stageStatusSummary.planned", "equals": 14},
+            {"path": "releaseState.version", "equals": "3.125.0"},
+            {"path": "nextAction.source", "equals": "value-gauntlet.lowestValueSurfaceProbe.answer"},
+            {"path": "scopeBoundary.shipguardOnly", "equals": true},
+            {"path": "scopeBoundary.targetAppsReadOnly", "equals": true},
+            {"path": "scopeBoundary.doesNotPush", "equals": true},
+            {"path": "scopeBoundary.doesNotPublishRelease", "equals": true}
+          ],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "inspect/shipguard-inspect.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard InspectDeck",
+            "Next Action",
+            "Proof Inputs",
+            "Underlying Evidence",
+            "Scope Boundary",
+            "Report Quality Questions"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}

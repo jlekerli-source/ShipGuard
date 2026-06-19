@@ -78,8 +78,8 @@ if structured_evidence.get("status") != "pass":
 if structured_evidence.get("receiptCount") != 1 or structured_evidence.get("passedReceiptCount") != 1 or structured_evidence.get("commandCount") != 6:
     raise SystemExit(f"expected one structured evidence receipt and six commands: {structured_evidence!r}")
 
-if answer.get("identifier") != "shipguard unified-inspect-experience":
-    raise SystemExit(f"passing full-audit receipts should escalate to unified inspect: {answer!r}")
+if answer.get("identifier") != "shipguard concise-verdict-result-ux":
+    raise SystemExit(f"passing unified inspect receipts should escalate to concise verdict UX: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -104,8 +104,10 @@ if "runtimeUniversalAgentPackagingAdapter" in answer.get("missingDepthSignals", 
     raise SystemExit(f"universal agent packaging should no longer be missing: {answer!r}")
 if "runtimeFullAuditOrchestrator" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"full-audit orchestrator should no longer be missing: {answer!r}")
-if "runtimeUnifiedInspectExperience" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"unified inspect gap should be explicit: {answer!r}")
+if "runtimeUnifiedInspectExperience" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"unified inspect should no longer be missing: {answer!r}")
+if "runtimeConciseVerdictResultUX" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"concise verdict UX gap should be explicit: {answer!r}")
 PY
 
 echo "task contract receipt tests passed"

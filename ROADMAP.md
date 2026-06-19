@@ -9,7 +9,7 @@ ShipGuard is the local policy, context, and evidence layer for high-risk Codex c
 The roadmap should optimize for one proof-gated change loop:
 
 ```text
-inspect the repository
+inspect the repository and proof state
 prepare a narrow Codex task contract
 execute under protected boundaries
 verify the diff, evidence, and agent claims
@@ -49,7 +49,7 @@ Keep the core open-source verdict engine honest. Future Pro, Team, or Enterprise
 
 ## Phase Map
 
-The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.124 as shipped foundations and v3.125 as the active unified inspect slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, universal-agent packaging, or full-audit orchestration work.
+The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.125 as shipped foundations and v3.126 as the active concise verdict/result UX slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, universal-agent packaging, full-audit orchestration, or unified inspect work.
 
 ### Phase A: Trustworthy Foundation
 
@@ -134,7 +134,7 @@ v3.128  External benchmark v2
 v3.129-v3.130  v4 preview, stabilization, security, and schema freeze
 ```
 
-Current state: v3.124 adds `shipguard full-audit`, a resumable evidence-aware lane for validation, value-gauntlet, report-quality, install refresh, plugin status, CI proof, and release-proof preparation. The active architectural priority is v3.125 unified inspect: one concise command that reads existing proof receipts, value-gauntlet state, repo state, plugin state, and the exact next action without hiding the underlying evidence.
+Current state: v3.125 adds `shipguard inspect`, a read-only InspectDeck report that reads repo state, value-gauntlet state, full-audit state, local Codex plugin state, release proof state, underlying evidence pointers, and one exact next action. The active architectural priority is v3.126 concise verdict and result UX: make InspectDeck and major source reports lead with pass, review, or blocked, why it matters, proof source, and the next command.
 
 Every release proposal must answer:
 

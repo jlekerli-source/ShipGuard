@@ -46,6 +46,7 @@ COMMANDS: list[dict[str, str]] = [
     {"command": "shipguard docs-check", "surface": "ShipGuard LinkSweep", "family": "docs"},
     {"command": "shipguard value-gauntlet", "surface": "ShipGuard Tool Value Gauntlet", "family": "shipyard"},
     {"command": "shipguard full-audit", "surface": "ShipGuard Full Audit", "family": "shipyard"},
+    {"command": "shipguard inspect", "surface": "ShipGuard InspectDeck", "family": "shipyard"},
     {"command": "shipguard pilot-bench", "surface": "ShipGuard PilotBench", "family": "shipyard"},
     {"command": "shipguard agent trace", "surface": "ShipGuard TraceBridge", "family": "agent"},
     {"command": "shipguard ios doctor", "surface": "ShipGuard DockCheck", "family": "ios"},
@@ -88,7 +89,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add a unified inspect experience so full-audit, value-gauntlet, source reports, and proof receipts are readable from one concise surface?",
+    "Should ShipGuard add concise verdict and result UX so InspectDeck and source reports answer pass, review, or blocked with one sentence, proof source, and exact next command?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -181,6 +182,7 @@ XCODEBUILDMCP_EVIDENCE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" /
 EXPO_EAS_ASSURANCE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "expo-eas-assurance-receipts"
 UNIVERSAL_AGENT_PACKAGING_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "universal-agent-packaging-receipts"
 FULL_AUDIT_ORCHESTRATOR_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "full-audit-orchestrator-receipts"
+UNIFIED_INSPECT_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "unified-inspect-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -1002,6 +1004,18 @@ def load_universal_agent_packaging_receipts(root: Path) -> list[tuple[Path, dict
 
 def load_full_audit_orchestrator_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / FULL_AUDIT_ORCHESTRATOR_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_unified_inspect_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / UNIFIED_INSPECT_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -2552,6 +2566,37 @@ def full_audit_orchestrator_receipt_probe(root: Path) -> dict[str, Any]:
     }
 
 
+def unified_inspect_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [
+        run_skill_plugin_receipt(root, fixture_dir, meta)
+        for fixture_dir, meta in load_unified_inspect_receipts(root)
+    ]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public InspectDeck fixtures that prove ShipGuard can summarize repo state, proof receipts, plugin status, release state, and one exact next action without hiding evidence.",
+        "fixtureRoot": UNIFIED_INSPECT_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public ShipGuard checkout", "synthetic value-gauntlet report", "synthetic full-audit report", "synthetic release proof manifest"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Unified inspect receipts are passing; add concise verdict and result UX next."
+            if status == "pass"
+            else "Fix InspectDeck receipts so repo, proof, plugin, release, and next-action state are readable from one shareable surface."
+        ),
+    }
+
+
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
     slug = command_slug(command)
     tokens = command_tokens(command)
@@ -2980,6 +3025,13 @@ def full_audit_orchestrator_receipt_passed(full_audit_orchestrator_receipts: dic
     return required.issubset(receipt_command_ids(full_audit_orchestrator_receipts))
 
 
+def unified_inspect_receipt_passed(unified_inspect_receipts: dict[str, Any]) -> bool:
+    if unified_inspect_receipts.get("status") != "pass":
+        return False
+    required = {"inspect-proof-state-pass"}
+    return required.issubset(receipt_command_ids(unified_inspect_receipts))
+
+
 def command_depth_rows(
     commands: list[dict[str, Any]],
     text_index: dict[str, str],
@@ -3187,6 +3239,7 @@ def lowest_value_surface_probe(
     expo_eas_assurance_receipts: dict[str, Any],
     universal_agent_packaging_receipts: dict[str, Any],
     full_audit_orchestrator_receipts: dict[str, Any],
+    unified_inspect_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -4148,6 +4201,40 @@ def lowest_value_surface_probe(
             recommendation="Add one concise inspect command that summarizes repository state, proof receipts, weakest value-gauntlet surface, installed plugin state, and exact next action.",
             proof="Run value-gauntlet plus focused inspect fixtures that prove the command reads existing ShipGuard receipts without hiding underlying proof.",
         )
+    if (
+        answer
+        and answer.get("identifier") == "shipguard unified-inspect-experience"
+        and unified_inspect_receipt_passed(unified_inspect_receipts)
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeUnifiedInspectExperience":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeUnifiedInspectExperience",
+                        True,
+                        f"{unified_inspect_receipts.get('passedReceiptCount') or 0}/{unified_inspect_receipts.get('receiptCount') or 0} unified inspect receipts executed",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeConciseVerdictResultUX",
+                False,
+                "ShipGuard reports still need a unified pass/review/blocked verdict pattern, compact result hierarchy, and one copy-ready next command across source and proof reports",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="cross-cutting",
+            identifier="shipguard concise-verdict-result-ux",
+            name="Concise verdict and result UX",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Add a concise verdict/result UX layer so ShipGuard reports lead with pass, review, or blocked, the proof source, why it matters, and the exact next command.",
+            proof="Run value-gauntlet plus focused concise-verdict fixtures that prove InspectDeck and major source reports share the same result hierarchy without hiding evidence.",
+        )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
         answer = {
@@ -4234,6 +4321,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     expo_eas_assurance_receipts = expo_eas_assurance_receipt_probe(root)
     universal_agent_packaging_receipts = universal_agent_packaging_receipt_probe(root)
     full_audit_orchestrator_receipts = full_audit_orchestrator_receipt_probe(root)
+    unified_inspect_receipts = unified_inspect_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -4270,6 +4358,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         expo_eas_assurance_receipts=expo_eas_assurance_receipts,
         universal_agent_packaging_receipts=universal_agent_packaging_receipts,
         full_audit_orchestrator_receipts=full_audit_orchestrator_receipts,
+        unified_inspect_receipts=unified_inspect_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -4332,6 +4421,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "expoEASAssuranceReceipts": expo_eas_assurance_receipts,
         "universalAgentPackagingReceipts": universal_agent_packaging_receipts,
         "fullAuditOrchestratorReceipts": full_audit_orchestrator_receipts,
+        "unifiedInspectReceipts": unified_inspect_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -5066,6 +5156,30 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_full_audit_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_full_audit_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+    unified_inspect_receipts = report.get("unifiedInspectReceipts") or {}
+    lines.extend(["", "## Unified Inspect Receipts", ""])
+    lines.append(f"- Status: {unified_inspect_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {unified_inspect_receipts.get('passedReceiptCount', 0)}/{unified_inspect_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {unified_inspect_receipts.get('commandCount', 0)}")
+    if unified_inspect_receipts.get("nextAction"):
+        lines.append(f"- Next action: {unified_inspect_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in unified_inspect_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 44)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_inspect_commands = [
+        (receipt, command)
+        for receipt in unified_inspect_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_inspect_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_inspect_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

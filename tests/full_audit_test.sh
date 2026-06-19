@@ -28,7 +28,7 @@ grep -q '"doesNotPush": true' "$tmp_dir/plan/shipguard-full-audit.json"
 grep -q '"doesNotPublishRelease": true' "$tmp_dir/plan/shipguard-full-audit.json"
 grep -q 'ShipGuard Full Audit' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Slow Lanes' "$tmp_dir/plan/shipguard-full-audit.md"
-grep -q 'v3.125.0 Unified Inspect Experience' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'v3.126.0 Concise Verdict and Result UX' "$tmp_dir/plan/shipguard-full-audit.md"
 if grep -q "$repo_root" "$tmp_dir/plan/shipguard-full-audit.json" "$tmp_dir/plan/shipguard-full-audit.md"; then
   echo "shareable full-audit output leaked local repo path" >&2
   exit 1
