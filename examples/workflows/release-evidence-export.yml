@@ -10,7 +10,7 @@ on:
       release-tag:
         description: Release tag to verify and export.
         required: true
-        default: v3.121.0
+        default: v3.122.0
 
 permissions:
   contents: read
@@ -20,14 +20,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Verify published proof assets
-        uses: jlekerli-source/ShipGuard/actions/release-consume@v3.121.0
+        uses: jlekerli-source/ShipGuard/actions/release-consume@v3.122.0
         with:
           repo: jlekerli-source/ShipGuard
           release-tag: ${{ inputs.release-tag }}
           mode: fail
 
       - name: Compare release proof assets
-        uses: jlekerli-source/ShipGuard/actions/release-diff@v3.121.0
+        uses: jlekerli-source/ShipGuard/actions/release-diff@v3.122.0
         with:
           repo: jlekerli-source/ShipGuard
           left-tag: ${{ inputs.previous-tag }}
@@ -35,7 +35,7 @@ jobs:
           mode: fail
 
       - name: Export release evidence
-        uses: jlekerli-source/ShipGuard/actions/release-evidence@v3.121.0
+        uses: jlekerli-source/ShipGuard/actions/release-evidence@v3.122.0
         with:
           title: ShipGuard Release Evidence
           include-diff: auto

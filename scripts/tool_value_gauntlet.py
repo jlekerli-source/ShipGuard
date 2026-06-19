@@ -87,7 +87,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add an Expo MCP and EAS assurance adapter so Expo/EAS proof can attach to the same task trace timeline?",
+    "Should ShipGuard add Claude, Gemini, Cursor, and generic MCP packaging so non-Codex agents can emit the same ShipGuard proof receipts?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -177,6 +177,7 @@ CONFIGURATION_BASELINE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" /
 STRUCTURED_EVIDENCE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "structured-evidence-receipts"
 AGENT_ADAPTER_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "agent-adapter-receipts"
 XCODEBUILDMCP_EVIDENCE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "xcodebuildmcp-evidence-receipts"
+EXPO_EAS_ASSURANCE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "expo-eas-assurance-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -962,6 +963,18 @@ def load_agent_adapter_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]
 
 def load_xcodebuildmcp_evidence_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / XCODEBUILDMCP_EVIDENCE_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_expo_eas_assurance_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / EXPO_EAS_ASSURANCE_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -2419,6 +2432,37 @@ def xcodebuildmcp_evidence_receipt_probe(root: Path) -> dict[str, Any]:
     }
 
 
+def expo_eas_assurance_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [
+        run_skill_plugin_receipt(root, fixture_dir, meta)
+        for fixture_dir, meta in load_expo_eas_assurance_receipts(root)
+    ]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public Expo/EAS assurance adapter fixtures that prove Expo MCP, prebuild, EAS build/update, native runtime, artifact integrity, and credential-boundary proof attach to ShipGuard task traces.",
+        "fixtureRoot": EXPO_EAS_ASSURANCE_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public synthetic Codex trace", "synthetic Expo/EAS proof cargo", "synthetic task contract", "v2 validation receipt"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Expo/EAS assurance receipts are passing; add Claude, Gemini, Cursor, and generic MCP packaging next."
+            if status == "pass"
+            else "Fix Expo/EAS assurance receipts so Expo project, prebuild, build/update, runtime, and artifact proof attach to the task trace timeline."
+        ),
+    }
+
+
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
     slug = command_slug(command)
     tokens = command_tokens(command)
@@ -2812,6 +2856,17 @@ def xcodebuildmcp_evidence_receipt_passed(xcodebuildmcp_evidence_receipts: dict[
     return required.issubset(receipt_command_ids(xcodebuildmcp_evidence_receipts))
 
 
+def expo_eas_assurance_receipt_passed(expo_eas_assurance_receipts: dict[str, Any]) -> bool:
+    if expo_eas_assurance_receipts.get("status") != "pass":
+        return False
+    required = {
+        "prepare-expo-eas-trace-task",
+        "agent-trace-expo-eas-proof-pass",
+        "codex-trace-expo-eas-proof-pass",
+    }
+    return required.issubset(receipt_command_ids(expo_eas_assurance_receipts))
+
+
 def command_depth_rows(
     commands: list[dict[str, Any]],
     text_index: dict[str, str],
@@ -3016,6 +3071,7 @@ def lowest_value_surface_probe(
     structured_evidence_receipts: dict[str, Any],
     agent_adapter_receipts: dict[str, Any],
     xcodebuildmcp_evidence_receipts: dict[str, Any],
+    expo_eas_assurance_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -3875,6 +3931,40 @@ def lowest_value_surface_probe(
             recommendation="Add an Expo MCP and EAS assurance adapter so Expo prebuild, EAS build/update, and native runtime proof can attach to ShipGuard task traces and receipts.",
             proof="Run value-gauntlet plus focused Expo/EAS adapter fixtures that prove external build artifacts are typed, redacted, and mapped into the same verdict handoff.",
         )
+    if (
+        answer
+        and answer.get("identifier") == "shipguard expo-mcp-eas-assurance-adapter"
+        and expo_eas_assurance_receipt_passed(expo_eas_assurance_receipts)
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeExpoMCPAndEASAdapter":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeExpoMCPAndEASAdapter",
+                        True,
+                        f"{expo_eas_assurance_receipts.get('passedReceiptCount') or 0}/{expo_eas_assurance_receipts.get('receiptCount') or 0} Expo/EAS assurance receipts executed",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeUniversalAgentPackagingAdapter",
+                False,
+                "Claude, Gemini, Cursor, and generic MCP users still need thin packaging adapters that emit the same ShipGuard receipts without forking the core schema",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="cross-cutting",
+            identifier="shipguard universal-agent-packaging-adapter",
+            name="Claude, Gemini, Cursor, and generic MCP packaging",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Add thin agent-neutral packaging adapters so Claude, Gemini, Cursor, and generic MCP workflows can emit the same ShipGuard task, trace, and proof receipts.",
+            proof="Run value-gauntlet plus focused packaging fixtures that prove non-Codex adapters preserve the shared proof schema, redaction boundaries, and next-goal handoff.",
+        )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
         answer = {
@@ -3958,6 +4048,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     structured_evidence_receipts = structured_evidence_receipt_probe(root)
     agent_adapter_receipts = agent_adapter_receipt_probe(root)
     xcodebuildmcp_evidence_receipts = xcodebuildmcp_evidence_receipt_probe(root)
+    expo_eas_assurance_receipts = expo_eas_assurance_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -3991,6 +4082,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         structured_evidence_receipts=structured_evidence_receipts,
         agent_adapter_receipts=agent_adapter_receipts,
         xcodebuildmcp_evidence_receipts=xcodebuildmcp_evidence_receipts,
+        expo_eas_assurance_receipts=expo_eas_assurance_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -4050,6 +4142,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "structuredEvidenceReceipts": structured_evidence_receipts,
         "agentAdapterReceipts": agent_adapter_receipts,
         "xcodeBuildMCPEvidenceReceipts": xcodebuildmcp_evidence_receipts,
+        "expoEASAssuranceReceipts": expo_eas_assurance_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -4711,6 +4804,31 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_xcodebuildmcp_evidence_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_xcodebuildmcp_evidence_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+
+    expo_eas_assurance_receipts = report.get("expoEASAssuranceReceipts") or {}
+    lines.extend(["", "## Expo/EAS Assurance Receipts", ""])
+    lines.append(f"- Status: {expo_eas_assurance_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {expo_eas_assurance_receipts.get('passedReceiptCount', 0)}/{expo_eas_assurance_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {expo_eas_assurance_receipts.get('commandCount', 0)}")
+    if expo_eas_assurance_receipts.get("nextAction"):
+        lines.append(f"- Next action: {expo_eas_assurance_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in expo_eas_assurance_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 44)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_expo_eas_commands = [
+        (receipt, command)
+        for receipt in expo_eas_assurance_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_expo_eas_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_expo_eas_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

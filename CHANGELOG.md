@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added the v3.122 Expo MCP and EAS assurance adapter: `shipguard agent trace` and `shipguard codex trace` now accept `--expo-eas-evidence <file-or-dir>` and attach Expo MCP routing, Expo project metadata, prebuild, EAS build/update, native runtime, artifact-integrity, and credential-boundary proof to the same TraceBridge task timeline.
+- Added Tool Value Gauntlet `expoEASAssuranceReceipts` with a public synthetic fixture proving agent and Codex trace aliases attach typed Expo/EAS evidence while keeping EAS assurance separate from TestFlight, store, physical-device, and production-rollout proof.
+- Advanced `shipguard value-gauntlet` beyond the v3.122 gap: once Expo/EAS assurance receipts pass, the lowest-value probe now points to v3.123 Claude, Gemini, Cursor, and generic MCP packaging.
 - Added the v3.121 XcodeBuildMCP evidence adapter: `shipguard agent trace` and `shipguard codex trace` now accept `--xcodebuildmcp-evidence <file-or-dir>` and attach simulator build/run, UI snapshot, screenshot, runtime log, and profiler proof to the same TraceBridge task timeline.
 - Added Tool Value Gauntlet `xcodeBuildMCPEvidenceReceipts` with a public synthetic fixture proving agent and Codex trace aliases attach typed XcodeBuildMCP evidence while keeping physical-device proof separate from simulator proof.
 - Advanced `shipguard value-gauntlet` beyond the v3.121 gap: once XcodeBuildMCP receipts pass, the lowest-value probe now points to the v3.122 Expo MCP and EAS assurance adapter.

@@ -66,8 +66,8 @@ if trust_receipts.get("status") != "pass":
     raise SystemExit(f"trust-hardening receipts should also pass in the full gauntlet: {trust_receipts!r}")
 if domain_pack_sdk.get("status") != "pass":
     raise SystemExit(f"Domain Pack SDK receipts should also pass in the full gauntlet: {domain_pack_sdk!r}")
-if answer.get("identifier") != "shipguard expo-mcp-eas-assurance-adapter":
-    raise SystemExit(f"passing XcodeBuildMCP receipts should escalate to Expo MCP and EAS assurance adapter: {answer!r}")
+if answer.get("identifier") != "shipguard universal-agent-packaging-adapter":
+    raise SystemExit(f"passing Expo/EAS receipts should escalate to universal agent packaging adapter: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -86,8 +86,10 @@ if "runtimeCodexNativeTaskTraceAdapter" in answer.get("missingDepthSignals", [])
     raise SystemExit(f"Codex-native task/trace adapter should no longer be missing: {answer!r}")
 if "runtimeXcodeBuildMCPEvidenceAdapter" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"XcodeBuildMCP evidence adapter should no longer be missing: {answer!r}")
-if "runtimeExpoMCPAndEASAdapter" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"Expo MCP and EAS adapter gap should be explicit: {answer!r}")
+if "runtimeExpoMCPAndEASAdapter" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"Expo MCP and EAS adapter should no longer be missing: {answer!r}")
+if "runtimeUniversalAgentPackagingAdapter" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"universal agent packaging gap should be explicit: {answer!r}")
 if "runtimeCommandFamilyOutputReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"command-family output receipts should no longer be missing: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):

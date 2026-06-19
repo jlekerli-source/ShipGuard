@@ -70,6 +70,48 @@ XCODEBUILD_MCP_SIGNALS = {
         "proofBoundary": "Shows device-related evidence is present, but ShipGuard still treats device claims as manual unless the receipt names the device route.",
     },
 }
+EXPO_EAS_SIGNALS = {
+    "expoMCPProof": {
+        "title": "Expo MCP proof",
+        "tokens": ["expo mcp", "mcp__expo", "codex-expo-run-actions", "expo run action", "expo plugin"],
+        "proofBoundary": "Shows Expo-specific agent tooling or MCP routing was involved; it is not enough by itself to prove a native build or update.",
+    },
+    "expoProjectProof": {
+        "title": "Expo project proof",
+        "tokens": ["app.json", "app.config", "expo sdk", "\"expo\"", "expo doctor", "expo diagnostics", "package.json"],
+        "proofBoundary": "Shows the target is an Expo project or has Expo metadata; it does not prove prebuild, EAS, or native runtime behavior.",
+    },
+    "prebuildProof": {
+        "title": "Expo prebuild proof",
+        "tokens": ["expo prebuild", "npx expo prebuild", "prebuild", "config plugin", "ios directory", "android directory"],
+        "proofBoundary": "Shows native project generation or config-plugin routing; generated native output still needs validation before release claims.",
+    },
+    "easBuildProof": {
+        "title": "EAS build proof",
+        "tokens": ["eas build", "build id", "build url", "build profile", "eas.json", "artifact url", ".ipa", ".apk", ".aab"],
+        "proofBoundary": "Shows an EAS build route or artifact; it is not App Store, Play Store, or device-install proof unless those receipts are attached too.",
+    },
+    "easUpdateProof": {
+        "title": "EAS update proof",
+        "tokens": ["eas update", "update group", "runtimeversion", "runtime version", "channel", "branch", "rollout"],
+        "proofBoundary": "Shows an EAS Update route; runtime-version compatibility and native-code boundaries still need explicit proof.",
+    },
+    "nativeRuntimeProof": {
+        "title": "Native runtime proof",
+        "tokens": ["simulator", "device", "launch", "runtime log", "xcodebuild", "gradle", "install", "build_run_sim"],
+        "proofBoundary": "Shows local runtime evidence; keep device, TestFlight, and store claims separate unless those artifacts are present.",
+    },
+    "artifactIntegrityProof": {
+        "title": "Artifact integrity proof",
+        "tokens": ["sha256", "checksum", "artifact", "download url", "build artifact", "fingerprint"],
+        "proofBoundary": "Shows artifact identity or integrity metadata; never include signing secrets, Expo tokens, or credential payloads in public reports.",
+    },
+    "credentialBoundaryProof": {
+        "title": "Credential boundary proof",
+        "tokens": ["credential", "credentials", "provisioning profile", "distribution certificate", "asc api key", "secrets redacted"],
+        "proofBoundary": "Shows credentials were part of the route; ShipGuard treats this as boundary evidence and does not expose secret values.",
+    },
+}
 
 
 def utc_now() -> str:
@@ -219,6 +261,7 @@ def count_categories(timeline: list[dict[str, Any]]) -> dict[str, int]:
         "nextActionCount": sum(1 for item in timeline if item["category"] == "next_action"),
         "workerSpawnCount": sum(1 for item in timeline if item["category"] == "worker_spawn"),
         "xcodeBuildMCPEvidenceCount": sum(1 for item in timeline if item["category"] == "xcodebuildmcp_evidence"),
+        "expoEASAssuranceEvidenceCount": sum(1 for item in timeline if item["category"] == "expo_eas_evidence"),
     }
 
 
@@ -317,6 +360,21 @@ def evidence_path_label(path: Path, *, inputs: list[Path], shareable: bool) -> s
     return "<xcodebuildmcp-evidence>"
 
 
+def typed_evidence_path_label(path: Path, *, inputs: list[Path], shareable: bool, label_prefix: str) -> str:
+    if not shareable:
+        return path.as_posix()
+    for index, input_path in enumerate(inputs, start=1):
+        base = input_path if input_path.is_dir() else input_path.parent
+        try:
+            relative = path.relative_to(base)
+        except ValueError:
+            continue
+        suffix = relative.as_posix()
+        root_label = f"<{label_prefix}-{index}>"
+        return root_label if not suffix or suffix == "." else f"{root_label}/{suffix}"
+    return f"<{label_prefix}>"
+
+
 def read_evidence_text(path: Path) -> str:
     try:
         size = path.stat().st_size
@@ -361,6 +419,46 @@ def xcode_signal_matches(path: Path, text: str) -> dict[str, list[str]]:
         if "build_run_sim" in serialized or "session_show_defaults" in serialized:
             mark("buildRunProof", "XcodeBuildMCP JSON")
     for signal, config in XCODEBUILD_MCP_SIGNALS.items():
+        for token in config["tokens"]:
+            if token in lowered or token in name:
+                mark(signal, token.strip())
+    return matches
+
+
+def expo_eas_signal_matches(path: Path, text: str) -> dict[str, list[str]]:
+    name = path.name.lower()
+    suffix = path.suffix.lower()
+    lowered = text.lower()
+    matches: dict[str, list[str]] = {signal: [] for signal in EXPO_EAS_SIGNALS}
+
+    def mark(signal: str, marker: str) -> None:
+        if marker and marker not in matches[signal]:
+            matches[signal].append(marker)
+
+    if name in {"app.json", "app.config.js", "app.config.ts", "package.json"}:
+        mark("expoProjectProof", name)
+    if name == "eas.json":
+        mark("easBuildProof", "eas.json")
+    if suffix in {".ipa", ".apk", ".aab"}:
+        mark("easBuildProof", suffix)
+        mark("artifactIntegrityProof", "native artifact")
+    if suffix in {".log", ".txt", ".md"} and ("eas" in name or "expo" in name):
+        mark("expoProjectProof", name)
+    if suffix == ".json" and text.strip():
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            data = None
+        serialized = json.dumps(data, sort_keys=True).lower() if data is not None else lowered
+        if '"expo"' in serialized or "expo sdk" in serialized:
+            mark("expoProjectProof", "Expo JSON metadata")
+        if "eas build" in serialized or "build id" in serialized or "build url" in serialized:
+            mark("easBuildProof", "EAS build JSON")
+        if "eas update" in serialized or "update group" in serialized or "runtimeversion" in serialized:
+            mark("easUpdateProof", "EAS update JSON")
+        if "sha256" in serialized or "checksum" in serialized or "fingerprint" in serialized:
+            mark("artifactIntegrityProof", "artifact integrity JSON")
+    for signal, config in EXPO_EAS_SIGNALS.items():
         for token in config["tokens"]:
             if token in lowered or token in name:
                 mark(signal, token.strip())
@@ -476,6 +574,126 @@ def collect_xcodebuildmcp_evidence(raw_inputs: list[str], *, shareable: bool) ->
     }
 
 
+def collect_expo_eas_evidence(raw_inputs: list[str], *, shareable: bool) -> dict[str, Any]:
+    if not raw_inputs:
+        return {
+            "status": "not-provided",
+            "adapter": "expo-eas",
+            "inputs": [],
+            "summary": {
+                "inputCount": 0,
+                "existingInputCount": 0,
+                "fileCount": 0,
+                "filesScanned": 0,
+                "truncated": False,
+                **{signal: False for signal in EXPO_EAS_SIGNALS},
+            },
+            "signals": [
+                {
+                    "id": signal,
+                    "title": config["title"],
+                    "present": False,
+                    "evidence": [],
+                    "proofBoundary": config["proofBoundary"],
+                }
+                for signal, config in EXPO_EAS_SIGNALS.items()
+            ],
+            "nextActions": [
+                "After Codex/Expo/EAS tooling runs, rerun with --expo-eas-evidence <proof-dir> to attach Expo prebuild, EAS build/update, and runtime proof to this timeline.",
+            ],
+        }
+
+    resolved_inputs = [Path(item).expanduser().resolve() for item in raw_inputs]
+    files: list[Path] = []
+    inputs: list[dict[str, Any]] = []
+    existing_count = 0
+    any_truncated = False
+    for index, path in enumerate(resolved_inputs, start=1):
+        exists = path.exists()
+        input_files: list[Path] = []
+        truncated = False
+        if exists:
+            existing_count += 1
+            input_files, truncated = iter_evidence_files(path)
+            files.extend(input_files)
+            any_truncated = any_truncated or truncated
+        inputs.append(
+            {
+                "index": index,
+                "path": f"<expo-eas-evidence-{index}>" if shareable else path.as_posix(),
+                "kind": "directory" if path.is_dir() else "file" if path.is_file() else "missing",
+                "exists": exists,
+                "fileCount": len(input_files),
+                "truncated": truncated,
+            }
+        )
+
+    unique_files = sorted({path for path in files})
+    signal_evidence: dict[str, list[dict[str, str]]] = {signal: [] for signal in EXPO_EAS_SIGNALS}
+    for path in unique_files[:MAX_XCODE_EVIDENCE_FILES]:
+        text = read_evidence_text(path)
+        matches = expo_eas_signal_matches(path, text)
+        label = typed_evidence_path_label(path, inputs=resolved_inputs, shareable=shareable, label_prefix="expo-eas-evidence")
+        for signal, markers in matches.items():
+            for marker in markers:
+                if len(signal_evidence[signal]) >= 8:
+                    continue
+                row = {"path": label, "marker": marker}
+                if row not in signal_evidence[signal]:
+                    signal_evidence[signal].append(row)
+
+    summary = {
+        "inputCount": len(raw_inputs),
+        "existingInputCount": existing_count,
+        "fileCount": len(unique_files),
+        "filesScanned": min(len(unique_files), MAX_XCODE_EVIDENCE_FILES),
+        "truncated": any_truncated or len(unique_files) > MAX_XCODE_EVIDENCE_FILES,
+    }
+    for signal in EXPO_EAS_SIGNALS:
+        summary[signal] = bool(signal_evidence[signal])
+    has_project_route = bool(summary["expoProjectProof"] or summary["expoMCPProof"])
+    has_build_or_update = bool(summary["prebuildProof"] or summary["easBuildProof"] or summary["easUpdateProof"])
+    has_assurance = bool(summary["nativeRuntimeProof"] or summary["artifactIntegrityProof"])
+    if not existing_count or not unique_files:
+        status = "missing"
+    elif has_project_route and has_build_or_update and has_assurance:
+        status = "pass"
+    elif any(summary[signal] for signal in EXPO_EAS_SIGNALS):
+        status = "review"
+    else:
+        status = "review"
+    next_actions: list[str] = []
+    if status == "missing":
+        next_actions.append("Point --expo-eas-evidence at the proof directory or files produced by Expo MCP, Expo CLI, or EAS.")
+    if not has_project_route:
+        next_actions.append("Attach Expo project or Expo MCP metadata before claiming Expo-specific assurance.")
+    if not has_build_or_update:
+        next_actions.append("Attach Expo prebuild, EAS build, or EAS update output before claiming deployment-route proof.")
+    if not summary["nativeRuntimeProof"]:
+        next_actions.append("Attach simulator/device/runtime logs before claiming the built app actually launched.")
+    if not summary["artifactIntegrityProof"]:
+        next_actions.append("Attach artifact URL/checksum/fingerprint evidence before claiming a specific EAS artifact was preserved.")
+    if summary["credentialBoundaryProof"]:
+        next_actions.append("Keep Expo tokens, ASC keys, certificates, and provisioning details redacted; this report only records credential-boundary proof.")
+    return {
+        "status": status,
+        "adapter": "expo-eas",
+        "inputs": inputs,
+        "summary": summary,
+        "signals": [
+            {
+                "id": signal,
+                "title": config["title"],
+                "present": bool(signal_evidence[signal]),
+                "evidence": signal_evidence[signal],
+                "proofBoundary": config["proofBoundary"],
+            }
+            for signal, config in EXPO_EAS_SIGNALS.items()
+        ],
+        "nextActions": next_actions,
+    }
+
+
 def xcodebuildmcp_timeline(start_index: int, evidence: dict[str, Any]) -> list[dict[str, Any]]:
     if evidence.get("status") == "not-provided":
         return []
@@ -492,6 +710,33 @@ def xcodebuildmcp_timeline(start_index: int, evidence: dict[str, Any]) -> list[d
                 "type": signal["id"],
                 "role": "runtime-proof",
                 "tool": "XcodeBuildMCP",
+                "command": signal["title"],
+                "path": first.get("path"),
+                "status": "pass",
+                "receiptId": None,
+                "summary": f"{signal['title']}: {first.get('marker') or 'typed proof present'}",
+            }
+        )
+        index += 1
+    return items
+
+
+def expo_eas_timeline(start_index: int, evidence: dict[str, Any]) -> list[dict[str, Any]]:
+    if evidence.get("status") == "not-provided":
+        return []
+    items: list[dict[str, Any]] = []
+    index = start_index
+    for signal in evidence.get("signals") or []:
+        if not signal.get("present"):
+            continue
+        first = (signal.get("evidence") or [{}])[0]
+        items.append(
+            {
+                "index": index,
+                "category": "expo_eas_evidence",
+                "type": signal["id"],
+                "role": "runtime-proof",
+                "tool": "Expo/EAS",
                 "command": signal["title"],
                 "path": first.get("path"),
                 "status": "pass",
@@ -528,6 +773,59 @@ def xcodebuildmcp_findings(evidence: dict[str, Any]) -> list[dict[str, Any]]:
                 "evidence": "Supplied evidence did not match build/run, UI, screenshot, log, profiler, or device signals.",
                 "recommendation": "Keep XcodeBuildMCP proof explicit enough that ShipGuard can classify the receipt type.",
                 "proofGuidance": "Attach session_show_defaults, build_run_sim, describe_ui/snapshot_ui, screenshots, log capture, or xctrace/sample outputs.",
+            }
+        )
+    return findings
+
+
+def expo_eas_findings(evidence: dict[str, Any]) -> list[dict[str, Any]]:
+    if evidence.get("status") in {"not-provided", "pass"}:
+        return []
+    summary = evidence.get("summary") if isinstance(evidence.get("summary"), dict) else {}
+    findings: list[dict[str, Any]] = []
+    if evidence.get("status") == "missing":
+        findings.append(
+            {
+                "severity": "review",
+                "category": "expo-eas-evidence",
+                "ruleId": "expo-eas-evidence-input-missing",
+                "evidence": "Expo/EAS evidence inputs were supplied, but none resolved to readable files.",
+                "recommendation": "Attach the proof directory produced by Expo MCP, Expo CLI, or EAS, or remove the input until proof exists.",
+                "proofGuidance": "Rerun with --expo-eas-evidence <dir> containing Expo metadata, prebuild output, EAS build/update logs, runtime logs, or artifact checksums.",
+            }
+        )
+        return findings
+    if not summary.get("expoProjectProof") and not summary.get("expoMCPProof"):
+        findings.append(
+            {
+                "severity": "review",
+                "category": "expo-eas-evidence",
+                "ruleId": "expo-eas-project-route-missing",
+                "evidence": "Supplied evidence did not show Expo project metadata or Expo MCP routing.",
+                "recommendation": "Attach app.json/app.config/package metadata, Expo doctor output, or Expo MCP trace evidence.",
+                "proofGuidance": "Include Expo project metadata in the evidence directory before claiming Expo-specific assurance.",
+            }
+        )
+    if not any(bool(summary.get(signal)) for signal in ("prebuildProof", "easBuildProof", "easUpdateProof")):
+        findings.append(
+            {
+                "severity": "review",
+                "category": "expo-eas-evidence",
+                "ruleId": "expo-eas-build-update-route-missing",
+                "evidence": "Supplied evidence did not show Expo prebuild, EAS build, or EAS update output.",
+                "recommendation": "Attach the actual prebuild/build/update output instead of only project metadata.",
+                "proofGuidance": "Include `expo prebuild`, `eas build`, or `eas update` receipts with build IDs, channels, branches, or runtime versions.",
+            }
+        )
+    if not summary.get("nativeRuntimeProof"):
+        findings.append(
+            {
+                "severity": "review",
+                "category": "expo-eas-evidence",
+                "ruleId": "expo-eas-native-runtime-proof-missing",
+                "evidence": "Supplied evidence did not show native launch/runtime proof.",
+                "recommendation": "Keep Expo/EAS proof scoped to build/update assurance until simulator or device runtime evidence is attached.",
+                "proofGuidance": "Attach simulator/device launch logs, install proof, or runtime logs for the generated native app.",
             }
         )
     return findings
@@ -699,14 +997,17 @@ def sha256_file(path: Path) -> str:
 
 def write_runtime_receipt(out_dir: Path, report_path: Path, report: dict[str, Any]) -> dict[str, Any]:
     xcode_status = (report.get("xcodeBuildMCPEvidence") or {}).get("status")
+    expo_status = (report.get("expoEASAssuranceEvidence") or {}).get("status")
     scope = ["agent-trace", "task-contract", "receipts", "verdict-handoff", "agent-budget"]
     if xcode_status != "not-provided":
         scope.append("xcodebuildmcp-evidence")
+    if expo_status != "not-provided":
+        scope.append("expo-eas-evidence")
     receipt = {
         "schemaVersion": RECEIPT_SCHEMA_VERSION,
         "receiptId": "agent-trace-runtime",
         "receiptType": "runtime",
-        "requirementId": "xcodebuildmcp-evidence-adapter" if xcode_status != "not-provided" else "codex-task-trace-adapter",
+        "requirementId": "expo-eas-assurance-adapter" if expo_status != "not-provided" else "xcodebuildmcp-evidence-adapter" if xcode_status != "not-provided" else "codex-task-trace-adapter",
         "command": report.get("tool"),
         "exitCode": 0,
         "status": report.get("status"),
@@ -797,6 +1098,26 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.extend(
         [
             "",
+            "## Expo/EAS Assurance Evidence",
+            "",
+            f"- Status: {report['expoEASAssuranceEvidence']['status']}",
+            f"- Files scanned: {report['expoEASAssuranceEvidence']['summary']['filesScanned']}",
+            "",
+            "| Signal | Present | Evidence |",
+            "| --- | --- | --- |",
+        ]
+    )
+    for signal in report["expoEASAssuranceEvidence"]["signals"]:
+        evidence_rows = signal.get("evidence") or []
+        evidence_text = ", ".join(f"{item.get('path')} ({item.get('marker')})" for item in evidence_rows[:3]) or "-"
+        lines.append(f"| {signal['title']} | {str(signal['present']).lower()} | {table_cell(evidence_text, 160)} |")
+    if report["expoEASAssuranceEvidence"]["nextActions"]:
+        lines.extend(["", "Next Expo/EAS proof actions:"])
+        for item in report["expoEASAssuranceEvidence"]["nextActions"]:
+            lines.append(f"- {item}")
+    lines.extend(
+        [
+            "",
             "## Receipt Handoff",
             "",
             f"- Schema: {report['receiptHandoff']['schema'].get('schemaVersion')}",
@@ -821,7 +1142,10 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     trace_root, events, source_format = load_trace(trace_path)
     base_timeline = [timeline_item(index, event) for index, event in enumerate(events, start=1)]
     xcodebuildmcp_evidence = collect_xcodebuildmcp_evidence(args.xcodebuildmcp_evidence or [], shareable=args.shareable)
-    timeline = base_timeline + xcodebuildmcp_timeline(len(base_timeline) + 1, xcodebuildmcp_evidence)
+    xcode_timeline = xcodebuildmcp_timeline(len(base_timeline) + 1, xcodebuildmcp_evidence)
+    expo_eas_evidence = collect_expo_eas_evidence(args.expo_eas_evidence or [], shareable=args.shareable)
+    expo_timeline = expo_eas_timeline(len(base_timeline) + len(xcode_timeline) + 1, expo_eas_evidence)
+    timeline = base_timeline + xcode_timeline + expo_timeline
     adapter = infer_adapter(args.adapter, trace_root, timeline, trace_path)
     task_path = resolve_file(args.task, "shipguard-task.json")
     verdict_path = resolve_file(args.verdict, "shipguard-verdict.json")
@@ -829,7 +1153,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     receipts, receipt_schema = normalized_receipts(evidence_paths, shareable=args.shareable)
     verify_handoff = run_verify(args, task_path, evidence_paths, shareable=args.shareable)
     budget = budget_report(args, trace_root, timeline)
-    findings = trace_findings(timeline, verify_handoff) + xcodebuildmcp_findings(xcodebuildmcp_evidence) + budget["findings"]
+    findings = trace_findings(timeline, verify_handoff) + xcodebuildmcp_findings(xcodebuildmcp_evidence) + expo_eas_findings(expo_eas_evidence) + budget["findings"]
     status = status_from_findings(findings, budget, verify_handoff)
     counts = count_categories(timeline)
     task_id = text_value(
@@ -865,6 +1189,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "receiptTimeline": [item for item in timeline if item["category"] == "receipt"],
             "verdictTimeline": [item for item in timeline if item["category"] == "verdict"],
             "xcodeBuildMCPEvidenceTimeline": [item for item in timeline if item["category"] == "xcodebuildmcp_evidence"],
+            "expoEASAssuranceEvidenceTimeline": [item for item in timeline if item["category"] == "expo_eas_evidence"],
             "nextActions": [item for item in timeline if item["category"] == "next_action"],
         },
         "taskHandoff": load_task_summary(task_path, shareable=args.shareable),
@@ -874,16 +1199,18 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         },
         "receiptHandoff": {"schema": receipt_schema, "receipts": receipts},
         "xcodeBuildMCPEvidence": xcodebuildmcp_evidence,
+        "expoEASAssuranceEvidence": expo_eas_evidence,
         "verifyHandoff": verify_handoff,
         "agentBudget": budget,
         "findings": findings,
         "reportQualityQuestions": [
             "Does this trace connect the user prompt, tools, evidence receipts, verdict, and next action without relying on pasted summaries?",
             "Does XcodeBuildMCP build/run, UI snapshot, screenshot, log, or profiler proof attach to the same task trace timeline with local-path redaction?",
+            "Does Expo prebuild, EAS build/update, native runtime, artifact integrity, and credential-boundary proof attach to the same timeline without leaking tokens?",
             "Does the worker budget improve results per agent instead of maximizing agent count?",
         ],
-        "slashPlan": "/plan v3.122.0 Expo MCP And EAS Assurance Adapter for jlekerli-source/ShipGuard: build the next thin adapter that maps Expo MCP, EAS build, and native runtime assurance receipts into the same proof timeline, then validate with public fixtures.",
-        "slashGoal": "/goal Implement v3.122.0 Expo MCP And EAS Assurance Adapter for jlekerli-source/ShipGuard: connect Expo/EAS proof into ShipGuard receipts and agent traces without modifying private target apps.",
+        "slashPlan": "/plan v3.123.0 Claude, Gemini, Cursor, And Generic MCP Packaging for jlekerli-source/ShipGuard: add thin agent/package adapters after Expo/EAS proof can attach to TraceBridge." if expo_eas_evidence.get("status") != "not-provided" else "/plan v3.122.0 Expo MCP And EAS Assurance Adapter for jlekerli-source/ShipGuard: build the next thin adapter that maps Expo MCP, EAS build, and native runtime assurance receipts into the same proof timeline, then validate with public fixtures.",
+        "slashGoal": "/goal Implement v3.123.0 Claude, Gemini, Cursor, And Generic MCP Packaging for jlekerli-source/ShipGuard: keep one core proof schema while packaging thin adapters for non-Codex agents." if expo_eas_evidence.get("status") != "not-provided" else "/goal Implement v3.122.0 Expo MCP And EAS Assurance Adapter for jlekerli-source/ShipGuard: connect Expo/EAS proof into ShipGuard receipts and agent traces without modifying private target apps.",
         "runtimeReceiptPath": "agent-trace-receipt.json",
     }
     if args.shareable:
@@ -895,6 +1222,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         for evidence_path in args.evidence or []:
             roots.append(Path(evidence_path).parent)
         for evidence_path in args.xcodebuildmcp_evidence or []:
+            roots.append(Path(evidence_path).expanduser())
+        for evidence_path in args.expo_eas_evidence or []:
             roots.append(Path(evidence_path).expanduser())
         report = redact_paths(report, roots)
     return report
@@ -913,6 +1242,12 @@ def parse_args() -> argparse.Namespace:
         action="append",
         default=[],
         help="File or directory containing XcodeBuildMCP build/run, UI snapshot, screenshot, log, or profiler proof to attach to the trace",
+    )
+    parser.add_argument(
+        "--expo-eas-evidence",
+        action="append",
+        default=[],
+        help="File or directory containing Expo MCP, Expo prebuild, EAS build/update, native runtime, or artifact-integrity proof to attach to the trace",
     )
     parser.add_argument("--verdict", help="shipguard-verdict.json or directory containing it")
     parser.add_argument("--run-verify", action="store_true", help="Run shipguard verify from --task, --diff, and --evidence")

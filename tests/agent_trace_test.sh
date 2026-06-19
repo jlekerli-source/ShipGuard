@@ -8,7 +8,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 cd "$repo_root"
 
-mkdir -p "$tmp_dir/fixture/Sources/AgentTraceFixture" "$tmp_dir/diffs" "$tmp_dir/logs" "$tmp_dir/xcodebuildmcp"
+mkdir -p "$tmp_dir/fixture/Sources/AgentTraceFixture" "$tmp_dir/diffs" "$tmp_dir/logs" "$tmp_dir/xcodebuildmcp" "$tmp_dir/expo-eas"
 printf 'public struct AgentTraceFixture {}\n' > "$tmp_dir/fixture/Sources/AgentTraceFixture/App.swift"
 printf 'diff --git a/Sources/AgentTraceFixture/App.swift b/Sources/AgentTraceFixture/App.swift\n--- a/Sources/AgentTraceFixture/App.swift\n+++ b/Sources/AgentTraceFixture/App.swift\n@@ -1 +1,2 @@\n public struct AgentTraceFixture {}\n+// trace adapter fixture\n' > "$tmp_dir/diffs/good.diff"
 printf 'swift test passed for agent trace fixture\n' > "$tmp_dir/logs/swift-test.log"
@@ -73,6 +73,25 @@ cat > "$tmp_dir/xcodebuildmcp/profile.trace" <<'EOF'
 xctrace record --template 'Animation Hitches'
 Time Profiler and Animation Hitches summaries preserved.
 EOF
+cat > "$tmp_dir/expo-eas/app.json" <<'EOF'
+{"expo":{"name":"ShipGuardExpoFixture","slug":"shipguard-expo-fixture","sdkVersion":"54.0.0","runtimeVersion":"1.0.0"}}
+EOF
+cat > "$tmp_dir/expo-eas/eas-build.log" <<'EOF'
+expo mcp routed the task into EAS.
+expo prebuild completed with config plugin sync.
+eas build --platform ios --profile production
+Build ID: 12345678-abcd
+Build URL: https://expo.dev/accounts/example/projects/shipguard/builds/12345678
+Artifact URL: https://expo.dev/artifacts/builds/shipguard.ipa
+sha256: 0123456789abcdef
+credentials redacted
+EOF
+cat > "$tmp_dir/expo-eas/eas-update.json" <<'EOF'
+{"command":"eas update","channel":"production","branch":"main","runtimeVersion":"1.0.0","updateGroup":"synthetic-update-group","artifact":{"sha256":"0123456789abcdef"}}
+EOF
+cat > "$tmp_dir/expo-eas/runtime.log" <<'EOF'
+simulator launch succeeded for Expo dev client native runtime log
+EOF
 
 ./bin/shipguard agent trace \
   --trace "$tmp_dir/trace.json" \
@@ -80,6 +99,7 @@ EOF
   --diff "$tmp_dir/diffs/good.diff" \
   --evidence "$tmp_dir/logs/v2-validation-receipt.json" \
   --xcodebuildmcp-evidence "$tmp_dir/xcodebuildmcp" \
+  --expo-eas-evidence "$tmp_dir/expo-eas" \
   --run-verify \
   --out "$tmp_dir/agent-trace" \
   --shipguard-eval \
@@ -116,6 +136,14 @@ if report["traceSummary"]["xcodeBuildMCPEvidenceCount"] < 5:
     raise SystemExit(report["traceSummary"])
 if not report["taskTrace"]["xcodeBuildMCPEvidenceTimeline"]:
     raise SystemExit(report["taskTrace"])
+expo_summary = report["expoEASAssuranceEvidence"]["summary"]
+for key in ("expoMCPProof", "expoProjectProof", "prebuildProof", "easBuildProof", "easUpdateProof", "nativeRuntimeProof", "artifactIntegrityProof", "credentialBoundaryProof"):
+    if expo_summary.get(key) is not True:
+        raise SystemExit(f"missing Expo/EAS proof {key}: {expo_summary}")
+if report["traceSummary"]["expoEASAssuranceEvidenceCount"] < 8:
+    raise SystemExit(report["traceSummary"])
+if not report["taskTrace"]["expoEASAssuranceEvidenceTimeline"]:
+    raise SystemExit(report["taskTrace"])
 if report["verifyHandoff"]["status"] != "pass" or report["verifyHandoff"]["verdictStatus"] != "pass":
     raise SystemExit(report["verifyHandoff"])
 if report["receiptHandoff"]["schema"]["v2Count"] != 1:
@@ -124,7 +152,7 @@ if report["scopeBoundary"]["shipguardOnly"] is not True or report["scopeBoundary
     raise SystemExit(report["scopeBoundary"])
 if receipt["receiptType"] != "runtime" or receipt["artifact"]["path"] != "agent-trace.json":
     raise SystemExit(receipt)
-if receipt["requirementId"] != "xcodebuildmcp-evidence-adapter" or "xcodebuildmcp-evidence" not in receipt["scope"]:
+if receipt["requirementId"] != "expo-eas-assurance-adapter" or "xcodebuildmcp-evidence" not in receipt["scope"] or "expo-eas-evidence" not in receipt["scope"]:
     raise SystemExit(receipt)
 serialized = json.dumps(report, sort_keys=True)
 if tmp_dir in serialized:
@@ -136,6 +164,8 @@ grep -q 'Agent Budget' "$tmp_dir/agent-trace/agent-trace.md"
 grep -q 'Verify Handoff' "$tmp_dir/agent-trace/agent-trace.md"
 grep -q 'XcodeBuildMCP Evidence' "$tmp_dir/agent-trace/agent-trace.md"
 grep -q 'Build/run proof' "$tmp_dir/agent-trace/agent-trace.md"
+grep -q 'Expo/EAS Assurance Evidence' "$tmp_dir/agent-trace/agent-trace.md"
+grep -q 'EAS build proof' "$tmp_dir/agent-trace/agent-trace.md"
 
 ./bin/shipguard agent trace \
   --trace "$tmp_dir/trace.json" \
@@ -160,6 +190,7 @@ PY
 
 ./bin/shipguard codex trace \
   --trace "$tmp_dir/trace.json" \
+  --expo-eas-evidence "$tmp_dir/expo-eas" \
   --out "$tmp_dir/codex-trace" \
   --shipguard-eval \
   --shareable >/dev/null
@@ -173,6 +204,8 @@ if report["tool"] != "shipguard codex trace":
     raise SystemExit(report["tool"])
 if report["adapter"]["type"] != "codex":
     raise SystemExit(report["adapter"])
+if report["expoEASAssuranceEvidence"]["status"] != "pass":
+    raise SystemExit(report["expoEASAssuranceEvidence"])
 PY
 
 echo "agent trace tests passed"

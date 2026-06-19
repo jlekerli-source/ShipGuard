@@ -78,8 +78,8 @@ if structured_evidence.get("status") != "pass":
 if structured_evidence.get("receiptCount") != 1 or structured_evidence.get("passedReceiptCount") != 1 or structured_evidence.get("commandCount") != 6:
     raise SystemExit(f"expected one structured evidence receipt and six commands: {structured_evidence!r}")
 
-if answer.get("identifier") != "shipguard expo-mcp-eas-assurance-adapter":
-    raise SystemExit(f"passing XcodeBuildMCP receipts should escalate to Expo MCP and EAS assurance adapter: {answer!r}")
+if answer.get("identifier") != "shipguard universal-agent-packaging-adapter":
+    raise SystemExit(f"passing Expo/EAS receipts should escalate to universal agent packaging adapter: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -98,8 +98,10 @@ if "runtimeCodexNativeTaskTraceAdapter" in answer.get("missingDepthSignals", [])
     raise SystemExit(f"Codex-native task trace adapter should no longer be missing: {answer!r}")
 if "runtimeXcodeBuildMCPEvidenceAdapter" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"XcodeBuildMCP evidence adapter should no longer be missing: {answer!r}")
-if "runtimeExpoMCPAndEASAdapter" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"Expo MCP and EAS adapter gap should be explicit: {answer!r}")
+if "runtimeExpoMCPAndEASAdapter" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"Expo MCP and EAS adapter should no longer be missing: {answer!r}")
+if "runtimeUniversalAgentPackagingAdapter" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"universal agent packaging gap should be explicit: {answer!r}")
 PY
 
 echo "task contract receipt tests passed"

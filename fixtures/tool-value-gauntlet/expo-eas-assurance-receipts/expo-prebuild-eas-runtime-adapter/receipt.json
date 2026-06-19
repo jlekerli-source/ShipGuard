@@ -1,0 +1,199 @@
+{
+  "id": "expo-prebuild-eas-runtime-adapter",
+  "kind": "expo-eas-assurance-receipt",
+  "surface": "ShipGuard Expo MCP and EAS Assurance Adapter",
+  "selectedMode": "value-gauntlet expo eas assurance receipts",
+  "trigger": "Prove Expo MCP, Expo prebuild, EAS build/update, native runtime, artifact integrity, and credential-boundary proof can attach to a ShipGuard agent trace timeline without editing target apps.",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/agent_trace.py",
+    "scripts/tool_value_gauntlet.py",
+    "tests/agent_trace_test.sh",
+    "docs/agent-trace.md"
+  ],
+  "expectedSourcePhrases": [
+    "expoEASAssuranceEvidence",
+    "expo-eas-evidence",
+    "Expo/EAS Assurance Evidence",
+    "runtimeExpoMCPAndEASAdapter",
+    "expoEASAssuranceReceipts"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppsUsed": false,
+    "inputs": [
+      "synthetic Codex-style trace",
+      "synthetic Expo app metadata",
+      "synthetic Expo MCP route marker",
+      "synthetic Expo prebuild log",
+      "synthetic EAS build log",
+      "synthetic EAS update JSON",
+      "synthetic native runtime log",
+      "synthetic artifact checksum"
+    ]
+  },
+  "prepareFiles": [
+    {
+      "path": "fixture/Sources/ExpoAdapterFixture/App.swift",
+      "text": "public struct ExpoAdapterFixture {}\n"
+    },
+    {
+      "path": "diffs/good.diff",
+      "text": "diff --git a/Sources/ExpoAdapterFixture/App.swift b/Sources/ExpoAdapterFixture/App.swift\n--- a/Sources/ExpoAdapterFixture/App.swift\n+++ b/Sources/ExpoAdapterFixture/App.swift\n@@ -1 +1,2 @@\n public struct ExpoAdapterFixture {}\n+// expo eas adapter fixture\n"
+    },
+    {
+      "path": "logs/swift-test.log",
+      "text": "swift test passed for expo eas adapter fixture\n"
+    },
+    {
+      "path": "logs/v2-validation-receipt.json",
+      "text": "{\n  \"schemaVersion\": \"2.0\",\n  \"receiptId\": \"v2-expo-eas-swift-test\",\n  \"receiptType\": \"validation\",\n  \"requirementId\": \"swift-test\",\n  \"command\": \"swift test\",\n  \"exitCode\": 0,\n  \"status\": \"pass\",\n  \"startedAt\": \"2099-01-01T00:00:00Z\",\n  \"completedAt\": \"2099-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"environment\": \"local-cli\",\n  \"artifact\": {\"path\": \"swift-test.log\"},\n  \"scope\": [\"expo-eas-adapter-fixture\"]\n}\n"
+    },
+    {
+      "path": "trace.json",
+      "text": "{\n  \"adapter\": \"codex\",\n  \"threadId\": \"synthetic-codex-thread\",\n  \"taskId\": \"TASK-EXPO-EAS-001\",\n  \"agentBudget\": {\"workersRequested\": 2, \"maxWorkers\": 5, \"recursiveSpawning\": false},\n  \"events\": [\n    {\"type\": \"prompt\", \"role\": \"user\", \"text\": \"Attach Expo/EAS proof to the trace.\"},\n    {\"type\": \"tool_call\", \"tool\": \"mcp__expo__codex-expo-run-actions\", \"command\": \"expo mcp run eas build\"},\n    {\"type\": \"receipt\", \"receiptId\": \"v2-expo-eas-swift-test\", \"path\": \"logs/v2-validation-receipt.json\"},\n    {\"type\": \"verdict\", \"status\": \"pass\", \"path\": \"verify/shipguard-verdict.json\"},\n    {\"type\": \"next_action\", \"text\": \"Generate NEXT_GOAL for generic agent packaging.\"}\n  ]\n}\n"
+    },
+    {
+      "path": "expo-eas/app.json",
+      "text": "{\"expo\":{\"name\":\"ShipGuardExpoFixture\",\"slug\":\"shipguard-expo-fixture\",\"sdkVersion\":\"54.0.0\",\"runtimeVersion\":\"1.0.0\"}}\n"
+    },
+    {
+      "path": "expo-eas/eas-build.log",
+      "text": "expo mcp routed the task into EAS.\nexpo prebuild completed with config plugin sync.\neas build --platform ios --profile production\nBuild ID: 12345678-abcd\nBuild URL: https://expo.dev/accounts/example/projects/shipguard/builds/12345678\nArtifact URL: https://expo.dev/artifacts/builds/shipguard.ipa\nsha256: 0123456789abcdef\ncredentials redacted\n"
+    },
+    {
+      "path": "expo-eas/eas-update.json",
+      "text": "{\"command\":\"eas update\",\"channel\":\"production\",\"branch\":\"main\",\"runtimeVersion\":\"1.0.0\",\"updateGroup\":\"synthetic-update-group\",\"artifact\":{\"sha256\":\"0123456789abcdef\"}}\n"
+    },
+    {
+      "path": "expo-eas/runtime.log",
+      "text": "simulator launch succeeded for Expo dev client native runtime log\n"
+    }
+  ],
+  "commands": [
+    {
+      "id": "prepare-expo-eas-trace-task",
+      "display": "./bin/shipguard prepare expo eas adapter fixture",
+      "args": [
+        "prepare",
+        "Exercise Expo MCP and EAS assurance adapter",
+        "--path",
+        "{out}/fixture",
+        "--out",
+        "{out}/prepare",
+        "--profile",
+        "ios",
+        "--allowed",
+        "Sources/**",
+        "--validation",
+        "swift test"
+      ],
+      "artifacts": [
+        {
+          "path": "prepare/shipguard-task.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "taskId", "validationContract", "authorizedFiles"],
+          "requiredNonEmptyJsonPaths": ["validationContract.required"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard prepare"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "agent-trace-expo-eas-proof-pass",
+      "display": "./bin/shipguard agent trace --expo-eas-evidence --run-verify",
+      "args": [
+        "agent",
+        "trace",
+        "--trace",
+        "{out}/trace.json",
+        "--task",
+        "{out}/prepare/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/good.diff",
+        "--evidence",
+        "{out}/logs/v2-validation-receipt.json",
+        "--expo-eas-evidence",
+        "{out}/expo-eas",
+        "--run-verify",
+        "--out",
+        "{out}/agent-trace",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-trace/agent-trace.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "traceSummary", "taskTrace", "expoEASAssuranceEvidence", "verifyHandoff", "receiptHandoff"],
+          "requiredNonEmptyJsonPaths": ["taskTrace.expoEASAssuranceEvidenceTimeline", "expoEASAssuranceEvidence.signals"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard agent trace"},
+            {"path": "status", "equals": "pass"},
+            {"path": "expoEASAssuranceEvidence.status", "equals": "pass"},
+            {"path": "expoEASAssuranceEvidence.summary.expoMCPProof", "equals": true},
+            {"path": "expoEASAssuranceEvidence.summary.expoProjectProof", "equals": true},
+            {"path": "expoEASAssuranceEvidence.summary.prebuildProof", "equals": true},
+            {"path": "expoEASAssuranceEvidence.summary.easBuildProof", "equals": true},
+            {"path": "expoEASAssuranceEvidence.summary.easUpdateProof", "equals": true},
+            {"path": "expoEASAssuranceEvidence.summary.nativeRuntimeProof", "equals": true},
+            {"path": "expoEASAssuranceEvidence.summary.artifactIntegrityProof", "equals": true},
+            {"path": "expoEASAssuranceEvidence.summary.credentialBoundaryProof", "equals": true},
+            {"path": "verifyHandoff.status", "equals": "pass"},
+            {"path": "traceSummary.expoEASAssuranceEvidenceCount", "equals": 8}
+          ],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "agent-trace/agent-trace.md",
+          "type": "markdown",
+          "requiredPhrases": ["# ShipGuard Agent Trace", "Expo/EAS Assurance Evidence", "EAS build proof", "Native runtime proof"],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "agent-trace/agent-trace-receipt.json",
+          "type": "json",
+          "requiredJsonKeys": ["schemaVersion", "receiptId", "receiptType", "artifact", "scope"],
+          "requiredValues": [
+            {"path": "receiptType", "equals": "runtime"},
+            {"path": "requirementId", "equals": "expo-eas-assurance-adapter"},
+            {"path": "artifact.path", "equals": "agent-trace.json"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "codex-trace-expo-eas-proof-pass",
+      "display": "./bin/shipguard codex trace --expo-eas-evidence",
+      "args": [
+        "codex",
+        "trace",
+        "--trace",
+        "{out}/trace.json",
+        "--expo-eas-evidence",
+        "{out}/expo-eas",
+        "--out",
+        "{out}/codex-trace",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "codex-trace/agent-trace.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "adapter", "expoEASAssuranceEvidence", "taskTrace"],
+          "requiredNonEmptyJsonPaths": ["taskTrace.expoEASAssuranceEvidenceTimeline"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard codex trace"},
+            {"path": "adapter.type", "equals": "codex"},
+            {"path": "expoEASAssuranceEvidence.status", "equals": "pass"},
+            {"path": "expoEASAssuranceEvidence.summary.easBuildProof", "equals": true}
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}
