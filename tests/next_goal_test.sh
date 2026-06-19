@@ -48,6 +48,7 @@ grep -q './tests/command_family_runtime_output_receipts_test.sh' "$tmp_dir/NEXT_
 grep -q './tests/trust_hardening_receipts_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/task_contract_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/task_contract_receipts_test.sh' "$tmp_dir/NEXT_GOAL.md"
+grep -q './tests/structured_evidence_receipts_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/tool_value_gauntlet_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/ios_launchdeck_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/ios_performance_test.sh' "$tmp_dir/NEXT_GOAL.md"

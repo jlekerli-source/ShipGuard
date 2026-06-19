@@ -18,9 +18,11 @@ test -f "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q '"taskContractReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"domainPackSDKReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"configurationBaselineReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"structuredEvidenceReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q 'Task-Contract Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Domain Pack SDK' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Configuration Baseline Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Structured Evidence Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 import json
@@ -30,6 +32,7 @@ data = json.load(open(sys.argv[1], encoding="utf-8"))
 receipts = data.get("taskContractReceipts") or {}
 domain_pack_sdk = data.get("domainPackSDKReceipts") or {}
 configuration_baseline = data.get("configurationBaselineReceipts") or {}
+structured_evidence = data.get("structuredEvidenceReceipts") or {}
 probe = data.get("lowestValueSurfaceProbe") or {}
 answer = probe.get("answer") or {}
 
@@ -70,8 +73,13 @@ if configuration_baseline.get("status") != "pass":
 if configuration_baseline.get("receiptCount") != 1 or configuration_baseline.get("passedReceiptCount") != 1 or configuration_baseline.get("commandCount") != 6:
     raise SystemExit(f"expected one configuration baseline receipt and six commands: {configuration_baseline!r}")
 
-if answer.get("identifier") != "shipguard structured-evidence-receipts-v2":
-    raise SystemExit(f"passing configuration baseline receipts should escalate to structured evidence receipts v2: {answer!r}")
+if structured_evidence.get("status") != "pass":
+    raise SystemExit(f"structured evidence receipts should pass: {structured_evidence!r}")
+if structured_evidence.get("receiptCount") != 1 or structured_evidence.get("passedReceiptCount") != 1 or structured_evidence.get("commandCount") != 6:
+    raise SystemExit(f"expected one structured evidence receipt and six commands: {structured_evidence!r}")
+
+if answer.get("identifier") != "shipguard codex-native-task-trace-adapter":
+    raise SystemExit(f"passing structured evidence receipts should escalate to Codex-native task trace adapter: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -84,8 +92,10 @@ if "runtimeDomainPackSDK" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"Domain Pack SDK should no longer be missing: {answer!r}")
 if "runtimeConfigurationBaselineSuppressions" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"configuration baseline/suppression should no longer be missing: {answer!r}")
-if "runtimeStructuredEvidenceReceiptsV2" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"structured evidence receipts v2 gap should be explicit: {answer!r}")
+if "runtimeStructuredEvidenceReceiptsV2" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"structured evidence receipts v2 should no longer be missing: {answer!r}")
+if "runtimeCodexNativeTaskTraceAdapter" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"Codex-native task trace adapter gap should be explicit: {answer!r}")
 PY
 
 echo "task contract receipt tests passed"

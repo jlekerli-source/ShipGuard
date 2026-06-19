@@ -1,0 +1,263 @@
+{
+  "id": "v2-compatibility-freshness-downgrade",
+  "kind": "structured-evidence-receipt",
+  "surface": "ShipGuard Structured Evidence Receipts",
+  "selectedMode": "value-gauntlet structured evidence receipts",
+  "trigger": "Prove ShipGuard normalizes v2 receipts, accepts legacy receipts with compatibility metadata, blocks unsupported/stale receipts, and downgrades manual/runtime proof that cannot cover a validation command.",
+  "sourcePaths": [
+    "scripts/shipguard_receipts.py",
+    "scripts/task_contract.py",
+    "scripts/tool_value_gauntlet.py",
+    "tests/structured_evidence_receipts_test.sh",
+    "docs/task-contract.md"
+  ],
+  "expectedSourcePhrases": [
+    "receipt_schema_summary",
+    "evidenceReceiptSchema",
+    "downgradedReceipts",
+    "runtimeStructuredEvidenceReceiptsV2",
+    "structuredEvidenceReceipts"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppsUsed": false,
+    "inputs": [
+      "fixtures/demo-ios-repo",
+      "synthetic diff",
+      "synthetic v2 validation receipt",
+      "synthetic legacy validation receipt",
+      "synthetic unsupported schema validation receipt",
+      "synthetic downgraded manual proof receipt",
+      "synthetic stale validation receipt"
+    ]
+  },
+  "prepareFiles": [
+    {
+      "path": "fixture/Sources/ReceiptFixtureApp/App.swift",
+      "text": "public struct ReceiptFixtureApp {}\n"
+    },
+    {
+      "path": "fixture/Tests/ReceiptFixtureAppTests/AppTests.swift",
+      "text": "import XCTest\nfinal class ReceiptFixtureAppTests: XCTestCase {}\n"
+    },
+    {
+      "path": "diffs/good.diff",
+      "text": "diff --git a/Sources/ReceiptFixtureApp/App.swift b/Sources/ReceiptFixtureApp/App.swift\n--- a/Sources/ReceiptFixtureApp/App.swift\n+++ b/Sources/ReceiptFixtureApp/App.swift\n@@ -1,3 +1,4 @@\n+// structured receipt fixture\n"
+    },
+    {
+      "path": "logs/swift-test.log",
+      "text": "swift test passed for structured receipt fixture\n"
+    },
+    {
+      "path": "logs/v2-validation-receipt.json",
+      "text": "{\n  \"schemaVersion\": \"2.0\",\n  \"receiptId\": \"v2-swift-test\",\n  \"receiptType\": \"validation\",\n  \"requirementId\": \"swift-test\",\n  \"command\": \"swift test\",\n  \"exitCode\": 0,\n  \"status\": \"pass\",\n  \"startedAt\": \"2099-01-01T00:00:00Z\",\n  \"completedAt\": \"2099-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"environment\": \"simulator\",\n  \"artifact\": {\"path\": \"swift-test.log\"},\n  \"scope\": [\"DemoShipGuardAppTests\"]\n}\n"
+    },
+    {
+      "path": "logs/legacy-validation-receipt.json",
+      "text": "{\n  \"receiptId\": \"legacy-swift-test\",\n  \"validationId\": \"swift-test\",\n  \"command\": \"swift test\",\n  \"exitCode\": 0,\n  \"status\": \"pass\",\n  \"startedAt\": \"2099-01-01T00:00:00Z\",\n  \"completedAt\": \"2099-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"artifact\": {\"path\": \"swift-test.log\"},\n  \"scope\": [\"DemoShipGuardAppTests\"]\n}\n"
+    },
+    {
+      "path": "logs/unsupported-schema-validation-receipt.json",
+      "text": "{\n  \"schemaVersion\": \"9.0\",\n  \"receiptId\": \"unsupported-schema-swift-test\",\n  \"receiptType\": \"validation\",\n  \"requirementId\": \"swift-test\",\n  \"command\": \"swift test\",\n  \"exitCode\": 0,\n  \"status\": \"pass\",\n  \"startedAt\": \"2099-01-01T00:00:00Z\",\n  \"completedAt\": \"2099-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"artifact\": {\"path\": \"swift-test.log\"},\n  \"scope\": [\"DemoShipGuardAppTests\"]\n}\n"
+    },
+    {
+      "path": "logs/manual-proof-receipt.json",
+      "text": "{\n  \"schemaVersion\": \"2.0\",\n  \"receiptId\": \"manual-swift-test-context\",\n  \"receiptType\": \"manual\",\n  \"requirementId\": \"swift-test\",\n  \"command\": \"swift test\",\n  \"exitCode\": 0,\n  \"status\": \"pass\",\n  \"startedAt\": \"2099-01-01T00:00:00Z\",\n  \"completedAt\": \"2099-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"artifact\": {\"path\": \"swift-test.log\"},\n  \"scope\": [\"manual-proof-context\"]\n}\n"
+    },
+    {
+      "path": "logs/stale-v2-validation-receipt.json",
+      "text": "{\n  \"schemaVersion\": \"2.0\",\n  \"receiptId\": \"stale-v2-swift-test\",\n  \"receiptType\": \"validation\",\n  \"requirementId\": \"swift-test\",\n  \"command\": \"swift test\",\n  \"exitCode\": 0,\n  \"status\": \"pass\",\n  \"startedAt\": \"2000-01-01T00:00:00Z\",\n  \"completedAt\": \"2000-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"artifact\": {\"path\": \"swift-test.log\"},\n  \"scope\": [\"DemoShipGuardAppTests\"]\n}\n"
+    }
+  ],
+  "commands": [
+    {
+      "id": "prepare-structured-receipt-task",
+      "display": "./bin/shipguard prepare structured evidence receipt fixture",
+      "args": [
+        "prepare",
+        "Exercise structured evidence receipts",
+        "--path",
+        "{out}/fixture",
+        "--out",
+        "{out}/prepare",
+        "--profile",
+        "ios",
+        "--allowed",
+        "Sources/**",
+        "--validation",
+        "swift test"
+      ],
+      "artifacts": [
+        {
+          "path": "prepare/shipguard-task.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "taskId", "validationContract", "authorizedFiles"],
+          "requiredNonEmptyJsonPaths": ["validationContract.required"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard prepare"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "verify-v2-validation-receipt-pass",
+      "display": "./bin/shipguard verify v2 validation receipt",
+      "args": [
+        "verify",
+        "--task",
+        "{out}/prepare/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/good.diff",
+        "--evidence",
+        "{out}/logs/v2-validation-receipt.json",
+        "--claim",
+        "Implemented scoped source update.",
+        "--out",
+        "{out}/verify-v2-pass"
+      ],
+      "artifacts": [
+        {
+          "path": "verify-v2-pass/shipguard-verdict.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "validationCoverage", "evidenceReceiptSchema", "diffFirstAnalysis"],
+          "requiredValues": [
+            {"path": "status", "equals": "pass"},
+            {"path": "validationCoverage.status", "equals": "covered"},
+            {"path": "evidenceReceiptSchema.schemaVersion", "equals": "2.0"},
+            {"path": "evidenceReceiptSchema.v2Count", "equals": 1},
+            {"path": "evidenceReceiptSchema.structuredValidationCount", "equals": 1},
+            {"path": "diffFirstAnalysis.evidenceReceiptSchema.v2Count", "equals": 1}
+          ]
+        },
+        {
+          "path": "verify-v2-pass/shipguard-verdict.md",
+          "type": "markdown",
+          "requiredPhrases": ["Status: pass", "Evidence Receipt Schema", "v2 receipts: 1"]
+        }
+      ]
+    },
+    {
+      "id": "verify-legacy-validation-receipt-pass",
+      "display": "./bin/shipguard verify legacy validation receipt",
+      "args": [
+        "verify",
+        "--task",
+        "{out}/prepare/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/good.diff",
+        "--evidence",
+        "{out}/logs/legacy-validation-receipt.json",
+        "--claim",
+        "Implemented scoped source update.",
+        "--out",
+        "{out}/verify-legacy-pass"
+      ],
+      "artifacts": [
+        {
+          "path": "verify-legacy-pass/shipguard-verdict.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "validationCoverage", "evidenceReceiptSchema"],
+          "requiredValues": [
+            {"path": "status", "equals": "pass"},
+            {"path": "validationCoverage.status", "equals": "covered"},
+            {"path": "evidenceReceiptSchema.legacyCount", "equals": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "verify-unsupported-schema-receipt-blocked",
+      "display": "./bin/shipguard verify unsupported schema validation receipt",
+      "args": [
+        "verify",
+        "--task",
+        "{out}/prepare/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/good.diff",
+        "--evidence",
+        "{out}/logs/unsupported-schema-validation-receipt.json",
+        "--claim",
+        "Implemented scoped source update.",
+        "--out",
+        "{out}/verify-unsupported-schema-blocked"
+      ],
+      "expectedExitCode": 2,
+      "artifacts": [
+        {
+          "path": "verify-unsupported-schema-blocked/shipguard-verdict.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "validationCoverage", "evidenceReceiptSchema"],
+          "requiredNonEmptyJsonPaths": ["validationCoverage.invalidReceipts"],
+          "requiredValues": [
+            {"path": "status", "equals": "blocked"},
+            {"path": "validationCoverage.status", "equals": "invalid"},
+            {"path": "evidenceReceiptSchema.unsupportedSchemaCount", "equals": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "verify-manual-receipt-downgraded-review",
+      "display": "./bin/shipguard verify downgraded manual receipt",
+      "args": [
+        "verify",
+        "--task",
+        "{out}/prepare/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/good.diff",
+        "--evidence",
+        "{out}/logs/manual-proof-receipt.json",
+        "--claim",
+        "Implemented scoped source update.",
+        "--out",
+        "{out}/verify-manual-review"
+      ],
+      "artifacts": [
+        {
+          "path": "verify-manual-review/shipguard-verdict.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "validationCoverage", "evidenceReceiptSchema"],
+          "requiredNonEmptyJsonPaths": ["validationCoverage.downgradedReceipts"],
+          "requiredValues": [
+            {"path": "status", "equals": "review"},
+            {"path": "validationCoverage.status", "equals": "missing"},
+            {"path": "evidenceReceiptSchema.downgradedCount", "equals": 1},
+            {"path": "evidenceReceiptSchema.structuredProofCount", "equals": 1}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "verify-stale-v2-receipt-blocked",
+      "display": "./bin/shipguard verify stale v2 validation receipt",
+      "args": [
+        "verify",
+        "--task",
+        "{out}/prepare/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/good.diff",
+        "--evidence",
+        "{out}/logs/stale-v2-validation-receipt.json",
+        "--claim",
+        "Implemented scoped source update.",
+        "--out",
+        "{out}/verify-stale-blocked"
+      ],
+      "expectedExitCode": 2,
+      "artifacts": [
+        {
+          "path": "verify-stale-blocked/shipguard-verdict.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "validationCoverage", "evidenceReceiptSchema"],
+          "requiredNonEmptyJsonPaths": ["validationCoverage.invalidReceipts"],
+          "requiredValues": [
+            {"path": "status", "equals": "blocked"},
+            {"path": "validationCoverage.status", "equals": "invalid"},
+            {"path": "evidenceReceiptSchema.staleCount", "equals": 1}
+          ]
+        }
+      ]
+    }
+  ]
+}

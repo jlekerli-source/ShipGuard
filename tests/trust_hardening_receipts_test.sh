@@ -69,8 +69,8 @@ for command in receipt.get("commands") or []:
 
 if domain_pack_sdk.get("status") != "pass":
     raise SystemExit(f"Domain Pack SDK receipts should pass: {domain_pack_sdk!r}")
-if answer.get("identifier") != "shipguard structured-evidence-receipts-v2":
-    raise SystemExit(f"passing configuration baseline receipts should escalate to structured evidence receipts v2: {answer!r}")
+if answer.get("identifier") != "shipguard codex-native-task-trace-adapter":
+    raise SystemExit(f"passing structured evidence receipts should escalate to Codex-native task/trace adapter: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"trust-hardening should no longer be missing: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
@@ -85,8 +85,10 @@ if "runtimeDomainPackSDK" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"Domain Pack SDK should no longer be missing: {answer!r}")
 if "runtimeConfigurationBaselineSuppressions" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"configuration baseline/suppression receipts should no longer be missing: {answer!r}")
-if "runtimeStructuredEvidenceReceiptsV2" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"structured evidence receipts v2 gap should be explicit: {answer!r}")
+if "runtimeStructuredEvidenceReceiptsV2" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"structured evidence receipts v2 should no longer be missing: {answer!r}")
+if "runtimeCodexNativeTaskTraceAdapter" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"Codex-native task/trace adapter gap should be explicit: {answer!r}")
 PY
 
 echo "trust hardening receipt tests passed"

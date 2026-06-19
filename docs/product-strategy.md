@@ -224,6 +224,20 @@ The valuable assets are:
 - genuine external adoption and retention,
 - clean trust and security posture.
 
+## Master Product Directive
+
+The current product directive is:
+
+- Keep **ShipGuard** as the product name.
+- Use **ShipYard** for the contributor, maintainer, fixture, and product-QA workspace.
+- Stay Codex-first, but keep the core agent-neutral.
+- Do not require a separate API key for normal interactive use; deterministic local analysis, task contracts, verdicts, and plugin use should work through the authenticated platform session or local CLI.
+- Use one core with thin adapters for Codex, Claude, Gemini, Cursor, generic MCP, XcodeBuildMCP, Expo MCP, EAS, local shell, and GitHub Actions.
+- Treat agent efficiency as a product feature: standard mode should normally use 2-3 workers, cap normal workflows at 5, avoid recursive worker spawning, and measure duplicate reads, cache hits, time to first useful verdict, and accepted findings per model turn.
+- Keep full repository audits explicit opt-in through the future `shipguard inspect --full` path; routine `verify` stays diff-first.
+
+The current baseline is v3.119 structured evidence receipts v2. The active next slice is v3.120 Agent Adapter Kernel and Codex-native task/trace adapter, followed by v3.121 XcodeBuildMCP evidence adapter, v3.122 Expo MCP and EAS assurance adapter, v3.123 universal agent packaging, and v3.124 efficient full-audit orchestration.
+
 ## Revised Roadmap
 
 ### Phase A: Trustworthy Foundation

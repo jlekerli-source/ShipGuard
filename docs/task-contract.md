@@ -138,26 +138,35 @@ The verdict is:
 - `blocked` when the diff touches protected or unauthorized paths, or when an unsupported claim such as "fully verified" is made without proof.
 - `incomplete` when no usable diff was provided or no changed files were detected.
 
-Plain logs are review context only. Validation coverage requires a JSON receipt with at least:
+Plain logs are review context only. Validation coverage requires a structured evidence receipt. v3.119 introduces the shared v2 receipt layer in `scripts/shipguard_receipts.py`; task-contract verification now normalizes current v2 receipts, legacy command receipts, unsupported proof receipts, unsupported schema versions, malformed JSON, missing artifacts, digest mismatches, and stale receipts before any claim is accepted.
+
+The canonical v2 shape is:
 
 ```json
 {
+  "schemaVersion": "2.0",
   "receiptId": "validation-unit-tests",
-  "validationId": "swift-test",
+  "receiptType": "validation",
+  "requirementId": "swift-test",
   "command": "swift test",
   "exitCode": 0,
   "status": "pass",
   "startedAt": "2026-06-18T12:00:00Z",
   "completedAt": "2026-06-18T12:00:10Z",
   "repositoryCommit": "abcdef123456",
+  "diffDigest": "optional-diff-digest",
   "environment": "simulator",
   "proofType": "ios-permission-simulator-reset",
-  "artifact": {"path": "swift-test.log", "sha256": "<optional-sha256>"},
+  "artifact": {"path": "swift-test.log", "sha256": "<sha256>", "bytes": 1024},
   "scope": ["NotificationPermissionTests", "permission-state", "denied-state", "not-determined-state", "simulator-permission-reset"]
 }
 ```
 
-The receipt is usable only when the command or `validationId` matches a required validation item, `status` is `pass`, `exitCode` is `0`, the artifact exists and matches its digest when supplied, and `completedAt` is not older than the task contract. A plain log with "passed" text does not prove the command passed.
+The receipt is usable only when the command or requirement ID matches a required validation item, `receiptType` is validation-compatible, `status` is `pass`, `exitCode` is `0`, the artifact exists and matches its digest and byte count when supplied, and `completedAt` is not older than the task contract. A plain log with "passed" text does not prove the command passed.
+
+Legacy receipts without `schemaVersion` are still accepted when they contain the older `validationId`, `command`, `status`, `exitCode`, and artifact fields, but the verdict marks them as `legacy-compatible` under `evidence[].compatibility` and increments `evidenceReceiptSchema.legacyCount`. Unsupported v2 receipts such as `receiptType: "manual"` or `receiptType: "runtime"` are preserved as structured proof context but downgraded for validation coverage; they increment `validationCoverage.downgradedReceipts` and `evidenceReceiptSchema.downgradedCount` instead of silently satisfying an automated validation command.
+
+`shipguard-verdict.json` and `diffFirstAnalysis` both include `evidenceReceiptSchema` with v2, legacy, artifact-only, missing, invalid, stale, downgraded, and structured-proof counts. This makes receipt confidence machine-readable for report-quality, package proof, and later agent adapters.
 
 For notification-permission workflows, a generic matching receipt such as `scope: ["NotificationPermissionTests"]` proves that the required command ran, but it does not prove the domain workflow. `verify` returns `review` until the receipt metadata proves the relevant lanes:
 

@@ -1870,8 +1870,8 @@ for candidate in data.get("fixtureCandidates") or []:
 priority = data.get("priorityAction") or {}
 if priority.get("question") == covered_question:
     raise SystemExit(f"covered value-gauntlet question should not remain the priority action: {priority!r}")
-if "configuration baselines and suppressions" not in priority.get("question", ""):
-    raise SystemExit(f"expected next uncovered configuration baseline/suppression question as priority: {priority!r}")
+if "Codex-native task and trace adapter" not in priority.get("question", ""):
+    raise SystemExit(f"expected next uncovered Codex-native task/trace adapter question as priority: {priority!r}")
 PY
 
 json_stdout="$(./bin/shipguard ios report-quality --reports "$reports" --json)"

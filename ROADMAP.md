@@ -49,7 +49,7 @@ Keep the core open-source verdict engine honest. Future Pro, Team, or Enterprise
 
 ## Phase Map
 
-The roadmap is intentionally larger than the current v3.105-v3.110 loop. The short loop is only the evaluation flywheel proving that real-app read-only evidence can become public ShipGuard fixtures. It is not the full product plan.
+The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.118 as shipped foundations and v3.119 as the active structured evidence receipt slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, or configuration-baseline work.
 
 ### Phase A: Trustworthy Foundation
 
@@ -122,15 +122,19 @@ v3.116  ShipGuard PilotBench and honest usefulness metrics
 v3.117  Domain Pack SDK and core extraction
 v3.118  Configuration, baselines, and suppressions
 v3.119  Structured evidence receipts v2
-v3.120  Codex-native task and trace adapter
-v3.121-v3.135  Simulator, device, Xcode, CI, Instruments evidence fabric
-v3.136-v3.165  StoreKit, persistence, lifecycle, shared-state, release packs
-v3.166-v3.180  Codex-native end-to-end UX
-v3.181-v3.190  CLI consolidation and packaging
-v3.191-v3.199  External benchmark, security review, v4 stabilization
+v3.120  Agent Adapter Kernel and Codex-native task/trace adapter
+v3.121  XcodeBuildMCP evidence adapter
+v3.122  Expo MCP and EAS assurance adapter
+v3.123  Claude, Gemini, Cursor, and generic MCP packaging
+v3.124  Efficient "Unleash the Beast" full-audit orchestrator
+v3.125  Unified inspect experience
+v3.126  Concise verdict and result UX
+v3.127  Codex marketplace readiness
+v3.128  External benchmark v2
+v3.129-v3.130  v4 preview, stabilization, security, and schema freeze
 ```
 
-Current state: v3.118 adds configuration baselines and suppressions to the shared task-contract verdict engine. `shipguard prepare` records `.shipguard.yml` and `.shipguard-baseline.json`; `shipguard verify` emits exact finding fingerprints, accepted findings, expired/invalid suppression state, raw versus effective scope checks, and regression behavior so known accepted risks remain visible without hiding new risk. The next architectural priority is v3.119 structured evidence receipts v2 so validation, runtime, manual, simulator, and release proof share one compatibility story.
+Current state: v3.118 adds configuration baselines and suppressions to the shared task-contract verdict engine. `shipguard prepare` records `.shipguard.yml` and `.shipguard-baseline.json`; `shipguard verify` emits exact finding fingerprints, accepted findings, expired/invalid suppression state, raw versus effective scope checks, and regression behavior so known accepted risks remain visible without hiding new risk. The active architectural priority is v3.119 structured evidence receipts v2 so validation, runtime, manual, simulator, device, CI, and release proof share one versioned compatibility story. Once that is green, the next priority is the v3.120 Agent Adapter Kernel: one agent-neutral interface with Codex as the first native adapter for task injection, tool/command trace capture, receipt emission, automatic verify, verdict handoff, and agent-budget enforcement.
 
 Every release proposal must answer:
 
@@ -141,6 +145,9 @@ Every release proposal must answer:
 5. Which public positive and negative fixtures prove it?
 6. Which existing surface should be merged, demoted, or retired?
 7. What is the exit gate?
+8. What is the expected model/agent budget?
+9. Does normal use require a separate API key?
+10. Does the feature work through the core rather than one platform-specific fork?
 
 ### v3.110-v3.114: Report-Quality Discipline
 

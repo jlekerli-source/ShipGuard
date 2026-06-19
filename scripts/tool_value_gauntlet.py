@@ -86,7 +86,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add structured evidence receipts v2 so validation, runtime, manual, simulator, and release proof share one schema?",
+    "Should ShipGuard add a Codex-native task and trace adapter so prompts, tool calls, receipts, verdicts, and next actions share one timeline?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -173,6 +173,7 @@ TASK_CONTRACT_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "task-co
 EXTERNAL_PILOT_VERDICT_BENCH_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "external-pilot-verdict-bench-receipts"
 DOMAIN_PACK_SDK_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "domain-pack-sdk-receipts"
 CONFIGURATION_BASELINE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "configuration-baseline-receipts"
+STRUCTURED_EVIDENCE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "structured-evidence-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -922,6 +923,18 @@ def load_domain_pack_sdk_receipts(root: Path) -> list[tuple[Path, dict[str, Any]
 
 def load_configuration_baseline_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / CONFIGURATION_BASELINE_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_structured_evidence_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / STRUCTURED_EVIDENCE_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -2286,6 +2299,37 @@ def configuration_baseline_receipt_probe(root: Path) -> dict[str, Any]:
     }
 
 
+def structured_evidence_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [
+        run_skill_plugin_receipt(root, fixture_dir, meta)
+        for fixture_dir, meta in load_structured_evidence_receipts(root)
+    ]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public structured evidence receipt fixtures that prove v2 receipts, legacy compatibility, freshness checks, artifact checks, and downgrade behavior.",
+        "fixtureRoot": STRUCTURED_EVIDENCE_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public synthetic task-contract fixture", "v2 receipts", "legacy receipts", "downgraded manual proof receipts"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Structured evidence receipts v2 are passing; add the Codex-native task and trace adapter next."
+            if status == "pass"
+            else "Fix structured evidence receipts so v2 proof, legacy compatibility, stale checks, and downgrade behavior are proven."
+        ),
+    }
+
+
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
     slug = command_slug(command)
     tokens = command_tokens(command)
@@ -2642,6 +2686,20 @@ def configuration_baseline_receipt_passed(configuration_baseline_receipts: dict[
     return required.issubset(receipt_command_ids(configuration_baseline_receipts))
 
 
+def structured_evidence_receipt_passed(structured_evidence_receipts: dict[str, Any]) -> bool:
+    if structured_evidence_receipts.get("status") != "pass":
+        return False
+    required = {
+        "prepare-structured-receipt-task",
+        "verify-v2-validation-receipt-pass",
+        "verify-legacy-validation-receipt-pass",
+        "verify-unsupported-schema-receipt-blocked",
+        "verify-manual-receipt-downgraded-review",
+        "verify-stale-v2-receipt-blocked",
+    }
+    return required.issubset(receipt_command_ids(structured_evidence_receipts))
+
+
 def command_depth_rows(
     commands: list[dict[str, Any]],
     text_index: dict[str, str],
@@ -2843,6 +2901,7 @@ def lowest_value_surface_probe(
     external_pilot_verdict_bench_receipts: dict[str, Any],
     domain_pack_sdk_receipts: dict[str, Any],
     configuration_baseline_receipts: dict[str, Any],
+    structured_evidence_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -3600,6 +3659,40 @@ def lowest_value_surface_probe(
             recommendation="Unify ShipGuard evidence receipts so task-contract, iOS runtime proof, manual proof, and release proof share one schema and compatibility story.",
             proof="Run value-gauntlet plus focused structured-evidence fixtures that prove v2 receipts validate, downgrade unsupported proof honestly, and remain backward compatible.",
         )
+    if (
+        answer
+        and answer.get("identifier") == "shipguard structured-evidence-receipts-v2"
+        and structured_evidence_receipt_passed(structured_evidence_receipts)
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeStructuredEvidenceReceiptsV2":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeStructuredEvidenceReceiptsV2",
+                        True,
+                        f"{structured_evidence_receipts.get('passedReceiptCount') or 0}/{structured_evidence_receipts.get('receiptCount') or 0} structured evidence receipt fixtures executed",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeCodexNativeTaskTraceAdapter",
+                False,
+                "Codex task/thread traces still need a native adapter that maps prompts, tool calls, evidence receipts, and verdicts into one reviewable timeline",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="cross-cutting",
+            identifier="shipguard codex-native-task-trace-adapter",
+            name="Codex-native task and trace adapter",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Add a Codex-native task/trace adapter so ShipGuard can connect prompts, tool use, evidence receipts, verdicts, and next actions without relying on pasted summaries.",
+            proof="Run value-gauntlet plus focused Codex trace fixtures that prove prompt-to-task, receipt-to-verdict, and next-goal handoff mapping.",
+        )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
         answer = {
@@ -3680,6 +3773,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     external_pilot_verdict_bench_receipts = external_pilot_verdict_bench_receipt_probe(root)
     domain_pack_sdk_receipts = domain_pack_sdk_receipt_probe(root)
     configuration_baseline_receipts = configuration_baseline_receipt_probe(root)
+    structured_evidence_receipts = structured_evidence_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -3710,6 +3804,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         external_pilot_verdict_bench_receipts=external_pilot_verdict_bench_receipts,
         domain_pack_sdk_receipts=domain_pack_sdk_receipts,
         configuration_baseline_receipts=configuration_baseline_receipts,
+        structured_evidence_receipts=structured_evidence_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -3766,6 +3861,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "externalPilotVerdictBenchReceipts": external_pilot_verdict_bench_receipts,
         "domainPackSDKReceipts": domain_pack_sdk_receipts,
         "configurationBaselineReceipts": configuration_baseline_receipts,
+        "structuredEvidenceReceipts": structured_evidence_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -4352,6 +4448,31 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_configuration_baseline_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_configuration_baseline_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+
+    structured_evidence_receipts = report.get("structuredEvidenceReceipts") or {}
+    lines.extend(["", "## Structured Evidence Receipts", ""])
+    lines.append(f"- Status: {structured_evidence_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {structured_evidence_receipts.get('passedReceiptCount', 0)}/{structured_evidence_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {structured_evidence_receipts.get('commandCount', 0)}")
+    if structured_evidence_receipts.get("nextAction"):
+        lines.append(f"- Next action: {structured_evidence_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in structured_evidence_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 44)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_structured_evidence_commands = [
+        (receipt, command)
+        for receipt in structured_evidence_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_structured_evidence_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_structured_evidence_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

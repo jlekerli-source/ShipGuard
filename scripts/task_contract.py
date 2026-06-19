@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import Any
 
 from shipguard_baseline import apply_configuration_baseline, load_configuration, make_finding
+from shipguard_receipts import evidence_entries as load_receipt_evidence_entries
+from shipguard_receipts import receipt_schema_summary
 from task_domain_packs import DEFAULT_DOMAIN_PACK_REGISTRY, DomainPackContext
 
 
@@ -869,88 +871,7 @@ def resolve_task(path: str) -> Path:
 
 
 def evidence_entries(paths: list[str]) -> list[dict[str, Any]]:
-    entries = []
-    for value in paths:
-        path = Path(value)
-        content = path.read_bytes() if path.is_file() else b""
-        base = {
-            "path": path.as_posix(),
-            "present": path.is_file(),
-            "bytes": len(content),
-            "sha256": hashlib.sha256(content).hexdigest() if content else None,
-        }
-        if not path.is_file():
-            entries.append({**base, "kind": "missing", "status": "missing", "usableForValidation": False})
-            continue
-        try:
-            parsed = json.loads(content.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError):
-            entries.append(
-                {
-                    **base,
-                    "kind": "artifact-only",
-                    "status": "unstructured",
-                    "usableForValidation": False,
-                    "_textPreview": content[:4000].decode("utf-8", errors="ignore"),
-                    "reason": "Plain evidence artifacts are review context only; validation coverage requires a structured JSON receipt.",
-                }
-            )
-            continue
-        if not isinstance(parsed, dict) or not parsed.get("command"):
-            entries.append(
-                {
-                    **base,
-                    "kind": "artifact-only",
-                    "status": "unstructured",
-                    "usableForValidation": False,
-                    "reason": "JSON evidence without a command is review context only; validation coverage requires a structured command receipt.",
-                }
-            )
-            continue
-        artifact = parsed.get("artifact") if isinstance(parsed.get("artifact"), dict) else {}
-        artifact_path = Path(str(artifact.get("path") or ""))
-        if artifact_path and not artifact_path.is_absolute():
-            artifact_path = path.parent / artifact_path
-        artifact_content = artifact_path.read_bytes() if artifact_path.is_file() else b""
-        actual_artifact_sha = hashlib.sha256(artifact_content).hexdigest() if artifact_content else None
-        expected_artifact_sha = artifact.get("sha256")
-        digest_matches = bool(actual_artifact_sha) and (
-            not expected_artifact_sha or str(expected_artifact_sha) == str(actual_artifact_sha)
-        )
-        exit_code = parsed.get("exitCode")
-        status = str(parsed.get("status") or "").lower()
-        receipt_status = "pass" if status == "pass" and exit_code == 0 and digest_matches else "invalid"
-        entries.append(
-            {
-                **base,
-                "kind": "structured-validation",
-                "receiptId": parsed.get("receiptId") or path.stem,
-                "validationId": parsed.get("validationId") or parsed.get("requirementId"),
-                "command": parsed.get("command"),
-                "exitCode": exit_code,
-                "status": parsed.get("status"),
-                "receiptStatus": receipt_status,
-                "usableForValidation": receipt_status == "pass",
-                "startedAt": parsed.get("startedAt"),
-                "completedAt": parsed.get("completedAt"),
-                "repositoryCommit": parsed.get("repositoryCommit"),
-                "environment": parsed.get("environment"),
-                "proofType": parsed.get("proofType"),
-                "scope": parsed.get("scope") if isinstance(parsed.get("scope"), list) else [],
-                "proofScope": parsed.get("proofScope") if isinstance(parsed.get("proofScope"), list) else [],
-                "artifact": {
-                    "path": artifact.get("path"),
-                    "present": artifact_path.is_file(),
-                    "bytes": len(artifact_content),
-                    "sha256": actual_artifact_sha,
-                    "expectedSha256": expected_artifact_sha,
-                    "digestMatches": digest_matches,
-                },
-                "reason": None
-                if receipt_status == "pass"
-                else "Structured receipt is not usable because status, exitCode, or artifact digest did not prove a successful command run.",
-            }
-        )
+    entries, _summary = load_receipt_evidence_entries(paths)
     return entries
 
 
@@ -986,19 +907,31 @@ def validation_coverage(
     covered: list[dict[str, Any]] = []
     uncovered: list[dict[str, Any]] = []
     invalid: list[dict[str, Any]] = []
+    downgraded: list[dict[str, Any]] = []
     task_time = parse_timestamp(task_generated_at)
     for item in required:
         command = str(item.get("command") or "")
         requirement_id = str(item.get("requirementId") or slug(command))
         matched_receipts = []
         for receipt in present_evidence:
-            if receipt.get("kind") != "structured-validation":
-                continue
             receipt_id = str(receipt.get("validationId") or "")
             receipt_command = str(receipt.get("command") or "")
             command_ok = command_matches(command, receipt_command)
             id_ok = bool(receipt_id and receipt_id == requirement_id)
             if not (command_ok or id_ok):
+                continue
+            if receipt.get("kind") != "structured-validation":
+                downgraded.append(
+                    {
+                        "requirementId": requirement_id,
+                        "receiptId": receipt.get("receiptId"),
+                        "path": receipt.get("path"),
+                        "receiptType": receipt.get("receiptType"),
+                        "command": receipt_command,
+                        "reason": receipt.get("reason")
+                        or "Receipt matched this requirement but is not a validation-compatible receipt type.",
+                    }
+                )
                 continue
             completed = parse_timestamp(receipt.get("completedAt"))
             stale = bool(task_time and completed and completed < task_time)
@@ -1049,6 +982,7 @@ def validation_coverage(
         "coveredCommands": covered,
         "uncoveredCommands": uncovered,
         "invalidReceipts": invalid,
+        "downgradedReceipts": downgraded,
         "evidenceReceiptCount": len(present_evidence),
         "missingEvidenceFiles": [item["path"] for item in evidence if not item.get("present")],
     }
@@ -1170,6 +1104,19 @@ def contract_findings(
                 proof_boundary="Suppression applies only to this validation requirement; other invalid receipts remain blocking.",
             )
         )
+    for item in coverage.get("downgradedReceipts") or []:
+        requirement_id = str(item.get("requirementId") or item.get("command") or "downgraded-evidence-receipt")
+        findings.append(
+            make_finding(
+                rule_id="task-contract.downgraded-evidence-receipt",
+                severity="review",
+                subject=requirement_id,
+                source_key=f"validation-downgraded:{requirement_id}",
+                requirement_id=requirement_id,
+                reason=str(item.get("reason") or "Evidence receipt was downgraded and cannot prove the validation command."),
+                proof_boundary="Suppression applies only to this downgraded receipt requirement; validation coverage still needs compatible proof.",
+            )
+        )
     for item in coverage.get("uncoveredCommands") or []:
         requirement_id = str(item.get("requirementId") or item.get("command") or "missing-validation")
         findings.append(
@@ -1268,6 +1215,11 @@ def adjusted_validation_coverage(coverage: dict[str, Any], accepted: set[str]) -
         requirement_id = str(item.get("requirementId") or item.get("command") or "invalid-validation-receipt")
         if f"validation-invalid:{requirement_id}" not in accepted:
             invalid.append(item)
+    downgraded = []
+    for item in coverage.get("downgradedReceipts") or []:
+        requirement_id = str(item.get("requirementId") or item.get("command") or "downgraded-evidence-receipt")
+        if f"validation-downgraded:{requirement_id}" not in accepted:
+            downgraded.append(item)
     uncovered = []
     for item in coverage.get("uncoveredCommands") or []:
         requirement_id = str(item.get("requirementId") or item.get("command") or "missing-validation")
@@ -1279,6 +1231,7 @@ def adjusted_validation_coverage(coverage: dict[str, Any], accepted: set[str]) -
         if f"missing-evidence:{item}" not in accepted
     ]
     adjusted["invalidReceipts"] = invalid
+    adjusted["downgradedReceipts"] = downgraded
     adjusted["uncoveredCommands"] = uncovered
     adjusted["missingEvidenceFiles"] = missing_files
     original_status = str(coverage.get("status") or "")
@@ -1344,6 +1297,7 @@ def build_diff_first_analysis(
     next_action: dict[str, str],
     blocking_reasons: list[str],
     review_reasons: list[str],
+    evidence_receipt_schema: dict[str, Any] | None = None,
     notification_permission_workflow: dict[str, Any] | None = None,
     domain_workflows: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
@@ -1386,6 +1340,7 @@ def build_diff_first_analysis(
         "changedBehaviorCategories": behavior_category_summary(diff_files),
         "deletedTests": deleted_tests,
         "validationCoverage": coverage,
+        "evidenceReceiptSchema": evidence_receipt_schema or receipt_schema_summary(evidence),
         "evidenceCoverage": evidence_coverage,
         "protectedBoundaryCrossings": {
             "outOfScope": out_of_scope,
@@ -1427,7 +1382,7 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
     changed = [str(item["path"]) for item in diff_files]
     out_of_scope = [path for path in changed if allowed and not match_any(path, allowed)]
     forbidden_touched = [path for path in changed if match_any(path, forbidden)]
-    evidence = evidence_entries(args.evidence)
+    evidence, initial_evidence_receipt_schema = load_receipt_evidence_entries(args.evidence)
     required_validation = (task.get("validationContract") or {}).get("required") or []
     manual_proof = (task.get("validationContract") or {}).get("manualProof") or []
     coverage = validation_coverage(required_validation, evidence, task.get("generatedAt"))
@@ -1467,6 +1422,12 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         claim for claim in manual_claims if f"manual-claim:{claim}" not in accepted
     ]
     effective_coverage = adjusted_validation_coverage(coverage, accepted)
+    evidence_receipt_schema = receipt_schema_summary(
+        evidence,
+        compatibility_warnings=initial_evidence_receipt_schema.get("compatibilityWarnings") or [],
+        invalid_receipts=(effective_coverage.get("invalidReceipts") or []) + (effective_coverage.get("downgradedReceipts") or []),
+        task_generated_at=task.get("generatedAt"),
+    )
     missing_evidence = effective_coverage["missingEvidenceFiles"]
     coverage_ok = effective_coverage["status"] in {"covered", "not-required", "suppressed"}
     effective_domain_workflows = adjusted_domain_workflows(domain_workflows, accepted)
@@ -1539,6 +1500,7 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         next_action,
         blocking_reasons,
         review_reasons,
+        evidence_receipt_schema,
         notification_permission_workflow,
         effective_domain_workflows,
     )
@@ -1565,6 +1527,7 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
             "rawForbiddenTouched": forbidden_touched,
         },
         "evidence": public_evidence_entries(evidence),
+        "evidenceReceiptSchema": evidence_receipt_schema,
         "validationCoverage": effective_coverage,
         "agentClaims": args.claim,
         "claimChecks": {
@@ -1953,6 +1916,20 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
             for key, value in boundary.items():
                 lines.append(f"  - {key}: {value}")
     lines.extend(["", "## Evidence Receipts", ""])
+    receipt_schema = verdict.get("evidenceReceiptSchema") or {}
+    if receipt_schema:
+        lines.append("### Evidence Receipt Schema")
+        lines.append(f"- Schema version: {receipt_schema.get('schemaVersion')}")
+        lines.append(f"- Mode: {receipt_schema.get('mode')}")
+        lines.append(f"- v2 receipts: {receipt_schema.get('v2Count', 0)}")
+        lines.append(f"- Legacy-compatible receipts: {receipt_schema.get('legacyCount', 0)}")
+        lines.append(f"- Downgraded receipts: {receipt_schema.get('downgradedCount', 0)}")
+        lines.append(f"- Stale receipts: {receipt_schema.get('staleCount', 0)}")
+        warnings = receipt_schema.get("compatibilityWarnings") or []
+        if warnings:
+            lines.append("- Compatibility warnings:")
+            for warning in warnings[:8]:
+                lines.append(f"  - {warning}")
     evidence = verdict.get("evidence") or []
     if evidence:
         for item in evidence:
