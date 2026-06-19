@@ -2106,6 +2106,181 @@ if priority.get("question") != expected_product_release:
     raise SystemExit(f"expected next uncovered v4 product release question as priority: {priority!r}")
 PY
 
+mixed_release_priority_dir="$tmp_dir/mixed-release-priority"
+mkdir -p "$mixed_release_priority_dir"
+cat > "$mixed_release_priority_dir/shipguard-full-audit.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard full-audit",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "review",
+  "resultUX": {
+    "status": "review",
+    "verdict": "REVIEW: Synthetic Full Audit report is plan-only.",
+    "proofSource": "stageStatusSummary + NEXT_GOAL handoff",
+    "whyItMatters": "Full Audit plans the release lane without claiming execution.",
+    "nextCommand": "shipguard full-audit --path <shipguard-repo> --out <shipguard-full-audit-out> --profile release",
+    "nextActionSummary": "Execute the planned release lane."
+  },
+  "stageStatusSummary": {
+    "planned": 14
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "doesNotPush": true,
+    "doesNotPublishRelease": true
+  },
+  "slashHandoffSource": {
+    "status": "loaded",
+    "sourcePath": "NEXT_GOAL.md",
+    "section": "following"
+  },
+  "slashPlan": "/plan v3.148.0 Stable V4 Release Packet Artifact Receipts for jlekerli-source/ShipGuard: prioritize release-proof artifact gaps from self-QA.",
+  "slashGoal": "/goal Implement v3.148.0 Stable V4 Release Packet Artifact Receipts for jlekerli-source/ShipGuard: make report-quality follow concrete release-proof gaps.",
+  "reportQualityQuestions": [
+    "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?"
+  ]
+}
+JSON
+cat > "$mixed_release_priority_dir/shipguard-full-audit.md" <<'MD'
+# ShipGuard Full Audit
+
+## Result
+
+- Verdict: REVIEW: Synthetic Full Audit report is plan-only.
+- Proof source: stageStatusSummary + NEXT_GOAL handoff
+- Why it matters: Full Audit plans the release lane without claiming execution.
+- Next command: `shipguard full-audit --path <shipguard-repo> --out <shipguard-full-audit-out> --profile release`
+- Next action: Execute the planned release lane.
+
+## Slash Handoff Source
+
+- Status: `loaded`
+- Source path: `NEXT_GOAL.md`
+- Section: `following`
+
+## Slash Plan
+
+```text
+/plan v3.148.0 Stable V4 Release Packet Artifact Receipts for jlekerli-source/ShipGuard: prioritize release-proof artifact gaps from self-QA.
+```
+
+## Slash Goal
+
+```text
+/goal Implement v3.148.0 Stable V4 Release Packet Artifact Receipts for jlekerli-source/ShipGuard: make report-quality follow concrete release-proof gaps.
+```
+MD
+cat > "$mixed_release_priority_dir/tool-value-gauntlet.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard value-gauntlet",
+  "surface": "ShipGuard Tool Value Gauntlet",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "pass",
+  "resultUX": {
+    "status": "pass",
+    "verdict": "PASS: Synthetic value gauntlet completed.",
+    "proofSource": "synthetic report-quality fixture",
+    "whyItMatters": "The lowest-value surface should drive the next ShipGuard improvement.",
+    "nextCommand": "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet",
+    "nextActionSummary": "Stabilize the v4 product release with external adoption evidence, final security review, package proof, rollback proof, and release proof consumption."
+  },
+  "lowestValueSurfaceProbe": {
+    "answer": {
+      "identifier": "shipguard v4-product-release-stabilization",
+      "title": "V4 product release stabilization",
+      "missingDepthSignals": [
+        "runtimeV4ProductReleaseStabilization"
+      ]
+    }
+  },
+  "reportQualityQuestions": [
+    "Should ShipGuard stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption?"
+  ]
+}
+JSON
+cat > "$mixed_release_priority_dir/tool-value-gauntlet.md" <<'MD'
+# ShipGuard Tool Value Gauntlet
+
+## Result
+
+- Verdict: PASS: Synthetic value gauntlet completed.
+- Proof source: synthetic report-quality fixture
+- Why it matters: The lowest-value surface should drive the next ShipGuard improvement.
+- Next command: `./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet`
+- Next action: Stabilize the v4 product release with external adoption evidence, final security review, package proof, rollback proof, and release proof consumption.
+MD
+cat > "$mixed_release_priority_dir/v4-release-candidate.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard v4 release-candidate",
+  "surface": "ShipGuard V4 Release Candidate Readiness",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "pass",
+  "resultUX": {
+    "status": "pass",
+    "verdict": "PASS: Synthetic LaunchKey report completed.",
+    "proofSource": "synthetic release-readiness fixture",
+    "whyItMatters": "LaunchKey tracks stable-v4 proof gates.",
+    "nextCommand": "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --package-tarball <release-tarball> --shipguard-eval --shareable",
+    "nextActionSummary": "Attach fresh-install, release-asset, external-adoption, security-review, rollback, and release-proof evidence before a stable v4 claim."
+  },
+  "releaseReadiness": {
+    "stableV4Release": false,
+    "freshInstallPackageProof": {
+      "status": "not-provided"
+    },
+    "publishedReleaseAssetProof": {
+      "status": "not-provided"
+    }
+  },
+  "reportQualityQuestions": [
+    "Can a fresh user install, upgrade, uninstall, and validate ShipGuard from the release package without maintainer context?"
+  ]
+}
+JSON
+cat > "$mixed_release_priority_dir/v4-release-candidate.md" <<'MD'
+# ShipGuard V4 Release Candidate Readiness
+
+## Result
+
+- Verdict: PASS: Synthetic LaunchKey report completed.
+- Proof source: synthetic release-readiness fixture
+- Why it matters: LaunchKey tracks stable-v4 proof gates.
+- Next command: `./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --package-tarball <release-tarball> --shipguard-eval --shareable`
+- Next action: Attach fresh-install, release-asset, external-adoption, security-review, rollback, and release-proof evidence before a stable v4 claim.
+MD
+./bin/shipguard ios report-quality \
+  --reports "$mixed_release_priority_dir" \
+  --out "$tmp_dir/mixed-release-priority-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/mixed-release-priority-quality/ios-report-quality.json"
+grep -q 'value-gauntlet lowest-value surface is v4 product release stabilization' "$tmp_dir/mixed-release-priority-quality/ios-report-quality.json"
+python3 - <<'PY' "$tmp_dir/mixed-release-priority-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+priority = data.get("priorityAction") or {}
+expected = "Should ShipGuard stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption?"
+if priority.get("tool") != "shipguard value-gauntlet":
+    raise SystemExit(f"expected value-gauntlet priority over generic Full Audit review question: {priority!r}")
+if priority.get("question") != expected:
+    raise SystemExit(f"expected v4 product-release question, got {priority!r}")
+if priority.get("priorityReason") != "value-gauntlet lowest-value surface is v4 product release stabilization":
+    raise SystemExit(f"expected source-priority reason, got {priority!r}")
+ranked = data.get("prioritizedActionabilityQuestions") or []
+if not ranked or ranked[0].get("tool") != "shipguard value-gauntlet":
+    raise SystemExit(f"ranked questions did not start with value-gauntlet release signal: {ranked!r}")
+if any(
+    item.get("priority") == 1 and item.get("tool") == "shipguard full-audit"
+    for item in ranked
+):
+    raise SystemExit(f"generic Full Audit review question outranked release-stabilization signal: {ranked!r}")
+PY
+
 launchkey_skip_dir="$tmp_dir/launchkey-proof-dir-skip"
 mkdir -p \
   "$launchkey_skip_dir/fresh-install-prefix/lib/shipguard/examples/demo-reports/arena" \

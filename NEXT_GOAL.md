@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-19T21:02:03Z
+- Generated: 2026-06-19T21:29:42Z
 - Current toolkit version: 3.131.0
-- Target release: v3.147.0
-- Title: Stable V4 Release Packet Execution Receipts
+- Target release: v3.148.0
+- Title: Stable V4 Release Packet Artifact Receipts
 
 ## Slash Plan
 
 ```text
-/plan v3.147.0 Stable V4 Release Packet Execution Receipts for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Improve ShipGuard after read-only Full Audit self-QA showed JSON carried structured stages[].command arrays, but the Markdown stage ledger hid exact commands. A solo maintainer could see that release stages were planned, but could not audit or copy the planned release lane from the human-readable report. Make Full Audit render execution commands and teach report-quality to flag missing or incomplete command ledgers.
+/plan v3.148.0 Stable V4 Release Packet Artifact Receipts for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make ios report-quality prioritize concrete v4 release-proof artifact gaps from Value Gauntlet and LaunchKey over generic non-blocked Full Audit plan questions.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.147.0 Stable V4 Release Packet Execution Receipts for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Improve ShipGuard after read-only Full Audit self-QA showed JSON carried structured stages[].command arrays, but the Markdown stage ledger hid exact commands. A solo maintainer could see that release stages were planned, but could not audit or copy the planned release lane from the human-readable report. Make Full Audit render execution commands and teach report-quality to flag missing or incomplete command ledgers, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.148.0 Stable V4 Release Packet Artifact Receipts for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make ios report-quality prioritize concrete v4 release-proof artifact gaps from Value Gauntlet and LaunchKey over generic non-blocked Full Audit plan questions, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Improve ShipGuard after read-only Full Audit self-QA showed JSON carried structured stages[].command arrays, but the Markdown stage ledger hid exact commands. A solo maintainer could see that release stages were planned, but could not audit or copy the planned release lane from the human-readable report. Make Full Audit render execution commands and teach report-quality to flag missing or incomplete command ledgers.
+Make ios report-quality prioritize concrete v4 release-proof artifact gaps from Value Gauntlet and LaunchKey over generic non-blocked Full Audit plan questions.
 
 ## Completion Receipt
 
-- Completed scope: shipguard full-audit now renders a Markdown Execution Commands table from stages[].command for every stage with a command, including plan-only release profiles. ios report-quality now flags Full Audit reports whose Markdown lacks that command ledger or omits command values even when JSON has stages[].command. Public gauntlet fixtures, focused tests, docs, changelog, roadmap, GitHub presentation docs, and plugin skill guidance now require copy-ready Full Audit execution receipts.
-- Evidence: Read-only QA at /tmp/shipguard-v3147-full-audit-plan showed status=review and structured stages[].command in JSON, but shipguard-full-audit.md listed only stage names, durations, and purposes. /tmp/shipguard-v3147-report-quality-before passed with zero findings, proving report-quality did not catch the missing human command ledger. After the fix, /tmp/shipguard-v3147-full-audit-plan-fixed includes an Execution Commands table with git diff --check, install-refresh, and other stage commands, and /tmp/shipguard-v3147-report-quality-fixed passes with zero findings. Focused tests passed: python3 -m py_compile scripts/full_audit.py scripts/ios_report_quality.py; git diff --check; ./tests/full_audit_test.sh; ./tests/ios_report_quality_test.sh; ./tests/command_family_runtime_output_receipts_test.sh; ./tests/tool_value_gauntlet_test.sh. Broad validation passed: ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3147; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./bin/shipguard brand --path . --out /tmp/shipguard-brand-v3147 --strict; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet-v3147; ./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet-v3147 --out /tmp/shipguard-value-quality-v3147 --shareable; ./bin/shipguard codex marketplace-readiness --path . --out /tmp/shipguard-marketplace-v3147 --strict --shareable; ./tests/package_release_test.sh.
+- Completed scope: ios report-quality now carries source-priority signals from Value Gauntlet lowest-value probes, LaunchKey release-readiness gaps, and resultUX release-stabilization guidance. Blocked source reports still stay first, but generic non-blocked Full Audit plan questions no longer hide the v4 product-release stabilization gap. The v4 release-candidate receipt contract now asserts the new LaunchKey priority reason.
+- Evidence: Read-only self-QA before the fix picked the generic Full Audit proof-boundary question from /tmp/shipguard-v3148-report-quality-before. After the fix, /tmp/shipguard-v3148-report-quality-after passes and priorityAction.tool is shipguard value-gauntlet with the v4 product-release stabilization question and reason value-gauntlet lowest-value surface is v4 product release stabilization. Validation passed: git diff --check; python3 -m py_compile scripts/ios_report_quality.py; ./tests/ios_report_quality_test.sh; ./tests/command_family_runtime_output_receipts_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3148; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3148-value-gauntlet-after2; ./tests/package_release_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.148.0 Stable V4 Release Packet Artifact Receipts for jlekerli-source/ShipGuard:
+/plan v3.149.0 Stable V4 Product Release Stabilization Receipts for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Improve ShipGuard after read-only Full Audit self-QA showed JSON carried structu
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.148.0 Stable V4 Release Packet Artifact Receipts for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.149.0 Stable V4 Product Release Stabilization Receipts for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.148.0 --title "Stable V4 Release Packet Artifact Receipts" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.149.0 --title "Stable V4 Product Release Stabilization Receipts" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.147.0.
+1. Open or update the tracking issue for v3.148.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.147.0` and upload `dist/shipguard-v3.147.0.tar.gz`.
+6. Create release `v3.148.0` and upload `dist/shipguard-v3.148.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

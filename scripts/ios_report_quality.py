@@ -559,18 +559,123 @@ def is_launchdeck_receipt_question(question: object, tool: object) -> bool:
     return "execution" in question_text and ("quality" in question_text or "proof bundle" in question_text)
 
 
+def release_stabilization_signal_text(value: object) -> bool:
+    text = normalized_question_text(value)
+    if not text:
+        return False
+    if "v4 product release" in text or "stable v4" in text:
+        return any(
+            token in text
+            for token in (
+                "external adoption",
+                "security review",
+                "rollback",
+                "package proof",
+                "release proof",
+                "release asset",
+                "fresh install",
+                "install proof",
+            )
+        )
+    return False
+
+
+def launchkey_release_artifact_question(value: object) -> bool:
+    text = normalized_question_text(value)
+    if not text:
+        return False
+    return any(
+        all(token in text for token in token_group)
+        for token_group in (
+            ("fresh user", "install", "release package"),
+            ("download release assets", "verify"),
+            ("release assets", "manifest"),
+            ("release assets", "sha-256"),
+            ("release proof", "consumption"),
+            ("external adoption", "security review"),
+        )
+    )
+
+
+def source_priority_signal(report: dict[str, Any]) -> dict[str, Any]:
+    tool = str(report.get("tool") or "")
+    result_ux = report.get("resultUX") if isinstance(report.get("resultUX"), dict) else {}
+    result_text = " ".join(
+        str(result_ux.get(field) or "")
+        for field in ("nextActionSummary", "verdict", "whyItMatters", "nextCommand")
+    )
+    questions = report.get("reportQualityQuestions")
+    question_text = " ".join(str(item) for item in questions if isinstance(item, str)) if isinstance(questions, list) else ""
+
+    if tool == "shipguard value-gauntlet":
+        probe = report.get("lowestValueSurfaceProbe")
+        answer = probe.get("answer") if isinstance(probe, dict) and isinstance(probe.get("answer"), dict) else {}
+        missing = answer.get("missingDepthSignals")
+        missing_text = " ".join(str(item) for item in missing) if isinstance(missing, list) else ""
+        combined = " ".join(
+            str(value or "")
+            for value in (
+                answer.get("identifier"),
+                answer.get("title"),
+                missing_text,
+                result_text,
+                question_text,
+            )
+        )
+        if (
+            "runtimeV4ProductReleaseStabilization" in missing_text
+            or "v4-product-release-stabilization" in normalized_question_text(answer.get("identifier") or "")
+            or release_stabilization_signal_text(combined)
+        ):
+            return {
+                "kind": "v4-product-release-stabilization",
+                "priority": -35,
+                "reason": "value-gauntlet lowest-value surface is v4 product release stabilization",
+            }
+
+    if tool == "shipguard v4 release-candidate":
+        readiness = report.get("releaseReadiness")
+        readiness_text = json.dumps(readiness, sort_keys=True) if isinstance(readiness, dict) else ""
+        combined = " ".join((result_text, question_text, readiness_text))
+        if "not-provided" in normalized_question_text(combined) or release_stabilization_signal_text(combined):
+            return {
+                "kind": "launchkey-stable-v4-proof-gap",
+                "priority": -30,
+                "reason": "LaunchKey release-readiness evidence still has stable-v4 proof gaps",
+            }
+
+    if release_stabilization_signal_text(f"{result_text} {question_text}"):
+        return {
+            "kind": "result-ux-release-stabilization",
+            "priority": -20,
+            "reason": "source report result UX points to v4 release stabilization proof",
+        }
+
+    return {"kind": None, "priority": 0, "reason": None}
+
+
+def source_block_priority(row: dict[str, Any]) -> int:
+    return 0 if status_rank(row.get("sourceStatus")) == 0 else 1
+
+
 def question_focus_priority(row: dict[str, Any]) -> int:
     question = normalized_question_text(row.get("question") or "")
     tool = str(row.get("tool") or "")
     source_status = str(row.get("sourceStatus") or "")
+    source_signal_priority = row.get("sourcePriority")
+    priority = int(source_signal_priority) if isinstance(source_signal_priority, int) else 0
     if tool == "shipguard ios launchdeck" and source_status != "pass":
         if any(token in question for token in ("missing build/run", "proof for the selected lane", "when receipts")):
-            return -30
+            priority = min(priority, -30)
         if is_launchdeck_receipt_question(question, tool):
-            return -20
+            priority = min(priority, -20)
+    if release_stabilization_signal_text(question):
+        priority = min(priority, -35)
+    if launchkey_release_artifact_question(question):
+        priority = min(priority, -25)
     if should_create_fixture_candidate(question):
-        return -10
-    return 0
+        priority = min(priority, -10)
+    return priority
 
 
 def report_status(issues: list[dict[str, str]]) -> str:
@@ -2212,6 +2317,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
         "surface": loaded.get("surface") or None,
         "intent": intent or None,
         "reportStatus": loaded.get("status"),
+        "sourcePrioritySignal": source_priority_signal(loaded),
         "actionabilityQuestions": report_questions(loaded, report_path=display_path, tool=tool),
         "sourceFindings": source_findings,
         "sourceFindingCount": len(source_findings),
@@ -2433,6 +2539,9 @@ def priority_reason(row: dict[str, Any]) -> str:
     quality_status = str(row.get("reportQualityStatus") or "")
     source_status = str(row.get("sourceStatus") or "")
     tool = str(row.get("tool") or "unknown")
+    source_reason = str(row.get("sourcePriorityReason") or "")
+    if source_reason:
+        return source_reason
     if quality_status and quality_status != "pass":
         return f"report-quality status is {quality_status}"
     if source_status and source_status != "pass":
@@ -2443,6 +2552,7 @@ def priority_reason(row: dict[str, Any]) -> str:
 def ranked_actionability_questions(graded: list[dict[str, Any]]) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for report_index, report in enumerate(graded):
+        source_signal = report.get("sourcePrioritySignal") if isinstance(report.get("sourcePrioritySignal"), dict) else {}
         for question_index, question in enumerate(report.get("actionabilityQuestions", [])):
             row = {
                 "tool": question.get("tool") or report.get("tool") or "unknown",
@@ -2450,6 +2560,9 @@ def ranked_actionability_questions(graded: list[dict[str, Any]]) -> list[dict[st
                 "question": question.get("question") or "",
                 "sourceStatus": report.get("reportStatus") or "unknown",
                 "reportQualityStatus": report.get("status") or "unknown",
+                "sourcePrioritySignal": source_signal.get("kind"),
+                "sourcePriority": source_signal.get("priority") if isinstance(source_signal.get("priority"), int) else 0,
+                "sourcePriorityReason": source_signal.get("reason"),
                 "score": report.get("score"),
                 "sourceMaterializedFixture": bool(question.get("sourceMaterializedFixture")),
                 "_reportIndex": report_index,
@@ -2462,8 +2575,9 @@ def ranked_actionability_questions(graded: list[dict[str, Any]]) -> list[dict[st
     rows.sort(
         key=lambda row: (
             status_rank(row.get("reportQualityStatus")),
-            status_rank(row.get("sourceStatus")),
+            source_block_priority(row),
             question_focus_priority(row),
+            status_rank(row.get("sourceStatus")),
             int(row.get("score") if isinstance(row.get("score"), int) else 999),
             tool_priority(row.get("tool")),
             row["_reportIndex"],

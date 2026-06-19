@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed mixed report-quality prioritization for release hardening: `ios report-quality` now lets Value Gauntlet lowest-value and LaunchKey release-readiness signals outrank generic non-blocked Full Audit plan questions, while blocked source reports still stay first.
 - Added copy-ready Full Audit execution receipts: `shipguard full-audit` Markdown now renders an `Execution Commands` table from `stages[].command`, and `ios report-quality` flags Full Audit reports that hide planned stage commands from the human-readable report.
 - Fixed Full Audit slash-handoff drift: `shipguard full-audit` now sources `slashPlan` and `slashGoal` from `NEXT_GOAL.md`, renders `slashHandoffSource`, and `ios report-quality` flags stale or untracked Full Audit handoffs such as the old v3.132 placeholder.
 - Tightened Full Audit release-packet honesty: `shipguard full-audit --plan-only` now reports `review` instead of `pass`, preserves the exact selected profile or stages in `resultUX.nextCommand`, and adds missing release metadata placeholders so planned proof cannot be mistaken for executed proof.
