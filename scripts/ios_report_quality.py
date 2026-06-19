@@ -384,18 +384,56 @@ def is_materialized_fixture_report(report: dict[str, Any]) -> bool:
     )
 
 
+def value_gauntlet_probe_answer(report: dict[str, Any]) -> dict[str, Any]:
+    probe = report.get("lowestValueSurfaceProbe")
+    answer = probe.get("answer") if isinstance(probe, dict) and isinstance(probe.get("answer"), dict) else {}
+    return answer if isinstance(answer, dict) else {}
+
+
+def value_gauntlet_actionability_question(answer: dict[str, Any]) -> str | None:
+    if not answer:
+        return None
+    identifier = str(answer.get("identifier") or "")
+    missing = answer.get("missingDepthSignals")
+    missing_signals = {str(item) for item in missing} if isinstance(missing, list) else set()
+    if identifier == "shipguard v4-stable-release-publication" or "runtimeV4StableReleasePublication" in missing_signals:
+        return (
+            "Can ShipGuard prove stable-v4 publication with downloaded GitHub release assets, "
+            "independent adoption evidence, final security review evidence, release notes, and "
+            "post-release consumer proof?"
+        )
+    if identifier == "shipguard v4-product-release-stabilization" or "runtimeV4ProductReleaseStabilization" in missing_signals:
+        return (
+            "Should ShipGuard stabilize the v4 product release with external adoption evidence, "
+            "final security review, rollback proof, package proof, and release proof consumption?"
+        )
+    name = str(answer.get("name") or answer.get("title") or identifier or "the current lowest-value ShipGuard surface").strip()
+    recommendation = str(answer.get("recommendation") or "").strip()
+    if recommendation:
+        return f"Can ShipGuard improve {name} by proving this recommendation: {recommendation}"
+    return f"Can ShipGuard turn {name} into a concrete fixture-backed improvement instead of leaving it as a vague priority?"
+
+
 def report_questions(report: dict[str, Any], *, report_path: str, tool: str) -> list[dict[str, Any]]:
     questions = report.get("reportQualityQuestions")
-    if not isinstance(questions, list):
-        return []
+    source_questions = questions if isinstance(questions, list) else []
+    candidate_questions: list[str] = []
+    if tool == "shipguard value-gauntlet":
+        current_question = value_gauntlet_actionability_question(value_gauntlet_probe_answer(report))
+        if current_question:
+            candidate_questions.append(current_question)
+    candidate_questions.extend(str(question) for question in source_questions if isinstance(question, str))
     materialized_fixture = is_materialized_fixture_report(report)
     rows: list[dict[str, Any]] = []
-    for question in questions[:8]:
-        if not isinstance(question, str):
-            continue
+    seen: set[str] = set()
+    for question in candidate_questions[:8]:
         text = question.strip()
         if not text:
             continue
+        key = normalized_question_text(text)
+        if key in seen:
+            continue
+        seen.add(key)
         row = {
             "tool": tool,
             "report": report_path,
@@ -608,20 +646,37 @@ def source_priority_signal(report: dict[str, Any]) -> dict[str, Any]:
     question_text = " ".join(str(item) for item in questions if isinstance(item, str)) if isinstance(questions, list) else ""
 
     if tool == "shipguard value-gauntlet":
-        probe = report.get("lowestValueSurfaceProbe")
-        answer = probe.get("answer") if isinstance(probe, dict) and isinstance(probe.get("answer"), dict) else {}
+        answer = value_gauntlet_probe_answer(report)
         missing = answer.get("missingDepthSignals")
         missing_text = " ".join(str(item) for item in missing) if isinstance(missing, list) else ""
         combined = " ".join(
             str(value or "")
             for value in (
                 answer.get("identifier"),
+                answer.get("name"),
                 answer.get("title"),
+                answer.get("recommendation"),
                 missing_text,
                 result_text,
                 question_text,
             )
         )
+        if (
+            "runtimeV4StableReleasePublication" in missing_text
+            or "v4-stable-release-publication" in normalized_question_text(answer.get("identifier") or "")
+            or (
+                ("stable-v4" in normalized_question_text(combined) or "stable v4" in normalized_question_text(combined))
+                and any(
+                    token in normalized_question_text(combined)
+                    for token in ("downloaded github release assets", "post-release consumer proof", "final security review")
+                )
+            )
+        ):
+            return {
+                "kind": "v4-stable-release-publication",
+                "priority": -40,
+                "reason": "value-gauntlet lowest-value surface is stable-v4 publication",
+            }
         if (
             "runtimeV4ProductReleaseStabilization" in missing_text
             or "v4-product-release-stabilization" in normalized_question_text(answer.get("identifier") or "")

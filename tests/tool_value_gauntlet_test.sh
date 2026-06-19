@@ -1047,8 +1047,12 @@ retired_phrases = (
 )
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
     raise SystemExit(f"answered runtime receipt questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
-if not any("v4 product release" in question.lower() or "rollback proof" in question.lower() for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"expected v4 product release quality question: {data.get('reportQualityQuestions')!r}")
+questions = data.get("reportQualityQuestions") or []
+expected_current_question = "Can ShipGuard prove stable-v4 publication with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof?"
+if not questions or questions[0] != expected_current_question:
+    raise SystemExit(f"expected current stable-v4 publication question first: {questions!r}")
+if not any("v4 product release" in question.lower() or "rollback proof" in question.lower() for question in questions):
+    raise SystemExit(f"expected v4 product release compatibility question: {questions!r}")
 PY
 
 json_stdout="$(./bin/shipguard value-gauntlet --path . --json)"

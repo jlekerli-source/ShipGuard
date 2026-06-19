@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed the next self-QA priority after stable release fixture proof: `shipguard value-gauntlet` now emits a live report-quality question from `lowestValueSurfaceProbe.answer`, and `ios report-quality` injects the same stable-v4 publication question even when grading older reports that still carry stale product-stabilization wording.
 - Added Tool Value Gauntlet `v4ProductReleaseStabilizationReceipts`: public fixtures now build ShipGuard release proof, derive a previous package, assemble downloaded release assets, run LaunchKey with fresh-install/upgrade/rollback/release-consume/adoption/security evidence, and hand the result to report-quality. Once this fixture-backed path passes, the lowest-value probe escalates to real stable-v4 publication proof instead of claiming stable v4 from synthetic receipts.
 - Fixed mixed report-quality prioritization for release hardening: `ios report-quality` now lets Value Gauntlet lowest-value and LaunchKey release-readiness signals outrank generic non-blocked Full Audit plan questions, while blocked source reports still stay first.
 - Added copy-ready Full Audit execution receipts: `shipguard full-audit` Markdown now renders an `Execution Commands` table from `stages[].command`, and `ios report-quality` flags Full Audit reports that hide planned stage commands from the human-readable report.

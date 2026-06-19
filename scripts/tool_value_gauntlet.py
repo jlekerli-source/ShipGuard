@@ -94,11 +94,43 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
+    "Can ShipGuard prove stable-v4 publication with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof?",
     "Should ShipGuard stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
 ]
+
+
+def report_quality_question_for_answer(answer: dict[str, Any] | None) -> str:
+    if not isinstance(answer, dict) or not answer:
+        return REPORT_QUALITY_QUESTIONS[0]
+    identifier = str(answer.get("identifier") or "")
+    missing = answer.get("missingDepthSignals")
+    missing_signals = {str(item) for item in missing} if isinstance(missing, list) else set()
+    if identifier == "shipguard v4-stable-release-publication" or "runtimeV4StableReleasePublication" in missing_signals:
+        return REPORT_QUALITY_QUESTIONS[0]
+    if identifier == "shipguard v4-product-release-stabilization" or "runtimeV4ProductReleaseStabilization" in missing_signals:
+        return REPORT_QUALITY_QUESTIONS[1]
+    name = str(answer.get("name") or answer.get("title") or identifier or "the current lowest-value ShipGuard surface").strip()
+    recommendation = str(answer.get("recommendation") or "").strip()
+    if recommendation:
+        return f"Can ShipGuard improve {name} by proving this recommendation: {recommendation}"
+    return f"Can ShipGuard turn {name} into a concrete fixture-backed improvement instead of leaving it as a vague priority?"
+
+
+def report_quality_questions_for_probe(probe: dict[str, Any]) -> list[str]:
+    answer = probe.get("answer") if isinstance(probe, dict) and isinstance(probe.get("answer"), dict) else {}
+    current = report_quality_question_for_answer(answer)
+    questions: list[str] = []
+    seen: set[str] = set()
+    for question in [current, *REPORT_QUALITY_QUESTIONS]:
+        key = re.sub(r"\s+", " ", str(question)).strip().lower()
+        if not key or key in seen:
+            continue
+        questions.append(str(question))
+        seen.add(key)
+    return questions
 
 RUNTIME_OUTPUT_SPECS: list[dict[str, Any]] = [
     {
@@ -4985,7 +5017,7 @@ def lowest_value_surface_probe(
         "method": "Rank by baseline coverage first, then deeper evidence density across docs, tests, implementation references, package/self-audit proof, and concrete command/proof examples. This is read-only ShipGuard product QA and does not inspect private target apps.",
         "answer": answer,
         "rankedSurfaces": ranked[:15],
-        "nextProbeQuestion": REPORT_QUALITY_QUESTIONS[0],
+        "nextProbeQuestion": report_quality_question_for_answer(answer if isinstance(answer, dict) else {}),
     }
 
 
@@ -5198,7 +5230,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_action_rows,
-        "reportQualityQuestions": REPORT_QUALITY_QUESTIONS,
+        "reportQualityQuestions": report_quality_questions_for_probe(probe),
     }
 
 

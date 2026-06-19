@@ -2101,9 +2101,9 @@ for candidate in data.get("fixtureCandidates") or []:
 priority = data.get("priorityAction") or {}
 if priority.get("question") == covered_question:
     raise SystemExit(f"covered value-gauntlet question should not remain the priority action: {priority!r}")
-expected_product_release = "Should ShipGuard stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption?"
-if priority.get("question") != expected_product_release:
-    raise SystemExit(f"expected next uncovered v4 product release question as priority: {priority!r}")
+expected_stable_release = "Can ShipGuard prove stable-v4 publication with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof?"
+if priority.get("question") != expected_stable_release:
+    raise SystemExit(f"expected next uncovered stable-v4 publication question as priority: {priority!r}")
 PY
 
 mixed_release_priority_dir="$tmp_dir/mixed-release-priority"
@@ -2279,6 +2279,75 @@ if any(
     for item in ranked
 ):
     raise SystemExit(f"generic Full Audit review question outranked release-stabilization signal: {ranked!r}")
+PY
+
+stable_publication_priority_dir="$tmp_dir/stable-publication-priority"
+mkdir -p "$stable_publication_priority_dir"
+cat > "$stable_publication_priority_dir/tool-value-gauntlet.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard value-gauntlet",
+  "surface": "ShipGuard Tool Value Gauntlet",
+  "generatedAt": "2026-06-20T00:00:00Z",
+  "status": "pass",
+  "resultUX": {
+    "status": "pass",
+    "verdict": "PASS: Synthetic value gauntlet completed.",
+    "proofSource": "synthetic report-quality fixture",
+    "whyItMatters": "The lowest-value surface should drive the next ShipGuard improvement.",
+    "nextCommand": "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet",
+    "nextActionSummary": "Prepare and verify the real stable-v4 public release packet with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof."
+  },
+  "lowestValueSurfaceProbe": {
+    "answer": {
+      "identifier": "shipguard v4-stable-release-publication",
+      "name": "v4 Stable Release Publication",
+      "recommendation": "Prepare and verify the real stable-v4 public release packet with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof.",
+      "missingDepthSignals": [
+        "runtimeV4StableReleasePublication"
+      ]
+    }
+  },
+  "reportQualityQuestions": [
+    "Should ShipGuard stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption?"
+  ]
+}
+JSON
+cat > "$stable_publication_priority_dir/tool-value-gauntlet.md" <<'MD'
+# ShipGuard Tool Value Gauntlet
+
+## Result
+
+- Verdict: PASS: Synthetic value gauntlet completed.
+- Proof source: synthetic report-quality fixture
+- Why it matters: The lowest-value surface should drive the next ShipGuard improvement.
+- Next command: `./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet`
+- Next action: Prepare and verify the real stable-v4 public release packet with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof.
+MD
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_priority_dir" \
+  --out "$tmp_dir/stable-publication-priority-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/stable-publication-priority-quality/ios-report-quality.json"
+grep -q 'value-gauntlet lowest-value surface is stable-v4 publication' "$tmp_dir/stable-publication-priority-quality/ios-report-quality.json"
+python3 - <<'PY' "$tmp_dir/stable-publication-priority-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+priority = data.get("priorityAction") or {}
+expected = "Can ShipGuard prove stable-v4 publication with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof?"
+if priority.get("tool") != "shipguard value-gauntlet":
+    raise SystemExit(f"expected stable publication value-gauntlet priority: {priority!r}")
+if priority.get("question") != expected:
+    raise SystemExit(f"expected stable-v4 publication question, got {priority!r}")
+if priority.get("priorityReason") != "value-gauntlet lowest-value surface is stable-v4 publication":
+    raise SystemExit(f"expected stable-v4 source-priority reason, got {priority!r}")
+if "product release stabilization" in priority.get("question", "").lower():
+    raise SystemExit(f"stale product-stabilization question leaked into stable-v4 priority: {priority!r}")
+ranked = data.get("prioritizedActionabilityQuestions") or []
+if not ranked or ranked[0].get("question") != expected:
+    raise SystemExit(f"stable-v4 injected question did not rank first: {ranked!r}")
 PY
 
 launchkey_skip_dir="$tmp_dir/launchkey-proof-dir-skip"
