@@ -68,7 +68,7 @@
         {
           "path": "full-audit-plan/shipguard-full-audit.md",
           "type": "markdown",
-          "requiredPhrases": ["ShipGuard Full Audit", "Slow Lanes", "Slash Handoff Source", "NEXT_GOAL.md"],
+          "requiredPhrases": ["ShipGuard Full Audit", "Slow Lanes", "Execution Commands", "git diff --check", "Slash Handoff Source", "NEXT_GOAL.md"],
           "forbidLocalPaths": true
         }
       ]

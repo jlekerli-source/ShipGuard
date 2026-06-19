@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added copy-ready Full Audit execution receipts: `shipguard full-audit` Markdown now renders an `Execution Commands` table from `stages[].command`, and `ios report-quality` flags Full Audit reports that hide planned stage commands from the human-readable report.
 - Fixed Full Audit slash-handoff drift: `shipguard full-audit` now sources `slashPlan` and `slashGoal` from `NEXT_GOAL.md`, renders `slashHandoffSource`, and `ios report-quality` flags stale or untracked Full Audit handoffs such as the old v3.132 placeholder.
 - Tightened Full Audit release-packet honesty: `shipguard full-audit --plan-only` now reports `review` instead of `pass`, preserves the exact selected profile or stages in `resultUX.nextCommand`, and adds missing release metadata placeholders so planned proof cannot be mistaken for executed proof.
 - Added LaunchKey final security-review evidence gate: `shipguard v4 release-candidate --security-review-evidence <json-or-dir>` now validates redacted security review evidence records, requires CLI/plugin/GitHub Actions/release-proof/package-install/redaction-privacy scope coverage, blocks open critical/high findings, separates synthetic fixtures from stable-v4 eligible review evidence, and turns missing final security proof into a concrete next command.

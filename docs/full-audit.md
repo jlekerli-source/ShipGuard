@@ -14,7 +14,7 @@ Typical planning run:
   --shareable
 ```
 
-Planning output is a `review` report, not a `pass` report. It writes the same stage ledger and slow-lane summary, but `resultUX.nextCommand` points to the executable release lane with missing CI/release metadata placeholders. Treat that as the next command to run before calling the report release proof.
+Planning output is a `review` report, not a `pass` report. It writes the same stage ledger, slow-lane summary, and `Execution Commands` table, but `resultUX.nextCommand` points to the executable release lane with missing CI/release metadata placeholders. Treat that as the next command to run before calling the report release proof.
 
 Full Audit reads `NEXT_GOAL.md` for its `slashPlan` and `slashGoal` handoff. When `NEXT_GOAL.md` has a completion receipt, Full Audit uses the `Following Slash Plan` and `Following Slash Goal`; otherwise it uses the active `Slash Plan` and `Slash Goal`. JSON and Markdown include `slashHandoffSource` so report-quality can reject stale hardcoded handoff text.
 
@@ -49,7 +49,7 @@ Outputs:
 - `logs/<stage-id>.stdout.txt`
 - `logs/<stage-id>.stderr.txt`
 
-The JSON includes `resultUX` and `slashHandoffSource`, and the Markdown starts with `## Result`. That block gives the normalized status, concise verdict, proof source, why the report matters, and the next run or resume command before the stage ledger.
+The JSON includes `resultUX` and `slashHandoffSource`, and the Markdown starts with `## Result`. That block gives the normalized status, concise verdict, proof source, why the report matters, and the next run or resume command before the stage ledger. The Markdown `## Execution Commands` section renders each `stages[].command` value so a maintainer can audit or copy the planned release lane without opening JSON.
 
 Profiles:
 
@@ -65,4 +65,4 @@ Boundary:
 - `release-proof` builds local assets only and requires release metadata.
 - Target apps remain read-only; this command is ShipGuard product QA.
 
-Use the `slowLaneSummary` section to decide what to rerun. Use `--resume` to skip passing stages when the stage command and working directory match the previous receipt. A plan-only report proves route shape only; an executed report proves stage behavior.
+Use the `slowLaneSummary` section to decide what to rerun and `Execution Commands` to inspect the exact commands behind the lane. Use `--resume` to skip passing stages when the stage command and working directory match the previous receipt. A plan-only report proves route shape only; an executed report proves stage behavior.

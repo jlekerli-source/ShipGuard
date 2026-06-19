@@ -662,6 +662,15 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append(
             f"| {stage['status']} | `{stage['stageId']}` {stage['title']} | {stage.get('durationSeconds', 0.0)}s | {stage['purpose']} |"
         )
+    lines.extend(["", "## Execution Commands", ""])
+    if report["stages"]:
+        lines.extend(["| Stage | Status | Command |", "| --- | --- | --- |"])
+        for stage in report["stages"]:
+            command = stage.get("command") or []
+            command_text = shell_join([str(part) for part in command]) if isinstance(command, list) else str(command)
+            lines.append(f"| `{stage['stageId']}` | {stage['status']} | `{command_text}` |")
+    else:
+        lines.append("No stages were selected.")
     lines.extend(["", "## Slow Lanes", ""])
     if report["slowLaneSummary"]:
         lines.extend(["| Stage | Status | Duration | Reason |", "| --- | --- | ---: | --- |"])

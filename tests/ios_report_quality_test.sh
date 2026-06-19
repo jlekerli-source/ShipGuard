@@ -304,6 +304,93 @@ grep -q '"ruleId": "full-audit-slash-handoff-source-missing"' "$tmp_dir/stale-fu
 grep -q '"ruleId": "full-audit-slash-handoff-stale"' "$tmp_dir/stale-full-audit-quality/ios-report-quality.json"
 grep -q 'old v3.132 Full Audit slash handoff' "$tmp_dir/stale-full-audit-quality/ios-report-quality.md"
 
+commandless_full_audit="$tmp_dir/commandless-full-audit"
+mkdir -p "$commandless_full_audit"
+cat > "$commandless_full_audit/shipguard-full-audit.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard full-audit",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "review",
+  "resultUX": {
+    "status": "review",
+    "verdict": "REVIEW: Synthetic Full Audit report needs execution.",
+    "proofSource": "stageStatusSummary + stage receipts",
+    "whyItMatters": "Full Audit drives the release-loop handoff.",
+    "nextCommand": "shipguard full-audit --path <shipguard-repo> --out <shipguard-full-audit-out> --profile release",
+    "nextActionSummary": "Execute the planned release lane."
+  },
+  "stages": [
+    {
+      "stageId": "version",
+      "title": "Version beacon",
+      "status": "planned",
+      "durationSeconds": 0.0,
+      "purpose": "Confirm the CLI resolves.",
+      "command": ["<shipguard-repo>/bin/shipguard", "version"]
+    },
+    {
+      "stageId": "git-diff-check",
+      "title": "Diff whitespace gate",
+      "status": "planned",
+      "durationSeconds": 0.0,
+      "purpose": "Catch whitespace issues.",
+      "command": ["git", "diff", "--check"]
+    }
+  ],
+  "stageStatusSummary": {
+    "planned": 2
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "doesNotPush": true,
+    "doesNotPublishRelease": true
+  },
+  "reportQualityQuestions": [
+    "Can a maintainer run the planned release lane from the Markdown?"
+  ],
+  "slashHandoffSource": {
+    "status": "loaded",
+    "sourcePath": "NEXT_GOAL.md",
+    "section": "following"
+  },
+  "slashPlan": "/plan v3.147.0 Stable V4 Release Packet Execution Receipts for jlekerli-source/ShipGuard: make execution receipts copy-ready.",
+  "slashGoal": "/goal Implement v3.147.0 Stable V4 Release Packet Execution Receipts for jlekerli-source/ShipGuard: make execution receipts copy-ready."
+}
+JSON
+cat > "$commandless_full_audit/shipguard-full-audit.md" <<'MD'
+# ShipGuard Full Audit
+
+## Result
+
+- Verdict: REVIEW: Synthetic Full Audit report needs execution.
+- Proof source: stageStatusSummary + stage receipts
+- Why it matters: Full Audit drives the release-loop handoff.
+- Next command: `shipguard full-audit --path <shipguard-repo> --out <shipguard-full-audit-out> --profile release`
+- Next action: Execute the planned release lane.
+
+## Stages
+
+| Status | Stage | Duration | Purpose |
+| --- | --- | ---: | --- |
+| planned | `version` Version beacon | 0.0s | Confirm the CLI resolves. |
+| planned | `git-diff-check` Diff whitespace gate | 0.0s | Catch whitespace issues. |
+
+## Slash Handoff Source
+
+- Status: `loaded`
+- Source path: `NEXT_GOAL.md`
+- Section: `following`
+MD
+./bin/shipguard ios report-quality \
+  --reports "$commandless_full_audit" \
+  --out "$tmp_dir/commandless-full-audit-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/commandless-full-audit-quality/ios-report-quality.json"
+grep -q '"ruleId": "full-audit-execution-commands-markdown-missing"' "$tmp_dir/commandless-full-audit-quality/ios-report-quality.json"
+grep -q 'Render an Execution Commands table from stages' "$tmp_dir/commandless-full-audit-quality/ios-report-quality.md"
+
 design_tailoring_fixture="fixtures/ios-report-quality/design-app-type-tailoring"
 ./bin/shipguard ios report-quality \
   --reports "$design_tailoring_fixture" \

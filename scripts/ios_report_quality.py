@@ -691,6 +691,58 @@ def full_audit_slash_handoff_issues(report: dict[str, Any], *, path_name: str) -
     return issues
 
 
+def full_audit_execution_command_issues(
+    report: dict[str, Any], *, markdown: str, path_name: str
+) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    if str(report.get("tool") or "") != "shipguard full-audit":
+        return issues
+    stages = report.get("stages")
+    if not isinstance(stages, list) or not stages:
+        return issues
+    command_stages = [
+        stage
+        for stage in stages
+        if isinstance(stage, dict) and isinstance(stage.get("command"), list) and stage.get("command")
+    ]
+    if not command_stages:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="full-audit-stage-commands-missing-json",
+            evidence=f"{path_name} Full Audit stages do not carry structured command arrays",
+            recommendation="Include stages[].command so Full Audit reports can render and audit copy-ready execution receipts.",
+        )
+        return issues
+    def command_signature(text: str) -> str:
+        return re.sub(r"[`'\"\\]+", "", " ".join(text.split()))
+
+    compact_markdown = command_signature(markdown)
+    if "Execution Commands" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="full-audit-execution-commands-markdown-missing",
+            evidence=f"{path_name} Full Audit Markdown does not expose a copy-ready Execution Commands section",
+            recommendation="Render an Execution Commands table from stages[].command so a maintainer can run or audit the planned lane from the Markdown report.",
+        )
+        return issues
+    missing_stage_ids: list[str] = []
+    for stage in command_stages:
+        command_text = command_signature(" ".join(str(part) for part in stage["command"]))
+        if command_text and command_text not in compact_markdown:
+            missing_stage_ids.append(str(stage.get("stageId") or "unknown"))
+    if missing_stage_ids:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="full-audit-execution-command-missing",
+            evidence=f"{path_name} Full Audit Markdown omits stage commands for {', '.join(missing_stage_ids[:5])}",
+            recommendation="Render every stages[].command value in the Execution Commands table so package/release receipts are copy-ready.",
+        )
+    return issues
+
+
 def source_report_findings(
     report: dict[str, Any],
     *,
@@ -2114,6 +2166,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     issues.extend(finding_quality_issues(loaded))
     issues.extend(result_ux_quality_issues(loaded, path_name=path.name))
     issues.extend(full_audit_slash_handoff_issues(loaded, path_name=path.name))
+    issues.extend(full_audit_execution_command_issues(loaded, markdown=markdown, path_name=path.name))
     if tool == "shipguard ios performance":
         issues.extend(performance_runtime_evidence_boundary_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_evidence_promotion_issues(loaded, markdown=markdown, path_name=path.name))
