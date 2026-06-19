@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added v3.130 ShipGuard V4 Schema Freeze: `shipguard v4 schema-freeze` now emits a schema registry, compatibility policy, compatibility fixtures, migration checks, changelog policy, deprecation policy, release-readiness commands, blocked claims, scope boundary, report-quality questions, and result UX without claiming the v4 product is released.
+- Added Tool Value Gauntlet `v4SchemaFreezeReceipts` with public schema-contract fixtures; once those pass, the lowest-value probe now points to v4 release-candidate readiness instead of repeatedly asking for schema-freeze proof.
+- Added docs, CLI help, self-audit, package proof, report-quality root-report support, and smoke coverage for the schema-freeze surface so v4 compatibility is executable proof rather than roadmap prose.
 - Added v3.129 ShipGuard V4 Preview: `shipguard v4 preview` now emits a release-readiness, schema-freeze, security-review, migration, deprecation, and blocked-claims report for capabilities that are stabilizing but not yet released.
 - Added Tool Value Gauntlet `v4PreviewStabilizationReceipts` with public preview-contract fixtures; once those pass, the lowest-value probe now points to v4 schema-freeze compatibility work instead of repeatedly asking for preview stabilization.
 - Added shared result UX to `shipguard ios report-quality` so gauntlet self-review has the same concise verdict and exact next command pattern as InspectDeck and other major reports.

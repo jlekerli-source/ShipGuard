@@ -64,7 +64,7 @@
         {
           "path": "full-audit-plan/shipguard-full-audit.md",
           "type": "markdown",
-          "requiredPhrases": ["ShipGuard Full Audit", "Slow Lanes", "v3.129.0 v4 Preview Stabilization"],
+          "requiredPhrases": ["ShipGuard Full Audit", "Slow Lanes", "v3.131.0 v4 Release Candidate Readiness"],
           "forbidLocalPaths": true
         }
       ]

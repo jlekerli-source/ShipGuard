@@ -41,6 +41,7 @@ Usage:
   shipguard full-audit --out <dir> [--path <shipguard-repo>] [--profile quick|release|shipyard] [--stage <id> ...] [--resume] [--plan-only] [--include-install] [--release-url <url>] [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard inspect --path <shipguard-repo> --out <dir> [--value-gauntlet <file-or-dir>] [--full-audit <file-or-dir>] [--release-assets <dir>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard v4 preview --path <shipguard-repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard v4 schema-freeze --path <shipguard-repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard pilot-bench [--trace <trace.json-or-dir> ...] [--out <dir>] [--shareable] [--benchmark-v2] [--min-lift <points>] [--json|--markdown]
   shipguard agent trace --trace <trace.json-or-jsonl-or-dir> --out <dir> [--adapter auto|codex|claude|gemini|cursor|mcp|generic] [--task <shipguard-task.json-or-dir>] [--diff <patch.diff>] [--evidence <file> ...] [--xcodebuildmcp-evidence <file-or-dir> ...] [--expo-eas-evidence <file-or-dir> ...] [--verdict <shipguard-verdict.json-or-dir>] [--run-verify] [--budget-workers <n>] [--max-workers <n>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard web audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
@@ -438,9 +439,16 @@ cmd_inspect() {
 
 cmd_v4() {
   local subcommand="${1:-}"
-  [[ "$subcommand" == "preview" ]] || fail "v4 requires subcommand: preview"
+  [[ "$subcommand" == "preview" || "$subcommand" == "schema-freeze" ]] || fail "v4 requires subcommand: preview or schema-freeze"
   shift || true
-  run_py "$tool_root/scripts/v4_preview.py" "$@"
+  case "$subcommand" in
+    preview)
+      run_py "$tool_root/scripts/v4_preview.py" "$@"
+      ;;
+    schema-freeze)
+      run_py "$tool_root/scripts/v4_schema_freeze.py" "$@"
+      ;;
+  esac
 }
 
 cmd_pilot_bench() {

@@ -1,0 +1,225 @@
+{
+  "id": "v4-schema-freeze",
+  "kind": "v4-schema-freeze-receipt",
+  "surface": "ShipGuard V4 Schema Freeze",
+  "selectedMode": "value-gauntlet v4 schema-freeze receipts",
+  "trigger": "V4 Preview stabilization receipts passed; freeze the v4 schema contract before release-candidate readiness.",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/v4_schema_freeze.py",
+    "scripts/tool_value_gauntlet.py",
+    "scripts/ios_report_quality.py",
+    "docs/v4-schema-freeze.md",
+    "docs/v4-preview.md",
+    "docs/cli.md",
+    "docs/command-matrix.md",
+    "tests/v4_schema_freeze_test.sh"
+  ],
+  "expectedSourcePhrases": [
+    "shipguard v4 schema-freeze",
+    "ShipGuard V4 Schema Freeze",
+    "v4SchemaFreezeReceipts",
+    "runtimeV4SchemaFreeze",
+    "runtimeV4ReleaseCandidateReadiness",
+    "compatibility policy",
+    "migration checks"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppsUsed": false
+  },
+  "commands": [
+    {
+      "id": "v4-schema-freeze-contract-pass",
+      "display": "./bin/shipguard v4 schema-freeze --path . --out <out>/v4-schema-freeze --shipguard-eval --shareable",
+      "args": [
+        "v4",
+        "schema-freeze",
+        "--path",
+        ".",
+        "--out",
+        "{out}/v4-schema-freeze",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "v4-schema-freeze/v4-schema-freeze.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schemaVersion",
+            "tool",
+            "surface",
+            "status",
+            "productStage",
+            "schemaRegistry",
+            "compatibilityPolicy",
+            "compatibilityFixtures",
+            "migrationChecks",
+            "changelogPolicy",
+            "deprecationPolicy",
+            "releaseReadiness",
+            "blockedClaims",
+            "scopeBoundary",
+            "reportQualityQuestions",
+            "resultUX"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "schemaRegistry",
+            "compatibilityPolicy.rules",
+            "compatibilityFixtures",
+            "migrationChecks",
+            "changelogPolicy.requiredFor",
+            "deprecationPolicy.rules",
+            "releaseReadiness.requiredProofCommands",
+            "blockedClaims",
+            "reportQualityQuestions",
+            "resultUX.nextCommand"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard v4 schema-freeze"
+            },
+            {
+              "path": "surface",
+              "equals": "ShipGuard V4 Schema Freeze"
+            },
+            {
+              "path": "status",
+              "equals": "pass"
+            },
+            {
+              "path": "productStage",
+              "equals": "v4-schema-freeze"
+            },
+            {
+              "path": "compatibilityPolicy.frozenForV4Release",
+              "equals": true
+            },
+            {
+              "path": "releaseReadiness.releaseClaim",
+              "equals": "not-released"
+            },
+            {
+              "path": "scopeBoundary.shipguardOnly",
+              "equals": true
+            },
+            {
+              "path": "scopeBoundary.targetAppsReadOnly",
+              "equals": true
+            },
+            {
+              "path": "scopeBoundary.privateAppsUsed",
+              "equals": false
+            }
+          ]
+        },
+        {
+          "path": "v4-schema-freeze/v4-schema-freeze.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard V4 Schema Freeze",
+            "## Result",
+            "## Schema Registry",
+            "## Compatibility Policy",
+            "## Compatibility Fixtures",
+            "## Migration Checks",
+            "## Changelog Policy",
+            "## Deprecation Policy",
+            "## Release Readiness",
+            "## Blocked Claims",
+            "## Scope Boundary"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "v4-schema-freeze-report-quality-pass",
+      "display": "./bin/shipguard ios report-quality --reports <out>/v4-schema-freeze --out <out>/v4-schema-freeze-quality --shareable",
+      "args": [
+        "ios",
+        "report-quality",
+        "--reports",
+        "{out}/v4-schema-freeze",
+        "--out",
+        "{out}/v4-schema-freeze-quality",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "v4-schema-freeze-quality/ios-report-quality.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "priorityAction",
+            "actionabilityQuestions",
+            "resultUX"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "priorityAction",
+            "actionabilityQuestions",
+            "resultUX.nextCommand"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard ios report-quality"
+            },
+            {
+              "path": "status",
+              "equals": "pass"
+            }
+          ]
+        },
+        {
+          "path": "v4-schema-freeze-quality/ios-report-quality.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# iOS ShipGuard Report Quality",
+            "## Result",
+            "Priority Action",
+            "Actionability Questions",
+            "ShipGuard report-quality priority order"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "v4-schema-freeze-docs-check-pass",
+      "display": "./bin/shipguard docs-check . --out <out>/docs-check",
+      "args": [
+        "docs-check",
+        ".",
+        "--out",
+        "{out}/docs-check"
+      ],
+      "artifacts": [
+        {
+          "path": "docs-check/docs-check.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "status",
+            "broken_count",
+            "links_checked",
+            "files_checked"
+          ],
+          "requiredValues": [
+            {
+              "path": "status",
+              "equals": "pass"
+            },
+            {
+              "path": "broken_count",
+              "equals": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

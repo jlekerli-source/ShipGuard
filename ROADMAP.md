@@ -49,7 +49,7 @@ Keep the core open-source verdict engine honest. Future Pro, Team, or Enterprise
 
 ## Phase Map
 
-The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.129 as shipped foundations and v3.130 as the active v4 schema-freeze slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, universal-agent packaging, full-audit orchestration, unified inspect, concise result-UX, Codex marketplace-readiness, External Benchmark v2, or V4 Preview work.
+The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.130 as shipped foundations and v3.131 as the active v4 release-candidate readiness slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, universal-agent packaging, full-audit orchestration, unified inspect, concise result-UX, Codex marketplace-readiness, External Benchmark v2, V4 Preview, or V4 Schema Freeze work.
 
 ### Phase A: Trustworthy Foundation
 
@@ -133,9 +133,10 @@ v3.127  Codex marketplace readiness
 v3.128  External benchmark v2
 v3.129  v4 preview stabilization
 v3.130  v4 schema freeze and compatibility policy
+v3.131  v4 release-candidate readiness
 ```
 
-Current state: v3.129 adds `shipguard v4 preview` and V4 Preview stabilization receipts that make product-stage, schema-freeze, security-review, migration, deprecation, release-readiness, and blocked-claims posture explicit before any stable v4 claim. The active architectural priority is v3.130 v4 schema freeze: compatibility fixtures, changelog policy, migration checks, and deprecation rules for a stable v4 contract.
+Current state: v3.130 adds `shipguard v4 schema-freeze` and V4 Schema Freeze receipts that make the schema registry, compatibility policy, compatibility fixtures, migration checks, changelog policy, deprecation rules, release-readiness commands, and blocked release claims explicit. The active architectural priority is v3.131 v4 release-candidate readiness: fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, and plugin refresh proof before any stable v4 claim.
 
 Every release proposal must answer:
 

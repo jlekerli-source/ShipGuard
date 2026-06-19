@@ -33,7 +33,7 @@ grep -q 'ShipGuard Full Audit' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q '## Result' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Proof source:' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Slow Lanes' "$tmp_dir/plan/shipguard-full-audit.md"
-grep -q 'v3.129.0 v4 Preview Stabilization' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'v3.131.0 v4 Release Candidate Readiness' "$tmp_dir/plan/shipguard-full-audit.md"
 if grep -q "$repo_root" "$tmp_dir/plan/shipguard-full-audit.json" "$tmp_dir/plan/shipguard-full-audit.md"; then
   echo "shareable full-audit output leaked local repo path" >&2
   exit 1

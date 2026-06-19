@@ -484,10 +484,10 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the full-audit report replace repeated manual validation ceremony with one resumable evidence lane?",
             "Are slow lanes summarized clearly enough for a solo developer to decide what to rerun?",
             "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?",
-            "Should the next ShipGuard slice stabilize the v4 preview contract with schema-freeze, security, migration, and release-readiness receipts?",
+            "Should the next ShipGuard slice prove v4 release-candidate readiness with install, upgrade, uninstall, release-proof consumption, and external adoption packet receipts?",
         ],
-        "slashPlan": "/plan v3.129.0 v4 Preview Stabilization for jlekerli-source/ShipGuard: freeze the v4 preview contract, prove schema/security/migration boundaries, and keep release-readiness receipts public-safe.",
-        "slashGoal": "/goal Implement v3.129.0 v4 Preview Stabilization for jlekerli-source/ShipGuard: make the next product contract stable with proof, without breaking existing v3 receipts.",
+        "slashPlan": "/plan v3.131.0 v4 Release Candidate Readiness for jlekerli-source/ShipGuard: prove fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, and plugin refresh proof before any stable v4 claim.",
+        "slashGoal": "/goal Implement v3.131.0 v4 Release Candidate Readiness for jlekerli-source/ShipGuard: make the v4 candidate installable, reversible, consumable, and adoption-ready without claiming a final v4 product release.",
     }
     if args.shareable:
         replacements = [(str(repo), "<shipguard-repo>"), (str(out_dir), "<shipguard-full-audit-out>"), (str(Path.home()), "<home>")]

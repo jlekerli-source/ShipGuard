@@ -24,6 +24,7 @@ The JSON contains `stableContract`, `schemaFreeze`, `securityReview`, `migration
 The preview contract is deliberately conservative:
 
 - The v4 front door stays the existing local CLI and plugin package, not a separate hosted service.
+- `releaseReadiness.releaseClaim = not-released` until package proof, install proof, release proof consumption, and v4 release-candidate readiness pass.
 - Codex remains first-class, but the core evidence schema must stay agent-neutral.
 - Adapter work is thin. Codex, XcodeBuildMCP, Expo/EAS, Claude, Gemini, Cursor, and generic MCP adapters should emit the same ShipGuard task, trace, receipt, and verdict structures instead of forking product logic.
 - No separate API key is required for ordinary interactive use.

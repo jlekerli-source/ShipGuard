@@ -236,7 +236,7 @@ The current product directive is:
 - Treat agent efficiency as a product feature: standard mode should normally use 2-3 workers, cap normal workflows at 5, avoid recursive worker spawning, and measure duplicate reads, cache hits, time to first useful verdict, and accepted findings per model turn.
 - Keep full repository audits explicit opt-in through the future `shipguard inspect --full` path; routine `verify` stays diff-first.
 
-The current baseline is v3.129 ShipGuard V4 Preview: `shipguard v4 preview` makes product-stage, schema-freeze, security-review, migration, deprecation, release-readiness, and blocked-claims posture explicit before v4 can be called stable. The active next slice is v4 schema freeze: compatibility fixtures, changelog policy, migration checks, deprecation rules, and stable schema contract tests.
+The current baseline is v3.130 ShipGuard V4 Schema Freeze: `shipguard v4 schema-freeze` makes the schema registry, compatibility policy, compatibility fixtures, migration checks, changelog policy, deprecation rules, release-readiness commands, and blocked release claims explicit. The active next slice is v4 release-candidate readiness: fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, and plugin refresh proof before v4 can be called stable.
 
 ## Revised Roadmap
 

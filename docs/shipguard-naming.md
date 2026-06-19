@@ -49,6 +49,7 @@ The rule is simple: a fun name is allowed only when its plain job and proof boun
 | `shipguard full-audit` | ShipGuard Full Audit | Run or plan the full ShipYard validation, value, package, plugin, CI, and release-proof lane from one resumable report. |
 | `shipguard inspect` | ShipGuard InspectDeck | Summarize repo state, proof receipts, plugin state, release state, underlying evidence, and one exact next action. |
 | `shipguard v4 preview` | ShipGuard V4 Preview | Stabilize the v4 product contract, schema-freeze posture, migration plan, deprecation policy, and release-readiness proof without claiming v4 stable. |
+| `shipguard v4 schema-freeze` | ShipGuard V4 Schema Freeze | Freeze the v4 schema contract with compatibility fixtures, migration checks, changelog policy, and deprecation rules without claiming v4 product release. |
 | `shipguard pilot-bench` | ShipGuard PilotBench | Score public-safe read-only task traces and optional benchmark-v2 verdict lift against baseline agent output. |
 | `shipguard agent trace` / `shipguard codex trace` | ShipGuard TraceBridge | Connect prompts, tool calls, receipts, task verdicts, next actions, and worker budgets into one adapter timeline. |
 | `shipguard ios doctor` | ShipGuard DockCheck | Inspect Xcode, SwiftPM, schemes, targets, and proof readiness. |

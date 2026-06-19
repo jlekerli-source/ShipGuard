@@ -33,8 +33,8 @@ The naming style is intentional: stable commands and paths stay literal, while p
 Install from a release tarball, then validate the bundle:
 
 ```bash
-tar -xzf shipguard-v3.129.0.tar.gz
-cd shipguard-v3.129.0
+tar -xzf shipguard-v3.130.0.tar.gz
+cd shipguard-v3.130.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" version
 ./bin/shipguard validate
@@ -81,6 +81,7 @@ Start with these docs:
 - `docs/ios-shipguard.md`: iOS plugin, skill, and CLI workflow.
 - `docs/shipguard-devspace.md`: ChatGPT visual-planning bridge from the iPhone preview.
 - `docs/v4-preview.md`: v4 preview stabilization, schema-freeze posture, migration, deprecation, and release-readiness proof.
+- `docs/v4-schema-freeze.md`: v4 schema registry, compatibility policy, migration checks, changelog policy, deprecation policy, and blocked release claims.
 - `docs/shipguard-naming.md`: branded naming scheme and future naming contract.
 - `docs/open-source.md`: ShipGuard's native open-source operating model.
 - `docs/privacy.md`: local-first privacy boundary for reports, previews, and plugin use.
@@ -99,6 +100,7 @@ Common loops:
 | Audit actual ShipGuard developer value | `./bin/shipguard value-gauntlet --help` |
 | Inspect ShipGuard proof state | `./bin/shipguard inspect --help` |
 | Stabilize the v4 product contract | `./bin/shipguard v4 preview --help` |
+| Freeze the v4 schema contract | `./bin/shipguard v4 schema-freeze --help` |
 | Score PilotBench and benchmark-v2 verdict traces | `./bin/shipguard pilot-bench --help` |
 | Normalize agent/Codex task traces | `./bin/shipguard agent trace --help`, `./bin/shipguard codex trace --help` |
 | First-audit a web, backend, or CLI repo | `./bin/shipguard web audit --help`, `./bin/shipguard backend audit --help`, `./bin/shipguard cli audit --help` |
@@ -122,9 +124,10 @@ Read `docs/cli.md` for the full command reference and `examples/demo-walkthrough
 - `scripts/task_contract.py`: the durable `prepare`/`verify` task contract and verdict engine for proof-gated Codex changes.
 - `scripts/shipguard_baseline.py`: the configuration-baseline engine for exact accepted findings, owner/reason/expiry/proof-boundary metadata, expired suppression blocking, and new-risk regression behavior.
 - `scripts/task_domain_packs.py`: the Domain Pack SDK registry and iOS notification-permission pack boundary, with public synthetic extension proof for future packs.
-- `scripts/tool_value_gauntlet.py`: the ShipGuard Tool Value Gauntlet for grading every command, skill, plugin, action, doc, and proof path for real developer usefulness, running representative commands, every public command help path, skill/plugin receipts, workflow chains, scenario failure/remediation, fresh package adoption, PilotBench receipts, Domain Pack SDK receipts, configuration-baseline receipts, full-audit receipts, unified inspect receipts, concise result-UX receipts, v4 preview stabilization receipts, and profile-native repair/rerun receipts before probing the weakest next workflow layer.
+- `scripts/tool_value_gauntlet.py`: the ShipGuard Tool Value Gauntlet for grading every command, skill, plugin, action, doc, and proof path for real developer usefulness, running representative commands, every public command help path, skill/plugin receipts, workflow chains, scenario failure/remediation, fresh package adoption, PilotBench receipts, Domain Pack SDK receipts, configuration-baseline receipts, full-audit receipts, unified inspect receipts, concise result-UX receipts, v4 preview stabilization receipts, v4 schema-freeze receipts, and profile-native repair/rerun receipts before probing the weakest next workflow layer.
 - `scripts/shipguard_result.py`: the shared result contract used by major reports so they lead with status, verdict, proof source, why it matters, and one next command before detailed evidence.
 - `scripts/v4_preview.py`: ShipGuard V4 Preview, the read-only product contract report for schema-freeze posture, security-review gates, migration, deprecation, release readiness, blocked claims, and next proof action before v4 is called stable.
+- `scripts/v4_schema_freeze.py`: ShipGuard V4 Schema Freeze, the read-only schema contract report for compatibility policy, compatibility fixtures, migration checks, changelog and deprecation rules, release-readiness commands, and blocked v4 product-release claims.
 - `scripts/codex_marketplace_readiness.py`: ShipGuard MarketplaceDeck for proving tracked Codex plugin metadata, local marketplace source, README/profile presentation, icon assets, screenshot policy, strict status proof, and the submission packet before publishing or submitting.
 - `scripts/full_audit.py`: ShipGuard Full Audit, the resumable ShipYard proof lane for validation, value-gauntlet, report-quality, package, plugin, CI, and release-proof preparation, with a compact result block at the top.
 - `scripts/shipguard_inspect.py`: ShipGuard InspectDeck, the one-surface proof-state report for repo state, value-gauntlet proof, full-audit proof, Codex plugin status, release proof, underlying evidence, result verdict, and exact next action.

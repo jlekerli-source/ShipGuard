@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Verify redacted transcript
-        uses: jlekerli-source/ShipGuard/actions/transcript-verify@v3.129.0
+        uses: jlekerli-source/ShipGuard/actions/transcript-verify@v3.130.0
         with:
           transcript: ${{ inputs.transcript }}
           report: ${{ inputs.report }}

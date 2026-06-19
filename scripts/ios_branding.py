@@ -177,6 +177,16 @@ SURFACES: list[dict[str, Any]] = [
         "aliases": ["v4 readiness", "schema freeze prep", "product contract preview"],
     },
     {
+        "id": "v4-schema-freeze",
+        "command": "shipguard v4 schema-freeze",
+        "surfaceName": "ShipGuard V4 Schema Freeze",
+        "codename": "v4-schema-freeze",
+        "plainPurpose": "Freeze the v4 schema contract with compatibility fixtures, migration checks, changelog policy, and deprecation rules.",
+        "tone": "Conservative, compatibility-minded, and explicit about release boundaries.",
+        "proofBoundary": "V4 Schema Freeze is read-only ShipGuard product QA; it freezes the schema contract without publishing v4 or validating private apps.",
+        "aliases": ["schema contract", "compatibility freeze", "v4 contract gate"],
+    },
+    {
         "id": "pilot-bench",
         "command": "shipguard pilot-bench",
         "surfaceName": "ShipGuard PilotBench",
