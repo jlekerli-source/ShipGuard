@@ -305,6 +305,323 @@ def build_fresh_install_package_proof(args: argparse.Namespace, version: str) ->
     return proof
 
 
+def package_version(package_root: Path) -> str:
+    return read_text(package_root / "VERSION").strip() or "unknown"
+
+
+def prepare_empty_work_paths(
+    proof: dict[str, Any],
+    prefix: Path,
+    work_dir: Path,
+    managed_prefix: bool,
+    managed_work_dir: bool,
+    prefix_label: str,
+    work_label: str,
+) -> bool:
+    if prefix.exists() and not prefix.is_dir():
+        proof["summary"] = f"{prefix_label} exists but is not a directory."
+        proof["error"] = f"{prefix_label} is not a directory: {prefix}"
+        return False
+    if prefix.exists() and any(prefix.iterdir()):
+        if managed_prefix:
+            shutil.rmtree(prefix)
+        else:
+            proof["summary"] = f"{prefix_label} already exists and is not empty."
+            proof["error"] = f"{prefix_label} must be empty: {prefix}"
+            return False
+    if work_dir.exists() and not work_dir.is_dir():
+        if managed_work_dir:
+            work_dir.unlink()
+        else:
+            proof["summary"] = f"{work_label} exists but is not a directory."
+            proof["error"] = f"{work_label} is not a directory: {work_dir}"
+            return False
+    if work_dir.exists() and any(work_dir.iterdir()):
+        if managed_work_dir:
+            shutil.rmtree(work_dir)
+        else:
+            proof["summary"] = f"{work_label} already exists and is not empty."
+            proof["error"] = f"{work_label} must be empty: {work_dir}"
+            return False
+    prefix.mkdir(parents=True, exist_ok=True)
+    work_dir.mkdir(parents=True, exist_ok=True)
+    return True
+
+
+def build_upgrade_package_proof(args: argparse.Namespace, version: str) -> dict[str, Any]:
+    command_template = (
+        "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate "
+        "--package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> "
+        "--shipguard-eval --shareable"
+    )
+    if not args.package_tarball or not args.upgrade_from_tarball:
+        return {
+            "status": "not-provided",
+            "provided": False,
+            "requiredForStableV4": True,
+            "summary": "No previous release tarball was supplied; stable v4 proof still needs an upgrade receipt from an existing install to the candidate package.",
+            "nextCommand": command_template,
+            "upgradeCommand": "PREFIX=<upgrade-prefix> <previous-package>/scripts/install.sh && PREFIX=<same-prefix> <candidate-package>/scripts/install.sh",
+            "validateCommand": "<upgrade-prefix>/bin/shipguard validate",
+        }
+
+    candidate_tarball = Path(args.package_tarball).expanduser().resolve()
+    previous_tarball = Path(args.upgrade_from_tarball).expanduser().resolve()
+    upgrade_prefix = (
+        Path(args.upgrade_prefix).expanduser().resolve()
+        if args.upgrade_prefix
+        else Path(args.out).expanduser().resolve() / "upgrade-prefix"
+    )
+    work_dir = (
+        Path(args.upgrade_work_dir).expanduser().resolve()
+        if args.upgrade_work_dir
+        else Path(args.out).expanduser().resolve() / "upgrade-work"
+    )
+    managed_prefix = args.upgrade_prefix is None
+    managed_work_dir = args.upgrade_work_dir is None
+    previous_extract_dir = work_dir / "previous"
+    candidate_extract_dir = work_dir / "candidate"
+
+    proof: dict[str, Any] = {
+        "status": "blocked",
+        "provided": True,
+        "requiredForStableV4": True,
+        "previousTarball": previous_tarball.as_posix(),
+        "candidateTarball": candidate_tarball.as_posix(),
+        "upgradePrefix": upgrade_prefix.as_posix(),
+        "workDir": work_dir.as_posix(),
+        "nextCommand": "./tests/v4_release_candidate_test.sh",
+        "upgradeCommand": "PREFIX=<upgrade-prefix> <previous-package>/scripts/install.sh && PREFIX=<same-prefix> <candidate-package>/scripts/install.sh",
+        "validateCommand": "<upgrade-prefix>/bin/shipguard validate",
+    }
+    if not previous_tarball.is_file():
+        proof["summary"] = "Previous release package tarball was not found."
+        proof["error"] = f"previous release tarball not found: {previous_tarball}"
+        return proof
+    if not candidate_tarball.is_file():
+        proof["summary"] = "Candidate release package tarball was not found."
+        proof["error"] = f"candidate release tarball not found: {candidate_tarball}"
+        return proof
+    if not prepare_empty_work_paths(
+        proof,
+        upgrade_prefix,
+        work_dir,
+        managed_prefix,
+        managed_work_dir,
+        "upgrade prefix",
+        "upgrade work directory",
+    ):
+        return proof
+
+    previous_extracted, previous_extract_evidence = safe_extract_tarball(previous_tarball, previous_extract_dir)
+    proof["previousExtractStatus"] = "pass" if previous_extracted else "blocked"
+    proof["previousExtractEvidence"] = previous_extract_evidence
+    if not previous_extracted:
+        proof["summary"] = "Previous release package tarball could not be safely extracted."
+        return proof
+    candidate_extracted, candidate_extract_evidence = safe_extract_tarball(candidate_tarball, candidate_extract_dir)
+    proof["candidateExtractStatus"] = "pass" if candidate_extracted else "blocked"
+    proof["candidateExtractEvidence"] = candidate_extract_evidence
+    if not candidate_extracted:
+        proof["summary"] = "Candidate release package tarball could not be safely extracted."
+        return proof
+
+    previous_root = find_package_root(previous_extract_dir, version)
+    candidate_root = find_package_root(candidate_extract_dir, version)
+    if previous_root is None:
+        proof["summary"] = "Previous package did not contain scripts/install.sh."
+        proof["error"] = "previous package root not found"
+        return proof
+    if candidate_root is None:
+        proof["summary"] = "Candidate package did not contain scripts/install.sh."
+        proof["error"] = "candidate package root not found"
+        return proof
+    previous_version = package_version(previous_root)
+    proof["previousPackageRoot"] = previous_root.as_posix()
+    proof["candidatePackageRoot"] = candidate_root.as_posix()
+    proof["previousPackageVersion"] = previous_version
+    proof["candidatePackageVersion"] = package_version(candidate_root)
+
+    install_env = dict(os.environ, PREFIX=upgrade_prefix.as_posix())
+    previous_install_result = run_process(["bash", str(previous_root / "scripts" / "install.sh")], previous_root, 120, install_env)
+    proof["previousInstallResult"] = previous_install_result
+    if previous_install_result["exitCode"] != 0:
+        proof["summary"] = "Previous package install failed before the upgrade."
+        return proof
+
+    installed_bin = upgrade_prefix / "bin" / "shipguard"
+    installed_legacy_bin = upgrade_prefix / "bin" / "codex-maintainer"
+    previous_version_result = run_process([str(installed_bin), "version"], previous_root, 30)
+    previous_legacy_version_result = (
+        run_process([str(installed_legacy_bin), "version"], previous_root, 30) if installed_legacy_bin.is_file() else {"exitCode": "missing"}
+    )
+    proof["previousVersionResult"] = previous_version_result
+    proof["previousLegacyVersionResult"] = previous_legacy_version_result
+    proof["previousInstalledVersion"] = (previous_version_result.get("stdout") or "").strip().splitlines()[0] if previous_version_result.get("stdout") else ""
+    proof["previousInstalledLegacyVersion"] = (
+        (previous_legacy_version_result.get("stdout") or "").strip().splitlines()[0] if previous_legacy_version_result.get("stdout") else ""
+    )
+
+    candidate_install_result = run_process(["bash", str(candidate_root / "scripts" / "install.sh")], candidate_root, 120, install_env)
+    proof["candidateInstallResult"] = candidate_install_result
+    if candidate_install_result["exitCode"] != 0:
+        proof["summary"] = "Candidate package install failed during upgrade."
+        return proof
+
+    installed_root = upgrade_prefix / "lib" / "shipguard"
+    upgraded_version_result = run_process([str(installed_bin), "version"], candidate_root, 30)
+    upgraded_legacy_version_result = (
+        run_process([str(installed_legacy_bin), "version"], candidate_root, 30) if installed_legacy_bin.is_file() else {"exitCode": "missing"}
+    )
+    validate_result = run_process([str(installed_bin), "validate"], candidate_root, 120)
+    forbidden_paths = find_forbidden_install_paths(installed_root)
+    proof.update(
+        {
+            "installedRoot": installed_root.as_posix(),
+            "upgradedVersionResult": upgraded_version_result,
+            "upgradedLegacyVersionResult": upgraded_legacy_version_result,
+            "validateResult": validate_result,
+            "upgradedVersion": (upgraded_version_result.get("stdout") or "").strip().splitlines()[0] if upgraded_version_result.get("stdout") else "",
+            "upgradedLegacyVersion": (
+                (upgraded_legacy_version_result.get("stdout") or "").strip().splitlines()[0]
+                if upgraded_legacy_version_result.get("stdout")
+                else ""
+            ),
+            "forbiddenInstalledPathCount": len(forbidden_paths),
+            "forbiddenInstalledPaths": forbidden_paths[:20],
+        }
+    )
+
+    previous_version_ok = previous_version_result["exitCode"] == 0 and proof["previousInstalledVersion"] == previous_version
+    previous_legacy_ok = previous_legacy_version_result["exitCode"] == 0 and proof["previousInstalledLegacyVersion"] == previous_version
+    upgraded_version_ok = upgraded_version_result["exitCode"] == 0 and proof["upgradedVersion"] == version
+    upgraded_legacy_ok = upgraded_legacy_version_result["exitCode"] == 0 and proof["upgradedLegacyVersion"] == version
+    validate_ok = validate_result["exitCode"] == 0
+    clean_ok = not forbidden_paths
+    if previous_version_ok and previous_legacy_ok and upgraded_version_ok and upgraded_legacy_ok and validate_ok and clean_ok:
+        proof["status"] = "pass"
+        proof["summary"] = "Previous package installed, candidate package upgraded the same prefix, version checks passed, validation passed, and the installed tree was clean."
+    else:
+        proof["summary"] = "Upgrade package proof did not pass every check."
+        proof["previousVersionMatches"] = previous_version_ok
+        proof["previousLegacyVersionMatches"] = previous_legacy_ok
+        proof["upgradedVersionMatches"] = upgraded_version_ok
+        proof["upgradedLegacyVersionMatches"] = upgraded_legacy_ok
+        proof["validatePassed"] = validate_ok
+        proof["installTreeClean"] = clean_ok
+    return proof
+
+
+def build_rollback_package_proof(args: argparse.Namespace, version: str) -> dict[str, Any]:
+    command_template = (
+        "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate "
+        "--package-tarball <release-tarball> --shipguard-eval --shareable"
+    )
+    if not args.package_tarball:
+        return {
+            "status": "not-provided",
+            "provided": False,
+            "requiredForStableV4": True,
+            "summary": "No release package tarball was supplied; stable v4 proof still needs a rollback cleanup receipt for temporary package state.",
+            "nextCommand": command_template,
+            "rollbackCommand": "rm -rf <rollback-prefix>/bin/shipguard <rollback-prefix>/bin/codex-maintainer <rollback-prefix>/lib/shipguard",
+        }
+
+    tarball = Path(args.package_tarball).expanduser().resolve()
+    rollback_prefix = (
+        Path(args.rollback_prefix).expanduser().resolve()
+        if args.rollback_prefix
+        else Path(args.out).expanduser().resolve() / "rollback-prefix"
+    )
+    work_dir = (
+        Path(args.rollback_work_dir).expanduser().resolve()
+        if args.rollback_work_dir
+        else Path(args.out).expanduser().resolve() / "rollback-work"
+    )
+    managed_prefix = args.rollback_prefix is None
+    managed_work_dir = args.rollback_work_dir is None
+    extract_dir = work_dir / "extracted"
+
+    proof: dict[str, Any] = {
+        "status": "blocked",
+        "provided": True,
+        "requiredForStableV4": True,
+        "packageTarball": tarball.as_posix(),
+        "rollbackPrefix": rollback_prefix.as_posix(),
+        "workDir": work_dir.as_posix(),
+        "nextCommand": "./tests/v4_release_candidate_test.sh",
+        "rollbackCommand": "rm -rf <rollback-prefix>/bin/shipguard <rollback-prefix>/bin/codex-maintainer <rollback-prefix>/lib/shipguard",
+    }
+    if not tarball.is_file():
+        proof["summary"] = "Release package tarball was not found for rollback proof."
+        proof["error"] = f"package tarball not found: {tarball}"
+        return proof
+    if not prepare_empty_work_paths(
+        proof,
+        rollback_prefix,
+        work_dir,
+        managed_prefix,
+        managed_work_dir,
+        "rollback prefix",
+        "rollback work directory",
+    ):
+        return proof
+
+    extracted, extract_evidence = safe_extract_tarball(tarball, extract_dir)
+    proof["extractStatus"] = "pass" if extracted else "blocked"
+    proof["extractEvidence"] = extract_evidence
+    if not extracted:
+        proof["summary"] = "Release package tarball could not be safely extracted for rollback proof."
+        return proof
+
+    package_root = find_package_root(extract_dir, version)
+    if package_root is None:
+        proof["summary"] = "Extracted package did not contain scripts/install.sh for rollback proof."
+        proof["error"] = "package root not found"
+        return proof
+    proof["packageRoot"] = package_root.as_posix()
+
+    install_env = dict(os.environ, PREFIX=rollback_prefix.as_posix())
+    install_result = run_process(["bash", str(package_root / "scripts" / "install.sh")], package_root, 120, install_env)
+    proof["installResult"] = install_result
+    if install_result["exitCode"] != 0:
+        proof["summary"] = "Package install failed before rollback cleanup."
+        return proof
+
+    installed_bin = rollback_prefix / "bin" / "shipguard"
+    installed_legacy_bin = rollback_prefix / "bin" / "codex-maintainer"
+    installed_root = rollback_prefix / "lib" / "shipguard"
+    version_result = run_process([str(installed_bin), "version"], package_root, 30)
+    proof["versionResult"] = version_result
+    proof["installedVersion"] = (version_result.get("stdout") or "").strip().splitlines()[0] if version_result.get("stdout") else ""
+    cleanup_paths = [installed_bin, installed_legacy_bin, installed_root]
+    removed_paths: list[str] = []
+    for path in cleanup_paths:
+        if path.is_dir():
+            shutil.rmtree(path)
+            removed_paths.append(path.as_posix())
+        elif path.exists():
+            path.unlink()
+            removed_paths.append(path.as_posix())
+    remaining_paths = [path.as_posix() for path in cleanup_paths if path.exists()]
+    proof["installedRoot"] = installed_root.as_posix()
+    proof["removedPathCount"] = len(removed_paths)
+    proof["removedPaths"] = removed_paths
+    proof["remainingPathCount"] = len(remaining_paths)
+    proof["remainingPaths"] = remaining_paths
+
+    version_ok = version_result["exitCode"] == 0 and proof["installedVersion"] == version
+    cleanup_ok = not remaining_paths and len(removed_paths) == len(cleanup_paths)
+    if version_ok and cleanup_ok:
+        proof["status"] = "pass"
+        proof["summary"] = "Candidate package installed into a temporary prefix and known ShipGuard package state was removed cleanly for rollback."
+    else:
+        proof["summary"] = "Rollback cleanup proof did not pass every check."
+        proof["versionMatches"] = version_ok
+        proof["cleanupComplete"] = cleanup_ok
+    return proof
+
+
 def build_published_release_asset_proof(args: argparse.Namespace, root: Path, version: str) -> dict[str, Any]:
     command_template = (
         "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate "
@@ -433,6 +750,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     changelog_text = read_text(root / "CHANGELOG.md")
 
     fresh_install_package_proof = build_fresh_install_package_proof(args, version)
+    upgrade_package_proof = build_upgrade_package_proof(args, version)
+    rollback_package_proof = build_rollback_package_proof(args, version)
     published_release_asset_proof = build_published_release_asset_proof(args, root, version)
 
     checks: list[dict[str, Any]] = []
@@ -489,6 +808,15 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ["docs/v4-release-candidate.md", "tests/package_release_test.sh"],
         "Make the release candidate report point at concrete upgrade verification instead of only saying upgrades are supported.",
     )
+    if upgrade_package_proof["provided"]:
+        add_check(
+            checks,
+            "upgrade-package-verified",
+            "Supplied previous package upgrades to the candidate package",
+            upgrade_package_proof["status"] == "pass",
+            ["previous release tarball", "candidate package tarball", "same-prefix upgrade", "installed shipguard validate"],
+            "Attach a real upgrade receipt from a previous release package before using release-candidate readiness as stable-v4 evidence.",
+        )
     add_check(
         checks,
         "uninstall-proof-present",
@@ -497,6 +825,15 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ["docs/v4-release-candidate.md"],
         "Keep uninstall proof explicit so ShipGuard does not leave hidden state as an adoption blocker.",
     )
+    if rollback_package_proof["provided"]:
+        add_check(
+            checks,
+            "rollback-package-verified",
+            "Supplied package rollback cleanup proof passes",
+            rollback_package_proof["status"] == "pass",
+            ["candidate package tarball", "temporary install prefix", "rollback cleanup"],
+            "Attach a real rollback cleanup receipt so temporary package state can be removed without hidden ShipGuard leftovers.",
+        )
     add_check(
         checks,
         "release-proof-consumption-present",
@@ -602,6 +939,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 "./scripts/install.sh --prefix <existing-prefix>",
                 "<existing-prefix>/bin/shipguard version",
             ],
+            "packageProofStatus": upgrade_package_proof["status"],
         },
         "uninstall": {
             "status": "pass" if any(check["id"] == "uninstall-proof-present" and check["status"] == "pass" for check in checks) else "review",
@@ -609,6 +947,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 "rm -rf <tmp-prefix>",
                 "test ! -e <tmp-prefix>/bin/shipguard",
             ],
+            "rollbackPackageProofStatus": rollback_package_proof["status"],
         },
         "releaseProofConsumption": {
             "status": "pass" if any(check["id"] == "release-proof-consumption-present" and check["status"] == "pass" for check in checks) else "review",
@@ -642,6 +981,10 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "stableV4Release": False,
         "freshInstallPackageProof": fresh_install_package_proof["status"],
         "freshInstallPackageProofRequiredForStableV4": True,
+        "upgradePackageProof": upgrade_package_proof["status"],
+        "upgradePackageProofRequiredForStableV4": True,
+        "rollbackPackageProof": rollback_package_proof["status"],
+        "rollbackPackageProofRequiredForStableV4": True,
         "publishedReleaseAssetProof": published_release_asset_proof["status"],
         "publishedReleaseAssetsRequiredForStableV4": True,
         "requiredProofCommands": [
@@ -657,6 +1000,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "codex plugin add ios-shipguard@shipguard",
             "./bin/shipguard codex status --strict",
             "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --shipguard-eval --shareable",
+            "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --shipguard-eval --shareable",
             "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>",
         ],
     }
@@ -685,12 +1029,26 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "doesNotPublishRelease": True,
         "shareable": bool(args.shareable),
     }
-    report_quality_questions = [
-        "Can a fresh user install, upgrade, uninstall, and validate ShipGuard from the release package without maintainer context?",
-        "Can a consumer download release assets and independently verify the manifest, tarball SHA-256, replay, and attestation?",
-        "Does the adoption packet tell an external developer the first command, proof bundle, support boundary, and non-claims?",
-        "What stable v4 product release proof remains after release-candidate readiness passes?",
-    ]
+    package_receipts_pass = (
+        fresh_install_package_proof["status"] == "pass"
+        and upgrade_package_proof["status"] == "pass"
+        and rollback_package_proof["status"] == "pass"
+    )
+    report_quality_questions = []
+    if not package_receipts_pass:
+        report_quality_questions.append(
+            "Can a fresh user install, upgrade, uninstall, and validate ShipGuard from the release package without maintainer context?"
+        )
+    if published_release_asset_proof["status"] != "pass":
+        report_quality_questions.append(
+            "Can a consumer download release assets and independently verify the manifest, tarball SHA-256, replay, and attestation?"
+        )
+    report_quality_questions.extend(
+        [
+            "Does the adoption packet tell an external developer the first command, proof bundle, support boundary, and non-claims?",
+            "What stable v4 product release proof remains after release-candidate readiness passes?",
+        ]
+    )
     if status == "pass" and fresh_install_package_proof["status"] == "not-provided":
         priority_action = (
             "Attach a real fresh-install receipt from the release package before any stable v4 claim; "
@@ -701,6 +1059,26 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "ShipGuard has release-candidate readiness proof, but no release package tarball was supplied for a fresh-install receipt."
         )
         proof_source = "v4 release-candidate checks plus documented package install boundary; fresh install package proof not supplied"
+    elif status == "pass" and upgrade_package_proof["status"] == "not-provided":
+        priority_action = (
+            "Attach an upgrade receipt from a previous release package to the candidate package before any stable v4 claim; "
+            "downloaded release-asset proof, external adoption evidence, final security review, and release proof consumption still remain stabilization gates."
+        )
+        next_command = upgrade_package_proof["nextCommand"]
+        summary = (
+            "ShipGuard has release-candidate readiness proof and supplied package fresh-install proof, but no previous release tarball was supplied for upgrade proof."
+        )
+        proof_source = "v4 release-candidate checks plus fresh-install package receipt; upgrade package proof not supplied"
+    elif status == "pass" and rollback_package_proof["status"] == "not-provided":
+        priority_action = (
+            "Attach rollback cleanup proof from the release package before any stable v4 claim; "
+            "downloaded release-asset proof, external adoption evidence, final security review, and release proof consumption still remain stabilization gates."
+        )
+        next_command = rollback_package_proof["nextCommand"]
+        summary = (
+            "ShipGuard has release-candidate readiness proof, but no release package tarball was supplied for rollback cleanup proof."
+        )
+        proof_source = "v4 release-candidate checks plus documented rollback boundary; rollback package proof not supplied"
     elif status == "pass" and published_release_asset_proof["status"] == "not-provided":
         priority_action = (
             "Attach downloaded release assets to the v4 product release candidate before any stable v4 claim; "
@@ -713,11 +1091,11 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         proof_source = "v4 release-candidate checks plus documented release-consume boundary; published asset proof not supplied"
     elif status == "pass":
         priority_action = (
-            "Use the passing fresh-install and release-asset receipts as v4 stabilization inputs, then finish external adoption evidence, final security review, and rollback proof."
+            "Use the passing fresh-install, upgrade, rollback, and release-asset receipts as v4 stabilization inputs, then finish external adoption evidence and final security review."
         )
         next_command = "./tests/v4_release_candidate_test.sh"
-        summary = "ShipGuard has release-candidate readiness proof, supplied package tarball passed fresh-install proof, and supplied release assets passed consumer-side verification."
-        proof_source = "v4 release-candidate checks plus fresh-install package receipt, release-consume consumer-report, and asset digest matrix"
+        summary = "ShipGuard has release-candidate readiness proof, supplied package tarball passed fresh-install and rollback proof, supplied previous package upgraded to the candidate, and supplied release assets passed consumer-side verification."
+        proof_source = "v4 release-candidate checks plus fresh-install package receipt, upgrade receipt, rollback receipt, release-consume consumer-report, and asset digest matrix"
     else:
         priority_action = "Complete the missing release-candidate readiness checks before calling v4 candidate-ready."
         next_command = "./tests/v4_release_candidate_test.sh"
@@ -747,7 +1125,9 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "installProof": readiness_proof["freshInstall"],
         "freshInstallPackageProof": fresh_install_package_proof,
         "upgradeProof": readiness_proof["upgrade"],
+        "upgradePackageProof": upgrade_package_proof,
         "uninstallProof": readiness_proof["uninstall"],
+        "rollbackPackageProof": rollback_package_proof,
         "releaseProofConsumption": readiness_proof["releaseProofConsumption"],
         "publishedReleaseAssetProof": published_release_asset_proof,
         "externalAdoptionPacket": external_adoption_packet,
@@ -785,6 +1165,30 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             replacements[str(fresh_install_package_proof["packageRoot"])] = "<fresh-install-package-root>"
         if fresh_install_package_proof.get("installedRoot"):
             replacements[str(fresh_install_package_proof["installedRoot"])] = "<fresh-install-root>"
+        if upgrade_package_proof.get("previousTarball"):
+            replacements[str(upgrade_package_proof["previousTarball"])] = "<previous-package-tarball>"
+        if upgrade_package_proof.get("candidateTarball"):
+            replacements[str(upgrade_package_proof["candidateTarball"])] = "<package-tarball>"
+        if upgrade_package_proof.get("upgradePrefix"):
+            replacements[str(upgrade_package_proof["upgradePrefix"])] = "<upgrade-prefix>"
+        if upgrade_package_proof.get("workDir"):
+            replacements[str(upgrade_package_proof["workDir"])] = "<upgrade-work-dir>"
+        if upgrade_package_proof.get("previousPackageRoot"):
+            replacements[str(upgrade_package_proof["previousPackageRoot"])] = "<previous-package-root>"
+        if upgrade_package_proof.get("candidatePackageRoot"):
+            replacements[str(upgrade_package_proof["candidatePackageRoot"])] = "<candidate-package-root>"
+        if upgrade_package_proof.get("installedRoot"):
+            replacements[str(upgrade_package_proof["installedRoot"])] = "<upgrade-installed-root>"
+        if rollback_package_proof.get("packageTarball"):
+            replacements[str(rollback_package_proof["packageTarball"])] = "<package-tarball>"
+        if rollback_package_proof.get("rollbackPrefix"):
+            replacements[str(rollback_package_proof["rollbackPrefix"])] = "<rollback-prefix>"
+        if rollback_package_proof.get("workDir"):
+            replacements[str(rollback_package_proof["workDir"])] = "<rollback-work-dir>"
+        if rollback_package_proof.get("packageRoot"):
+            replacements[str(rollback_package_proof["packageRoot"])] = "<rollback-package-root>"
+        if rollback_package_proof.get("installedRoot"):
+            replacements[str(rollback_package_proof["installedRoot"])] = "<rollback-installed-root>"
         report = scrub_value(report, replacements)
     return report
 
@@ -827,9 +1231,39 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.extend(["", "## Upgrade", ""])
     for command in report["upgradeProof"].get("commands", []):
         lines.append(f"- `{command}`")
+    proof = report["upgradePackageProof"]
+    lines.extend(["", "## Upgrade Package Proof", ""])
+    lines.append(f"- Status: `{proof.get('status')}`")
+    lines.append(f"- Required for stable v4: `{proof.get('requiredForStableV4')}`")
+    lines.append(f"- Summary: {proof.get('summary')}")
+    if proof.get("provided"):
+        lines.append(f"- Previous installed version: `{proof.get('previousInstalledVersion')}`")
+        lines.append(f"- Upgraded version: `{proof.get('upgradedVersion')}`")
+        lines.append(f"- Forbidden installed paths: `{proof.get('forbiddenInstalledPathCount')}`")
+        if proof.get("previousTarball"):
+            lines.append(f"- Previous package tarball: `{proof.get('previousTarball')}`")
+        if proof.get("candidateTarball"):
+            lines.append(f"- Candidate package tarball: `{proof.get('candidateTarball')}`")
+        if proof.get("upgradePrefix"):
+            lines.append(f"- Upgrade prefix: `{proof.get('upgradePrefix')}`")
+    else:
+        lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## Uninstall", ""])
     for command in report["uninstallProof"].get("commands", []):
         lines.append(f"- `{command}`")
+    proof = report["rollbackPackageProof"]
+    lines.extend(["", "## Rollback Package Proof", ""])
+    lines.append(f"- Status: `{proof.get('status')}`")
+    lines.append(f"- Required for stable v4: `{proof.get('requiredForStableV4')}`")
+    lines.append(f"- Summary: {proof.get('summary')}")
+    if proof.get("provided"):
+        lines.append(f"- Installed version: `{proof.get('installedVersion')}`")
+        lines.append(f"- Removed paths: `{proof.get('removedPathCount')}`")
+        lines.append(f"- Remaining paths: `{proof.get('remainingPathCount')}`")
+        if proof.get("rollbackPrefix"):
+            lines.append(f"- Rollback prefix: `{proof.get('rollbackPrefix')}`")
+    else:
+        lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## Release Proof Consumption", ""])
     for command in report["releaseProofConsumption"].get("commands", []):
         lines.append(f"- `{command}`")
@@ -892,6 +1326,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--package-tarball", help="Optional release package tarball to verify with a fresh install.")
     parser.add_argument("--fresh-install-prefix", help="Optional empty install prefix for --package-tarball proof. Defaults under --out.")
     parser.add_argument("--fresh-install-work-dir", help="Optional extraction/work directory for --package-tarball proof. Defaults under --out.")
+    parser.add_argument("--upgrade-from-tarball", help="Optional previous release package tarball to install before upgrading to --package-tarball.")
+    parser.add_argument("--upgrade-prefix", help="Optional empty install prefix for --upgrade-from-tarball proof. Defaults under --out.")
+    parser.add_argument("--upgrade-work-dir", help="Optional extraction/work directory for upgrade proof. Defaults under --out.")
+    parser.add_argument("--rollback-prefix", help="Optional empty install prefix for rollback cleanup proof. Defaults under --out.")
+    parser.add_argument("--rollback-work-dir", help="Optional extraction/work directory for rollback cleanup proof. Defaults under --out.")
     parser.add_argument("--release-assets", help="Optional downloaded release assets directory to verify with release-consume.")
     parser.add_argument("--release-version", help="Version to use when verifying --release-assets. Defaults to VERSION.")
     parser.add_argument("--release-consume-out", help="Output directory for embedded release-consume proof. Defaults under --out.")

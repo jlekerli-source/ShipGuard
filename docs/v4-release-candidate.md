@@ -21,7 +21,10 @@ To attach real downloaded release assets to the same readiness report:
   --path . \
   --out /tmp/shipguard-v4-release-candidate \
   --package-tarball <release-tarball> \
+  --upgrade-from-tarball <previous-release-tarball> \
   --fresh-install-prefix /tmp/shipguard-fresh-install \
+  --upgrade-prefix /tmp/shipguard-upgrade-install \
+  --rollback-prefix /tmp/shipguard-rollback-install \
   --release-assets <downloaded-assets-dir> \
   --release-version <version> \
   --release-consume-out /tmp/shipguard-v4-release-consume \
@@ -34,6 +37,8 @@ Outputs:
 - `v4-release-candidate.json`
 - `v4-release-candidate.md`
 - `fresh-install-prefix/bin/shipguard` when `--package-tarball` is supplied and `--fresh-install-prefix` is omitted
+- `upgrade-prefix/bin/shipguard` when `--package-tarball` and `--upgrade-from-tarball` are supplied and `--upgrade-prefix` is omitted
+- `rollback-prefix/` rollback cleanup evidence when `--package-tarball` is supplied and `--rollback-prefix` is omitted
 - `release-consume/consumer-report.json` when `--release-assets` is supplied and `--release-consume-out` is omitted
 
 ## Proof Contract
@@ -61,7 +66,35 @@ PREFIX=<fresh-prefix> <package>/scripts/install.sh
 
 The report then records `freshInstallPackageProof`, including installed version, legacy alias version, validation result, forbidden installed path count, and redacted install paths. If install or validation fails, the release-candidate report returns review instead of treating static package docs as fresh-install proof.
 
-When `--fresh-install-prefix`, `--fresh-install-work-dir`, or `--release-consume-out` are omitted, LaunchKey writes generated proof directories under the candidate output. Those directories are evidence attachments, not report-quality source reports. `shipguard ios report-quality --reports <candidate-out>` skips `fresh-install-prefix`, `fresh-install-work`, and `release-consume` so it grades the root `v4-release-candidate.json` instead of recursively scoring the installed package or consumer-proof receipts.
+When `--fresh-install-prefix`, `--fresh-install-work-dir`, `--upgrade-prefix`, `--upgrade-work-dir`, `--rollback-prefix`, `--rollback-work-dir`, or `--release-consume-out` are omitted, LaunchKey writes generated proof directories under the candidate output. Those directories are evidence attachments, not report-quality source reports. `shipguard ios report-quality --reports <candidate-out>` skips `fresh-install-prefix`, `fresh-install-work`, `upgrade-prefix`, `upgrade-work`, `rollback-prefix`, `rollback-work`, and `release-consume` so it grades the root `v4-release-candidate.json` instead of recursively scoring installed packages or consumer-proof receipts.
+
+Without `--upgrade-from-tarball`, the command can still pass release-candidate readiness, but `upgradePackageProof.status` is `not-provided`. Stable-v4 proof needs a previous release tarball plus the candidate tarball so LaunchKey can prove the same prefix upgrades from the previous package to the candidate package.
+
+When `--upgrade-from-tarball` and `--package-tarball` are supplied, LaunchKey runs:
+
+```bash
+PREFIX=<upgrade-prefix> <previous-package>/scripts/install.sh
+<upgrade-prefix>/bin/shipguard version
+PREFIX=<same-upgrade-prefix> <candidate-package>/scripts/install.sh
+<upgrade-prefix>/bin/shipguard version
+<upgrade-prefix>/bin/codex-maintainer version
+<upgrade-prefix>/bin/shipguard validate
+```
+
+The report then records `upgradePackageProof`, including previous installed version, upgraded version, compatibility alias version, validation result, forbidden installed path count, and redacted upgrade paths. If the previous package cannot install, the candidate package cannot replace it, validation fails, or the upgraded tree contains generated/VCS/cache files, the release-candidate report returns review.
+
+When `--package-tarball` is supplied, LaunchKey also attaches `rollbackPackageProof`. It installs the candidate package into a temporary prefix, verifies the installed version, removes known ShipGuard package paths, and confirms no temporary ShipGuard package state remains:
+
+```bash
+PREFIX=<rollback-prefix> <candidate-package>/scripts/install.sh
+<rollback-prefix>/bin/shipguard version
+rm -rf <rollback-prefix>/bin/shipguard <rollback-prefix>/bin/codex-maintainer <rollback-prefix>/lib/shipguard
+test ! -e <rollback-prefix>/bin/shipguard
+test ! -e <rollback-prefix>/bin/codex-maintainer
+test ! -e <rollback-prefix>/lib/shipguard
+```
+
+If `--package-tarball` is omitted, `rollbackPackageProof.status` is `not-provided`.
 
 Without `--release-assets`, the command can still pass release-candidate readiness, but `publishedReleaseAssetProof.status` is `not-provided`. That is intentional: candidate readiness is not the same as stable-v4 proof. Stable-v4 release proof needs downloaded release assets to pass consumer-side verification.
 
@@ -108,7 +141,7 @@ For release assets, verify the consumer path too:
 ```bash
 ./bin/shipguard release-proof build --out /tmp/shipguard-release-proof --release-url <url> --version <version> --tag <tag> --commit <sha> --ci-run-url <url>
 ./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out /tmp/shipguard-release-consume --version <version>
-./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --package-tarball <release-tarball> --release-assets <downloaded-assets-dir> --release-version <version> --shipguard-eval --shareable
+./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --release-assets <downloaded-assets-dir> --release-version <version> --shipguard-eval --shareable
 ```
 
 ## Blocked Claims

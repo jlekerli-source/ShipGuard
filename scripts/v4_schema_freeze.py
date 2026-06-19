@@ -282,7 +282,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "What release-candidate readiness proof is still missing before v4 can be called stable?",
     ]
     priority_action = (
-        "Prove v4 release-candidate readiness with install, upgrade, uninstall, release-proof, and adoption packet checks."
+        "Prove v4 release-candidate readiness with install, same-prefix upgrade, rollback cleanup, release-proof, and adoption packet checks."
         if status == "pass"
         else "Complete the missing schema-freeze checks before claiming the v4 schema contract is frozen."
     )

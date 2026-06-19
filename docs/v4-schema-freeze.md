@@ -78,4 +78,4 @@ This command freezes the local v4 schema contract. It does not claim:
 
 ## Release-Candidate Follow-Up
 
-After schema freeze passes, the next useful ShipGuard slice is v4 release-candidate readiness: fresh install, package-tarball fresh-install proof, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, and plugin refresh proof.
+After schema freeze passes, the next useful ShipGuard slice is v4 release-candidate readiness: fresh install, package-tarball fresh-install proof, same-prefix upgrade proof, rollback cleanup proof, release-proof consumption, external adoption packet, final schema docs, and plugin refresh proof.

@@ -210,6 +210,10 @@ SOURCE_REPORT_SKIP_NAMES = {
 SOURCE_REPORT_SKIP_DIR_NAMES = {
     "fresh-install-prefix",
     "fresh-install-work",
+    "upgrade-prefix",
+    "upgrade-work",
+    "rollback-prefix",
+    "rollback-work",
     "release-consume",
     "stage-receipts",
 }

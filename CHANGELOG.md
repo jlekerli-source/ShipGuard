@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added LaunchKey upgrade and rollback receipt attachment: `shipguard v4 release-candidate` can now accept `--upgrade-from-tarball`, prove same-prefix upgrade from a previous package to the candidate package, attach rollback cleanup proof from the candidate package, and keep generated upgrade/rollback proof directories out of recursive report-quality scoring.
 - Fixed `ios report-quality` recursive scoring for LaunchKey package-proof outputs. Report-quality now skips generated `fresh-install-prefix`, `fresh-install-work`, and `release-consume` directories under a report output so v4 candidate QA grades the root LaunchKey report instead of the embedded installed ShipGuard package or consumer-proof receipts.
 - Refined GitHub-facing presentation for the current post-`v3.131.0` state: README, docs index, GitHub Presentation, and roadmap now distinguish the published LaunchKey release from active `main` hardening, and the recommended About copy is app-maintenance oriented instead of iOS-only.
 - Added LaunchKey fresh-install receipt attachment: `shipguard v4 release-candidate` now accepts `--package-tarball`, `--fresh-install-prefix`, and `--fresh-install-work-dir`, installs the package into a fresh prefix, checks both CLI aliases, runs installed `shipguard validate`, and records `freshInstallPackageProof`.

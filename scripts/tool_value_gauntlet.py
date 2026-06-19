@@ -2850,7 +2850,7 @@ def v4_release_candidate_readiness_receipt_probe(root: Path) -> dict[str, Any]:
         "receiptCount": len(receipts),
         "passedReceiptCount": passed,
         "commandCount": command_count,
-        "purpose": "Run v4 release-candidate readiness fixtures that prove install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, and plugin refresh proof.",
+        "purpose": "Run v4 release-candidate readiness fixtures that prove install, same-prefix upgrade, rollback cleanup, release-proof consumption, external adoption packet, final schema docs, and plugin refresh proof.",
         "fixtureRoot": V4_RELEASE_CANDIDATE_READINESS_RECEIPT_ROOT.as_posix(),
         "scopeBoundary": {
             "shipguardOnly": True,
@@ -4726,7 +4726,7 @@ def lowest_value_surface_probe(
             depth_check(
                 "runtimeV4ReleaseCandidateReadiness",
                 False,
-                "v4 schema freeze is proven, but release-candidate readiness still needs install, upgrade, uninstall, release-proof consumption, and external adoption packet proof",
+                "v4 schema freeze is proven, but release-candidate readiness still needs install, same-prefix upgrade, rollback cleanup, release-proof consumption, and external adoption packet proof",
             )
         )
         answer = surface_probe_row(
@@ -4736,8 +4736,8 @@ def lowest_value_surface_probe(
             base_score=100,
             base_status="pass",
             depth_checks=depth_checks,
-            recommendation="Prove v4 release-candidate readiness with install, upgrade, uninstall, release-proof consumption, external adoption packet, and final schema docs before calling v4 stable.",
-            proof="Run value-gauntlet plus focused v4 release-candidate fixtures that prove a fresh user can install, upgrade, uninstall, consume release proof, and understand the adoption packet.",
+            recommendation="Prove v4 release-candidate readiness with install, same-prefix upgrade, rollback cleanup, release-proof consumption, external adoption packet, and final schema docs before calling v4 stable.",
+            proof="Run value-gauntlet plus focused v4 release-candidate fixtures that prove a fresh user can install, upgrade, remove temporary package state, consume release proof, and understand the adoption packet.",
         )
     if (
         answer

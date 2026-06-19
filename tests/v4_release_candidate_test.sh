@@ -36,6 +36,8 @@ grep -q '## Result' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Readiness Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Fresh Install' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Fresh Install Package Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
+grep -q 'Upgrade Package Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
+grep -q 'Rollback Package Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Release Proof Consumption' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Published Release Asset Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'External Adoption Packet' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
@@ -51,7 +53,9 @@ grep -q '"readinessProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.
 grep -q '"installProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"freshInstallPackageProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"upgradeProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
+grep -q '"upgradePackageProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"uninstallProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
+grep -q '"rollbackPackageProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"releaseProofConsumption":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"publishedReleaseAssetProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"externalAdoptionPacket":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
@@ -81,6 +85,8 @@ assert report["productStage"] == "v4-release-candidate-readiness"
 assert report["releaseReadiness"]["releaseClaim"] == "candidate-ready"
 assert report["releaseReadiness"]["stableV4Release"] is False
 assert report["releaseReadiness"]["freshInstallPackageProof"] == "not-provided"
+assert report["releaseReadiness"]["upgradePackageProof"] == "not-provided"
+assert report["releaseReadiness"]["rollbackPackageProof"] == "not-provided"
 assert report["releaseReadiness"]["publishedReleaseAssetProof"] == "not-provided"
 for key in [
     "freshInstall",
@@ -98,6 +104,13 @@ assert report["freshInstallPackageProof"]["provided"] is False
 assert report["freshInstallPackageProof"]["requiredForStableV4"] is True
 assert "--package-tarball <release-tarball>" in report["freshInstallPackageProof"]["nextCommand"]
 assert "--package-tarball <release-tarball>" in report["resultUX"]["nextCommand"]
+assert report["upgradePackageProof"]["status"] == "not-provided"
+assert report["upgradePackageProof"]["provided"] is False
+assert report["upgradePackageProof"]["requiredForStableV4"] is True
+assert "--upgrade-from-tarball <previous-release-tarball>" in report["upgradePackageProof"]["nextCommand"]
+assert report["rollbackPackageProof"]["status"] == "not-provided"
+assert report["rollbackPackageProof"]["provided"] is False
+assert report["rollbackPackageProof"]["requiredForStableV4"] is True
 assert report["publishedReleaseAssetProof"]["status"] == "not-provided"
 assert report["publishedReleaseAssetProof"]["provided"] is False
 assert report["publishedReleaseAssetProof"]["requiredForStableV4"] is True
@@ -132,12 +145,23 @@ cp "$tmp_dir/proof-bundle/replay/replay-report.json" "$tmp_dir/downloaded/"
 cp "$tmp_dir/proof-bundle/attestation/attestation.json" "$tmp_dir/downloaded/"
 cp "$tmp_dir/proof-bundle/attestation/attestation-badge.json" "$tmp_dir/downloaded/"
 
+old_version="0.0.0"
+mkdir -p "$tmp_dir/old-package-work"
+tar -xzf "$tmp_dir/proof-bundle/shipguard-v$version.tar.gz" -C "$tmp_dir/old-package-work"
+printf '%s\n' "$old_version" > "$tmp_dir/old-package-work/shipguard-v$version/VERSION"
+(cd "$tmp_dir/old-package-work" && tar -czf "$tmp_dir/shipguard-v$old_version.tar.gz" "shipguard-v$version")
+
 SHIPGUARD_GENERATED_AT="2026-06-19T00:00:00Z" \
   ./bin/shipguard v4 release-candidate \
     --path . \
     --package-tarball "$tmp_dir/proof-bundle/shipguard-v$version.tar.gz" \
+    --upgrade-from-tarball "$tmp_dir/shipguard-v$old_version.tar.gz" \
     --fresh-install-prefix "$tmp_dir/fresh-prefix" \
     --fresh-install-work-dir "$tmp_dir/fresh-work" \
+    --upgrade-prefix "$tmp_dir/upgrade-prefix" \
+    --upgrade-work-dir "$tmp_dir/upgrade-work" \
+    --rollback-prefix "$tmp_dir/rollback-prefix" \
+    --rollback-work-dir "$tmp_dir/rollback-work" \
     --out "$tmp_dir/with-assets" \
     --release-assets "$tmp_dir/downloaded" \
     --release-version "$version" \
@@ -150,6 +174,10 @@ test -f "$tmp_dir/with-assets/v4-release-candidate.md"
 test -f "$tmp_dir/with-assets-consume/consumer-report.json"
 test -f "$tmp_dir/with-assets-consume/asset-digests.json"
 test -x "$tmp_dir/fresh-prefix/bin/shipguard"
+test -x "$tmp_dir/upgrade-prefix/bin/shipguard"
+test ! -e "$tmp_dir/rollback-prefix/bin/shipguard"
+test ! -e "$tmp_dir/rollback-prefix/bin/codex-maintainer"
+test ! -e "$tmp_dir/rollback-prefix/lib/shipguard"
 
 python3 - "$tmp_dir/with-assets/v4-release-candidate.json" <<'PY'
 import json
@@ -157,9 +185,13 @@ import sys
 
 report = json.load(open(sys.argv[1], encoding="utf-8"))
 fresh = report["freshInstallPackageProof"]
+upgrade = report["upgradePackageProof"]
+rollback = report["rollbackPackageProof"]
 proof = report["publishedReleaseAssetProof"]
 assert report["status"] == "pass"
 assert report["releaseReadiness"]["freshInstallPackageProof"] == "pass"
+assert report["releaseReadiness"]["upgradePackageProof"] == "pass"
+assert report["releaseReadiness"]["rollbackPackageProof"] == "pass"
 assert report["releaseReadiness"]["publishedReleaseAssetProof"] == "pass"
 assert fresh["status"] == "pass"
 assert fresh["provided"] is True
@@ -174,6 +206,35 @@ assert fresh["installedRoot"] == "<fresh-install-root>"
 assert fresh["versionResult"]["exitCode"] == 0
 assert fresh["legacyVersionResult"]["exitCode"] == 0
 assert fresh["validateResult"]["exitCode"] == 0
+assert upgrade["status"] == "pass"
+assert upgrade["provided"] is True
+assert upgrade["previousPackageVersion"] == "0.0.0"
+assert upgrade["previousInstalledVersion"] == "0.0.0"
+assert upgrade["previousInstalledLegacyVersion"] == "0.0.0"
+assert upgrade["upgradedVersion"] == report["version"]
+assert upgrade["upgradedLegacyVersion"] == report["version"]
+assert upgrade["forbiddenInstalledPathCount"] == 0
+assert upgrade["previousTarball"] == "<previous-package-tarball>"
+assert upgrade["candidateTarball"] == "<package-tarball>"
+assert upgrade["upgradePrefix"] == "<upgrade-prefix>"
+assert upgrade["workDir"] == "<upgrade-work-dir>"
+assert upgrade["previousPackageRoot"] == "<previous-package-root>"
+assert upgrade["candidatePackageRoot"] == "<candidate-package-root>"
+assert upgrade["installedRoot"] == "<upgrade-installed-root>"
+assert upgrade["previousVersionResult"]["exitCode"] == 0
+assert upgrade["upgradedVersionResult"]["exitCode"] == 0
+assert upgrade["upgradedLegacyVersionResult"]["exitCode"] == 0
+assert upgrade["validateResult"]["exitCode"] == 0
+assert rollback["status"] == "pass"
+assert rollback["provided"] is True
+assert rollback["installedVersion"] == report["version"]
+assert rollback["removedPathCount"] == 3
+assert rollback["remainingPathCount"] == 0
+assert rollback["packageTarball"] == "<package-tarball>"
+assert rollback["rollbackPrefix"] == "<rollback-prefix>"
+assert rollback["workDir"] == "<rollback-work-dir>"
+assert rollback["packageRoot"] == "<rollback-package-root>"
+assert rollback["installedRoot"] == "<rollback-installed-root>"
 assert proof["status"] == "pass"
 assert proof["provided"] is True
 assert proof["consumerReportStatus"] == "pass"
@@ -184,6 +245,9 @@ assert proof["assetDigestMatrixPath"] == "<release-consume-out>/asset-digests.js
 assert proof["assetsDir"] == "<release-assets>"
 assert proof["consumeOut"] == "<release-consume-out>"
 assert report["resultUX"]["nextCommand"] == "./tests/v4_release_candidate_test.sh"
+questions = report["reportQualityQuestions"]
+assert not any("fresh user install, upgrade, uninstall" in question for question in questions)
+assert questions[0] == "Does the adoption packet tell an external developer the first command, proof bundle, support boundary, and non-claims?"
 PY
 
 if grep -R -F -q "$tmp_dir/downloaded" "$tmp_dir/with-assets"; then
@@ -200,6 +264,26 @@ if grep -R -F -q "$tmp_dir/fresh-prefix" "$tmp_dir/with-assets"; then
 fi
 if grep -R -F -q "$tmp_dir/fresh-work" "$tmp_dir/with-assets"; then
   echo "shareable v4 release-candidate output must redact fresh install work paths" >&2
+  exit 1
+fi
+if grep -R -F -q "$tmp_dir/upgrade-prefix" "$tmp_dir/with-assets"; then
+  echo "shareable v4 release-candidate output must redact upgrade prefix paths" >&2
+  exit 1
+fi
+if grep -R -F -q "$tmp_dir/upgrade-work" "$tmp_dir/with-assets"; then
+  echo "shareable v4 release-candidate output must redact upgrade work paths" >&2
+  exit 1
+fi
+if grep -R -F -q "$tmp_dir/rollback-prefix" "$tmp_dir/with-assets"; then
+  echo "shareable v4 release-candidate output must redact rollback prefix paths" >&2
+  exit 1
+fi
+if grep -R -F -q "$tmp_dir/rollback-work" "$tmp_dir/with-assets"; then
+  echo "shareable v4 release-candidate output must redact rollback work paths" >&2
+  exit 1
+fi
+if grep -R -F -q "$tmp_dir/shipguard-v$old_version.tar.gz" "$tmp_dir/with-assets"; then
+  echo "shareable v4 release-candidate output must redact previous package tarball paths" >&2
   exit 1
 fi
 
@@ -230,6 +314,19 @@ fi
 test -f "$tmp_dir/unsafe-tarball/v4-release-candidate.json"
 grep -q '"freshInstallPackageProof": "blocked"' "$tmp_dir/unsafe-tarball/v4-release-candidate.json"
 grep -q 'unsafe tarball member is a link or device' "$tmp_dir/unsafe-tarball/v4-release-candidate.json"
+
+if ./bin/shipguard v4 release-candidate \
+  --path . \
+  --out "$tmp_dir/missing-upgrade-tarball" \
+  --package-tarball "$tmp_dir/proof-bundle/shipguard-v$version.tar.gz" \
+  --upgrade-from-tarball "$tmp_dir/missing-previous.tar.gz" \
+  --json >/dev/null 2>&1; then
+  echo "expected missing previous package tarball to fail release-candidate proof" >&2
+  exit 1
+fi
+test -f "$tmp_dir/missing-upgrade-tarball/v4-release-candidate.json"
+grep -q '"status": "review"' "$tmp_dir/missing-upgrade-tarball/v4-release-candidate.json"
+grep -q '"upgradePackageProof": "blocked"' "$tmp_dir/missing-upgrade-tarball/v4-release-candidate.json"
 
 if ./bin/shipguard v4 release-candidate \
   --path . \
