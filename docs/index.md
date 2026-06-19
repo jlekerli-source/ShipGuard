@@ -22,6 +22,7 @@ Start here:
 - [Command Matrix](command-matrix.md)
 - [Demo Reports](demo-reports.md)
 - [Docs Check](docs-check.md)
+- [GitHub Presentation](github-presentation.md)
 - [iOS ShipGuard](ios-shipguard.md)
 - [iOS Preview Bridge](ios-preview.md)
 - [Maintainer Reliability OS](maintainer-reliability-os.md)
@@ -69,7 +70,7 @@ Start here:
 - Root instructions for Codex in a risk-sensitive iOS repo.
 - Planning and subagent templates.
 - Reusable skills for alarm testing, notification permissions, release work, bug triage, and UI polish.
-- A small CLI for validation, starter profile initialization, doctor checks, proof-gated task contracts, v4 preview stabilization, iOS ShipGuard topology/inventory/preview/proof/spec workflow helpers, run scoring, autopsy reports, SARIF export, docs link checks, fixture arena runs, Arena comparisons, transcript redaction, verification, and corpus indexing, review comments, CI gates, CI summaries, check-run payloads, leaderboard JSON, release manifests, release indexes, release replay verification, release attestations, one-command release consumption, release diffs, release evidence site exports, release evidence indexes, release evidence bundles, release evidence verification, toolkit self-audits, and next-goal generation.
+- A small CLI for validation, starter profile initialization, doctor checks, proof-gated task contracts, v4 preview/schema/release-candidate readiness, Codex marketplace readiness, unified inspect, full-audit orchestration, iOS ShipGuard topology/inventory/preview/proof/spec workflow helpers, run scoring, autopsy reports, SARIF export, docs link checks, fixture arena runs, Arena comparisons, transcript redaction, verification, and corpus indexing, review comments, CI gates, CI summaries, check-run payloads, leaderboard JSON, release manifests, release indexes, release replay verification, release attestations, one-command release consumption, release diffs, release evidence site exports, release evidence indexes, release evidence bundles, release evidence verification, toolkit self-audits, and next-goal generation.
 - Reusable GitHub Actions for validation, Arena comparison artifacts, transcript verification, transcript corpus verification, CI gates, review comments, release proof artifacts, release proof consumption, release diff audits, release evidence exports, and release evidence verification.
 - Examples and a scorecard for judging agent output quality.
 

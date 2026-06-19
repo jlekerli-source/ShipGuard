@@ -4916,6 +4916,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     status = "blocked" if high_count else "review" if review_count else "pass"
     priority_action_rows = priority_actions(findings, probe)
     answer = (probe.get("answer") if isinstance(probe, dict) else {}) or {}
+    next_command = "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet"
     result_ux = build_result_ux(
         status=status,
         summary=(
@@ -4925,7 +4926,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         ),
         proof_source="lowestValueSurfaceProbe.answer + runtime receipt families",
         why_it_matters=str(answer.get("reason") if answer else "The gauntlet keeps ShipGuard focused on the next proven product weakness."),
-        next_command=str(answer.get("proofGuidance") or "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet"),
+        next_command=next_command,
         next_action_summary=str(answer.get("recommendation") or "Keep the next proof slice executable and public-fixture based."),
     )
     return {

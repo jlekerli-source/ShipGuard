@@ -66,6 +66,8 @@ if not any("codex marketplace-readiness" in command for command in packet.get("p
     raise SystemExit(f"proof commands incomplete: {packet.get('proofCommands')!r}")
 if "Do not fabricate screenshots" not in packet.get("screenshotPolicy", ""):
     raise SystemExit(f"screenshot policy too weak: {packet.get('screenshotPolicy')!r}")
+if not any(item.get("asset") == "GitHub social preview" for item in packet.get("assetChecklist", [])):
+    raise SystemExit(f"social preview asset missing: {packet.get('assetChecklist')!r}")
 if "model selection happens outside ShipGuard" not in packet.get("modelChoiceBoundary", ""):
     raise SystemExit(f"model boundary missing: {packet.get('modelChoiceBoundary')!r}")
 if not data["scopeBoundary"].get("shipguardOnly") or data["scopeBoundary"].get("mutatesPluginCache"):
@@ -76,6 +78,7 @@ grep -q '# ShipGuard Codex Marketplace Readiness' "$tmp_dir/readiness/codex-mark
 grep -q '## Result' "$tmp_dir/readiness/codex-marketplace-readiness.md"
 grep -q '## Submission Packet' "$tmp_dir/readiness/codex-marketplace-readiness.md"
 grep -q '## Public Assets' "$tmp_dir/readiness/codex-marketplace-readiness.md"
+grep -q 'GitHub social preview' "$tmp_dir/readiness/codex-marketplace-readiness.md"
 grep -q 'codex plugin add ios-shipguard@shipguard' "$tmp_dir/readiness/codex-marketplace-readiness.md"
 grep -q 'Do not fabricate screenshots' "$tmp_dir/readiness/codex-marketplace-readiness.md"
 if grep -q "$repo_root" "$tmp_dir/readiness/codex-marketplace-readiness.md"; then

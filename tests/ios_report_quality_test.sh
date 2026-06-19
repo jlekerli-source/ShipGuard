@@ -195,6 +195,51 @@ if "Next command: `Start with `" in markdown:
     raise SystemExit("Markdown next command must not wrap prose actionability questions as a command")
 PY
 
+broken_result_ux="$tmp_dir/broken-result-ux"
+mkdir -p "$broken_result_ux"
+cat > "$broken_result_ux/tool-value-gauntlet.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard value-gauntlet",
+  "surface": "ShipGuard Tool Value Gauntlet",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "pass",
+  "resultUX": {
+    "status": "pass",
+    "verdict": "PASS: Synthetic report completed.",
+    "proofSource": "synthetic fixture",
+    "whyItMatters": "The command field must stay executable.",
+    "nextCommand": "Run value-gauntlet plus focused fixtures after reading this report.",
+    "nextActionSummary": "Use the next exact proof slice."
+  },
+  "reportQualityQuestions": [
+    "Does result UX keep prose action separate from the command template?"
+  ]
+}
+JSON
+cat > "$broken_result_ux/tool-value-gauntlet.md" <<'MD'
+# Synthetic Value Gauntlet
+
+## Result
+
+- Verdict: PASS: Synthetic report completed.
+- Proof source: synthetic fixture
+- Why it matters: The command field must stay executable.
+- Next command: `Run value-gauntlet plus focused fixtures after reading this report.`
+- Next action: Use the next exact proof slice.
+
+## Report Quality Questions
+
+- Does result UX keep prose action separate from the command template?
+MD
+./bin/shipguard ios report-quality \
+  --reports "$broken_result_ux" \
+  --out "$tmp_dir/broken-result-ux-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/broken-result-ux-quality/ios-report-quality.json"
+grep -q '"ruleId": "result-ux-next-command-not-command"' "$tmp_dir/broken-result-ux-quality/ios-report-quality.json"
+grep -q 'resultUX.nextCommand is prose or Markdown instead of a command template' "$tmp_dir/broken-result-ux-quality/ios-report-quality.md"
+
 design_tailoring_fixture="fixtures/ios-report-quality/design-app-type-tailoring"
 ./bin/shipguard ios report-quality \
   --reports "$design_tailoring_fixture" \

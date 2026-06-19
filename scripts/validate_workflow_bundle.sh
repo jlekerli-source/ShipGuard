@@ -52,6 +52,7 @@ required_files=(
   "docs/ci-summary.md"
   "docs/codex-status.md"
   "docs/codex-marketplace-readiness.md"
+  "docs/github-presentation.md"
   "docs/agent-trace.md"
   "docs/full-audit.md"
   "docs/inspect.md"

@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-19T13:41:45Z
+- Generated: 2026-06-19T13:59:36Z
 - Current toolkit version: 3.131.0
-- Target release: v3.133.0
-- Title: v4 Stable Release Evidence
+- Target release: v3.134.0
+- Title: v4 Stable Release Polish
 
 ## Slash Plan
 
 ```text
-/plan v3.133.0 v4 Stable Release Evidence for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Continue v4 stable release evidence by keeping report-quality next commands executable, action summaries separate, and self-QA handoffs useful for the next ShipGuard-only improvement.
+/plan v3.134.0 v4 Stable Release Polish for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Continue v4 stable release polish by enforcing command-shaped result UX across source reports and keeping product guidance in action summaries instead of command fields.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.133.0 v4 Stable Release Evidence for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Continue v4 stable release evidence by keeping report-quality next commands executable, action summaries separate, and self-QA handoffs useful for the next ShipGuard-only improvement, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.134.0 v4 Stable Release Polish for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Continue v4 stable release polish by enforcing command-shaped result UX across source reports and keeping product guidance in action summaries instead of command fields, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Continue v4 stable release evidence by keeping report-quality next commands executable, action summaries separate, and self-QA handoffs useful for the next ShipGuard-only improvement.
+Continue v4 stable release polish by enforcing command-shaped result UX across source reports and keeping product guidance in action summaries instead of command fields.
 
 ## Completion Receipt
 
-- Completed scope: Fixed ios report-quality result UX after read-only ShipGuard self-QA exposed prose actionability questions rendered as Markdown Next command values.
-- Evidence: Read-only ShipGuard self-QA generated InspectDeck, LaunchKey, MarketplaceDeck, Full Audit, Value Gauntlet, and Schema Freeze reports under /tmp; combined ios report-quality stayed pass but showed resultUX.nextCommand as a prose actionability question with nested backticks; after the fix, resultUX.nextCommand is a command-shaped ShipGuard template and nextActionSummary preserves the human question; python3 -m py_compile scripts/ios_report_quality.py; ./tests/ios_report_quality_test.sh; reran combined ios report-quality over the same read-only report bundle.
+- Completed scope: Fixed value-gauntlet result UX after read-only ShipGuard self-QA exposed prose in resultUX.nextCommand, and taught ios report-quality to flag source reports with narrative or Markdown command fields.
+- Evidence: Read-only ShipGuard self-QA generated InspectDeck, Full Audit, Value Gauntlet, LaunchKey, MarketplaceDeck, Brand Deck, and Schema Freeze reports under /tmp; fresh report-quality showed value-gauntlet resultUX.nextCommand was prose; after the fix value-gauntlet emits ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet, stale output scores review with result-ux-next-command-not-command, and the regenerated expanded report-quality bundle scores pass; python3 -m py_compile scripts/ios_report_quality.py scripts/tool_value_gauntlet.py; ./tests/ios_report_quality_test.sh; ./tests/tool_value_gauntlet_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.134.0 v4 Stable Release Polish for jlekerli-source/ShipGuard:
+/plan v3.135.0 v4 Stable Release Evidence Receipts for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Continue v4 stable release evidence by keeping report-quality next commands exec
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.134.0 v4 Stable Release Polish for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.135.0 v4 Stable Release Evidence Receipts for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.134.0 --title "v4 Stable Release Polish" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.135.0 --title "v4 Stable Release Evidence Receipts" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.133.0.
+1. Open or update the tracking issue for v3.134.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.133.0` and upload `dist/shipguard-v3.133.0.tar.gz`.
+6. Create release `v3.134.0` and upload `dist/shipguard-v3.134.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

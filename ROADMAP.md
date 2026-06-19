@@ -49,7 +49,7 @@ Keep the core open-source verdict engine honest. Future Pro, Team, or Enterprise
 
 ## Phase Map
 
-The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.131 as shipped foundations and v3.132 as the active v4 product release stabilization slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, universal-agent packaging, full-audit orchestration, unified inspect, concise result-UX, Codex marketplace-readiness, External Benchmark v2, V4 Preview, V4 Schema Freeze, or V4 Release Candidate Readiness work.
+The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current published baseline treats v3.115-v3.131 as shipped foundations. Active ShipYard work after v3.131 is v4 product release stabilization, including report-quality polish, result-UX command discipline, external adoption evidence, security review, package proof, rollback proof, and release proof consumption. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, universal-agent packaging, full-audit orchestration, unified inspect, concise result-UX, Codex marketplace-readiness, External Benchmark v2, V4 Preview, V4 Schema Freeze, or V4 Release Candidate Readiness work.
 
 ### Phase A: Trustworthy Foundation
 
@@ -135,9 +135,11 @@ v3.129  v4 preview stabilization
 v3.130  v4 schema freeze and compatibility policy
 v3.131  v4 release-candidate readiness
 v3.132  v4 product release stabilization
+v3.133  root report-quality and bounded source-scan hardening
+v3.134  result-UX command-field polish for source reports
 ```
 
-Current state: v3.131 adds `shipguard v4 release-candidate` and V4 Release Candidate Readiness receipts that make fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, release-readiness commands, and blocked stable-release claims explicit. The active architectural priority is v3.132 v4 product release stabilization: external adoption evidence, final security review, package proof, rollback proof, and release proof consumption on published assets before any stable v4 claim.
+Current state: latest published release `v3.131.0` adds `shipguard v4 release-candidate` and V4 Release Candidate Readiness receipts that make fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, release-readiness commands, and blocked stable-release claims explicit. Active local ShipYard handoffs may target later v3 stabilization slices, but those are not stable-v4 release claims. The active architectural priority remains v4 product release stabilization: external adoption evidence, final security review, package proof, rollback proof, report-quality precision, result-UX command discipline, and release proof consumption on published assets before any stable v4 claim.
 
 Every release proposal must answer:
 

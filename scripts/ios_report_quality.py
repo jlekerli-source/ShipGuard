@@ -153,6 +153,9 @@ TOKEN_RISK_PATTERNS = {
     "known-token": re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,})\b"),
 }
 LOCAL_PATH_VALUE_RE = re.compile(r"(?<![A-Za-z0-9_])/(?:Users|private/tmp|var/folders)/[^\s`'\"),]+")
+COMMAND_SHAPED_RE = re.compile(
+    r"^(?:\./|/|shipguard\b|codex\b|git\b|gh\b|xcrun\b|xcodebuild\b|python(?:3)?\b|bash\b|sh\b|make\b|npm\b|swift\b)"
+)
 
 
 def utc_now() -> str:
@@ -614,6 +617,30 @@ def finding_quality_issues(report: dict[str, Any]) -> list[dict[str, str]]:
                 evidence=f"finding #{index} has no proof or proofGuidance field",
                 recommendation="Add proof guidance so a solo developer knows what evidence would confirm the issue.",
             )
+    return issues
+
+
+def is_command_shaped(value: object) -> bool:
+    text = " ".join(str(value or "").split())
+    if not text or "`" in text:
+        return False
+    return bool(COMMAND_SHAPED_RE.match(text))
+
+
+def result_ux_quality_issues(report: dict[str, Any], *, path_name: str) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    result = report.get("resultUX")
+    if not isinstance(result, dict):
+        return issues
+    next_command = str(result.get("nextCommand") or "").strip()
+    if not is_command_shaped(next_command):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="result-ux-next-command-not-command",
+            evidence=f"{path_name} resultUX.nextCommand is prose or Markdown instead of a command template",
+            recommendation="Move human explanation into resultUX.nextActionSummary and keep nextCommand as a runnable ShipGuard, test, or tool command template.",
+        )
     return issues
 
 
@@ -2038,6 +2065,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
             recommendation="Group repeated rules so Markdown stays scannable while JSON keeps full detail.",
         )
     issues.extend(finding_quality_issues(loaded))
+    issues.extend(result_ux_quality_issues(loaded, path_name=path.name))
     if tool == "shipguard ios performance":
         issues.extend(performance_runtime_evidence_boundary_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_evidence_promotion_issues(loaded, markdown=markdown, path_name=path.name))

@@ -20,6 +20,8 @@ It gives AI-assisted development a repeatable operating loop:
 
 ShipGuard is not tied to any single app. This repo is the ShipGuard ShipYard: the workshop for reusable CLI commands, Codex skills, plugin metadata, fixtures, tests, and GitHub Actions for developers who want agent work to be reviewable instead of vague.
 
+Latest published release: `v3.131.0`. That release adds ShipGuard V4 Release Candidate Readiness / LaunchKey: fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, release-readiness commands, and blocked stable-v4 claims. Active ShipYard work can move ahead on `main`, but v4 is not called stable until the published release assets prove it.
+
 The naming style is intentional: stable commands and paths stay literal, while product surfaces get branded names like ShipGuard StarterBay, ShipGuard LaunchDeck, ShipGuard PulseRadar, ShipGuard VibeCheck, ShipGuard Tool Value Gauntlet, ShipGuard Full Audit, ShipGuard InspectDeck, ShipGuard PilotBench, ShipGuard TraceBridge, ShipGuard ReleaseDock, ShipGuard PluginRadar, and ShipGuard NextRail. The nitty-gritty gets call signs too: Deckhand Scripts, Gauntlet Runs, Blackbox Receipts, Bridge Notes, Engine Tapes, Cargo Crates, and Docking Gear. See `docs/shipguard-naming.md` or run `./bin/shipguard brand --strict` before adding new surfaces.
 
 ## Who This Is For
@@ -80,6 +82,7 @@ Start with these docs:
 - `docs/command-matrix.md`: map maintainer jobs to CLI commands.
 - `docs/ios-shipguard.md`: iOS plugin, skill, and CLI workflow.
 - `docs/shipguard-devspace.md`: ChatGPT visual-planning bridge from the iPhone preview.
+- `docs/github-presentation.md`: GitHub About/sidebar, social-preview, icon, and release-page copy.
 - `docs/v4-preview.md`: v4 preview stabilization, schema-freeze posture, migration, deprecation, and release-readiness proof.
 - `docs/v4-schema-freeze.md`: v4 schema registry, compatibility policy, migration checks, changelog policy, deprecation policy, and blocked release claims.
 - `docs/v4-release-candidate.md`: v4 release-candidate readiness for install, upgrade, uninstall, release proof consumption, adoption packet, schema docs, and plugin refresh proof.
@@ -168,7 +171,7 @@ This repository turns those habits into public templates that developers can ada
 
 ## Current Status
 
-This is an early public workflow kit. The focused product direction is documented in `docs/product-strategy.md`: ShipGuard should become the local policy, context, and evidence layer for high-risk Codex changes, starting with production iOS apps. The next priorities are documented in `ROADMAP.md`, and contribution guidance lives in `CONTRIBUTING.md`.
+This is an early public workflow kit with a published `v3.131.0` release train and active v4 stabilization work in the ShipYard. The focused product direction is documented in `docs/product-strategy.md`: ShipGuard should become the local policy, context, and evidence layer for high-risk Codex changes, starting with production iOS apps. The next priorities are documented in `ROADMAP.md`, and contribution guidance lives in `CONTRIBUTING.md`.
 
 The repository is also configured as a GitHub template, so you can start from it directly and then replace the sample project profile with your own app's workflow.
 

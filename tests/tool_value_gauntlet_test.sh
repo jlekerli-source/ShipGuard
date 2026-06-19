@@ -132,6 +132,11 @@ import json
 import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
+next_command = (data.get("resultUX") or {}).get("nextCommand") or ""
+if not next_command.startswith("./bin/shipguard value-gauntlet "):
+    raise SystemExit(f"value-gauntlet nextCommand should be an executable rerun command, got {next_command!r}")
+if "`" in next_command or next_command.lower().startswith("run "):
+    raise SystemExit(f"value-gauntlet nextCommand should not be prose or Markdown: {next_command!r}")
 probe = data.get("lowestValueSurfaceProbe") or {}
 answer = probe.get("answer") or {}
 runtime = data.get("runtimeOutputProbe") or {}

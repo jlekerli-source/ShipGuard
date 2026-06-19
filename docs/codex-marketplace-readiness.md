@@ -62,11 +62,14 @@ Proof Commands:
 ## Asset Checklist
 
 - README logo: `.github/assets/shipguard-icon.png`
+- GitHub social preview: upload `.github/assets/shipguard-icon.png` in repository Settings -> General -> Social preview when owner/admin access is available.
 - Plugin logo: `plugins/ios-shipguard/assets/app-icon.png`
 - Composer icon: `plugins/ios-shipguard/assets/composer-icon.png`
 - Screenshots: generate from a real demo, Devspace preview, or marketplace-requested capture when a public directory asks for screenshots.
 
 Do not fabricate screenshots. Do not use CSS/SVG mock art as proof of the product experience. Do not publish private app screenshots, local paths, tokens, app identifiers, or proprietary reports.
+
+Use `docs/github-presentation.md` as the source of truth for repository About/sidebar wording, social-preview handling, and release-page copy.
 
 ## Boundaries
 

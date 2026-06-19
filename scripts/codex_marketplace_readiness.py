@@ -158,6 +158,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     marketplace_path = root / ".agents" / "plugins" / "marketplace.json"
     readme_path = root / "README.md"
     readiness_doc_path = root / "docs" / "codex-marketplace-readiness.md"
+    presentation_doc_path = root / "docs" / "github-presentation.md"
     codex_status_doc_path = root / "docs" / "codex-status.md"
     adoption_doc_path = root / "docs" / "adoption-guide.md"
     ios_doc_path = root / "docs" / "ios-shipguard.md"
@@ -170,6 +171,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     marketplace_source = marketplace_plugin.get("source") if isinstance(marketplace_plugin.get("source"), dict) else {}
     readme = read_text(readme_path)
     readiness_doc = read_text(readiness_doc_path)
+    presentation_doc = read_text(presentation_doc_path)
     codex_status_doc = read_text(codex_status_doc_path)
     adoption_doc = read_text(adoption_doc_path)
     ios_doc = read_text(ios_doc_path)
@@ -283,6 +285,18 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         evidence="real screenshot policy present" if screenshot_policy_ok else "missing screenshot policy",
         recommendation="Document that screenshots must come from real demo/devspace evidence, not fabricated art.",
     )
+    social_preview_guidance_ok = check_text_contains(
+        presentation_doc,
+        [".github/assets/shipguard-icon.png", "Social preview", "owner/admin action"],
+    )
+    add_check(
+        checks,
+        category="publicAssets",
+        rule_id="github-social-preview-guidance",
+        passed=social_preview_guidance_ok,
+        evidence=rel(presentation_doc_path, root) if social_preview_guidance_ok else "missing social-preview guidance",
+        recommendation="Document the tracked social-preview/icon asset and the GitHub owner/admin upload boundary.",
+    )
 
     add_check(
         checks,
@@ -334,6 +348,14 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         evidence=rel(readiness_doc_path, root) if readiness_doc_path.is_file() else "missing",
         recommendation="Maintain docs/codex-marketplace-readiness.md as the public submission packet source.",
     )
+    add_check(
+        checks,
+        category="publicPresentation",
+        rule_id="github-presentation-doc",
+        passed=check_text_contains(presentation_doc, ["Repository About Box", "Release Page Copy", "Refresh Checklist"]),
+        evidence=rel(presentation_doc_path, root) if presentation_doc_path.is_file() else "missing",
+        recommendation="Maintain docs/github-presentation.md as the public GitHub profile and release-page source of truth.",
+    )
     for doc_path, doc_text, rule_id, phrase in [
         (codex_status_doc_path, codex_status_doc, "codex-status-doc-install-flow", "codex plugin marketplace add ."),
         (adoption_doc_path, adoption_doc, "adoption-doc-install-flow", "codex plugin marketplace add ."),
@@ -383,6 +405,11 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "proofCommands": proof_commands,
         "assetChecklist": [
             {"asset": "README logo", "path": ".github/assets/shipguard-icon.png", "status": "pass" if readme_icon_ok else "blocked"},
+            {
+                "asset": "GitHub social preview",
+                "path": ".github/assets/shipguard-icon.png via Settings -> General -> Social preview",
+                "status": "manual-upload-required",
+            },
             {"asset": "Plugin logo", "path": str(interface.get("logo") or ""), "status": "pass" if logo_ok else "blocked"},
             {"asset": "Composer icon", "path": str(interface.get("composerIcon") or ""), "status": "pass" if composer_ok else "blocked"},
             {
@@ -468,6 +495,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         },
         "publicAssets": {
             "readmeLogo": ".github/assets/shipguard-icon.png",
+            "githubSocialPreview": ".github/assets/shipguard-icon.png (manual GitHub settings upload)",
             "pluginLogo": str(interface.get("logo") or ""),
             "composerIcon": str(interface.get("composerIcon") or ""),
             "screenshots": interface.get("screenshots") if isinstance(interface.get("screenshots"), list) else [],
@@ -484,6 +512,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Can a fresh Codex user understand what ShipGuard does from the README and plugin listing without prior private-app context?",
             "Can a maintainer prove plugin install freshness from tracked source, local marketplace, and strict status output?",
             "Are icon, composer icon, screenshot policy, privacy notes, model-choice boundary, and proof commands ready for a public marketplace submission packet?",
+            "Does the GitHub About/sidebar copy and social preview still match the latest published release without claiming unreleased v4 stability?",
         ],
     }
 
