@@ -5,10 +5,10 @@
 <h1 align="center">ShipGuard</h1>
 
 <p align="center">
-  Local plugin + CLI for honest release validation.
+  Local-first CLI + Codex plugin for proof-gated app maintenance.
 </p>
 
-ShipGuard is a local-first workflow kit for using Codex on production iOS apps without losing control of scope, proof, or release risk.
+ShipGuard is a local-first workflow kit for using Codex on production apps without losing control of scope, proof, or release risk.
 
 It gives AI-assisted development a repeatable operating loop:
 
@@ -20,7 +20,7 @@ It gives AI-assisted development a repeatable operating loop:
 
 ShipGuard is not tied to any single app. This repo is the ShipGuard ShipYard: the workshop for reusable CLI commands, Codex skills, plugin metadata, fixtures, tests, and GitHub Actions for developers who want agent work to be reviewable instead of vague.
 
-Latest published release: `v3.131.0`. That release adds ShipGuard V4 Release Candidate Readiness / LaunchKey: fresh install, package-tarball fresh-install proof, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, release-readiness commands, and blocked stable-v4 claims. Active ShipYard work can move ahead on `main`, but v4 is not called stable until package tarballs pass fresh-install proof and downloaded release assets pass consumer proof through LaunchKey.
+Latest published release: `v3.131.0`. That release adds ShipGuard V4 Release Candidate Readiness / LaunchKey: fresh install, package-tarball fresh-install proof, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, release-readiness commands, and blocked stable-v4 claims. Active ShipYard work on `main` now hardens LaunchKey with published-release asset proof, fresh-install receipts, and report-quality exclusion for generated proof directories; those are stabilization slices, not a stable-v4 claim.
 
 The naming style is intentional: stable commands and paths stay literal, while product surfaces get branded names like ShipGuard StarterBay, ShipGuard LaunchDeck, ShipGuard PulseRadar, ShipGuard VibeCheck, ShipGuard Tool Value Gauntlet, ShipGuard Full Audit, ShipGuard InspectDeck, ShipGuard PilotBench, ShipGuard TraceBridge, ShipGuard ReleaseDock, ShipGuard PluginRadar, and ShipGuard NextRail. The nitty-gritty gets call signs too: Deckhand Scripts, Gauntlet Runs, Blackbox Receipts, Bridge Notes, Engine Tapes, Cargo Crates, and Docking Gear. See `docs/shipguard-naming.md` or run `./bin/shipguard brand --strict` before adding new surfaces.
 
@@ -171,7 +171,7 @@ This repository turns those habits into public templates that developers can ada
 
 ## Current Status
 
-This is an early public workflow kit with a published `v3.131.0` release train and active v4 stabilization work in the ShipYard. The focused product direction is documented in `docs/product-strategy.md`: ShipGuard should become the local policy, context, and evidence layer for high-risk Codex changes, starting with production iOS apps. The next priorities are documented in `ROADMAP.md`, and contribution guidance lives in `CONTRIBUTING.md`.
+This is an early public workflow kit with a published `v3.131.0` release train and active v4 stabilization work in the ShipYard. The focused product direction is documented in `docs/product-strategy.md`: ShipGuard should become the local policy, context, and evidence layer for high-risk Codex changes, starting with production iOS apps and expanding through app-neutral task, proof, release, and report-quality workflows. The next priorities are documented in `ROADMAP.md`, and contribution guidance lives in `CONTRIBUTING.md`.
 
 The repository is also configured as a GitHub template, so you can start from it directly and then replace the sample project profile with your own app's workflow.
 

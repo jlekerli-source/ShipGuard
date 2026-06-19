@@ -10,6 +10,7 @@ ShipGuard's GitHub surface should explain the product quickly, without making it
 - Contributor and maintainer workspace name: ShipGuard ShipYard.
 - Public promise: local-first CLI plus Codex plugin for proof-gated app maintenance.
 - Template status: enabled on GitHub, so the repo shows `Use this template`.
+- Active `main` state: later ShipYard stabilization slices harden LaunchKey published-release asset proof, package fresh-install receipts, and report-quality exclusion for generated proof directories; present them as active hardening, not as a new published release.
 - Stable claim boundary: v4 is not stable until release-candidate, schema, package, security, install, rollback, and release-proof consumption evidence all pass on published assets.
 
 Use this command pair before changing the GitHub presentation:
@@ -24,7 +25,7 @@ gh release list --limit 5
 Recommended description:
 
 ```text
-Local-first CLI and Codex plugin for proof-gated iOS app maintenance.
+Local-first CLI and Codex plugin for proof-gated app maintenance.
 ```
 
 Longer alternative:
@@ -70,7 +71,7 @@ The README should open with the tracked icon, centered product name, and one pla
 <h1 align="center">ShipGuard</h1>
 
 <p align="center">
-  Local plugin + CLI for honest release validation.
+  Local-first CLI + Codex plugin for proof-gated app maintenance.
 </p>
 ```
 
@@ -110,6 +111,12 @@ Mention supporting context only after the headline:
 - `v3.125.0`: unified InspectDeck.
 
 Do not call v4 stable on the release page until the stable-v4 gate is actually published and consumed from release assets.
+
+For active `main` updates after `v3.131.0`, use a short maintenance note rather than rewriting the release headline:
+
+```text
+Main now carries LaunchKey hardening for published-release asset proof, fresh-install package receipts, and report-quality exclusion of generated proof directories. These are v4 stabilization slices, not a stable-v4 release claim.
+```
 
 ## Refresh Checklist
 

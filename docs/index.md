@@ -2,7 +2,7 @@
 
 ShipGuard is a local-first CLI and Codex plugin for proof-gated app maintenance. It helps developers turn AI-assisted work into scoped tasks, evidence receipts, review verdicts, and release proof instead of vague "looks good" handoffs.
 
-Current published release: `v3.131.0`. That release adds V4 Release Candidate Readiness / LaunchKey. Active `main` work may contain later ShipYard stabilization slices, but v4 is not called stable until release assets prove install, upgrade, uninstall, rollback, schema, security, plugin refresh, and release-proof consumption.
+Current published release: `v3.131.0`. That release adds V4 Release Candidate Readiness / LaunchKey. Active `main` work currently contains later ShipYard stabilization slices for published-release asset proof, package fresh-install receipts, and report-quality handling of generated LaunchKey proof directories, but v4 is not called stable until release assets prove install, upgrade, uninstall, rollback, schema, security, plugin refresh, and release-proof consumption.
 
 ## Fast Routes
 
