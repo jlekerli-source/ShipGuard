@@ -13,7 +13,7 @@ This threat model covers:
 - GitHub Actions and local `gh` command workflows.
 - Arena, transcript, and release-evidence fixture packs.
 
-It does not claim to audit private Ringly source code, App Store Connect state, live purchase accounts, or physical-device alarm behavior.
+It does not claim to audit private app source code, App Store Connect state, live purchase accounts, or physical-device behavior.
 
 ## Assets
 

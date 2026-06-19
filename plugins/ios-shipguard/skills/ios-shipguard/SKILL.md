@@ -10,7 +10,7 @@ Use this skill to make Codex behave like a careful iOS release assistant instead
 ## Start Here
 
 1. Read the nearest `AGENTS.md`.
-2. Resolve the ShipGuard CLI before running commands. In the ShipGuard source checkout, `./bin/shipguard` is available. In a target app checkout such as Ringly or Ilmify, use an installed CLI such as `shipguard` on `PATH` or `$HOME/.local/bin/shipguard`:
+2. Resolve the ShipGuard CLI before running commands. In the ShipGuard source checkout, `./bin/shipguard` is available. In a production app checkout, use an installed CLI such as `shipguard` on `PATH` or `$HOME/.local/bin/shipguard`:
 
 ```bash
 if [ -x ./bin/shipguard ]; then

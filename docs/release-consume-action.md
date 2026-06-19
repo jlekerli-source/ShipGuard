@@ -13,7 +13,7 @@ on:
       release-tag:
         description: Release tag to verify.
         required: true
-        default: v3.113.0
+        default: v3.131.0
 
 permissions:
   contents: read
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Verify published proof assets
-        uses: jlekerli-source/ShipGuard/actions/release-consume@v3.113.0
+        uses: jlekerli-source/ShipGuard/actions/release-consume@v3.131.0
         with:
           repo: jlekerli-source/ShipGuard
           release-tag: ${{ inputs.release-tag }}
@@ -34,7 +34,7 @@ jobs:
 
 | Input | Default | Description |
 | --- | --- | --- |
-| `release-tag` | required | Release tag to verify, such as `v3.113.0`. |
+| `release-tag` | required | Release tag to verify, such as `v3.131.0`. |
 | `repo` | current repository | Repository containing release assets. |
 | `version` | tag without leading `v` | Expected release version. |
 | `assets-dir` | `artifacts/shipguard-release-assets` | Directory for downloaded or pre-existing assets. |

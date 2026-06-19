@@ -185,11 +185,11 @@ Proof:
 - `shipguard web plan --report <web-audit-dir> --target <web-target> --out <dir> --shipguard-eval --shareable`, `shipguard backend plan --report <backend-audit-dir> --target <backend-target> --out <dir> --shipguard-eval --shareable`, and `shipguard cli plan --report <cli-audit-dir> --target <cli-target> --out <dir> --shipguard-eval --shareable` when the gauntlet asks whether first reports become scoped tasks, validation commands, validation receipts, validation rerun receipts, and stop conditions
 - `shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --out /tmp/shipguard-value-quality --shareable` to score the gauntlet report itself and surface prioritized actionability questions
 - focused tests for any upgraded surface, plus `tests/tool_value_gauntlet_test.sh`, self-audit, package proof, docs-check, and plugin status before claiming the ShipYard is stronger
-- do not use Ringly, Ilmify, or another private app as the implementation target unless a later task explicitly authorizes app work
+- do not use a private app as the implementation target unless a later task explicitly authorizes app work
 
 ## ShipGuard product QA
 
-Use when Ringly, Ilmify, or another private app is only a read-only sample for improving ShipGuard itself.
+Use when a private app is only a read-only sample for improving ShipGuard itself.
 
 Ask:
 

@@ -36,7 +36,7 @@ Outputs:
 
 ## Product QA Boundary
 
-Use `--shipguard-eval` when InspectDeck is part of ShipGuard product QA. That keeps the report language focused on ShipGuard usefulness instead of turning private Ringly or Ilmify findings into app work.
+Use `--shipguard-eval` when InspectDeck is part of ShipGuard product QA. That keeps the report language focused on ShipGuard usefulness instead of turning private-app findings into app work.
 
 Use `--shareable` before moving the report into ChatGPT, GitHub, docs, benchmark fixtures, or release evidence. Shareable output redacts local absolute paths.
 

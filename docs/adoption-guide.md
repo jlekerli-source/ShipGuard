@@ -1,6 +1,6 @@
 # Adoption Guide
 
-Use this guide when you want to bring the workflow kit into another repository without copying Ringly-specific assumptions blindly.
+Use this guide when you want to bring the workflow kit into another repository without copying sample-app assumptions blindly.
 
 ## The First 30 Minutes
 
@@ -72,7 +72,7 @@ Use `shipguard ios ...` helpers before risky iOS work when a project has permiss
 
 ## What Not To Copy Blindly
 
-- Ringly-specific alarm assumptions if your app is not alarm-related.
+- Alarm-specific assumptions if your app is not alarm-related.
 - Web-specific auth, payment, migration, or browser-test assumptions if your app does not use them.
 - Backend-specific migration, queue, webhook, or rollout assumptions if your repo is not a service.
 - CLI-specific stdout, exit-code, package, or cross-platform assumptions if your repo is not a CLI.

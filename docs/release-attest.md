@@ -4,9 +4,9 @@
 
 ```bash
 ./bin/shipguard release-attest build \
-  --manifest /tmp/shipguard-v3.113.0/release-manifest.json \
-  --replay /tmp/shipguard-v3.113.0/replay-report.json \
-  --out /tmp/shipguard-v3.113.0/attestation
+  --manifest /tmp/shipguard-v3.131.0/release-manifest.json \
+  --replay /tmp/shipguard-v3.131.0/replay-report.json \
+  --out /tmp/shipguard-v3.131.0/attestation
 ```
 
 Outputs:

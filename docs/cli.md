@@ -263,7 +263,7 @@ The iOS namespace also includes:
 - `v4 release-candidate`: run ShipGuard V4 Release Candidate Readiness / LaunchKey, the read-only readiness report for fresh install, upgrade, uninstall, release proof consumption, external adoption packet, final schema docs, plugin refresh proof, and stable-v4 blocked claims.
 - `full-audit`: run ShipGuard Full Audit, the resumable release/product-QA orchestrator for validation, value-gauntlet, report-quality, package proof, install refresh, plugin status, CI proof, and release-proof preparation. Use `--plan-only` to see the lane without running it, `--resume` to reuse existing stage receipts, `--profile quick|release|shipyard` to choose depth, and `--shareable` when report output will move outside the machine.
 - `inspect`: run ShipGuard InspectDeck, the concise state surface that reads value-gauntlet, full-audit, Codex plugin status, release proof, repo state, and emits one verdict plus one next action without hiding underlying evidence.
-- `pilot-bench`: run ShipGuard PilotBench, a read-only measurement report for verdict-quality traces gathered from external or synthetic pilot work. It scores public-safe traces for owner detection, acceptable and forbidden scope, required proof coverage, unsupported claim checking, redaction, exact next-action completeness, false-positive rate, and first useful verdict time. Add `--benchmark-v2` when traces include `baselineVerdict`; ShipGuard then emits `comparativeBenchmark` with ShipGuard score, baseline score, score lift, win rate, and quality gates. Use private Ringly/Ilmify-style traces only locally after shareable redaction; repeated weaknesses should become synthetic public traces under `fixtures/external-pilot-verdict-bench/` or `fixtures/external-benchmark-v2/`.
+- `pilot-bench`: run ShipGuard PilotBench, a read-only measurement report for verdict-quality traces gathered from external or synthetic pilot work. It scores public-safe traces for owner detection, acceptable and forbidden scope, required proof coverage, unsupported claim checking, redaction, exact next-action completeness, false-positive rate, and first useful verdict time. Add `--benchmark-v2` when traces include `baselineVerdict`; ShipGuard then emits `comparativeBenchmark` with ShipGuard score, baseline score, score lift, win rate, and quality gates. Use private-app traces only locally after shareable redaction; repeated weaknesses should become synthetic public traces under `fixtures/external-pilot-verdict-bench/` or `fixtures/external-benchmark-v2/`.
 - `web audit`, `backend audit`, and `cli audit`: run ShipGuard WebScan, ServiceRadar, and CommandLens for non-iOS repos. These are read-only first audits that turn starter-profile installation into concrete target source/config/test signals, validation guidance, next commands, and report-quality questions instead of stopping at `init` and `doctor`. The reports list generated ShipGuard starter files separately and do not count them as target proof.
 - `web plan`, `backend plan`, and `cli plan`: run ShipGuard WebForge, ServiceForge, and CommandForge for non-iOS audit reports. These are read-only fix-plan receipts that turn first-audit output into scoped tasks, validation commands, validation receipts, validation rerun receipts, stop conditions, and report-quality questions without authorizing target-app edits. Add `--target <repo>` to classify each validation lane as runnable, blocked, manual, or not checked without executing arbitrary target commands; blocked or unchecked lanes also get the smallest repair guidance and a shareable rerun command.
 - `ios preview`: serve a local simulator screenshot preview for the Codex in-app browser.
@@ -556,7 +556,7 @@ Generate release proof files for a tarball:
 
 ```bash
 ./bin/shipguard release-manifest \
-  --tarball dist/shipguard-v3.113.0.tar.gz \
+  --tarball dist/shipguard-v3.131.0.tar.gz \
   --out /tmp/shipguard-release-proof
 ```
 
@@ -565,7 +565,7 @@ Verify the manifest against the tarball:
 ```bash
 ./bin/shipguard release-manifest verify \
   --manifest /tmp/shipguard-release-proof/release-manifest.json \
-  --tarball dist/shipguard-v3.113.0.tar.gz
+  --tarball dist/shipguard-v3.131.0.tar.gz
 ```
 
 The command writes `release-manifest.json` and `proof-ledger.md`. Add `--ci-run-url`, `--release-url`, and `--issue-url` after publishing to bind the local artifact digest to public release proof. See `release-manifest.md`.
@@ -575,7 +575,7 @@ Build a release proof catalog from manifests:
 ```bash
 ./bin/shipguard release-index build \
   --manifest dist/release-proof-v3.5.0/release-manifest.json \
-  --manifest dist/release-proof-v3.113.0/release-manifest.json \
+  --manifest dist/release-proof-v3.131.0/release-manifest.json \
   --out /tmp/shipguard-release-index
 ```
 
@@ -586,7 +586,7 @@ Replay-verify downloaded release assets:
 ```bash
 ./bin/shipguard release-replay verify \
   --manifest /tmp/shipguard-release-proof/release-manifest.json \
-  --tarball /tmp/shipguard-release-assets/shipguard-v3.113.0.tar.gz \
+  --tarball /tmp/shipguard-release-assets/shipguard-v3.131.0.tar.gz \
   --index /tmp/shipguard-release-index/release-index.json \
   --ledger /tmp/shipguard-release-proof/proof-ledger.md \
   --out /tmp/shipguard-release-replay
@@ -610,7 +610,7 @@ Build the full release proof bundle in one command:
 ```bash
 ./bin/shipguard release-proof build \
   --out /tmp/shipguard-release-proof-bundle \
-  --release-url https://github.com/owner/repo/releases/tag/v3.113.0
+  --release-url https://github.com/owner/repo/releases/tag/v3.131.0
 ```
 
 The command writes the release tarball, manifest, release index, replay report, attestation, and attestation badge. See `release-proof.md`.
@@ -621,9 +621,9 @@ Verify a flat directory of downloaded release assets and write a consumer report
 
 ```bash
 ./bin/shipguard release-consume verify \
-  --dir /tmp/shipguard-v3.113.0 \
-  --out /tmp/shipguard-v3.113.0/consumer-proof \
-  --version 3.113.0
+  --dir /tmp/shipguard-v3.131.0 \
+  --out /tmp/shipguard-v3.131.0/consumer-proof \
+  --version 3.131.0
 ```
 
 The command writes `consumer-report.json`, `consumer-report.md`, `asset-digests.json`, `asset-digests.md`, `sha256.txt`, replay outputs, and attestation outputs. It also cross-checks downloaded replay, attestation, and badge assets when they are present. Use `actions/release-consume` when this verification should run in GitHub Actions. See `release-consume.md` and `release-consume-action.md`.
@@ -635,7 +635,7 @@ Compare two release proof asset directories and write JSON/Markdown diff reports
 ```bash
 ./bin/shipguard release-diff compare \
   --left /tmp/shipguard-old \
-  --right /tmp/shipguard-v3.113.0 \
+  --right /tmp/shipguard-v3.131.0 \
   --out /tmp/shipguard-release-diff
 ```
 
@@ -647,7 +647,7 @@ Export release proof reports as a static evidence page:
 
 ```bash
 ./bin/shipguard release-evidence site \
-  --consume /tmp/shipguard-v3.113.0/consumer-proof \
+  --consume /tmp/shipguard-v3.131.0/consumer-proof \
   --diff /tmp/shipguard-release-diff \
   --out /tmp/shipguard-release-site
 ```
@@ -659,7 +659,7 @@ Build a static index from one or more evidence site exports:
 ```bash
 ./bin/shipguard release-evidence index \
   --site /tmp/shipguard-previous-site \
-  --site /tmp/shipguard-v3.113.0-site \
+  --site /tmp/shipguard-v3.131.0-site \
   --out /tmp/shipguard-release-history
 ```
 
@@ -669,11 +669,11 @@ Build the full local evidence path from downloaded release assets:
 
 ```bash
 ./bin/shipguard release-evidence bundle \
-  --assets /tmp/shipguard-v3.113.0 \
+  --assets /tmp/shipguard-v3.131.0 \
   --left /tmp/shipguard-old \
   --out /tmp/shipguard-release-evidence-bundle \
-  --version 3.113.0 \
-  --title "ShipGuard v3.113.0 Evidence"
+  --version 3.131.0 \
+  --title "ShipGuard v3.131.0 Evidence"
 ```
 
 The command writes consumer proof, optional release-diff proof, `site/index.html`, `index/evidence-index.json`, `bundle.json`, and `README.md`. See `release-evidence-bundle.md`.
@@ -707,28 +707,28 @@ Use `actions/release-evidence-negative-index` when this guardrail index should r
 Download a published release bundle, verify the tarball digest, replay the proof, and rebuild the compact attestation:
 
 ```bash
-gh release download v3.113.0 \
+gh release download v3.131.0 \
   --repo jlekerli-source/ShipGuard \
-  --pattern 'shipguard-v3.113.0.tar.gz' \
+  --pattern 'shipguard-v3.131.0.tar.gz' \
   --pattern 'release-manifest.json' \
   --pattern 'release-index.json' \
   --pattern 'proof-ledger.md' \
   --pattern 'attestation-badge.json' \
-  --dir /tmp/shipguard-v3.113.0
+  --dir /tmp/shipguard-v3.131.0
 
-shasum -a 256 /tmp/shipguard-v3.113.0/shipguard-v3.113.0.tar.gz
+shasum -a 256 /tmp/shipguard-v3.131.0/shipguard-v3.131.0.tar.gz
 
 ./bin/shipguard release-replay verify \
-  --manifest /tmp/shipguard-v3.113.0/release-manifest.json \
-  --tarball /tmp/shipguard-v3.113.0/shipguard-v3.113.0.tar.gz \
-  --index /tmp/shipguard-v3.113.0/release-index.json \
-  --ledger /tmp/shipguard-v3.113.0/proof-ledger.md \
-  --out /tmp/shipguard-v3.113.0/consumer-replay
+  --manifest /tmp/shipguard-v3.131.0/release-manifest.json \
+  --tarball /tmp/shipguard-v3.131.0/shipguard-v3.131.0.tar.gz \
+  --index /tmp/shipguard-v3.131.0/release-index.json \
+  --ledger /tmp/shipguard-v3.131.0/proof-ledger.md \
+  --out /tmp/shipguard-v3.131.0/consumer-replay
 
 ./bin/shipguard release-attest build \
-  --manifest /tmp/shipguard-v3.113.0/release-manifest.json \
-  --replay /tmp/shipguard-v3.113.0/consumer-replay/replay-report.json \
-  --out /tmp/shipguard-v3.113.0/consumer-attestation
+  --manifest /tmp/shipguard-v3.131.0/release-manifest.json \
+  --replay /tmp/shipguard-v3.131.0/consumer-replay/replay-report.json \
+  --out /tmp/shipguard-v3.131.0/consumer-attestation
 ```
 
 See `release-proof-consumption.md` for the rejection rules and trust model.
@@ -796,8 +796,8 @@ The command writes a Markdown plan with `/plan` and `/goal` blocks, optional bou
 Download and extract a release package:
 
 ```bash
-tar -xzf shipguard-v3.113.0.tar.gz
-cd shipguard-v3.113.0
+tar -xzf shipguard-v3.131.0.tar.gz
+cd shipguard-v3.131.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 ```
 

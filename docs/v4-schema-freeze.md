@@ -73,7 +73,7 @@ This command freezes the local v4 schema contract. It does not claim:
 - ShipGuard v4 is released.
 - OpenAI or any marketplace has accepted ShipGuard.
 - A third party has audited ShipGuard.
-- Private apps such as Ringly or Ilmify were validated.
+- Any private app was validated.
 - Simulator or schema fixtures prove physical-device behavior.
 
 ## Release-Candidate Follow-Up

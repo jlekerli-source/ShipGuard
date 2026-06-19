@@ -5,7 +5,7 @@
 ```bash
 ./bin/shipguard release-proof build \
   --out /tmp/shipguard-release-proof-bundle \
-  --release-url https://github.com/owner/repo/releases/tag/v3.113.0 \
+  --release-url https://github.com/owner/repo/releases/tag/v3.131.0 \
   --issue-url https://github.com/owner/repo/issues/123
 ```
 

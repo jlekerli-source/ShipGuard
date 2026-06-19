@@ -1,6 +1,6 @@
 # Example: Issue To Plan To Validation
 
-This is an anonymized transcript showing how a messy report becomes a bounded Codex task. It uses Ringly-style alarm and notification risk, but it does not expose private app source.
+This is an anonymized transcript showing how a messy report becomes a bounded Codex task. It uses sample alarm and notification risk, but it does not expose private app source.
 
 ## Incoming Issue
 

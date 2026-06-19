@@ -1,6 +1,6 @@
 # Demo Walkthrough
 
-This walkthrough proves the toolkit without private Ringly code.
+This walkthrough proves the toolkit without private app code.
 
 ## From A Clone
 

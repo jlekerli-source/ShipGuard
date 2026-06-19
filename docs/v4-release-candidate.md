@@ -72,6 +72,5 @@ Passing this report means ShipGuard is candidate-ready. It does not mean:
 - ShipGuard v4 is a stable product release.
 - OpenAI accepted ShipGuard into a public marketplace.
 - External adoption has been proven by independent users.
-- Ringly, Ilmify, or any other private app has been validated.
+- Any private app has been validated.
 - Physical-device iOS behavior has been proven.
-

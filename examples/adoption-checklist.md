@@ -7,7 +7,7 @@ Use this checklist when rolling the workflow kit into another repo.
 - [ ] Run `./bin/shipguard init ios <target>`.
 - [ ] Replace placeholders in `<target>/AGENTS.md`.
 - [ ] Add real validation commands.
-- [ ] Remove Ringly-specific assumptions that do not apply.
+- [ ] Remove sample-app assumptions that do not apply.
 - [ ] Run `./bin/shipguard doctor <target>`.
 
 ## First Task

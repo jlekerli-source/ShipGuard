@@ -9,6 +9,7 @@ ShipGuard's GitHub surface should explain the product quickly, without making it
 - Product name: ShipGuard.
 - Contributor and maintainer workspace name: ShipGuard ShipYard.
 - Public promise: local-first CLI plus Codex plugin for proof-gated app maintenance.
+- Template status: enabled on GitHub, so the repo shows `Use this template`.
 - Stable claim boundary: v4 is not stable until release-candidate, schema, package, security, install, rollback, and release-proof consumption evidence all pass on published assets.
 
 Use this command pair before changing the GitHub presentation:
@@ -55,7 +56,7 @@ Recommended sidebar links:
 - Documentation: `docs/index.md`.
 - Latest release: `https://github.com/jlekerli-source/ShipGuard/releases/latest`.
 
-Owner/admin action: GitHub repository description, topics, template status, and social preview are GitHub settings. Keep the recommended copy here, but change the live sidebar in GitHub.
+Owner/admin action: GitHub repository description, topics, template status, and social preview are GitHub settings. The description, topics, and template flag are currently set; social preview upload still requires the GitHub web UI.
 
 ## README Lead
 
@@ -89,7 +90,7 @@ Use the tracked icon for the README logo and, if a simple presentation is prefer
 Settings -> General -> Social preview -> Upload .github/assets/shipguard-icon.png
 ```
 
-Do not generate CSS/SVG mock art for the social preview. If a custom social image is created later, it should be generated from real ShipGuard branding or product screenshots, committed under `.github/assets/`, and documented here.
+Do not generate CSS/SVG mock art for the social preview. Use the icon until a stronger product screenshot or real generated brand asset exists; do not keep unused preview mockups in the repo.
 
 ## Release Page Copy
 
