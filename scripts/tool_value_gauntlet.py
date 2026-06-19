@@ -91,7 +91,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add External Benchmark v2 receipts so independent/public-safe task traces compare ShipGuard verdict usefulness against baseline agent output?",
+    "Should ShipGuard stabilize the v4 preview contract with schema-freeze, security, migration, and release-readiness receipts?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -187,6 +187,7 @@ FULL_AUDIT_ORCHESTRATOR_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" 
 UNIFIED_INSPECT_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "unified-inspect-receipts"
 CONCISE_VERDICT_RESULT_UX_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "concise-verdict-result-ux-receipts"
 CODEX_MARKETPLACE_READINESS_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "codex-marketplace-readiness-receipts"
+EXTERNAL_BENCHMARK_V2_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "external-benchmark-v2-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -1044,6 +1045,18 @@ def load_concise_verdict_result_ux_receipts(root: Path) -> list[tuple[Path, dict
 
 def load_codex_marketplace_readiness_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / CODEX_MARKETPLACE_READINESS_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_external_benchmark_v2_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / EXTERNAL_BENCHMARK_V2_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -2687,6 +2700,37 @@ def codex_marketplace_readiness_receipt_probe(root: Path) -> dict[str, Any]:
     }
 
 
+def external_benchmark_v2_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [
+        run_skill_plugin_receipt(root, fixture_dir, meta)
+        for fixture_dir, meta in load_external_benchmark_v2_receipts(root)
+    ]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public-safe External Benchmark v2 fixtures that compare ShipGuard verdict usefulness against baseline agent output.",
+        "fixtureRoot": EXTERNAL_BENCHMARK_V2_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public synthetic comparative task traces", "ShipGuard PilotBench benchmark-v2 mode"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "External Benchmark v2 receipts are passing; stabilize the v4 preview contract next."
+            if status == "pass"
+            else "Fix External Benchmark v2 receipts so ShipGuard proves comparative verdict usefulness against baseline output on public-safe traces."
+        ),
+    }
+
+
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
     slug = command_slug(command)
     tokens = command_tokens(command)
@@ -3141,6 +3185,13 @@ def codex_marketplace_readiness_receipt_passed(codex_marketplace_readiness_recei
     return required.issubset(receipt_command_ids(codex_marketplace_readiness_receipts))
 
 
+def external_benchmark_v2_receipt_passed(external_benchmark_v2_receipts: dict[str, Any]) -> bool:
+    if external_benchmark_v2_receipts.get("status") != "pass":
+        return False
+    required = {"external-benchmark-v2-comparative-pass"}
+    return required.issubset(receipt_command_ids(external_benchmark_v2_receipts))
+
+
 def command_depth_rows(
     commands: list[dict[str, Any]],
     text_index: dict[str, str],
@@ -3351,6 +3402,7 @@ def lowest_value_surface_probe(
     unified_inspect_receipts: dict[str, Any],
     concise_verdict_result_ux_receipts: dict[str, Any],
     codex_marketplace_readiness_receipts: dict[str, Any],
+    external_benchmark_v2_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -4414,6 +4466,40 @@ def lowest_value_surface_probe(
             recommendation="Add External Benchmark v2 receipts that compare ShipGuard verdict usefulness against baseline agent output on public-safe task traces.",
             proof="Run value-gauntlet plus focused external benchmark fixtures that prove ShipGuard improves scope, evidence, claim checking, and next-action quality without private app leakage.",
         )
+    if (
+        answer
+        and answer.get("identifier") == "shipguard external-benchmark-v2"
+        and external_benchmark_v2_receipt_passed(external_benchmark_v2_receipts)
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeExternalBenchmarkV2":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeExternalBenchmarkV2",
+                        True,
+                        f"{external_benchmark_v2_receipts.get('passedReceiptCount') or 0}/{external_benchmark_v2_receipts.get('receiptCount') or 0} External Benchmark v2 receipts executed",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeV4PreviewStabilization",
+                False,
+                "v4 preview still needs a stabilized product contract with schema-freeze, security, docs, migration, and release-readiness proof",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="product",
+            identifier="shipguard v4-preview-stabilization",
+            name="v4 Preview Stabilization",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Stabilize the v4 preview contract with schema freeze, security review, migration guidance, deprecation policy, and release-readiness receipts.",
+            proof="Run value-gauntlet plus focused v4 preview fixtures that prove the product contract is stable before v4 packaging.",
+        )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
         answer = {
@@ -4503,6 +4589,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     unified_inspect_receipts = unified_inspect_receipt_probe(root)
     concise_verdict_result_ux_receipts = concise_verdict_result_ux_receipt_probe(root)
     codex_marketplace_readiness_receipts = codex_marketplace_readiness_receipt_probe(root)
+    external_benchmark_v2_receipts = external_benchmark_v2_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -4542,6 +4629,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         unified_inspect_receipts=unified_inspect_receipts,
         concise_verdict_result_ux_receipts=concise_verdict_result_ux_receipts,
         codex_marketplace_readiness_receipts=codex_marketplace_readiness_receipts,
+        external_benchmark_v2_receipts=external_benchmark_v2_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -4622,6 +4710,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "unifiedInspectReceipts": unified_inspect_receipts,
         "conciseVerdictResultUXReceipts": concise_verdict_result_ux_receipts,
         "codexMarketplaceReadinessReceipts": codex_marketplace_readiness_receipts,
+        "externalBenchmarkV2Receipts": external_benchmark_v2_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_action_rows,
@@ -5428,6 +5517,30 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_marketplace_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_marketplace_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+    external_benchmark_v2_receipts = report.get("externalBenchmarkV2Receipts") or {}
+    lines.extend(["", "## External Benchmark v2 Receipts", ""])
+    lines.append(f"- Status: {external_benchmark_v2_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {external_benchmark_v2_receipts.get('passedReceiptCount', 0)}/{external_benchmark_v2_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {external_benchmark_v2_receipts.get('commandCount', 0)}")
+    if external_benchmark_v2_receipts.get("nextAction"):
+        lines.append(f"- Next action: {external_benchmark_v2_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in external_benchmark_v2_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 44)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_benchmark_commands = [
+        (receipt, command)
+        for receipt in external_benchmark_v2_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_benchmark_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_benchmark_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

@@ -85,13 +85,15 @@ if receipts.get("status") != "pass":
 if receipts.get("receiptCount") != 1 or receipts.get("passedReceiptCount") != 1 or receipts.get("commandCount") != 4:
     raise SystemExit(f"unexpected concise result UX receipt counts: {receipts!r}")
 answer = ((gauntlet.get("lowestValueSurfaceProbe") or {}).get("answer") or {})
-if answer.get("identifier") != "shipguard external-benchmark-v2":
-    raise SystemExit(f"passing result UX receipts should escalate to external benchmark v2: {answer!r}")
+if answer.get("identifier") != "shipguard v4-preview-stabilization":
+    raise SystemExit(f"passing external benchmark v2 receipts should escalate to v4 preview stabilization: {answer!r}")
 missing = answer.get("missingDepthSignals") or []
 if "runtimeConciseVerdictResultUX" in missing:
     raise SystemExit(f"concise result UX should no longer be missing: {answer!r}")
-if "runtimeExternalBenchmarkV2" not in missing:
-    raise SystemExit(f"external benchmark v2 should be the next explicit gap: {answer!r}")
+if "runtimeExternalBenchmarkV2" in missing:
+    raise SystemExit(f"external benchmark v2 should no longer be missing: {answer!r}")
+if "runtimeV4PreviewStabilization" not in missing:
+    raise SystemExit(f"v4 preview stabilization should be the next explicit gap: {answer!r}")
 PY
 
 grep -q 'Concise Verdict Result UX Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"

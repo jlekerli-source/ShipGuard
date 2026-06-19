@@ -114,6 +114,7 @@ grep -q 'Universal Agent Packaging Receipts' "$tmp_dir/gauntlet/tool-value-gaunt
 grep -q 'Full-Audit Orchestrator Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Unified Inspect Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Concise Verdict Result UX Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'External Benchmark v2 Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q '## Result' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Report Quality Questions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'ShipGuard PilotBench' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
@@ -154,13 +155,14 @@ universal_agent_packaging = data.get("universalAgentPackagingReceipts") or {}
 full_audit_orchestrator = data.get("fullAuditOrchestratorReceipts") or {}
 unified_inspect = data.get("unifiedInspectReceipts") or {}
 concise_result_ux = data.get("conciseVerdictResultUXReceipts") or {}
+external_benchmark_v2 = data.get("externalBenchmarkV2Receipts") or {}
 if probe.get("question") != "Which ShipGuard command, skill, plugin, or action has the lowest developer-value score and should be upgraded next?":
     raise SystemExit(f"unexpected probe question: {probe!r}")
 for key in ("surfaceType", "identifier", "name", "baseScore", "depthScore", "depthChecks", "recommendation", "proofGuidance", "reason"):
     if key not in answer:
         raise SystemExit(f"probe answer missing {key}: {answer!r}")
-if answer.get("surfaceType") != "eval" or answer.get("identifier") != "shipguard external-benchmark-v2":
-    raise SystemExit(f"passing concise result UX receipts should escalate to external benchmark v2: {answer!r}")
+if answer.get("surfaceType") != "product" or answer.get("identifier") != "shipguard v4-preview-stabilization":
+    raise SystemExit(f"passing external benchmark v2 receipts should escalate to v4 preview stabilization: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"diff-first verification should no longer be missing: {answer!r}")
 if "runtimeIOSNotificationPermissionWorkflow" in answer.get("missingDepthSignals", []):
@@ -179,11 +181,13 @@ if "runtimeFullAuditOrchestrator" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"full-audit orchestrator should no longer be missing: {answer!r}")
 if "runtimeConciseVerdictResultUX" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"concise verdict/result UX should no longer be missing: {answer!r}")
-if "runtimeExternalBenchmarkV2" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"Codex external benchmark v2 gap should be explicit: {answer!r}")
+if "runtimeExternalBenchmarkV2" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"External Benchmark v2 should no longer be missing: {answer!r}")
+if "runtimeV4PreviewStabilization" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"v4 preview stabilization gap should be explicit: {answer!r}")
 if "runtimeUnifiedInspectExperience" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"unified inspect should no longer be missing: {answer!r}")
-for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract", "runtimeIOSNotificationPermissionWorkflow", "runtimeExternalPilotVerdictBench", "runtimeDomainPackSDK", "runtimeConfigurationBaselineSuppressions", "runtimeStructuredEvidenceReceiptsV2", "runtimeCodexNativeTaskTraceAdapter", "runtimeXcodeBuildMCPEvidenceAdapter", "runtimeExpoMCPAndEASAdapter", "runtimeUniversalAgentPackagingAdapter", "runtimeFullAuditOrchestrator", "runtimeUnifiedInspectExperience", "runtimeConciseVerdictResultUX"):
+for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract", "runtimeIOSNotificationPermissionWorkflow", "runtimeExternalPilotVerdictBench", "runtimeDomainPackSDK", "runtimeConfigurationBaselineSuppressions", "runtimeStructuredEvidenceReceiptsV2", "runtimeCodexNativeTaskTraceAdapter", "runtimeXcodeBuildMCPEvidenceAdapter", "runtimeExpoMCPAndEASAdapter", "runtimeUniversalAgentPackagingAdapter", "runtimeFullAuditOrchestrator", "runtimeUnifiedInspectExperience", "runtimeConciseVerdictResultUX", "runtimeCodexMarketplaceReadiness", "runtimeExternalBenchmarkV2"):
     if retired_signal in answer.get("missingDepthSignals", []):
         raise SystemExit(f"{retired_signal} should no longer be missing after fixture proof: {answer!r}")
 if not isinstance(probe.get("rankedSurfaces"), list) or not probe["rankedSurfaces"]:
@@ -878,6 +882,22 @@ for item in concise_result_ux.get("receipts") or []:
     for command in item.get("commands") or []:
         if command.get("status") != "pass" or command.get("missing"):
             raise SystemExit(f"concise result UX command should pass without missing checks: {command!r}")
+if external_benchmark_v2.get("status") != "pass":
+    raise SystemExit(f"External Benchmark v2 receipts should pass: {external_benchmark_v2!r}")
+if external_benchmark_v2.get("receiptCount") != 1 or external_benchmark_v2.get("passedReceiptCount") != 1 or external_benchmark_v2.get("commandCount") != 1:
+    raise SystemExit(f"expected one External Benchmark v2 receipt and one command: {external_benchmark_v2!r}")
+benchmark_receipt_ids = {item.get("id") for item in external_benchmark_v2.get("receipts") or []}
+if benchmark_receipt_ids != {"public-comparative-verdicts"}:
+    raise SystemExit(f"unexpected External Benchmark v2 receipt fixtures: {benchmark_receipt_ids!r}")
+for item in external_benchmark_v2.get("receipts") or []:
+    if item.get("status") != "pass" or item.get("missing"):
+        raise SystemExit(f"External Benchmark v2 receipt should pass without missing checks: {item!r}")
+    command_ids = {command.get("id") for command in item.get("commands") or []}
+    if command_ids != {"external-benchmark-v2-comparative-pass"}:
+        raise SystemExit(f"unexpected External Benchmark v2 command set: {command_ids!r}")
+    for command in item.get("commands") or []:
+        if command.get("status") != "pass" or command.get("missing"):
+            raise SystemExit(f"External Benchmark v2 command should pass without missing checks: {command!r}")
 if "Which ShipGuard command" in data.get("reportQualityQuestions", []):
     raise SystemExit("the answered lowest-value question should not remain a report-quality question")
 retired_phrases = (
@@ -911,11 +931,12 @@ retired_phrases = (
     "full-audit orchestrator",
     "unified inspect",
     "concise verdict",
+    "External Benchmark v2 receipts",
 )
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
     raise SystemExit(f"answered runtime receipt questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
-if not any("external benchmark v2" in question.lower() for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"expected external benchmark v2 quality question: {data.get('reportQualityQuestions')!r}")
+if not any("v4 preview" in question.lower() for question in data.get("reportQualityQuestions", [])):
+    raise SystemExit(f"expected v4 preview quality question: {data.get('reportQualityQuestions')!r}")
 PY
 
 json_stdout="$(./bin/shipguard value-gauntlet --path . --json)"
@@ -932,6 +953,6 @@ grep -q '# ShipGuard Tool Value Gauntlet' <<<"$markdown_stdout"
 grep -q '"tool": "shipguard ios report-quality"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/quality/ios-report-quality.md"
-grep -qi 'external benchmark v2' "$tmp_dir/quality/ios-report-quality.md"
+grep -qi 'v4 preview' "$tmp_dir/quality/ios-report-quality.md"
 
 echo "tool value gauntlet tests passed"

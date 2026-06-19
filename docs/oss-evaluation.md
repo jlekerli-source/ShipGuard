@@ -410,7 +410,9 @@ The unified inspect slice adds `shipguard inspect` and `fixtures/tool-value-gaun
 
 The concise result-UX slice adds `scripts/shipguard_result.py` and `fixtures/tool-value-gauntlet/concise-verdict-result-ux-receipts`. `conciseVerdictResultUXReceipts` run full-audit, iOS design, iOS performance, and InspectDeck on public/synthetic inputs and require each report to lead with `resultUX` plus Markdown `## Result`: verdict, proof source, why it matters, and one next command.
 
-The Codex marketplace-readiness slice adds `scripts/codex_marketplace_readiness.py`, `docs/codex-marketplace-readiness.md`, and `fixtures/tool-value-gauntlet/codex-marketplace-readiness-receipts`. `codexMarketplaceReadinessReceipts` run the public MarketplaceDeck path and require plugin metadata, local marketplace source, README/profile presentation, icon assets, screenshot policy, strict status proof, privacy/model-choice boundaries, and a copy-ready submission packet. With those receipts green, the next value-gauntlet weakness is v3.128 External Benchmark v2.
+The Codex marketplace-readiness slice adds `scripts/codex_marketplace_readiness.py`, `docs/codex-marketplace-readiness.md`, and `fixtures/tool-value-gauntlet/codex-marketplace-readiness-receipts`. `codexMarketplaceReadinessReceipts` run the public MarketplaceDeck path and require plugin metadata, local marketplace source, README/profile presentation, icon assets, screenshot policy, strict status proof, privacy/model-choice boundaries, and a copy-ready submission packet.
+
+The External Benchmark v2 slice extends `shipguard pilot-bench` with `--benchmark-v2` and adds `fixtures/tool-value-gauntlet/external-benchmark-v2-receipts`. `externalBenchmarkV2Receipts` run public-safe comparative traces with `baselineVerdict`, require meaningful ShipGuard score lift, and prove verdict usefulness without private app leakage. With those receipts green, the next value-gauntlet weakness is v4 preview stabilization.
 
 ## Verdict
 

@@ -83,8 +83,8 @@ if structured_evidence.get("receiptCount") != 1 or structured_evidence.get("pass
 
 if concise_result_ux.get("status") != "pass":
     raise SystemExit(f"concise result UX receipts should pass: {concise_result_ux!r}")
-if answer.get("identifier") != "shipguard external-benchmark-v2":
-    raise SystemExit(f"passing concise result UX receipts should escalate to external benchmark v2: {answer!r}")
+if answer.get("identifier") != "shipguard v4-preview-stabilization":
+    raise SystemExit(f"passing external benchmark v2 receipts should escalate to v4 preview stabilization: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -113,8 +113,10 @@ if "runtimeUnifiedInspectExperience" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"unified inspect should no longer be missing: {answer!r}")
 if "runtimeConciseVerdictResultUX" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"concise verdict UX should no longer be missing: {answer!r}")
-if "runtimeExternalBenchmarkV2" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"external benchmark v2 gap should be explicit: {answer!r}")
+if "runtimeExternalBenchmarkV2" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"external benchmark v2 should no longer be missing: {answer!r}")
+if "runtimeV4PreviewStabilization" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"v4 preview stabilization gap should be explicit: {answer!r}")
 PY
 
 echo "task contract receipt tests passed"

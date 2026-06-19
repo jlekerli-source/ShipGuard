@@ -33,8 +33,8 @@ The naming style is intentional: stable commands and paths stay literal, while p
 Install from a release tarball, then validate the bundle:
 
 ```bash
-tar -xzf shipguard-v3.127.0.tar.gz
-cd shipguard-v3.127.0
+tar -xzf shipguard-v3.128.0.tar.gz
+cd shipguard-v3.128.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" version
 ./bin/shipguard validate
@@ -97,7 +97,7 @@ Common loops:
 | Check the branded naming scheme | `./bin/shipguard brand --help` |
 | Audit actual ShipGuard developer value | `./bin/shipguard value-gauntlet --help` |
 | Inspect ShipGuard proof state | `./bin/shipguard inspect --help` |
-| Score PilotBench verdict traces | `./bin/shipguard pilot-bench --help` |
+| Score PilotBench and benchmark-v2 verdict traces | `./bin/shipguard pilot-bench --help` |
 | Normalize agent/Codex task traces | `./bin/shipguard agent trace --help`, `./bin/shipguard codex trace --help` |
 | First-audit a web, backend, or CLI repo | `./bin/shipguard web audit --help`, `./bin/shipguard backend audit --help`, `./bin/shipguard cli audit --help` |
 | Turn profile audits into scoped work plans | `./bin/shipguard web plan --help`, `./bin/shipguard backend plan --help`, `./bin/shipguard cli plan --help` |

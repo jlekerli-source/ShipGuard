@@ -15,6 +15,7 @@ from typing import Any
 TOOL = "shipguard pilot-bench"
 SURFACE = "ShipGuard PilotBench"
 SCHEMA_VERSION = 1
+BENCHMARK_VERSION = 2
 DEFAULT_FIXTURE_ROOT = Path("fixtures") / "external-pilot-verdict-bench"
 PRIVATE_TOKEN_RE = re.compile(r"(?i)(/Users/|/private/tmp/|Ringly|Ilmify|Project Ilmify|sk-[A-Za-z0-9_-]{12,}|gh[pousr]_[A-Za-z0-9_]{12,})")
 
@@ -158,7 +159,7 @@ def dimension_result(
     }
 
 
-def score_trace(trace: dict[str, Any], path: Path, *, root: Path, shareable: bool) -> dict[str, Any]:
+def score_trace(trace: dict[str, Any], path: Path, *, root: Path, shareable: bool, check_expectations: bool = True) -> dict[str, Any]:
     task = trace.get("task") if isinstance(trace.get("task"), dict) else {}
     verdict = trace.get("verdict") if isinstance(trace.get("verdict"), dict) else {}
     labels = trace.get("labels") if isinstance(trace.get("labels"), dict) else {}
@@ -192,7 +193,7 @@ def score_trace(trace: dict[str, Any], path: Path, *, root: Path, shareable: boo
 
     claim_text = "\n".join(flatten_strings(verdict.get("claimChecks")) + flatten_strings(verdict.get("agentClaims")) + flatten_strings(task.get("agentClaims")))
     rejected_claims = verdict.get("claimChecks", {}).get("rejectedClaims") if isinstance(verdict.get("claimChecks"), dict) else []
-    claim_matches = [claim for claim in unsupported_claims if contains_text(rejected_claims, claim) or claim.lower() in claim_text.lower()]
+    claim_matches = [claim for claim in unsupported_claims if contains_text(rejected_claims, claim)]
     claim_score = 100 if unsupported_claims and claim_matches else 80 if not unsupported_claims and verdict.get("claimChecks") else 45
 
     next_action = verdict.get("nextAction") if isinstance(verdict.get("nextAction"), dict) else task.get("nextAction") if isinstance(task.get("nextAction"), dict) else {}
@@ -312,7 +313,7 @@ def score_trace(trace: dict[str, Any], path: Path, *, root: Path, shareable: boo
     expected_min_score = labels.get("expectedMinScore")
     expected_findings = [str(item) for item in labels.get("expectedFindingRuleIds") or []]
     expectation_checks = []
-    if expected_status:
+    if check_expectations and expected_status:
         expectation_checks.append(
             {
                 "id": "expectedBenchStatus",
@@ -320,7 +321,7 @@ def score_trace(trace: dict[str, Any], path: Path, *, root: Path, shareable: boo
                 "evidence": f"status={status}, expected={expected_status}",
             }
         )
-    if expected_min_score is not None:
+    if check_expectations and expected_min_score is not None:
         expectation_checks.append(
             {
                 "id": "expectedMinScore",
@@ -329,7 +330,7 @@ def score_trace(trace: dict[str, Any], path: Path, *, root: Path, shareable: boo
             }
         )
     finding_ids = {item["ruleId"] for item in findings}
-    for rule_id in expected_findings:
+    for rule_id in expected_findings if check_expectations else []:
         expectation_checks.append(
             {
                 "id": f"expectedFinding:{rule_id}",
@@ -351,9 +352,137 @@ def score_trace(trace: dict[str, Any], path: Path, *, root: Path, shareable: boo
     }
 
 
+def score_baseline_trace(trace: dict[str, Any], path: Path, *, root: Path, shareable: bool) -> dict[str, Any] | None:
+    baseline = trace.get("baselineVerdict")
+    if not isinstance(baseline, dict):
+        return None
+    baseline_trace = {
+        **trace,
+        "traceId": f"{trace.get('traceId') or path.stem}::baseline",
+        "verdict": baseline,
+        "events": trace.get("baselineEvents") if isinstance(trace.get("baselineEvents"), list) else [],
+    }
+    return score_trace(baseline_trace, path, root=root, shareable=shareable, check_expectations=False)
+
+
+def dimension_score(trace: dict[str, Any], dimension_id: str) -> int:
+    for item in trace.get("dimensions") or []:
+        if item.get("id") == dimension_id:
+            return int(item.get("score") or 0)
+    return 0
+
+
+def comparative_benchmark(
+    scored_traces: list[dict[str, Any]],
+    baseline_traces: list[dict[str, Any] | None],
+    *,
+    min_lift: int,
+    required: bool,
+) -> dict[str, Any] | None:
+    pairs = [
+        {"shipguard": scored, "baseline": baseline}
+        for scored, baseline in zip(scored_traces, baseline_traces)
+        if isinstance(baseline, dict)
+    ]
+    if not required and not pairs:
+        return None
+    comparisons: list[dict[str, Any]] = []
+    for pair in pairs:
+        shipguard_score = int(pair["shipguard"].get("score") or 0)
+        baseline_score = int(pair["baseline"].get("score") or 0)
+        lift = shipguard_score - baseline_score
+        comparisons.append(
+            {
+                "traceId": pair["shipguard"].get("traceId"),
+                "shipguardScore": shipguard_score,
+                "baselineScore": baseline_score,
+                "scoreLift": lift,
+                "winner": "shipguard" if lift > 0 else "baseline" if lift < 0 else "tie",
+                "dimensionLift": {
+                    dimension_id: dimension_score(pair["shipguard"], dimension_id) - dimension_score(pair["baseline"], dimension_id)
+                    for dimension_id in (
+                        "ownerDetection",
+                        "scopePolicy",
+                        "requiredProofCoverage",
+                        "claimChecking",
+                        "redaction",
+                        "nextActionCompleteness",
+                        "falsePositiveRate",
+                        "firstUsefulVerdictTime",
+                    )
+                },
+                "baselineMissingDimensions": [
+                    item.get("id")
+                    for item in pair["baseline"].get("dimensions") or []
+                    if item.get("status") != "pass"
+                ],
+                "shipguardMissingDimensions": [
+                    item.get("id")
+                    for item in pair["shipguard"].get("dimensions") or []
+                    if item.get("status") != "pass"
+                ],
+            }
+        )
+    shipguard_average = round(sum(item["shipguardScore"] for item in comparisons) / len(comparisons)) if comparisons else 0
+    baseline_average = round(sum(item["baselineScore"] for item in comparisons) / len(comparisons)) if comparisons else 0
+    lift = shipguard_average - baseline_average
+    win_count = sum(1 for item in comparisons if item["winner"] == "shipguard")
+    win_rate = round((win_count / len(comparisons)) * 100) if comparisons else 0
+    gates = [
+        {
+            "id": "hasPublicSafeBaselinePairs",
+            "passed": bool(comparisons),
+            "evidence": f"{len(comparisons)} comparative pair(s)",
+        },
+        {
+            "id": "minimumScoreLift",
+            "passed": lift >= min_lift,
+            "evidence": f"score lift {lift}, required >= {min_lift}",
+        },
+        {
+            "id": "shipguardWinsEveryTrace",
+            "passed": bool(comparisons) and win_count == len(comparisons),
+            "evidence": f"{win_count}/{len(comparisons)} trace(s) won",
+        },
+        {
+            "id": "noShipGuardComparativeRegressions",
+            "passed": all(not item["shipguardMissingDimensions"] for item in comparisons),
+            "evidence": "ShipGuard verdict dimensions all pass" if comparisons else "no comparative pairs",
+        },
+    ]
+    status = "pass" if all(item["passed"] for item in gates) else "blocked" if required else "review"
+    return {
+        "benchmarkVersion": BENCHMARK_VERSION,
+        "status": status,
+        "required": required,
+        "pairCount": len(comparisons),
+        "shipguardAverageScore": shipguard_average,
+        "baselineAverageScore": baseline_average,
+        "scoreLift": lift,
+        "shipguardWinRate": win_rate,
+        "minimumRequiredLift": min_lift,
+        "qualityGates": gates,
+        "comparisons": comparisons,
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "privateAppsUsed": False,
+            "purpose": "Compare ShipGuard verdict usefulness against public-safe baseline agent output; do not grade or modify target apps.",
+        },
+    }
+
+
 def build_report(args: argparse.Namespace, *, root: Path) -> dict[str, Any]:
     files = trace_files(args.trace or [], root=root)
-    traces = [score_trace(trace_from_loaded(read_json(path), path), path, root=root, shareable=args.shareable) for path in files]
+    loaded_traces = [trace_from_loaded(read_json(path), path) for path in files]
+    traces = [score_trace(trace, path, root=root, shareable=args.shareable) for trace, path in zip(loaded_traces, files)]
+    baseline_traces = [score_baseline_trace(trace, path, root=root, shareable=args.shareable) for trace, path in zip(loaded_traces, files)]
+    benchmark = comparative_benchmark(
+        traces,
+        baseline_traces,
+        min_lift=int(args.min_lift),
+        required=bool(args.benchmark_v2),
+    )
     expectation_failures = [
         {"traceId": trace["traceId"], "checks": [item for item in trace["expectationChecks"] if not item["passed"]]}
         for trace in traces
@@ -363,6 +492,10 @@ def build_report(args: argparse.Namespace, *, root: Path) -> dict[str, Any]:
     blocked = any(trace["status"] == "blocked" for trace in traces)
     review = any(trace["status"] == "review" for trace in traces)
     status = "blocked" if expectation_failures or blocked else "review" if review else "pass"
+    if benchmark and benchmark["status"] == "blocked":
+        status = "blocked"
+    elif benchmark and benchmark["status"] == "review" and status == "pass":
+        status = "review"
     findings = []
     for trace in traces:
         for finding in trace["findings"]:
@@ -380,7 +513,7 @@ def build_report(args: argparse.Namespace, *, root: Path) -> dict[str, Any]:
         for trace in traces
         if trace["status"] != "pass"
     ]
-    return {
+    report = {
         "schemaVersion": SCHEMA_VERSION,
         "tool": TOOL,
         "surface": SURFACE,
@@ -424,10 +557,14 @@ def build_report(args: argparse.Namespace, *, root: Path) -> dict[str, Any]:
         },
         "reportQualityQuestions": [
             "Did the pilot bench score owner detection, scope, proof, claims, redaction, next action, false positives, and first useful verdict time?",
+            "If benchmark v2 is enabled, did ShipGuard beat the baseline agent verdict by a meaningful public-safe score lift?",
             "Did every private-app observation become a public-safe synthetic trace before changing ShipGuard rules?",
             "Can the bench tell whether a weak verdict is a ShipGuard defect without telling the developer to edit the target app?",
         ],
     }
+    if benchmark:
+        report["comparativeBenchmark"] = benchmark
+    return report
 
 
 def render_markdown(report: dict[str, Any]) -> str:
@@ -468,6 +605,21 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- `{item['candidateId']}` -> `{item['recommendedPublicFixturePath']}`")
     else:
         lines.append("No new fixture candidates.")
+    benchmark = report.get("comparativeBenchmark") if isinstance(report.get("comparativeBenchmark"), dict) else None
+    if benchmark:
+        lines.extend(["", "## External Benchmark v2", ""])
+        lines.append(f"- Status: `{benchmark['status']}`")
+        lines.append(f"- Pairs: {benchmark['pairCount']}")
+        lines.append(f"- ShipGuard average: {benchmark['shipguardAverageScore']}/100")
+        lines.append(f"- Baseline average: {benchmark['baselineAverageScore']}/100")
+        lines.append(f"- Score lift: {benchmark['scoreLift']} points")
+        lines.append(f"- ShipGuard win rate: {benchmark['shipguardWinRate']}%")
+        lines.extend(["", "| Trace | ShipGuard | Baseline | Lift | Winner | Baseline Missing |", "| --- | ---: | ---: | ---: | --- | --- |"])
+        for item in benchmark["comparisons"]:
+            missing = ", ".join(item["baselineMissingDimensions"]) or "-"
+            lines.append(
+                f"| `{item['traceId']}` | {item['shipguardScore']} | {item['baselineScore']} | {item['scoreLift']} | {item['winner']} | {missing} |"
+            )
     lines.extend(["", "## Scope Boundary", ""])
     boundary = report["scopeBoundary"]
     lines.append(f"- ShipGuard only: `{str(boundary['shipguardOnly']).lower()}`")
@@ -495,6 +647,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--trace", action="append", help="Trace JSON file or directory containing trace.json files. Defaults to public fixtures.")
     parser.add_argument("--out", help="Output directory for pilot-bench.json and pilot-bench.md")
     parser.add_argument("--shareable", action="store_true", help="Omit local input paths from output.")
+    parser.add_argument("--benchmark-v2", action="store_true", help="Require baselineVerdict pairs and emit External Benchmark v2 comparative scoring.")
+    parser.add_argument("--min-lift", type=int, default=15, help="Minimum average ShipGuard score lift over baseline for --benchmark-v2.")
     parser.add_argument("--json", action="store_true", help="Print JSON to stdout.")
     parser.add_argument("--markdown", action="store_true", help="Print Markdown to stdout.")
     return parser.parse_args(argv)

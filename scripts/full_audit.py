@@ -484,10 +484,10 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the full-audit report replace repeated manual validation ceremony with one resumable evidence lane?",
             "Are slow lanes summarized clearly enough for a solo developer to decide what to rerun?",
             "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?",
-            "Should the next ShipGuard slice add External Benchmark v2 receipts that compare ShipGuard verdict usefulness against baseline agent output on public-safe traces?",
+            "Should the next ShipGuard slice stabilize the v4 preview contract with schema-freeze, security, migration, and release-readiness receipts?",
         ],
-        "slashPlan": "/plan v3.127.0 Codex Marketplace Readiness for jlekerli-source/ShipGuard: prove public plugin metadata, install proof, README/profile presentation, screenshots/assets, status checks, and submission packet quality with executable receipts.",
-        "slashGoal": "/goal Implement v3.127.0 Codex Marketplace Readiness for jlekerli-source/ShipGuard: make the Codex marketplace source adopter-ready with proof, without hiding install or status evidence.",
+        "slashPlan": "/plan v3.129.0 v4 Preview Stabilization for jlekerli-source/ShipGuard: freeze the v4 preview contract, prove schema/security/migration boundaries, and keep release-readiness receipts public-safe.",
+        "slashGoal": "/goal Implement v3.129.0 v4 Preview Stabilization for jlekerli-source/ShipGuard: make the next product contract stable with proof, without breaking existing v3 receipts.",
     }
     if args.shareable:
         replacements = [(str(repo), "<shipguard-repo>"), (str(out_dir), "<shipguard-full-audit-out>"), (str(Path.home()), "<home>")]

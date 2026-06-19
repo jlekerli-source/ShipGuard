@@ -49,7 +49,7 @@ Keep the core open-source verdict engine honest. Future Pro, Team, or Enterprise
 
 ## Phase Map
 
-The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.127 as shipped foundations and v3.128 as the active External Benchmark v2 slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, universal-agent packaging, full-audit orchestration, unified inspect, concise result-UX, or Codex marketplace-readiness work.
+The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.128 as shipped foundations and v3.129 as the active v4 preview stabilization slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, universal-agent packaging, full-audit orchestration, unified inspect, concise result-UX, Codex marketplace-readiness, or External Benchmark v2 work.
 
 ### Phase A: Trustworthy Foundation
 
@@ -134,7 +134,7 @@ v3.128  External benchmark v2
 v3.129-v3.130  v4 preview, stabilization, security, and schema freeze
 ```
 
-Current state: v3.127 adds `shipguard codex marketplace-readiness` and MarketplaceDeck receipts that prove the public plugin source, README/profile presentation, install path, icon/assets policy, screenshot honesty, strict Codex status, and submission packet are adopter-ready. The active architectural priority is v3.128 External Benchmark v2: compare ShipGuard verdict usefulness against baseline agent output on public-safe task traces.
+Current state: v3.128 adds `shipguard pilot-bench --benchmark-v2` and External Benchmark v2 receipts that compare ShipGuard verdict usefulness against baseline agent output on public-safe task traces, including score lift, win rate, and private-app leakage boundaries. The active architectural priority is v3.129 v4 preview stabilization: freeze the product contract, prove migration/security boundaries, and prepare a stable v4 release path.
 
 Every release proposal must answer:
 

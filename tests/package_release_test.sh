@@ -229,8 +229,10 @@ grep -q "^$package_name/fixtures/tool-value-gauntlet/full-audit-orchestrator-rec
 grep -q "^$package_name/fixtures/tool-value-gauntlet/unified-inspect-receipts/proof-state-control-deck/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/concise-verdict-result-ux-receipts/major-report-result-contract/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/codex-marketplace-readiness-receipts/public-marketplace-submission-packet/receipt.json$" "$tar_list"
+grep -q "^$package_name/fixtures/tool-value-gauntlet/external-benchmark-v2-receipts/public-comparative-verdicts/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/external-pilot-verdict-bench/notification-permission-review/trace.json$" "$tar_list"
 grep -q "^$package_name/fixtures/external-pilot-verdict-bench/protected-scope-overclaim/trace.json$" "$tar_list"
+grep -q "^$package_name/fixtures/external-benchmark-v2/comparative-permission-proof/trace.json$" "$tar_list"
 grep -q "^$package_name/scripts/ios_launchdeck.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_codex_handoff.py$" "$tar_list"
 grep -q "^$package_name/scripts/ios_devspace_check.py$" "$tar_list"
@@ -501,6 +503,15 @@ grep -q '"tool": "shipguard pilot-bench"' "$tmp_dir/package-pilot-bench/pilot-be
 grep -q '"surface": "ShipGuard PilotBench"' "$tmp_dir/package-pilot-bench/pilot-bench.json"
 grep -q '"status": "pass"' "$tmp_dir/package-pilot-bench/pilot-bench.json"
 grep -q 'firstUsefulVerdictTime' "$tmp_dir/package-pilot-bench/pilot-bench.md"
+"$package_root/bin/shipguard" pilot-bench \
+  --trace "$package_root/fixtures/external-benchmark-v2" \
+  --out "$tmp_dir/package-external-benchmark-v2" \
+  --shareable \
+  --benchmark-v2 \
+  --min-lift 15 >/dev/null
+grep -q '"comparativeBenchmark":' "$tmp_dir/package-external-benchmark-v2/pilot-bench.json"
+grep -q '"benchmarkVersion": 2' "$tmp_dir/package-external-benchmark-v2/pilot-bench.json"
+grep -q 'External Benchmark v2' "$tmp_dir/package-external-benchmark-v2/pilot-bench.md"
 "$package_root/bin/shipguard" agent trace --help >/dev/null
 "$package_root/bin/shipguard" codex trace --help >/dev/null
 "$package_root/bin/shipguard" full-audit --path "$package_root" --out "$tmp_dir/package-full-audit" --stage version --stage py-compile --shipguard-eval --shareable >/dev/null
@@ -518,11 +529,13 @@ grep -q '"agentAdapterReceipts":' "$tmp_dir/package-value-gauntlet/tool-value-ga
 grep -q '"xcodeBuildMCPEvidenceReceipts":' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
 grep -q '"expoEASAssuranceReceipts":' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
 grep -q '"universalAgentPackagingReceipts":' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
+grep -q '"externalBenchmarkV2Receipts":' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
 grep -q 'Domain Pack SDK' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
 grep -q 'Agent Adapter Receipts' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
 grep -q 'XcodeBuildMCP Evidence Receipts' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
 grep -q 'Expo/EAS Assurance Receipts' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
 grep -q 'Universal Agent Packaging Receipts' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
+grep -q 'External Benchmark v2 Receipts' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
 "$package_root/bin/shipguard" inspect \
   --path "$package_root" \
@@ -1085,8 +1098,10 @@ grep -q '| fixtures/tool-value-gauntlet/full-audit-orchestrator-receipts/resumab
 grep -q '| fixtures/tool-value-gauntlet/unified-inspect-receipts/proof-state-control-deck/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/concise-verdict-result-ux-receipts/major-report-result-contract/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/codex-marketplace-readiness-receipts/public-marketplace-submission-packet/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| fixtures/tool-value-gauntlet/external-benchmark-v2-receipts/public-comparative-verdicts/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/external-pilot-verdict-bench/notification-permission-review/trace.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/external-pilot-verdict-bench/protected-scope-overclaim/trace.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| fixtures/external-benchmark-v2/comparative-permission-proof/trace.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q 'shipguard web audit' "$package_root/docs/cli.md"
 grep -q 'shipguard web plan' "$package_root/docs/cli.md"
 grep -q 'shipguard backend audit' "$package_root/docs/cli.md"

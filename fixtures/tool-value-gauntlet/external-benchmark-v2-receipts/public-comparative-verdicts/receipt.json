@@ -1,0 +1,122 @@
+{
+  "commands": [
+    {
+      "args": [
+        "pilot-bench",
+        "--trace",
+        "fixtures/external-benchmark-v2",
+        "--out",
+        "{out}/external-benchmark-v2",
+        "--shareable",
+        "--benchmark-v2",
+        "--min-lift",
+        "15"
+      ],
+      "artifacts": [
+        {
+          "path": "external-benchmark-v2/pilot-bench.json",
+          "requiredJsonKeys": [
+            "schemaVersion",
+            "tool",
+            "surface",
+            "status",
+            "traceCount",
+            "averageVerdictScore",
+            "comparativeBenchmark",
+            "scopeBoundary",
+            "reportQualityQuestions"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "comparativeBenchmark.comparisons",
+            "comparativeBenchmark.qualityGates",
+            "comparativeBenchmark.scopeBoundary",
+            "reportQualityQuestions"
+          ],
+          "requiredValues": [
+            {
+              "equals": "shipguard pilot-bench",
+              "path": "tool"
+            },
+            {
+              "equals": "ShipGuard PilotBench",
+              "path": "surface"
+            },
+            {
+              "equals": "pass",
+              "path": "status"
+            },
+            {
+              "equals": 2,
+              "path": "comparativeBenchmark.benchmarkVersion"
+            },
+            {
+              "equals": "pass",
+              "path": "comparativeBenchmark.status"
+            },
+            {
+              "equals": 1,
+              "path": "comparativeBenchmark.pairCount"
+            },
+            {
+              "equals": true,
+              "path": "comparativeBenchmark.scopeBoundary.shipguardOnly"
+            },
+            {
+              "equals": false,
+              "path": "comparativeBenchmark.scopeBoundary.privateAppsUsed"
+            }
+          ],
+          "type": "json"
+        },
+        {
+          "forbidLocalPaths": true,
+          "path": "external-benchmark-v2/pilot-bench.md",
+          "requiredPhrases": [
+            "# ShipGuard PilotBench",
+            "External Benchmark v2",
+            "ShipGuard average",
+            "Baseline average",
+            "Score lift",
+            "Private trace policy"
+          ],
+          "type": "markdown"
+        }
+      ],
+      "blockingProof": {
+        "artifact": "external-benchmark-v2/pilot-bench.json",
+        "min": 15,
+        "path": "comparativeBenchmark.scoreLift"
+      },
+      "display": "./bin/shipguard pilot-bench --trace fixtures/external-benchmark-v2 --out <out>/external-benchmark-v2 --shareable --benchmark-v2 --min-lift 15",
+      "id": "external-benchmark-v2-comparative-pass"
+    }
+  ],
+  "expectedSourcePhrases": [
+    "benchmark-v2",
+    "comparativeBenchmark",
+    "External Benchmark v2",
+    "baseline agent output"
+  ],
+  "id": "public-comparative-verdicts",
+  "kind": "external-benchmark-v2-receipt",
+  "scopeBoundary": {
+    "inputs": [
+      "public synthetic comparative traces",
+      "ShipGuard pilot-bench benchmark-v2 mode"
+    ],
+    "privateAppsUsed": false,
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "selectedMode": "value-gauntlet External Benchmark v2 receipts",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/external_pilot_verdict_bench.py",
+    "scripts/tool_value_gauntlet.py",
+    "fixtures/external-benchmark-v2/comparative-permission-proof/trace.json",
+    "docs/cli.md",
+    "tests/external_pilot_verdict_bench_test.sh"
+  ],
+  "surface": "ShipGuard External Benchmark v2",
+  "trigger": "Prove that ShipGuard can compare its verdict usefulness against baseline agent output on public-safe task traces without private app leakage."
+}

@@ -111,4 +111,41 @@ grep -q '"ruleId": "pilot-redaction"' "$tmp_dir/weak-pilot-bench/pilot-bench.jso
 grep -q '"ruleId": "pilot-nextActionCompleteness"' "$tmp_dir/weak-pilot-bench/pilot-bench.json"
 grep -q 'Fixture Candidates' "$tmp_dir/weak-pilot-bench/pilot-bench.md"
 
+./bin/shipguard pilot-bench \
+  --trace fixtures/external-benchmark-v2 \
+  --out "$tmp_dir/external-benchmark-v2" \
+  --shareable \
+  --benchmark-v2 \
+  --min-lift 15 >/dev/null
+
+test -f "$tmp_dir/external-benchmark-v2/pilot-bench.json"
+test -f "$tmp_dir/external-benchmark-v2/pilot-bench.md"
+grep -q '"comparativeBenchmark"' "$tmp_dir/external-benchmark-v2/pilot-bench.json"
+grep -q '"benchmarkVersion": 2' "$tmp_dir/external-benchmark-v2/pilot-bench.json"
+grep -q '"status": "pass"' "$tmp_dir/external-benchmark-v2/pilot-bench.json"
+grep -q 'External Benchmark v2' "$tmp_dir/external-benchmark-v2/pilot-bench.md"
+grep -q 'Score lift' "$tmp_dir/external-benchmark-v2/pilot-bench.md"
+if grep -R -q '/Users/' "$tmp_dir/external-benchmark-v2"; then
+  echo "shareable External Benchmark v2 output leaked a local path" >&2
+  exit 1
+fi
+
+python3 - <<'PY' "$tmp_dir/external-benchmark-v2/pilot-bench.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+bench = data.get("comparativeBenchmark") or {}
+assert bench.get("status") == "pass", bench
+assert bench.get("benchmarkVersion") == 2, bench
+assert bench.get("pairCount") == 1, bench
+assert bench.get("scoreLift", 0) >= 15, bench
+assert bench.get("shipguardAverageScore", 0) > bench.get("baselineAverageScore", 100), bench
+comparisons = bench.get("comparisons") or []
+assert comparisons and comparisons[0].get("winner") == "shipguard", comparisons
+assert "claimChecking" in comparisons[0].get("baselineMissingDimensions", []), comparisons
+assert "nextActionCompleteness" in comparisons[0].get("baselineMissingDimensions", []), comparisons
+assert bench.get("scopeBoundary", {}).get("privateAppsUsed") is False, bench
+PY
+
 echo "ShipGuard PilotBench tests passed"
