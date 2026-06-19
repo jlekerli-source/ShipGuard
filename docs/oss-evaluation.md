@@ -412,7 +412,9 @@ The concise result-UX slice adds `scripts/shipguard_result.py` and `fixtures/too
 
 The Codex marketplace-readiness slice adds `scripts/codex_marketplace_readiness.py`, `docs/codex-marketplace-readiness.md`, and `fixtures/tool-value-gauntlet/codex-marketplace-readiness-receipts`. `codexMarketplaceReadinessReceipts` run the public MarketplaceDeck path and require plugin metadata, local marketplace source, README/profile presentation, icon assets, screenshot policy, strict status proof, privacy/model-choice boundaries, and a copy-ready submission packet.
 
-The External Benchmark v2 slice extends `shipguard pilot-bench` with `--benchmark-v2` and adds `fixtures/tool-value-gauntlet/external-benchmark-v2-receipts`. `externalBenchmarkV2Receipts` run public-safe comparative traces with `baselineVerdict`, require meaningful ShipGuard score lift, and prove verdict usefulness without private app leakage. With those receipts green, the next value-gauntlet weakness is v4 preview stabilization.
+The External Benchmark v2 slice extends `shipguard pilot-bench` with `--benchmark-v2` and adds `fixtures/tool-value-gauntlet/external-benchmark-v2-receipts`. `externalBenchmarkV2Receipts` run public-safe comparative traces with `baselineVerdict`, require meaningful ShipGuard score lift, and prove verdict usefulness without private app leakage. With those receipts green, the next value-gauntlet weakness was v4 preview stabilization.
+
+The V4 Preview stabilization slice adds `shipguard v4 preview`, `docs/v4-preview.md`, and `fixtures/tool-value-gauntlet/v4-preview-stabilization-receipts`. `v4PreviewStabilizationReceipts` prove the preview report has a product-stage contract, schema-freeze posture, security review boundary, migration plan, deprecation policy, release-readiness checks, blocked stable-release claims, and shared result UX. With those receipts green, the next value-gauntlet weakness is v4 schema freeze: compatibility fixtures, changelog policy, migration checks, deprecation rules, and stable schema contract tests.
 
 ## Verdict
 

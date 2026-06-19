@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added v3.129 ShipGuard V4 Preview: `shipguard v4 preview` now emits a release-readiness, schema-freeze, security-review, migration, deprecation, and blocked-claims report for capabilities that are stabilizing but not yet released.
+- Added Tool Value Gauntlet `v4PreviewStabilizationReceipts` with public preview-contract fixtures; once those pass, the lowest-value probe now points to v4 schema-freeze compatibility work instead of repeatedly asking for preview stabilization.
+- Added shared result UX to `shipguard ios report-quality` so gauntlet self-review has the same concise verdict and exact next command pattern as InspectDeck and other major reports.
 - Added v3.128 External Benchmark v2: `shipguard pilot-bench --benchmark-v2` now compares ShipGuard verdict usefulness against `baselineVerdict` output on public-safe traces, records score lift and win rate, and gates the comparison with quality checks.
 - Added Tool Value Gauntlet `externalBenchmarkV2Receipts` with public comparative verdict fixtures; once those pass, the lowest-value probe now points to v4 preview stabilization.
 - Added v3.127 Codex marketplace readiness: `shipguard codex marketplace-readiness` audits public plugin metadata, local marketplace source, README/profile presentation, icon assets, screenshot honesty, strict status proof, privacy/model-choice boundaries, and a copy-ready submission packet.

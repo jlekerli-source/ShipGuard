@@ -71,8 +71,8 @@ if domain_pack_sdk.get("status") != "pass":
     raise SystemExit(f"Domain Pack SDK receipts should also pass in the full gauntlet: {domain_pack_sdk!r}")
 if concise_result_ux.get("status") != "pass":
     raise SystemExit(f"concise result UX receipts should also pass in the full gauntlet: {concise_result_ux!r}")
-if answer.get("identifier") != "shipguard v4-preview-stabilization":
-    raise SystemExit(f"passing external benchmark v2 receipts should escalate to v4 preview stabilization: {answer!r}")
+if answer.get("identifier") != "shipguard v4-schema-freeze":
+    raise SystemExit(f"passing v4 preview receipts should escalate to v4 schema freeze: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -103,8 +103,8 @@ if "runtimeConciseVerdictResultUX" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"concise verdict UX should no longer be missing: {answer!r}")
 if "runtimeExternalBenchmarkV2" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"external benchmark v2 should no longer be missing: {answer!r}")
-if "runtimeV4PreviewStabilization" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"v4 preview stabilization gap should be explicit: {answer!r}")
+if "runtimeV4SchemaFreeze" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"v4 schema freeze gap should be explicit: {answer!r}")
 if "runtimeCommandFamilyOutputReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"command-family output receipts should no longer be missing: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):

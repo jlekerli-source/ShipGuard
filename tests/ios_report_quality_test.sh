@@ -1870,8 +1870,9 @@ for candidate in data.get("fixtureCandidates") or []:
 priority = data.get("priorityAction") or {}
 if priority.get("question") == covered_question:
     raise SystemExit(f"covered value-gauntlet question should not remain the priority action: {priority!r}")
-if "unified inspect" not in priority.get("question", ""):
-    raise SystemExit(f"expected next uncovered unified inspect question as priority: {priority!r}")
+expected_schema_freeze = "Should ShipGuard freeze the v4 schema contract with compatibility fixtures, changelog policy, and migration checks?"
+if priority.get("question") != expected_schema_freeze:
+    raise SystemExit(f"expected next uncovered v4 schema-freeze question as priority: {priority!r}")
 PY
 
 json_stdout="$(./bin/shipguard ios report-quality --reports "$reports" --json)"

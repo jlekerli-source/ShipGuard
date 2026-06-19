@@ -49,7 +49,7 @@ Keep the core open-source verdict engine honest. Future Pro, Team, or Enterprise
 
 ## Phase Map
 
-The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.128 as shipped foundations and v3.129 as the active v4 preview stabilization slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, universal-agent packaging, full-audit orchestration, unified inspect, concise result-UX, Codex marketplace-readiness, or External Benchmark v2 work.
+The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.129 as shipped foundations and v3.130 as the active v4 schema-freeze slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, universal-agent packaging, full-audit orchestration, unified inspect, concise result-UX, Codex marketplace-readiness, External Benchmark v2, or V4 Preview work.
 
 ### Phase A: Trustworthy Foundation
 
@@ -131,10 +131,11 @@ v3.125  Unified inspect experience
 v3.126  Concise verdict and result UX
 v3.127  Codex marketplace readiness
 v3.128  External benchmark v2
-v3.129-v3.130  v4 preview, stabilization, security, and schema freeze
+v3.129  v4 preview stabilization
+v3.130  v4 schema freeze and compatibility policy
 ```
 
-Current state: v3.128 adds `shipguard pilot-bench --benchmark-v2` and External Benchmark v2 receipts that compare ShipGuard verdict usefulness against baseline agent output on public-safe task traces, including score lift, win rate, and private-app leakage boundaries. The active architectural priority is v3.129 v4 preview stabilization: freeze the product contract, prove migration/security boundaries, and prepare a stable v4 release path.
+Current state: v3.129 adds `shipguard v4 preview` and V4 Preview stabilization receipts that make product-stage, schema-freeze, security-review, migration, deprecation, release-readiness, and blocked-claims posture explicit before any stable v4 claim. The active architectural priority is v3.130 v4 schema freeze: compatibility fixtures, changelog policy, migration checks, and deprecation rules for a stable v4 contract.
 
 Every release proposal must answer:
 

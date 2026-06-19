@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import ios_shareable
+from shipguard_result import build_result_ux, render_result_markdown
 
 
 SCHEMA_VERSION = 1
@@ -100,6 +101,7 @@ TOOL_NEXT_ACTION_PRIORITY = {
     "shipguard web plan": 2,
     "shipguard backend plan": 2,
     "shipguard cli plan": 2,
+    "shipguard v4 preview": 3,
     "shipguard ios brand": 3,
     "shipguard ios launchdeck": 4,
     "shipguard ios performance": 5,
@@ -114,6 +116,7 @@ TOOL_NEXT_ACTION_PRIORITY = {
 ROOT_REPORT_TOOLS = {
     "shipguard brand",
     "shipguard value-gauntlet",
+    "shipguard v4 preview",
     "shipguard prepare",
     "shipguard verify",
     "shipguard pilot-bench",
@@ -2286,7 +2289,7 @@ def priority_reason(row: dict[str, Any]) -> str:
         return f"report-quality status is {quality_status}"
     if source_status and source_status != "pass":
         return f"source report status is {source_status}"
-    return f"{tool} is next in the default iOS maintenance priority order"
+    return f"{tool} is next in the default ShipGuard report-quality priority order"
 
 
 def ranked_actionability_questions(graded: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -2649,6 +2652,20 @@ def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any
     )
     fixture_candidates = build_fixture_candidates(ranked_questions)
     priority_action = build_priority_action(issues, ranked_questions)
+    next_actions = build_next_actions(priority_action, ranked_questions)
+    next_command = str(next_actions[0]) if next_actions else "./bin/shipguard ios report-quality --reports <dir> --out <quality-dir> --shareable"
+    result_ux = build_result_ux(
+        status=status,
+        summary=(
+            "Report-quality inputs are actionable and shareable."
+            if status == "pass"
+            else "Report-quality inputs need structural fixes before they should drive implementation."
+        ),
+        proof_source="graded ShipGuard report JSON, paired Markdown, actionability questions, and shareability checks",
+        why_it_matters="This keeps ShipGuard improving its own reports instead of converting target-app findings into accidental app work.",
+        next_command=next_command,
+        next_action_summary=str(priority_action.get("summary") or priority_action.get("recommendation") or next_command),
+    )
     return {
         "schemaVersion": SCHEMA_VERSION,
         "tool": REPORT_QUALITY_TOOL,
@@ -2684,7 +2701,8 @@ def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any
         "fixtureCoverage": fixture_coverage[:30],
         "fixtureCandidates": fixture_candidates,
         "priorityAction": priority_action,
-        "nextActions": build_next_actions(priority_action, ranked_questions),
+        "nextActions": next_actions,
+        "resultUX": result_ux,
         "redactionPlan": build_redaction_plan(inputs, issues, input_paths=input_paths, shareable=shareable, cwd=cwd),
     }
 
@@ -2699,6 +2717,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Shareability mode: `{report['shareability']['mode']}`",
         "- Purpose: grade ShipGuard report usefulness, not target-app quality.",
         "",
+        *render_result_markdown(report["resultUX"]),
         "## Reports",
         "",
         "| Score | Quality Status | Source Status | Tool | Surface | Intent | Report | Issues |",

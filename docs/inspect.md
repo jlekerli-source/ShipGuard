@@ -8,7 +8,7 @@
   --out /tmp/shipguard-inspect \
   --value-gauntlet /tmp/shipguard-value-gauntlet \
   --full-audit /tmp/shipguard-full-audit \
-  --release-assets dist/release-proof-bundle-v3.128.0 \
+  --release-assets dist/release-proof-bundle-v3.129.0 \
   --shipguard-eval \
   --shareable
 ```

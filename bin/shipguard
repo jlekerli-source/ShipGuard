@@ -40,6 +40,7 @@ Usage:
   shipguard value-gauntlet [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
   shipguard full-audit --out <dir> [--path <shipguard-repo>] [--profile quick|release|shipyard] [--stage <id> ...] [--resume] [--plan-only] [--include-install] [--release-url <url>] [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard inspect --path <shipguard-repo> --out <dir> [--value-gauntlet <file-or-dir>] [--full-audit <file-or-dir>] [--release-assets <dir>] [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard v4 preview --path <shipguard-repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard pilot-bench [--trace <trace.json-or-dir> ...] [--out <dir>] [--shareable] [--benchmark-v2] [--min-lift <points>] [--json|--markdown]
   shipguard agent trace --trace <trace.json-or-jsonl-or-dir> --out <dir> [--adapter auto|codex|claude|gemini|cursor|mcp|generic] [--task <shipguard-task.json-or-dir>] [--diff <patch.diff>] [--evidence <file> ...] [--xcodebuildmcp-evidence <file-or-dir> ...] [--expo-eas-evidence <file-or-dir> ...] [--verdict <shipguard-verdict.json-or-dir>] [--run-verify] [--budget-workers <n>] [--max-workers <n>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard web audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
@@ -116,6 +117,7 @@ Commands:
               Grade every ShipGuard command, skill, plugin, action, and proof surface for developer value.
   full-audit  Run or plan one resumable validation, value-gauntlet, report-quality, package, plugin, CI, and release-proof lane.
   inspect     Summarize repo state, proof receipts, plugin state, release state, and exact next action from one concise surface.
+  v4          Generate preview stabilization, schema freeze, migration, deprecation, and release-readiness reports.
   pilot-bench
               Score public-safe read-only task traces for PilotBench verdict usefulness.
   agent      Normalize Codex, Claude, Gemini, Cursor, and MCP traces into task, receipt, verdict, next-action, budget, XcodeBuildMCP evidence, and Expo/EAS assurance proof.
@@ -434,6 +436,13 @@ cmd_inspect() {
   run_py "$tool_root/scripts/shipguard_inspect.py" "$@"
 }
 
+cmd_v4() {
+  local subcommand="${1:-}"
+  [[ "$subcommand" == "preview" ]] || fail "v4 requires subcommand: preview"
+  shift || true
+  run_py "$tool_root/scripts/v4_preview.py" "$@"
+}
+
 cmd_pilot_bench() {
   run_py "$tool_root/scripts/external_pilot_verdict_bench.py" "$@"
 }
@@ -688,6 +697,9 @@ main() {
       ;;
     inspect)
       cmd_inspect "$@"
+      ;;
+    v4)
+      cmd_v4 "$@"
       ;;
     pilot-bench)
       cmd_pilot_bench "$@"
