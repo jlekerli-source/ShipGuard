@@ -69,8 +69,8 @@ for command in receipt.get("commands") or []:
 
 if domain_pack_sdk.get("status") != "pass":
     raise SystemExit(f"Domain Pack SDK receipts should pass: {domain_pack_sdk!r}")
-if answer.get("identifier") != "shipguard universal-agent-packaging-adapter":
-    raise SystemExit(f"passing Expo/EAS receipts should escalate to universal agent packaging adapter: {answer!r}")
+if answer.get("identifier") != "shipguard full-audit-orchestrator":
+    raise SystemExit(f"passing universal packaging receipts should escalate to full-audit orchestrator: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"trust-hardening should no longer be missing: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
@@ -93,8 +93,10 @@ if "runtimeXcodeBuildMCPEvidenceAdapter" in answer.get("missingDepthSignals", []
     raise SystemExit(f"XcodeBuildMCP evidence adapter should no longer be missing: {answer!r}")
 if "runtimeExpoMCPAndEASAdapter" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"Expo MCP and EAS adapter should no longer be missing: {answer!r}")
-if "runtimeUniversalAgentPackagingAdapter" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"universal agent packaging gap should be explicit: {answer!r}")
+if "runtimeUniversalAgentPackagingAdapter" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"universal agent packaging should no longer be missing: {answer!r}")
+if "runtimeFullAuditOrchestrator" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"full-audit orchestrator gap should be explicit: {answer!r}")
 PY
 
 echo "trust hardening receipt tests passed"

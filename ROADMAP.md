@@ -49,7 +49,7 @@ Keep the core open-source verdict engine honest. Future Pro, Team, or Enterprise
 
 ## Phase Map
 
-The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.122 as shipped foundations and v3.123 as the active Claude, Gemini, Cursor, and generic MCP packaging slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, or Expo/EAS assurance work.
+The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.123 as shipped foundations and v3.124 as the active efficient full-audit orchestrator slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, or universal-agent packaging work.
 
 ### Phase A: Trustworthy Foundation
 
@@ -134,7 +134,7 @@ v3.128  External benchmark v2
 v3.129-v3.130  v4 preview, stabilization, security, and schema freeze
 ```
 
-Current state: v3.122 adds the Expo MCP and EAS assurance adapter through `shipguard agent trace --expo-eas-evidence` and `shipguard codex trace --expo-eas-evidence`. TraceBridge now consumes exported or synthetic Codex-style traces, maps prompts, tool calls, receipts, optional `shipguard verify` output, verdicts, next actions, runtime receipts, worker-budget state, typed XcodeBuildMCP simulator proof, and typed Expo/EAS prebuild, build/update, native runtime, artifact-integrity, and credential-boundary proof into one reviewable timeline. The active architectural priority is v3.123 universal agent packaging so Claude, Gemini, Cursor, and generic MCP workflows can emit the same ShipGuard task and evidence receipts without forking the proof schema.
+Current state: v3.123 adds universal agent packaging through `shipguard agent trace --adapter claude|gemini|cursor|mcp|generic`. TraceBridge now consumes exported or synthetic Codex-style and non-Codex traces, maps prompts, tool calls, receipts, optional `shipguard verify` output, verdicts, next actions, runtime receipts, worker-budget state, typed XcodeBuildMCP simulator proof, typed Expo/EAS prebuild/build/update/runtime proof, and adapter-packaging metadata into one reviewable timeline. The active architectural priority is v3.124 full-audit orchestration so the broad validation, value-gauntlet, report-quality, install, plugin, CI, and release-proof loop becomes one resumable evidence-aware lane instead of repeated manual ceremony.
 
 Every release proposal must answer:
 

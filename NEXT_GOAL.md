@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-19T02:04:00Z
-- Current toolkit version: 3.122.0
-- Target release: v3.123.0
-- Title: Claude, Gemini, Cursor, And Generic MCP Packaging
+- Generated: 2026-06-19T02:45:02Z
+- Current toolkit version: 3.123.0
+- Target release: v3.124.0
+- Title: Efficient Unleash The Beast Full-Audit Orchestrator
 
 ## Slash Plan
 
 ```text
-/plan v3.123.0 Claude, Gemini, Cursor, And Generic MCP Packaging for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add thin agent-neutral packaging adapters so Claude, Gemini, Cursor, and generic MCP workflows can emit the same ShipGuard task, trace, evidence receipt, redaction, and next-goal handoff schema without forking the core.
+/plan v3.124.0 Efficient Unleash The Beast Full-Audit Orchestrator for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add one resumable evidence-aware full-audit lane that runs the right validation, value-gauntlet, report-quality, install, plugin, CI, and release-proof checks with concise verdicts, slow-lane summaries, and preserved proof boundaries.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.123.0 Claude, Gemini, Cursor, And Generic MCP Packaging for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add thin agent-neutral packaging adapters so Claude, Gemini, Cursor, and generic MCP workflows can emit the same ShipGuard task, trace, evidence receipt, redaction, and next-goal handoff schema without forking the core, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.124.0 Efficient Unleash The Beast Full-Audit Orchestrator for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add one resumable evidence-aware full-audit lane that runs the right validation, value-gauntlet, report-quality, install, plugin, CI, and release-proof checks with concise verdicts, slow-lane summaries, and preserved proof boundaries, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add thin agent-neutral packaging adapters so Claude, Gemini, Cursor, and generic MCP workflows can emit the same ShipGuard task, trace, evidence receipt, redaction, and next-goal handoff schema without forking the core.
+Add one resumable evidence-aware full-audit lane that runs the right validation, value-gauntlet, report-quality, install, plugin, CI, and release-proof checks with concise verdicts, slow-lane summaries, and preserved proof boundaries.
 
 ## Completion Receipt
 
-- Completed scope: v3.122.0 Expo MCP And EAS Assurance Adapter
-- Evidence: Implemented --expo-eas-evidence for shipguard agent trace and shipguard codex trace; added expoEASAssuranceEvidence timeline/report/receipt support; added public value-gauntlet Expo/EAS assurance receipts; updated docs, plugin guidance, package proof, and focused tests.
+- Completed scope: v3.123.0 Universal Agent Packaging
+- Evidence: Implemented Claude, Gemini, Cursor, MCP, and generic adapter packaging in shipguard agent trace; added adapterPackaging output, Agent Packaging Markdown, universal-agent runtime receipts, public value-gauntlet universalAgentPackagingReceipts, docs, plugin guidance, package proof, and focused tests.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.124.0 Efficient Unleash The Beast Full-Audit Orchestrator for jlekerli-source/ShipGuard:
+/plan v3.125.0 Unified Inspect Experience for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add thin agent-neutral packaging adapters so Claude, Gemini, Cursor, and generic
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.124.0 Efficient Unleash The Beast Full-Audit Orchestrator for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.125.0 Unified Inspect Experience for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.124.0 --title "Efficient Unleash The Beast Full-Audit Orchestrator" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.125.0 --title "Unified Inspect Experience" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -146,12 +146,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.123.0.
+1. Open or update the tracking issue for v3.124.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.123.0` and upload `dist/shipguard-v3.123.0.tar.gz`.
+6. Create release `v3.124.0` and upload `dist/shipguard-v3.124.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

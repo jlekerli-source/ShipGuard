@@ -54,6 +54,7 @@ grep -q '"structuredEvidenceReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.j
 grep -q '"agentAdapterReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"xcodeBuildMCPEvidenceReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"expoEASAssuranceReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"universalAgentPackagingReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"priorityActions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"reportQualityQuestions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard score"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -105,6 +106,7 @@ grep -q 'Structured Evidence Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md
 grep -q 'Agent Adapter Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'XcodeBuildMCP Evidence Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Expo/EAS Assurance Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Universal Agent Packaging Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Report Quality Questions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'ShipGuard PilotBench' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -140,13 +142,14 @@ structured_evidence = data.get("structuredEvidenceReceipts") or {}
 agent_adapter = data.get("agentAdapterReceipts") or {}
 xcode_receipts = data.get("xcodeBuildMCPEvidenceReceipts") or {}
 expo_eas_receipts = data.get("expoEASAssuranceReceipts") or {}
+universal_agent_packaging = data.get("universalAgentPackagingReceipts") or {}
 if probe.get("question") != "Which ShipGuard command, skill, plugin, or action has the lowest developer-value score and should be upgraded next?":
     raise SystemExit(f"unexpected probe question: {probe!r}")
 for key in ("surfaceType", "identifier", "name", "baseScore", "depthScore", "depthChecks", "recommendation", "proofGuidance", "reason"):
     if key not in answer:
         raise SystemExit(f"probe answer missing {key}: {answer!r}")
-if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard universal-agent-packaging-adapter":
-    raise SystemExit(f"passing Expo/EAS receipts should escalate to universal agent packaging adapter: {answer!r}")
+if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard full-audit-orchestrator":
+    raise SystemExit(f"passing universal packaging receipts should escalate to full-audit orchestrator: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"diff-first verification should no longer be missing: {answer!r}")
 if "runtimeIOSNotificationPermissionWorkflow" in answer.get("missingDepthSignals", []):
@@ -159,9 +162,11 @@ if "runtimeXcodeBuildMCPEvidenceAdapter" in answer.get("missingDepthSignals", []
     raise SystemExit(f"XcodeBuildMCP evidence adapter should no longer be missing: {answer!r}")
 if "runtimeExpoMCPAndEASAdapter" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"Expo MCP and EAS adapter should no longer be missing: {answer!r}")
-if "runtimeUniversalAgentPackagingAdapter" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"universal agent packaging gap should be explicit: {answer!r}")
-for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract", "runtimeIOSNotificationPermissionWorkflow", "runtimeExternalPilotVerdictBench", "runtimeDomainPackSDK", "runtimeConfigurationBaselineSuppressions", "runtimeStructuredEvidenceReceiptsV2", "runtimeCodexNativeTaskTraceAdapter", "runtimeXcodeBuildMCPEvidenceAdapter", "runtimeExpoMCPAndEASAdapter"):
+if "runtimeUniversalAgentPackagingAdapter" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"universal agent packaging should no longer be missing: {answer!r}")
+if "runtimeFullAuditOrchestrator" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"full-audit orchestrator gap should be explicit: {answer!r}")
+for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract", "runtimeIOSNotificationPermissionWorkflow", "runtimeExternalPilotVerdictBench", "runtimeDomainPackSDK", "runtimeConfigurationBaselineSuppressions", "runtimeStructuredEvidenceReceiptsV2", "runtimeCodexNativeTaskTraceAdapter", "runtimeXcodeBuildMCPEvidenceAdapter", "runtimeExpoMCPAndEASAdapter", "runtimeUniversalAgentPackagingAdapter"):
     if retired_signal in answer.get("missingDepthSignals", []):
         raise SystemExit(f"{retired_signal} should no longer be missing after fixture proof: {answer!r}")
 if not isinstance(probe.get("rankedSurfaces"), list) or not probe["rankedSurfaces"]:
@@ -774,6 +779,29 @@ for item in expo_eas_receipts.get("receipts") or []:
     for command in item.get("commands") or []:
         if command.get("status") != "pass" or command.get("missing"):
             raise SystemExit(f"Expo/EAS assurance command should pass without missing checks: {command!r}")
+if universal_agent_packaging.get("status") != "pass":
+    raise SystemExit(f"universal agent packaging receipts should pass: {universal_agent_packaging!r}")
+if universal_agent_packaging.get("receiptCount") != 1 or universal_agent_packaging.get("passedReceiptCount") != 1 or universal_agent_packaging.get("commandCount") != 5:
+    raise SystemExit(f"expected one universal packaging receipt and five commands: {universal_agent_packaging!r}")
+universal_receipt_ids = {item.get("id") for item in universal_agent_packaging.get("receipts") or []}
+if universal_receipt_ids != {"claude-gemini-cursor-mcp-trace-packaging"}:
+    raise SystemExit(f"unexpected universal packaging receipt fixtures: {universal_receipt_ids!r}")
+for item in universal_agent_packaging.get("receipts") or []:
+    if item.get("status") != "pass" or item.get("missing"):
+        raise SystemExit(f"universal packaging receipt should pass without missing checks: {item!r}")
+    command_ids = {command.get("id") for command in item.get("commands") or []}
+    expected_commands = {
+        "agent-trace-claude-package-pass",
+        "agent-trace-gemini-package-pass",
+        "agent-trace-cursor-package-pass",
+        "agent-trace-mcp-package-pass",
+        "agent-trace-claude-auto-detect-pass",
+    }
+    if command_ids != expected_commands:
+        raise SystemExit(f"unexpected universal packaging command set: {command_ids!r}")
+    for command in item.get("commands") or []:
+        if command.get("status") != "pass" or command.get("missing"):
+            raise SystemExit(f"universal packaging command should pass without missing checks: {command!r}")
 if "Which ShipGuard command" in data.get("reportQualityQuestions", []):
     raise SystemExit("the answered lowest-value question should not remain a report-quality question")
 retired_phrases = (
@@ -803,11 +831,12 @@ retired_phrases = (
     "Codex-native task and trace adapter",
     "XcodeBuildMCP evidence adapter",
     "Expo MCP and EAS assurance adapter",
+    "Claude, Gemini, Cursor",
 )
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
     raise SystemExit(f"answered runtime receipt questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
-if not any("Claude, Gemini, Cursor" in question for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"expected universal agent packaging quality question: {data.get('reportQualityQuestions')!r}")
+if not any("full-audit orchestrator" in question for question in data.get("reportQualityQuestions", [])):
+    raise SystemExit(f"expected full-audit orchestrator quality question: {data.get('reportQualityQuestions')!r}")
 PY
 
 json_stdout="$(./bin/shipguard value-gauntlet --path . --json)"
@@ -824,6 +853,6 @@ grep -q '# ShipGuard Tool Value Gauntlet' <<<"$markdown_stdout"
 grep -q '"tool": "shipguard ios report-quality"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/quality/ios-report-quality.md"
-grep -q 'Claude, Gemini, Cursor' "$tmp_dir/quality/ios-report-quality.md"
+grep -q 'full-audit orchestrator' "$tmp_dir/quality/ios-report-quality.md"
 
 echo "tool value gauntlet tests passed"

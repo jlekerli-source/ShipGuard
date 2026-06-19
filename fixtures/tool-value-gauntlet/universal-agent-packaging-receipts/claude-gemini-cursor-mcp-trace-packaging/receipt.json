@@ -1,0 +1,223 @@
+{
+  "id": "claude-gemini-cursor-mcp-trace-packaging",
+  "kind": "universal-agent-packaging-receipt",
+  "surface": "ShipGuard Agent Adapter Kernel",
+  "selectedMode": "value-gauntlet universal agent packaging receipts",
+  "trigger": "Prove Claude, Gemini, Cursor, and generic MCP traces can enter the same ShipGuard task, trace, evidence receipt, runtime receipt, redaction, and next-goal handoff schema without forking the core.",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/agent_trace.py",
+    "scripts/tool_value_gauntlet.py",
+    "tests/agent_trace_test.sh",
+    "tests/tool_value_gauntlet_test.sh",
+    "docs/agent-trace.md"
+  ],
+  "expectedSourcePhrases": [
+    "UNIVERSAL_AGENT_ADAPTERS",
+    "adapterPackaging",
+    "universalAgentPackagingReceipts",
+    "runtimeUniversalAgentPackagingAdapter",
+    "full-audit orchestrator"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppsUsed": false,
+    "inputs": [
+      "synthetic Claude trace",
+      "synthetic Gemini trace",
+      "synthetic Cursor trace",
+      "synthetic generic MCP trace",
+      "synthetic v2 validation receipt"
+    ]
+  },
+  "prepareFiles": [
+    {
+      "path": "logs/v2-validation-receipt.json",
+      "text": "{\n  \"schemaVersion\": \"2.0\",\n  \"receiptId\": \"v2-universal-agent-packaging\",\n  \"receiptType\": \"validation\",\n  \"requirementId\": \"agent-neutral-packaging-fixture\",\n  \"command\": \"shipguard agent trace\",\n  \"exitCode\": 0,\n  \"status\": \"pass\",\n  \"startedAt\": \"2099-01-01T00:00:00Z\",\n  \"completedAt\": \"2099-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"environment\": \"local-cli\",\n  \"artifact\": {\"path\": \"agent-trace.json\"},\n  \"scope\": [\"universal-agent-packaging-fixture\"]\n}\n"
+    },
+    {
+      "path": "traces/claude-trace.json",
+      "text": "{\n  \"adapter\": \"claude\",\n  \"threadId\": \"synthetic-claude-thread\",\n  \"taskId\": \"TASK-TRACE-CLAUDE\",\n  \"agentBudget\": {\"workersRequested\": 2, \"maxWorkers\": 5, \"recursiveSpawning\": false},\n  \"events\": [\n    {\"type\": \"message\", \"role\": \"user\", \"text\": \"Claude should produce ShipGuard proof.\"},\n    {\"type\": \"tool_use\", \"tool\": \"claude-code\", \"command\": \"shipguard verify\"},\n    {\"type\": \"receipt\", \"receiptId\": \"v2-universal-agent-packaging\", \"path\": \"logs/v2-validation-receipt.json\"},\n    {\"type\": \"verdict\", \"status\": \"pass\"},\n    {\"type\": \"handoff\", \"nextAction\": \"Run package proof.\"}\n  ]\n}\n"
+    },
+    {
+      "path": "traces/gemini-trace.json",
+      "text": "{\n  \"adapter\": \"gemini\",\n  \"threadId\": \"synthetic-gemini-thread\",\n  \"taskId\": \"TASK-TRACE-GEMINI\",\n  \"agentBudget\": {\"workersRequested\": 2, \"maxWorkers\": 5, \"recursiveSpawning\": false},\n  \"events\": [\n    {\"type\": \"prompt\", \"role\": \"user\", \"text\": \"Gemini should produce ShipGuard proof.\"},\n    {\"type\": \"function_call\", \"tool\": \"gemini-cli\", \"command\": \"shipguard verify\"},\n    {\"type\": \"receipt\", \"receiptId\": \"v2-universal-agent-packaging\", \"path\": \"logs/v2-validation-receipt.json\"},\n    {\"type\": \"verdict\", \"status\": \"pass\"},\n    {\"type\": \"next_action\", \"text\": \"Run package proof.\"}\n  ]\n}\n"
+    },
+    {
+      "path": "traces/cursor-trace.json",
+      "text": "{\n  \"adapter\": \"cursor\",\n  \"threadId\": \"synthetic-cursor-thread\",\n  \"taskId\": \"TASK-TRACE-CURSOR\",\n  \"agentBudget\": {\"workersRequested\": 2, \"maxWorkers\": 5, \"recursiveSpawning\": false},\n  \"events\": [\n    {\"type\": \"prompt\", \"role\": \"user\", \"text\": \"Cursor should produce ShipGuard proof.\"},\n    {\"type\": \"tool_call\", \"tool\": \"cursor-agent\", \"command\": \"apply_patch\"},\n    {\"type\": \"receipt\", \"receiptId\": \"v2-universal-agent-packaging\", \"path\": \"logs/v2-validation-receipt.json\"},\n    {\"type\": \"verdict\", \"status\": \"pass\"},\n    {\"type\": \"next_action\", \"text\": \"Run package proof.\"}\n  ]\n}\n"
+    },
+    {
+      "path": "traces/mcp-trace.json",
+      "text": "{\n  \"adapter\": \"mcp\",\n  \"threadId\": \"synthetic-mcp-thread\",\n  \"taskId\": \"TASK-TRACE-MCP\",\n  \"agentBudget\": {\"workersRequested\": 2, \"maxWorkers\": 5, \"recursiveSpawning\": false},\n  \"events\": [\n    {\"type\": \"prompt\", \"role\": \"user\", \"text\": \"Generic MCP should produce ShipGuard proof.\"},\n    {\"type\": \"tools/call\", \"tool\": \"mcp__generic__run\", \"command\": \"shipguard verify\"},\n    {\"type\": \"receipt\", \"receiptId\": \"v2-universal-agent-packaging\", \"path\": \"logs/v2-validation-receipt.json\"},\n    {\"type\": \"verdict\", \"status\": \"pass\"},\n    {\"type\": \"next_action\", \"text\": \"Run package proof.\"}\n  ]\n}\n"
+    }
+  ],
+  "commands": [
+    {
+      "id": "agent-trace-claude-package-pass",
+      "display": "./bin/shipguard agent trace --adapter claude",
+      "args": [
+        "agent",
+        "trace",
+        "--trace",
+        "{out}/traces/claude-trace.json",
+        "--adapter",
+        "claude",
+        "--evidence",
+        "{out}/logs/v2-validation-receipt.json",
+        "--out",
+        "{out}/claude-trace",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "claude-trace/agent-trace.json",
+          "type": "json",
+          "requiredJsonKeys": ["adapter", "adapterPackaging", "receiptHandoff", "traceSummary", "slashPlan"],
+          "requiredNonEmptyJsonPaths": ["adapterPackaging.profiles", "adapterPackaging.sharedSchema", "reportQualityQuestions"],
+          "requiredValues": [
+            {"path": "status", "equals": "pass"},
+            {"path": "adapter.type", "equals": "claude"},
+            {"path": "adapterPackaging.status", "equals": "pass"},
+            {"path": "adapterPackaging.currentAdapter", "equals": "claude"},
+            {"path": "receiptHandoff.schema.v2Count", "equals": 1}
+          ],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "claude-trace/agent-trace-receipt.json",
+          "type": "json",
+          "requiredValues": [
+            {"path": "receiptType", "equals": "runtime"},
+            {"path": "requirementId", "equals": "universal-agent-packaging-adapter"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "agent-trace-gemini-package-pass",
+      "display": "./bin/shipguard agent trace --adapter gemini",
+      "args": [
+        "agent",
+        "trace",
+        "--trace",
+        "{out}/traces/gemini-trace.json",
+        "--adapter",
+        "gemini",
+        "--evidence",
+        "{out}/logs/v2-validation-receipt.json",
+        "--out",
+        "{out}/gemini-trace",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "gemini-trace/agent-trace.json",
+          "type": "json",
+          "requiredValues": [
+            {"path": "status", "equals": "pass"},
+            {"path": "adapter.type", "equals": "gemini"},
+            {"path": "adapterPackaging.currentAdapter", "equals": "gemini"}
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "agent-trace-cursor-package-pass",
+      "display": "./bin/shipguard agent trace --adapter cursor",
+      "args": [
+        "agent",
+        "trace",
+        "--trace",
+        "{out}/traces/cursor-trace.json",
+        "--adapter",
+        "cursor",
+        "--evidence",
+        "{out}/logs/v2-validation-receipt.json",
+        "--out",
+        "{out}/cursor-trace",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "cursor-trace/agent-trace.json",
+          "type": "json",
+          "requiredValues": [
+            {"path": "status", "equals": "pass"},
+            {"path": "adapter.type", "equals": "cursor"},
+            {"path": "adapterPackaging.currentAdapter", "equals": "cursor"}
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "agent-trace-mcp-package-pass",
+      "display": "./bin/shipguard agent trace --adapter mcp",
+      "args": [
+        "agent",
+        "trace",
+        "--trace",
+        "{out}/traces/mcp-trace.json",
+        "--adapter",
+        "mcp",
+        "--evidence",
+        "{out}/logs/v2-validation-receipt.json",
+        "--out",
+        "{out}/mcp-trace",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "mcp-trace/agent-trace.json",
+          "type": "json",
+          "requiredValues": [
+            {"path": "status", "equals": "pass"},
+            {"path": "adapter.type", "equals": "mcp"},
+            {"path": "adapterPackaging.currentAdapter", "equals": "mcp"}
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "agent-trace-claude-auto-detect-pass",
+      "display": "./bin/shipguard agent trace --adapter auto on Claude metadata",
+      "args": [
+        "agent",
+        "trace",
+        "--trace",
+        "{out}/traces/claude-trace.json",
+        "--out",
+        "{out}/claude-auto-trace",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "claude-auto-trace/agent-trace.json",
+          "type": "json",
+          "requiredValues": [
+            {"path": "status", "equals": "pass"},
+            {"path": "adapter.type", "equals": "claude"},
+            {"path": "adapter.confidence", "equals": "metadata"},
+            {"path": "adapterPackaging.currentAdapter", "equals": "claude"}
+          ],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "claude-auto-trace/agent-trace.md",
+          "type": "markdown",
+          "requiredPhrases": ["Agent Packaging", "Claude trace package", "Full-Audit Orchestrator"],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}

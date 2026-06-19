@@ -87,7 +87,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add Claude, Gemini, Cursor, and generic MCP packaging so non-Codex agents can emit the same ShipGuard proof receipts?",
+    "Should ShipGuard add an efficient full-audit orchestrator so validation, value-gauntlet, report-quality, install, plugin, CI, and release proof run as one resumable evidence-aware lane?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -178,6 +178,7 @@ STRUCTURED_EVIDENCE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "s
 AGENT_ADAPTER_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "agent-adapter-receipts"
 XCODEBUILDMCP_EVIDENCE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "xcodebuildmcp-evidence-receipts"
 EXPO_EAS_ASSURANCE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "expo-eas-assurance-receipts"
+UNIVERSAL_AGENT_PACKAGING_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "universal-agent-packaging-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -975,6 +976,18 @@ def load_xcodebuildmcp_evidence_receipts(root: Path) -> list[tuple[Path, dict[st
 
 def load_expo_eas_assurance_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / EXPO_EAS_ASSURANCE_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_universal_agent_packaging_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / UNIVERSAL_AGENT_PACKAGING_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -2463,6 +2476,37 @@ def expo_eas_assurance_receipt_probe(root: Path) -> dict[str, Any]:
     }
 
 
+def universal_agent_packaging_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [
+        run_skill_plugin_receipt(root, fixture_dir, meta)
+        for fixture_dir, meta in load_universal_agent_packaging_receipts(root)
+    ]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public universal-agent packaging fixtures that prove Claude, Gemini, Cursor, and generic MCP traces enter the same ShipGuard proof schema through thin adapters.",
+        "fixtureRoot": UNIVERSAL_AGENT_PACKAGING_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public synthetic Claude trace", "synthetic Gemini trace", "synthetic Cursor trace", "synthetic generic MCP trace", "v2 validation receipt"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Universal agent packaging receipts are passing; add the efficient full-audit orchestrator next."
+            if status == "pass"
+            else "Fix universal packaging receipts so Claude, Gemini, Cursor, and generic MCP traces preserve one ShipGuard proof schema."
+        ),
+    }
+
+
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
     slug = command_slug(command)
     tokens = command_tokens(command)
@@ -2867,6 +2911,19 @@ def expo_eas_assurance_receipt_passed(expo_eas_assurance_receipts: dict[str, Any
     return required.issubset(receipt_command_ids(expo_eas_assurance_receipts))
 
 
+def universal_agent_packaging_receipt_passed(universal_agent_packaging_receipts: dict[str, Any]) -> bool:
+    if universal_agent_packaging_receipts.get("status") != "pass":
+        return False
+    required = {
+        "agent-trace-claude-package-pass",
+        "agent-trace-gemini-package-pass",
+        "agent-trace-cursor-package-pass",
+        "agent-trace-mcp-package-pass",
+        "agent-trace-claude-auto-detect-pass",
+    }
+    return required.issubset(receipt_command_ids(universal_agent_packaging_receipts))
+
+
 def command_depth_rows(
     commands: list[dict[str, Any]],
     text_index: dict[str, str],
@@ -3072,6 +3129,7 @@ def lowest_value_surface_probe(
     agent_adapter_receipts: dict[str, Any],
     xcodebuildmcp_evidence_receipts: dict[str, Any],
     expo_eas_assurance_receipts: dict[str, Any],
+    universal_agent_packaging_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -3965,6 +4023,40 @@ def lowest_value_surface_probe(
             recommendation="Add thin agent-neutral packaging adapters so Claude, Gemini, Cursor, and generic MCP workflows can emit the same ShipGuard task, trace, and proof receipts.",
             proof="Run value-gauntlet plus focused packaging fixtures that prove non-Codex adapters preserve the shared proof schema, redaction boundaries, and next-goal handoff.",
         )
+    if (
+        answer
+        and answer.get("identifier") == "shipguard universal-agent-packaging-adapter"
+        and universal_agent_packaging_receipt_passed(universal_agent_packaging_receipts)
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeUniversalAgentPackagingAdapter":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeUniversalAgentPackagingAdapter",
+                        True,
+                        f"{universal_agent_packaging_receipts.get('passedReceiptCount') or 0}/{universal_agent_packaging_receipts.get('receiptCount') or 0} universal packaging receipts executed",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeFullAuditOrchestrator",
+                False,
+                "full release/product QA still requires a long manual sequence instead of one resumable evidence-aware orchestrator",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="cross-cutting",
+            identifier="shipguard full-audit-orchestrator",
+            name="Efficient Unleash The Beast full-audit orchestrator",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Add a full-audit orchestrator that runs the right validation, value-gauntlet, report-quality, install, plugin, CI, and release-proof checks with resumable receipts and a concise verdict.",
+            proof="Run value-gauntlet plus focused orchestrator fixtures that prove the full audit is faster to operate, resumable, summarizes slow lanes, and preserves existing proof boundaries.",
+        )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
         answer = {
@@ -4049,6 +4141,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     agent_adapter_receipts = agent_adapter_receipt_probe(root)
     xcodebuildmcp_evidence_receipts = xcodebuildmcp_evidence_receipt_probe(root)
     expo_eas_assurance_receipts = expo_eas_assurance_receipt_probe(root)
+    universal_agent_packaging_receipts = universal_agent_packaging_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -4083,6 +4176,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         agent_adapter_receipts=agent_adapter_receipts,
         xcodebuildmcp_evidence_receipts=xcodebuildmcp_evidence_receipts,
         expo_eas_assurance_receipts=expo_eas_assurance_receipts,
+        universal_agent_packaging_receipts=universal_agent_packaging_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -4143,6 +4237,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "agentAdapterReceipts": agent_adapter_receipts,
         "xcodeBuildMCPEvidenceReceipts": xcodebuildmcp_evidence_receipts,
         "expoEASAssuranceReceipts": expo_eas_assurance_receipts,
+        "universalAgentPackagingReceipts": universal_agent_packaging_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -4829,6 +4924,30 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_expo_eas_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_expo_eas_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+    universal_agent_packaging_receipts = report.get("universalAgentPackagingReceipts") or {}
+    lines.extend(["", "## Universal Agent Packaging Receipts", ""])
+    lines.append(f"- Status: {universal_agent_packaging_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {universal_agent_packaging_receipts.get('passedReceiptCount', 0)}/{universal_agent_packaging_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {universal_agent_packaging_receipts.get('commandCount', 0)}")
+    if universal_agent_packaging_receipts.get("nextAction"):
+        lines.append(f"- Next action: {universal_agent_packaging_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in universal_agent_packaging_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 44)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_universal_commands = [
+        (receipt, command)
+        for receipt in universal_agent_packaging_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_universal_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_universal_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

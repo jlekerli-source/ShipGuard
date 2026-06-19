@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added v3.123 universal agent packaging: `shipguard agent trace` now supports `--adapter claude|gemini|cursor|mcp|generic` alongside Codex while keeping one TraceBridge schema for prompts, tool calls, receipts, verdicts, next actions, budgets, and proof handoffs.
+- Added `adapterPackaging` output and an Agent Packaging Markdown section with source signals, shared schema expectations, handoff commands, and export guidance for non-Codex traces.
+- Added Tool Value Gauntlet `universalAgentPackagingReceipts` with public synthetic Claude, Gemini, Cursor, MCP, and auto-detection fixtures; once those pass, the lowest-value probe now points to the v3.124 efficient full-audit orchestrator.
 - Added the v3.122 Expo MCP and EAS assurance adapter: `shipguard agent trace` and `shipguard codex trace` now accept `--expo-eas-evidence <file-or-dir>` and attach Expo MCP routing, Expo project metadata, prebuild, EAS build/update, native runtime, artifact-integrity, and credential-boundary proof to the same TraceBridge task timeline.
 - Added Tool Value Gauntlet `expoEASAssuranceReceipts` with a public synthetic fixture proving agent and Codex trace aliases attach typed Expo/EAS evidence while keeping EAS assurance separate from TestFlight, store, physical-device, and production-rollout proof.
 - Advanced `shipguard value-gauntlet` beyond the v3.122 gap: once Expo/EAS assurance receipts pass, the lowest-value probe now points to v3.123 Claude, Gemini, Cursor, and generic MCP packaging.

@@ -17,7 +17,8 @@ from shipguard_receipts import evidence_entries as load_evidence_entries
 
 
 SCHEMA_VERSION = 1
-ADAPTERS = ("auto", "codex", "generic")
+ADAPTERS = ("auto", "codex", "claude", "gemini", "cursor", "mcp", "generic")
+UNIVERSAL_AGENT_ADAPTERS = ("claude", "gemini", "cursor", "mcp", "generic")
 MAX_NORMAL_WORKERS = 5
 RECOMMENDED_WORKERS = "2-3"
 TRACE_FILENAMES = ("trace.json", "codex-trace.json", "agent-trace.json")
@@ -111,6 +112,53 @@ EXPO_EAS_SIGNALS = {
         "tokens": ["credential", "credentials", "provisioning profile", "distribution certificate", "asc api key", "secrets redacted"],
         "proofBoundary": "Shows credentials were part of the route; ShipGuard treats this as boundary evidence and does not expose secret values.",
     },
+}
+AGENT_PACKAGING_PROFILES = {
+    "codex": {
+        "title": "Codex native trace",
+        "sourceSignals": ["codex", "functions.exec_command", "codex trace", "Codex task thread"],
+        "handoffCommand": "shipguard codex trace --trace <trace.json> --out <shipguard-trace-dir> --shipguard-eval --shareable",
+        "exportGuidance": "Use the Codex trace alias when the thread already comes from Codex; it pins --adapter codex while preserving the shared Agent Adapter Kernel schema.",
+    },
+    "claude": {
+        "title": "Claude trace package",
+        "sourceSignals": ["claude", "claude-code", "claude desktop", "tool_use"],
+        "handoffCommand": "shipguard agent trace --adapter claude --trace <trace.json> --out <shipguard-trace-dir> --shipguard-eval --shareable",
+        "exportGuidance": "Export Claude prompts, tool_use/tool_result blocks, validation receipts, verdicts, and next actions as JSON or JSONL events; keep credentials and private files out of shared traces.",
+    },
+    "gemini": {
+        "title": "Gemini trace package",
+        "sourceSignals": ["gemini", "gemini-cli", "google.generativeai", "function_call"],
+        "handoffCommand": "shipguard agent trace --adapter gemini --trace <trace.json> --out <shipguard-trace-dir> --shipguard-eval --shareable",
+        "exportGuidance": "Export Gemini prompts, function calls, function responses, validation receipts, verdicts, and next actions into the same JSON/JSONL event shape used by ShipGuard TraceBridge.",
+    },
+    "cursor": {
+        "title": "Cursor trace package",
+        "sourceSignals": ["cursor", "composer", "cursor-agent", "apply_patch"],
+        "handoffCommand": "shipguard agent trace --adapter cursor --trace <trace.json> --out <shipguard-trace-dir> --shipguard-eval --shareable",
+        "exportGuidance": "Export Cursor composer prompts, command/edit actions, receipts, verdicts, and next actions; use --shareable before taking reports outside the local machine.",
+    },
+    "mcp": {
+        "title": "Generic MCP trace package",
+        "sourceSignals": ["mcp", "modelcontextprotocol", "tools/call", "mcp__"],
+        "handoffCommand": "shipguard agent trace --adapter mcp --trace <trace.json> --out <shipguard-trace-dir> --shipguard-eval --shareable",
+        "exportGuidance": "Export MCP prompts, tools/call requests, tool results, receipts, verdicts, and next actions without vendor-specific assumptions.",
+    },
+    "generic": {
+        "title": "Generic agent trace package",
+        "sourceSignals": ["generic", "jsonl", "tool_call", "command"],
+        "handoffCommand": "shipguard agent trace --adapter generic --trace <trace.json> --out <shipguard-trace-dir> --shipguard-eval --shareable",
+        "exportGuidance": "Use generic when the source agent is unknown; provide canonical prompt, tool_call, receipt, verdict, and next_action events so ShipGuard can still grade proof.",
+    },
+}
+SHARED_AGENT_SCHEMA = {
+    "taskContract": "Optional shipguard-task.json handoff from `shipguard prepare`.",
+    "traceTimeline": "Canonical prompt, tool_call, receipt, verdict, next_action, and worker_spawn events.",
+    "evidenceReceipts": "ShipGuard v2 evidence receipts supplied with --evidence.",
+    "runtimeReceipt": "agent-trace-receipt.json emitted for every adapter run.",
+    "verifyHandoff": "Optional `shipguard verify` execution or copy-ready verify command.",
+    "redactionBoundary": "--shareable redacts local absolute paths from reports.",
+    "nextGoalHandoff": "Slash plan/goal text remains in the shared report schema.",
 }
 
 
@@ -265,21 +313,87 @@ def count_categories(timeline: list[dict[str, Any]]) -> dict[str, int]:
     }
 
 
+def normalize_adapter(value: object) -> str:
+    text = str(value or "").strip().lower().replace("_", "-").replace(" ", "-")
+    aliases = {
+        "claude-code": "claude",
+        "claude-desktop": "claude",
+        "gemini-cli": "gemini",
+        "google-gemini": "gemini",
+        "cursor-agent": "cursor",
+        "generic-mcp": "mcp",
+        "model-context-protocol": "mcp",
+        "modelcontextprotocol": "mcp",
+    }
+    return aliases.get(text, text)
+
+
+def adapter_signal_scores(source: str) -> dict[str, list[str]]:
+    scores: dict[str, list[str]] = {adapter: [] for adapter in AGENT_PACKAGING_PROFILES}
+    for adapter, profile in AGENT_PACKAGING_PROFILES.items():
+        for token in profile["sourceSignals"]:
+            lowered = token.lower()
+            if lowered in source and lowered not in scores[adapter]:
+                scores[adapter].append(lowered)
+    return scores
+
+
 def infer_adapter(requested: str, trace_root: Any, timeline: list[dict[str, Any]], trace_path: Path) -> dict[str, Any]:
     if requested != "auto":
         return {"type": requested, "confidence": "override", "sourceSignals": [f"--adapter {requested}"]}
     source = json.dumps(trace_root, sort_keys=True).lower() if isinstance(trace_root, (dict, list)) else ""
     source += " " + trace_path.name.lower()
     source += " " + " ".join(str(item.get("tool") or "").lower() for item in timeline)
-    codex_signals = []
-    for token in ("codex", "functions.exec_command", "xcodebuildmcp", "tool_call"):
-        if token in source:
-            codex_signals.append(token)
-    adapter = "codex" if codex_signals else "generic"
+    source += " " + " ".join(str(item.get("command") or "").lower() for item in timeline)
+    explicit = normalize_adapter(trace_root.get("adapter")) if isinstance(trace_root, dict) else ""
+    if explicit in AGENT_PACKAGING_PROFILES:
+        return {"type": explicit, "confidence": "metadata", "sourceSignals": [f"trace.adapter={explicit}"]}
+    scores = adapter_signal_scores(source)
+    ranked = sorted(scores.items(), key=lambda item: (len(item[1]), item[0] != "generic"), reverse=True)
+    adapter, signals = ranked[0]
+    if not signals:
+        adapter = "generic"
+        signals = ["no known adapter tokens found"]
     return {
         "type": adapter,
-        "confidence": "high" if codex_signals else "medium",
-        "sourceSignals": codex_signals or ["no Codex-specific tokens found"],
+        "confidence": "high" if signals and not signals[0].startswith("no known") else "medium",
+        "sourceSignals": signals,
+    }
+
+
+def adapter_packaging_report(adapter: dict[str, Any]) -> dict[str, Any]:
+    adapter_type = str(adapter.get("type") or "generic")
+    profile = AGENT_PACKAGING_PROFILES.get(adapter_type, AGENT_PACKAGING_PROFILES["generic"])
+    profiles = []
+    for key in ("codex", "claude", "gemini", "cursor", "mcp", "generic"):
+        item = AGENT_PACKAGING_PROFILES[key]
+        profiles.append(
+            {
+                "adapter": key,
+                "title": item["title"],
+                "handoffCommand": item["handoffCommand"],
+                "exportGuidance": item["exportGuidance"],
+                "native": key == "codex",
+                "thinAdapter": key in UNIVERSAL_AGENT_ADAPTERS,
+            }
+        )
+    return {
+        "status": "pass",
+        "currentAdapter": adapter_type,
+        "currentProfile": {
+            "title": profile["title"],
+            "handoffCommand": profile["handoffCommand"],
+            "exportGuidance": profile["exportGuidance"],
+        },
+        "supportedAdapters": [item["adapter"] for item in profiles],
+        "profiles": profiles,
+        "sharedSchema": SHARED_AGENT_SCHEMA,
+        "proofBoundary": "Adapter packaging normalizes traces into one ShipGuard schema; it does not prove the source agent, target app, device, store, or deployment unless matching receipts are attached.",
+        "nextActions": [
+            f"Use `{profile['handoffCommand']}` for {profile['title']}.",
+            "Attach v2 evidence receipts with --evidence and use --shareable before external review.",
+            "Keep target app work read-only unless a separate task explicitly authorizes app edits.",
+        ],
     }
 
 
@@ -998,16 +1112,24 @@ def sha256_file(path: Path) -> str:
 def write_runtime_receipt(out_dir: Path, report_path: Path, report: dict[str, Any]) -> dict[str, Any]:
     xcode_status = (report.get("xcodeBuildMCPEvidence") or {}).get("status")
     expo_status = (report.get("expoEASAssuranceEvidence") or {}).get("status")
+    adapter_type = str((report.get("adapter") or {}).get("type") or "")
     scope = ["agent-trace", "task-contract", "receipts", "verdict-handoff", "agent-budget"]
+    requirement_id = "codex-task-trace-adapter"
     if xcode_status != "not-provided":
         scope.append("xcodebuildmcp-evidence")
+        requirement_id = "xcodebuildmcp-evidence-adapter"
     if expo_status != "not-provided":
         scope.append("expo-eas-evidence")
+        requirement_id = "expo-eas-assurance-adapter"
+    if adapter_type in UNIVERSAL_AGENT_ADAPTERS:
+        scope.append("agent-neutral-packaging")
+        if expo_status == "not-provided" and xcode_status == "not-provided":
+            requirement_id = "universal-agent-packaging-adapter"
     receipt = {
         "schemaVersion": RECEIPT_SCHEMA_VERSION,
         "receiptId": "agent-trace-runtime",
         "receiptType": "runtime",
-        "requirementId": "expo-eas-assurance-adapter" if expo_status != "not-provided" else "xcodebuildmcp-evidence-adapter" if xcode_status != "not-provided" else "codex-task-trace-adapter",
+        "requirementId": requirement_id,
         "command": report.get("tool"),
         "exitCode": 0,
         "status": report.get("status"),
@@ -1078,6 +1200,22 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"- Verdict status: {verify.get('verdictStatus') or '-'}",
             f"- Verdict path: {verify.get('verdictPath') or '-'}",
             "",
+            "## Agent Packaging",
+            "",
+            f"- Status: {report['adapterPackaging']['status']}",
+            f"- Current adapter: {report['adapterPackaging']['currentAdapter']}",
+            f"- Handoff command: `{report['adapterPackaging']['currentProfile']['handoffCommand']}`",
+            f"- Proof boundary: {report['adapterPackaging']['proofBoundary']}",
+            "",
+            "| Adapter | Title | Thin Adapter |",
+            "| --- | --- | --- |",
+        ]
+    )
+    for profile in report["adapterPackaging"]["profiles"]:
+        lines.append(f"| `{profile['adapter']}` | {profile['title']} | {str(profile['thinAdapter']).lower()} |")
+    lines.extend(
+        [
+            "",
             "## XcodeBuildMCP Evidence",
             "",
             f"- Status: {report['xcodeBuildMCPEvidence']['status']}",
@@ -1147,6 +1285,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     expo_timeline = expo_eas_timeline(len(base_timeline) + len(xcode_timeline) + 1, expo_eas_evidence)
     timeline = base_timeline + xcode_timeline + expo_timeline
     adapter = infer_adapter(args.adapter, trace_root, timeline, trace_path)
+    adapter_packaging = adapter_packaging_report(adapter)
     task_path = resolve_file(args.task, "shipguard-task.json")
     verdict_path = resolve_file(args.verdict, "shipguard-verdict.json")
     evidence_paths = args.evidence or []
@@ -1169,6 +1308,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "status": status,
         "generatedAt": utc_now(),
         "adapter": {**adapter, "sourceFormat": source_format},
+        "adapterPackaging": adapter_packaging,
         "scopeBoundary": {
             "shipguardOnly": bool(args.shipguard_eval),
             "targetAppsReadOnly": bool(args.shipguard_eval),
@@ -1205,12 +1345,13 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "findings": findings,
         "reportQualityQuestions": [
             "Does this trace connect the user prompt, tools, evidence receipts, verdict, and next action without relying on pasted summaries?",
+            "Can Claude, Gemini, Cursor, and generic MCP traces enter the same ShipGuard schema through thin adapters instead of forked workflows?",
             "Does XcodeBuildMCP build/run, UI snapshot, screenshot, log, or profiler proof attach to the same task trace timeline with local-path redaction?",
             "Does Expo prebuild, EAS build/update, native runtime, artifact integrity, and credential-boundary proof attach to the same timeline without leaking tokens?",
-            "Does the worker budget improve results per agent instead of maximizing agent count?",
+            "Does the next full-audit orchestrator reduce repeated manual validation work while preserving exact proof boundaries?",
         ],
-        "slashPlan": "/plan v3.123.0 Claude, Gemini, Cursor, And Generic MCP Packaging for jlekerli-source/ShipGuard: add thin agent/package adapters after Expo/EAS proof can attach to TraceBridge." if expo_eas_evidence.get("status") != "not-provided" else "/plan v3.122.0 Expo MCP And EAS Assurance Adapter for jlekerli-source/ShipGuard: build the next thin adapter that maps Expo MCP, EAS build, and native runtime assurance receipts into the same proof timeline, then validate with public fixtures.",
-        "slashGoal": "/goal Implement v3.123.0 Claude, Gemini, Cursor, And Generic MCP Packaging for jlekerli-source/ShipGuard: keep one core proof schema while packaging thin adapters for non-Codex agents." if expo_eas_evidence.get("status") != "not-provided" else "/goal Implement v3.122.0 Expo MCP And EAS Assurance Adapter for jlekerli-source/ShipGuard: connect Expo/EAS proof into ShipGuard receipts and agent traces without modifying private target apps.",
+        "slashPlan": "/plan v3.124.0 Efficient Unleash The Beast Full-Audit Orchestrator for jlekerli-source/ShipGuard: collapse repeated broad validation, value-gauntlet, report-quality, install, plugin, CI, and release-proof checks into one evidence-aware orchestrator with resumable receipts." if adapter.get("type") in UNIVERSAL_AGENT_ADAPTERS else "/plan v3.123.0 Claude, Gemini, Cursor, And Generic MCP Packaging for jlekerli-source/ShipGuard: add thin agent/package adapters after Expo/EAS proof can attach to TraceBridge.",
+        "slashGoal": "/goal Implement v3.124.0 Efficient Unleash The Beast Full-Audit Orchestrator for jlekerli-source/ShipGuard: make the full audit fast, summarized, resumable, and proof-preserving without weakening package or release gates." if adapter.get("type") in UNIVERSAL_AGENT_ADAPTERS else "/goal Implement v3.123.0 Claude, Gemini, Cursor, And Generic MCP Packaging for jlekerli-source/ShipGuard: keep one core proof schema while packaging thin adapters for non-Codex agents.",
         "runtimeReceiptPath": "agent-trace-receipt.json",
     }
     if args.shareable:

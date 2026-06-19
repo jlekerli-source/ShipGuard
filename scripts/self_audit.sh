@@ -276,6 +276,7 @@ required_artifacts=(
   "fixtures/tool-value-gauntlet/agent-adapter-receipts/codex-task-trace-adapter/receipt.json"
   "fixtures/tool-value-gauntlet/xcodebuildmcp-evidence-receipts/simulator-build-ui-profiler-adapter/receipt.json"
   "fixtures/tool-value-gauntlet/expo-eas-assurance-receipts/expo-prebuild-eas-runtime-adapter/receipt.json"
+  "fixtures/tool-value-gauntlet/universal-agent-packaging-receipts/claude-gemini-cursor-mcp-trace-packaging/receipt.json"
   "fixtures/external-pilot-verdict-bench/notification-permission-review/trace.json"
   "fixtures/external-pilot-verdict-bench/protected-scope-overclaim/trace.json"
   "fixtures/demo-ios-repo/DemoShipGuardApp.xcodeproj/project.pbxproj"
