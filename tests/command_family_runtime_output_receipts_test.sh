@@ -66,8 +66,8 @@ if trust_receipts.get("status") != "pass":
     raise SystemExit(f"trust-hardening receipts should also pass in the full gauntlet: {trust_receipts!r}")
 if domain_pack_sdk.get("status") != "pass":
     raise SystemExit(f"Domain Pack SDK receipts should also pass in the full gauntlet: {domain_pack_sdk!r}")
-if answer.get("identifier") != "shipguard codex-native-task-trace-adapter":
-    raise SystemExit(f"passing structured evidence receipts should escalate to Codex-native task/trace adapter: {answer!r}")
+if answer.get("identifier") != "shipguard xcodebuildmcp-evidence-adapter":
+    raise SystemExit(f"passing agent adapter receipts should escalate to XcodeBuildMCP evidence adapter: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -82,8 +82,10 @@ if "runtimeConfigurationBaselineSuppressions" in answer.get("missingDepthSignals
     raise SystemExit(f"configuration baseline/suppression receipts should no longer be missing: {answer!r}")
 if "runtimeStructuredEvidenceReceiptsV2" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"structured evidence receipts v2 should no longer be missing: {answer!r}")
-if "runtimeCodexNativeTaskTraceAdapter" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"Codex-native task/trace adapter gap should be explicit: {answer!r}")
+if "runtimeCodexNativeTaskTraceAdapter" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"Codex-native task/trace adapter should no longer be missing: {answer!r}")
+if "runtimeXcodeBuildMCPEvidenceAdapter" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"XcodeBuildMCP evidence adapter gap should be explicit: {answer!r}")
 if "runtimeCommandFamilyOutputReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"command-family output receipts should no longer be missing: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):

@@ -52,6 +52,7 @@ test "$(./bin/codex-maintainer version)" = "$(sed -n '1p' VERSION)"
 ./bin/shipguard ios app-intelligence --help >/dev/null
 ./bin/shipguard ios ai-readiness --help >/dev/null
 ./bin/shipguard pilot-bench --help >/dev/null
+./bin/shipguard agent trace --help >/dev/null
 ./bin/shipguard ios external-audit --help >/dev/null
 ./bin/shipguard ios spec-workflow --help >/dev/null
 ./bin/shipguard ios report-quality --help >/dev/null
@@ -60,6 +61,7 @@ test "$(./bin/codex-maintainer version)" = "$(sed -n '1p' VERSION)"
 ./bin/shipguard ios demo --help >/dev/null
 ./bin/shipguard ios goals --help >/dev/null
 ./bin/shipguard codex status --help >/dev/null
+./bin/shipguard codex trace --help >/dev/null
 ./bin/shipguard leaderboard build --help >/dev/null
 ./bin/shipguard release-attest build --help >/dev/null
 ./bin/shipguard release-proof build --help >/dev/null

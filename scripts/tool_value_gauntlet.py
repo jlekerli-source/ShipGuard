@@ -46,6 +46,7 @@ COMMANDS: list[dict[str, str]] = [
     {"command": "shipguard docs-check", "surface": "ShipGuard LinkSweep", "family": "docs"},
     {"command": "shipguard value-gauntlet", "surface": "ShipGuard Tool Value Gauntlet", "family": "shipyard"},
     {"command": "shipguard pilot-bench", "surface": "ShipGuard PilotBench", "family": "shipyard"},
+    {"command": "shipguard agent trace", "surface": "ShipGuard TraceBridge", "family": "agent"},
     {"command": "shipguard ios doctor", "surface": "ShipGuard DockCheck", "family": "ios"},
     {"command": "shipguard ios inventory", "surface": "ShipGuard CargoScan", "family": "ios"},
     {"command": "shipguard ios plan", "surface": "ShipGuard BriefForge", "family": "ios"},
@@ -86,7 +87,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add a Codex-native task and trace adapter so prompts, tool calls, receipts, verdicts, and next actions share one timeline?",
+    "Should ShipGuard add an XcodeBuildMCP evidence adapter so simulator build/run/UI/profiler proof can attach to the same task trace timeline?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -174,6 +175,7 @@ EXTERNAL_PILOT_VERDICT_BENCH_RECEIPT_ROOT = Path("fixtures") / "tool-value-gaunt
 DOMAIN_PACK_SDK_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "domain-pack-sdk-receipts"
 CONFIGURATION_BASELINE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "configuration-baseline-receipts"
 STRUCTURED_EVIDENCE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "structured-evidence-receipts"
+AGENT_ADAPTER_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "agent-adapter-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -935,6 +937,18 @@ def load_configuration_baseline_receipts(root: Path) -> list[tuple[Path, dict[st
 
 def load_structured_evidence_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / STRUCTURED_EVIDENCE_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_agent_adapter_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / AGENT_ADAPTER_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -2330,6 +2344,37 @@ def structured_evidence_receipt_probe(root: Path) -> dict[str, Any]:
     }
 
 
+def agent_adapter_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [
+        run_skill_plugin_receipt(root, fixture_dir, meta)
+        for fixture_dir, meta in load_agent_adapter_receipts(root)
+    ]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public agent-adapter receipt fixtures that prove Codex-style traces connect prompts, tool calls, receipts, verify verdicts, next actions, and worker-budget policy.",
+        "fixtureRoot": AGENT_ADAPTER_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public synthetic Codex trace", "synthetic task contract", "v2 validation receipt", "agent-budget fixture"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Agent adapter receipts are passing; add the XcodeBuildMCP evidence adapter next."
+            if status == "pass"
+            else "Fix agent adapter receipts so task traces, receipts, verify verdicts, next actions, and worker budgets are proven."
+        ),
+    }
+
+
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
     slug = command_slug(command)
     tokens = command_tokens(command)
@@ -2700,6 +2745,18 @@ def structured_evidence_receipt_passed(structured_evidence_receipts: dict[str, A
     return required.issubset(receipt_command_ids(structured_evidence_receipts))
 
 
+def agent_adapter_receipt_passed(agent_adapter_receipts: dict[str, Any]) -> bool:
+    if agent_adapter_receipts.get("status") != "pass":
+        return False
+    required = {
+        "prepare-agent-trace-task",
+        "agent-trace-run-verify-pass",
+        "agent-trace-overbudget-blocked",
+        "codex-trace-alias-pass",
+    }
+    return required.issubset(receipt_command_ids(agent_adapter_receipts))
+
+
 def command_depth_rows(
     commands: list[dict[str, Any]],
     text_index: dict[str, str],
@@ -2902,6 +2959,7 @@ def lowest_value_surface_probe(
     domain_pack_sdk_receipts: dict[str, Any],
     configuration_baseline_receipts: dict[str, Any],
     structured_evidence_receipts: dict[str, Any],
+    agent_adapter_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -3693,6 +3751,40 @@ def lowest_value_surface_probe(
             recommendation="Add a Codex-native task/trace adapter so ShipGuard can connect prompts, tool use, evidence receipts, verdicts, and next actions without relying on pasted summaries.",
             proof="Run value-gauntlet plus focused Codex trace fixtures that prove prompt-to-task, receipt-to-verdict, and next-goal handoff mapping.",
         )
+    if (
+        answer
+        and answer.get("identifier") == "shipguard codex-native-task-trace-adapter"
+        and agent_adapter_receipt_passed(agent_adapter_receipts)
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeCodexNativeTaskTraceAdapter":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeCodexNativeTaskTraceAdapter",
+                        True,
+                        f"{agent_adapter_receipts.get('passedReceiptCount') or 0}/{agent_adapter_receipts.get('receiptCount') or 0} agent adapter receipts executed",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeXcodeBuildMCPEvidenceAdapter",
+                False,
+                "XcodeBuildMCP build/run/UI/profiler proof still needs a native adapter that attaches simulator evidence to the same task trace timeline",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="cross-cutting",
+            identifier="shipguard xcodebuildmcp-evidence-adapter",
+            name="XcodeBuildMCP evidence adapter",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Add an XcodeBuildMCP evidence adapter so build/run, UI snapshot, screenshot, log, and profiler proof can attach to ShipGuard task traces and receipts.",
+            proof="Run value-gauntlet plus focused XcodeBuildMCP adapter fixtures that prove simulator evidence is typed, redacted, budget-aware, and mapped into the same verdict handoff.",
+        )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
         answer = {
@@ -3774,6 +3866,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     domain_pack_sdk_receipts = domain_pack_sdk_receipt_probe(root)
     configuration_baseline_receipts = configuration_baseline_receipt_probe(root)
     structured_evidence_receipts = structured_evidence_receipt_probe(root)
+    agent_adapter_receipts = agent_adapter_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -3805,6 +3898,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         domain_pack_sdk_receipts=domain_pack_sdk_receipts,
         configuration_baseline_receipts=configuration_baseline_receipts,
         structured_evidence_receipts=structured_evidence_receipts,
+        agent_adapter_receipts=agent_adapter_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -3862,6 +3956,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "domainPackSDKReceipts": domain_pack_sdk_receipts,
         "configurationBaselineReceipts": configuration_baseline_receipts,
         "structuredEvidenceReceipts": structured_evidence_receipts,
+        "agentAdapterReceipts": agent_adapter_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_actions(findings, probe),
@@ -4473,6 +4568,31 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_structured_evidence_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_structured_evidence_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+
+    agent_adapter_receipts = report.get("agentAdapterReceipts") or {}
+    lines.extend(["", "## Agent Adapter Receipts", ""])
+    lines.append(f"- Status: {agent_adapter_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {agent_adapter_receipts.get('passedReceiptCount', 0)}/{agent_adapter_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {agent_adapter_receipts.get('commandCount', 0)}")
+    if agent_adapter_receipts.get("nextAction"):
+        lines.append(f"- Next action: {agent_adapter_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in agent_adapter_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 44)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_agent_adapter_commands = [
+        (receipt, command)
+        for receipt in agent_adapter_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_agent_adapter_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_agent_adapter_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

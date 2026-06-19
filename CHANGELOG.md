@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added ShipGuard TraceBridge: `shipguard agent trace` and `shipguard codex trace` now normalize exported/synthetic agent traces into prompt, tool-call, receipt, optional verify verdict, next-action, runtime-receipt, and worker-budget timelines.
+- Added `scripts/agent_trace.py`, `docs/agent-trace.md`, focused `tests/agent_trace_test.sh`, and Tool Value Gauntlet `agentAdapterReceipts` proving prepare, trace-with-verify, over-budget blocking, and Codex alias behavior on public synthetic fixtures.
+- Advanced `shipguard value-gauntlet` beyond the v3.120 gap: once agent adapter receipts pass, the lowest-value probe now points to the v3.121 XcodeBuildMCP evidence adapter.
 - Added Structured Evidence Receipts v2: `scripts/shipguard_receipts.py` now normalizes current v2 validation receipts, legacy receipts, unsupported schema versions, artifact-only evidence, missing artifacts, digest/byte mismatches, stale receipts, and downgraded manual/runtime proof into one shared `evidenceReceiptSchema`.
 - Updated `shipguard verify` so `shipguard-verdict.json` and `diffFirstAnalysis` expose v2, legacy, invalid, stale, downgraded, structured-proof, artifact-only, and missing receipt counts while keeping manual/runtime proof from silently satisfying automated validation.
 - Added `tests/structured_evidence_receipts_test.sh` and Tool Value Gauntlet `structuredEvidenceReceipts` proving v2 pass, legacy-compatible pass, unsupported schema blocking, manual proof downgrade-to-review, and stale receipt blocking on public synthetic fixtures.

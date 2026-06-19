@@ -1,0 +1,207 @@
+{
+  "id": "codex-task-trace-adapter",
+  "kind": "agent-adapter-receipt",
+  "surface": "ShipGuard Agent Adapter Kernel",
+  "selectedMode": "value-gauntlet agent adapter receipts",
+  "trigger": "Prove the agent-neutral trace adapter can consume a Codex-style trace, normalize receipts, run verify, hand off the verdict, emit a runtime receipt, and block over-budget worker plans.",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/agent_trace.py",
+    "scripts/shipguard_receipts.py",
+    "scripts/task_contract.py",
+    "scripts/tool_value_gauntlet.py",
+    "tests/agent_trace_test.sh",
+    "docs/agent-trace.md"
+  ],
+  "expectedSourcePhrases": [
+    "ShipGuard Agent Adapter Kernel",
+    "shipguard agent trace",
+    "shipguard codex trace",
+    "agentBudget",
+    "runtimeCodexNativeTaskTraceAdapter",
+    "agentAdapterReceipts"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppsUsed": false,
+    "inputs": [
+      "synthetic Codex-style trace",
+      "synthetic task contract",
+      "synthetic v2 validation receipt",
+      "synthetic worker-budget violation"
+    ]
+  },
+  "prepareFiles": [
+    {
+      "path": "fixture/Sources/AgentTraceFixture/App.swift",
+      "text": "public struct AgentTraceFixture {}\n"
+    },
+    {
+      "path": "diffs/good.diff",
+      "text": "diff --git a/Sources/AgentTraceFixture/App.swift b/Sources/AgentTraceFixture/App.swift\n--- a/Sources/AgentTraceFixture/App.swift\n+++ b/Sources/AgentTraceFixture/App.swift\n@@ -1 +1,2 @@\n public struct AgentTraceFixture {}\n+// trace adapter fixture\n"
+    },
+    {
+      "path": "logs/swift-test.log",
+      "text": "swift test passed for agent trace fixture\n"
+    },
+    {
+      "path": "logs/v2-validation-receipt.json",
+      "text": "{\n  \"schemaVersion\": \"2.0\",\n  \"receiptId\": \"v2-agent-trace-swift-test\",\n  \"receiptType\": \"validation\",\n  \"requirementId\": \"swift-test\",\n  \"command\": \"swift test\",\n  \"exitCode\": 0,\n  \"status\": \"pass\",\n  \"startedAt\": \"2099-01-01T00:00:00Z\",\n  \"completedAt\": \"2099-01-01T00:00:10Z\",\n  \"repositoryCommit\": \"synthetic\",\n  \"environment\": \"local-cli\",\n  \"artifact\": {\"path\": \"swift-test.log\"},\n  \"scope\": [\"agent-trace-fixture\"]\n}\n"
+    },
+    {
+      "path": "trace.json",
+      "text": "{\n  \"adapter\": \"codex\",\n  \"threadId\": \"synthetic-codex-thread\",\n  \"taskId\": \"TASK-TRACE-001\",\n  \"agentBudget\": {\"workersRequested\": 3, \"maxWorkers\": 5, \"recursiveSpawning\": false},\n  \"events\": [\n    {\"type\": \"prompt\", \"role\": \"user\", \"text\": \"Implement v3.120 agent adapter kernel.\"},\n    {\"type\": \"tool_call\", \"tool\": \"functions.exec_command\", \"command\": \"./bin/shipguard prepare ...\"},\n    {\"type\": \"receipt\", \"receiptId\": \"v2-agent-trace-swift-test\", \"path\": \"logs/v2-validation-receipt.json\"},\n    {\"type\": \"verdict\", \"status\": \"pass\", \"path\": \"verify/shipguard-verdict.json\"},\n    {\"type\": \"next_action\", \"text\": \"Generate NEXT_GOAL for v3.121.\"}\n  ]\n}\n"
+    }
+  ],
+  "commands": [
+    {
+      "id": "prepare-agent-trace-task",
+      "display": "./bin/shipguard prepare agent trace fixture",
+      "args": [
+        "prepare",
+        "Exercise Codex-native agent trace adapter",
+        "--path",
+        "{out}/fixture",
+        "--out",
+        "{out}/prepare",
+        "--profile",
+        "ios",
+        "--allowed",
+        "Sources/**",
+        "--validation",
+        "swift test"
+      ],
+      "artifacts": [
+        {
+          "path": "prepare/shipguard-task.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "taskId", "validationContract", "authorizedFiles"],
+          "requiredNonEmptyJsonPaths": ["validationContract.required"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard prepare"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "agent-trace-run-verify-pass",
+      "display": "./bin/shipguard agent trace --run-verify",
+      "args": [
+        "agent",
+        "trace",
+        "--trace",
+        "{out}/trace.json",
+        "--task",
+        "{out}/prepare/shipguard-task.json",
+        "--diff",
+        "{out}/diffs/good.diff",
+        "--evidence",
+        "{out}/logs/v2-validation-receipt.json",
+        "--run-verify",
+        "--out",
+        "{out}/agent-trace",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-trace/agent-trace.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "surface", "status", "adapter", "traceSummary", "taskTrace", "receiptHandoff", "verifyHandoff", "agentBudget", "reportQualityQuestions"],
+          "requiredNonEmptyJsonPaths": ["taskTrace.timeline", "taskTrace.promptTimeline", "taskTrace.toolTimeline", "taskTrace.receiptTimeline", "taskTrace.verdictTimeline", "taskTrace.nextActions", "reportQualityQuestions"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard agent trace"},
+            {"path": "surface", "equals": "ShipGuard Agent Adapter Kernel"},
+            {"path": "status", "equals": "pass"},
+            {"path": "adapter.type", "equals": "codex"},
+            {"path": "traceSummary.promptCount", "equals": 1},
+            {"path": "traceSummary.toolCallCount", "equals": 1},
+            {"path": "traceSummary.receiptCount", "equals": 1},
+            {"path": "traceSummary.verdictCount", "equals": 1},
+            {"path": "traceSummary.nextActionCount", "equals": 1},
+            {"path": "receiptHandoff.schema.v2Count", "equals": 1},
+            {"path": "verifyHandoff.status", "equals": "pass"},
+            {"path": "verifyHandoff.verdictStatus", "equals": "pass"},
+            {"path": "agentBudget.status", "equals": "pass"},
+            {"path": "scopeBoundary.shipguardOnly", "equals": true},
+            {"path": "scopeBoundary.targetAppsReadOnly", "equals": true}
+          ],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "agent-trace/agent-trace.md",
+          "type": "markdown",
+          "requiredPhrases": ["# ShipGuard Agent Trace", "Agent Budget", "Verify Handoff", "Slash Goal"],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "agent-trace/agent-trace-receipt.json",
+          "type": "json",
+          "requiredJsonKeys": ["schemaVersion", "receiptId", "receiptType", "artifact"],
+          "requiredValues": [
+            {"path": "receiptType", "equals": "runtime"},
+            {"path": "artifact.path", "equals": "agent-trace.json"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "agent-trace-overbudget-blocked",
+      "display": "./bin/shipguard agent trace --budget-workers 6",
+      "args": [
+        "agent",
+        "trace",
+        "--trace",
+        "{out}/trace.json",
+        "--out",
+        "{out}/agent-trace-overbudget",
+        "--budget-workers",
+        "6",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-trace-overbudget/agent-trace.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "agentBudget", "findings"],
+          "requiredNonEmptyJsonPaths": ["findings"],
+          "requiredValues": [
+            {"path": "status", "equals": "blocked"},
+            {"path": "agentBudget.status", "equals": "blocked"},
+            {"path": "agentBudget.workerCount", "equals": 6}
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "codex-trace-alias-pass",
+      "display": "./bin/shipguard codex trace",
+      "args": [
+        "codex",
+        "trace",
+        "--trace",
+        "{out}/trace.json",
+        "--out",
+        "{out}/codex-trace",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "codex-trace/agent-trace.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "adapter", "traceSummary", "agentBudget"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard codex trace"},
+            {"path": "adapter.type", "equals": "codex"},
+            {"path": "agentBudget.status", "equals": "pass"}
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}

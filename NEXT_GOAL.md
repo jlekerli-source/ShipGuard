@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-18T23:40:41Z
-- Current toolkit version: 3.119.0
-- Target release: v3.120.0
-- Title: Agent Adapter Kernel And Codex-Native Task Trace Adapter
+- Generated: 2026-06-19T00:39:44Z
+- Current toolkit version: 3.120.0
+- Target release: v3.121.0
+- Title: XcodeBuildMCP Evidence Adapter
 
 ## Slash Plan
 
 ```text
-/plan v3.120.0 Agent Adapter Kernel And Codex-Native Task Trace Adapter for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Build one agent-neutral adapter kernel with a Codex-native task and trace adapter that captures prompts, tool calls, budgets, receipts, verify results, verdicts, and next actions without requiring pasted summaries.
+/plan v3.121.0 XcodeBuildMCP Evidence Adapter for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Build a typed XcodeBuildMCP evidence adapter that attaches build/run, UI snapshot, screenshot, log, and profiler proof to ShipGuard agent traces without editing target apps.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.120.0 Agent Adapter Kernel And Codex-Native Task Trace Adapter for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Build one agent-neutral adapter kernel with a Codex-native task and trace adapter that captures prompts, tool calls, budgets, receipts, verify results, verdicts, and next actions without requiring pasted summaries, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.121.0 XcodeBuildMCP Evidence Adapter for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Build a typed XcodeBuildMCP evidence adapter that attaches build/run, UI snapshot, screenshot, log, and profiler proof to ShipGuard agent traces without editing target apps, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Build one agent-neutral adapter kernel with a Codex-native task and trace adapter that captures prompts, tool calls, budgets, receipts, verify results, verdicts, and next actions without requiring pasted summaries.
+Build a typed XcodeBuildMCP evidence adapter that attaches build/run, UI snapshot, screenshot, log, and profiler proof to ShipGuard agent traces without editing target apps.
 
 ## Completion Receipt
 
-- Completed scope: v3.119.0 Structured Evidence Receipts v2
-- Evidence: Validated structured receipt normalization with git diff --check, py_compile, structured_evidence_receipts_test, task_contract_test, task_contract_receipts_test, tool_value_gauntlet_test, docs-check, self-audit, CLI smoke, action workflow tests, and package proof retry.
+- Completed scope: v3.120.0 Agent Adapter Kernel and Codex-native task trace adapter
+- Evidence: Validated TraceBridge with py_compile, agent_trace_test, self_audit_test, cli_smoke_test, tool_value_gauntlet_test, command-family/trust/task-contract receipt tests, ios_report_quality_test, validate, docs-check, and git diff --check.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.121.0 XcodeBuildMCP Evidence Adapter for jlekerli-source/ShipGuard:
+/plan v3.122.0 Expo MCP And EAS Assurance Adapter for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Build one agent-neutral adapter kernel with a Codex-native task and trace adapte
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.121.0 XcodeBuildMCP Evidence Adapter for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.122.0 Expo MCP And EAS Assurance Adapter for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.121.0 --title "XcodeBuildMCP Evidence Adapter" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.122.0 --title "Expo MCP And EAS Assurance Adapter" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -146,12 +146,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.120.0.
+1. Open or update the tracking issue for v3.121.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.120.0` and upload `dist/shipguard-v3.120.0.tar.gz`.
+6. Create release `v3.121.0` and upload `dist/shipguard-v3.121.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

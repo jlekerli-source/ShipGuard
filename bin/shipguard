@@ -39,6 +39,7 @@ Usage:
   shipguard brand [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
   shipguard value-gauntlet [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
   shipguard pilot-bench [--trace <trace.json-or-dir> ...] [--out <dir>] [--shareable] [--json|--markdown]
+  shipguard agent trace --trace <trace.json-or-jsonl-or-dir> --out <dir> [--adapter auto|codex|generic] [--task <shipguard-task.json-or-dir>] [--diff <patch.diff>] [--evidence <file> ...] [--verdict <shipguard-verdict.json-or-dir>] [--run-verify] [--budget-workers <n>] [--max-workers <n>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard web audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard web plan --report <web-audit-json-or-dir> --out <dir> [--target <repo>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard backend audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
@@ -69,6 +70,7 @@ Usage:
   shipguard ios demo --out <dir> [--fixture <repo>] [--cases <cases.jsonl>]
   shipguard ios goals init|status|next|emit|complete [options]
   shipguard codex status [--cache <dir>] [--strict]
+  shipguard codex trace --trace <trace.json-or-jsonl-or-dir> --out <dir> [--task <shipguard-task.json-or-dir>] [--diff <patch.diff>] [--evidence <file> ...] [--run-verify] [--budget-workers <n>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard leaderboard build --arena-results <results.json> --out <leaderboard.json>
   shipguard release-manifest --tarball <release.tar.gz> --out <dir> [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--release-url <url>] [--issue-url <url>]
   shipguard release-manifest verify --manifest <release-manifest.json> --tarball <release.tar.gz> [--version <version>] [--tag <tag>]
@@ -111,11 +113,12 @@ Commands:
               Grade every ShipGuard command, skill, plugin, action, and proof surface for developer value.
   pilot-bench
               Score public-safe read-only task traces for PilotBench verdict usefulness.
+  agent      Normalize agent traces into task, receipt, verdict, next-action, and budget evidence.
   web         Web-focused first-audit and fix-plan reports for starter repos.
   backend     Backend-focused first-audit and fix-plan reports for starter repos.
   cli         CLI-focused first-audit and fix-plan reports for starter repos.
   ios         iOS-focused Codex planning helpers for branded build, debug, permission, preview, performance, and runtime surfaces.
-  codex      Check local Codex plugin install status for ShipGuard.
+  codex      Check local Codex plugin install status and normalize Codex task traces for ShipGuard.
   leaderboard Build a stable leaderboard JSON file from arena results.
   release-manifest
               Generate release-manifest JSON and proof-ledger Markdown.
@@ -422,6 +425,13 @@ cmd_pilot_bench() {
   run_py "$tool_root/scripts/external_pilot_verdict_bench.py" "$@"
 }
 
+cmd_agent() {
+  local subcommand="${1:-}"
+  [[ "$subcommand" == "trace" ]] || fail "agent requires subcommand: trace"
+  shift || true
+  run_py "$tool_root/scripts/agent_trace.py" "$@"
+}
+
 cmd_prepare() {
   run_py "$tool_root/scripts/task_contract.py" prepare "$@"
 }
@@ -525,9 +535,16 @@ cmd_ios() {
 
 cmd_codex() {
   local subcommand="${1:-}"
-  [[ "$subcommand" == "status" ]] || fail "codex requires subcommand: status"
+  [[ "$subcommand" == "status" || "$subcommand" == "trace" ]] || fail "codex requires subcommand: status or trace"
   shift || true
-  run_sh "$tool_root/scripts/codex_status.sh" "$@"
+  case "$subcommand" in
+    status)
+      run_sh "$tool_root/scripts/codex_status.sh" "$@"
+      ;;
+    trace)
+      run_py "$tool_root/scripts/agent_trace.py" --surface-command "shipguard codex trace" --adapter codex "$@"
+      ;;
+  esac
 }
 
 cmd_leaderboard() {
@@ -652,6 +669,9 @@ main() {
       ;;
     pilot-bench)
       cmd_pilot_bench "$@"
+      ;;
+    agent)
+      cmd_agent "$@"
       ;;
     web)
       cmd_profile web "$@"

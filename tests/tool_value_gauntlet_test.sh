@@ -22,7 +22,7 @@ grep -q '"surface": "ShipGuard Tool Value Gauntlet"' "$tmp_dir/gauntlet/tool-val
 grep -q '"intent": "shipguard-product-qa"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"shipguardOnly": true' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"targetAppsReadOnly": true' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
-grep -q '"commandCount": 60' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"commandCount": 61' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"pluginCount": 1' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"actions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"skills":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -51,6 +51,7 @@ grep -q '"externalPilotVerdictBenchReceipts":' "$tmp_dir/gauntlet/tool-value-gau
 grep -q '"domainPackSDKReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"configurationBaselineReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"structuredEvidenceReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"agentAdapterReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"priorityActions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"reportQualityQuestions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard score"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -99,6 +100,7 @@ grep -q 'ShipGuard PilotBench Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.m
 grep -q 'Domain Pack SDK Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Configuration Baseline Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Structured Evidence Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Agent Adapter Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Report Quality Questions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'ShipGuard PilotBench' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 python3 - <<'PY' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -131,22 +133,25 @@ pilot_bench = data.get("externalPilotVerdictBenchReceipts") or {}
 domain_pack_sdk = data.get("domainPackSDKReceipts") or {}
 configuration_baseline = data.get("configurationBaselineReceipts") or {}
 structured_evidence = data.get("structuredEvidenceReceipts") or {}
+agent_adapter = data.get("agentAdapterReceipts") or {}
 if probe.get("question") != "Which ShipGuard command, skill, plugin, or action has the lowest developer-value score and should be upgraded next?":
     raise SystemExit(f"unexpected probe question: {probe!r}")
 for key in ("surfaceType", "identifier", "name", "baseScore", "depthScore", "depthChecks", "recommendation", "proofGuidance", "reason"):
     if key not in answer:
         raise SystemExit(f"probe answer missing {key}: {answer!r}")
-if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard codex-native-task-trace-adapter":
-    raise SystemExit(f"passing structured evidence receipts should escalate to Codex-native task trace adapter: {answer!r}")
+if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard xcodebuildmcp-evidence-adapter":
+    raise SystemExit(f"passing agent adapter receipts should escalate to XcodeBuildMCP evidence adapter: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"diff-first verification should no longer be missing: {answer!r}")
 if "runtimeIOSNotificationPermissionWorkflow" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"notification permission workflow should no longer be missing: {answer!r}")
 if "runtimeStructuredEvidenceReceiptsV2" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"structured evidence receipts v2 should no longer be missing: {answer!r}")
-if "runtimeCodexNativeTaskTraceAdapter" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"Codex-native task trace adapter gap should be explicit: {answer!r}")
-for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract", "runtimeIOSNotificationPermissionWorkflow", "runtimeExternalPilotVerdictBench", "runtimeDomainPackSDK", "runtimeConfigurationBaselineSuppressions", "runtimeStructuredEvidenceReceiptsV2"):
+if "runtimeCodexNativeTaskTraceAdapter" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"Codex-native task trace adapter should no longer be missing: {answer!r}")
+if "runtimeXcodeBuildMCPEvidenceAdapter" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"XcodeBuildMCP evidence adapter gap should be explicit: {answer!r}")
+for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract", "runtimeIOSNotificationPermissionWorkflow", "runtimeExternalPilotVerdictBench", "runtimeDomainPackSDK", "runtimeConfigurationBaselineSuppressions", "runtimeStructuredEvidenceReceiptsV2", "runtimeCodexNativeTaskTraceAdapter"):
     if retired_signal in answer.get("missingDepthSignals", []):
         raise SystemExit(f"{retired_signal} should no longer be missing after fixture proof: {answer!r}")
 if not isinstance(probe.get("rankedSurfaces"), list) or not probe["rankedSurfaces"]:
@@ -174,7 +179,7 @@ for item in negative.get("cases") or []:
         raise SystemExit(f"negative fixture should fail report scoring but pass fixture expectation: {item!r}")
 if command_family.get("status") != "pass":
     raise SystemExit(f"runtime command-family coverage should pass: {command_family!r}")
-if command_family.get("commandCount") != 60 or command_family.get("passedCommandCount") != 60:
+if command_family.get("commandCount") != 61 or command_family.get("passedCommandCount") != 61:
     raise SystemExit(f"expected all public command help paths to pass: {command_family!r}")
 for item in command_family.get("commands") or []:
     if item.get("status") != "pass" or item.get("missing"):
@@ -695,6 +700,28 @@ for item in structured_evidence.get("receipts") or []:
     for command in item.get("commands") or []:
         if command.get("status") != "pass" or command.get("missing"):
             raise SystemExit(f"structured evidence command should pass without missing checks: {command!r}")
+if agent_adapter.get("status") != "pass":
+    raise SystemExit(f"agent adapter receipts should pass: {agent_adapter!r}")
+if agent_adapter.get("receiptCount") != 1 or agent_adapter.get("passedReceiptCount") != 1 or agent_adapter.get("commandCount") != 4:
+    raise SystemExit(f"expected one agent adapter receipt and four commands: {agent_adapter!r}")
+agent_adapter_receipt_ids = {item.get("id") for item in agent_adapter.get("receipts") or []}
+if agent_adapter_receipt_ids != {"codex-task-trace-adapter"}:
+    raise SystemExit(f"unexpected agent adapter receipt fixtures: {agent_adapter_receipt_ids!r}")
+for item in agent_adapter.get("receipts") or []:
+    if item.get("status") != "pass" or item.get("missing"):
+        raise SystemExit(f"agent adapter receipt should pass without missing checks: {item!r}")
+    command_ids = {command.get("id") for command in item.get("commands") or []}
+    expected_commands = {
+        "prepare-agent-trace-task",
+        "agent-trace-run-verify-pass",
+        "agent-trace-overbudget-blocked",
+        "codex-trace-alias-pass",
+    }
+    if command_ids != expected_commands:
+        raise SystemExit(f"unexpected agent adapter command set: {command_ids!r}")
+    for command in item.get("commands") or []:
+        if command.get("status") != "pass" or command.get("missing"):
+            raise SystemExit(f"agent adapter command should pass without missing checks: {command!r}")
 if "Which ShipGuard command" in data.get("reportQualityQuestions", []):
     raise SystemExit("the answered lowest-value question should not remain a report-quality question")
 retired_phrases = (
@@ -721,11 +748,12 @@ retired_phrases = (
     "Domain Pack SDK",
     "configuration baselines and suppressions",
     "structured evidence receipts v2",
+    "Codex-native task and trace adapter",
 )
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
     raise SystemExit(f"answered runtime receipt questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
-if not any("Codex-native task and trace adapter" in question for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"expected Codex-native task trace adapter quality question: {data.get('reportQualityQuestions')!r}")
+if not any("XcodeBuildMCP evidence adapter" in question for question in data.get("reportQualityQuestions", [])):
+    raise SystemExit(f"expected XcodeBuildMCP evidence adapter quality question: {data.get('reportQualityQuestions')!r}")
 PY
 
 json_stdout="$(./bin/shipguard value-gauntlet --path . --json)"
@@ -742,6 +770,6 @@ grep -q '# ShipGuard Tool Value Gauntlet' <<<"$markdown_stdout"
 grep -q '"tool": "shipguard ios report-quality"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/quality/ios-report-quality.md"
-grep -q 'Codex-native task and trace adapter' "$tmp_dir/quality/ios-report-quality.md"
+grep -q 'XcodeBuildMCP evidence adapter' "$tmp_dir/quality/ios-report-quality.md"
 
 echo "tool value gauntlet tests passed"

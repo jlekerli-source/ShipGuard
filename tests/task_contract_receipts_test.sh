@@ -78,8 +78,8 @@ if structured_evidence.get("status") != "pass":
 if structured_evidence.get("receiptCount") != 1 or structured_evidence.get("passedReceiptCount") != 1 or structured_evidence.get("commandCount") != 6:
     raise SystemExit(f"expected one structured evidence receipt and six commands: {structured_evidence!r}")
 
-if answer.get("identifier") != "shipguard codex-native-task-trace-adapter":
-    raise SystemExit(f"passing structured evidence receipts should escalate to Codex-native task trace adapter: {answer!r}")
+if answer.get("identifier") != "shipguard xcodebuildmcp-evidence-adapter":
+    raise SystemExit(f"passing agent adapter receipts should escalate to XcodeBuildMCP evidence adapter: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -94,8 +94,10 @@ if "runtimeConfigurationBaselineSuppressions" in answer.get("missingDepthSignals
     raise SystemExit(f"configuration baseline/suppression should no longer be missing: {answer!r}")
 if "runtimeStructuredEvidenceReceiptsV2" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"structured evidence receipts v2 should no longer be missing: {answer!r}")
-if "runtimeCodexNativeTaskTraceAdapter" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"Codex-native task trace adapter gap should be explicit: {answer!r}")
+if "runtimeCodexNativeTaskTraceAdapter" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"Codex-native task trace adapter should no longer be missing: {answer!r}")
+if "runtimeXcodeBuildMCPEvidenceAdapter" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"XcodeBuildMCP evidence adapter gap should be explicit: {answer!r}")
 PY
 
 echo "task contract receipt tests passed"
