@@ -33,8 +33,8 @@ The naming style is intentional: stable commands and paths stay literal, while p
 Install from a release tarball, then validate the bundle:
 
 ```bash
-tar -xzf shipguard-v3.126.0.tar.gz
-cd shipguard-v3.126.0
+tar -xzf shipguard-v3.127.0.tar.gz
+cd shipguard-v3.127.0
 PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" version
 ./bin/shipguard validate
@@ -107,6 +107,7 @@ Common loops:
 | Grade ShipGuard report usefulness | `./bin/shipguard ios report-quality --help` |
 | Audit external workflow sources for native adoption | `./bin/shipguard ios external-audit --help` |
 | Generate governed spec/plan/task artifacts | `./bin/shipguard ios spec-workflow --help` |
+| Prove Codex marketplace readiness | `./bin/shipguard codex marketplace-readiness --help` |
 | Prepare release proof | `./bin/shipguard release-proof --help` |
 | Check docs-heavy changes | `./bin/shipguard docs-check --help` |
 | Create the next improvement handoff | `./bin/shipguard next-goal --help` |
@@ -121,6 +122,7 @@ Read `docs/cli.md` for the full command reference and `examples/demo-walkthrough
 - `scripts/task_domain_packs.py`: the Domain Pack SDK registry and iOS notification-permission pack boundary, with public synthetic extension proof for future packs.
 - `scripts/tool_value_gauntlet.py`: the ShipGuard Tool Value Gauntlet for grading every command, skill, plugin, action, doc, and proof path for real developer usefulness, running representative commands, every public command help path, skill/plugin receipts, workflow chains, scenario failure/remediation, fresh package adoption, PilotBench receipts, Domain Pack SDK receipts, configuration-baseline receipts, full-audit receipts, unified inspect receipts, concise result-UX receipts, and profile-native repair/rerun receipts before probing the weakest next workflow layer.
 - `scripts/shipguard_result.py`: the shared result contract used by major reports so they lead with status, verdict, proof source, why it matters, and one next command before detailed evidence.
+- `scripts/codex_marketplace_readiness.py`: ShipGuard MarketplaceDeck for proving tracked Codex plugin metadata, local marketplace source, README/profile presentation, icon assets, screenshot policy, strict status proof, and the submission packet before publishing or submitting.
 - `scripts/full_audit.py`: ShipGuard Full Audit, the resumable ShipYard proof lane for validation, value-gauntlet, report-quality, package, plugin, CI, and release-proof preparation, with a compact result block at the top.
 - `scripts/shipguard_inspect.py`: ShipGuard InspectDeck, the one-surface proof-state report for repo state, value-gauntlet proof, full-audit proof, Codex plugin status, release proof, underlying evidence, result verdict, and exact next action.
 - `scripts/external_pilot_verdict_bench.py`: ShipGuard PilotBench for scoring public-safe read-only task traces across owner detection, scope, proof, claims, redaction, next action, false positives, and first useful verdict time.

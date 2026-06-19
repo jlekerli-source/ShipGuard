@@ -1,0 +1,143 @@
+{
+  "id": "public-marketplace-submission-packet",
+  "kind": "codex-marketplace-readiness-receipt",
+  "surface": "ShipGuard MarketplaceDeck",
+  "selectedMode": "codex marketplace-readiness",
+  "trigger": "Prove the tracked Codex plugin source is understandable, installable, status-verifiable, visually presentable, and ready for a submission packet.",
+  "sourcePaths": [
+    "scripts/codex_marketplace_readiness.py",
+    "scripts/tool_value_gauntlet.py",
+    "scripts/codex_status.sh",
+    "plugins/ios-shipguard/.codex-plugin/plugin.json",
+    ".agents/plugins/marketplace.json",
+    ".github/assets/shipguard-icon.png",
+    "docs/codex-marketplace-readiness.md",
+    "tests/codex_marketplace_readiness_test.sh",
+    "README.md",
+    "ROADMAP.md"
+  ],
+  "expectedSourcePhrases": [
+    "codexMarketplaceReadinessReceipts",
+    "runtimeCodexMarketplaceReadiness",
+    "runtimeExternalBenchmarkV2",
+    "ShipGuard MarketplaceDeck"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppsUsed": false,
+    "inputs": [
+      "public ShipGuard checkout",
+      "tracked plugin metadata",
+      "synthetic Codex plugin cache",
+      "public icon assets",
+      "public README and docs"
+    ]
+  },
+  "prepareCodexPluginCache": true,
+  "commands": [
+    {
+      "id": "codex-marketplace-readiness-pass",
+      "display": "./bin/shipguard codex marketplace-readiness --cache <synthetic-cache> --strict --shareable",
+      "args": [
+        "codex",
+        "marketplace-readiness",
+        "--path",
+        ".",
+        "--out",
+        "{out}/marketplace",
+        "--cache",
+        "{cache}",
+        "--strict",
+        "--shareable"
+      ],
+      "timeoutSeconds": 60,
+      "artifacts": [
+        {
+          "path": "marketplace/codex-marketplace-readiness.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "surface",
+            "status",
+            "resultUX",
+            "pluginMetadata",
+            "marketplaceSource",
+            "publicAssets",
+            "installProof",
+            "statusProof",
+            "submissionPacket",
+            "scopeBoundary",
+            "reportQualityQuestions"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "resultUX.status",
+            "resultUX.verdict",
+            "resultUX.proofSource",
+            "resultUX.whyItMatters",
+            "resultUX.nextCommand",
+            "resultUX.nextActionSummary",
+            "submissionPacket.listingTitle",
+            "submissionPacket.shortDescription",
+            "submissionPacket.longDescription",
+            "submissionPacket.screenshotPolicy",
+            "statusProof.overallStatus"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard codex marketplace-readiness"
+            },
+            {
+              "path": "surface",
+              "equals": "ShipGuard MarketplaceDeck"
+            },
+            {
+              "path": "status",
+              "equals": "pass"
+            },
+            {
+              "path": "resultUX.status",
+              "equals": "pass"
+            },
+            {
+              "path": "marketplaceSource.id",
+              "equals": "shipguard"
+            },
+            {
+              "path": "marketplaceSource.pluginPath",
+              "equals": "./plugins/ios-shipguard"
+            },
+            {
+              "path": "statusProof.overallStatus",
+              "equals": "pass"
+            },
+            {
+              "path": "scopeBoundary.shipguardOnly",
+              "equals": true
+            },
+            {
+              "path": "scopeBoundary.mutatesPluginCache",
+              "equals": false
+            }
+          ],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "marketplace/codex-marketplace-readiness.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard Codex Marketplace Readiness",
+            "## Result",
+            "## Submission Packet",
+            "## Public Assets",
+            "codex plugin add ios-shipguard@shipguard",
+            "Do not fabricate screenshots",
+            "model selection happens outside ShipGuard"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}

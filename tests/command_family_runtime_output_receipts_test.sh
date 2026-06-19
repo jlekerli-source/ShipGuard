@@ -71,8 +71,8 @@ if domain_pack_sdk.get("status") != "pass":
     raise SystemExit(f"Domain Pack SDK receipts should also pass in the full gauntlet: {domain_pack_sdk!r}")
 if concise_result_ux.get("status") != "pass":
     raise SystemExit(f"concise result UX receipts should also pass in the full gauntlet: {concise_result_ux!r}")
-if answer.get("identifier") != "shipguard codex-marketplace-readiness":
-    raise SystemExit(f"passing concise result UX receipts should escalate to marketplace readiness: {answer!r}")
+if answer.get("identifier") != "shipguard external-benchmark-v2":
+    raise SystemExit(f"passing concise result UX receipts should escalate to external benchmark v2: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -101,8 +101,8 @@ if "runtimeUnifiedInspectExperience" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"unified inspect should no longer be missing: {answer!r}")
 if "runtimeConciseVerdictResultUX" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"concise verdict UX should no longer be missing: {answer!r}")
-if "runtimeCodexMarketplaceReadiness" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"marketplace readiness gap should be explicit: {answer!r}")
+if "runtimeExternalBenchmarkV2" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"external benchmark v2 gap should be explicit: {answer!r}")
 if "runtimeCommandFamilyOutputReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"command-family output receipts should no longer be missing: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):

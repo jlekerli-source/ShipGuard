@@ -408,7 +408,9 @@ The full-audit slice answers the next weakness after universal packaging. `shipg
 
 The unified inspect slice adds `shipguard inspect` and `fixtures/tool-value-gauntlet/unified-inspect-receipts`. `unifiedInspectReceipts` create synthetic value-gauntlet, full-audit, and release-proof inputs, run InspectDeck, and require one shareable report with repo state, proof inputs, plugin state, release state, underlying evidence, scope boundary, and one exact next action.
 
-The concise result-UX slice adds `scripts/shipguard_result.py` and `fixtures/tool-value-gauntlet/concise-verdict-result-ux-receipts`. `conciseVerdictResultUXReceipts` run full-audit, iOS design, iOS performance, and InspectDeck on public/synthetic inputs and require each report to lead with `resultUX` plus Markdown `## Result`: verdict, proof source, why it matters, and one next command. With those receipts green, the next value-gauntlet weakness is v3.127 Codex marketplace readiness.
+The concise result-UX slice adds `scripts/shipguard_result.py` and `fixtures/tool-value-gauntlet/concise-verdict-result-ux-receipts`. `conciseVerdictResultUXReceipts` run full-audit, iOS design, iOS performance, and InspectDeck on public/synthetic inputs and require each report to lead with `resultUX` plus Markdown `## Result`: verdict, proof source, why it matters, and one next command.
+
+The Codex marketplace-readiness slice adds `scripts/codex_marketplace_readiness.py`, `docs/codex-marketplace-readiness.md`, and `fixtures/tool-value-gauntlet/codex-marketplace-readiness-receipts`. `codexMarketplaceReadinessReceipts` run the public MarketplaceDeck path and require plugin metadata, local marketplace source, README/profile presentation, icon assets, screenshot policy, strict status proof, privacy/model-choice boundaries, and a copy-ready submission packet. With those receipts green, the next value-gauntlet weakness is v3.128 External Benchmark v2.
 
 ## Verdict
 

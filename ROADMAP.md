@@ -49,7 +49,7 @@ Keep the core open-source verdict engine honest. Future Pro, Team, or Enterprise
 
 ## Phase Map
 
-The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.126 as shipped foundations and v3.127 as the active Codex marketplace readiness slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, universal-agent packaging, full-audit orchestration, unified inspect, or concise result-UX work.
+The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.127 as shipped foundations and v3.128 as the active External Benchmark v2 slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, universal-agent packaging, full-audit orchestration, unified inspect, concise result-UX, or Codex marketplace-readiness work.
 
 ### Phase A: Trustworthy Foundation
 
@@ -134,7 +134,7 @@ v3.128  External benchmark v2
 v3.129-v3.130  v4 preview, stabilization, security, and schema freeze
 ```
 
-Current state: v3.126 adds a shared `resultUX` contract through `scripts/shipguard_result.py`; value-gauntlet, full-audit, InspectDeck, iOS design, and iOS performance now lead with pass/review/blocked status, one verdict, proof source, why it matters, and the next command before detailed evidence. The active architectural priority is v3.127 Codex marketplace readiness: prove the public plugin source, README, install path, screenshots/assets, status checks, and submission packet are adopter-ready.
+Current state: v3.127 adds `shipguard codex marketplace-readiness` and MarketplaceDeck receipts that prove the public plugin source, README/profile presentation, install path, icon/assets policy, screenshot honesty, strict Codex status, and submission packet are adopter-ready. The active architectural priority is v3.128 External Benchmark v2: compare ShipGuard verdict usefulness against baseline agent output on public-safe task traces.
 
 Every release proposal must answer:
 

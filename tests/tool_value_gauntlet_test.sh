@@ -159,8 +159,8 @@ if probe.get("question") != "Which ShipGuard command, skill, plugin, or action h
 for key in ("surfaceType", "identifier", "name", "baseScore", "depthScore", "depthChecks", "recommendation", "proofGuidance", "reason"):
     if key not in answer:
         raise SystemExit(f"probe answer missing {key}: {answer!r}")
-if answer.get("surfaceType") != "cross-cutting" or answer.get("identifier") != "shipguard codex-marketplace-readiness":
-    raise SystemExit(f"passing concise result UX receipts should escalate to marketplace readiness: {answer!r}")
+if answer.get("surfaceType") != "eval" or answer.get("identifier") != "shipguard external-benchmark-v2":
+    raise SystemExit(f"passing concise result UX receipts should escalate to external benchmark v2: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"diff-first verification should no longer be missing: {answer!r}")
 if "runtimeIOSNotificationPermissionWorkflow" in answer.get("missingDepthSignals", []):
@@ -179,8 +179,8 @@ if "runtimeFullAuditOrchestrator" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"full-audit orchestrator should no longer be missing: {answer!r}")
 if "runtimeConciseVerdictResultUX" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"concise verdict/result UX should no longer be missing: {answer!r}")
-if "runtimeCodexMarketplaceReadiness" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"Codex marketplace readiness gap should be explicit: {answer!r}")
+if "runtimeExternalBenchmarkV2" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"Codex external benchmark v2 gap should be explicit: {answer!r}")
 if "runtimeUnifiedInspectExperience" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"unified inspect should no longer be missing: {answer!r}")
 for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract", "runtimeIOSNotificationPermissionWorkflow", "runtimeExternalPilotVerdictBench", "runtimeDomainPackSDK", "runtimeConfigurationBaselineSuppressions", "runtimeStructuredEvidenceReceiptsV2", "runtimeCodexNativeTaskTraceAdapter", "runtimeXcodeBuildMCPEvidenceAdapter", "runtimeExpoMCPAndEASAdapter", "runtimeUniversalAgentPackagingAdapter", "runtimeFullAuditOrchestrator", "runtimeUnifiedInspectExperience", "runtimeConciseVerdictResultUX"):
@@ -914,8 +914,8 @@ retired_phrases = (
 )
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
     raise SystemExit(f"answered runtime receipt questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
-if not any("marketplace readiness" in question for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"expected marketplace readiness quality question: {data.get('reportQualityQuestions')!r}")
+if not any("external benchmark v2" in question.lower() for question in data.get("reportQualityQuestions", [])):
+    raise SystemExit(f"expected external benchmark v2 quality question: {data.get('reportQualityQuestions')!r}")
 PY
 
 json_stdout="$(./bin/shipguard value-gauntlet --path . --json)"
@@ -932,6 +932,6 @@ grep -q '# ShipGuard Tool Value Gauntlet' <<<"$markdown_stdout"
 grep -q '"tool": "shipguard ios report-quality"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/quality/ios-report-quality.md"
-grep -q 'marketplace readiness' "$tmp_dir/quality/ios-report-quality.md"
+grep -qi 'external benchmark v2' "$tmp_dir/quality/ios-report-quality.md"
 
 echo "tool value gauntlet tests passed"

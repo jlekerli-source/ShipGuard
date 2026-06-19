@@ -122,6 +122,7 @@ grep -q "^$package_name/docs/check-run.md$" "$tar_list"
 grep -q "^$package_name/docs/ci-gate.md$" "$tar_list"
 grep -q "^$package_name/docs/ci-summary.md$" "$tar_list"
 grep -q "^$package_name/docs/codex-status.md$" "$tar_list"
+grep -q "^$package_name/docs/codex-marketplace-readiness.md$" "$tar_list"
 grep -q "^$package_name/docs/agent-trace.md$" "$tar_list"
 grep -q "^$package_name/docs/full-audit.md$" "$tar_list"
 grep -q "^$package_name/docs/inspect.md$" "$tar_list"
@@ -179,6 +180,7 @@ grep -q "^$package_name/scripts/build_demo_reports.sh$" "$tar_list"
 grep -q "^$package_name/scripts/bug-triage/prompts.md$" "$tar_list"
 grep -q "^$package_name/scripts/check_run.sh$" "$tar_list"
 grep -q "^$package_name/scripts/codex_status.sh$" "$tar_list"
+grep -q "^$package_name/scripts/codex_marketplace_readiness.py$" "$tar_list"
 grep -q "^$package_name/scripts/ci_gate.sh$" "$tar_list"
 grep -q "^$package_name/scripts/ci_summary.sh$" "$tar_list"
 grep -q "^$package_name/scripts/docs_check.sh$" "$tar_list"
@@ -226,6 +228,7 @@ grep -q "^$package_name/fixtures/tool-value-gauntlet/universal-agent-packaging-r
 grep -q "^$package_name/fixtures/tool-value-gauntlet/full-audit-orchestrator-receipts/resumable-release-lane/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/unified-inspect-receipts/proof-state-control-deck/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/tool-value-gauntlet/concise-verdict-result-ux-receipts/major-report-result-contract/receipt.json$" "$tar_list"
+grep -q "^$package_name/fixtures/tool-value-gauntlet/codex-marketplace-readiness-receipts/public-marketplace-submission-packet/receipt.json$" "$tar_list"
 grep -q "^$package_name/fixtures/external-pilot-verdict-bench/notification-permission-review/trace.json$" "$tar_list"
 grep -q "^$package_name/fixtures/external-pilot-verdict-bench/protected-scope-overclaim/trace.json$" "$tar_list"
 grep -q "^$package_name/scripts/ios_launchdeck.py$" "$tar_list"
@@ -278,6 +281,7 @@ grep -q "^$package_name/tests/check_run_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ci_gate_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ci_summary_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/codex_status_test.sh$" "$tar_list"
+grep -q "^$package_name/tests/codex_marketplace_readiness_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/docs_check_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ios_ai_readiness_test.sh$" "$tar_list"
 grep -q "^$package_name/tests/ios_app_intelligence_test.sh$" "$tar_list"
@@ -643,6 +647,16 @@ package_codex_status="$(env -u SHIPGUARD_CLI HOME="$tmp_dir/package-home" PATH="
 printf '%s\n' "$package_codex_status" | grep -q 'Overall status: pass'
 printf '%s\n' "$package_codex_status" | grep -Fq "Resolved ShipGuard CLI for MCP/status: $package_root/bin/shipguard"
 printf '%s\n' "$package_codex_status" | grep -q 'codex plugin add ios-shipguard@shipguard'
+env -u SHIPGUARD_CLI HOME="$tmp_dir/package-home" "$package_root/bin/shipguard" codex marketplace-readiness \
+  --path "$package_root" \
+  --out "$tmp_dir/package-marketplace-readiness" \
+  --cache "$tmp_dir/package-codex-cache" \
+  --strict \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/package-marketplace-readiness/codex-marketplace-readiness.json"
+grep -q '"surface": "ShipGuard MarketplaceDeck"' "$tmp_dir/package-marketplace-readiness/codex-marketplace-readiness.json"
+grep -q '# ShipGuard Codex Marketplace Readiness' "$tmp_dir/package-marketplace-readiness/codex-marketplace-readiness.md"
+grep -q 'codex plugin add ios-shipguard@shipguard' "$tmp_dir/package-marketplace-readiness/codex-marketplace-readiness.md"
 "$package_root/bin/shipguard" ci-summary \
   --gate "$tmp_dir/package-gate/gate.json" \
   --out "$tmp_dir/package-summary.md" >/dev/null
@@ -933,6 +947,7 @@ grep -q '| shipguard ios eval --help | pass |' "$tmp_dir/package-self-audit/self
 grep -q '| shipguard ios demo --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard ios goals --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard codex status --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| shipguard codex marketplace-readiness --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| shipguard codex trace --help | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| .agents/plugins/marketplace.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| NEXT_GOAL.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -954,6 +969,7 @@ grep -q '| docs/agent-trace.md | pass |' "$tmp_dir/package-self-audit/self-audit
 grep -q '| docs/full-audit.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/inspect.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/codex-status.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| docs/codex-marketplace-readiness.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/ios-preview.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/ios-shipguard.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| docs/shipguard-devspace.md | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -1017,6 +1033,7 @@ grep -q '| scripts/task_contract.py | pass |' "$tmp_dir/package-self-audit/self-
 grep -q '| scripts/shipguard_receipts.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/shipguard_baseline.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/agent_trace.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| scripts/codex_marketplace_readiness.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/shipguard_result.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/full_audit.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| scripts/shipguard_inspect.py | pass |' "$tmp_dir/package-self-audit/self-audit.md"
@@ -1067,6 +1084,7 @@ grep -q '| fixtures/tool-value-gauntlet/universal-agent-packaging-receipts/claud
 grep -q '| fixtures/tool-value-gauntlet/full-audit-orchestrator-receipts/resumable-release-lane/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/unified-inspect-receipts/proof-state-control-deck/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/tool-value-gauntlet/concise-verdict-result-ux-receipts/major-report-result-contract/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
+grep -q '| fixtures/tool-value-gauntlet/codex-marketplace-readiness-receipts/public-marketplace-submission-packet/receipt.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/external-pilot-verdict-bench/notification-permission-review/trace.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q '| fixtures/external-pilot-verdict-bench/protected-scope-overclaim/trace.json | pass |' "$tmp_dir/package-self-audit/self-audit.md"
 grep -q 'shipguard web audit' "$package_root/docs/cli.md"

@@ -484,7 +484,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the full-audit report replace repeated manual validation ceremony with one resumable evidence lane?",
             "Are slow lanes summarized clearly enough for a solo developer to decide what to rerun?",
             "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?",
-            "Should the next ShipGuard slice prove Codex marketplace readiness with public install, metadata, status, screenshot/asset, and submission-packet receipts?",
+            "Should the next ShipGuard slice add External Benchmark v2 receipts that compare ShipGuard verdict usefulness against baseline agent output on public-safe traces?",
         ],
         "slashPlan": "/plan v3.127.0 Codex Marketplace Readiness for jlekerli-source/ShipGuard: prove public plugin metadata, install proof, README/profile presentation, screenshots/assets, status checks, and submission packet quality with executable receipts.",
         "slashGoal": "/goal Implement v3.127.0 Codex Marketplace Readiness for jlekerli-source/ShipGuard: make the Codex marketplace source adopter-ready with proof, without hiding install or status evidence.",

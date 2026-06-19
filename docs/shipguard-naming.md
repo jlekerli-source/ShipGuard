@@ -83,6 +83,7 @@ The rule is simple: a fun name is allowed only when its plain job and proof boun
 | `shipguard autopsy` | ShipGuard AutopsyLab | Score AI coding runs, diffs, tasks, validation logs, and PR-ready gates. |
 | `shipguard arena` | ShipGuard ArenaBench | Run, compare, import, sign, and verify public benchmark fixture packs. |
 | `shipguard codex status` | ShipGuard PluginRadar | Check local Codex plugin install state, stale metadata, and CLI resolution. |
+| `shipguard codex marketplace-readiness` | ShipGuard MarketplaceDeck | Prove tracked Codex plugin metadata, local marketplace source, public assets, status proof, and submission-packet readiness. |
 | `shipguard leaderboard` | ShipGuard ScoreTower | Build stable leaderboard JSON from arena benchmark results. |
 | `shipguard self-audit` | ShipGuard SelfScan | Generate toolkit readiness proof for the ShipGuard checkout. |
 | `shipguard next-goal` | ShipGuard NextRail | Generate the next slash-plan and slash-goal handoff for the improvement loop. |

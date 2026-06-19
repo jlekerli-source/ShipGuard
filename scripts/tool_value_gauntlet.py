@@ -91,7 +91,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard add Codex marketplace readiness receipts so public plugin metadata, install proof, screenshots/assets, status checks, and submission packet quality are adopter-ready?",
+    "Should ShipGuard add External Benchmark v2 receipts so independent/public-safe task traces compare ShipGuard verdict usefulness against baseline agent output?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -186,6 +186,7 @@ UNIVERSAL_AGENT_PACKAGING_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet
 FULL_AUDIT_ORCHESTRATOR_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "full-audit-orchestrator-receipts"
 UNIFIED_INSPECT_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "unified-inspect-receipts"
 CONCISE_VERDICT_RESULT_UX_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "concise-verdict-result-ux-receipts"
+CODEX_MARKETPLACE_READINESS_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "codex-marketplace-readiness-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -1031,6 +1032,18 @@ def load_unified_inspect_receipts(root: Path) -> list[tuple[Path, dict[str, Any]
 
 def load_concise_verdict_result_ux_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / CONCISE_VERDICT_RESULT_UX_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_codex_marketplace_readiness_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / CODEX_MARKETPLACE_READINESS_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -2643,6 +2656,37 @@ def concise_verdict_result_ux_receipt_probe(root: Path) -> dict[str, Any]:
     }
 
 
+def codex_marketplace_readiness_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [
+        run_skill_plugin_receipt(root, fixture_dir, meta)
+        for fixture_dir, meta in load_codex_marketplace_readiness_receipts(root)
+    ]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run public marketplace readiness fixtures that prove plugin metadata, local marketplace source, README/profile presentation, icon assets, screenshot policy, strict status proof, and submission-packet quality.",
+        "fixtureRoot": CODEX_MARKETPLACE_READINESS_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public ShipGuard checkout", "synthetic Codex plugin cache", "tracked plugin assets and docs"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "Codex marketplace readiness receipts are passing; add External Benchmark v2 next."
+            if status == "pass"
+            else "Fix marketplace readiness receipts so public plugin metadata, install proof, assets, status checks, and submission packet are adopter-ready."
+        ),
+    }
+
+
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
     slug = command_slug(command)
     tokens = command_tokens(command)
@@ -3090,6 +3134,13 @@ def concise_verdict_result_ux_receipt_passed(concise_verdict_result_ux_receipts:
     return required.issubset(receipt_command_ids(concise_verdict_result_ux_receipts))
 
 
+def codex_marketplace_readiness_receipt_passed(codex_marketplace_readiness_receipts: dict[str, Any]) -> bool:
+    if codex_marketplace_readiness_receipts.get("status") != "pass":
+        return False
+    required = {"codex-marketplace-readiness-pass"}
+    return required.issubset(receipt_command_ids(codex_marketplace_readiness_receipts))
+
+
 def command_depth_rows(
     commands: list[dict[str, Any]],
     text_index: dict[str, str],
@@ -3299,6 +3350,7 @@ def lowest_value_surface_probe(
     full_audit_orchestrator_receipts: dict[str, Any],
     unified_inspect_receipts: dict[str, Any],
     concise_verdict_result_ux_receipts: dict[str, Any],
+    codex_marketplace_readiness_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -4328,6 +4380,40 @@ def lowest_value_surface_probe(
             recommendation="Add Codex marketplace readiness receipts that prove public plugin metadata, install proof, README/profile presentation, status checks, and submission packet quality.",
             proof="Run value-gauntlet plus focused marketplace readiness fixtures that prove a fresh user can understand, install, verify, and evaluate ShipGuard from the public marketplace source.",
         )
+    if (
+        answer
+        and answer.get("identifier") == "shipguard codex-marketplace-readiness"
+        and codex_marketplace_readiness_receipt_passed(codex_marketplace_readiness_receipts)
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeCodexMarketplaceReadiness":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeCodexMarketplaceReadiness",
+                        True,
+                        f"{codex_marketplace_readiness_receipts.get('passedReceiptCount') or 0}/{codex_marketplace_readiness_receipts.get('receiptCount') or 0} marketplace readiness receipts executed",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeExternalBenchmarkV2",
+                False,
+                "ShipGuard still needs an external benchmark v2 pass that compares verdict usefulness on public-safe traces against baseline agent output and records false-positive/next-action quality",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="eval",
+            identifier="shipguard external-benchmark-v2",
+            name="External Benchmark v2",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Add External Benchmark v2 receipts that compare ShipGuard verdict usefulness against baseline agent output on public-safe task traces.",
+            proof="Run value-gauntlet plus focused external benchmark fixtures that prove ShipGuard improves scope, evidence, claim checking, and next-action quality without private app leakage.",
+        )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
         answer = {
@@ -4416,6 +4502,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     full_audit_orchestrator_receipts = full_audit_orchestrator_receipt_probe(root)
     unified_inspect_receipts = unified_inspect_receipt_probe(root)
     concise_verdict_result_ux_receipts = concise_verdict_result_ux_receipt_probe(root)
+    codex_marketplace_readiness_receipts = codex_marketplace_readiness_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -4454,6 +4541,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         full_audit_orchestrator_receipts=full_audit_orchestrator_receipts,
         unified_inspect_receipts=unified_inspect_receipts,
         concise_verdict_result_ux_receipts=concise_verdict_result_ux_receipts,
+        codex_marketplace_readiness_receipts=codex_marketplace_readiness_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -4533,6 +4621,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "fullAuditOrchestratorReceipts": full_audit_orchestrator_receipts,
         "unifiedInspectReceipts": unified_inspect_receipts,
         "conciseVerdictResultUXReceipts": concise_verdict_result_ux_receipts,
+        "codexMarketplaceReadinessReceipts": codex_marketplace_readiness_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_action_rows,
@@ -5315,6 +5404,30 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_result_ux_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_result_ux_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+    codex_marketplace_readiness_receipts = report.get("codexMarketplaceReadinessReceipts") or {}
+    lines.extend(["", "## Codex Marketplace Readiness Receipts", ""])
+    lines.append(f"- Status: {codex_marketplace_readiness_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {codex_marketplace_readiness_receipts.get('passedReceiptCount', 0)}/{codex_marketplace_readiness_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {codex_marketplace_readiness_receipts.get('commandCount', 0)}")
+    if codex_marketplace_readiness_receipts.get("nextAction"):
+        lines.append(f"- Next action: {codex_marketplace_readiness_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in codex_marketplace_readiness_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 44)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_marketplace_commands = [
+        (receipt, command)
+        for receipt in codex_marketplace_readiness_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_marketplace_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_marketplace_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

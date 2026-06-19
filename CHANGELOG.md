@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added v3.127 Codex marketplace readiness: `shipguard codex marketplace-readiness` audits public plugin metadata, local marketplace source, README/profile presentation, icon assets, screenshot honesty, strict status proof, privacy/model-choice boundaries, and a copy-ready submission packet.
+- Added Tool Value Gauntlet `codexMarketplaceReadinessReceipts` with public MarketplaceDeck fixtures; once those pass, the lowest-value probe now points to v3.128 External Benchmark v2.
 - Added v3.126 concise result UX: major reports now emit a shared `resultUX` object and Markdown `## Result` block with normalized status, verdict, proof source, why it matters, and one next command before detailed evidence.
 - Added `scripts/shipguard_result.py` and wired result UX through `shipguard value-gauntlet`, `shipguard full-audit`, `shipguard inspect`, `shipguard ios design`, and `shipguard ios performance` while preserving existing report fields for compatibility.
 - Added Tool Value Gauntlet `conciseVerdictResultUXReceipts` with public result-contract fixtures; once those pass, the lowest-value probe now points to v3.127 Codex marketplace readiness.

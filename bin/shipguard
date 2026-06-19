@@ -72,6 +72,7 @@ Usage:
   shipguard ios demo --out <dir> [--fixture <repo>] [--cases <cases.jsonl>]
   shipguard ios goals init|status|next|emit|complete [options]
   shipguard codex status [--cache <dir>] [--strict]
+  shipguard codex marketplace-readiness --path <shipguard-repo> --out <dir> [--cache <dir>] [--shareable] [--strict] [--json|--markdown]
   shipguard codex trace --trace <trace.json-or-jsonl-or-dir> --out <dir> [--task <shipguard-task.json-or-dir>] [--diff <patch.diff>] [--evidence <file> ...] [--xcodebuildmcp-evidence <file-or-dir> ...] [--expo-eas-evidence <file-or-dir> ...] [--run-verify] [--budget-workers <n>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard leaderboard build --arena-results <results.json> --out <leaderboard.json>
   shipguard release-manifest --tarball <release.tar.gz> --out <dir> [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--release-url <url>] [--issue-url <url>]
@@ -122,7 +123,7 @@ Commands:
   backend     Backend-focused first-audit and fix-plan reports for starter repos.
   cli         CLI-focused first-audit and fix-plan reports for starter repos.
   ios         iOS-focused Codex planning helpers for branded build, debug, permission, preview, performance, and runtime surfaces.
-  codex      Check local Codex plugin install status and normalize Codex task traces plus XcodeBuildMCP and Expo/EAS proof for ShipGuard.
+  codex      Check local Codex plugin install/marketplace readiness and normalize Codex task traces plus XcodeBuildMCP and Expo/EAS proof for ShipGuard.
   leaderboard Build a stable leaderboard JSON file from arena results.
   release-manifest
               Generate release-manifest JSON and proof-ledger Markdown.
@@ -547,11 +548,14 @@ cmd_ios() {
 
 cmd_codex() {
   local subcommand="${1:-}"
-  [[ "$subcommand" == "status" || "$subcommand" == "trace" ]] || fail "codex requires subcommand: status or trace"
+  [[ "$subcommand" == "status" || "$subcommand" == "marketplace-readiness" || "$subcommand" == "trace" ]] || fail "codex requires subcommand: status, marketplace-readiness, or trace"
   shift || true
   case "$subcommand" in
     status)
       run_sh "$tool_root/scripts/codex_status.sh" "$@"
+      ;;
+    marketplace-readiness)
+      run_py "$tool_root/scripts/codex_marketplace_readiness.py" "$@"
       ;;
     trace)
       run_py "$tool_root/scripts/agent_trace.py" --surface-command "shipguard codex trace" --adapter codex "$@"

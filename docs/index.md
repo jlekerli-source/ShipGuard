@@ -17,6 +17,7 @@ Start here:
 - [CI Gate Mode](ci-gate.md)
 - [CI Step Summary](ci-summary.md)
 - [Codex Status](codex-status.md)
+- [Codex Marketplace Readiness](codex-marketplace-readiness.md)
 - [Compatibility](compatibility.md)
 - [Command Matrix](command-matrix.md)
 - [Demo Reports](demo-reports.md)

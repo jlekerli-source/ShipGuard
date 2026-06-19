@@ -26,6 +26,8 @@ Then start a new Codex thread before relying on refreshed skill instructions.
 
 The command prints this refresh handoff in its output so status reports remain actionable even when copied into a Codex thread or issue.
 
+For the broader public listing check, use `shipguard codex marketplace-readiness`. It reads the same status proof, then adds plugin metadata, README/profile presentation, icon assets, screenshot policy, and submission-packet checks.
+
 ## Usage
 
 ```bash
