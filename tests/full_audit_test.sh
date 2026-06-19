@@ -38,6 +38,16 @@ if grep -q "$repo_root" "$tmp_dir/plan/shipguard-full-audit.json" "$tmp_dir/plan
   echo "shareable full-audit output leaked local repo path" >&2
   exit 1
 fi
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/plan" \
+  --out "$tmp_dir/plan-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/plan-quality/ios-report-quality.json"
+grep -q '"reportCount": 1' "$tmp_dir/plan-quality/ios-report-quality.json"
+if grep -q 'report-tool-missing' "$tmp_dir/plan-quality/ios-report-quality.json"; then
+  echo "report-quality should not treat full-audit stage receipts as standalone reports" >&2
+  exit 1
+fi
 
 ./bin/shipguard full-audit \
   --path . \

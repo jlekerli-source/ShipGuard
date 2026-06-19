@@ -235,6 +235,8 @@ When a new report repeats a question already covered by a promoted fixture under
 
 In `--shareable` report-quality mode, supported source reports that are missing `shareability` metadata receive `declared-shareability-missing`, and reports that declare `mode=local` or `localAbsolutePathsIncluded=true` receive `declared-shareability-local-mode`. Regenerate those source reports with `--shareable`; redaction remains the right path only for actual token or local-path findings.
 
+When scoring `shipguard full-audit` output, pass the full-audit output directory or the top-level `shipguard-full-audit.json`; report-quality scores the top-level report and ignores `stage-receipts/*.json` as internal machine receipts. Full Audit, InspectDeck, MarketplaceDeck, and trace reports are root ShipGuard reports, so they are scored as first-class report tools rather than iOS source reports.
+
 ## External Source Audit
 
 Use `ios external-audit` before claiming ShipGuard has integrated another repo, post, or workflow idea:

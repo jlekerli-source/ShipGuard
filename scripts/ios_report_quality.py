@@ -95,6 +95,8 @@ STATUS_PRIORITY = {"blocked": 0, "review": 1, "pass": 2}
 TOOL_NEXT_ACTION_PRIORITY = {
     "shipguard brand": 0,
     "shipguard value-gauntlet": 0,
+    "shipguard full-audit": 0,
+    "shipguard inspect": 0,
     "shipguard web audit": 1,
     "shipguard backend audit": 1,
     "shipguard cli audit": 1,
@@ -114,13 +116,21 @@ TOOL_NEXT_ACTION_PRIORITY = {
     "shipguard ios external-audit": 10,
     "shipguard ios spec-workflow": 11,
     "shipguard ios devspace-check": 12,
+    "shipguard codex marketplace-readiness": 13,
+    "shipguard agent trace": 14,
+    "shipguard codex trace": 14,
 }
 ROOT_REPORT_TOOLS = {
     "shipguard brand",
     "shipguard value-gauntlet",
+    "shipguard full-audit",
+    "shipguard inspect",
     "shipguard v4 preview",
     "shipguard v4 schema-freeze",
     "shipguard v4 release-candidate",
+    "shipguard codex marketplace-readiness",
+    "shipguard agent trace",
+    "shipguard codex trace",
     "shipguard prepare",
     "shipguard verify",
     "shipguard pilot-bench",
@@ -194,6 +204,9 @@ SOURCE_REPORT_SKIP_NAMES = {
     "fixture-candidates-index.json",
     "fixture-promotion-manifest.json",
 }
+SOURCE_REPORT_SKIP_DIR_NAMES = {
+    "stage-receipts",
+}
 
 
 def report_json_files(inputs: list[str]) -> list[Path]:
@@ -209,6 +222,8 @@ def report_json_files(inputs: list[str]) -> list[Path]:
             continue
         for candidate in sorted(path.rglob("*.json")):
             if candidate.name in SOURCE_REPORT_SKIP_NAMES:
+                continue
+            if any(parent.name in SOURCE_REPORT_SKIP_DIR_NAMES for parent in candidate.parents):
                 continue
             paths.append(candidate)
     unique = sorted({path for path in paths})
