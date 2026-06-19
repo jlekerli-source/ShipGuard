@@ -28,6 +28,7 @@ To let LaunchKey download GitHub release assets and attach consumer proof to the
   --download-release-assets \
   --github-release-repo <owner/repo> \
   --release-version <version> \
+  --external-adoption-evidence <evidence-json-or-dir> \
   --release-consume-out /tmp/shipguard-v4-release-consume \
   --shipguard-eval \
   --shareable
@@ -52,6 +53,7 @@ The command checks these gates:
 - Uninstall proof: temporary install state can be removed cleanly without hidden required state.
 - Release proof consumption: native GitHub-downloaded or manually supplied release assets can pass `shipguard release-consume verify`.
 - External adoption packet: an outside developer can see the first command, proof bundle, support boundary, and non-claims.
+- External adoption evidence: redacted independent adoption records can be attached without pretending fixtures are real adoption or leaking private app details.
 - Final schema docs: v4 schema-freeze docs remain linked and visible.
 - Plugin refresh proof: local Codex plugin refresh and `shipguard codex status --strict` remain part of the release lane.
 
@@ -135,6 +137,25 @@ When `--release-assets` is supplied, LaunchKey runs:
 
 The report then records `publishedReleaseAssetProof`, including consumer report status, replay status, attestation status, digest matrix path, and artifact SHA-256 when available. If consumer verification fails, the release-candidate report returns review instead of treating the supplied assets as stable proof.
 
+## External Adoption Evidence
+
+Without `--external-adoption-evidence`, the command can still pass release-candidate readiness, but `externalAdoptionEvidenceProof.status` is `not-provided` and `externalAdoptionEvidenceStableGate` is `not-provided`. Stable-v4 proof needs independent evidence outside the ShipGuard maintainer loop.
+
+Attach adoption evidence as JSON files:
+
+```bash
+./bin/shipguard v4 release-candidate \
+  --path . \
+  --out /tmp/shipguard-v4-release-candidate \
+  --external-adoption-evidence <evidence-json-or-dir> \
+  --shipguard-eval \
+  --shareable
+```
+
+Each JSON record must include `schemaVersion`, `evidenceType`, `evidenceClass`, `actorRelationship`, `generatedAt`, `status`, `privateDataRedacted`, `commands`, `artifacts`, `outcome`, and `nonClaims`. Stable-v4 eligible records must use `evidenceClass: public-external` or `private-redacted-external`, `actorRelationship: independent`, `status: pass`, `privateDataRedacted: true`, and either `consentToShare: true` or `shareableSummaryOnly: true`.
+
+Synthetic fixture records can pass the structural evidence contract while keeping `stableV4GateStatus: review`. That is intentional: tests should prove the gate without faking real adoption. Invalid records, local private paths, private app identifiers, and token-like strings block with `blockingProof.receipt = externalAdoptionEvidenceProof`.
+
 ## External Adoption Packet
 
 Every release-candidate packet should answer:
@@ -169,6 +190,7 @@ For release assets, verify the consumer path too:
 ./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out /tmp/shipguard-release-consume --version <version>
 ./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --release-assets <downloaded-assets-dir> --release-version <version> --shipguard-eval --shareable
 ./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --download-release-assets --github-release-repo <owner/repo> --release-version <version> --shipguard-eval --shareable
+./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --external-adoption-evidence <evidence-json-or-dir> --shipguard-eval --shareable
 ```
 
 ## Blocked Claims

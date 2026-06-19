@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -27,6 +28,9 @@ except ModuleNotFoundError:  # pragma: no cover - direct script fallback
 SURFACE = "ShipGuard V4 Release Candidate Readiness"
 TOOL = "shipguard v4 release-candidate"
 SCHEMA_VERSION = 1
+PRIVATE_OR_SECRET_RE = re.compile(
+    r"(?i)(/Users/|/private/tmp|/var/folders|\bRingly\b|\bIlmify\b|\bInweFi\b|gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|Bearer\s+[A-Za-z0-9._~+/=-]{12,})"
+)
 
 
 def utc_now() -> str:
@@ -934,6 +938,170 @@ def build_published_release_asset_proof(
     return proof
 
 
+def collect_external_adoption_evidence_files(raw_paths: list[str]) -> tuple[list[Path], list[str]]:
+    files: list[Path] = []
+    errors: list[str] = []
+    for raw in raw_paths:
+        path = Path(raw).expanduser().resolve()
+        if not path.exists():
+            errors.append(f"external adoption evidence path not found: {path}")
+            continue
+        if path.is_file():
+            if path.suffix.lower() == ".json":
+                files.append(path)
+            else:
+                errors.append(f"external adoption evidence must be JSON: {path}")
+            continue
+        if path.is_dir():
+            found = sorted(path.rglob("*.json"))
+            if found:
+                files.extend(found)
+            else:
+                errors.append(f"external adoption evidence directory has no JSON records: {path}")
+            continue
+        errors.append(f"external adoption evidence path is unsupported: {path}")
+    return files, errors
+
+
+def evaluate_external_adoption_record(path: Path) -> dict[str, Any]:
+    record: dict[str, Any] = {
+        "path": path.as_posix(),
+        "status": "blocked",
+        "stableV4Eligible": False,
+        "missingFields": [],
+        "errors": [],
+    }
+    raw_text = read_text(path)
+    if PRIVATE_OR_SECRET_RE.search(raw_text):
+        record["errors"].append("record contains local/private app paths, app identifiers, or token-like text")
+    data = load_json(path)
+    if not data:
+        record["errors"].append("record is not a JSON object")
+        return record
+
+    required_fields = [
+        "schemaVersion",
+        "evidenceType",
+        "evidenceClass",
+        "actorRelationship",
+        "generatedAt",
+        "status",
+        "privateDataRedacted",
+        "commands",
+        "artifacts",
+        "outcome",
+        "nonClaims",
+    ]
+    for field in required_fields:
+        if field not in data:
+            record["missingFields"].append(field)
+    commands = data.get("commands") if isinstance(data.get("commands"), list) else []
+    artifacts = data.get("artifacts") if isinstance(data.get("artifacts"), list) else []
+    non_claims = data.get("nonClaims") if isinstance(data.get("nonClaims"), list) else []
+    evidence_class = str(data.get("evidenceClass") or "")
+    actor_relationship = str(data.get("actorRelationship") or "")
+    fixture_synthetic = bool(data.get("fixtureSynthetic"))
+
+    if data.get("status") != "pass":
+        record["errors"].append("record status must be pass")
+    if data.get("privateDataRedacted") is not True:
+        record["errors"].append("privateDataRedacted must be true")
+    if not any("shipguard" in str(command) for command in commands):
+        record["errors"].append("commands must include at least one ShipGuard command")
+    if not artifacts:
+        record["errors"].append("artifacts must name at least one reviewed artifact")
+    if not non_claims:
+        record["errors"].append("nonClaims must state what this evidence does not prove")
+    if actor_relationship != "independent":
+        record["errors"].append("actorRelationship must be independent for stable-v4 adoption evidence")
+
+    record.update(
+        {
+            "schemaVersion": data.get("schemaVersion"),
+            "evidenceType": data.get("evidenceType"),
+            "evidenceClass": evidence_class,
+            "actorRelationship": actor_relationship,
+            "generatedAt": data.get("generatedAt"),
+            "source": data.get("source", ""),
+            "actor": data.get("actor", ""),
+            "commandCount": len(commands),
+            "artifactCount": len(artifacts),
+            "outcome": data.get("outcome", ""),
+            "fixtureSynthetic": fixture_synthetic,
+        }
+    )
+    if record["missingFields"] or record["errors"]:
+        return record
+
+    stable_eligible = (
+        evidence_class in {"public-external", "private-redacted-external"}
+        and actor_relationship == "independent"
+        and not fixture_synthetic
+        and (data.get("consentToShare") is True or data.get("shareableSummaryOnly") is True)
+    )
+    record["status"] = "pass"
+    record["stableV4Eligible"] = stable_eligible
+    if not stable_eligible:
+        record["stableV4Reason"] = (
+            "Record is structurally valid but not stable-v4 eligible; use real independent public-external or private-redacted-external evidence."
+        )
+    return record
+
+
+def build_external_adoption_evidence_proof(args: argparse.Namespace) -> dict[str, Any]:
+    command_template = (
+        "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate "
+        "--external-adoption-evidence <evidence-json-or-dir> --shipguard-eval --shareable"
+    )
+    evidence_inputs = list(args.external_adoption_evidence or [])
+    if not evidence_inputs:
+        return {
+            "status": "not-provided",
+            "provided": False,
+            "requiredForStableV4": True,
+            "stableV4GateStatus": "not-provided",
+            "summary": "No external adoption evidence was supplied; stable v4 proof still needs independent user or maintainer evidence outside the ShipGuard maintainer loop.",
+            "nextCommand": command_template,
+            "evidenceContract": "Provide JSON records with evidenceType, evidenceClass, independent actorRelationship, status=pass, redaction, commands, artifacts, outcome, and nonClaims.",
+        }
+
+    files, collection_errors = collect_external_adoption_evidence_files(evidence_inputs)
+    records = [evaluate_external_adoption_record(path) for path in files]
+    invalid_records = [record for record in records if record.get("status") != "pass"]
+    stable_records = [record for record in records if record.get("stableV4Eligible")]
+    proof: dict[str, Any] = {
+        "status": "blocked",
+        "provided": True,
+        "requiredForStableV4": True,
+        "stableV4GateStatus": "blocked",
+        "summary": "External adoption evidence was supplied but did not pass the evidence contract.",
+        "nextCommand": command_template,
+        "evidenceInputs": [Path(raw).expanduser().resolve().as_posix() for raw in evidence_inputs],
+        "evidenceRecordCount": len(records),
+        "validRecordCount": len(records) - len(invalid_records),
+        "invalidRecordCount": len(invalid_records),
+        "stableV4EligibleEvidenceCount": len(stable_records),
+        "collectionErrors": collection_errors,
+        "records": records,
+    }
+    if collection_errors or not files:
+        proof["error"] = collection_errors[0] if collection_errors else "no external adoption evidence records found"
+        return proof
+    if invalid_records:
+        first = invalid_records[0]
+        proof["error"] = "; ".join(first.get("missingFields", []) + first.get("errors", []))
+        return proof
+    proof["status"] = "pass"
+    if stable_records:
+        proof["stableV4GateStatus"] = "pass"
+        proof["summary"] = "External adoption evidence passed the structural contract and includes stable-v4 eligible independent evidence."
+    else:
+        proof["stableV4GateStatus"] = "review"
+        proof["summary"] = "External adoption evidence is structurally valid, but none of the records are stable-v4 eligible independent evidence."
+        proof["nextAction"] = "Attach real public-external or private-redacted-external adoption evidence before any stable-v4 release claim."
+    return proof
+
+
 def failed_process_excerpt(proof: dict[str, Any]) -> str:
     for key in (
         "validateResult",
@@ -971,6 +1139,7 @@ def build_blocking_proof_detail(
     rollback_package_proof: dict[str, Any],
     github_release_asset_download_proof: dict[str, Any],
     published_release_asset_proof: dict[str, Any],
+    external_adoption_evidence_proof: dict[str, Any],
 ) -> dict[str, Any] | None:
     candidates = [
         (
@@ -1015,6 +1184,14 @@ def build_blocking_proof_detail(
             "Redownload the release assets, verify release-consume locally, and only reuse the assets after manifest, tarball SHA-256, replay, and attestation all pass.",
             published_release_asset_proof.get("consumeCommand", "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>"),
             "downloaded release asset consumer receipt",
+        ),
+        (
+            "externalAdoptionEvidenceProof",
+            external_adoption_evidence_proof,
+            "External adoption evidence failed the stable-v4 evidence contract.",
+            "Fix or replace the adoption evidence record, then rerun LaunchKey with --external-adoption-evidence.",
+            external_adoption_evidence_proof.get("nextCommand", "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --external-adoption-evidence <evidence-json-or-dir> --shipguard-eval --shareable"),
+            "external adoption evidence receipt",
         ),
     ]
     for receipt, proof, headline, remedy, next_command, proof_source in candidates:
@@ -1064,6 +1241,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     rollback_package_proof = build_rollback_package_proof(args, version)
     github_release_asset_download_proof = build_github_release_asset_download_proof(args, version)
     published_release_asset_proof = build_published_release_asset_proof(args, root, version, github_release_asset_download_proof)
+    external_adoption_evidence_proof = build_external_adoption_evidence_proof(args)
 
     checks: list[dict[str, Any]] = []
     add_check(
@@ -1237,6 +1415,15 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             ["GitHub release API", "downloaded release assets directory"],
             "Let LaunchKey download release assets from GitHub before consumer proof so maintainers do not need a separate manual `gh release download` step.",
         )
+    if external_adoption_evidence_proof["provided"]:
+        add_check(
+            checks,
+            "external-adoption-evidence-validated",
+            "External adoption evidence passes the evidence contract",
+            external_adoption_evidence_proof["status"] == "pass",
+            ["external adoption evidence records", "redaction contract", "non-claims"],
+            "Attach independent public or private-redacted adoption evidence before using LaunchKey as stable-v4 release evidence.",
+        )
 
     required_checks = [check for check in checks if check["required"]]
     failed_required = [check for check in required_checks if check["status"] != "pass"]
@@ -1307,6 +1494,9 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "rollbackPackageProofRequiredForStableV4": True,
         "publishedReleaseAssetProof": published_release_asset_proof["status"],
         "githubReleaseAssetDownloadProof": github_release_asset_download_proof["status"],
+        "externalAdoptionEvidenceProof": external_adoption_evidence_proof["status"],
+        "externalAdoptionEvidenceStableGate": external_adoption_evidence_proof["stableV4GateStatus"],
+        "externalAdoptionEvidenceRequiredForStableV4": True,
         "publishedReleaseAssetsRequiredForStableV4": True,
         "requiredProofCommands": [
             "git diff --check",
@@ -1324,6 +1514,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --shipguard-eval --shareable",
             "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --download-release-assets --github-release-repo <owner/repo> --release-version <version> --shipguard-eval --shareable",
             "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>",
+            "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --external-adoption-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
         ],
     }
     external_adoption_packet = {
@@ -1365,6 +1556,10 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         report_quality_questions.append(
             "Can a consumer download release assets and independently verify the manifest, tarball SHA-256, replay, and attestation?"
         )
+    if external_adoption_evidence_proof.get("stableV4GateStatus") != "pass":
+        report_quality_questions.append(
+            "Which independent external adoption evidence can be attached without faking adoption, leaking private data, or claiming stable v4 too early?"
+        )
     report_quality_questions.extend(
         [
             "Does the adoption packet tell an external developer the first command, proof bundle, support boundary, and non-claims?",
@@ -1377,6 +1572,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         rollback_package_proof,
         github_release_asset_download_proof,
         published_release_asset_proof,
+        external_adoption_evidence_proof,
     )
     if status != "pass" and blocking_proof:
         evidence_sentence = (
@@ -1428,13 +1624,30 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "ShipGuard has release-candidate readiness proof, but no downloaded release assets were supplied for consumer-side stable-v4 proof."
         )
         proof_source = "v4 release-candidate checks plus documented release-consume boundary; published asset proof not supplied"
+    elif status == "pass" and external_adoption_evidence_proof["stableV4GateStatus"] != "pass":
+        if external_adoption_evidence_proof["status"] == "not-provided":
+            priority_action = (
+                "Attach independent external adoption evidence before any stable v4 claim; final security review remains a separate stabilization gate."
+            )
+            summary = (
+                "ShipGuard has release-candidate readiness proof and supplied package/release-asset proof, but no external adoption evidence was supplied."
+            )
+        else:
+            priority_action = (
+                "Replace the supplied adoption evidence with real public-external or private-redacted-external independent evidence before any stable v4 claim; final security review remains a separate stabilization gate."
+            )
+            summary = (
+                "ShipGuard has structurally valid adoption evidence, but it is not stable-v4 eligible independent evidence."
+            )
+        next_command = external_adoption_evidence_proof["nextCommand"]
+        proof_source = "v4 release-candidate checks plus package/release-asset receipts; external adoption evidence stable gate not satisfied"
     elif status == "pass":
         priority_action = (
-            "Use the passing fresh-install, upgrade, rollback, and release-asset receipts as v4 stabilization inputs, then finish external adoption evidence and final security review."
+            "Use the passing fresh-install, upgrade, rollback, release-asset, and external-adoption receipts as v4 stabilization inputs, then finish final security review."
         )
         next_command = "./tests/v4_release_candidate_test.sh"
-        summary = "ShipGuard has release-candidate readiness proof, supplied package tarball passed fresh-install and rollback proof, supplied previous package upgraded to the candidate, and supplied release assets passed consumer-side verification."
-        proof_source = "v4 release-candidate checks plus fresh-install package receipt, upgrade receipt, rollback receipt, release-consume consumer-report, and asset digest matrix"
+        summary = "ShipGuard has release-candidate readiness proof, supplied package tarball passed fresh-install and rollback proof, supplied previous package upgraded to the candidate, supplied release assets passed consumer-side verification, and external adoption evidence passed the stable gate."
+        proof_source = "v4 release-candidate checks plus fresh-install package receipt, upgrade receipt, rollback receipt, release-consume consumer-report, asset digest matrix, and external adoption evidence receipt"
     else:
         priority_action = "Complete the missing release-candidate readiness checks before calling v4 candidate-ready."
         next_command = "./tests/v4_release_candidate_test.sh"
@@ -1473,6 +1686,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "githubReleaseAssetDownloadProof": github_release_asset_download_proof,
         "publishedReleaseAssetProof": published_release_asset_proof,
         "externalAdoptionPacket": external_adoption_packet,
+        "externalAdoptionEvidenceProof": external_adoption_evidence_proof,
         "finalSchemaDocs": readiness_proof["finalSchemaDocs"],
         "pluginRefreshProof": readiness_proof["pluginRefreshProof"],
         "releaseReadiness": release_readiness,
@@ -1549,6 +1763,11 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             replacements[str(rollback_package_proof["packageRoot"])] = "<rollback-package-root>"
         if rollback_package_proof.get("installedRoot"):
             replacements[str(rollback_package_proof["installedRoot"])] = "<rollback-installed-root>"
+        for evidence_input in external_adoption_evidence_proof.get("evidenceInputs", []):
+            replacements[str(evidence_input)] = "<external-adoption-evidence>"
+        for record in external_adoption_evidence_proof.get("records", []):
+            if isinstance(record, dict) and record.get("path"):
+                replacements[str(record["path"])] = "<external-adoption-evidence>/" + Path(str(record["path"])).name
         report = scrub_value(report, replacements)
     return report
 
@@ -1677,6 +1896,18 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.append(f"- Proof bundle: {', '.join(packet['proofBundle'])}")
     for claim in packet["nonClaims"]:
         lines.append(f"- {claim}")
+    proof = report["externalAdoptionEvidenceProof"]
+    lines.extend(["", "## External Adoption Evidence", ""])
+    lines.append(f"- Status: `{proof.get('status')}`")
+    lines.append(f"- Stable v4 gate: `{proof.get('stableV4GateStatus')}`")
+    lines.append(f"- Required for stable v4: `{proof.get('requiredForStableV4')}`")
+    lines.append(f"- Summary: {proof.get('summary')}")
+    if proof.get("provided"):
+        lines.append(f"- Evidence records: `{proof.get('evidenceRecordCount')}`")
+        lines.append(f"- Valid records: `{proof.get('validRecordCount')}`")
+        lines.append(f"- Stable-v4 eligible records: `{proof.get('stableV4EligibleEvidenceCount')}`")
+    else:
+        lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## Plugin Refresh Proof", ""])
     for command in report["pluginRefreshProof"].get("commands", []):
         lines.append(f"- `{command}`")
@@ -1728,6 +1959,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--download-release-assets-dir", help="Optional destination for downloaded GitHub release assets. Defaults under --out.")
     parser.add_argument("--github-api-url", default="https://api.github.com", help="GitHub API base URL. Defaults to https://api.github.com.")
     parser.add_argument("--github-token-env", default="GITHUB_TOKEN", help="Environment variable containing an optional GitHub API token.")
+    parser.add_argument("--external-adoption-evidence", action="append", help="Optional external adoption evidence JSON file or directory. May be passed multiple times.")
     parser.add_argument("--shipguard-eval", action="store_true", help="Include ShipGuard-only product QA boundaries.")
     parser.add_argument("--shareable", action="store_true", help="Redact local absolute paths for shareable output.")
     parser.add_argument("--json", action="store_true", help="Write only JSON output.")

@@ -42,6 +42,7 @@ grep -q 'Release Proof Consumption' "$tmp_dir/v4-release-candidate/v4-release-ca
 grep -q 'GitHub Release Asset Download' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Published Release Asset Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'External Adoption Packet' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
+grep -q 'External Adoption Evidence' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Plugin Refresh Proof' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Blocked Claims' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
 grep -q 'Scope Boundary' "$tmp_dir/v4-release-candidate/v4-release-candidate.md"
@@ -61,6 +62,7 @@ grep -q '"releaseProofConsumption":' "$tmp_dir/v4-release-candidate/v4-release-c
 grep -q '"githubReleaseAssetDownloadProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"publishedReleaseAssetProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"externalAdoptionPacket":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
+grep -q '"externalAdoptionEvidenceProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"pluginRefreshProof":' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"releaseClaim": "candidate-ready"' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
 grep -q '"stableV4Release": false' "$tmp_dir/v4-release-candidate/v4-release-candidate.json"
@@ -91,6 +93,8 @@ assert report["releaseReadiness"]["upgradePackageProof"] == "not-provided"
 assert report["releaseReadiness"]["rollbackPackageProof"] == "not-provided"
 assert report["releaseReadiness"]["githubReleaseAssetDownloadProof"] == "not-requested"
 assert report["releaseReadiness"]["publishedReleaseAssetProof"] == "not-provided"
+assert report["releaseReadiness"]["externalAdoptionEvidenceProof"] == "not-provided"
+assert report["releaseReadiness"]["externalAdoptionEvidenceStableGate"] == "not-provided"
 for key in [
     "freshInstall",
     "upgrade",
@@ -121,6 +125,10 @@ assert "--release-assets <downloaded-assets-dir>" in report["publishedReleaseAss
 assert report["githubReleaseAssetDownloadProof"]["status"] == "not-requested"
 assert report["githubReleaseAssetDownloadProof"]["requested"] is False
 assert "--download-release-assets" in report["githubReleaseAssetDownloadProof"]["nextCommand"]
+assert report["externalAdoptionEvidenceProof"]["status"] == "not-provided"
+assert report["externalAdoptionEvidenceProof"]["provided"] is False
+assert report["externalAdoptionEvidenceProof"]["requiredForStableV4"] is True
+assert "--external-adoption-evidence <evidence-json-or-dir>" in report["externalAdoptionEvidenceProof"]["nextCommand"]
 assert "codex status --strict" in " ".join(report["pluginRefreshProof"]["commands"])
 assert "external developer" in report["externalAdoptionPacket"]["supportBoundary"]
 assert any("stable v4 product release" in claim.lower() for claim in report["blockedClaims"])
@@ -132,6 +140,111 @@ assert "fresh-install receipt" in report["resultUX"]["priorityAction"].lower()
 PY
 
 version="$(sed -n '1p' VERSION)"
+mkdir -p "$tmp_dir/adoption"
+cat > "$tmp_dir/adoption/synthetic-adoption.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "evidenceType": "external-user-install",
+  "evidenceClass": "public-fixture",
+  "actorRelationship": "independent",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "pass",
+  "privateDataRedacted": true,
+  "consentToShare": true,
+  "fixtureSynthetic": true,
+  "actor": "synthetic external reviewer fixture",
+  "source": "public ShipGuard fixture",
+  "commands": [
+    "shipguard version",
+    "shipguard v4 release-candidate --path . --out /tmp/fixture --shipguard-eval --shareable"
+  ],
+  "artifacts": [
+    "consumer-report.json",
+    "v4-release-candidate.json"
+  ],
+  "outcome": "Synthetic fixture proves the adoption evidence schema without claiming real adoption.",
+  "nonClaims": [
+    "This fixture is not real external adoption.",
+    "This fixture does not claim stable v4 or marketplace acceptance."
+  ]
+}
+JSON
+./bin/shipguard v4 release-candidate \
+  --path . \
+  --out "$tmp_dir/synthetic-adoption" \
+  --external-adoption-evidence "$tmp_dir/adoption" \
+  --shipguard-eval \
+  --shareable
+python3 - "$tmp_dir/synthetic-adoption/v4-release-candidate.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+proof = report["externalAdoptionEvidenceProof"]
+assert report["status"] == "pass"
+assert report["releaseReadiness"]["externalAdoptionEvidenceProof"] == "pass"
+assert report["releaseReadiness"]["externalAdoptionEvidenceStableGate"] == "review"
+assert proof["status"] == "pass"
+assert proof["stableV4GateStatus"] == "review"
+assert proof["evidenceInputs"] == ["<external-adoption-evidence>"]
+assert proof["evidenceRecordCount"] == 1
+assert proof["validRecordCount"] == 1
+assert proof["stableV4EligibleEvidenceCount"] == 0
+assert proof["records"][0]["path"] == "<external-adoption-evidence>/synthetic-adoption.json"
+assert proof["records"][0]["stableV4Eligible"] is False
+assert "none of the records are stable-v4 eligible" in proof["summary"]
+PY
+if grep -R -F -q "$tmp_dir/adoption" "$tmp_dir/synthetic-adoption"; then
+  echo "shareable v4 release-candidate output must redact adoption evidence paths" >&2
+  exit 1
+fi
+
+mkdir -p "$tmp_dir/stable-adoption"
+cat > "$tmp_dir/stable-adoption/external-adoption.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "evidenceType": "external-user-install",
+  "evidenceClass": "public-external",
+  "actorRelationship": "independent",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "pass",
+  "privateDataRedacted": true,
+  "consentToShare": true,
+  "actor": "redacted independent reviewer",
+  "source": "public redacted evidence packet",
+  "commands": [
+    "shipguard version",
+    "shipguard v4 release-candidate --path . --out /tmp/redacted --shipguard-eval --shareable"
+  ],
+  "artifacts": [
+    "redacted-consumer-report.json",
+    "redacted-v4-release-candidate.json"
+  ],
+  "outcome": "Redacted independent evidence packet reports that the external install and LaunchKey run completed.",
+  "nonClaims": [
+    "This evidence does not claim marketplace acceptance.",
+    "This evidence does not validate private apps or physical-device iOS behavior."
+  ]
+}
+JSON
+./bin/shipguard v4 release-candidate \
+  --path . \
+  --out "$tmp_dir/stable-adoption-report" \
+  --external-adoption-evidence "$tmp_dir/stable-adoption/external-adoption.json" \
+  --shipguard-eval \
+  --shareable
+python3 - "$tmp_dir/stable-adoption-report/v4-release-candidate.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+proof = report["externalAdoptionEvidenceProof"]
+assert report["releaseReadiness"]["externalAdoptionEvidenceProof"] == "pass"
+assert report["releaseReadiness"]["externalAdoptionEvidenceStableGate"] == "pass"
+assert proof["stableV4GateStatus"] == "pass"
+assert proof["stableV4EligibleEvidenceCount"] == 1
+assert proof["records"][0]["stableV4Eligible"] is True
+PY
 SHIPGUARD_GENERATED_AT="2026-06-19T00:00:00Z" \
   ./bin/shipguard release-proof build \
     --out "$tmp_dir/proof-bundle" \
@@ -252,10 +365,10 @@ assert proof["consumerReportPath"] == "<release-consume-out>/consumer-report.jso
 assert proof["assetDigestMatrixPath"] == "<release-consume-out>/asset-digests.json"
 assert proof["assetsDir"] == "<release-assets>"
 assert proof["consumeOut"] == "<release-consume-out>"
-assert report["resultUX"]["nextCommand"] == "./tests/v4_release_candidate_test.sh"
+assert "--external-adoption-evidence <evidence-json-or-dir>" in report["resultUX"]["nextCommand"]
 questions = report["reportQualityQuestions"]
 assert not any("fresh user install, upgrade, uninstall" in question for question in questions)
-assert questions[0] == "Does the adoption packet tell an external developer the first command, proof bundle, support boundary, and non-claims?"
+assert questions[0] == "Which independent external adoption evidence can be attached without faking adoption, leaking private data, or claiming stable v4 too early?"
 PY
 
 api_root="$tmp_dir/github-api"
@@ -468,6 +581,48 @@ fi
 test -f "$tmp_dir/missing-assets/v4-release-candidate.json"
 grep -q '"status": "review"' "$tmp_dir/missing-assets/v4-release-candidate.json"
 grep -q '"publishedReleaseAssetProof": "blocked"' "$tmp_dir/missing-assets/v4-release-candidate.json"
+
+if ./bin/shipguard v4 release-candidate \
+  --path . \
+  --out "$tmp_dir/missing-adoption-evidence" \
+  --external-adoption-evidence "$tmp_dir/does-not-exist-adoption" \
+  --json >/dev/null 2>&1; then
+  echo "expected missing external adoption evidence to fail release-candidate proof" >&2
+  exit 1
+fi
+test -f "$tmp_dir/missing-adoption-evidence/v4-release-candidate.json"
+grep -q '"status": "review"' "$tmp_dir/missing-adoption-evidence/v4-release-candidate.json"
+grep -q '"externalAdoptionEvidenceProof": "blocked"' "$tmp_dir/missing-adoption-evidence/v4-release-candidate.json"
+grep -q '"receipt": "externalAdoptionEvidenceProof"' "$tmp_dir/missing-adoption-evidence/v4-release-candidate.json"
+
+mkdir -p "$tmp_dir/bad-adoption"
+cat > "$tmp_dir/bad-adoption/bad.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "evidenceType": "external-user-install",
+  "evidenceClass": "public-external",
+  "actorRelationship": "maintainer",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "pass",
+  "privateDataRedacted": false,
+  "commands": [
+    "echo no shipguard proof"
+  ],
+  "artifacts": [],
+  "outcome": "bad fixture",
+  "nonClaims": []
+}
+JSON
+if ./bin/shipguard v4 release-candidate \
+  --path . \
+  --out "$tmp_dir/bad-adoption-report" \
+  --external-adoption-evidence "$tmp_dir/bad-adoption" \
+  --json >/dev/null 2>&1; then
+  echo "expected invalid external adoption evidence to fail release-candidate proof" >&2
+  exit 1
+fi
+grep -q '"externalAdoptionEvidenceProof": "blocked"' "$tmp_dir/bad-adoption-report/v4-release-candidate.json"
+grep -q 'privateDataRedacted must be true' "$tmp_dir/bad-adoption-report/v4-release-candidate.json"
 
 if ./bin/shipguard v4 release-candidate \
   --path . \

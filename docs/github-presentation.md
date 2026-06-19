@@ -10,8 +10,8 @@ ShipGuard's GitHub surface should explain the product quickly, without making it
 - Contributor and maintainer workspace name: ShipGuard ShipYard.
 - Public promise: local-first CLI plus Codex plugin for proof-gated app maintenance.
 - Template status: enabled on GitHub, so the repo shows `Use this template`.
-- Active `main` state: later ShipYard stabilization slices harden LaunchKey native GitHub release-asset download, published-release asset proof, package fresh-install receipts, same-prefix upgrade receipts, rollback cleanup receipts, generated archive-member screening, blocking-proof result UX, and report-quality exclusion for generated proof directories; present them as active hardening, not as a new published release.
-- Stable claim boundary: v4 is not stable until release-candidate, schema, package, security, install, rollback, and release-proof consumption evidence all pass on published assets.
+- Active `main` state: later ShipYard stabilization slices harden LaunchKey external adoption evidence gating, native GitHub release-asset download, published-release asset proof, package fresh-install receipts, same-prefix upgrade receipts, rollback cleanup receipts, generated archive-member screening, blocking-proof result UX, and report-quality exclusion for generated proof directories; present them as active hardening, not as a new published release.
+- Stable claim boundary: v4 is not stable until release-candidate, schema, package, security, external adoption, install, rollback, and release-proof consumption evidence all pass on published assets.
 
 Use this command pair before changing the GitHub presentation:
 
@@ -115,7 +115,7 @@ Do not call v4 stable on the release page until the stable-v4 gate is actually p
 For active `main` updates after `v3.131.0`, use a short maintenance note rather than rewriting the release headline:
 
 ```text
-Main now carries LaunchKey hardening for native GitHub release-asset download, published-release asset proof, fresh-install package receipts, same-prefix upgrade receipts, rollback cleanup receipts, generated archive-member screening, blocking-proof result UX, and report-quality exclusion of generated proof directories. These are v4 stabilization slices, not a stable-v4 release claim.
+Main now carries LaunchKey hardening for external adoption evidence gating, native GitHub release-asset download, published-release asset proof, fresh-install package receipts, same-prefix upgrade receipts, rollback cleanup receipts, generated archive-member screening, blocking-proof result UX, and report-quality exclusion of generated proof directories. These are v4 stabilization slices, not a stable-v4 release claim.
 ```
 
 ## Refresh Checklist
