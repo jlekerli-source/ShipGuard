@@ -306,12 +306,23 @@ def parse_workspace(workspace: Path, root: Path) -> dict[str, Any]:
     }
 
 
-def source_imports(swift_files: list[Path]) -> list[str]:
+def source_imports(swift_files: list[Path]) -> tuple[list[str], list[Path], list[Path], list[Path]]:
     imports: list[str] = []
+    truncated: list[Path] = []
+    omitted: list[Path] = []
+    timed_out: list[Path] = []
     for path in swift_files:
-        for match in re.finditer(r"^\s*import\s+([A-Za-z0-9_]+)", read_text(path), re.M):
+        source = ios_scan_scope.read_text_limited(path)
+        if source.omitted:
+            omitted.append(path)
+            if source.timed_out:
+                timed_out.append(path)
+            continue
+        if source.truncated:
+            truncated.append(path)
+        for match in re.finditer(r"^\s*import\s+([A-Za-z0-9_]+)", source.text, re.M):
             imports.append(match.group(1))
-    return unique_sorted(imports)
+    return unique_sorted(imports), truncated, omitted, timed_out
 
 
 def finding(
@@ -444,7 +455,8 @@ def report_status(findings: list[dict[str, str]]) -> str:
 
 
 def build_report(root: Path) -> dict[str, Any]:
-    files = iter_files(root)
+    file_scan = ios_scan_scope.iter_files(root)
+    files = file_scan.files
     projects = [parse_project(path, root) for path in iter_dirs(root, ".xcodeproj")]
     workspaces = [parse_workspace(path, root) for path in iter_dirs(root, ".xcworkspace")]
     packages = [parse_package(path, root) for path in files if path.name == "Package.swift"]
@@ -454,6 +466,7 @@ def build_report(root: Path) -> dict[str, Any]:
     privacy_manifests = [path for path in files if path.name == "PrivacyInfo.xcprivacy"]
     test_plans = [path for path in files if path.name.endswith(".xctestplan")]
     storekit_configs = [path for path in files if path.name.endswith(".storekit")]
+    swift_imports, truncated_import_files, omitted_import_files, timed_out_import_files = source_imports(swift_files)
 
     report: dict[str, Any] = {
         "schemaVersion": SCHEMA_VERSION,
@@ -491,7 +504,14 @@ def build_report(root: Path) -> dict[str, Any]:
         "privacy_manifests": [plist_summary(path, root) for path in privacy_manifests],
         "plists": [plist_summary(path, root) for path in plists],
         "entitlements": [plist_summary(path, root) for path in entitlements],
-        "swift_imports": source_imports(swift_files),
+        "swift_imports": swift_imports,
+        "scanScope": ios_scan_scope.summary_with_text_limits(
+            file_scan,
+            root,
+            truncated_text_files=truncated_import_files,
+            omitted_large_text_files=omitted_import_files,
+            timed_out_text_files=timed_out_import_files,
+        ),
     }
     report["findings"] = build_findings(report)
     report["status"] = report_status(report["findings"])
@@ -521,6 +541,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- StoreKit configs: {counts['storekit_configs']}",
         f"- Privacy manifests: {counts['privacy_manifests']}",
         f"- `xcodebuild` available: {str(report['xcodebuild_available']).lower()}",
+        f"- Text scan budget: {report['scanScope']['largeTextReadMode']} at {report['scanScope']['textBytesPerFileLimit']} bytes",
+        f"- Text files sampled: {report['scanScope']['truncatedTextFileCount']}; large files omitted: {report['scanScope']['omittedLargeTextFileCount']}; timed out: {report['scanScope']['timedOutTextFileCount']}",
         "",
         "## Xcode Projects",
         "",

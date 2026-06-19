@@ -398,6 +398,7 @@ required_files=(
   "tests/ios_prove_test.sh"
   "tests/ios_redaction_test.sh"
   "tests/ios_report_quality_test.sh"
+  "tests/ios_scan_scope_budget_test.sh"
   "tests/ios_spec_workflow_test.sh"
   "tests/ios_shipguard_demo_test.sh"
   "tests/ios_shipguard_eval_test.sh"

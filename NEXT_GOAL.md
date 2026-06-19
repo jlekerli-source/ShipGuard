@@ -1,6 +1,6 @@
 # Next Goal
 
-- Generated: 2026-06-19T09:43:58Z
+- Generated: 2026-06-19T10:23:54Z
 - Current toolkit version: 3.131.0
 - Target release: v3.132.0
 - Title: v4 Product Release Stabilization
@@ -28,8 +28,8 @@ Stabilize the v4 product release with external adoption evidence, final security
 
 ## Completion Receipt
 
-- Completed scope: Shipped v3.131.0 V4 Release Candidate Readiness / LaunchKey with install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, report-quality support, gauntlet receipts, and package proof.
-- Evidence: git diff --check; ./tests/v4_release_candidate_test.sh; ./tests/tool_value_gauntlet_test.sh; focused receipt tests; ./tests/ios_report_quality_test.sh; ./tests/full_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/ios_branding_test.sh; ./tests/codex_marketplace_readiness_test.sh; ./tests/self_audit_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3131; ./tests/package_release_test.sh; final value-gauntlet status pass with v4ReleaseCandidateReadinessReceipts pass and next missing signal runtimeV4ProductReleaseStabilization.
+- Completed scope: Hardened read-only iOS source scanning after Ringly/Ilmify product-QA inputs exposed large-file and file-provider read stalls.
+- Evidence: Read-only Ringly and Ilmify ShipGuard runs wrote only to /tmp; Ilmify performance/design/modernize now return in seconds with scanScope omitted/timed-out file evidence; combined ios report-quality status pass; python3 -m py_compile scripts/ios_scan_scope.py scripts/ios_doctor.py scripts/ios_performance.py scripts/ios_design.py scripts/ios_modernize.py; ./tests/ios_scan_scope_budget_test.sh; ./tests/ios_doctor_test.sh; ./tests/ios_performance_test.sh; ./tests/ios_design_test.sh; ./tests/ios_modernize_test.sh; ./tests/ios_report_quality_test.sh; git diff --check; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-scan-budget; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet-scan-budget; ./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet-scan-budget --out /tmp/shipguard-value-quality-scan-budget --shareable; ./tests/package_release_test.sh; PREFIX="/Users/omarat-turkmani/.local" ./scripts/install.sh && codex plugin marketplace add . && codex plugin add ios-shipguard@shipguard && ./bin/shipguard codex status --strict.
 
 ## Following Slash Plan
 
@@ -114,6 +114,7 @@ Generate that follow-up file with:
 ./tests/ios_ai_readiness_test.sh
 ./tests/ios_spec_workflow_test.sh
 ./tests/ios_report_quality_test.sh
+./tests/ios_scan_scope_budget_test.sh
 ./tests/ios_redaction_test.sh
 ./tests/ios_shipguard_eval_test.sh
 ./tests/ios_shipguard_demo_test.sh

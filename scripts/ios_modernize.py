@@ -59,7 +59,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8", errors="ignore")
+    return ios_scan_scope.read_text_limited(path).text
 
 
 def rel(path: Path, root: Path) -> str:
@@ -262,7 +262,15 @@ def select_markdown_findings(findings: list[dict[str, Any]], limit: int = 40, pe
 
 
 def scan_swift_file(path: Path, root: Path, findings: list[dict[str, Any]], metrics: dict[str, int]) -> None:
-    text = read_text(path)
+    source = ios_scan_scope.read_text_limited(path)
+    if source.omitted:
+        metrics["omittedLargeSwiftFiles"] += 1
+        if source.timed_out:
+            metrics["timedOutSwiftFiles"] += 1
+        return
+    text = source.text
+    if source.truncated:
+        metrics["truncatedSwiftFiles"] += 1
     rel_path = rel(path, root)
     lines = text.splitlines()
     imports_swiftui = bool(re.search(r"^\s*import\s+SwiftUI\b", text, re.M))
@@ -497,11 +505,26 @@ def build_report(root: Path, focus: str, *, shipguard_eval: bool = False, sharea
         "asyncFiles": 0,
         "appIntentFiles": 0,
         "widgetFiles": 0,
+        "truncatedSwiftFiles": 0,
+        "omittedLargeSwiftFiles": 0,
+        "timedOutSwiftFiles": 0,
     }
     findings: list[dict[str, Any]] = []
 
+    truncated_files: list[Path] = []
+    omitted_files: list[Path] = []
+    timed_out_files: list[Path] = []
     for path in swift_files:
+        before = metrics["truncatedSwiftFiles"]
+        omitted_before = metrics["omittedLargeSwiftFiles"]
+        timed_out_before = metrics["timedOutSwiftFiles"]
         scan_swift_file(path, root, findings, metrics)
+        if metrics["truncatedSwiftFiles"] > before:
+            truncated_files.append(path)
+        if metrics["omittedLargeSwiftFiles"] > omitted_before:
+            omitted_files.append(path)
+        if metrics["timedOutSwiftFiles"] > timed_out_before:
+            timed_out_files.append(path)
 
     severity_counts: dict[str, int] = {"high": 0, "review": 0, "opportunity": 0}
     for item in findings:
@@ -530,7 +553,13 @@ def build_report(root: Path, focus: str, *, shipguard_eval: bool = False, sharea
             "deploymentTargets": facts["deploymentTargets"],
             "targets": len(facts["targets"]),
         },
-        "scanScope": ios_scan_scope.summary(scan),
+        "scanScope": ios_scan_scope.summary_with_text_limits(
+            scan,
+            root,
+            truncated_text_files=truncated_files,
+            omitted_large_text_files=omitted_files,
+            timed_out_text_files=timed_out_files,
+        ),
         "checks": checks,
         "targets": facts["targets"],
         "scopeBoundary": shipguard_eval_boundary() if shipguard_eval else None,
@@ -560,6 +589,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Shareability mode: `{report['shareability']['mode']}`",
         f"- Swift files: {summary['swiftFiles']}",
         f"- SwiftUI files: {summary['swiftuiFiles']}",
+        f"- Text scan budget: {report['scanScope']['largeTextReadMode']} at {report['scanScope']['textBytesPerFileLimit']} bytes",
+        f"- Truncated Swift files: {summary['truncatedSwiftFiles']}; large Swift files omitted: {summary['omittedLargeSwiftFiles']}; timed out: {summary['timedOutSwiftFiles']}",
         f"- Findings: {summary['findings']}",
         f"- Skipped generated/proof/cache directories: {report['scanScope']['skippedDirectoryCount']}",
         f"- Swift versions: {', '.join(summary['swiftVersions']) if summary['swiftVersions'] else 'unknown'}",
@@ -600,6 +631,27 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- Skipped `{directory}`")
         if report["scanScope"]["skippedDirectoryListTruncated"]:
             lines.append("- Additional skipped directories are listed in JSON.")
+    if report["scanScope"]["truncatedTextFiles"]:
+        if not report["scanScope"]["skippedDirectories"]:
+            lines.extend(["", "## Scan Scope", ""])
+        for file in report["scanScope"]["truncatedTextFiles"][:8]:
+            lines.append(f"- Sampled `{file}` up to {report['scanScope']['textBytesPerFileLimit']} bytes")
+        if report["scanScope"]["truncatedTextFileListTruncated"]:
+            lines.append("- Additional sampled/truncated files are listed in JSON.")
+    if report["scanScope"]["omittedLargeTextFiles"]:
+        if not report["scanScope"]["skippedDirectories"] and not report["scanScope"]["truncatedTextFiles"]:
+            lines.extend(["", "## Scan Scope", ""])
+        for file in report["scanScope"]["omittedLargeTextFiles"][:8]:
+            lines.append(f"- Omitted large source text `{file}` above {report['scanScope']['textBytesPerFileLimit']} bytes")
+        if report["scanScope"]["omittedLargeTextFileListTruncated"]:
+            lines.append("- Additional omitted large files are listed in JSON.")
+    if report["scanScope"]["timedOutTextFiles"]:
+        if not report["scanScope"]["skippedDirectories"] and not report["scanScope"]["truncatedTextFiles"] and not report["scanScope"]["omittedLargeTextFiles"]:
+            lines.extend(["", "## Scan Scope", ""])
+        for file in report["scanScope"]["timedOutTextFiles"][:8]:
+            lines.append(f"- Timed out reading source text `{file}` after {report['scanScope']['textReadTimeoutSeconds']} seconds")
+        if report["scanScope"]["timedOutTextFileListTruncated"]:
+            lines.append("- Additional timed-out files are listed in JSON.")
 
     lines.extend(
         [

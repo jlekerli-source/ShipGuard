@@ -100,7 +100,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8", errors="ignore")
+    return ios_scan_scope.read_text_limited(path).text
 
 
 def rel(path: Path, root: Path) -> str:
@@ -123,10 +123,27 @@ def report_path(path: Path, *, root: Path, shareable: bool, placeholder: str) ->
 def source_records(root: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     scan = ios_scan_scope.iter_files(root, SOURCE_SUFFIXES)
     records: list[dict[str, Any]] = []
+    truncated: list[Path] = []
+    omitted: list[Path] = []
+    timed_out: list[Path] = []
     for path in scan.files:
-        text = read_text(path)
+        source = ios_scan_scope.read_text_limited(path)
+        if source.omitted:
+            omitted.append(path)
+            if source.timed_out:
+                timed_out.append(path)
+            continue
+        if source.truncated:
+            truncated.append(path)
+        text = source.text
         records.append({"path": path, "file": rel(path, root), "text": text, "lower": text.lower()})
-    return records, ios_scan_scope.summary(scan)
+    return records, ios_scan_scope.summary_with_text_limits(
+        scan,
+        root,
+        truncated_text_files=truncated,
+        omitted_large_text_files=omitted,
+        timed_out_text_files=timed_out,
+    )
 
 
 def first_signal(records: list[dict[str, Any]], token: str) -> dict[str, str] | None:
@@ -1063,6 +1080,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- App-type confidence: {app_type['confidence']}",
         f"- Swift files: {report['sourceSummary']['swiftFiles']}",
         f"- Skipped generated/proof/cache directories: {report['sourceSummary']['scanScope']['skippedDirectoryCount']}",
+        f"- Text scan budget: {report['sourceSummary']['scanScope']['largeTextReadMode']} at {report['sourceSummary']['scanScope']['textBytesPerFileLimit']} bytes",
+        f"- Truncated sampled text files: {report['sourceSummary']['scanScope']['truncatedTextFileCount']}; large files omitted: {report['sourceSummary']['scanScope']['omittedLargeTextFileCount']}; timed out: {report['sourceSummary']['scanScope']['timedOutTextFileCount']}",
         "",
     ]
     lines.extend(render_result_markdown(report["resultUX"]))
@@ -1100,6 +1119,24 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- `{directory}`")
         if scan_scope["skippedDirectoryListTruncated"]:
             lines.append("- Additional skipped directories are listed in JSON.")
+    if scan_scope["truncatedTextFiles"]:
+        lines.extend(["", "Text sampling limits:"])
+        for file in scan_scope["truncatedTextFiles"][:8]:
+            lines.append(f"- `{file}`")
+        if scan_scope["truncatedTextFileListTruncated"]:
+            lines.append("- Additional truncated files are listed in JSON.")
+    if scan_scope["omittedLargeTextFiles"]:
+        lines.extend(["", "Large text files omitted from source scoring:"])
+        for file in scan_scope["omittedLargeTextFiles"][:8]:
+            lines.append(f"- `{file}`")
+        if scan_scope["omittedLargeTextFileListTruncated"]:
+            lines.append("- Additional omitted large files are listed in JSON.")
+    if scan_scope["timedOutTextFiles"]:
+        lines.extend(["", "Text reads timed out before source scoring:"])
+        for file in scan_scope["timedOutTextFiles"][:8]:
+            lines.append(f"- `{file}`")
+        if scan_scope["timedOutTextFileListTruncated"]:
+            lines.append("- Additional timed-out files are listed in JSON.")
 
     action = tailoring["nextAction"]
     lines.extend(

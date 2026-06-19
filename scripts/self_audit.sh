@@ -386,6 +386,7 @@ required_artifacts=(
   "tests/codex_marketplace_readiness_test.sh"
   "tests/agent_trace_test.sh"
   "tests/ios_devspace_check_test.sh"
+  "tests/ios_scan_scope_budget_test.sh"
   "tests/ios_spec_workflow_test.sh"
   "scripts/codex_status.sh"
   "scripts/codex_marketplace_readiness.py"
