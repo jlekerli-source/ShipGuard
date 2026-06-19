@@ -1,0 +1,146 @@
+{
+  "id": "resumable-release-lane",
+  "kind": "full-audit-orchestrator-receipt",
+  "surface": "ShipGuard Full Audit",
+  "selectedMode": "value-gauntlet full-audit orchestrator receipts",
+  "trigger": "Prove ShipGuard can collapse the repeated validation, value-gauntlet, report-quality, package, plugin, CI, and release-proof ceremony into one resumable evidence-aware lane.",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/full_audit.py",
+    "scripts/tool_value_gauntlet.py",
+    "tests/full_audit_test.sh",
+    "docs/full-audit.md"
+  ],
+  "expectedSourcePhrases": [
+    "shipguard full-audit",
+    "stage-receipts",
+    "slowLaneSummary",
+    "runtimeFullAuditOrchestrator",
+    "runtimeUnifiedInspectExperience"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppsUsed": false,
+    "inputs": [
+      "public ShipGuard checkout",
+      "plan-only release profile",
+      "mini executable stage set",
+      "resume receipt reuse"
+    ]
+  },
+  "commands": [
+    {
+      "id": "full-audit-release-plan-pass",
+      "display": "./bin/shipguard full-audit --profile release --plan-only",
+      "args": [
+        "full-audit",
+        "--path",
+        ".",
+        "--out",
+        "{out}/full-audit-plan",
+        "--profile",
+        "release",
+        "--plan-only",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "full-audit-plan/shipguard-full-audit.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "stages", "slowLaneSummary", "efficiency", "scopeBoundary", "slashPlan"],
+          "requiredNonEmptyJsonPaths": ["stages", "slowLaneSummary", "reportQualityQuestions"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard full-audit"},
+            {"path": "status", "equals": "pass"},
+            {"path": "planOnly", "equals": true},
+            {"path": "stageStatusSummary.planned", "equals": 14},
+            {"path": "scopeBoundary.doesNotPush", "equals": true},
+            {"path": "scopeBoundary.doesNotPublishRelease", "equals": true}
+          ],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "full-audit-plan/shipguard-full-audit.md",
+          "type": "markdown",
+          "requiredPhrases": ["ShipGuard Full Audit", "Slow Lanes", "v3.125.0 Unified Inspect Experience"],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "full-audit-mini-execution-pass",
+      "display": "./bin/shipguard full-audit --stage version --stage py-compile --stage docs-check",
+      "args": [
+        "full-audit",
+        "--path",
+        ".",
+        "--out",
+        "{out}/full-audit-mini",
+        "--stage",
+        "version",
+        "--stage",
+        "py-compile",
+        "--stage",
+        "docs-check",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "full-audit-mini/shipguard-full-audit.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "stages", "stageStatusSummary", "efficiency"],
+          "requiredValues": [
+            {"path": "status", "equals": "pass"},
+            {"path": "stageStatusSummary.pass", "equals": 3},
+            {"path": "efficiency.executedStages", "equals": 3},
+            {"path": "scopeBoundary.targetAppsReadOnly", "equals": true}
+          ],
+          "forbidLocalPaths": true
+        },
+        {
+          "path": "full-audit-mini/stage-receipts/version.json",
+          "type": "json",
+          "requiredValues": [
+            {"path": "status", "equals": "pass"},
+            {"path": "stageId", "equals": "version"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "full-audit-resume-reuse-pass",
+      "display": "./bin/shipguard full-audit --resume on mini stage receipts",
+      "args": [
+        "full-audit",
+        "--path",
+        ".",
+        "--out",
+        "{out}/full-audit-mini",
+        "--stage",
+        "version",
+        "--stage",
+        "py-compile",
+        "--stage",
+        "docs-check",
+        "--resume",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "full-audit-mini/shipguard-full-audit.json",
+          "type": "json",
+          "requiredValues": [
+            {"path": "status", "equals": "pass"},
+            {"path": "stageStatusSummary.skipped", "equals": 3}
+          ],
+          "requiredPhrases": ["resume reused prior passing receipt"],
+          "forbidLocalPaths": true
+        }
+      ]
+    }
+  ]
+}

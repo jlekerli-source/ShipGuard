@@ -66,8 +66,8 @@ if trust_receipts.get("status") != "pass":
     raise SystemExit(f"trust-hardening receipts should also pass in the full gauntlet: {trust_receipts!r}")
 if domain_pack_sdk.get("status") != "pass":
     raise SystemExit(f"Domain Pack SDK receipts should also pass in the full gauntlet: {domain_pack_sdk!r}")
-if answer.get("identifier") != "shipguard full-audit-orchestrator":
-    raise SystemExit(f"passing universal packaging receipts should escalate to full-audit orchestrator: {answer!r}")
+if answer.get("identifier") != "shipguard unified-inspect-experience":
+    raise SystemExit(f"passing full-audit receipts should escalate to unified inspect: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -90,8 +90,10 @@ if "runtimeExpoMCPAndEASAdapter" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"Expo MCP and EAS adapter should no longer be missing: {answer!r}")
 if "runtimeUniversalAgentPackagingAdapter" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"universal agent packaging should no longer be missing: {answer!r}")
-if "runtimeFullAuditOrchestrator" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"full-audit orchestrator gap should be explicit: {answer!r}")
+if "runtimeFullAuditOrchestrator" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"full-audit orchestrator should no longer be missing: {answer!r}")
+if "runtimeUnifiedInspectExperience" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"unified inspect gap should be explicit: {answer!r}")
 if "runtimeCommandFamilyOutputReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"command-family output receipts should no longer be missing: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):

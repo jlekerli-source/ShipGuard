@@ -78,8 +78,8 @@ if structured_evidence.get("status") != "pass":
 if structured_evidence.get("receiptCount") != 1 or structured_evidence.get("passedReceiptCount") != 1 or structured_evidence.get("commandCount") != 6:
     raise SystemExit(f"expected one structured evidence receipt and six commands: {structured_evidence!r}")
 
-if answer.get("identifier") != "shipguard full-audit-orchestrator":
-    raise SystemExit(f"passing universal packaging receipts should escalate to full-audit orchestrator: {answer!r}")
+if answer.get("identifier") != "shipguard unified-inspect-experience":
+    raise SystemExit(f"passing full-audit receipts should escalate to unified inspect: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -102,8 +102,10 @@ if "runtimeExpoMCPAndEASAdapter" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"Expo MCP and EAS adapter should no longer be missing: {answer!r}")
 if "runtimeUniversalAgentPackagingAdapter" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"universal agent packaging should no longer be missing: {answer!r}")
-if "runtimeFullAuditOrchestrator" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"full-audit orchestrator gap should be explicit: {answer!r}")
+if "runtimeFullAuditOrchestrator" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"full-audit orchestrator should no longer be missing: {answer!r}")
+if "runtimeUnifiedInspectExperience" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"unified inspect gap should be explicit: {answer!r}")
 PY
 
 echo "task contract receipt tests passed"

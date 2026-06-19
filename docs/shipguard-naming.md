@@ -46,6 +46,7 @@ The rule is simple: a fun name is allowed only when its plain job and proof boun
 | `shipguard sarif` | ShipGuard AlertBeacon | Convert autopsy findings into SARIF for code scanning surfaces. |
 | `shipguard docs-check` | ShipGuard LinkSweep | Check Markdown docs for broken local links. |
 | `shipguard value-gauntlet` | ShipGuard Tool Value Gauntlet | Grade every ShipGuard command, skill, plugin, action, doc, and proof path for real developer usefulness. |
+| `shipguard full-audit` | ShipGuard Full Audit | Run or plan the full ShipYard validation, value, package, plugin, CI, and release-proof lane from one resumable report. |
 | `shipguard pilot-bench` | ShipGuard PilotBench | Score public-safe read-only task traces for verdict usefulness. |
 | `shipguard agent trace` / `shipguard codex trace` | ShipGuard TraceBridge | Connect prompts, tool calls, receipts, task verdicts, next actions, and worker budgets into one adapter timeline. |
 | `shipguard ios doctor` | ShipGuard DockCheck | Inspect Xcode, SwiftPM, schemes, targets, and proof readiness. |

@@ -49,7 +49,7 @@ Keep the core open-source verdict engine honest. Future Pro, Team, or Enterprise
 
 ## Phase Map
 
-The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.123 as shipped foundations and v3.124 as the active efficient full-audit orchestrator slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, or universal-agent packaging work.
+The roadmap is intentionally larger than the earlier v3.105-v3.110 loop. The current baseline treats v3.115-v3.124 as shipped foundations and v3.125 as the active unified inspect slice. The full product plan continues from there instead of replaying completed notification-pack, PilotBench, Domain Pack SDK, configuration-baseline, structured-receipt, agent-adapter, XcodeBuildMCP evidence-adapter, Expo/EAS assurance, universal-agent packaging, or full-audit orchestration work.
 
 ### Phase A: Trustworthy Foundation
 
@@ -134,7 +134,7 @@ v3.128  External benchmark v2
 v3.129-v3.130  v4 preview, stabilization, security, and schema freeze
 ```
 
-Current state: v3.123 adds universal agent packaging through `shipguard agent trace --adapter claude|gemini|cursor|mcp|generic`. TraceBridge now consumes exported or synthetic Codex-style and non-Codex traces, maps prompts, tool calls, receipts, optional `shipguard verify` output, verdicts, next actions, runtime receipts, worker-budget state, typed XcodeBuildMCP simulator proof, typed Expo/EAS prebuild/build/update/runtime proof, and adapter-packaging metadata into one reviewable timeline. The active architectural priority is v3.124 full-audit orchestration so the broad validation, value-gauntlet, report-quality, install, plugin, CI, and release-proof loop becomes one resumable evidence-aware lane instead of repeated manual ceremony.
+Current state: v3.124 adds `shipguard full-audit`, a resumable evidence-aware lane for validation, value-gauntlet, report-quality, install refresh, plugin status, CI proof, and release-proof preparation. The active architectural priority is v3.125 unified inspect: one concise command that reads existing proof receipts, value-gauntlet state, repo state, plugin state, and the exact next action without hiding the underlying evidence.
 
 Every release proposal must answer:
 

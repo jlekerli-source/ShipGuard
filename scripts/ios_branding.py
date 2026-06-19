@@ -147,6 +147,16 @@ SURFACES: list[dict[str, Any]] = [
         "aliases": ["tool usefulness audit", "100/10 dev value audit"],
     },
     {
+        "id": "full-audit",
+        "command": "shipguard full-audit",
+        "surfaceName": "ShipGuard Full Audit",
+        "codename": "full-audit",
+        "plainPurpose": "Run or plan the full ShipYard validation, value, package, plugin, CI, and release-proof lane from one resumable report.",
+        "tone": "Operational, concise, and evidence-aware.",
+        "proofBoundary": "Full Audit orchestrates ShipGuard proof stages and records receipts; it does not push commits, publish releases, or edit target apps.",
+        "aliases": ["unleash the beast", "shipyard proof lane", "release audit lane"],
+    },
+    {
         "id": "pilot-bench",
         "command": "shipguard pilot-bench",
         "surfaceName": "ShipGuard PilotBench",

@@ -236,7 +236,7 @@ The current product directive is:
 - Treat agent efficiency as a product feature: standard mode should normally use 2-3 workers, cap normal workflows at 5, avoid recursive worker spawning, and measure duplicate reads, cache hits, time to first useful verdict, and accepted findings per model turn.
 - Keep full repository audits explicit opt-in through the future `shipguard inspect --full` path; routine `verify` stays diff-first.
 
-The current baseline is v3.123 universal agent packaging for Claude, Gemini, Cursor, and generic MCP workflows. The active next slice is v3.124 efficient full-audit orchestration: one resumable evidence-aware lane that reduces repeated manual validation work while preserving exact proof boundaries.
+The current baseline is v3.124 efficient full-audit orchestration: one resumable evidence-aware lane that reduces repeated manual validation work while preserving exact proof boundaries. The active next slice is v3.125 unified inspect: one concise surface for repo state, proof receipts, value-gauntlet state, installed plugin state, and the exact next action.
 
 ## Revised Roadmap
 

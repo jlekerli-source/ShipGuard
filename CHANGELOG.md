@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added v3.124 full-audit orchestration: `shipguard full-audit` now plans and runs the ShipYard proof lane with resumable stage receipts, slow-lane summaries, shareable redaction, stage filtering, `--resume`, `--plan-only`, and `quick|release|shipyard` profiles.
+- Added Tool Value Gauntlet `fullAuditOrchestratorReceipts` with public plan-only, mini-execution, and resume-reuse proof; once those pass, the lowest-value probe now points to the v3.125 unified inspect experience.
+- Added docs, CLI help, self-audit, package proof, and smoke coverage for the full-audit surface so release/product-QA work can use one orchestrator instead of a long manual command ceremony.
 - Added v3.123 universal agent packaging: `shipguard agent trace` now supports `--adapter claude|gemini|cursor|mcp|generic` alongside Codex while keeping one TraceBridge schema for prompts, tool calls, receipts, verdicts, next actions, budgets, and proof handoffs.
 - Added `adapterPackaging` output and an Agent Packaging Markdown section with source signals, shared schema expectations, handoff commands, and export guidance for non-Codex traces.
 - Added Tool Value Gauntlet `universalAgentPackagingReceipts` with public synthetic Claude, Gemini, Cursor, MCP, and auto-detection fixtures; once those pass, the lowest-value probe now points to the v3.124 efficient full-audit orchestrator.
