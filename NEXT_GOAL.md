@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-19T08:56:39Z
-- Current toolkit version: 3.130.0
-- Target release: v3.131.0
-- Title: v4 Release Candidate Readiness
+- Generated: 2026-06-19T09:43:58Z
+- Current toolkit version: 3.131.0
+- Target release: v3.132.0
+- Title: v4 Product Release Stabilization
 
 ## Slash Plan
 
 ```text
-/plan v3.131.0 v4 Release Candidate Readiness for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Prove v4 release-candidate readiness with fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, and plugin refresh proof.
+/plan v3.132.0 v4 Product Release Stabilization for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Stabilize the v4 product release with external adoption evidence, final security review, package proof, rollback proof, and release proof consumption on published assets.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.131.0 v4 Release Candidate Readiness for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Prove v4 release-candidate readiness with fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, and plugin refresh proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.132.0 v4 Product Release Stabilization for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Stabilize the v4 product release with external adoption evidence, final security review, package proof, rollback proof, and release proof consumption on published assets, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Prove v4 release-candidate readiness with fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, and plugin refresh proof.
+Stabilize the v4 product release with external adoption evidence, final security review, package proof, rollback proof, and release proof consumption on published assets.
 
 ## Completion Receipt
 
-- Completed scope: Shipped v3.130.0 V4 Schema Freeze with schema registry, compatibility policy, compatibility fixtures, migration checks, changelog/deprecation rules, report-quality support, gauntlet receipts, and package proof.
-- Evidence: git diff --check; python3 -m py_compile scripts/v4_schema_freeze.py scripts/tool_value_gauntlet.py scripts/ios_report_quality.py scripts/ios_branding.py scripts/full_audit.py; ./tests/v4_schema_freeze_test.sh; ./tests/ios_report_quality_test.sh; ./tests/tool_value_gauntlet_test.sh; ./tests/cli_smoke_test.sh; ./tests/full_audit_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3130; ./tests/self_audit_test.sh; ./tests/command_family_runtime_output_receipts_test.sh; ./tests/task_contract_receipts_test.sh; ./tests/trust_hardening_receipts_test.sh; ./tests/concise_verdict_result_ux_test.sh; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet-v3130-final; ./bin/shipguard inspect --path . --value-gauntlet /tmp/shipguard-value-gauntlet-v3130-final --out /tmp/shipguard-inspect-v3130-final --shipguard-eval --shareable
+- Completed scope: Shipped v3.131.0 V4 Release Candidate Readiness / LaunchKey with install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, report-quality support, gauntlet receipts, and package proof.
+- Evidence: git diff --check; ./tests/v4_release_candidate_test.sh; ./tests/tool_value_gauntlet_test.sh; focused receipt tests; ./tests/ios_report_quality_test.sh; ./tests/full_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/ios_branding_test.sh; ./tests/codex_marketplace_readiness_test.sh; ./tests/self_audit_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3131; ./tests/package_release_test.sh; final value-gauntlet status pass with v4ReleaseCandidateReadinessReceipts pass and next missing signal runtimeV4ProductReleaseStabilization.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.132.0 v4 Product Release Stabilization for jlekerli-source/ShipGuard:
+/plan v3.133.0 v4 Stable Release Evidence for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Prove v4 release-candidate readiness with fresh install, upgrade, uninstall, rel
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.132.0 v4 Product Release Stabilization for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.133.0 v4 Stable Release Evidence for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.132.0 --title "v4 Product Release Stabilization" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.133.0 --title "v4 Stable Release Evidence" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -149,12 +149,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.131.0.
+1. Open or update the tracking issue for v3.132.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.131.0` and upload `dist/shipguard-v3.131.0.tar.gz`.
+6. Create release `v3.132.0` and upload `dist/shipguard-v3.132.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

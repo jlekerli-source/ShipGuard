@@ -85,8 +85,8 @@ if receipts.get("status") != "pass":
 if receipts.get("receiptCount") != 1 or receipts.get("passedReceiptCount") != 1 or receipts.get("commandCount") != 4:
     raise SystemExit(f"unexpected concise result UX receipt counts: {receipts!r}")
 answer = ((gauntlet.get("lowestValueSurfaceProbe") or {}).get("answer") or {})
-if answer.get("identifier") != "shipguard v4-release-candidate-readiness":
-    raise SystemExit(f"passing v4 schema-freeze receipts should escalate to release-candidate readiness: {answer!r}")
+if answer.get("identifier") != "shipguard v4-product-release-stabilization":
+    raise SystemExit(f"passing v4 release-candidate receipts should escalate to product release stabilization: {answer!r}")
 missing = answer.get("missingDepthSignals") or []
 if "runtimeConciseVerdictResultUX" in missing:
     raise SystemExit(f"concise result UX should no longer be missing: {answer!r}")
@@ -94,8 +94,10 @@ if "runtimeExternalBenchmarkV2" in missing:
     raise SystemExit(f"external benchmark v2 should no longer be missing: {answer!r}")
 if "runtimeV4SchemaFreeze" in missing:
     raise SystemExit(f"v4 schema freeze should no longer be missing: {answer!r}")
-if "runtimeV4ReleaseCandidateReadiness" not in missing:
-    raise SystemExit(f"v4 release-candidate readiness should be the next explicit gap: {answer!r}")
+if "runtimeV4ReleaseCandidateReadiness" in missing:
+    raise SystemExit(f"v4 release-candidate readiness should no longer be missing: {answer!r}")
+if "runtimeV4ProductReleaseStabilization" not in missing:
+    raise SystemExit(f"v4 product release stabilization should be the next explicit gap: {answer!r}")
 PY
 
 grep -q 'Concise Verdict Result UX Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"

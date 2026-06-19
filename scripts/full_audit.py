@@ -484,10 +484,10 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the full-audit report replace repeated manual validation ceremony with one resumable evidence lane?",
             "Are slow lanes summarized clearly enough for a solo developer to decide what to rerun?",
             "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?",
-            "Should the next ShipGuard slice prove v4 release-candidate readiness with install, upgrade, uninstall, release-proof consumption, and external adoption packet receipts?",
+            "Should the next ShipGuard slice stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption on published assets?",
         ],
-        "slashPlan": "/plan v3.131.0 v4 Release Candidate Readiness for jlekerli-source/ShipGuard: prove fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, and plugin refresh proof before any stable v4 claim.",
-        "slashGoal": "/goal Implement v3.131.0 v4 Release Candidate Readiness for jlekerli-source/ShipGuard: make the v4 candidate installable, reversible, consumable, and adoption-ready without claiming a final v4 product release.",
+        "slashPlan": "/plan v3.132.0 v4 Product Release Stabilization for jlekerli-source/ShipGuard: prove external adoption evidence, final security review, rollback proof, package proof, and release proof consumption on published assets before any stable v4 claim.",
+        "slashGoal": "/goal Implement v3.132.0 v4 Product Release Stabilization for jlekerli-source/ShipGuard: make the v4 product release externally adoptable, reversible, consumable, security-reviewed, and release-proof verified without claiming marketplace acceptance.",
     }
     if args.shareable:
         replacements = [(str(repo), "<shipguard-repo>"), (str(out_dir), "<shipguard-full-audit-out>"), (str(Path.home()), "<home>")]

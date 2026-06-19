@@ -51,6 +51,7 @@ COMMANDS: list[dict[str, str]] = [
     {"command": "shipguard inspect", "surface": "ShipGuard InspectDeck", "family": "shipyard"},
     {"command": "shipguard v4 preview", "surface": "ShipGuard V4 Preview", "family": "shipyard"},
     {"command": "shipguard v4 schema-freeze", "surface": "ShipGuard V4 Schema Freeze", "family": "shipyard"},
+    {"command": "shipguard v4 release-candidate", "surface": "ShipGuard V4 Release Candidate Readiness", "family": "shipyard"},
     {"command": "shipguard pilot-bench", "surface": "ShipGuard PilotBench", "family": "shipyard"},
     {"command": "shipguard agent trace", "surface": "ShipGuard TraceBridge", "family": "agent"},
     {"command": "shipguard ios doctor", "surface": "ShipGuard DockCheck", "family": "ios"},
@@ -93,7 +94,7 @@ COMMANDS: list[dict[str, str]] = [
 ]
 
 REPORT_QUALITY_QUESTIONS = [
-    "Should ShipGuard prove v4 release-candidate readiness with install, upgrade, uninstall, release proof consumption, and an external adoption packet?",
+    "Should ShipGuard stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption?",
     "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?",
     "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?",
     "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
@@ -192,6 +193,7 @@ CODEX_MARKETPLACE_READINESS_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntl
 EXTERNAL_BENCHMARK_V2_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "external-benchmark-v2-receipts"
 V4_PREVIEW_STABILIZATION_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "v4-preview-stabilization-receipts"
 V4_SCHEMA_FREEZE_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "v4-schema-freeze-receipts"
+V4_RELEASE_CANDIDATE_READINESS_RECEIPT_ROOT = Path("fixtures") / "tool-value-gauntlet" / "v4-release-candidate-readiness-receipts"
 
 PLACEHOLDER_PATTERNS = [
     re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -1085,6 +1087,18 @@ def load_v4_preview_stabilization_receipts(root: Path) -> list[tuple[Path, dict[
 
 def load_v4_schema_freeze_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     fixture_root = root / V4_SCHEMA_FREEZE_RECEIPT_ROOT
+    receipts: list[tuple[Path, dict[str, Any]]] = []
+    if not fixture_root.is_dir():
+        return receipts
+    for meta_path in sorted(fixture_root.glob("*/receipt.json")):
+        meta = load_json(meta_path)
+        if meta:
+            receipts.append((meta_path.parent, meta))
+    return receipts
+
+
+def load_v4_release_candidate_readiness_receipts(root: Path) -> list[tuple[Path, dict[str, Any]]]:
+    fixture_root = root / V4_RELEASE_CANDIDATE_READINESS_RECEIPT_ROOT
     receipts: list[tuple[Path, dict[str, Any]]] = []
     if not fixture_root.is_dir():
         return receipts
@@ -2821,6 +2835,37 @@ def v4_schema_freeze_receipt_probe(root: Path) -> dict[str, Any]:
     }
 
 
+def v4_release_candidate_readiness_receipt_probe(root: Path) -> dict[str, Any]:
+    receipts = [
+        run_skill_plugin_receipt(root, fixture_dir, meta)
+        for fixture_dir, meta in load_v4_release_candidate_readiness_receipts(root)
+    ]
+    passed = sum(1 for receipt in receipts if receipt.get("status") == "pass")
+    blocked = sum(1 for receipt in receipts if receipt.get("status") == "blocked")
+    review = sum(1 for receipt in receipts if receipt.get("status") == "review")
+    command_count = sum(len(receipt.get("commands") or []) for receipt in receipts)
+    status = "blocked" if blocked else "review" if review or not receipts else "pass"
+    return {
+        "status": status,
+        "receiptCount": len(receipts),
+        "passedReceiptCount": passed,
+        "commandCount": command_count,
+        "purpose": "Run v4 release-candidate readiness fixtures that prove install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, and plugin refresh proof.",
+        "fixtureRoot": V4_RELEASE_CANDIDATE_READINESS_RECEIPT_ROOT.as_posix(),
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "inputs": ["public ShipGuard checkout", "v4 release-candidate report", "docs-check and report-quality proof"],
+        },
+        "receipts": receipts,
+        "nextAction": (
+            "v4 release-candidate readiness receipts are passing; stabilize the v4 product release next."
+            if status == "pass"
+            else "Fix v4 release-candidate readiness receipts before calling v4 candidate-ready."
+        ),
+    }
+
+
 def command_has_test(command: str, text_index: dict[str, str]) -> bool:
     slug = command_slug(command)
     tokens = command_tokens(command)
@@ -3304,6 +3349,17 @@ def v4_schema_freeze_receipt_passed(v4_schema_freeze_receipts: dict[str, Any]) -
     return required.issubset(receipt_command_ids(v4_schema_freeze_receipts))
 
 
+def v4_release_candidate_readiness_receipt_passed(v4_release_candidate_readiness_receipts: dict[str, Any]) -> bool:
+    if v4_release_candidate_readiness_receipts.get("status") != "pass":
+        return False
+    required = {
+        "v4-release-candidate-contract-pass",
+        "v4-release-candidate-report-quality-pass",
+        "v4-release-candidate-docs-check-pass",
+    }
+    return required.issubset(receipt_command_ids(v4_release_candidate_readiness_receipts))
+
+
 def command_depth_rows(
     commands: list[dict[str, Any]],
     text_index: dict[str, str],
@@ -3517,6 +3573,7 @@ def lowest_value_surface_probe(
     external_benchmark_v2_receipts: dict[str, Any],
     v4_preview_stabilization_receipts: dict[str, Any],
     v4_schema_freeze_receipts: dict[str, Any],
+    v4_release_candidate_readiness_receipts: dict[str, Any],
 ) -> dict[str, Any]:
     self_audit_text = read_text(root / "scripts" / "self_audit.sh")
     package_text = read_text(root / "tests" / "package_release_test.sh")
@@ -4682,6 +4739,40 @@ def lowest_value_surface_probe(
             recommendation="Prove v4 release-candidate readiness with install, upgrade, uninstall, release-proof consumption, external adoption packet, and final schema docs before calling v4 stable.",
             proof="Run value-gauntlet plus focused v4 release-candidate fixtures that prove a fresh user can install, upgrade, uninstall, consume release proof, and understand the adoption packet.",
         )
+    if (
+        answer
+        and answer.get("identifier") == "shipguard v4-release-candidate-readiness"
+        and v4_release_candidate_readiness_receipt_passed(v4_release_candidate_readiness_receipts)
+    ):
+        depth_checks = []
+        for item in answer.get("depthChecks") or []:
+            if item.get("id") == "runtimeV4ReleaseCandidateReadiness":
+                depth_checks.append(
+                    depth_check(
+                        "runtimeV4ReleaseCandidateReadiness",
+                        True,
+                        f"{v4_release_candidate_readiness_receipts.get('passedReceiptCount') or 0}/{v4_release_candidate_readiness_receipts.get('receiptCount') or 0} v4 release-candidate readiness receipts executed",
+                    )
+                )
+            else:
+                depth_checks.append(item)
+        depth_checks.append(
+            depth_check(
+                "runtimeV4ProductReleaseStabilization",
+                False,
+                "v4 release-candidate readiness is proven, but stable v4 release still needs external adoption evidence, final security review, package proof, rollback proof, and release proof consumption on published assets",
+            )
+        )
+        answer = surface_probe_row(
+            surface_type="product",
+            identifier="shipguard v4-product-release-stabilization",
+            name="v4 Product Release Stabilization",
+            base_score=100,
+            base_status="pass",
+            depth_checks=depth_checks,
+            recommendation="Stabilize the v4 product release with external adoption evidence, final security review, package proof, rollback proof, and release proof consumption on published assets.",
+            proof="Run value-gauntlet plus focused v4 product-release fixtures that prove a published release can be installed, rolled back, verified, and explained to external users.",
+        )
     if answer:
         missing = ", ".join(answer.get("missingDepthSignals") or []) or "no missing depth signals"
         answer = {
@@ -4774,6 +4865,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     external_benchmark_v2_receipts = external_benchmark_v2_receipt_probe(root)
     v4_preview_stabilization_receipts = v4_preview_stabilization_receipt_probe(root)
     v4_schema_freeze_receipts = v4_schema_freeze_receipt_probe(root)
+    v4_release_candidate_readiness_receipts = v4_release_candidate_readiness_receipt_probe(root)
     probe = lowest_value_surface_probe(
         root,
         text_index,
@@ -4816,6 +4908,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         external_benchmark_v2_receipts=external_benchmark_v2_receipts,
         v4_preview_stabilization_receipts=v4_preview_stabilization_receipts,
         v4_schema_freeze_receipts=v4_schema_freeze_receipts,
+        v4_release_candidate_readiness_receipts=v4_release_candidate_readiness_receipts,
     )
     all_scores = [item["score"] for group in (commands, skills, plugins, actions, docs) for item in group]
     high_count = sum(1 for finding in findings if finding["severity"] == "high")
@@ -4899,6 +4992,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "externalBenchmarkV2Receipts": external_benchmark_v2_receipts,
         "v4PreviewStabilizationReceipts": v4_preview_stabilization_receipts,
         "v4SchemaFreezeReceipts": v4_schema_freeze_receipts,
+        "v4ReleaseCandidateReadinessReceipts": v4_release_candidate_readiness_receipts,
         "lowestValueSurfaceProbe": probe,
         "findings": findings,
         "priorityActions": priority_action_rows,
@@ -5777,6 +5871,30 @@ def render_markdown(report: dict[str, Any]) -> str:
     if failing_v4_schema_commands:
         lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
         for receipt, command in failing_v4_schema_commands[:20]:
+            lines.append(
+                f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
+            )
+    v4_release_candidate_readiness_receipts = report.get("v4ReleaseCandidateReadinessReceipts") or {}
+    lines.extend(["", "## V4 Release Candidate Readiness Receipts", ""])
+    lines.append(f"- Status: {v4_release_candidate_readiness_receipts.get('status') or 'unknown'}")
+    lines.append(f"- Receipts: {v4_release_candidate_readiness_receipts.get('passedReceiptCount', 0)}/{v4_release_candidate_readiness_receipts.get('receiptCount', 0)} passed")
+    lines.append(f"- Commands executed: {v4_release_candidate_readiness_receipts.get('commandCount', 0)}")
+    if v4_release_candidate_readiness_receipts.get("nextAction"):
+        lines.append(f"- Next action: {v4_release_candidate_readiness_receipts['nextAction']}")
+    lines.extend(["", "| Status | Score | Receipt | Kind | Commands | Missing |", "| --- | ---: | --- | --- | ---: | --- |"])
+    for item in v4_release_candidate_readiness_receipts.get("receipts", []):
+        lines.append(
+            f"| {item.get('status')} | {item.get('score')} | `{table_cell(item.get('id'), 64)}` | {table_cell(item.get('kind'), 44)} | {len(item.get('commands') or [])} | {table_cell(', '.join(item.get('missing') or []) or '-', 90)} |"
+        )
+    failing_v4_release_candidate_commands = [
+        (receipt, command)
+        for receipt in v4_release_candidate_readiness_receipts.get("receipts", [])
+        for command in receipt.get("commands", [])
+        if command.get("status") != "pass"
+    ]
+    if failing_v4_release_candidate_commands:
+        lines.extend(["", "| Receipt | Status | Command | Missing | Error |", "| --- | --- | --- | --- | --- |"])
+        for receipt, command in failing_v4_release_candidate_commands[:20]:
             lines.append(
                 f"| `{table_cell(receipt.get('id'), 52)}` | {command.get('status')} | `{table_cell(command.get('command'), 80)}` | {table_cell(', '.join(command.get('missing') or []) or '-', 80)} | {table_cell(command.get('errorSummary') or '-', 90)} |"
             )

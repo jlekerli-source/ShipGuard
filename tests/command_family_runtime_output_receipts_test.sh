@@ -71,8 +71,8 @@ if domain_pack_sdk.get("status") != "pass":
     raise SystemExit(f"Domain Pack SDK receipts should also pass in the full gauntlet: {domain_pack_sdk!r}")
 if concise_result_ux.get("status") != "pass":
     raise SystemExit(f"concise result UX receipts should also pass in the full gauntlet: {concise_result_ux!r}")
-if answer.get("identifier") != "shipguard v4-release-candidate-readiness":
-    raise SystemExit(f"passing v4 schema-freeze receipts should escalate to release-candidate readiness: {answer!r}")
+if answer.get("identifier") != "shipguard v4-product-release-stabilization":
+    raise SystemExit(f"passing v4 release-candidate receipts should escalate to product release stabilization: {answer!r}")
 if "runtimeProofGatedTaskContract" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"proof-gated task contract should no longer be missing: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
@@ -105,8 +105,10 @@ if "runtimeExternalBenchmarkV2" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"external benchmark v2 should no longer be missing: {answer!r}")
 if "runtimeV4SchemaFreeze" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"v4 schema freeze should no longer be missing: {answer!r}")
-if "runtimeV4ReleaseCandidateReadiness" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"v4 release-candidate readiness gap should be explicit: {answer!r}")
+if "runtimeV4ReleaseCandidateReadiness" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"v4 release-candidate readiness should no longer be missing: {answer!r}")
+if "runtimeV4ProductReleaseStabilization" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"v4 product release stabilization gap should be explicit: {answer!r}")
 if "runtimeCommandFamilyOutputReceipts" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"command-family output receipts should no longer be missing: {answer!r}")
 if "runtimeTrustHardeningReceipts" in answer.get("missingDepthSignals", []):

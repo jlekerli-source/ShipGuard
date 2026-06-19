@@ -22,7 +22,7 @@ grep -q '"surface": "ShipGuard Tool Value Gauntlet"' "$tmp_dir/gauntlet/tool-val
 grep -q '"intent": "shipguard-product-qa"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"shipguardOnly": true' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"targetAppsReadOnly": true' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
-grep -q '"commandCount": 65' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"commandCount": 66' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"pluginCount": 1' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"actions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"skills":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -60,6 +60,7 @@ grep -q '"unifiedInspectReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"conciseVerdictResultUXReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"v4PreviewStabilizationReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"v4SchemaFreezeReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"v4ReleaseCandidateReadinessReceipts":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"resultUX":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"priorityActions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"reportQualityQuestions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -69,6 +70,7 @@ grep -q '"command": "shipguard verify"' "$tmp_dir/gauntlet/tool-value-gauntlet.j
 grep -q '"command": "shipguard value-gauntlet"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard v4 preview"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard v4 schema-freeze"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"command": "shipguard v4 release-candidate"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"name": "alarm-testing"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"path": ".agents/skills/alarm-testing/SKILL.md"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"name": "notification-permissions"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -121,6 +123,7 @@ grep -q 'Concise Verdict Result UX Receipts' "$tmp_dir/gauntlet/tool-value-gaunt
 grep -q 'External Benchmark v2 Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'V4 Preview Stabilization Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'V4 Schema Freeze Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'V4 Release Candidate Readiness Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q '## Result' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Report Quality Questions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'ShipGuard PilotBench' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
@@ -164,13 +167,14 @@ concise_result_ux = data.get("conciseVerdictResultUXReceipts") or {}
 external_benchmark_v2 = data.get("externalBenchmarkV2Receipts") or {}
 v4_preview = data.get("v4PreviewStabilizationReceipts") or {}
 v4_schema = data.get("v4SchemaFreezeReceipts") or {}
+v4_release_candidate = data.get("v4ReleaseCandidateReadinessReceipts") or {}
 if probe.get("question") != "Which ShipGuard command, skill, plugin, or action has the lowest developer-value score and should be upgraded next?":
     raise SystemExit(f"unexpected probe question: {probe!r}")
 for key in ("surfaceType", "identifier", "name", "baseScore", "depthScore", "depthChecks", "recommendation", "proofGuidance", "reason"):
     if key not in answer:
         raise SystemExit(f"probe answer missing {key}: {answer!r}")
-if answer.get("surfaceType") != "product" or answer.get("identifier") != "shipguard v4-release-candidate-readiness":
-    raise SystemExit(f"passing v4 schema-freeze receipts should escalate to release-candidate readiness: {answer!r}")
+if answer.get("surfaceType") != "product" or answer.get("identifier") != "shipguard v4-product-release-stabilization":
+    raise SystemExit(f"passing v4 release-candidate receipts should escalate to product release stabilization: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"diff-first verification should no longer be missing: {answer!r}")
 if "runtimeIOSNotificationPermissionWorkflow" in answer.get("missingDepthSignals", []):
@@ -195,11 +199,13 @@ if "runtimeV4PreviewStabilization" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"v4 preview stabilization should no longer be missing: {answer!r}")
 if "runtimeV4SchemaFreeze" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"v4 schema freeze should no longer be missing: {answer!r}")
-if "runtimeV4ReleaseCandidateReadiness" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"v4 release-candidate readiness gap should be explicit: {answer!r}")
+if "runtimeV4ReleaseCandidateReadiness" in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"v4 release-candidate readiness should no longer be missing: {answer!r}")
+if "runtimeV4ProductReleaseStabilization" not in answer.get("missingDepthSignals", []):
+    raise SystemExit(f"v4 product release stabilization gap should be explicit: {answer!r}")
 if "runtimeUnifiedInspectExperience" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"unified inspect should no longer be missing: {answer!r}")
-for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract", "runtimeIOSNotificationPermissionWorkflow", "runtimeExternalPilotVerdictBench", "runtimeDomainPackSDK", "runtimeConfigurationBaselineSuppressions", "runtimeStructuredEvidenceReceiptsV2", "runtimeCodexNativeTaskTraceAdapter", "runtimeXcodeBuildMCPEvidenceAdapter", "runtimeExpoMCPAndEASAdapter", "runtimeUniversalAgentPackagingAdapter", "runtimeFullAuditOrchestrator", "runtimeUnifiedInspectExperience", "runtimeConciseVerdictResultUX", "runtimeCodexMarketplaceReadiness", "runtimeExternalBenchmarkV2", "runtimeV4PreviewStabilization", "runtimeV4SchemaFreeze"):
+for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract", "runtimeIOSNotificationPermissionWorkflow", "runtimeExternalPilotVerdictBench", "runtimeDomainPackSDK", "runtimeConfigurationBaselineSuppressions", "runtimeStructuredEvidenceReceiptsV2", "runtimeCodexNativeTaskTraceAdapter", "runtimeXcodeBuildMCPEvidenceAdapter", "runtimeExpoMCPAndEASAdapter", "runtimeUniversalAgentPackagingAdapter", "runtimeFullAuditOrchestrator", "runtimeUnifiedInspectExperience", "runtimeConciseVerdictResultUX", "runtimeCodexMarketplaceReadiness", "runtimeExternalBenchmarkV2", "runtimeV4PreviewStabilization", "runtimeV4SchemaFreeze", "runtimeV4ReleaseCandidateReadiness"):
     if retired_signal in answer.get("missingDepthSignals", []):
         raise SystemExit(f"{retired_signal} should no longer be missing after fixture proof: {answer!r}")
 if not isinstance(probe.get("rankedSurfaces"), list) or not probe["rankedSurfaces"]:
@@ -227,7 +233,7 @@ for item in negative.get("cases") or []:
         raise SystemExit(f"negative fixture should fail report scoring but pass fixture expectation: {item!r}")
 if command_family.get("status") != "pass":
     raise SystemExit(f"runtime command-family coverage should pass: {command_family!r}")
-if command_family.get("commandCount") != 65 or command_family.get("passedCommandCount") != 65:
+if command_family.get("commandCount") != 66 or command_family.get("passedCommandCount") != 66:
     raise SystemExit(f"expected all public command help paths to pass: {command_family!r}")
 for item in command_family.get("commands") or []:
     if item.get("status") != "pass" or item.get("missing"):
@@ -952,6 +958,27 @@ for item in v4_schema.get("receipts") or []:
     for command in item.get("commands") or []:
         if command.get("status") != "pass" or command.get("missing"):
             raise SystemExit(f"v4 schema-freeze command should pass without missing checks: {command!r}")
+if v4_release_candidate.get("status") != "pass":
+    raise SystemExit(f"v4 release-candidate readiness receipts should pass: {v4_release_candidate!r}")
+if v4_release_candidate.get("receiptCount") != 1 or v4_release_candidate.get("passedReceiptCount") != 1 or v4_release_candidate.get("commandCount") != 3:
+    raise SystemExit(f"expected one v4 release-candidate receipt and three commands: {v4_release_candidate!r}")
+v4_release_candidate_receipt_ids = {item.get("id") for item in v4_release_candidate.get("receipts") or []}
+if v4_release_candidate_receipt_ids != {"v4-release-candidate-readiness"}:
+    raise SystemExit(f"unexpected v4 release-candidate receipt fixtures: {v4_release_candidate_receipt_ids!r}")
+for item in v4_release_candidate.get("receipts") or []:
+    if item.get("status") != "pass" or item.get("missing"):
+        raise SystemExit(f"v4 release-candidate receipt should pass without missing checks: {item!r}")
+    command_ids = {command.get("id") for command in item.get("commands") or []}
+    expected_commands = {
+        "v4-release-candidate-contract-pass",
+        "v4-release-candidate-report-quality-pass",
+        "v4-release-candidate-docs-check-pass",
+    }
+    if command_ids != expected_commands:
+        raise SystemExit(f"unexpected v4 release-candidate command set: {command_ids!r}")
+    for command in item.get("commands") or []:
+        if command.get("status") != "pass" or command.get("missing"):
+            raise SystemExit(f"v4 release-candidate command should pass without missing checks: {command!r}")
 if "Which ShipGuard command" in data.get("reportQualityQuestions", []):
     raise SystemExit("the answered lowest-value question should not remain a report-quality question")
 retired_phrases = (
@@ -987,11 +1014,12 @@ retired_phrases = (
     "concise verdict",
     "External Benchmark v2 receipts",
     "v4 preview stabilization",
+    "v4 release-candidate readiness",
 )
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
     raise SystemExit(f"answered runtime receipt questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
-if not any("v4 release-candidate" in question.lower() or "external adoption packet" in question.lower() for question in data.get("reportQualityQuestions", [])):
-    raise SystemExit(f"expected v4 release-candidate quality question: {data.get('reportQualityQuestions')!r}")
+if not any("v4 product release" in question.lower() or "rollback proof" in question.lower() for question in data.get("reportQualityQuestions", [])):
+    raise SystemExit(f"expected v4 product release quality question: {data.get('reportQualityQuestions')!r}")
 PY
 
 json_stdout="$(./bin/shipguard value-gauntlet --path . --json)"
@@ -1008,6 +1036,6 @@ grep -q '# ShipGuard Tool Value Gauntlet' <<<"$markdown_stdout"
 grep -q '"tool": "shipguard ios report-quality"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q '"tool": "shipguard value-gauntlet"' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/quality/ios-report-quality.md"
-grep -qi 'release-candidate' "$tmp_dir/quality/ios-report-quality.md"
+grep -qi 'product release' "$tmp_dir/quality/ios-report-quality.md"
 
 echo "tool value gauntlet tests passed"

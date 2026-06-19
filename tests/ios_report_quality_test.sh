@@ -1870,9 +1870,9 @@ for candidate in data.get("fixtureCandidates") or []:
 priority = data.get("priorityAction") or {}
 if priority.get("question") == covered_question:
     raise SystemExit(f"covered value-gauntlet question should not remain the priority action: {priority!r}")
-expected_release_candidate = "Should ShipGuard prove v4 release-candidate readiness with install, upgrade, uninstall, release proof consumption, and an external adoption packet?"
-if priority.get("question") != expected_release_candidate:
-    raise SystemExit(f"expected next uncovered v4 release-candidate question as priority: {priority!r}")
+expected_product_release = "Should ShipGuard stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption?"
+if priority.get("question") != expected_product_release:
+    raise SystemExit(f"expected next uncovered v4 product release question as priority: {priority!r}")
 PY
 
 json_stdout="$(./bin/shipguard ios report-quality --reports "$reports" --json)"

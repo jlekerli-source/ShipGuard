@@ -1,0 +1,229 @@
+{
+  "id": "v4-release-candidate-readiness",
+  "kind": "v4-release-candidate-readiness-receipt",
+  "surface": "ShipGuard V4 Release Candidate Readiness",
+  "selectedMode": "value-gauntlet v4 release-candidate readiness receipts",
+  "trigger": "V4 Schema Freeze receipts passed; prove install, upgrade, uninstall, release proof consumption, adoption packet, schema docs, and plugin refresh before calling v4 candidate-ready.",
+  "sourcePaths": [
+    "bin/shipguard",
+    "scripts/v4_release_candidate.py",
+    "scripts/tool_value_gauntlet.py",
+    "scripts/ios_report_quality.py",
+    "docs/v4-release-candidate.md",
+    "docs/v4-schema-freeze.md",
+    "docs/cli.md",
+    "docs/command-matrix.md",
+    "tests/v4_release_candidate_test.sh"
+  ],
+  "expectedSourcePhrases": [
+    "shipguard v4 release-candidate",
+    "ShipGuard V4 Release Candidate Readiness",
+    "v4ReleaseCandidateReadinessReceipts",
+    "runtimeV4ReleaseCandidateReadiness",
+    "runtimeV4ProductReleaseStabilization",
+    "fresh install",
+    "external adoption packet"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "privateAppsUsed": false
+  },
+  "commands": [
+    {
+      "id": "v4-release-candidate-contract-pass",
+      "display": "./bin/shipguard v4 release-candidate --path . --out <out>/v4-release-candidate --shipguard-eval --shareable",
+      "args": [
+        "v4",
+        "release-candidate",
+        "--path",
+        ".",
+        "--out",
+        "{out}/v4-release-candidate",
+        "--shipguard-eval",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "v4-release-candidate/v4-release-candidate.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "schemaVersion",
+            "tool",
+            "surface",
+            "status",
+            "productStage",
+            "readinessProof",
+            "installProof",
+            "upgradeProof",
+            "uninstallProof",
+            "releaseProofConsumption",
+            "externalAdoptionPacket",
+            "finalSchemaDocs",
+            "pluginRefreshProof",
+            "releaseReadiness",
+            "blockedClaims",
+            "scopeBoundary",
+            "reportQualityQuestions",
+            "resultUX"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "readinessProof",
+            "installProof.commands",
+            "upgradeProof.commands",
+            "uninstallProof.commands",
+            "releaseProofConsumption.commands",
+            "externalAdoptionPacket.proofBundle",
+            "releaseReadiness.requiredProofCommands",
+            "blockedClaims",
+            "reportQualityQuestions",
+            "resultUX.nextCommand"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard v4 release-candidate"
+            },
+            {
+              "path": "surface",
+              "equals": "ShipGuard V4 Release Candidate Readiness"
+            },
+            {
+              "path": "status",
+              "equals": "pass"
+            },
+            {
+              "path": "productStage",
+              "equals": "v4-release-candidate-readiness"
+            },
+            {
+              "path": "releaseReadiness.releaseClaim",
+              "equals": "candidate-ready"
+            },
+            {
+              "path": "releaseReadiness.stableV4Release",
+              "equals": false
+            },
+            {
+              "path": "scopeBoundary.shipguardOnly",
+              "equals": true
+            },
+            {
+              "path": "scopeBoundary.targetAppsReadOnly",
+              "equals": true
+            },
+            {
+              "path": "scopeBoundary.privateAppsUsed",
+              "equals": false
+            }
+          ]
+        },
+        {
+          "path": "v4-release-candidate/v4-release-candidate.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# ShipGuard V4 Release Candidate Readiness",
+            "## Result",
+            "## Readiness Proof",
+            "## Fresh Install",
+            "## Upgrade",
+            "## Uninstall",
+            "## Release Proof Consumption",
+            "## External Adoption Packet",
+            "## Plugin Refresh Proof",
+            "## Release Readiness",
+            "## Blocked Claims",
+            "## Scope Boundary"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "v4-release-candidate-report-quality-pass",
+      "display": "./bin/shipguard ios report-quality --reports <out>/v4-release-candidate --out <out>/v4-release-candidate-quality --shareable",
+      "args": [
+        "ios",
+        "report-quality",
+        "--reports",
+        "{out}/v4-release-candidate",
+        "--out",
+        "{out}/v4-release-candidate-quality",
+        "--shareable"
+      ],
+      "artifacts": [
+        {
+          "path": "v4-release-candidate-quality/ios-report-quality.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "tool",
+            "status",
+            "priorityAction",
+            "actionabilityQuestions",
+            "resultUX"
+          ],
+          "requiredNonEmptyJsonPaths": [
+            "priorityAction",
+            "actionabilityQuestions",
+            "resultUX.nextCommand"
+          ],
+          "requiredValues": [
+            {
+              "path": "tool",
+              "equals": "shipguard ios report-quality"
+            },
+            {
+              "path": "status",
+              "equals": "pass"
+            }
+          ]
+        },
+        {
+          "path": "v4-release-candidate-quality/ios-report-quality.md",
+          "type": "markdown",
+          "requiredPhrases": [
+            "# iOS ShipGuard Report Quality",
+            "## Result",
+            "Priority Action",
+            "Actionability Questions",
+            "ShipGuard report-quality priority order"
+          ],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
+      "id": "v4-release-candidate-docs-check-pass",
+      "display": "./bin/shipguard docs-check . --out <out>/docs-check",
+      "args": [
+        "docs-check",
+        ".",
+        "--out",
+        "{out}/docs-check"
+      ],
+      "artifacts": [
+        {
+          "path": "docs-check/docs-check.json",
+          "type": "json",
+          "requiredJsonKeys": [
+            "status",
+            "broken_count",
+            "links_checked",
+            "files_checked"
+          ],
+          "requiredValues": [
+            {
+              "path": "status",
+              "equals": "pass"
+            },
+            {
+              "path": "broken_count",
+              "equals": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
