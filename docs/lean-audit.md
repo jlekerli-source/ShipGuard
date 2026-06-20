@@ -20,6 +20,8 @@ The report uses a ShipGuard-native Lean Deck inspired by Ponytail's “best code
 
 Repo-level audits skip public fixtures, examples, tests, generated packages, and scanner maintenance manifests by default so demo code does not dominate the findings. The JSON `scanScope` records skipped directory names, skipped files, file limits, and whether the scan was truncated. If you point `--path` directly at a fixture or demo repo, ShipGuard scans that target normally.
 
+Large-file findings include a `leanEvidence` packet instead of only saying “this file is big.” The packet records line count, legacy/TODO marker count, first marker lines, safety context, and a first-action hint. The Markdown report mirrors that in a Lean Evidence Packets table so a maintainer can start with a small marker cluster instead of staring at a giant file.
+
 ## What It Checks
 
 - Does this code need to exist?

@@ -66,6 +66,7 @@ SAFETY_TOKENS = (
     "payment",
 )
 FINDING_PRIORITY = {"review": 0, "opportunity": 1, "info": 2}
+LEGACY_MARKER_RE = re.compile(r"\bTODO\b|\bFIXME\b|temporary|legacy|compat", re.IGNORECASE)
 
 
 def utc_now() -> str:
@@ -159,6 +160,27 @@ def finding(
         "evidence": {"file": file, "line": line, "snippet": evidence},
         "recommendation": recommendation,
         "proofGuidance": proof,
+    }
+
+
+def legacy_signal(text: str) -> dict[str, Any]:
+    lines = text.splitlines()
+    markers: list[dict[str, Any]] = []
+    for number, line in enumerate(lines, start=1):
+        matches = LEGACY_MARKER_RE.findall(line)
+        if not matches:
+            continue
+        markers.append(
+            {
+                "line": number,
+                "markerCount": len(matches),
+                "snippet": line.strip()[:140],
+            }
+        )
+    return {
+        "lineCount": len(lines),
+        "markerCount": sum(int(item["markerCount"]) for item in markers),
+        "firstMarkerLines": markers[:5],
     }
 
 
@@ -288,21 +310,33 @@ def scan_file(root: Path, path: Path) -> list[dict[str, Any]]:
             )
         )
 
-    if path.suffix in CODE_SUFFIXES and len(text.splitlines()) > 700 and re.search(
-        r"\bTODO\b|\bFIXME\b|temporary|legacy|compat", text, re.IGNORECASE
-    ):
-        findings.append(
-            finding(
-                severity="review",
-                category="does-this-need-to-exist",
-                rule_id="large-legacy-file-review",
-                file=relative,
-                line=None,
-                evidence="large file with legacy/TODO markers",
-                recommendation="Split real product logic from compatibility leftovers, then delete dead branches only after coverage identifies unused behavior.",
-                proof="Run coverage or call-site search before deleting; keep migration and compatibility notes in the change proof.",
-            )
+    if path.suffix in CODE_SUFFIXES and len(text.splitlines()) > 700 and LEGACY_MARKER_RE.search(text):
+        signal = legacy_signal(text)
+        first_line = None
+        if signal["firstMarkerLines"]:
+            first_line = int(signal["firstMarkerLines"][0]["line"])
+        large_file_finding = finding(
+            severity="review",
+            category="does-this-need-to-exist",
+            rule_id="large-legacy-file-review",
+            file=relative,
+            line=first_line,
+            evidence=(
+                f"{signal['lineCount']} lines, {signal['markerCount']} legacy/TODO markers; "
+                "inspect marker lines before splitting"
+            ),
+            recommendation=(
+                "Triage the marker cluster first: delete obsolete compatibility branches only when call-site search "
+                "or tests prove they are unused; otherwise split the module around real product jobs."
+            ),
+            proof="Attach grep/call-site evidence for the marker lines plus focused tests before deleting or splitting behavior.",
         )
+        large_file_finding["leanEvidence"] = {
+            **signal,
+            "safetyContext": safe_context,
+            "actionHint": "Start with the first marker lines, not the whole file.",
+        }
+        findings.append(large_file_finding)
 
     if safe_context and path.suffix in CODE_SUFFIXES and findings:
         findings.append(
@@ -449,6 +483,20 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(
                 f"| {item['severity']} | `{item['ruleId']}` | {location}: {snippet} | "
                 f"{item['recommendation']} | {item['proofGuidance']} |"
+            )
+    lean_evidence_items = [item for item in report["findings"] if item.get("leanEvidence")]
+    if lean_evidence_items:
+        lines.extend(["", "## Lean Evidence Packets", ""])
+        lines.extend(["| File | Lines | Markers | First Marker Lines | Action Hint |", "| --- | ---: | ---: | --- | --- |"])
+        for item in lean_evidence_items[:20]:
+            evidence = item["evidence"]
+            lean_evidence = item["leanEvidence"]
+            marker_lines = ", ".join(str(marker["line"]) for marker in lean_evidence.get("firstMarkerLines", []))
+            marker_lines = marker_lines or "-"
+            action_hint = str(lean_evidence.get("actionHint", "")).replace("|", "\\|")
+            lines.append(
+                f"| {evidence['file']} | {lean_evidence.get('lineCount', 0)} | "
+                f"{lean_evidence.get('markerCount', 0)} | {marker_lines} | {action_hint} |"
             )
     lines.extend(["", "## Source Influence", ""])
     lines.append(

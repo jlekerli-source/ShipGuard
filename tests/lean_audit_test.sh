@@ -49,6 +49,9 @@ grep -q 'shipguard lean audit' "$tmp_dir/quality/ios-report-quality.json"
   --shareable >/dev/null
 
 grep -q '"fixtures"' "$tmp_dir/repo-lean/lean-audit.json"
+grep -q '"leanEvidence":' "$tmp_dir/repo-lean/lean-audit.json"
+grep -q '"firstMarkerLines":' "$tmp_dir/repo-lean/lean-audit.json"
+grep -q '## Lean Evidence Packets' "$tmp_dir/repo-lean/lean-audit.md"
 if grep -q 'fixtures/lean-audit-demo' "$tmp_dir/repo-lean/lean-audit.json"; then
   echo "repo-level lean audit should not let public fixtures dominate findings" >&2
   exit 1
