@@ -72,6 +72,7 @@ test "$(./bin/codex-maintainer version)" = "$(sed -n '1p' VERSION)"
 ./bin/shipguard leaderboard build --help >/dev/null
 ./bin/shipguard release-attest build --help >/dev/null
 ./bin/shipguard release-proof build --help >/dev/null
+./bin/shipguard release-package hygiene --help >/dev/null
 ./bin/shipguard release-manifest --help >/dev/null
 ./bin/shipguard release-manifest verify --help >/dev/null
 ./bin/shipguard release-index build --help >/dev/null

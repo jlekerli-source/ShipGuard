@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-20T03:39:05Z
+- Generated: 2026-06-20T04:16:34Z
 - Current toolkit version: 3.131.0
-- Target release: v3.156.0
-- Title: Real Stable V4 Blocked-State UX
+- Target release: v3.157.0
+- Title: Release Package Lineage Hygiene
 
 ## Slash Plan
 
 ```text
-/plan v3.156.0 Real Stable V4 Blocked-State UX for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Use the stable-publication starter kit against the real public ShipGuard release state and improve the blocked-state UX where real evidence is unavailable or contradictory.
+/plan v3.157.0 Release Package Lineage Hygiene for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add a read-only ShipGuard package-lineage hygiene report for release tarballs and downloaded assets, prove it catches the historical AppleDouble blocker without rewriting releases or faking repair, wire docs/tests/package/report-quality/value-gauntlet coverage, and keep the next slash plan/goal loop alive.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,39 +18,39 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.156.0 Real Stable V4 Blocked-State UX for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Use the stable-publication starter kit against the real public ShipGuard release state and improve the blocked-state UX where real evidence is unavailable or contradictory, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.157.0 Release Package Lineage Hygiene for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add a read-only ShipGuard package-lineage hygiene report for release tarballs and downloaded assets, prove it catches the historical AppleDouble blocker without rewriting releases or faking repair, wire docs/tests/package/report-quality/value-gauntlet coverage, and keep the next slash plan/goal loop alive, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Use the stable-publication starter kit against the real public ShipGuard release state and improve the blocked-state UX where real evidence is unavailable or contradictory.
+Add a read-only ShipGuard package-lineage hygiene report for release tarballs and downloaded assets, prove it catches the historical AppleDouble blocker without rewriting releases or faking repair, wire docs/tests/package/report-quality/value-gauntlet coverage, and keep the next slash plan/goal loop alive.
 
 ## Completion Receipt
 
-- Completed scope: Ran LaunchKey and stable-publication against the real public v3.131.0 release assets. Public release assets and current package fresh-install/rollback proof passed, but same-prefix upgrade proof blocked on the previous v3.130.0 tarball's AppleDouble metadata, and stable-publication remained blocked on releaseNotesProof plus missing independent adoption and final security-review evidence. Fixed v4 release-candidate so supplied package/release-asset readiness summary rows reflect actual receipt status, and made the blocked upgrade nextCommand point to package rebuild, package-release proof, and the focused LaunchKey test.
-- Evidence: Passed: gh release view v3.131.0 --repo jlekerli-source/ShipGuard; ./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v3156-real-release-candidate-final --package-tarball dist/shipguard-v3.131.0.tar.gz --upgrade-from-tarball dist/shipguard-v3.130.0.tar.gz --download-release-assets --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --shipguard-eval --shareable (review expected); ./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v3156-real-stable-publication-final --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --release-candidate-report /tmp/shipguard-v3156-real-release-candidate-final --release-assets /tmp/shipguard-v3156-real-release-candidate-final/downloaded-release-assets --release-consume-out /tmp/shipguard-v3156-real-stable-consume-final --shipguard-eval --shareable (review expected); ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3156-real-release-candidate-final --reports /tmp/shipguard-v3156-real-stable-publication-final --out /tmp/shipguard-v3156-real-report-quality-final --shareable; git diff --check; python3 -m py_compile scripts/v4_release_candidate.py; ./tests/v4_release_candidate_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3156-blocked-ux; ./bin/shipguard validate; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3156-value-gauntlet-final; ./bin/shipguard codex status --strict.
+- Completed scope: Added shipguard release-package hygiene as a read-only package-lineage report. It scans explicit tarballs, downloaded release asset directories, or local dist packages for AppleDouble metadata, Finder metadata, bytecode/cache artifacts, unsafe links/devices, path traversal, and missing installable package roots. Real read-only QA against dist/shipguard-v3.130.0.tar.gz and dist/shipguard-v3.131.0.tar.gz blocked only v3.130.0 on ._shipguard-v3.130.0 while proving shipguard-v3.131.0.tar.gz as the safe current baseline. Report-quality initially found two ShipGuard weaknesses, then the report added ruleSummary and ios report-quality learned the new root tool; the real package-hygiene report now scores pass.
+- Evidence: Passed: python3 -m py_compile scripts/release_package_hygiene.py scripts/ios_report_quality.py; ./tests/release_package_hygiene_test.sh; real read-only package hygiene on dist/shipguard-v3.130.0.tar.gz and dist/shipguard-v3.131.0.tar.gz; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3157-real-package-hygiene --out /tmp/shipguard-v3157-real-package-hygiene-quality --shareable; git diff --check; ./tests/cli_smoke_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3157-package-hygiene; ./tests/self_audit_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3157-value-gauntlet; ./bin/shipguard codex status --strict; ./tests/package_release_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.157.0 Release Package Lineage Hygiene for jlekerli-source/ShipGuard:
-1. Turn the real v3.130.0 AppleDouble blocker into a ShipGuard-owned package-lineage hygiene surface: scan local `dist/shipguard-v*.tar.gz` and optionally downloaded GitHub release assets for forbidden archive members, unsafe links/devices, missing package roots, and install-risk summaries.
-2. Keep the output read-only and honest: do not rewrite historical release assets or claim they are fixed; produce a repair plan, affected versions, safe current baseline, and exact next commands for rebuilding/replacing future packages.
-3. Wire the surface into docs, tests, package proof, and report-quality/value-gauntlet coverage so old package hygiene regressions are caught before LaunchKey upgrade proof.
-4. Generate the next completion receipt and following /plan plus /goal after validation passes, keeping the active goal loop alive.
+/plan v3.158.0 Stable Release Notes Proof Gate for jlekerli-source/ShipGuard:
+1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
+2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
+3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
+4. Generate the next completion receipt and following /plan plus /goal after validation passes.
 ```
 
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.157.0 Release Package Lineage Hygiene for jlekerli-source/ShipGuard: follow the following /plan above, add a read-only ShipGuard package-lineage hygiene report for release tarballs and downloaded assets, prove it catches the historical AppleDouble blocker without rewriting releases or faking repair, wire docs/tests/package/report-quality/value-gauntlet coverage, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.158.0 Stable Release Notes Proof Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.157.0 --title "Release Package Lineage Hygiene" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.158.0 --title "Stable Release Notes Proof Gate" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.156.0.
+1. Open or update the tracking issue for v3.157.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.156.0` and upload `dist/shipguard-v3.156.0.tar.gz`.
+6. Create release `v3.157.0` and upload `dist/shipguard-v3.157.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

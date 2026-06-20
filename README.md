@@ -100,6 +100,7 @@ Risk files: 0 risk file(s)
 | Verify claims and proof | `shipguard verify --task /tmp/task/shipguard-task.json --diff /tmp/change.diff --evidence /tmp/receipt.json --out /tmp/verdict` |
 | Inspect iOS risk | `shipguard ios doctor --path . --out /tmp/ios-doctor` |
 | Review ShipGuard value | `shipguard value-gauntlet --path . --out /tmp/shipguard-value` |
+| Check release package hygiene | `shipguard release-package hygiene --path . --out /tmp/package-hygiene --shareable` |
 | Check docs and links | `shipguard docs-check . --out /tmp/shipguard-docs` |
 
 ## Codex Plugin

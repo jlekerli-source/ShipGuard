@@ -112,6 +112,26 @@ Use `prepare` before Codex edits and `verify` after Codex edits when a task need
 
 See `task-contract.md` and `verify-first-quickstart.md`.
 
+## Release Package Hygiene
+
+Use `release-package hygiene` before package install or upgrade proof when release tarball lineage matters:
+
+```bash
+./bin/shipguard release-package hygiene \
+  --path . \
+  --out /tmp/shipguard-package-hygiene \
+  --shareable
+
+./bin/shipguard release-package hygiene \
+  --path . \
+  --tarball dist/shipguard-v3.131.0.tar.gz \
+  --assets /tmp/downloaded-release-assets \
+  --out /tmp/shipguard-package-hygiene \
+  --shareable
+```
+
+The command is read-only. It scans `shipguard-v*.tar.gz` members without extraction, blocks generated metadata such as AppleDouble `._*`, `.DS_Store`, `__MACOSX`, bytecode/cache paths, unsafe links/devices, path traversal, and missing installable package roots, then emits `release-package-hygiene.json` and `release-package-hygiene.md` with affected versions, safe current baseline, repair commands, non-claims, and report-quality questions. See `release-package-hygiene.md`.
+
 ## V4 Product Track
 
 Use `v4 preview` to inspect the v4 stabilization contract, `v4 schema-freeze` to prove the schema contract is frozen, `v4 release-candidate` to prove install, upgrade, uninstall, release proof consumption, external adoption packet, final schema docs, and plugin refresh readiness, and `v4 stable-publication` to prove the actual published release from public metadata, release notes, downloaded assets, independent adoption evidence, and final security-review evidence:

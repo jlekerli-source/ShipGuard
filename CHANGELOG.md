@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added `shipguard release-package hygiene`, a read-only package-lineage report that scans ShipGuard release tarballs and downloaded release assets for AppleDouble `._*`, `.DS_Store`, `__MACOSX`, cache artifacts, unsafe links/devices, path traversal, and missing installable package roots before LaunchKey install or upgrade proof.
+
+## Unreleased
+
 - Fixed LaunchKey blocked-state UX from real release evidence: when supplied package or release-asset proof is blocked, `v4 release-candidate` readiness summary rows now show the actual supplied receipt status instead of route availability. The same-prefix upgrade blocker now points to package rebuild, package-release proof, and the focused LaunchKey test rather than only a generic test command.
 - Added a stable-publication evidence starter kit: every `shipguard v4 stable-publication` run now writes `stable-publication-evidence-kit/` with a README, machine-readable checklist, and draft-only adoption/security JSON starters. The report exposes `stablePublicationEvidenceStarterKit`, Markdown renders the kit, package proof checks the generated files, and report-quality flags stable-publication reports that hide the starter kit.
 - Reworked the GitHub-facing README into a simpler product entry point: short promise, clean install/RepoVitals/prepare/verify quickstart, core command table, and docs links replace the previous release-internals dump. Added `docs/install-doctor.md`, a `doctor --help` route, RepoVitals-style `shipguard doctor` status output, and `tests/install_doctor_test.sh` to prove a fresh installed CLI can validate, initialize, and doctor a target repo.

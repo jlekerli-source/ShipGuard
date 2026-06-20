@@ -84,8 +84,9 @@ Usage:
   shipguard release-index build --manifest <release-manifest.json> [--manifest <release-manifest.json> ...] --out <dir> [--title <title>]
   shipguard release-replay verify --manifest <release-manifest.json> --tarball <release.tar.gz> --out <dir> [--index <release-index.json>] [--ledger <proof-ledger.md>]
   shipguard release-attest build --manifest <release-manifest.json> --replay <replay-report.json> --out <dir> [--title <title>]
-  shipguard release-proof build --out <dir> --release-url <url> [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--issue-url <url>] [--notes <text>]
-  shipguard release-consume verify --dir <downloaded-assets-dir> --out <dir> [--version <version>]
+	  shipguard release-proof build --out <dir> --release-url <url> [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--issue-url <url>] [--notes <text>]
+	  shipguard release-package hygiene --path <shipguard-repo> --out <dir> [--dir <dist-dir> ...] [--assets <downloaded-assets-dir> ...] [--tarball <release.tar.gz> ...] [--shareable] [--json|--markdown]
+	  shipguard release-consume verify --dir <downloaded-assets-dir> --out <dir> [--version <version>]
   shipguard release-diff compare --left <release-assets-dir> --right <release-assets-dir> --out <dir>
   shipguard release-evidence site --consume <consumer-proof-dir> --out <dir> [--diff <release-diff-dir>] [--title <title>]
   shipguard release-evidence index --site <evidence-site-dir> [--site <evidence-site-dir> ...] --out <dir> [--title <title>]
@@ -138,10 +139,12 @@ Commands:
               Verify downloaded release assets against manifest, index, and ledger proof.
   release-attest
               Build release attestation JSON, Markdown, and badge proof.
-  release-proof
-              Build the full release proof bundle in one command.
-  release-consume
-              Verify downloaded release proof assets and rebuild consumer attestation.
+	  release-proof
+	              Build the full release proof bundle in one command.
+	  release-package
+	              Scan ShipGuard release tarballs for read-only package-lineage hygiene before install or upgrade proof.
+	  release-consume
+	              Verify downloaded release proof assets and rebuild consumer attestation.
   release-diff
               Compare two release proof asset directories and report what changed.
   release-evidence
@@ -645,6 +648,13 @@ cmd_release_proof() {
   run_sh "$tool_root/scripts/release_proof.sh" "$@"
 }
 
+cmd_release_package() {
+  local subcommand="${1:-}"
+  [[ "$subcommand" == "hygiene" ]] || fail "release-package requires subcommand: hygiene"
+  shift || true
+  run_py "$tool_root/scripts/release_package_hygiene.py" "$@"
+}
+
 cmd_release_consume() {
   run_sh "$tool_root/scripts/release_consume.sh" "$@"
 }
@@ -783,12 +793,15 @@ main() {
     release-attest)
       cmd_release_attest "$@"
       ;;
-    release-proof)
-      cmd_release_proof "$@"
-      ;;
-    release-consume)
-      cmd_release_consume "$@"
-      ;;
+	    release-proof)
+	      cmd_release_proof "$@"
+	      ;;
+	    release-package)
+	      cmd_release_package "$@"
+	      ;;
+	    release-consume)
+	      cmd_release_consume "$@"
+	      ;;
     release-diff)
       cmd_release_diff "$@"
       ;;

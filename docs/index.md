@@ -66,6 +66,7 @@ Release and provenance:
 - [Release Proof Action](release-proof-action.md)
 - [Release Proof Workflows](release-proof-workflows.md)
 - [Release Proof Consumption](release-proof-consumption.md)
+- [Release Package Hygiene](release-package-hygiene.md)
 - [Release Consume](release-consume.md)
 - [Release Consume Action](release-consume-action.md)
 - [Release Diff Audit](release-diff.md)
