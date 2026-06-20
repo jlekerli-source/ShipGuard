@@ -114,7 +114,15 @@ CALIBRATION_TOKENS = (
     "tuning",
 )
 FINDING_PRIORITY = {"review": 0, "opportunity": 1, "info": 2}
-LEGACY_MARKER_RE = re.compile(r"\bTODO\b|\bFIXME\b|temporary|legacy|compat", re.IGNORECASE)
+LEGACY_MARKER_RE = re.compile(
+    r"\bTODO\b|\bFIXME\b|\btemporary\b|\blegacy\b|\bcompat(?:ibility)?\b",
+    re.IGNORECASE,
+)
+COMMENT_LINE_RE = re.compile(r"^\s*(#|//|/\*|\*|<!--)")
+COMMENT_MARKER_RE = re.compile(
+    r"(#|//|/\*|<!--).*(\bTODO\b|\bFIXME\b|\btemporary\b|\blegacy\b|\bcompat(?:ibility)?\b)",
+    re.IGNORECASE,
+)
 LEAN_DEBT_RE = re.compile(
     r"(?P<prefix>#|//|/\*|<!--)\s*(?P<label>ponytail|shipguard-lean):\s*(?P<body>.*)",
     re.IGNORECASE,
@@ -131,6 +139,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--path", default=".", help="Repo to inspect")
     parser.add_argument("--out", required=True, help="Output directory")
+    parser.add_argument(
+        "--mode",
+        choices=["lite", "full", "ultra"],
+        default="full",
+        help="Lean Deck intensity: lite suggests smaller alternatives, full enforces the proof ladder, ultra prioritizes delete-first action.",
+    )
     parser.add_argument("--shipguard-eval", action="store_true", help="Add ShipGuard-only report-quality questions")
     parser.add_argument("--shareable", action="store_true", help="Omit local absolute roots from JSON and Markdown")
     parser.add_argument("--json", action="store_true", help="Print JSON report to stdout")
@@ -241,10 +255,19 @@ def finding(
     }
 
 
+def is_legacy_marker_line(line: str) -> bool:
+    """Return true for debt-like marker lines, not incidental string/API tokens."""
+    if not LEGACY_MARKER_RE.search(line):
+        return False
+    return bool(COMMENT_MARKER_RE.search(line) or (COMMENT_LINE_RE.search(line) and LEGACY_MARKER_RE.search(line)))
+
+
 def legacy_signal(text: str) -> dict[str, Any]:
     lines = text.splitlines()
     markers: list[dict[str, Any]] = []
     for number, line in enumerate(lines, start=1):
+        if not is_legacy_marker_line(line):
+            continue
         matches = LEGACY_MARKER_RE.findall(line)
         if not matches:
             continue
@@ -259,6 +282,7 @@ def legacy_signal(text: str) -> dict[str, Any]:
         "lineCount": len(lines),
         "markerCount": sum(int(item["markerCount"]) for item in markers),
         "firstMarkerLines": markers[:5],
+        "markerPolicy": "Counts TODO/FIXME markers and comment-line legacy/temporary/compatibility markers; ignores incidental string literals and API names.",
     }
 
 
@@ -469,33 +493,34 @@ def scan_file(root: Path, path: Path) -> list[dict[str, Any]]:
             )
         )
 
-    if path.suffix in CODE_SUFFIXES and len(text.splitlines()) > 700 and LEGACY_MARKER_RE.search(text):
+    if path.suffix in CODE_SUFFIXES and len(text.splitlines()) > 700:
         signal = legacy_signal(text)
-        first_line = None
-        if signal["firstMarkerLines"]:
-            first_line = int(signal["firstMarkerLines"][0]["line"])
-        large_file_finding = finding(
-            severity="review",
-            category="does-this-need-to-exist",
-            rule_id="large-legacy-file-review",
-            file=relative,
-            line=first_line,
-            evidence=(
-                f"{signal['lineCount']} lines, {signal['markerCount']} legacy/TODO markers; "
-                "inspect marker lines before splitting"
-            ),
-            recommendation=(
-                "Triage the marker cluster first: delete obsolete compatibility branches only when call-site search "
-                "or tests prove they are unused; otherwise split the module around real product jobs."
-            ),
-            proof="Attach grep/call-site evidence for the marker lines plus focused tests before deleting or splitting behavior.",
-        )
-        large_file_finding["leanEvidence"] = {
-            **signal,
-            "safetyContext": safe_context,
-            "actionHint": "Start with the first marker lines, not the whole file.",
-        }
-        findings.append(large_file_finding)
+        if int(signal["markerCount"]) >= 1:
+            first_line = None
+            if signal["firstMarkerLines"]:
+                first_line = int(signal["firstMarkerLines"][0]["line"])
+            large_file_finding = finding(
+                severity="review",
+                category="does-this-need-to-exist",
+                rule_id="large-legacy-file-review",
+                file=relative,
+                line=first_line,
+                evidence=(
+                    f"{signal['lineCount']} lines, {signal['markerCount']} legacy/TODO markers; "
+                    "inspect marker lines before splitting"
+                ),
+                recommendation=(
+                    "Triage the marker cluster first: delete obsolete compatibility branches only when call-site search "
+                    "or tests prove they are unused; otherwise split the module around real product jobs."
+                ),
+                proof="Attach grep/call-site evidence for the marker lines plus focused tests before deleting or splitting behavior.",
+            )
+            large_file_finding["leanEvidence"] = {
+                **signal,
+                "safetyContext": safe_context,
+                "actionHint": "Start with the first marker lines, not the whole file.",
+            }
+            findings.append(large_file_finding)
 
     if safe_context and path.suffix in CODE_SUFFIXES and findings:
         findings.append(
@@ -654,7 +679,69 @@ def build_action_groups(
     return action_groups
 
 
-def build_precision_review(findings: list[dict[str, Any]]) -> dict[str, Any]:
+def build_lean_mode_profile(mode: str) -> dict[str, Any]:
+    profiles = {
+        "lite": {
+            "mode": "lite",
+            "intent": "Name the smaller alternative without forcing a delete-first cleanup pass.",
+            "firstActionBias": "simplify-first",
+            "policy": "Use lite when the maintainer wants precise guidance while preserving implementation momentum.",
+        },
+        "full": {
+            "mode": "full",
+            "intent": "Run the full ShipGuard proof ladder: delete, stdlib, native, installed dependency, one clear line, minimum code.",
+            "firstActionBias": "proof-ladder",
+            "policy": "Use full as the default balance of precise-code pressure and proof-required safety boundaries.",
+        },
+        "ultra": {
+            "mode": "ultra",
+            "intent": "Try deletion and non-existence proof before adding or refactoring code.",
+            "firstActionBias": "delete-first",
+            "policy": "Use ultra for cleanup slices, not for trust-boundary, hardware, accessibility, migration, or payment changes without focused proof.",
+        },
+    }
+    return profiles.get(mode, profiles["full"])
+
+
+def top_actions_for_mode(
+    *,
+    mode: str,
+    delete_list: list[dict[str, Any]],
+    simplify_first: list[dict[str, Any]],
+    blocked_by_proof: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    if mode == "lite":
+        return (simplify_first + delete_list + blocked_by_proof)[:5]
+    if mode == "ultra":
+        return (delete_list + blocked_by_proof + simplify_first)[:5]
+    return (delete_list + simplify_first + blocked_by_proof)[:5]
+
+
+def next_actions_for_mode(mode: str) -> list[str]:
+    if mode == "lite":
+        return [
+            "Start with the first simplify action; treat delete candidates as review prompts unless search proof is already obvious.",
+            "Name the smaller native, stdlib, or installed-dependency alternative before asking an agent to add new code.",
+            "Keep safety, adapter, hardware, and one-check boundaries visible; lite mode is not permission to skip proof.",
+            "Run shipguard ios report-quality on this Lean Deck output if you are improving ShipGuard itself.",
+        ]
+    if mode == "ultra":
+        return [
+            "Start with the first delete action group; prove whether the code needs to exist before writing replacement code.",
+            "If no delete group exists, use the first proof-blocked group to gather search evidence before splitting or refactoring.",
+            "Do not delete safety, adapter, hardware, accessibility, migration, payment, or data-loss behavior without focused proof.",
+            "Run shipguard ios report-quality on this Lean Deck output if you are improving ShipGuard itself.",
+        ]
+    return [
+        "Start with precisionReview.actionGroups[0]; inspect its firstLocation and evidenceCommand before editing.",
+        "Use each action group's firstExperiment, validationRoute, and stopCondition so repeated findings become one bounded plan.",
+        "If precisionReview.deleteList is empty, do not force deletion; simplify the smallest proven surface instead.",
+        "Prove current behavior first, then simplify the smallest surface.",
+        "Run shipguard ios report-quality on this Lean Deck output if you are improving ShipGuard itself.",
+    ]
+
+
+def build_precision_review(findings: list[dict[str, Any]], mode: str = "full") -> dict[str, Any]:
     """Turn raw lean findings into a Ponytail-style action ledger."""
     candidates = [item for item in findings if item.get("severity") in {"review", "opportunity"}]
     delete_list: list[dict[str, Any]] = []
@@ -712,9 +799,16 @@ def build_precision_review(findings: list[dict[str, Any]]) -> dict[str, Any]:
         simplify_first=simplify_first,
         blocked_by_proof=blocked_by_proof,
     )
-    top_actions = (delete_list + simplify_first + blocked_by_proof)[:5]
+    lean_mode = build_lean_mode_profile(mode)
+    top_actions = top_actions_for_mode(
+        mode=lean_mode["mode"],
+        delete_list=delete_list,
+        simplify_first=simplify_first,
+        blocked_by_proof=blocked_by_proof,
+    )
     return {
         "principle": "The best ShipGuard code is the code that proves it needs to exist.",
+        "mode": lean_mode,
         "decisionLadder": [
             {"rung": 1, "question": "Does this need to exist?", "shipguardAction": "delete or skip when proof says no"},
             {"rung": 2, "question": "Can the standard library do it?", "shipguardAction": "replace custom parsing/formatting with stdlib"},
@@ -804,7 +898,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ),
     )
     emitted_findings = findings[:120]
-    precision_review = build_precision_review(emitted_findings)
+    lean_mode = build_lean_mode_profile(args.mode)
+    precision_review = build_precision_review(emitted_findings, mode=args.mode)
     lean_debt_ledger = scan_lean_debt(root, files)
     rule_counts = Counter(str(f["ruleId"]) for f in emitted_findings)
     result = "pass" if not [f for f in emitted_findings if f["severity"] in {"review", "opportunity"}] else "review"
@@ -821,6 +916,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "url": "https://github.com/DietrichGebert/ponytail",
             "boundary": "ShipGuard implements a native, read-only lean-code audit. It does not vendor Ponytail code or hide source influence.",
         },
+        "leanMode": lean_mode,
         "leanLadder": [
             "Does this need to exist?",
             "Can the standard library do it?",
@@ -865,13 +961,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             for rule_id, count in rule_counts.most_common()
         ],
         "findings": emitted_findings,
-        "nextActions": [
-            "Start with precisionReview.actionGroups[0]; inspect its firstLocation and evidenceCommand before editing.",
-            "Use each action group's firstExperiment, validationRoute, and stopCondition so repeated findings become one bounded plan.",
-            "If precisionReview.deleteList is empty, do not force deletion; simplify the smallest proven surface instead.",
-            "Prove current behavior first, then simplify the smallest surface.",
-            "Run shipguard ios report-quality on this Lean Deck output if you are improving ShipGuard itself.",
-        ],
+        "nextActions": next_actions_for_mode(args.mode),
     }
     if args.shipguard_eval:
         report["scopeBoundary"] = (
@@ -884,8 +974,10 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does Lean Deck protect host adapters, hardware calibration, requested explanation, and one-check minimums from false less-code pressure?",
             "Does each finding explain the proof needed before removing code?",
             "Does the report help a solo developer delete clutter without deleting product behavior?",
+            "Do large-file findings expose comment-based marker evidence instead of incidental string or API-name matches?",
             "Does leanDebtLedger make intentional shortcuts auditable with ceilings and upgrade triggers?",
             "Does lean gain avoid fake per-repo savings while still showing benchmark-backed impact?",
+            "Does Lean Deck expose the selected lite/full/ultra mode and bias first actions accordingly?",
             "Should this recurring lean-code observation become a public fixture instead of depending on one current repo scan?",
         ]
     return report
@@ -900,6 +992,13 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Target: `{report['target']['path']}`",
         f"- Files scanned: {report['metrics']['filesScanned']}",
         f"- Findings: {report['metrics']['findings']}",
+        "",
+        "## Lean Mode",
+        "",
+        f"- Mode: `{report.get('leanMode', {}).get('mode', 'full')}`",
+        f"- Intent: {report.get('leanMode', {}).get('intent', '')}",
+        f"- First action bias: `{report.get('leanMode', {}).get('firstActionBias', 'proof-ladder')}`",
+        f"- Policy: {report.get('leanMode', {}).get('policy', '')}",
         "",
         "## Lean Ladder",
         "",

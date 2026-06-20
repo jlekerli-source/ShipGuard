@@ -11,11 +11,11 @@ from pathlib import Path
 from typing import Any
 
 from lean_audit import (
+    build_lean_mode_profile,
     build_behavior_gates,
     build_precision_review,
     finding,
     has_calibration_signal,
-    has_hardware_context,
     has_safety_context,
     read_text,
 )
@@ -41,6 +41,10 @@ SPECULATIVE_MARKER_TOKENS = (
     "place" + "holder",
     "for" + " later",
 )
+HARDWARE_DIFF_RE = re.compile(
+    r"(adc|avcapturedevice|barometer|bluetooth|corebluetooth|gps|gyroscope|mcp3008|pca9685|sensor|thermistor)|clock drift",
+    re.IGNORECASE,
+)
 
 
 def utc_now() -> str:
@@ -54,6 +58,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--diff", required=True, help="Unified diff/patch to inspect")
     parser.add_argument("--path", default=".", help="Repository root used for context and shareable locations")
     parser.add_argument("--out", required=True, help="Output directory")
+    parser.add_argument(
+        "--mode",
+        choices=["lite", "full", "ultra"],
+        default="full",
+        help="Lean Review intensity: lite suggests smaller alternatives, full enforces the proof ladder, ultra prioritizes delete-first action.",
+    )
     parser.add_argument("--shipguard-eval", action="store_true", help="Add ShipGuard-only report-quality questions")
     parser.add_argument("--shareable", action="store_true", help="Omit local absolute roots from JSON and Markdown")
     parser.add_argument("--json", action="store_true", help="Print JSON report to stdout")
@@ -135,6 +145,10 @@ def is_speculative_detector_command(line: str) -> bool:
 
 def has_calibration_token(text: str) -> bool:
     return has_calibration_signal(text)
+
+
+def has_hardware_diff_context(text: str) -> bool:
+    return bool(HARDWARE_DIFF_RE.search(text))
 
 
 def collect_proof_signals(files: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -256,14 +270,14 @@ def scan_diff(root: Path, files: list[dict[str, Any]], proof_signals: list[dict[
                 )
             )
 
-        if is_code and has_hardware_context(added_text) and not has_calibration_token(added_text):
+        if is_code and has_hardware_diff_context(added_text) and not has_calibration_token(added_text):
             findings.append(
                 finding(
                     severity="review",
                     category="hardware-diff-review",
                     rule_id="hardware-calibration-missing-diff",
                     file=file_name,
-                    line=first_added_line(file_diff, r"hardware|sensor|thermistor|adc|mcp3008|pca9685|bluetooth|gps"),
+                    line=first_added_line(file_diff, HARDWARE_DIFF_RE.pattern),
                     evidence="hardware or sensor code added without an obvious calibration/tuning knob",
                     recommendation="Keep a minimal calibration or tuning boundary when code touches real hardware or physical-device behavior.",
                     proof="Attach real-device, sensor, timing, or calibration evidence before simplifying the physical-world edge case away.",
@@ -273,7 +287,10 @@ def scan_diff(root: Path, files: list[dict[str, Any]], proof_signals: list[dict[
         checks = [
             (
                 "native-date-input-diff",
-                r"(react-datepicker|flatpickr|moment|date-fns|luxon|dayjs|<DatePicker\b)",
+                r"<DatePicker\b|DatePicker\s*\(|"
+                r"(?:import|from|require\().{0,120}(?<![\w-])"
+                r"(react-datepicker|flatpickr|moment|date-fns|luxon|dayjs)(?![\w-])|"
+                r"[\"'](?:react-datepicker|flatpickr|moment|date-fns|luxon|dayjs)[\"']\s*:",
                 "native",
                 "Date-picker/date-helper code added in this diff. Try the platform date control or formatter before owning custom picker plumbing.",
                 "Prove locale, timezone, invalid input, and interaction behavior before deleting or adding custom date behavior.",
@@ -399,7 +416,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     files = parse_unified_diff(diff_text)
     proof_signals = collect_proof_signals(files)
     findings = scan_diff(root, files, proof_signals)
-    precision = build_precision_review(findings)
+    lean_mode = build_lean_mode_profile(args.mode)
+    precision = build_precision_review(findings, mode=args.mode)
     behavior_gates = build_behavior_gates(findings, {"summary": {"markers": 0, "missingUpgradeTrigger": 0}})
     if proof_signals and isinstance(behavior_gates.get("oneRunnableCheck"), dict):
         behavior_gates["oneRunnableCheck"]["status"] = "same-diff-proof-signal-present"
@@ -421,6 +439,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "url": "https://github.com/DietrichGebert/ponytail",
             "boundary": "ShipGuard implements a native diff review for unnecessary code. It does not vendor Ponytail code.",
         },
+        "leanMode": lean_mode,
         "reviewLines": review_lines(findings),
         "behaviorGates": behavior_gates,
         "proofSignalCalibration": proof_calibration,
@@ -435,8 +454,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "infoFindings": len([item for item in findings if item.get("severity") == "info"]),
         },
         "nextActions": [
-            "Start with precisionReview.actionGroups[0] when repeated diff findings share the same rule.",
-            "Use reviewLines[0] or precisionReview.topActions[0] for the first individual location inside that group.",
+            "Start with precisionReview.topActions[0]; its order is biased by leanMode.",
+            "Use precisionReview.actionGroups[0] when repeated diff findings share the same rule.",
             "Delete or simplify only when search proof and a small runnable check preserve behavior.",
             "Use shipguard lean audit for whole-repo cleanup after the diff-specific review is handled.",
         ],
@@ -452,6 +471,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does Lean Review protect hardware calibration and host boundaries from false less-code pressure?",
             "Does it keep safety-boundary code out of automatic deletion?",
             "Does it make the first simplification action obvious enough for a solo developer?",
+            "Does Lean Review expose the selected lite/full/ultra mode and bias first actions accordingly?",
         ]
     return report
 
@@ -465,6 +485,13 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Target: `{report['target']['path']}`",
         f"- Diff files changed: {report['metrics']['filesChanged']}",
         f"- Added lines inspected: {report['metrics']['addedLines']}",
+        "",
+        "## Lean Mode",
+        "",
+        f"- Mode: `{report.get('leanMode', {}).get('mode', 'full')}`",
+        f"- Intent: {report.get('leanMode', {}).get('intent', '')}",
+        f"- First action bias: `{report.get('leanMode', {}).get('firstActionBias', 'proof-ladder')}`",
+        f"- Policy: {report.get('leanMode', {}).get('policy', '')}",
         "",
         "## Diff Review",
         "",

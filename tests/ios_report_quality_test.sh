@@ -1760,6 +1760,93 @@ MD
 grep -q '"ruleId": "lean-action-groups-missing"' "$tmp_dir/lean-missing-groups-quality/ios-report-quality.json"
 grep -q '"ruleId": "lean-action-groups-markdown-missing"' "$tmp_dir/lean-missing-groups-quality/ios-report-quality.json"
 
+mkdir -p "$tmp_dir/lean-large-missing-evidence"
+cat > "$tmp_dir/lean-large-missing-evidence/lean-audit.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard lean audit",
+  "generatedAt": "2026-06-20T00:00:00Z",
+  "status": "review",
+  "behaviorGates": {
+    "oneRunnableCheck": {"status": "enforced-in-lean-review"},
+    "hardwareCalibration": {"status": "available"},
+    "requestedExplanation": {"status": "policy"},
+    "adapterBoundary": {"status": "available"},
+    "gainHonesty": {"status": "available-in-lean-gain"}
+  },
+  "precisionReview": {
+    "summary": {
+      "deleteCandidates": 0,
+      "simplifyCandidates": 0,
+      "keepBoundaries": 0,
+      "proofBlockedCandidates": 1,
+      "actionGroups": 1
+    },
+    "actionGroups": [
+      {
+        "rank": 1,
+        "decision": "proof-blocked",
+        "ruleId": "large-legacy-file-review",
+        "evidenceCount": 1,
+        "firstLocation": "scripts/example.py:12",
+        "firstExperiment": "Open the first marker line.",
+        "validationRoute": "Run call-site search.",
+        "stopCondition": "Stop if behavior is still active."
+      }
+    ],
+    "topActions": [
+      {
+        "rank": 1,
+        "ruleId": "large-legacy-file-review",
+        "location": "scripts/example.py:12",
+        "severity": "review",
+        "action": "Do not split the whole file first.",
+        "proofRequired": "Attach call-site evidence."
+      }
+    ]
+  },
+  "findings": [
+    {
+      "severity": "review",
+      "category": "does-this-need-to-exist",
+      "ruleId": "large-legacy-file-review",
+      "evidence": {
+        "file": "scripts/example.py",
+        "line": 12,
+        "snippet": "900 lines, 1 comment marker; inspect marker lines before splitting"
+      },
+      "recommendation": "Triage the marker cluster first.",
+      "proofGuidance": "Attach grep/call-site evidence."
+    }
+  ],
+  "reportQualityQuestions": [
+    "Does each large-file finding expose a proof packet?"
+  ]
+}
+JSON
+cat > "$tmp_dir/lean-large-missing-evidence/lean-audit.md" <<'MD'
+# ShipGuard Lean Deck
+
+## Behavior Gates
+
+- `oneRunnableCheck`: enforced-in-lean-review
+
+## Precision Review
+
+### Grouped Action Plan
+
+| Rank | Decision | Rule | Affected | First Location | First Experiment | Validation | Stop Condition |
+| ---: | --- | --- | ---: | --- | --- | --- | --- |
+| 1 | proof-blocked | `large-legacy-file-review` | 1 | scripts/example.py:12 | Open the first marker line. | Run call-site search. | Stop if behavior is still active. |
+MD
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-large-missing-evidence" \
+  --out "$tmp_dir/lean-large-missing-evidence-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-large-file-evidence-missing"' "$tmp_dir/lean-large-missing-evidence-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-large-file-evidence-markdown-missing"' "$tmp_dir/lean-large-missing-evidence-quality/ios-report-quality.json"
+
 mkdir -p "$tmp_dir/lean-review-missing-group-md"
 cat > "$tmp_dir/lean-review-missing-group-md/lean-review.json" <<'JSON'
 {

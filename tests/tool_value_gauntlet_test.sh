@@ -135,6 +135,8 @@ import json
 import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
+if any(item.get("path") == "NEXT_GOAL.md" for item in data.get("docs", [])):
+    raise SystemExit("NEXT_GOAL.md is release-loop state and should not be scored as stable public docs")
 next_command = (data.get("resultUX") or {}).get("nextCommand") or ""
 if not next_command.startswith("./bin/shipguard value-gauntlet "):
     raise SystemExit(f"value-gauntlet nextCommand should be an executable rerun command, got {next_command!r}")

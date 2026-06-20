@@ -17,6 +17,7 @@ python3 -m py_compile scripts/lean_audit.py scripts/lean_review.py scripts/lean_
 ./bin/shipguard lean audit \
   --path fixtures/lean-audit-demo \
   --out "$tmp_dir/lean" \
+  --mode full \
   --shipguard-eval \
   --shareable >/dev/null
 
@@ -29,6 +30,8 @@ grep -q '"ruleId": "native-color-input"' "$tmp_dir/lean/lean-audit.json"
 grep -q '"ruleId": "dependency-date-helper-review"' "$tmp_dir/lean/lean-audit.json"
 grep -q '"ruleId": "do-not-cut-safety-logic-without-proof"' "$tmp_dir/lean/lean-audit.json"
 grep -q '"precisionReview":' "$tmp_dir/lean/lean-audit.json"
+grep -q '"leanMode":' "$tmp_dir/lean/lean-audit.json"
+grep -q '"firstActionBias": "proof-ladder"' "$tmp_dir/lean/lean-audit.json"
 grep -q '"leanDebtLedger":' "$tmp_dir/lean/lean-audit.json"
 grep -q '"behaviorGates":' "$tmp_dir/lean/lean-audit.json"
 grep -q '"nativeOpportunityCatalog":' "$tmp_dir/lean/lean-audit.json"
@@ -45,6 +48,7 @@ grep -q '"scopeBoundary"' "$tmp_dir/lean/lean-audit.json"
 grep -q '"reportQualityQuestions"' "$tmp_dir/lean/lean-audit.json"
 grep -q '"scanScope":' "$tmp_dir/lean/lean-audit.json"
 grep -q 'Ponytail' "$tmp_dir/lean/lean-audit.md"
+grep -q '## Lean Mode' "$tmp_dir/lean/lean-audit.md"
 grep -q '## Behavior Gates' "$tmp_dir/lean/lean-audit.md"
 grep -q '## Native Opportunity Catalog' "$tmp_dir/lean/lean-audit.md"
 grep -q '## Precision Review' "$tmp_dir/lean/lean-audit.md"
@@ -57,6 +61,27 @@ if grep -q '/Users/' "$tmp_dir/lean/lean-audit.json"; then
   echo "shareable lean audit leaked an absolute user path" >&2
   exit 1
 fi
+
+./bin/shipguard lean audit \
+  --path fixtures/lean-audit-demo \
+  --out "$tmp_dir/lean-ultra" \
+  --mode ultra \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+python3 - <<'PY' "$tmp_dir/lean-ultra/lean-audit.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("leanMode", {}).get("mode") != "ultra":
+    raise SystemExit("lean audit should record ultra mode")
+precision = data.get("precisionReview") or {}
+delete_list = precision.get("deleteList") or []
+top_actions = precision.get("topActions") or []
+if delete_list and top_actions and top_actions[0].get("ruleId") != delete_list[0].get("ruleId"):
+    raise SystemExit(f"ultra mode should start with delete candidates: {top_actions[:1]!r} vs {delete_list[:1]!r}")
+PY
 
 ./bin/shipguard ios report-quality \
   --reports "$tmp_dir/lean" \
@@ -72,18 +97,41 @@ grep -q 'shipguard lean audit' "$tmp_dir/quality/ios-report-quality.json"
   --shareable >/dev/null
 
 grep -q '"fixtures"' "$tmp_dir/repo-lean/lean-audit.json"
-grep -q '"leanEvidence":' "$tmp_dir/repo-lean/lean-audit.json"
 grep -q '"leanDebtLedger":' "$tmp_dir/repo-lean/lean-audit.json"
 grep -q '"behaviorGates":' "$tmp_dir/repo-lean/lean-audit.json"
-grep -q '"actionGroups":' "$tmp_dir/repo-lean/lean-audit.json"
-grep -q '"firstMarkerLines":' "$tmp_dir/repo-lean/lean-audit.json"
-grep -q '## Lean Evidence Packets' "$tmp_dir/repo-lean/lean-audit.md"
 if grep -q 'fixtures/lean-audit-demo' "$tmp_dir/repo-lean/lean-audit.json"; then
   echo "repo-level lean audit should not let public fixtures dominate findings" >&2
   exit 1
 fi
 if grep -q '"ruleId": "native-date-input"' "$tmp_dir/repo-lean/lean-audit.json"; then
   echo "repo-level lean audit should not treat prose such as 'moments' as a date picker dependency" >&2
+  exit 1
+fi
+if grep -q '"ruleId": "large-legacy-file-review"' "$tmp_dir/repo-lean/lean-audit.json"; then
+  echo "repo-level lean audit should not treat incidental legacy/compatibility strings or API names as large-file debt markers" >&2
+  exit 1
+fi
+
+false_marker_repo="$tmp_dir/large-false-marker-repo"
+mkdir -p "$false_marker_repo/scripts"
+{
+  echo 'LEGACY_LABEL = "Legacy SiriKit"'
+  echo 'COMPATIBILITY_LABEL = "compatibility route"'
+  echo 'def screenshot_path():'
+  echo '    return tempfile.NamedTemporaryFile(prefix="shipguard-screenshot-", delete=False)'
+  for index in $(seq 1 705); do
+    echo "value_${index} = ${index}"
+  done
+} > "$false_marker_repo/scripts/FalseMarkers.py"
+
+./bin/shipguard lean audit \
+  --path "$false_marker_repo" \
+  --out "$tmp_dir/false-marker-lean" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+if grep -q '"ruleId": "large-legacy-file-review"' "$tmp_dir/false-marker-lean/lean-audit.json"; then
+  echo "Lean Deck should ignore incidental legacy/compatibility strings and temp-file API names as large-file markers" >&2
   exit 1
 fi
 
@@ -106,12 +154,16 @@ done
 
 grep -q '"actionGroups":' "$tmp_dir/large-lean/lean-audit.json"
 grep -q '"ruleId": "large-legacy-file-review"' "$tmp_dir/large-lean/lean-audit.json"
+grep -q '"leanEvidence":' "$tmp_dir/large-lean/lean-audit.json"
+grep -q '"markerPolicy":' "$tmp_dir/large-lean/lean-audit.json"
+grep -q '"firstMarkerLines":' "$tmp_dir/large-lean/lean-audit.json"
 grep -q '"evidenceCount": 2' "$tmp_dir/large-lean/lean-audit.json"
 grep -q '"firstExperiment": "Open the first marker line' "$tmp_dir/large-lean/lean-audit.json"
 grep -q '"validationRoute": "Run call-site search for each marker line' "$tmp_dir/large-lean/lean-audit.json"
 grep -q '"stopCondition": "Stop if search or focused tests show the code is still active product behavior."' "$tmp_dir/large-lean/lean-audit.json"
 grep -q 'Grouped Action Plan' "$tmp_dir/large-lean/lean-audit.md"
 grep -q 'Individual Starting Points' "$tmp_dir/large-lean/lean-audit.md"
+grep -q '## Lean Evidence Packets' "$tmp_dir/large-lean/lean-audit.md"
 
 ./bin/shipguard ios report-quality \
   --reports "$tmp_dir/large-lean" \
@@ -128,6 +180,7 @@ fi
   --path fixtures/lean-audit-demo \
   --diff fixtures/lean-audit-demo/diffs/overbuilt-widget.diff \
   --out "$tmp_dir/review" \
+  --mode full \
   --shipguard-eval \
   --shareable >/dev/null
 
@@ -143,6 +196,8 @@ grep -q '"ruleId": "one-runnable-check-missing-diff"' "$tmp_dir/review/lean-revi
 grep -q '"ruleId": "hardware-calibration-missing-diff"' "$tmp_dir/review/lean-review.json"
 grep -q '"ruleId": "speculative-future-hook-diff"' "$tmp_dir/review/lean-review.json"
 grep -q '"reviewLines":' "$tmp_dir/review/lean-review.json"
+grep -q '"leanMode":' "$tmp_dir/review/lean-review.json"
+grep -q '"firstActionBias": "proof-ladder"' "$tmp_dir/review/lean-review.json"
 grep -q '"behaviorGates":' "$tmp_dir/review/lean-review.json"
 grep -q '"proofSignalCalibration":' "$tmp_dir/review/lean-review.json"
 grep -q '"sameDiffProofStatus": "missing"' "$tmp_dir/review/lean-review.json"
@@ -168,6 +223,7 @@ if not matching:
     raise SystemExit(f"expected a delete action group for speculative future hooks: {groups!r}")
 PY
 grep -q 'ShipGuard Lean Review' "$tmp_dir/review/lean-review.md"
+grep -q '## Lean Mode' "$tmp_dir/review/lean-review.md"
 grep -q 'Diff Review' "$tmp_dir/review/lean-review.md"
 grep -q 'Behavior Gates' "$tmp_dir/review/lean-review.md"
 grep -q 'Proof Signal Calibration' "$tmp_dir/review/lean-review.md"
@@ -178,6 +234,28 @@ if grep -q '/Users/' "$tmp_dir/review/lean-review.json"; then
   echo "shareable lean review leaked an absolute user path" >&2
   exit 1
 fi
+
+./bin/shipguard lean review \
+  --path fixtures/lean-audit-demo \
+  --diff fixtures/lean-audit-demo/diffs/overbuilt-widget.diff \
+  --out "$tmp_dir/review-lite" \
+  --mode lite \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+python3 - <<'PY' "$tmp_dir/review-lite/lean-review.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("leanMode", {}).get("mode") != "lite":
+    raise SystemExit("lean review should record lite mode")
+precision = data.get("precisionReview") or {}
+simplify = precision.get("simplifyFirst") or []
+top_actions = precision.get("topActions") or []
+if simplify and top_actions and top_actions[0].get("ruleId") != simplify[0].get("ruleId"):
+    raise SystemExit(f"lite mode should start with simplify suggestions: {top_actions[:1]!r} vs {simplify[:1]!r}")
+PY
 
 ./bin/shipguard ios report-quality \
   --reports "$tmp_dir/review" \
@@ -212,6 +290,33 @@ DIFF
 
 if grep -q '"ruleId": "speculative-future-hook-diff"' "$tmp_dir/detector-review/lean-review.json"; then
   echo "Lean Review should not flag a diagnostic rg command as speculative code" >&2
+  exit 1
+fi
+
+cat > "$tmp_dir/prose-token.diff" <<'DIFF'
+diff --git a/tools/profile_text.py b/tools/profile_text.py
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/tools/profile_text.py
+@@ -0,0 +1,2 @@
++MODE_GUIDANCE = "lite mode preserves implementation momentum"
++BOUNDARY_GUIDANCE = "Keep hardware boundaries visible in profile guidance"
+DIFF
+
+./bin/shipguard lean review \
+  --path fixtures/lean-audit-demo \
+  --diff "$tmp_dir/prose-token.diff" \
+  --out "$tmp_dir/prose-token-review" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+if grep -q '"ruleId": "native-date-input-diff"' "$tmp_dir/prose-token-review/lean-review.json"; then
+  echo "Lean Review should not treat prose token 'momentum' as the moment date dependency" >&2
+  exit 1
+fi
+if grep -q '"ruleId": "hardware-calibration-missing-diff"' "$tmp_dir/prose-token-review/lean-review.json"; then
+  echo "Lean Review should not treat generic profile guidance mentioning hardware as hardware implementation code" >&2
   exit 1
 fi
 

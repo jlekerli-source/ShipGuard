@@ -232,10 +232,10 @@ SOURCE_PROFILES: dict[str, dict[str, Any]] = {
                 "id": "ponytail-lean-ladder",
                 "name": "Precise-code decision ladder",
                 "externalSignal": "YAGNI -> stdlib -> native platform -> installed dependency -> one line -> minimum code",
-                "currentShipGuardSurface": "lean audit, lean review, precisionReview, nativeOpportunityCatalog, behaviorGates",
+                "currentShipGuardSurface": "lean audit, lean review, --mode lite/full/ultra, precisionReview, nativeOpportunityCatalog, behaviorGates",
                 "decision": "replace-weaker-guidance",
                 "replacement": "Replace generic 'write less code' advice with ShipGuard-native delete/simplify/keep/proof-blocked report data.",
-                "nativeAction": "Keep Lean Deck as the native precise-code engine and require safety, adapter, hardware, requested-explanation, and one-check gates before deletion.",
+                "nativeAction": "Keep Lean Deck as the native precise-code engine, expose lite/full/ultra intensity, and require safety, adapter, hardware, requested-explanation, and one-check gates before deletion.",
                 "validation": "./tests/lean_audit_test.sh && ./tests/ios_external_audit_test.sh",
             },
             {

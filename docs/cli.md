@@ -137,11 +137,12 @@ Use `lean audit` when you want ShipGuard to look for code that may not need to e
 ./bin/shipguard lean audit \
   --path . \
   --out /tmp/shipguard-lean-audit \
+  --mode full \
   --shipguard-eval \
   --shareable
 ```
 
-The command writes `lean-audit.json` and `lean-audit.md`. It reports native platform, standard-library, dependency, and thin-wrapper opportunities, while marking security, validation, data-loss, permission, payment, migration, accessibility, hardware calibration, and host-adapter files as proof-required boundaries. The JSON includes `behaviorGates`, `nativeOpportunityCatalog`, `precisionReview.deleteList`, `simplifyFirst`, `keepList`, `blockedByProof`, `actionGroups`, `topActions`, and `leanDebtLedger` so repeated findings become a grouped simplification plan instead of a generic finding dump. See `lean-audit.md`.
+The command writes `lean-audit.json` and `lean-audit.md`. It reports native platform, standard-library, dependency, and thin-wrapper opportunities, while marking security, validation, data-loss, permission, payment, migration, accessibility, hardware calibration, and host-adapter files as proof-required boundaries. The JSON includes `leanMode`, `behaviorGates`, `nativeOpportunityCatalog`, `precisionReview.deleteList`, `simplifyFirst`, `keepList`, `blockedByProof`, `actionGroups`, `topActions`, and `leanDebtLedger` so repeated findings become a grouped simplification plan instead of a generic finding dump. Use `--mode lite` for lighter suggestions, `--mode full` for the default proof ladder, and `--mode ultra` when cleanup should try deletion before adding or refactoring code. See `lean-audit.md`.
 
 Use `lean review` on the active diff before merge:
 
@@ -151,11 +152,12 @@ git diff > /tmp/change.diff
   --path . \
   --diff /tmp/change.diff \
   --out /tmp/shipguard-lean-review \
+  --mode full \
   --shipguard-eval \
   --shareable
 ```
 
-The command writes `lean-review.json` and `lean-review.md`. It is diff-scoped and reports native, standard-library, dependency, speculative placeholder, and thin-wrapper findings without turning a whole-repo audit into noise. When repeated diff findings share the same rule, `precisionReview.actionGroups` and the Markdown `Grouped Action Plan` make the first experiment, validation route, and stop condition visible before individual line items. `proofSignalCalibration` separates missing runnable checks from same-diff test/assertion signals, so Lean Review does not create duplicate test ceremony when the diff already carries proof that still needs relevance review.
+The command writes `lean-review.json` and `lean-review.md`. It is diff-scoped and reports native, standard-library, dependency, speculative placeholder, and thin-wrapper findings without turning a whole-repo audit into noise. `--mode lite|full|ultra` biases `precisionReview.topActions` toward suggestion-first, balanced proof-ladder, or delete-first review. When repeated diff findings share the same rule, `precisionReview.actionGroups` and the Markdown `Grouped Action Plan` make the first experiment, validation route, and stop condition visible before individual line items. `proofSignalCalibration` separates missing runnable checks from same-diff test/assertion signals, so Lean Review does not create duplicate test ceremony when the diff already carries proof that still needs relevance review.
 
 Use `lean debt` when you only need the shortcut ledger:
 

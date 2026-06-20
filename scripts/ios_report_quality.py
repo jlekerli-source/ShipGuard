@@ -2904,6 +2904,57 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 evidence=f"{path_name} Markdown does not expose proof signal calibration",
                 recommendation="Render proofSignalCalibration in Markdown so maintainers can see whether tests were absent or present elsewhere in the diff.",
             )
+    if tool == "shipguard lean audit":
+        findings = report.get("findings") if isinstance(report.get("findings"), list) else []
+        large_findings = [
+            item
+            for item in findings
+            if isinstance(item, dict) and str(item.get("ruleId") or "") == "large-legacy-file-review"
+        ]
+        for index, item in enumerate(large_findings[:8], start=1):
+            evidence = item.get("leanEvidence")
+            if not isinstance(evidence, dict):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-large-file-evidence-missing",
+                    evidence=f"{path_name} large-legacy-file-review[{index}] has no leanEvidence packet",
+                    recommendation="Attach leanEvidence with line count, marker count, first marker lines, marker policy, and the first action hint.",
+                )
+                continue
+            first_markers = evidence.get("firstMarkerLines")
+            if int(evidence.get("markerCount") or 0) < 1 or not isinstance(first_markers, list) or not first_markers:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-large-file-marker-evidence-missing",
+                    evidence=f"{path_name} large-legacy-file-review[{index}] does not expose actionable marker lines",
+                    recommendation="Large-file findings should point at concrete TODO/FIXME/comment markers instead of broad file-size pressure.",
+                )
+            if not evidence.get("markerPolicy"):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-large-file-marker-policy-missing",
+                    evidence=f"{path_name} large-legacy-file-review[{index}] does not explain marker filtering",
+                    recommendation="Expose markerPolicy so maintainers know incidental strings and API names were not treated as debt markers.",
+                )
+            if not evidence.get("actionHint"):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-large-file-action-hint-missing",
+                    evidence=f"{path_name} large-legacy-file-review[{index}] has no first action hint",
+                    recommendation="Tell maintainers where to start so large-file findings do not become vague rewrite pressure.",
+                )
+        if large_findings and "Lean Evidence Packets" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="lean-large-file-evidence-markdown-missing",
+                evidence=f"{path_name} Markdown does not expose Lean Evidence Packets",
+                recommendation="Render leanEvidence in Markdown so the proof packet is visible without opening JSON.",
+            )
     if tool in {"shipguard lean audit", "shipguard lean review"}:
         precision = report.get("precisionReview")
         if isinstance(precision, dict):

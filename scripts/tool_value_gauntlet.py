@@ -3296,7 +3296,6 @@ def evaluate_docs(root: Path, findings: list[dict[str, Any]]) -> list[dict[str, 
         "docs/ios-shipguard.md",
         "docs/shipguard-naming.md",
         "docs/oss-evaluation.md",
-        "NEXT_GOAL.md",
     ]
     rows: list[dict[str, Any]] = []
     for doc in docs:

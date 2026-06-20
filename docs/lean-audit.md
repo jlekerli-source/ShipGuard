@@ -7,6 +7,7 @@ It looks for native platform replacements, standard-library replacements, small 
 ./bin/shipguard lean audit \
   --path . \
   --out /tmp/shipguard-lean-audit \
+  --mode full \
   --shipguard-eval \
   --shareable
 ```
@@ -17,6 +18,14 @@ Outputs:
 - `lean-audit.md`
 
 The report uses a ShipGuard-native Lean Deck inspired by Ponytail's “best code is the code you never wrote” ladder, but it does not vendor Ponytail code. Source influence stays explicit so ShipGuard remains honest open source.
+
+Use `--mode` to choose the intensity:
+
+- `lite`: name smaller alternatives while preserving implementation momentum.
+- `full`: default proof ladder, balancing delete/simplify pressure with safety gates.
+- `ultra`: cleanup mode; try deletion and non-existence proof before adding or refactoring code.
+
+The selected mode is written to `leanMode`, mirrored in Markdown, and biases `precisionReview.topActions` so the first action matches the requested intensity.
 
 Lean Deck also emits `behaviorGates`:
 
@@ -36,15 +45,16 @@ git diff > /tmp/change.diff
   --path . \
   --diff /tmp/change.diff \
   --out /tmp/shipguard-lean-review \
+  --mode full \
   --shipguard-eval \
   --shareable
 ```
 
-`lean review` writes `lean-review.json` and `lean-review.md` with one-line diff findings plus a precision ledger. Repeated diff findings are also rendered as a `Grouped Action Plan`, so a maintainer sees the first experiment, validation route, and stop condition before chasing individual changed lines. It also emits `proofSignalCalibration`: if non-trivial code changes are paired with changed test files or assertion signals in the same diff, Lean Review records those signals instead of blindly reporting a missing runnable check. That is not a proof pass; it tells the maintainer which changed checks to review and run before merge. It is the native ShipGuard equivalent of a Ponytail-style “what can this change delete or avoid?” review.
+`lean review` writes `lean-review.json` and `lean-review.md` with one-line diff findings plus a mode-aware precision ledger. Repeated diff findings are also rendered as a `Grouped Action Plan`, so a maintainer sees the first experiment, validation route, and stop condition before chasing individual changed lines. It also emits `proofSignalCalibration`: if non-trivial code changes are paired with changed test files or assertion signals in the same diff, Lean Review records those signals instead of blindly reporting a missing runnable check. That is not a proof pass; it tells the maintainer which changed checks to review and run before merge. It is the native ShipGuard equivalent of a Ponytail-style “what can this change delete or avoid?” review.
 
 Repo-level audits skip public fixtures, examples, tests, generated packages, and scanner maintenance manifests by default so demo code does not dominate the findings. The JSON `scanScope` records skipped directory names, skipped files, file limits, and whether the scan was truncated. If you point `--path` directly at a fixture or demo repo, ShipGuard scans that target normally.
 
-Large-file findings include a `leanEvidence` packet instead of only saying “this file is big.” The packet records line count, legacy/TODO marker count, first marker lines, safety context, and a first-action hint. The Markdown report mirrors that in a Lean Evidence Packets table so a maintainer can start with a small marker cluster instead of staring at a giant file.
+Large-file findings include a `leanEvidence` packet instead of only saying “this file is big.” The packet records line count, legacy/TODO marker count, first marker lines, marker filtering policy, safety context, and a first-action hint. Lean Deck counts TODO/FIXME markers and comment-line legacy/temporary/compatibility markers; it intentionally ignores incidental strings and API names such as `Legacy SiriKit`, compatibility labels, or `NamedTemporaryFile`. The Markdown report mirrors that in a Lean Evidence Packets table so a maintainer can start with a small marker cluster instead of staring at a giant file.
 
 Lean Deck also emits `precisionReview`, a ShipGuard-native Ponytail-style action ledger:
 
