@@ -6,7 +6,7 @@ Current published release: `v3.131.0`. That release adds V4 Release Candidate Re
 
 ## Fast Routes
 
-- New to ShipGuard: [Adoption guide](adoption-guide.md), [Use in your repo](use-in-your-repo.md), [Template Profiles](template-profiles.md).
+- New to ShipGuard: [Adoption guide](adoption-guide.md), [Install And Doctor](install-doctor.md), [Use in your repo](use-in-your-repo.md), [Template Profiles](template-profiles.md).
 - Picking a command: [Command Matrix](command-matrix.md), [CLI reference](cli.md), [Workflow diagram](workflow-diagram.md).
 - Working with Codex: [Task Contract](task-contract.md), [iOS ShipGuard](ios-shipguard.md), [ShipGuard Devspace](shipguard-devspace.md), [Codex Status](codex-status.md).
 - Checking UI or runtime proof: [iOS Preview Bridge](ios-preview.md), [ShipGuard Evaluation](oss-evaluation.md), [Demo Reports](demo-reports.md).
@@ -22,6 +22,7 @@ Core workflow:
 - [Workflow diagram](workflow-diagram.md)
 - [Command Matrix](command-matrix.md)
 - [CLI reference](cli.md)
+- [Install And Doctor](install-doctor.md)
 - [Task Contract](task-contract.md)
 - [Verify-First Quickstart](verify-first-quickstart.md)
 - [Policy Configuration](policy.md)
@@ -104,10 +105,10 @@ Product and open-source posture:
 ## First 30 Minutes
 
 1. Read the [adoption guide](adoption-guide.md).
-2. Run `./bin/shipguard validate` in this repo.
-3. Run `./bin/shipguard init ios ../my-ios-app` against a test repo.
-4. Open the generated `AGENTS.md` and replace placeholders.
-5. Run `./bin/shipguard doctor ../my-ios-app`.
+2. Run the [Install And Doctor](install-doctor.md) path to install ShipGuard and prove RepoVitals.
+3. Run `./bin/shipguard validate` in this repo.
+4. Run `./bin/shipguard init ios ../my-ios-app` against a test repo.
+5. Run `./bin/shipguard doctor ios ../my-ios-app` and read the RepoVitals status.
 6. Run `./bin/shipguard init web ../my-web-app` against a test repo when adopting the web profile.
 7. Run `./bin/shipguard init backend ../my-service` or `./bin/shipguard init cli ../my-tool` when adopting those profiles.
 8. Run `./bin/shipguard autopsy --run fixtures/autopsy/good-run/run.md --diff fixtures/autopsy/good-run/diff.patch --tests fixtures/autopsy/good-run/tests.log --out /tmp/autopsy-good`.

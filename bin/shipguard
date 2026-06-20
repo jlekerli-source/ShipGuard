@@ -245,6 +245,18 @@ cmd_doctor() {
   local target="."
   if [[ "$#" -gt 0 ]]; then
     case "$1" in
+      --help|-h)
+        cat <<'USAGE'
+shipguard doctor
+
+Usage:
+  shipguard doctor [ios|web|backend|cli] [path]
+
+Checks whether a target repo has the ShipGuard starter workflow files for the
+selected profile. Defaults to the iOS profile for compatibility.
+USAGE
+        return 0
+        ;;
       ios|web|backend|cli)
         profile="$1"
         shift
@@ -280,9 +292,19 @@ cmd_doctor() {
 
   [[ -d "$tool_root/templates/$profile" ]] || fail "unknown doctor profile: $profile"
 
+  echo "# ShipGuard RepoVitals"
+  echo "Profile: $profile"
+  echo "Target: $target"
+  echo
+  echo "## File Checks"
+
+  local checked=0
+  local present=0
   for file in "${required[@]}"; do
+    checked=$((checked + 1))
     if [[ -f "$target/$file" ]]; then
       echo "ok: $file"
+      present=$((present + 1))
     else
       echo "missing: $file"
       missing=1
@@ -290,8 +312,16 @@ cmd_doctor() {
   done
 
   if [[ "$missing" -ne 0 ]]; then
+    echo
+    echo "Status: missing"
+    echo "Required files: $present/$checked"
+    echo "Next action: run shipguard init $profile \"$target\" --force only if overwriting generated workflow files is intended."
     fail "doctor found missing $profile workflow files"
   fi
+  echo
+  echo "Status: pass"
+  echo "Required files: $present/$checked"
+  echo "Next action: run shipguard prepare or the profile-specific audit command for the first scoped task."
   echo "doctor passed for $profile"
 }
 

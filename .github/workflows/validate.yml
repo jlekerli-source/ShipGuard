@@ -94,6 +94,9 @@ jobs:
       - name: Run next goal tests
         run: ./tests/next_goal_test.sh
 
+      - name: Run install doctor tests
+        run: ./tests/install_doctor_test.sh
+
       - name: Run verify-first quickstart tests
         run: ./tests/verify_first_quickstart_test.sh
 

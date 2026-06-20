@@ -74,6 +74,7 @@ See `template-profiles.md` for profile details.
 Check whether a target repo has the starter workflow files:
 
 ```bash
+./bin/shipguard doctor --help
 ./bin/shipguard doctor ../my-ios-app
 ./bin/shipguard doctor ios ../my-ios-app
 ./bin/shipguard doctor web ../my-web-app
@@ -82,6 +83,9 @@ Check whether a target repo has the starter workflow files:
 ```
 
 `doctor` without a profile defaults to `ios` for compatibility with older releases.
+The report is ShipGuard RepoVitals: it starts with the selected profile and target, prints file-level `ok:` or `missing:` checks, then ends with `Status`, `Required files`, and the next action. Missing starter files exit non-zero and point back to `shipguard init <profile> <target>`.
+
+See `install-doctor.md` for the first-run install and RepoVitals path.
 
 ## Task Contract
 

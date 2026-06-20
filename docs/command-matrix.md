@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | Install workflow kit | `init ios`, `init web`, `init backend`, `init cli` | Starter workflow files |
 | Check workflow kit | `validate` | Validation pass/fail |
-| Check target repo setup | `doctor ios`, `doctor web`, `doctor backend`, `doctor cli` | Missing file report |
+| Check target repo setup | `doctor ios`, `doctor web`, `doctor backend`, `doctor cli` | ShipGuard RepoVitals: profile, target, file checks, pass/missing status, required-file coverage, and next action |
 | Prepare a Codex task contract | `prepare` | `shipguard-task.json` and Markdown with goal, risk, authorized files, protected boundaries, validation contract, tracked claims, and next exact action |
 | Verify a Codex task result | `verify` | `shipguard-verdict.json` and Markdown with a concise `proofReport`, changed files, scope checks, v2 evidence receipt schema, validation coverage, rejected overclaims, pass/review/blocked status, and next exact action |
 | First-audit a web app | `web audit` | ShipGuard WebScan: framework, auth/payment, validation, starter health, and next-command report |
