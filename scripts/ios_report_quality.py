@@ -2832,7 +2832,7 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 evidence=f"{path_name} Markdown does not expose behavior gates",
                 recommendation="Render behavior gates in Markdown so maintainers see what Lean Deck is protecting.",
             )
-    if tool == "shipguard lean audit":
+    if tool in {"shipguard lean audit", "shipguard lean review"}:
         precision = report.get("precisionReview")
         if isinstance(precision, dict):
             summary = precision.get("summary") if isinstance(precision.get("summary"), dict) else {}

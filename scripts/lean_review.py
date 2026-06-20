@@ -33,6 +33,14 @@ CHECK_SIGNAL_RE = re.compile(
     r"\b(assert|console\.assert|unittest|pytest|describe\s*\(|it\s*\(|test\s*\(|XCTest|__main__|demo\s*\()\b",
     re.IGNORECASE,
 )
+SPECULATIVE_MARKER_TOKENS = (
+    "to" + "do",
+    "fix" + "me",
+    "temp" + "orary",
+    "future" + "-proof",
+    "place" + "holder",
+    "for" + " later",
+)
 
 
 def utc_now() -> str:
@@ -108,6 +116,17 @@ def has_added_check(file_name: str, added_text: str) -> bool:
     if "test" in lowered or "spec" in lowered:
         return True
     return bool(CHECK_SIGNAL_RE.search(added_text))
+
+
+def is_speculative_detector_command(line: str) -> bool:
+    lowered = line.lower()
+    if "rg -n" in lowered and any(token in lowered for token in SPECULATIVE_MARKER_TOKENS):
+        return True
+    return (
+        any(token in lowered for token in SPECULATIVE_MARKER_TOKENS[:2])
+        and any(token in lowered for token in SPECULATIVE_MARKER_TOKENS[3:])
+        and any(token in lowered for token in ("marker", "markers", "token", "tokens", "pattern", "regex"))
+    )
 
 
 def has_calibration_token(text: str) -> bool:
@@ -203,16 +222,26 @@ def scan_diff(root: Path, files: list[dict[str, Any]]) -> list[dict[str, Any]]:
         for rule_id, pattern, category, recommendation, proof in checks:
             if category == "delete" and not is_code:
                 continue
-            if not re.search(pattern, added_text, flags=re.IGNORECASE | re.MULTILINE):
+            matched_items = [
+                item
+                for item in file_diff.get("added", [])
+                if re.search(pattern, str(item.get("text", "")), flags=re.IGNORECASE | re.MULTILINE)
+            ]
+            if rule_id == "speculative-future-hook-diff":
+                matched_items = [
+                    item for item in matched_items if not is_speculative_detector_command(str(item.get("text", "")))
+                ]
+            if not matched_items:
                 continue
+            first_match = matched_items[0]
             findings.append(
                 finding(
                     severity="review" if category in {"delete", "debt"} else "opportunity",
                     category=f"{category}-diff-review",
                     rule_id=rule_id,
                     file=file_name,
-                    line=first_added_line(file_diff, pattern),
-                    evidence=next((line.strip() for line in added_lines if re.search(pattern, line, re.IGNORECASE)), "")[:160],
+                    line=int(first_match.get("line") or 0) or None,
+                    evidence=str(first_match.get("text", "")).strip()[:160],
                     recommendation=recommendation,
                     proof=proof,
                 )
@@ -303,7 +332,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "infoFindings": len([item for item in findings if item.get("severity") == "info"]),
         },
         "nextActions": [
-            "Start with reviewLines[0] or precisionReview.topActions[0].",
+            "Start with precisionReview.actionGroups[0] when repeated diff findings share the same rule.",
+            "Use reviewLines[0] or precisionReview.topActions[0] for the first individual location inside that group.",
             "Delete or simplify only when search proof and a small runnable check preserve behavior.",
             "Use shipguard lean audit for whole-repo cleanup after the diff-specific review is handled.",
         ],
@@ -354,14 +384,36 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Delete candidates: {summary.get('deleteCandidates', 0)}; "
         f"simplify candidates: {summary.get('simplifyCandidates', 0)}; "
         f"keep boundaries: {summary.get('keepBoundaries', 0)}; "
-        f"proof-blocked candidates: {summary.get('proofBlockedCandidates', 0)}"
+        f"proof-blocked candidates: {summary.get('proofBlockedCandidates', 0)}; "
+        f"action groups: {summary.get('actionGroups', 0)}"
     )
+    action_groups = precision.get("actionGroups", [])
+    if action_groups:
+        lines.extend(["", "### Grouped Action Plan", ""])
+        lines.extend(
+            [
+                "| Rank | Decision | Rule | Affected | First Location | First Experiment | Validation | Stop Condition |",
+                "| ---: | --- | --- | ---: | --- | --- | --- | --- |",
+            ]
+        )
+        for group in action_groups[:8]:
+            lines.append(
+                f"| {group.get('rank', '-')} | {group.get('decision', '')} | `{group.get('ruleId', '')}` | "
+                f"{group.get('evidenceCount', 0)} | {group.get('firstLocation', '')} | "
+                f"{str(group.get('firstExperiment', '')).replace('|', '\\|')} | "
+                f"{str(group.get('validationRoute', '')).replace('|', '\\|')} | "
+                f"{str(group.get('stopCondition', '')).replace('|', '\\|')} |"
+            )
     top_actions = precision.get("topActions", [])
     if top_actions:
-        lines.extend(["", "| Rank | Location | Action | Proof |", "| ---: | --- | --- | --- |"])
+        lines.extend(["", "### Individual Starting Points", ""])
+        lines.extend(["| Rank | Decision | Location | Action | Proof |", "| ---: | --- | --- | --- | --- |"])
         for action in top_actions:
+            decision = "delete" if action in precision.get("deleteList", []) else "simplify"
+            if action in precision.get("blockedByProof", []):
+                decision = "proof-blocked"
             lines.append(
-                f"| {action.get('rank', '-')} | {action.get('location', '')} | "
+                f"| {action.get('rank', '-')} | {decision} | {action.get('location', '')} | "
                 f"{str(action.get('action', '')).replace('|', '\\|')} | "
                 f"{str(action.get('proofRequired', '')).replace('|', '\\|')} |"
             )

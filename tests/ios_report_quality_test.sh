@@ -1760,6 +1760,83 @@ MD
 grep -q '"ruleId": "lean-action-groups-missing"' "$tmp_dir/lean-missing-groups-quality/ios-report-quality.json"
 grep -q '"ruleId": "lean-action-groups-markdown-missing"' "$tmp_dir/lean-missing-groups-quality/ios-report-quality.json"
 
+mkdir -p "$tmp_dir/lean-review-missing-group-md"
+cat > "$tmp_dir/lean-review-missing-group-md/lean-review.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard lean review",
+  "generatedAt": "2026-06-20T00:00:00Z",
+  "status": "review",
+  "behaviorGates": {
+    "oneRunnableCheck": {"status": "enforced-in-lean-review"},
+    "hardwareCalibration": {"status": "available"},
+    "requestedExplanation": {"status": "policy"},
+    "adapterBoundary": {"status": "available"},
+    "gainHonesty": {"status": "available-in-lean-gain"}
+  },
+  "precisionReview": {
+    "summary": {
+      "deleteCandidates": 0,
+      "simplifyCandidates": 2,
+      "keepBoundaries": 0,
+      "proofBlockedCandidates": 0,
+      "actionGroups": 1
+    },
+    "actionGroups": [
+      {
+        "rank": 1,
+        "decision": "simplify",
+        "ruleId": "one-runnable-check-missing-diff",
+        "evidenceCount": 2,
+        "firstLocation": "scripts/example.py:12",
+        "firstExperiment": "Add one smallest runnable check at the first changed branch.",
+        "validationRoute": "Run the focused test that covers the changed branch.",
+        "stopCondition": "Stop if the check would only restate implementation details."
+      }
+    ],
+    "topActions": [
+      {
+        "rank": 1,
+        "ruleId": "one-runnable-check-missing-diff",
+        "location": "scripts/example.py:12",
+        "severity": "review",
+        "action": "Leave one smallest runnable check.",
+        "proofRequired": "Add a focused test."
+      }
+    ]
+  },
+  "findings": [],
+  "reportQualityQuestions": [
+    "Does Lean Review make the first grouped diff action visible in Markdown?"
+  ]
+}
+JSON
+cat > "$tmp_dir/lean-review-missing-group-md/lean-review.md" <<'MD'
+# ShipGuard Lean Review
+
+## Behavior Gates
+
+- `oneRunnableCheck`: enforced-in-lean-review
+
+## Precision Ledger
+
+- Delete candidates: 0; simplify candidates: 2; keep boundaries: 0; proof-blocked candidates: 0; action groups: 1
+
+| Rank | Location | Action | Proof |
+| ---: | --- | --- | --- |
+| 1 | scripts/example.py:12 | Leave one smallest runnable check. | Add a focused test. |
+MD
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-review-missing-group-md" \
+  --out "$tmp_dir/lean-review-missing-group-md-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-action-groups-markdown-missing"' "$tmp_dir/lean-review-missing-group-md-quality/ios-report-quality.json"
+if grep -q '"ruleId": "lean-action-groups-missing"' "$tmp_dir/lean-review-missing-group-md-quality/ios-report-quality.json"; then
+  echo "Lean Review JSON action groups should pass while missing Markdown is flagged separately" >&2
+  exit 1
+fi
+
 performance_boundary_fixture="fixtures/ios-report-quality/performance-runtime-boundary"
 ./bin/shipguard ios report-quality \
   --reports "$performance_boundary_fixture" \

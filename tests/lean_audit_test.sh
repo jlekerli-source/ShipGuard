@@ -141,14 +141,73 @@ grep -q '"ruleId": "thin-wrapper-diff-review"' "$tmp_dir/review/lean-review.json
 grep -q '"ruleId": "deferred-shortcut-without-trigger"' "$tmp_dir/review/lean-review.json"
 grep -q '"ruleId": "one-runnable-check-missing-diff"' "$tmp_dir/review/lean-review.json"
 grep -q '"ruleId": "hardware-calibration-missing-diff"' "$tmp_dir/review/lean-review.json"
+grep -q '"ruleId": "speculative-future-hook-diff"' "$tmp_dir/review/lean-review.json"
 grep -q '"reviewLines":' "$tmp_dir/review/lean-review.json"
 grep -q '"behaviorGates":' "$tmp_dir/review/lean-review.json"
 grep -q '"precisionReview":' "$tmp_dir/review/lean-review.json"
+grep -q '"actionGroups":' "$tmp_dir/review/lean-review.json"
+python3 - <<'PY' "$tmp_dir/review/lean-review.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+precision = data.get("precisionReview") or {}
+delete_rules = {item.get("ruleId") for item in precision.get("deleteList") or []}
+if "speculative-future-hook-diff" not in delete_rules:
+    raise SystemExit(f"speculative future hooks should be delete candidates: {delete_rules!r}")
+groups = precision.get("actionGroups") or []
+matching = [
+    group
+    for group in groups
+    if group.get("ruleId") == "speculative-future-hook-diff" and group.get("decision") == "delete"
+]
+if not matching:
+    raise SystemExit(f"expected a delete action group for speculative future hooks: {groups!r}")
+PY
 grep -q 'ShipGuard Lean Review' "$tmp_dir/review/lean-review.md"
 grep -q 'Diff Review' "$tmp_dir/review/lean-review.md"
 grep -q 'Behavior Gates' "$tmp_dir/review/lean-review.md"
+grep -q 'Grouped Action Plan' "$tmp_dir/review/lean-review.md"
+grep -q 'delete | `speculative-future-hook-diff`' "$tmp_dir/review/lean-review.md"
+grep -q 'Individual Starting Points' "$tmp_dir/review/lean-review.md"
 if grep -q '/Users/' "$tmp_dir/review/lean-review.json"; then
   echo "shareable lean review leaked an absolute user path" >&2
+  exit 1
+fi
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/review" \
+  --out "$tmp_dir/review-quality" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+grep -q '"status": "pass"' "$tmp_dir/review-quality/ios-report-quality.json"
+if grep -q 'lean-action-groups-markdown-missing' "$tmp_dir/review-quality/ios-report-quality.json"; then
+  echo "report-quality should accept Lean Review Markdown grouped action plans" >&2
+  exit 1
+fi
+
+cat > "$tmp_dir/detector-command.diff" <<'DIFF'
+diff --git a/tools/lean_commands.py b/tools/lean_commands.py
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/tools/lean_commands.py
+@@ -0,0 +1,3 @@
++LEAN_MARKERS = ("TODO", "FIXME", "temporary", "future-proof", "placeholder", "for later")
++def lean_marker_command(path):
++    return f'rg -n "TODO|FIXME|temporary|future-proof|placeholder|for later" {path}'
+DIFF
+
+./bin/shipguard lean review \
+  --path fixtures/lean-audit-demo \
+  --diff "$tmp_dir/detector-command.diff" \
+  --out "$tmp_dir/detector-review" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+if grep -q '"ruleId": "speculative-future-hook-diff"' "$tmp_dir/detector-review/lean-review.json"; then
+  echo "Lean Review should not flag a diagnostic rg command as speculative code" >&2
   exit 1
 fi
 

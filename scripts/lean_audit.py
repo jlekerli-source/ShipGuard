@@ -523,6 +523,8 @@ def precision_action_for(item: dict[str, Any]) -> str:
         return "List imports before changing anything; remove the dependency only when usage is trivial and covered."
     if rule_id == "thin-wrapper-review":
         return "Inline or delete the wrapper if search proves it adds no policy, naming, compatibility, or test value."
+    if rule_id in {"thin-wrapper-diff-review", "speculative-future-hook-diff"}:
+        return str(item.get("recommendation", "Delete only when search proof shows behavior is not required."))
     if rule_id == "thin-adapter-boundary":
         return "Keep the thin adapter unless host registration proof says the bridge is redundant."
     if rule_id == "hardware-calibration-proof-boundary":
@@ -537,6 +539,10 @@ def group_first_experiment(rule_id: str, decision: str) -> str:
         return "Open the first marker line, identify one removable branch or split seam, then prove it with call-site search before editing."
     if rule_id == "thin-wrapper-review":
         return "Search every call site for the first wrapper; inline only when the wrapper adds no policy, naming, compatibility, or test value."
+    if rule_id == "thin-wrapper-diff-review":
+        return "Search every changed call site for the first wrapper; delete or inline only when it adds no policy, naming, compatibility, logging, typing, or test value."
+    if rule_id == "speculative-future-hook-diff":
+        return "Open the first speculative note, keep it only if it points to an accepted task, owner, trigger, and validation path; otherwise delete it."
     if rule_id in {"native-date-input", "native-color-input", "native-dialog"}:
         return "Try the native/platform control in the smallest surface first, then keep custom code only for proven product behavior."
     if rule_id == "manual-url-params":
@@ -555,6 +561,10 @@ def group_validation_route(rule_id: str) -> str:
         return "Run call-site search for each marker line plus the focused tests that cover the first touched behavior."
     if rule_id == "thin-wrapper-review":
         return "Run call-site search plus the smallest focused test for the caller that remains after inlining."
+    if rule_id == "thin-wrapper-diff-review":
+        return "Run changed-call-site search plus the smallest focused test for the caller that remains after inlining."
+    if rule_id == "speculative-future-hook-diff":
+        return "Run the focused check for the touched file after deleting the speculative note, or link it to a tracked task with proof."
     if rule_id in {"native-date-input", "native-color-input", "native-dialog", "manual-url-params"}:
         return "Run one focused behavior test covering the native/stdlib replacement edge cases before applying the pattern elsewhere."
     if rule_id.startswith("dependency-"):
@@ -569,6 +579,8 @@ def group_stop_condition(rule_id: str, decision: str) -> str:
         return "Stop if the native control loses required accessibility, validation, brand, locale, or interaction behavior."
     if rule_id == "manual-url-params":
         return "Stop if URLSearchParams does not match required repeated-key, malformed-input, or encoding behavior."
+    if rule_id == "speculative-future-hook-diff":
+        return "Stop if the speculative note is tied to an accepted task, owner, trigger, and validation path."
     if decision == "delete":
         return "Stop if the wrapper is public API, compatibility surface, host adapter, or policy boundary."
     return "Stop if the replacement makes the call site less clear or removes tested behavior."
@@ -580,8 +592,10 @@ def group_evidence_command(rule_id: str, first_location: str) -> str:
         return "rg -n \"TODO|FIXME|temporary|legacy|compat\" ."
     if rule_id == "large-legacy-file-review":
         return f"rg -n \"TODO|FIXME|temporary|legacy|compat\" {file_name}"
-    if rule_id == "thin-wrapper-review":
+    if rule_id in {"thin-wrapper-review", "thin-wrapper-diff-review"}:
         return f"rg -n \"function|const|export\" {file_name}"
+    if rule_id == "speculative-future-hook-diff":
+        return f"rg -n \"TODO|FIXME|temporary|future-proof|placeholder|for later\" {file_name}"
     if rule_id.startswith("dependency-"):
         return f"rg -n \"import|require\" {file_name}"
     return f"rg -n \"{rule_id}\" {file_name}"
@@ -662,8 +676,15 @@ def build_precision_review(findings: list[dict[str, Any]]) -> dict[str, Any]:
             "proofRequired": item.get("proofGuidance"),
         }
         rule_id = str(item.get("ruleId", ""))
-        if rule_id == "thin-wrapper-review":
+        if rule_id in {"thin-wrapper-review", "thin-wrapper-diff-review"}:
             delete_list.append({**entry, "deleteWhen": "Search proves the wrapper is private and behavior-neutral."})
+        elif rule_id == "speculative-future-hook-diff":
+            delete_list.append(
+                {
+                    **entry,
+                    "deleteWhen": "The speculative note has no accepted task, owner, trigger, or validation path.",
+                }
+            )
         elif rule_id in {"large-legacy-file-review"}:
             blocked_by_proof.append(entry)
         else:

@@ -155,7 +155,7 @@ git diff > /tmp/change.diff
   --shareable
 ```
 
-The command writes `lean-review.json` and `lean-review.md`. It is diff-scoped and reports native, standard-library, dependency, speculative placeholder, and thin-wrapper findings without turning a whole-repo audit into noise.
+The command writes `lean-review.json` and `lean-review.md`. It is diff-scoped and reports native, standard-library, dependency, speculative placeholder, and thin-wrapper findings without turning a whole-repo audit into noise. When repeated diff findings share the same rule, `precisionReview.actionGroups` and the Markdown `Grouped Action Plan` make the first experiment, validation route, and stop condition visible before individual line items.
 
 Use `lean debt` when you only need the shortcut ledger:
 
