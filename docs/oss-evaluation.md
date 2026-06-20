@@ -4,6 +4,21 @@ Generated: 2026-06-17
 
 This is the current usefulness and refinement evaluation for ShipGuard after the rename and README repositioning work.
 
+## Current Fixture Review Priority UX
+
+The latest read-only ShipGuard QA loop ran `shipguard value-gauntlet` and graded the output with `shipguard ios report-quality`. The gauntlet passed, and report-quality correctly detected that the five ranked value-gauntlet actionability questions already have promoted public fixture coverage.
+
+The weakness was priority UX: even with no findings and no new fixture candidates, the top `priorityAction` still said `review-existing-fixture` for the first covered fixture. That made the maintainer manually infer that the loop should advance to a fresh QA source.
+
+This slice fixes the loop:
+
+- Fresh reports whose ranked questions are all covered now return `priorityAction.kind = all-actionability-covered`.
+- The priority action keeps the top covered question and fixture path visible as evidence, but its summary tells the maintainer to move to a fresh read-only ShipGuard QA source.
+- Actual fixture runs still use `review-existing-fixture`, so recursion-safety checks remain explicit.
+- Focused report-quality tests prove fresh value-gauntlet QA advances beyond fixture review while promoted fixture reports still avoid duplicate fixture candidates.
+
+This keeps the fixture flywheel from wasting the next iteration on already-covered questions.
+
 ## Current Real Stable Publication Blocked-State QA
 
 The latest read-only real-release QA run used the public `v3.131.0` ShipGuard release assets as the target evidence. It found a useful ShipGuard product weakness without editing any target app:

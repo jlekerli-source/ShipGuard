@@ -2275,12 +2275,14 @@ for candidate in data.get("fixtureCandidates") or []:
     if candidate.get("sourceQuestion") in {covered_question, stable_publication_question, product_release_question, proof_boundary_question, plugin_skill_question}:
         raise SystemExit(f"covered value-gauntlet question should not create a duplicate fixture candidate: {candidate!r}")
 priority = data.get("priorityAction") or {}
-if priority.get("kind") != "review-existing-fixture":
-    raise SystemExit(f"expected review-existing-fixture once value-gauntlet questions are covered: {priority!r}")
-if priority.get("question") != stable_publication_question:
-    raise SystemExit(f"expected the top covered stable-publication question to drive fixture review: {priority!r}")
-if priority.get("existingFixturePath") != "fixtures/ios-report-quality/stable-publication-value-gauntlet-question":
+if priority.get("kind") != "all-actionability-covered":
+    raise SystemExit(f"expected all-actionability-covered once fresh value-gauntlet questions are covered: {priority!r}")
+if priority.get("topCoveredQuestion") != stable_publication_question:
+    raise SystemExit(f"expected the top covered stable-publication question to remain visible: {priority!r}")
+if priority.get("topExistingFixturePath") != "fixtures/ios-report-quality/stable-publication-value-gauntlet-question":
     raise SystemExit(f"unexpected existing fixture path: {priority!r}")
+if priority.get("coveredQuestionCount", 0) < 5:
+    raise SystemExit(f"expected all promoted value-gauntlet questions to count as covered: {priority!r}")
 PY
 
 mixed_release_priority_dir="$tmp_dir/mixed-release-priority"
@@ -2521,13 +2523,13 @@ data = json.load(open(sys.argv[1], encoding="utf-8"))
 priority = data.get("priorityAction") or {}
 covered = "Can ShipGuard prove stable-v4 publication with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof?"
 product_release = "Should ShipGuard stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption?"
-if priority.get("kind") != "review-existing-fixture":
-    raise SystemExit(f"expected covered fixture review priority: {priority!r}")
+if priority.get("kind") != "all-actionability-covered":
+    raise SystemExit(f"expected covered fresh-report priority to advance beyond fixture review: {priority!r}")
 if priority.get("tool") != "shipguard value-gauntlet":
     raise SystemExit(f"expected stable publication value-gauntlet priority: {priority!r}")
-if priority.get("question") != covered:
-    raise SystemExit(f"expected covered stable-v4 fixture priority, got {priority!r}")
-if priority.get("existingFixturePath") != "fixtures/ios-report-quality/stable-publication-value-gauntlet-question":
+if priority.get("topCoveredQuestion") != covered:
+    raise SystemExit(f"expected covered stable-v4 fixture priority to remain visible, got {priority!r}")
+if priority.get("topExistingFixturePath") != "fixtures/ios-report-quality/stable-publication-value-gauntlet-question":
     raise SystemExit(f"expected stable-v4 fixture path, got {priority!r}")
 coverage = data.get("fixtureCoverage") or []
 if not any(item.get("question") == covered and item.get("publicFixturePath") == "fixtures/ios-report-quality/stable-publication-value-gauntlet-question" for item in coverage):

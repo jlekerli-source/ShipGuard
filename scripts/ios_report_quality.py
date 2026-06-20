@@ -3153,6 +3153,26 @@ def build_priority_action(issues: list[dict[str, Any]], ranked_questions: list[d
         question = covered_questions[0]
         fixture = question.get("existingFixture") if isinstance(question.get("existingFixture"), dict) else {}
         fixture_path = fixture.get("publicFixturePath") or question.get("existingFixturePath") or "<materialized-fixture>"
+        source_reports = {str(row.get("report") or "") for row in covered_questions}
+        all_sources_are_fixture_reports = bool(source_reports) and all(
+            "fixtures/ios-report-quality/" in report or report.endswith("fixture-report.json")
+            for report in source_reports
+        )
+        if not all_sources_are_fixture_reports:
+            return {
+                "kind": "all-actionability-covered",
+                "summary": (
+                    f"All {len(covered_questions)} ranked actionability question(s) already have fixture coverage; "
+                    "move to a fresh read-only ShipGuard QA source instead of re-reviewing the first covered fixture."
+                ),
+                "coveredQuestionCount": len(covered_questions),
+                "topCoveredQuestion": question.get("question"),
+                "topExistingFixturePath": fixture_path,
+                "tool": question.get("tool"),
+                "report": question.get("report"),
+                "sourceStatus": question.get("sourceStatus"),
+                "reportQualityStatus": question.get("reportQualityStatus"),
+            }
         return {
             "kind": "review-existing-fixture",
             "summary": (
@@ -3198,6 +3218,14 @@ def build_next_actions(priority_action: dict[str, Any], ranked_questions: list[d
             "Move to the next uncovered actionability question once the existing fixture still passes.",
             "Run private-app reports with --shipguard-eval and keep unredacted reports local.",
         ]
+    if kind == "all-actionability-covered":
+        return [
+            priority_action["summary"],
+            "Keep the Fixture Coverage section as proof that known questions are covered.",
+            "Run the next read-only ShipGuard QA source, such as value-gauntlet plus full-audit or targeted command-family reports.",
+            "Only create another fixture when a new uncovered report-quality question appears.",
+            "Run private-app reports with --shipguard-eval and keep unredacted reports local.",
+        ]
     if ranked_questions:
         return [
             "Answer the actionability questions above to decide which ShipGuard rule, report section, fixture, or doc should improve next.",
@@ -3228,6 +3256,11 @@ def next_command_for_priority_action(priority_action: dict[str, Any]) -> str:
         )
     if kind == "review-existing-fixture":
         return "./bin/shipguard ios report-quality --reports <next-report-dir> --out <quality-dir> --shareable"
+    if kind == "all-actionability-covered":
+        return (
+            "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet && "
+            "./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --out /tmp/shipguard-value-quality --shareable"
+        )
     if kind == "add-actionability-questions":
         return "./bin/shipguard ios report-quality --reports <updated-report-dir> --out <quality-dir> --shareable"
     return "./bin/shipguard ios report-quality --reports <report-dir> --out <quality-dir> --shareable"

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Improved report-quality priority UX: when a fresh ShipGuard QA report has no findings, no fixture candidates, and every ranked actionability question is already covered by promoted fixtures, `ios report-quality` now reports `all-actionability-covered` and tells the maintainer to move to a fresh read-only QA source instead of re-reviewing the first covered fixture.
 - Added a promoted fixture metadata consistency sweep: all `fixtures/ios-report-quality/**/fixture-candidate.json` files now carry canonical `candidateId` and `publicFixturePath` values, nested `fixtureCandidate` metadata matches the promoted folder, and `ios_report_quality_test.sh` fails on future drift.
 - Normalized the promoted stable-publication value-gauntlet fixture so its candidate id, fixture type, nested report metadata, and promotion paths all point to `fixtures/ios-report-quality/stable-publication-value-gauntlet-question` as a `shipguard-release-proof-quality-fixture`.
 - Promoted the value-gauntlet plugin/starter-skill routing question into `fixtures/ios-report-quality/plugin-skill-routing-value-gauntlet-question`, and taught `ios report-quality --write-fixture-candidates` to materialize plugin-skill/starter-skill/actionable-routing/validation-command questions so Codex skill surfaces must stay tied to concrete routing and proof commands.
