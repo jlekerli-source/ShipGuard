@@ -63,6 +63,16 @@ The v3.200 read-only QA pass inspected the public Ponytail repo and ran ShipGuar
 
 Fresh QA now runs `lean audit`, `lean review`, `lean debt`, `lean gain`, report-quality, and command-family runtime-output receipts before treating precise-code work as integrated.
 
+## Current Ponytail SourceScout QA
+
+The next read-only Ponytail QA pass showed Lean Deck was native, but `ios external-audit` still treated a Ponytail checkout and URL as unclassified external sources. That meant ShipGuard could claim precise-code ideas were represented while its adoption ledger could not prove the source profile.
+
+- Finding: SourceScout needed a first-class Ponytail profile rather than relying on generic external-source fallback text.
+- Native fix: `shipguard ios external-audit` now recognizes Ponytail checkouts and URLs, maps the lean ladder, diff review, shortcut ledger, benchmark-honesty card, and always-on host mode into ShipGuard-native decisions, and leaves host-plugin activation as an optional separate Codex plugin path.
+- Boundary: ShipGuard keeps Ponytail as a named MIT source influence and implements explicit Lean Deck reports instead of vendoring Ponytail hooks, commands, or skills.
+
+Fresh QA now runs Ponytail-only SourceScout classification, Lean Deck self-audit, report-quality, and Codex plugin refresh proof before claiming this integration is current.
+
 ## Current Ponytail Native Precision QA
 
 The v3.197 read-only QA pass inspected the public Ponytail repo, refreshed the installed local Codex Ponytail plugin, then ran ShipGuard's existing Lean Deck against this checkout as the native precision-code baseline.
@@ -850,7 +860,7 @@ The next source-integration review showed the external-repo learning was still t
 
 The next read-only Ringly/Ilmify loop passed report-quality structurally but still showed that "fully integrated" external learning needed an explicit replace/extend/keep/defer decision layer. Spec-workflow now emits `integration-decisions.md` and JSON `integrationDecisions`, evaluates each external workflow idea against the current ShipGuard surface, states what it replaces or keeps, and gives validation evidence. Report-quality now requires that decision artifact and checks it preserves the report-quality questions before adoption passes.
 
-The next external-source review showed even that was still too static: Spec Kit, CodexPro, Expo, and social-post ideas were represented as hardcoded inspiration inside spec-workflow instead of a repeatable source audit. `ios external-audit` now records read-only source checkouts and URLs, classifies source capabilities, emits a native replacement ledger, states what ShipGuard replaces, extends, keeps, routes, or defers, and carries license/no-vendoring boundaries plus report-quality questions. A source is not considered integrated until its capability has a ShipGuard-native action and validation command.
+The next external-source review showed even that was still too static: Spec Kit, CodexPro, Ponytail, Expo, and social-post ideas were represented as hardcoded inspiration inside spec-workflow instead of a repeatable source audit. `ios external-audit` now records read-only source checkouts and URLs, classifies source capabilities, emits a native replacement ledger, states what ShipGuard replaces, extends, keeps, routes, or defers, and carries license/no-vendoring boundaries plus report-quality questions. A source is not considered integrated until its capability has a ShipGuard-native action and validation command.
 
 The next design-source pass used the installed Design Motion Principles skill as a read-only input and exposed a classifier weakness: the Expo profile could match `EAS` inside ordinary words such as `easing`. External-audit now uses boundary-aware source signals and has a first-class Design Motion Principles profile; `ios design` emits ShipGuard-native `motionQualityGates` so frequency, purpose, keyboard, Reduce Motion, AI-slop, and performance checks are product report data, not a copied skill artifact.
 
@@ -983,7 +993,7 @@ The Codex plugin source and local cache are now clean enough for local use. The 
 - `shipguard value-gauntlet` to score every ShipGuard command, skill, plugin, GitHub Action, doc, package proof path, and proof boundary for developer usefulness before a branded surface is treated as mature.
 - `shipguard ios devspace-check` to score Devspace connector readiness, public URL safety, MCP widget metadata, preview evidence, handoff execution boundaries, handoff fixture quality, and ChatGPT model-choice honesty before tunneled visual planning is treated as useful.
 - `shipguard ios spec-workflow` to convert report-quality actionability questions into ShipGuard-owned constitution, spec, requirements checklist, native integration decisions, implementation plan, tasks, consistency analysis, analysis gates, slash plan/goal, and Devspace guardrails before Codex implementation.
-- `shipguard ios external-audit` to convert Spec Kit, CodexPro, Expo, Design Motion Principles, native iOS workflow skills, X posts, and other external ideas into a native replacement ledger before ShipGuard claims adoption.
+- `shipguard ios external-audit` to convert Spec Kit, CodexPro, Ponytail, Expo, Design Motion Principles, native iOS workflow skills, X posts, and other external ideas into a native replacement ledger before ShipGuard claims adoption.
 - Shared iOS scan-scope exclusions for generated/proof/cache directories, plus tests that generated artifacts do not become report findings.
 - A repository threat model artifact before running a full Codex Security scan.
 - More Arena fixtures for security-sensitive workflows: credentials, untrusted paths, generated artifacts, network posting, GitHub token scope, and release asset trust.

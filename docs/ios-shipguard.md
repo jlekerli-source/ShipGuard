@@ -248,6 +248,7 @@ Use `ios external-audit` before claiming ShipGuard has integrated another repo, 
   --path . \
   --source-path /tmp/spec-kit \
   --source-path /tmp/codexpro \
+  --source-path /tmp/ponytail \
   --source-url https://github.com/expo/expo \
   --source-url https://x.com/example/status/1234567890 \
   --shipguard-eval \
@@ -255,7 +256,7 @@ Use `ios external-audit` before claiming ShipGuard has integrated another repo, 
   --out /tmp/ios-shipguard-external-audit
 ```
 
-The command is read-only against source checkouts and writes only to `--out`. It creates `ios-external-audit.json`, `ios-external-audit.md`, and `replacement-ledger.md`. The report records source inputs, local evidence signals, license boundaries, a capability matrix, replacement decisions, a ShipGuard-native implementation backlog, and report-quality questions. It treats sources such as Spec Kit, CodexPro, Expo, Design Motion Principles, native iOS workflow skills, and social posts as product inputs; ShipGuard adoption means a capability has a native ShipGuard action plus validation, not that external source code or templates were copied into this repo. The deterministic `ios eval` fixture suite includes an `external-source-audit` case so future routing changes keep source adoption on this read-only proof path.
+The command is read-only against source checkouts and writes only to `--out`. It creates `ios-external-audit.json`, `ios-external-audit.md`, and `replacement-ledger.md`. The report records source inputs, local evidence signals, license boundaries, a capability matrix, replacement decisions, a ShipGuard-native implementation backlog, and report-quality questions. It treats sources such as Spec Kit, CodexPro, Ponytail, Expo, Design Motion Principles, native iOS workflow skills, and social posts as product inputs; ShipGuard adoption means a capability has a native ShipGuard action plus validation, not that external source code or templates were copied into this repo. The deterministic `ios eval` fixture suite includes an `external-source-audit` case so future routing changes keep source adoption on this read-only proof path.
 
 Use `--source-path` for a local read-only checkout when available; use `--source-url` for a public repo or post that still needs a source snapshot. Use `--shareable` before sending the audit to ChatGPT, GitHub, docs, release evidence, or `ios report-quality`. Feed the audit into `ios report-quality --shareable` and then into `ios spec-workflow --from-report` when a replacement decision needs implementation work.
 

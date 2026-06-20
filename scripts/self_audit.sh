@@ -455,6 +455,10 @@ required_artifacts=(
   "fixtures/ios-report-quality/01-shipguard-action-verify-pr-when-a-runtime-artifact-is-c-c950c6b0/fixture-candidate.json"
   "fixtures/ios-report-quality/01-shipguard-action-verify-pr-when-a-runtime-artifact-is-c-c950c6b0/fixture-report.json"
   "fixtures/ios-report-quality/01-shipguard-action-verify-pr-when-a-runtime-artifact-is-c-c950c6b0/fixture-report.md"
+  "fixtures/ios-report-quality/01-shipguard-lean-audit-should-this-recurring-lean-code-ob-f228f086/README.md"
+  "fixtures/ios-report-quality/01-shipguard-lean-audit-should-this-recurring-lean-code-ob-f228f086/fixture-candidate.json"
+  "fixtures/ios-report-quality/01-shipguard-lean-audit-should-this-recurring-lean-code-ob-f228f086/fixture-report.json"
+  "fixtures/ios-report-quality/01-shipguard-lean-audit-should-this-recurring-lean-code-ob-f228f086/fixture-report.md"
 )
 
 artifact_count=0

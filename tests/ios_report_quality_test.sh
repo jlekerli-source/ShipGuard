@@ -1669,6 +1669,29 @@ if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$mater
   exit 1
 fi
 
+lean_public_fixture="fixtures/ios-report-quality/01-shipguard-lean-audit-should-this-recurring-lean-code-ob-f228f086"
+./bin/shipguard ios report-quality \
+  --reports "$lean_public_fixture" \
+  --out "$tmp_dir/lean-public-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/lean-public-quality/ios-report-quality.json"
+grep -q 'Should this recurring lean-code observation become a public fixture instead of depending on one current repo scan?' "$tmp_dir/lean-public-quality/ios-report-quality.md"
+python3 - <<'PY' "$tmp_dir/lean-public-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"Lean Deck public fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+if not questions or questions[0].get("sourceMaterializedFixture") is not True:
+    raise SystemExit(f"Lean Deck public fixture should retain sourceMaterializedFixture question evidence: {questions!r}")
+PY
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_public_fixture"; then
+  echo "Lean Deck public fixture must not include local paths or private app identifiers" >&2
+  exit 1
+fi
+
 performance_boundary_fixture="fixtures/ios-report-quality/performance-runtime-boundary"
 ./bin/shipguard ios report-quality \
   --reports "$performance_boundary_fixture" \

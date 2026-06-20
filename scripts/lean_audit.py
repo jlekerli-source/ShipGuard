@@ -749,7 +749,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the report help a solo developer delete clutter without deleting product behavior?",
             "Does leanDebtLedger make intentional shortcuts auditable with ceilings and upgrade triggers?",
             "Does lean gain avoid fake per-repo savings while still showing benchmark-backed impact?",
-            "Should this observation become a public fixture instead of depending on a private repo?",
+            "Should this recurring lean-code observation become a public fixture instead of depending on one current repo scan?",
         ]
     return report
 
