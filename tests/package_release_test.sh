@@ -643,14 +643,19 @@ grep -q '"status": "review"' "$tmp_dir/package-v4-stable-publication/v4-stable-p
 grep -q '"stableV4Release": false' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
 grep -q '"stablePublicationEvidenceTemplates":' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
 grep -q '"stablePublicationEvidenceStarterKit":' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
+grep -q '"stablePublicationReleaseNotesAuthoringKit":' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
 grep -q '"path": "templates/stable-publication/external-adoption-evidence.template.json"' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
 grep -q 'ShipGuard V4 Stable Publication Proof' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.md"
 grep -q 'Evidence Templates' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.md"
 grep -q 'Evidence Starter Kit' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.md"
+grep -q 'Release Notes Authoring Kit' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.md"
 test -f "$tmp_dir/package-v4-stable-publication/stable-publication-evidence-kit/README.md"
 test -f "$tmp_dir/package-v4-stable-publication/stable-publication-evidence-kit/stable-publication-checklist.json"
 test -f "$tmp_dir/package-v4-stable-publication/stable-publication-evidence-kit/external-adoption-evidence.json"
 test -f "$tmp_dir/package-v4-stable-publication/stable-publication-evidence-kit/security-review-evidence.json"
+test -f "$tmp_dir/package-v4-stable-publication/stable-publication-release-notes/README.md"
+test -f "$tmp_dir/package-v4-stable-publication/stable-publication-release-notes/release-notes-checklist.json"
+test -f "$tmp_dir/package-v4-stable-publication/stable-publication-release-notes/draft-release-notes.md"
 "$package_root/bin/shipguard" inspect \
   --path "$package_root" \
   --out "$tmp_dir/package-inspect" \

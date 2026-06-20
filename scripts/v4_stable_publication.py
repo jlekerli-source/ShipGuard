@@ -131,6 +131,7 @@ STABLE_PUBLICATION_TEMPLATE_SPECS = [
     },
 ]
 STARTER_KIT_DIRNAME = "stable-publication-evidence-kit"
+RELEASE_NOTES_KIT_DIRNAME = "stable-publication-release-notes"
 
 
 def utc_now() -> str:
@@ -495,6 +496,57 @@ def build_stable_publication_evidence_starter_kit_manifest() -> dict[str, Any]:
     }
 
 
+def build_stable_publication_release_notes_authoring_kit(
+    *,
+    release_version: str,
+    release_notes_proof: dict[str, Any],
+) -> dict[str, Any]:
+    missing_topic_ids = release_notes_proof.get("missingTopicIds")
+    if not isinstance(missing_topic_ids, list):
+        missing_topic_ids = []
+    topic_matrix = release_notes_proof.get("topicMatrix")
+    if not isinstance(topic_matrix, list):
+        topic_matrix = []
+    return {
+        "schemaVersion": 1,
+        "draftOnly": True,
+        "directory": RELEASE_NOTES_KIT_DIRNAME,
+        "releaseVersion": release_version,
+        "status": "pass" if release_notes_proof.get("status") == "pass" else "review",
+        "missingTopicIds": missing_topic_ids,
+        "topicMatrix": topic_matrix,
+        "files": [
+            {
+                "id": "checklist",
+                "path": f"{RELEASE_NOTES_KIT_DIRNAME}/release-notes-checklist.json",
+                "purpose": "Machine-readable checklist for the stable-publication release-notes topics.",
+            },
+            {
+                "id": "draft-release-notes",
+                "path": f"{RELEASE_NOTES_KIT_DIRNAME}/draft-release-notes.md",
+                "purpose": "Draft-only release notes section that includes every required stable-publication proof topic.",
+            },
+            {
+                "id": "copy-brief",
+                "path": f"{RELEASE_NOTES_KIT_DIRNAME}/README.md",
+                "purpose": "Human instructions for adapting the draft into the public GitHub release body.",
+            },
+        ],
+        "instructions": [
+            "Use this as a release-notes authoring aid only; it is not proof that a GitHub release was published.",
+            "Replace placeholders with the real release version, asset list, adoption summary, security review summary, and non-claims before publishing.",
+            "Run stable-publication again against the public GitHub release metadata after editing the release notes.",
+        ],
+        "nextCommandTemplate": (
+            "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> "
+            "--github-release-repo <owner/repo> --release-version <version> "
+            "--release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets "
+            "--external-adoption-evidence <adoption-evidence-json-or-dir> "
+            "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
+        ),
+    }
+
+
 def build_stable_publication_evidence_packet(
     *,
     gates: list[tuple[str, dict[str, Any], str]],
@@ -639,6 +691,96 @@ def write_stable_publication_evidence_starter_kit(
     (kit_dir / "README.md").write_text("\n".join(readme_lines), encoding="utf-8")
 
 
+def write_stable_publication_release_notes_authoring_kit(
+    out_dir: Path,
+    *,
+    report: dict[str, Any],
+) -> None:
+    kit = report.get("stablePublicationReleaseNotesAuthoringKit")
+    if not isinstance(kit, dict):
+        return
+    kit_dir = out_dir / RELEASE_NOTES_KIT_DIRNAME
+    kit_dir.mkdir(parents=True, exist_ok=True)
+
+    release_notes_proof = report.get("releaseNotesProof") if isinstance(report.get("releaseNotesProof"), dict) else {}
+    topic_matrix = kit.get("topicMatrix") if isinstance(kit.get("topicMatrix"), list) else []
+    missing_topic_ids = kit.get("missingTopicIds") if isinstance(kit.get("missingTopicIds"), list) else []
+    checklist = {
+        "schemaVersion": 1,
+        "draftOnly": True,
+        "status": kit.get("status"),
+        "releaseVersion": kit.get("releaseVersion"),
+        "missingTopicIds": missing_topic_ids,
+        "topicMatrix": topic_matrix,
+        "requiredLanguage": release_notes_proof.get("requiredLanguage"),
+        "nextCommandTemplate": kit.get("nextCommandTemplate"),
+    }
+    (kit_dir / "release-notes-checklist.json").write_text(
+        json.dumps(checklist, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    release_version = str(kit.get("releaseVersion") or report.get("releaseVersion") or "<version>")
+    draft_lines = [
+        f"# ShipGuard {release_version}",
+        "",
+        "ShipGuard stable v4 publication is ready only when the stable-publication proof packet passes.",
+        "",
+        "## Stable Publication Proof",
+        "",
+        "- Stable-v4 claim: this release is a stable-v4 publication candidate until `shipguard v4 stable-publication` returns `pass` against the public GitHub release.",
+        "- Publication proof boundary: stable status depends on release proof, not intent, local fixtures, or unpublished assets.",
+        "- Downloaded release assets: verify the published tarball, release manifest, release index, proof ledger, replay report, attestation, and attestation badge from the GitHub release assets.",
+        "- Post-release consumer proof: run `shipguard release-consume verify` against the downloaded release assets and keep the consumer report with the publication packet.",
+        "- Independent adoption evidence: attach real independent public or private-redacted external adoption evidence; GitHub downloads do not count as adoption.",
+        "- Final security review evidence: attach final security-review evidence covering CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy.",
+        "- Non-claims: this release note does not claim OpenAI marketplace acceptance, private app validation, or external adoption beyond the attached evidence.",
+        "",
+        "## Proof Commands",
+        "",
+        "```bash",
+        str(kit.get("nextCommandTemplate") or ""),
+        "```",
+        "",
+    ]
+    if missing_topic_ids:
+        draft_lines.extend(
+            [
+                "## Current Missing Topics",
+                "",
+                ", ".join(str(item) for item in missing_topic_ids),
+                "",
+            ]
+        )
+    (kit_dir / "draft-release-notes.md").write_text("\n".join(draft_lines), encoding="utf-8")
+
+    readme_lines = [
+        "# Stable Publication Release Notes Kit",
+        "",
+        "This directory is a draft-only authoring aid for the public GitHub release body.",
+        "It does not publish the release and does not prove stable v4 by itself.",
+        "",
+        "## Files",
+        "",
+        "- `release-notes-checklist.json`: machine-readable topic matrix and missing topic list.",
+        "- `draft-release-notes.md`: copy-ready draft section that includes every required stable-publication topic.",
+        "",
+        "## Rules",
+        "",
+        "- Replace placeholders with real public release facts before publishing.",
+        "- Keep private app names, paths, screenshots, accounts, and token-like strings out of public notes.",
+        "- Re-run `shipguard v4 stable-publication` against the public GitHub release after editing the release notes.",
+        "",
+        "## Next Command",
+        "",
+        "```bash",
+        str(kit.get("nextCommandTemplate") or ""),
+        "```",
+        "",
+    ]
+    (kit_dir / "README.md").write_text("\n".join(readme_lines), encoding="utf-8")
+
+
 def redact_report(report: dict[str, Any], args: argparse.Namespace, root: Path) -> dict[str, Any]:
     home = Path.home().resolve()
     replacements = {
@@ -718,6 +860,10 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     stable_v4_release = status == "pass"
     evidence_templates = build_stable_publication_evidence_templates(root)
     evidence_starter_kit = build_stable_publication_evidence_starter_kit_manifest()
+    release_notes_authoring_kit = build_stable_publication_release_notes_authoring_kit(
+        release_version=release_version,
+        release_notes_proof=release_notes_proof,
+    )
     evidence_packet = build_stable_publication_evidence_packet(
         gates=gates,
         blocked=blocked,
@@ -761,6 +907,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "stablePublicationEvidencePacket": evidence_packet,
         "stablePublicationEvidenceTemplates": evidence_templates,
         "stablePublicationEvidenceStarterKit": evidence_starter_kit,
+        "stablePublicationReleaseNotesAuthoringKit": release_notes_authoring_kit,
         "githubReleaseMetadataProof": metadata_proof,
         "releaseNotesProof": release_notes_proof,
         "releaseCandidatePacketProof": release_candidate_packet_proof,
@@ -862,6 +1009,25 @@ def render_markdown(report: dict[str, Any]) -> str:
             if isinstance(item, dict):
                 terms = ", ".join(str(term) for term in item.get("matchedTerms", [])) or "none"
                 lines.append(f"| `{item.get('id')}` | `{item.get('status')}` | {terms} |")
+    release_notes_kit = report.get("stablePublicationReleaseNotesAuthoringKit") if isinstance(report.get("stablePublicationReleaseNotesAuthoringKit"), dict) else {}
+    if release_notes_kit:
+        lines.extend(
+            [
+                "",
+                "## Release Notes Authoring Kit",
+                "",
+                f"- Directory: `{release_notes_kit.get('directory')}`",
+                f"- Draft-only: `{release_notes_kit.get('draftOnly')}`",
+                f"- Missing topics: `{', '.join(release_notes_kit.get('missingTopicIds') or []) or 'none'}`",
+                "",
+                "| File | Purpose |",
+                "| --- | --- |",
+            ]
+        )
+        for item in release_notes_kit.get("files", []):
+            if isinstance(item, dict):
+                lines.append(f"| `{item.get('path')}` | {item.get('purpose')} |")
+        lines.extend(["", "Next command template:", "", "```bash", str(release_notes_kit.get("nextCommandTemplate") or ""), "```"])
     templates = report.get("stablePublicationEvidenceTemplates") if isinstance(report.get("stablePublicationEvidenceTemplates"), dict) else {}
     if templates:
         lines.extend(
@@ -962,6 +1128,7 @@ def main(argv: list[str]) -> int:
     if write_markdown:
         (out_dir / "v4-stable-publication.md").write_text(render_markdown(report), encoding="utf-8")
     write_stable_publication_evidence_starter_kit(out_dir, report=report, root=Path(args.path).expanduser().resolve())
+    write_stable_publication_release_notes_authoring_kit(out_dir, report=report)
     print(f"wrote {out_dir}")
     return 0 if report["status"] == "pass" else 1
 

@@ -47,6 +47,20 @@ This slice makes the gate evidence-shaped:
 
 The stable-v4 claim remains blocked until the public release notes describe the real stable-publication proof packet.
 
+## Current Release Notes Authoring Kit
+
+The next read-only QA loop showed a follow-on usability gap: after the stricter release-notes proof gate identified missing topics, ShipGuard still left the maintainer to write the public release body manually.
+
+This slice makes the blocked gate actionable:
+
+- `shipguard v4 stable-publication` now writes `stable-publication-release-notes/` into every report directory.
+- The kit contains `README.md`, `release-notes-checklist.json`, and `draft-release-notes.md`.
+- The JSON report exposes `stablePublicationReleaseNotesAuthoringKit`, and Markdown renders a `Release Notes Authoring Kit` section.
+- The checklist mirrors `releaseNotesProof.missingTopicIds`, so the draft answers the actual blocked topics instead of a generic template.
+- `ios report-quality`, focused stable-publication tests, and package proof now fail if the release-notes authoring kit disappears.
+
+The kit is draft-only. It helps edit the public GitHub release notes, then the maintainer must rerun stable-publication against the actual release metadata.
+
 ## Current Development Loop Efficiency Receipt
 
 The latest self-QA pass showed a real development-process weakness: after the design observation question was promoted into a public fixture, the existing workflow-chain receipt became too coupled to that now-covered design question. The receipt failed even though the product behavior was improving, which meant the proof loop could waste maintainer time on manual interpretation.

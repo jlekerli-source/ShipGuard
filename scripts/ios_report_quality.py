@@ -2171,6 +2171,67 @@ def stable_publication_evidence_packet_issues(
             evidence=f"{path_name} Markdown does not render the stable-publication evidence starter kit",
             recommendation="Render the generated starter-kit directory and files in Markdown so maintainers can find them immediately.",
         )
+    notes_kit = report.get("stablePublicationReleaseNotesAuthoringKit")
+    if not isinstance(notes_kit, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-release-notes-authoring-kit-missing",
+            evidence=f"{path_name} has no stablePublicationReleaseNotesAuthoringKit",
+            recommendation="Emit a draft-only release-notes authoring kit with a checklist and copy-ready draft for the stable-publication topics.",
+        )
+    else:
+        if notes_kit.get("draftOnly") is not True:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-release-notes-authoring-kit-draft-boundary-missing",
+                evidence=f"{path_name} release-notes authoring kit is not marked draft-only",
+                recommendation="Make clear that generated release notes are an authoring aid, not proof that the public GitHub release was edited.",
+            )
+        note_files = notes_kit.get("files")
+        note_paths = {str(item.get("path") or "") for item in note_files if isinstance(item, dict)} if isinstance(note_files, list) else set()
+        expected_note_paths = {
+            "stable-publication-release-notes/README.md",
+            "stable-publication-release-notes/release-notes-checklist.json",
+            "stable-publication-release-notes/draft-release-notes.md",
+        }
+        missing_note_paths = sorted(expected_note_paths - note_paths)
+        if missing_note_paths:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-release-notes-authoring-kit-files-missing",
+                evidence=f"{path_name} release-notes authoring kit missing files: {', '.join(missing_note_paths)}",
+                recommendation="List README, release-notes checklist, and draft release notes in stablePublicationReleaseNotesAuthoringKit.files.",
+            )
+        kit_missing_topics = notes_kit.get("missingTopicIds")
+        proof = report.get("releaseNotesProof") if isinstance(report.get("releaseNotesProof"), dict) else {}
+        proof_missing_topics = proof.get("missingTopicIds")
+        if isinstance(proof_missing_topics, list) and kit_missing_topics != proof_missing_topics:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-release-notes-authoring-kit-topic-drift",
+                evidence=f"{path_name} release-notes authoring kit missingTopicIds does not match releaseNotesProof",
+                recommendation="Copy releaseNotesProof.missingTopicIds into the authoring kit so the draft answers the actual blocked topics.",
+            )
+        if "stable-publication" not in str(notes_kit.get("nextCommandTemplate") or ""):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-release-notes-authoring-kit-next-command-missing",
+                evidence=f"{path_name} release-notes authoring kit has no stable-publication rerun command",
+                recommendation="Include the command to rerun stable-publication after editing public release notes.",
+            )
+    if "Release Notes Authoring Kit" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-release-notes-authoring-kit-markdown-missing",
+            evidence=f"{path_name} Markdown does not render the stable-publication release-notes authoring kit",
+            recommendation="Render the generated release-notes authoring kit so maintainers can find the checklist and draft without opening JSON.",
+        )
     return issues
 
 

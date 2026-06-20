@@ -308,9 +308,24 @@ assert {
     "non-claims-boundary",
 } <= missing
 assert len(report["releaseNotesProof"]["topicMatrix"]) == 7
+notes_kit = report["stablePublicationReleaseNotesAuthoringKit"]
+assert notes_kit["draftOnly"] is True
+assert notes_kit["directory"] == "stable-publication-release-notes"
+assert set(notes_kit["missingTopicIds"]) == missing
+assert {
+    "stable-publication-release-notes/README.md",
+    "stable-publication-release-notes/release-notes-checklist.json",
+    "stable-publication-release-notes/draft-release-notes.md",
+} <= {item["path"] for item in notes_kit["files"]}
 PY
 grep -q 'Release Notes Proof' "$tmp_dir/weak-notes/v4-stable-publication.md"
+grep -q 'Release Notes Authoring Kit' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'post-release-consumer-proof' "$tmp_dir/weak-notes/v4-stable-publication.md"
+test -f "$tmp_dir/weak-notes/stable-publication-release-notes/README.md"
+test -f "$tmp_dir/weak-notes/stable-publication-release-notes/release-notes-checklist.json"
+test -f "$tmp_dir/weak-notes/stable-publication-release-notes/draft-release-notes.md"
+grep -q 'Post-release consumer proof' "$tmp_dir/weak-notes/stable-publication-release-notes/draft-release-notes.md"
+grep -q '"draftOnly": true' "$tmp_dir/weak-notes/stable-publication-release-notes/release-notes-checklist.json"
 
 python3 - "$release_endpoint_file" "$version" "$tmp_dir/downloaded" <<'PY'
 import json
@@ -383,6 +398,8 @@ assert report["releaseNotesProof"]["status"] == "pass"
 assert report["releaseNotesProof"]["missingTopicIds"] == []
 assert len(report["releaseNotesProof"]["topicMatrix"]) == 7
 assert report["releaseNotesProof"]["releaseNotesSha256"]
+assert report["stablePublicationReleaseNotesAuthoringKit"]["draftOnly"] is True
+assert report["stablePublicationReleaseNotesAuthoringKit"]["missingTopicIds"] == []
 assert report["releaseCandidatePacketProof"]["status"] == "pass"
 assert report["githubReleaseAssetDownloadProof"]["status"] == "pass"
 assert report["publishedReleaseAssetProof"]["status"] == "pass"
@@ -426,6 +443,7 @@ grep -q '# ShipGuard V4 Stable Publication Proof' "$tmp_dir/pass/v4-stable-publi
 grep -q 'Stable Publication Gates' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Packet' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release Notes Proof' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Release Notes Authoring Kit' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'independent-adoption-evidence' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Templates' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Starter Kit' "$tmp_dir/pass/v4-stable-publication.md"
@@ -434,6 +452,9 @@ test -f "$tmp_dir/pass/stable-publication-evidence-kit/README.md"
 test -f "$tmp_dir/pass/stable-publication-evidence-kit/stable-publication-checklist.json"
 test -f "$tmp_dir/pass/stable-publication-evidence-kit/external-adoption-evidence.json"
 test -f "$tmp_dir/pass/stable-publication-evidence-kit/security-review-evidence.json"
+test -f "$tmp_dir/pass/stable-publication-release-notes/README.md"
+test -f "$tmp_dir/pass/stable-publication-release-notes/release-notes-checklist.json"
+test -f "$tmp_dir/pass/stable-publication-release-notes/draft-release-notes.md"
 
 ./bin/shipguard ios report-quality \
   --reports "$tmp_dir/pass" \

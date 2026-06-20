@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-20T04:31:41Z
+- Generated: 2026-06-20T04:47:47Z
 - Current toolkit version: 3.131.0
-- Target release: v3.158.0
-- Title: Stable Release Notes Proof Gate
+- Target release: v3.159.0
+- Title: Release Notes Authoring Kit
 
 ## Slash Plan
 
 ```text
-/plan v3.158.0 Stable Release Notes Proof Gate for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Tighten stable-publication release-notes proof so weak public GitHub release notes cannot pass stable-v4 publication when they omit the actual evidence packet topics.
+/plan v3.159.0 Release Notes Authoring Kit for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make stable-publication release-notes failures actionable by generating a draft-only release-notes authoring kit that mirrors the exact missing topic IDs and provides a copy-ready public release-body draft.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.158.0 Stable Release Notes Proof Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Tighten stable-publication release-notes proof so weak public GitHub release notes cannot pass stable-v4 publication when they omit the actual evidence packet topics, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.159.0 Release Notes Authoring Kit for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make stable-publication release-notes failures actionable by generating a draft-only release-notes authoring kit that mirrors the exact missing topic IDs and provides a copy-ready public release-body draft, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Tighten stable-publication release-notes proof so weak public GitHub release notes cannot pass stable-v4 publication when they omit the actual evidence packet topics.
+Make stable-publication release-notes failures actionable by generating a draft-only release-notes authoring kit that mirrors the exact missing topic IDs and provides a copy-ready public release-body draft.
 
 ## Completion Receipt
 
-- Completed scope: Added a structured stable-publication release-notes proof matrix that analyzes the full GitHub release body, emits a digest and exact missing topic IDs, renders the matrix in Markdown, and blocks stable-v4 publication when notes omit downloaded release assets, post-release consumer proof, independent adoption evidence, final security review, or non-claim boundaries.
-- Evidence: Passed: python3 -m py_compile scripts/v4_stable_publication.py; ./tests/v4_stable_publication_test.sh with a weak-notes negative fixture proving releaseNotesProof blocks even when candidate packet, release assets, adoption evidence, and security evidence pass.
+- Completed scope: Added stablePublicationReleaseNotesAuthoringKit to v4 stable-publication, writes stable-publication-release-notes/README.md, release-notes-checklist.json, and draft-release-notes.md on every run, renders Release Notes Authoring Kit in Markdown, and teaches ios report-quality plus package proof to require the authoring path.
+- Evidence: Passed: python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh. Weak-notes fixture now proves the authoring kit mirrors releaseNotesProof.missingTopicIds and writes draft release notes.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.159.0 Release Notes Authoring Kit for jlekerli-source/ShipGuard:
+/plan v3.160.0 Stable Publication Report Quality Fixtures for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Tighten stable-publication release-notes proof so weak public GitHub release not
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.159.0 Release Notes Authoring Kit for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.160.0 Stable Publication Report Quality Fixtures for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.159.0 --title "Release Notes Authoring Kit" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.160.0 --title "Stable Publication Report Quality Fixtures" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.158.0.
+1. Open or update the tracking issue for v3.159.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.158.0` and upload `dist/shipguard-v3.158.0.tar.gz`.
+6. Create release `v3.159.0` and upload `dist/shipguard-v3.159.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

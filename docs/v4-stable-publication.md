@@ -46,9 +46,13 @@ Outputs:
 - `stable-publication-evidence-kit/stable-publication-checklist.json`
 - `stable-publication-evidence-kit/external-adoption-evidence.json`
 - `stable-publication-evidence-kit/security-review-evidence.json`
+- `stable-publication-release-notes/README.md`
+- `stable-publication-release-notes/release-notes-checklist.json`
+- `stable-publication-release-notes/draft-release-notes.md`
 - `stablePublicationEvidencePacket` in JSON, rendered as `Evidence Packet` in Markdown
 - `stablePublicationEvidenceTemplates` in JSON, rendered as `Evidence Templates` in Markdown
 - `stablePublicationEvidenceStarterKit` in JSON, rendered as `Evidence Starter Kit` in Markdown
+- `stablePublicationReleaseNotesAuthoringKit` in JSON, rendered as `Release Notes Authoring Kit` in Markdown
 
 ## Stable Gates
 
@@ -79,6 +83,18 @@ The release notes must mention:
 - non-claims or blocked claims
 
 Markdown renders the same matrix under `Release Notes Proof` so maintainers can fix the public release text without reading JSON.
+
+## Release Notes Authoring Kit
+
+Every run also writes `stable-publication-release-notes/` inside the report directory.
+
+This directory is a draft-only authoring aid, not proof that the public GitHub release was edited. It contains:
+
+- `README.md` with public-release-body rules and the rerun command
+- `release-notes-checklist.json` with the same topic matrix and missing topic IDs from `releaseNotesProof`
+- `draft-release-notes.md` with a copy-ready stable-publication section covering release assets, post-release consumer proof, independent adoption, final security review, and non-claims
+
+The report exposes the same artifact as `stablePublicationReleaseNotesAuthoringKit`, and Markdown renders it under `Release Notes Authoring Kit`. `ios report-quality` flags stable-publication reports that expose release-note gaps but do not give maintainers a draft/checklist path to fix the public release body.
 
 ## Evidence Packet
 
