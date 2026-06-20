@@ -6,6 +6,24 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current InspectDeck Fixture Promotion
+
+The latest read-only QA rotation moved away from Full Audit after all four current Full Audit questions were covered. A fresh `shipguard value-gauntlet` pass also returned `all-actionability-covered`, so the loop used `shipguard inspect` as the next targeted root report source.
+
+InspectDeck produced a useful report-quality gap:
+
+- Question: "Does InspectDeck make the next action obvious without hiding the source proof?"
+- Initial weakness: the question was prioritized, but `ios report-quality --write-fixture-candidates` did not classify InspectDeck proof-state questions as materializable fixture candidates.
+
+This slice closes that gap:
+
+- `ios report-quality` now classifies InspectDeck next-action, missing-input, source-proof, and underlying-evidence questions as `shipguard-inspect-proof-state-fixture` candidates.
+- `fixtures/ios-report-quality/01-shipguard-inspect-does-inspectdeck-make-the-next-action-obvious` promotes the top InspectDeck question into public synthetic coverage.
+- The promoted fixture stays ShipGuard-only and public-safe, with explicit target-app read-only boundaries.
+- Fresh InspectDeck report-quality now covers the next-action/source-proof question and advances to the missing-inputs question instead of stalling with no candidate.
+
+This keeps the read-only QA rotation moving across root ShipGuard reports instead of relying only on Full Audit or Value Gauntlet.
+
 ## Current Full Audit Slash Handoff Fixture
 
 The latest read-only Full Audit QA pass advanced from the slow-lane rerun question to the slash-handoff freshness question:

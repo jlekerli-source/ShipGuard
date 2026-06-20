@@ -3285,6 +3285,14 @@ def fixture_type_for_question(question: str, tool: str) -> str:
         or "slash handoff" in question_text
     ):
         return "shipguard-full-audit-proof-boundary-fixture"
+    if tool == "shipguard inspect" and (
+        "inspectdeck" in question_text
+        or "source proof" in question_text
+        or "missing inputs" in question_text
+        or "underlying full-audit" in question_text
+        or "plugin evidence" in question_text
+    ):
+        return "shipguard-inspect-proof-state-fixture"
     if is_launchdeck_receipt_question(question_text, tool):
         return "ios-launchdeck-receipt-quality-fixture"
     if "design-system coherence" in question_text or "design coherence" in question_text:
@@ -3374,6 +3382,11 @@ def should_create_fixture_candidate(question: str) -> bool:
             "starter skills",
             "actionable routing",
             "validation commands",
+            "inspectdeck",
+            "source proof",
+            "missing inputs",
+            "underlying full-audit",
+            "plugin evidence",
         )
     )
 
