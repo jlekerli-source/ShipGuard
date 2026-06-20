@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Improved the one-command installer proof path: `scripts/install.sh` now emits a compact `ShipGuard Install Receipt` with exact installed-binary next commands and a `PATH` hint, README uses `$HOME/.local/bin/shipguard` until PATH is configured, and `tests/install_doctor_test.sh` proves a fresh installed CLI can reach the public `prepare` + `verify` pass demo instead of stopping at RepoVitals.
 - Fixed the verify-first launch QA loop: `ios report-quality --write-fixture-candidates` now classifies `shipguard prepare` and `shipguard verify` actionability questions as `shipguard-verify-first-task-contract-fixture` candidates and materializes durable-object, unsupported-claim, scope-boundary, structured-receipt, and simulator/device proof questions from the public quickstart demo instead of ranking them without fixture starters.
 - Promoted the stable-publication evidence starter-kit actionability question into `fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-481951ae`, so fresh stable-publication report-quality now covers the full current five-question sequence and moves to a fresh ShipGuard QA source instead of re-materializing starter-kit candidates.
 - Added `leanDebtLedger` to `shipguard lean audit`: ShipGuard now harvests `ponytail:` and `shipguard-lean:` shortcut comments, reports their ceilings and upgrade triggers, flags markers without triggers, renders the ledger in Markdown, and tests the behavior with a public fixture so precise-code shortcuts stay auditable instead of becoming hidden debt.

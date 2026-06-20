@@ -12,7 +12,7 @@ PREFIX="$HOME/.local" ./scripts/install.sh
 "$HOME/.local/bin/shipguard" validate
 ```
 
-Add `$HOME/.local/bin` to `PATH` if you want to run `shipguard` without the absolute path.
+The installer prints a compact `ShipGuard Install Receipt` with status, installed paths, a `PATH` hint, and exact next commands for `version`, `validate`, `init`, `doctor`, `prepare`, and `verify`. Add `$HOME/.local/bin` to `PATH` if you want to run `shipguard` without the absolute path.
 
 ## Prove A Target Repo Is Ready
 

@@ -47,15 +47,17 @@ From a ShipGuard checkout or release package:
 
 ```bash
 PREFIX="$HOME/.local" ./scripts/install.sh
-shipguard version
-shipguard validate
+"$HOME/.local/bin/shipguard" version
+"$HOME/.local/bin/shipguard" validate
 ```
+
+The installer prints a short install receipt with the exact next commands and a `PATH` hint. Add `$HOME/.local/bin` to `PATH` when you want to run `shipguard` without the absolute path.
 
 Add ShipGuard starter files to a project:
 
 ```bash
-shipguard init ios .
-shipguard doctor ios .
+"$HOME/.local/bin/shipguard" init ios .
+"$HOME/.local/bin/shipguard" doctor ios .
 ```
 
 Starter profiles are available for `ios`, `web`, `backend`, and `cli`.
