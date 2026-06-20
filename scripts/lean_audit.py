@@ -354,6 +354,87 @@ def scan_file(root: Path, path: Path) -> list[dict[str, Any]]:
     return findings
 
 
+def precision_action_for(item: dict[str, Any]) -> str:
+    rule_id = str(item.get("ruleId", ""))
+    if rule_id in {"native-date-input", "native-color-input", "native-dialog"}:
+        return "Try the native/platform control first; keep custom code only if product behavior needs it."
+    if rule_id == "manual-url-params":
+        return "Replace hand parsing with URL/URLSearchParams when tests prove equivalent edge-case behavior."
+    if rule_id in {"dependency-date-helper-review", "dependency-small-helper-review"}:
+        return "List imports before changing anything; remove the dependency only when usage is trivial and covered."
+    if rule_id == "thin-wrapper-review":
+        return "Inline or delete the wrapper if search proves it adds no policy, naming, compatibility, or test value."
+    if rule_id == "large-legacy-file-review":
+        return "Do not split the whole file first; start at the first marker line and prove one removable branch."
+    return str(item.get("recommendation", "Review whether this code still earns its complexity."))
+
+
+def build_precision_review(findings: list[dict[str, Any]]) -> dict[str, Any]:
+    """Turn raw lean findings into a Ponytail-style action ledger."""
+    candidates = [item for item in findings if item.get("severity") in {"review", "opportunity"}]
+    delete_list: list[dict[str, Any]] = []
+    keep_list: list[dict[str, Any]] = []
+    simplify_first: list[dict[str, Any]] = []
+    blocked_by_proof: list[dict[str, Any]] = []
+
+    for index, item in enumerate(candidates, start=1):
+        evidence = item.get("evidence", {})
+        file_name = str(evidence.get("file", ""))
+        line = evidence.get("line")
+        location = f"{file_name}:{line}" if line else file_name
+        entry = {
+            "rank": index,
+            "ruleId": item.get("ruleId"),
+            "location": location,
+            "severity": item.get("severity"),
+            "action": precision_action_for(item),
+            "proofRequired": item.get("proofGuidance"),
+        }
+        rule_id = str(item.get("ruleId", ""))
+        if rule_id == "thin-wrapper-review":
+            delete_list.append({**entry, "deleteWhen": "Search proves the wrapper is private and behavior-neutral."})
+        elif rule_id in {"large-legacy-file-review"}:
+            blocked_by_proof.append(entry)
+        else:
+            simplify_first.append(entry)
+
+    safety_items = [item for item in findings if item.get("ruleId") == "do-not-cut-safety-logic-without-proof"]
+    for item in safety_items[:20]:
+        evidence = item.get("evidence", {})
+        keep_list.append(
+            {
+                "ruleId": item.get("ruleId"),
+                "location": str(evidence.get("file", "")),
+                "reason": "Safety boundary detected; less-code pressure is not enough.",
+                "proofRequired": item.get("proofGuidance"),
+            }
+        )
+
+    top_actions = (delete_list + simplify_first + blocked_by_proof)[:5]
+    return {
+        "principle": "The best ShipGuard code is the code that proves it needs to exist.",
+        "decisionLadder": [
+            {"rung": 1, "question": "Does this need to exist?", "shipguardAction": "delete or skip when proof says no"},
+            {"rung": 2, "question": "Can the standard library do it?", "shipguardAction": "replace custom parsing/formatting with stdlib"},
+            {"rung": 3, "question": "Can the native platform do it?", "shipguardAction": "prefer platform controls and platform proof"},
+            {"rung": 4, "question": "Is an installed dependency already enough?", "shipguardAction": "reuse before adding a wrapper"},
+            {"rung": 5, "question": "Can one clear line replace a helper?", "shipguardAction": "inline private thin wrappers"},
+            {"rung": 6, "question": "What is the minimum code that works?", "shipguardAction": "write only the proven missing behavior"},
+        ],
+        "deleteList": delete_list[:20],
+        "simplifyFirst": simplify_first[:20],
+        "keepList": keep_list[:20],
+        "blockedByProof": blocked_by_proof[:20],
+        "topActions": top_actions,
+        "summary": {
+            "deleteCandidates": len(delete_list),
+            "simplifyCandidates": len(simplify_first),
+            "keepBoundaries": len(keep_list),
+            "proofBlockedCandidates": len(blocked_by_proof),
+        },
+    }
+
+
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
     root = Path(args.path).resolve()
     if not root.exists():
@@ -371,6 +452,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ),
     )
     emitted_findings = findings[:120]
+    precision_review = build_precision_review(emitted_findings)
     rule_counts = Counter(str(f["ruleId"]) for f in emitted_findings)
     result = "pass" if not [f for f in emitted_findings if f["severity"] in {"review", "opportunity"}] else "review"
     display_root = "." if args.shareable else str(root)
@@ -394,6 +476,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Can one clear line replace a helper?",
             "Only then write the minimum code that works.",
         ],
+        "precisionReview": precision_review,
         "safetyBoundary": [
             "Do not cut trust-boundary validation without proof.",
             "Do not cut data-loss handling without proof.",
@@ -427,7 +510,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ],
         "findings": emitted_findings,
         "nextActions": [
-            "Pick one review/opportunity finding with tests already nearby.",
+            "Start with precisionReview.topActions[0] and prove whether the code earns its complexity.",
+            "If precisionReview.deleteList is empty, do not force deletion; simplify the smallest proven surface instead.",
             "Prove current behavior first, then simplify the smallest surface.",
             "Run shipguard ios report-quality on this Lean Deck output if you are improving ShipGuard itself.",
         ],
@@ -438,6 +522,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "under-prioritized; it is not authorization to edit that target repo."
         )
         report["reportQualityQuestions"] = [
+            "Does precisionReview identify delete, simplify, keep, and proof-blocked decisions instead of dumping findings?",
             "Does Lean Deck separate real simplification candidates from safety-boundary files?",
             "Does each finding explain the proof needed before removing code?",
             "Does the report help a solo developer delete clutter without deleting product behavior?",
@@ -461,6 +546,33 @@ def render_markdown(report: dict[str, Any]) -> str:
     ]
     for step in report["leanLadder"]:
         lines.append(f"- {step}")
+    precision = report.get("precisionReview", {})
+    lines.extend(["", "## Precision Review", ""])
+    summary = precision.get("summary", {})
+    if summary:
+        lines.append(
+            f"- Delete candidates: {summary.get('deleteCandidates', 0)}; "
+            f"simplify candidates: {summary.get('simplifyCandidates', 0)}; "
+            f"keep boundaries: {summary.get('keepBoundaries', 0)}; "
+            f"proof-blocked candidates: {summary.get('proofBlockedCandidates', 0)}"
+        )
+    top_actions = precision.get("topActions", [])
+    if top_actions:
+        lines.extend(["", "| Rank | Decision | Location | Action | Proof |", "| ---: | --- | --- | --- | --- |"])
+        for action in top_actions:
+            decision = "delete" if action in precision.get("deleteList", []) else "simplify"
+            if action in precision.get("blockedByProof", []):
+                decision = "proof-blocked"
+            lines.append(
+                f"| {action.get('rank', '-')} | {decision} | {action.get('location', '')} | "
+                f"{str(action.get('action', '')).replace('|', '\\|')} | "
+                f"{str(action.get('proofRequired', '')).replace('|', '\\|')} |"
+            )
+    keep_list = precision.get("keepList", [])
+    if keep_list:
+        lines.extend(["", "### Keep Without More Proof", ""])
+        for item in keep_list[:8]:
+            lines.append(f"- `{item.get('location', '')}`: {item.get('reason', '')}")
     lines.extend(["", "## Safety Boundary", ""])
     for item in report["safetyBoundary"]:
         lines.append(f"- {item}")

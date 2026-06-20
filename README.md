@@ -109,7 +109,7 @@ Most users only need these:
 | `shipguard doctor <profile> <repo>` | Check whether the workflow files are present. |
 | `shipguard prepare ...` | Create a scoped task contract before agent work. |
 | `shipguard verify ...` | Check a diff, evidence, and claims after agent work. |
-| `shipguard lean audit ...` | Find code that may not need to exist, with proof-required safety boundaries. |
+| `shipguard lean audit ...` | Find code that may not need to exist, with a delete/simplify/keep ledger and proof-required safety boundaries. |
 | `shipguard docs-check ...` | Find broken local Markdown links. |
 | `shipguard full-audit ...` | Run a broader ShipGuard maintainer audit. |
 

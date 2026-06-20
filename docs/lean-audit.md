@@ -22,6 +22,14 @@ Repo-level audits skip public fixtures, examples, tests, generated packages, and
 
 Large-file findings include a `leanEvidence` packet instead of only saying “this file is big.” The packet records line count, legacy/TODO marker count, first marker lines, safety context, and a first-action hint. The Markdown report mirrors that in a Lean Evidence Packets table so a maintainer can start with a small marker cluster instead of staring at a giant file.
 
+Lean Deck also emits `precisionReview`, a ShipGuard-native Ponytail-style action ledger:
+
+- `deleteList`: private thin wrappers or needless helper surfaces that may be removable after search proof.
+- `simplifyFirst`: native, standard-library, or dependency replacements to try before writing more code.
+- `keepList`: safety-boundary files where less-code pressure is not enough.
+- `blockedByProof`: large or risky candidates that need call-site evidence before edits.
+- `topActions`: the first few concrete bets a maintainer should inspect.
+
 ## What It Checks
 
 - Does this code need to exist?

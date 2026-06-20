@@ -124,7 +124,7 @@ Use `lean audit` when you want ShipGuard to look for code that may not need to e
   --shareable
 ```
 
-The command writes `lean-audit.json` and `lean-audit.md`. It reports native platform, standard-library, dependency, and thin-wrapper opportunities, while marking security, validation, data-loss, permission, payment, migration, and accessibility files as proof-required safety boundaries. See `lean-audit.md`.
+The command writes `lean-audit.json` and `lean-audit.md`. It reports native platform, standard-library, dependency, and thin-wrapper opportunities, while marking security, validation, data-loss, permission, payment, migration, and accessibility files as proof-required safety boundaries. The JSON includes `precisionReview.deleteList`, `simplifyFirst`, `keepList`, `blockedByProof`, and `topActions` so the output is a concrete simplification ledger instead of a generic finding dump. See `lean-audit.md`.
 
 ## Release Package Hygiene
 
