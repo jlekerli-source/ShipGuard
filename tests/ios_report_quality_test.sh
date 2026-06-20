@@ -2245,21 +2245,26 @@ import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 covered_question = "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?"
+stable_publication_question = "Can ShipGuard prove stable-v4 publication with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof?"
+next_uncovered_question = "Should ShipGuard stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption?"
 coverage = data.get("fixtureCoverage") or []
 if not any(item.get("question") == covered_question for item in coverage):
     raise SystemExit(f"expected value-gauntlet question to be covered by a promoted fixture: {coverage!r}")
+if not any(item.get("question") == stable_publication_question for item in coverage):
+    raise SystemExit(f"expected stable-publication value-gauntlet question to be covered by a promoted fixture: {coverage!r}")
 for item in coverage:
     if item.get("question") == covered_question and item.get("publicFixturePath") != "fixtures/ios-report-quality/value-gauntlet-actionability":
         raise SystemExit(f"unexpected coverage path: {item!r}")
+    if item.get("question") == stable_publication_question and item.get("publicFixturePath") != "fixtures/ios-report-quality/stable-publication-value-gauntlet-question":
+        raise SystemExit(f"unexpected stable-publication coverage path: {item!r}")
 for candidate in data.get("fixtureCandidates") or []:
-    if candidate.get("sourceQuestion") == covered_question:
+    if candidate.get("sourceQuestion") in {covered_question, stable_publication_question}:
         raise SystemExit(f"covered value-gauntlet question should not create a duplicate fixture candidate: {candidate!r}")
 priority = data.get("priorityAction") or {}
-if priority.get("question") == covered_question:
+if priority.get("question") in {covered_question, stable_publication_question}:
     raise SystemExit(f"covered value-gauntlet question should not remain the priority action: {priority!r}")
-expected_stable_release = "Can ShipGuard prove stable-v4 publication with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof?"
-if priority.get("question") != expected_stable_release:
-    raise SystemExit(f"expected next uncovered stable-v4 publication question as priority: {priority!r}")
+if priority.get("question") != next_uncovered_question:
+    raise SystemExit(f"expected next uncovered product-release stabilization question as priority: {priority!r}")
 PY
 
 mixed_release_priority_dir="$tmp_dir/mixed-release-priority"
@@ -2492,18 +2497,22 @@ import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 priority = data.get("priorityAction") or {}
-expected = "Can ShipGuard prove stable-v4 publication with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof?"
+covered = "Can ShipGuard prove stable-v4 publication with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof?"
+expected = "Should ShipGuard stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption?"
 if priority.get("tool") != "shipguard value-gauntlet":
     raise SystemExit(f"expected stable publication value-gauntlet priority: {priority!r}")
 if priority.get("question") != expected:
-    raise SystemExit(f"expected stable-v4 publication question, got {priority!r}")
+    raise SystemExit(f"expected next uncovered product-stabilization question, got {priority!r}")
 if priority.get("priorityReason") != "value-gauntlet lowest-value surface is stable-v4 publication":
     raise SystemExit(f"expected stable-v4 source-priority reason, got {priority!r}")
-if "product release stabilization" in priority.get("question", "").lower():
-    raise SystemExit(f"stale product-stabilization question leaked into stable-v4 priority: {priority!r}")
+coverage = data.get("fixtureCoverage") or []
+if not any(item.get("question") == covered and item.get("publicFixturePath") == "fixtures/ios-report-quality/stable-publication-value-gauntlet-question" for item in coverage):
+    raise SystemExit(f"stable-v4 publication question should be covered by the promoted fixture: {coverage!r}")
 ranked = data.get("prioritizedActionabilityQuestions") or []
-if not ranked or ranked[0].get("question") != expected:
-    raise SystemExit(f"stable-v4 injected question did not rank first: {ranked!r}")
+if not ranked or ranked[0].get("question") != covered or not ranked[0].get("existingFixture"):
+    raise SystemExit(f"covered stable-v4 question should stay visible with existing fixture metadata: {ranked!r}")
+if len(ranked) < 2 or ranked[1].get("question") != expected:
+    raise SystemExit(f"next uncovered product-stabilization question should follow covered item: {ranked!r}")
 PY
 
 stable_publication_packet_dir="$tmp_dir/stable-publication-packet"
@@ -2759,6 +2768,33 @@ assert "fixtures/ios-report-quality/stable-publication-complete" in coverage_pat
 assert "fixtures/ios-report-quality/stable-publication-release-notes-authoring" in coverage_paths
 assert data.get("fixtureCandidates") == []
 assert data.get("priorityAction", {}).get("kind") == "review-existing-fixture"
+PY
+
+stable_publication_value_fixture="fixtures/ios-report-quality/stable-publication-value-gauntlet-question"
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_value_fixture" \
+  --out "$tmp_dir/stable-publication-value-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/stable-publication-value-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/stable-publication-value-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/stable-publication-value-gauntlet-question"' "$tmp_dir/stable-publication-value-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/stable-publication-value-fixture-quality/ios-report-quality.json"
+grep -q 'stable-v4 publication' "$tmp_dir/stable-publication-value-fixture-quality/ios-report-quality.md"
+python3 - <<'PY' "$tmp_dir/stable-publication-value-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard value-gauntlet", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/stable-publication-value-gauntlet-question", item
+assert "stable-v4 publication" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/stable-publication-value-gauntlet-question", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 
 json_stdout="$(./bin/shipguard ios report-quality --reports "$reports" --json)"

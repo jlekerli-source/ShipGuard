@@ -73,6 +73,19 @@ This slice turns the stable-publication surface into reusable public QA:
 
 This keeps the next loop moving to new product gaps instead of repeatedly rediscovering the stable-publication authoring work.
 
+## Current Stable Publication Value-Gauntlet Fixture
+
+The next ShipGuard-only read-only QA pass used `shipguard value-gauntlet` and then graded that report with `shipguard ios report-quality`. The gauntlet correctly passed the fixture-backed proof families and identified the remaining real-world gap: stable-v4 publication still needs public GitHub release assets, independent adoption evidence, final security-review evidence, release notes, and post-release consumer proof.
+
+The report-quality weakness was loop hygiene. That stable-v4 publication question is now a known external/publication gate, but it still appeared as a new fixture candidate. This slice promotes the question into a public synthetic fixture:
+
+- `fixtures/ios-report-quality/stable-publication-value-gauntlet-question` records the value-gauntlet stable-publication question without private app data.
+- `ios report-quality` now reports it as existing fixture coverage and emits no duplicate `fixtureCandidates` for that question.
+- The priority action advances to the next uncovered product-release stabilization question while the ranked list still shows the covered stable-publication question with existing fixture metadata.
+- Focused report-quality and package tests prove the fixture ships and keeps the ShipGuard-only/read-only boundary explicit.
+
+This keeps the loop honest: ShipGuard does not fake real stable-v4 publication evidence, but it also does not waste the next refinement cycle rediscovering the same external evidence gate as a missing public fixture.
+
 ## Current Development Loop Efficiency Receipt
 
 The latest self-QA pass showed a real development-process weakness: after the design observation question was promoted into a public fixture, the existing workflow-chain receipt became too coupled to that now-covered design question. The receipt failed even though the product behavior was improving, which meant the proof loop could waste maintainer time on manual interpretation.
