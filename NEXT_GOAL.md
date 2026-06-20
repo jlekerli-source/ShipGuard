@@ -1,14 +1,14 @@
 # Next Goal
 
-- Generated: 2026-06-20T16:31:28Z
+- Generated: 2026-06-20T16:50:52Z
 - Current toolkit version: 3.131.0
-- Target release: v3.194.0
-- Title: Stable Publication Evidence Starter Kit Fixture
+- Target release: v3.195.0
+- Title: Verify-First Launch Quickstart QA
 
 ## Slash Plan
 
 ```text
-/plan v3.194.0 Stable Publication Evidence Starter Kit Fixture for jlekerli-source/ShipGuard:
+/plan v3.195.0 Verify-First Launch Quickstart QA for jlekerli-source/ShipGuard:
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
@@ -18,19 +18,19 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.194.0 Stable Publication Evidence Starter Kit Fixture for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.195.0 Verify-First Launch Quickstart QA for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Completion Receipt
 
-- Completed scope: Promoted the stable-publication draft-only evidence starter-kit actionability question into a public synthetic fixture carrying the real starter-kit manifest, evidence packet, templates, release-notes authoring kit, blocked claims, and result UX sections.
-- Evidence: Passed: ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-481951ae --out /tmp/shipguard-promoted-stable-starter-quality --shareable; ./tests/ios_report_quality_test.sh; rerunning stable-publication report-quality now reports all five stable-publication actionability questions covered and emits no fixture candidates.
+- Completed scope: Fixed the verify-first report-quality loop so public prepare/verify quickstart actionability questions materialize as ShipGuard-native fixture candidates.
+- Evidence: Passed: python3 -m py_compile scripts/ios_report_quality.py; ./tests/ios_report_quality_test.sh. A fresh read-only verify-first pass/review/blocked run now emits five shipguard-verify-first-task-contract-fixture candidates with materialized starter files.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.195.0 Verify-First Launch Quickstart QA for jlekerli-source/ShipGuard:
+/plan v3.196.0 One-Command Installer Proof Path QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -40,13 +40,13 @@
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.195.0 Verify-First Launch Quickstart QA for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.196.0 One-Command Installer Proof Path QA for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.195.0 --title "Verify-First Launch Quickstart QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.196.0 --title "One-Command Installer Proof Path QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -146,12 +146,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.194.0.
+1. Open or update the tracking issue for v3.195.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.194.0` and upload `dist/shipguard-v3.194.0.tar.gz`.
+6. Create release `v3.195.0` and upload `dist/shipguard-v3.195.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

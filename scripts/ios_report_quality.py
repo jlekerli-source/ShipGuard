@@ -99,6 +99,8 @@ TOOL_NEXT_ACTION_PRIORITY = {
     "shipguard lean audit": 0,
     "shipguard full-audit": 0,
     "shipguard inspect": 0,
+    "shipguard prepare": 0,
+    "shipguard verify": 0,
     "shipguard web audit": 1,
     "shipguard backend audit": 1,
     "shipguard cli audit": 1,
@@ -3296,6 +3298,15 @@ def fixture_type_for_question(question: str, tool: str) -> str:
     text = normalized_question_text(f"{tool} {question}")
     question_text = normalized_question_text(question)
     if (
+        tool in {"shipguard prepare", "shipguard verify"}
+        or "task contract" in text
+        or "verify-first" in text
+        or "proof report" in text
+        or "unsupported completion claim" in text
+        or "durable object" in text
+    ):
+        return "shipguard-verify-first-task-contract-fixture"
+    if (
         tool == "shipguard codex marketplace-readiness"
         or "marketplace-readiness" in text
         or "marketplacedeck" in text
@@ -3449,6 +3460,19 @@ def should_create_fixture_candidate(question: str) -> bool:
             "concrete next proof step",
             "broad product wish",
             "roadmap prose",
+            "task contract",
+            "durable object",
+            "goal, risk, scope, proof",
+            "unsupported completion claim",
+            "unsupported completion claims",
+            "exact next action",
+            "permission-state",
+            "denied-state",
+            "physical-device prompt",
+            "owner scopes",
+            "review-only lifecycle",
+            "forbidden entitlement",
+            "forbidden entitlement/project",
         )
     )
 

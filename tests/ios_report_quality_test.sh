@@ -3619,6 +3619,85 @@ do
   grep -q '"fixtureCandidates": \[\]' "$tmp_dir/$(basename "$fixture")-quality/ios-report-quality.json"
 done
 
+verify_first_reports="$tmp_dir/verify-first-reports"
+./bin/shipguard prepare \
+  "Add notification permission copy" \
+  --path fixtures/demo-ios-repo \
+  --out "$verify_first_reports/task" \
+  --profile ios \
+  --validation "swift test" \
+  --shipguard-eval \
+  --shareable >/dev/null
+./bin/shipguard verify \
+  --task "$verify_first_reports/task/shipguard-task.json" \
+  --diff examples/verify-first/diffs/scoped-permission.diff \
+  --evidence examples/verify-first/receipts/swift-test-receipt.json \
+  --claim "Implemented scoped notification permission copy." \
+  --out "$verify_first_reports/pass" >/dev/null
+./bin/shipguard verify \
+  --task "$verify_first_reports/task/shipguard-task.json" \
+  --diff examples/verify-first/diffs/scoped-permission.diff \
+  --evidence examples/verify-first/receipts/swift-test.log \
+  --claim "Implemented scoped notification permission copy." \
+  --out "$verify_first_reports/review" >/dev/null
+set +e
+./bin/shipguard verify \
+  --task "$verify_first_reports/task/shipguard-task.json" \
+  --diff examples/verify-first/diffs/protected-workflow.diff \
+  --evidence examples/verify-first/receipts/swift-test-receipt.json \
+  --claim "Notification permission copy is fully verified." \
+  --out "$verify_first_reports/blocked" >/dev/null
+verify_first_blocked_status=$?
+set -e
+if [[ "$verify_first_blocked_status" -ne 2 ]]; then
+  echo "expected verify-first blocked report to exit 2, got $verify_first_blocked_status" >&2
+  exit 1
+fi
+./bin/shipguard ios report-quality \
+  --reports "$verify_first_reports" \
+  --out "$tmp_dir/verify-first-quality" \
+  --write-fixture-candidates "$tmp_dir/verify-first-fixture-candidates" \
+  --shareable >/dev/null
+python3 - <<'PY' "$tmp_dir/verify-first-quality/ios-report-quality.json" "$tmp_dir/verify-first-fixture-candidates"
+import json
+import sys
+from pathlib import Path
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+candidate_root = Path(sys.argv[2])
+questions = [
+    "Did prepare produce one durable object connecting goal, risk, scope, proof, claims, and verdict?",
+    "Can verify reject unsupported completion claims with an exact next action?",
+    "Did prepare identify notification/permission owner scopes, review-only lifecycle/plist surfaces, and forbidden entitlement/project changes?",
+    "Did verify require permission-state and denied-state proof instead of treating a generic test log as enough?",
+    "Did the verdict separate simulator denied-state proof from physical-device prompt proof before release claims?",
+]
+candidates = data.get("fixtureCandidates") or []
+if [item.get("sourceQuestion") for item in candidates] != questions:
+    raise SystemExit(f"verify-first candidates did not match questions: {candidates!r}")
+if {item.get("fixtureType") for item in candidates} != {"shipguard-verify-first-task-contract-fixture"}:
+    raise SystemExit(f"unexpected verify-first fixture types: {candidates!r}")
+priority = data.get("priorityAction") or {}
+if priority.get("kind") != "answer-actionability-question":
+    raise SystemExit(f"expected actionability priority, got {priority!r}")
+if "write-fixture-candidates" not in str(priority.get("nextCommand") or ""):
+    raise SystemExit(f"expected materialization next command, got {priority!r}")
+for item in candidates:
+    candidate_id = item.get("candidateId")
+    if not candidate_id:
+        raise SystemExit(f"missing candidate id: {item!r}")
+    directory = candidate_root / candidate_id
+    expected = {"README.md", "fixture-candidate.json", "fixture-report.json", "fixture-report.md"}
+    actual = {path.name for path in directory.iterdir()} if directory.is_dir() else set()
+    if not expected <= actual:
+        raise SystemExit(f"materialized files missing for {candidate_id}: {actual!r}")
+    report = json.load(open(directory / "fixture-report.json", encoding="utf-8"))
+    if report.get("tool") != "shipguard prepare":
+        raise SystemExit(f"expected synthetic verify-first fixture to keep source tool, got {report.get('tool')!r}")
+    if report.get("scopeBoundary", {}).get("shipguardOnly") is not True:
+        raise SystemExit(f"missing ShipGuard-only boundary in {directory}")
+PY
+
 python3 - <<'PY'
 import json
 from pathlib import Path
