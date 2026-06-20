@@ -48,7 +48,7 @@ if data.get("path") != "<shipguard-repo>":
 summary = data.get("summary") or {}
 if summary.get("requiredFailureCount") != 0 or summary.get("passedCheckCount") != summary.get("checkCount"):
     raise SystemExit(f"unexpected summary: {summary!r}")
-for key in ["resultUX", "pluginMetadata", "marketplaceSource", "publicAssets", "installProof", "statusProof", "submissionPacket", "scopeBoundary"]:
+for key in ["resultUX", "pluginMetadata", "marketplaceSource", "publicAssets", "publicOnboarding", "installProof", "statusProof", "submissionPacket", "scopeBoundary"]:
     if key not in data:
         raise SystemExit(f"missing key: {key}")
 if data["resultUX"].get("status") != "pass":
@@ -72,12 +72,25 @@ if "model selection happens outside ShipGuard" not in packet.get("modelChoiceBou
     raise SystemExit(f"model boundary missing: {packet.get('modelChoiceBoundary')!r}")
 if not data["scopeBoundary"].get("shipguardOnly") or data["scopeBoundary"].get("mutatesPluginCache"):
     raise SystemExit(f"scope boundary wrong: {data['scopeBoundary']!r}")
+docs_index = data["publicOnboarding"].get("docsIndex") or {}
+if docs_index.get("path") != "docs/index.md":
+    raise SystemExit(f"docs index path missing: {docs_index!r}")
+if not docs_index.get("passed"):
+    raise SystemExit(f"docs index clarity did not pass: {docs_index!r}")
+if docs_index.get("hasCommandDump") or docs_index.get("hasReleaseWall"):
+    raise SystemExit(f"docs index still has onboarding clutter: {docs_index!r}")
+if docs_index.get("numberedStepCount", 99) > docs_index.get("limits", {}).get("maxNumberedSteps", 0):
+    raise SystemExit(f"docs index has too many numbered steps: {docs_index!r}")
+if not any(check.get("id") == "docs-index-onboarding-clarity" and check.get("passed") for check in data.get("checks", [])):
+    raise SystemExit("docs-index-onboarding-clarity check missing or failing")
 PY
 
 grep -q '# ShipGuard Codex Marketplace Readiness' "$tmp_dir/readiness/codex-marketplace-readiness.md"
 grep -q '## Result' "$tmp_dir/readiness/codex-marketplace-readiness.md"
 grep -q '## Submission Packet' "$tmp_dir/readiness/codex-marketplace-readiness.md"
 grep -q '## Public Assets' "$tmp_dir/readiness/codex-marketplace-readiness.md"
+grep -q '## Public Onboarding' "$tmp_dir/readiness/codex-marketplace-readiness.md"
+grep -q 'docs-index-onboarding-clarity' "$tmp_dir/readiness/codex-marketplace-readiness.md"
 grep -q 'GitHub social preview' "$tmp_dir/readiness/codex-marketplace-readiness.md"
 grep -q 'codex plugin add ios-shipguard@shipguard' "$tmp_dir/readiness/codex-marketplace-readiness.md"
 grep -q 'Do not fabricate screenshots' "$tmp_dir/readiness/codex-marketplace-readiness.md"

@@ -6,6 +6,18 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current MarketplaceDeck Docs-Index Clarity Fixture Promotion
+
+The next read-only MarketplaceDeck QA pass started from a real product weakness: the README had been simplified, but `docs/index.md` still behaved like a command dump. `shipguard codex marketplace-readiness` and `ios report-quality` both passed before the cleanup, which showed a ShipGuard weakness rather than an app weakness:
+
+- Question: "Can docs/index.md guide first-time users without a long command dump or stale release wall?"
+- Candidate type: `shipguard-marketplace-readiness-fixture`
+- Product weakness: public marketplace readiness must check human onboarding clarity, not only plugin metadata, install proof, icons, screenshots, and submission-packet fields.
+
+This slice adds a native MarketplaceDeck public-onboarding check. `shipguard codex marketplace-readiness` now emits `publicOnboarding.docsIndex` with line, link, numbered-step, command-dump, and release-wall signals; Markdown renders a `Public Onboarding` section; strict readiness fails if the docs index becomes a giant first-run command list again.
+
+This slice also promotes `fixtures/ios-report-quality/01-shipguard-codex-marketplace-readiness-can-docs-index-md-guide-fi` as public synthetic coverage. Fresh MarketplaceDeck report-quality now covers fresh-user comprehension, plugin install freshness, submission-packet readiness, and docs-index clarity before advancing to GitHub About/sidebar and social-preview alignment.
+
 ## Current MarketplaceDeck Submission-Packet Fixture Promotion
 
 The next read-only MarketplaceDeck QA pass started from the state where fresh-user comprehension and plugin install freshness were already covered by promoted public fixtures. Fresh `shipguard codex marketplace-readiness` plus `ios report-quality --write-fixture-candidates` advanced to the next marketplace-readiness gap:

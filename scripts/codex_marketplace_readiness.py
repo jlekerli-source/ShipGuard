@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -108,6 +109,40 @@ def check_text_contains(text: str, phrases: list[str]) -> bool:
     return all(phrase.lower() in lowered for phrase in phrases)
 
 
+def docs_index_clarity(index_text: str) -> dict[str, Any]:
+    line_count = len(index_text.splitlines())
+    numbered_step_count = len(re.findall(r"(?m)^\d+\.\s+", index_text))
+    link_count = len(re.findall(r"\[[^\]]+\]\([^)]+\)", index_text))
+    has_start_here = "## Start Here" in index_text
+    has_first_run = "## First Useful Run" in index_text or "## Quickstart" in index_text
+    has_command_dump = "## First 30 Minutes" in index_text or numbered_step_count > 16
+    has_release_wall = "Current published release:" in index_text[:1200] or "Active `main` work currently contains" in index_text[:1600]
+    passed = (
+        has_start_here
+        and has_first_run
+        and not has_command_dump
+        and not has_release_wall
+        and numbered_step_count <= 12
+        and link_count <= 80
+        and line_count <= 180
+    )
+    return {
+        "passed": passed,
+        "lineCount": line_count,
+        "linkCount": link_count,
+        "numberedStepCount": numbered_step_count,
+        "hasStartHere": has_start_here,
+        "hasFirstRun": has_first_run,
+        "hasCommandDump": has_command_dump,
+        "hasReleaseWall": has_release_wall,
+        "limits": {
+            "maxLines": 180,
+            "maxLinks": 80,
+            "maxNumberedSteps": 12,
+        },
+    }
+
+
 def run_codex_status(root: Path, cache: Path | None, shareable: bool) -> dict[str, Any]:
     command = [str(root / "scripts" / "codex_status.sh"), "--strict"]
     if cache is not None:
@@ -159,6 +194,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     readme_path = root / "README.md"
     readiness_doc_path = root / "docs" / "codex-marketplace-readiness.md"
     presentation_doc_path = root / "docs" / "github-presentation.md"
+    docs_index_path = root / "docs" / "index.md"
     codex_status_doc_path = root / "docs" / "codex-status.md"
     adoption_doc_path = root / "docs" / "adoption-guide.md"
     install_doc_path = root / "docs" / "install-doctor.md"
@@ -174,6 +210,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     readme = read_text(readme_path)
     readiness_doc = read_text(readiness_doc_path)
     presentation_doc = read_text(presentation_doc_path)
+    docs_index_doc = read_text(docs_index_path)
     codex_status_doc = read_text(codex_status_doc_path)
     adoption_doc = read_text(adoption_doc_path)
     install_doc = read_text(install_doc_path)
@@ -374,6 +411,20 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         evidence=rel(presentation_doc_path, root) if presentation_doc_path.is_file() else "missing",
         recommendation="Maintain docs/github-presentation.md as the public GitHub profile and release-page source of truth.",
     )
+    docs_index = docs_index_clarity(docs_index_doc)
+    add_check(
+        checks,
+        category="publicPresentation",
+        rule_id="docs-index-onboarding-clarity",
+        passed=bool(docs_index["passed"]),
+        evidence=(
+            f"lines={docs_index['lineCount']}, links={docs_index['linkCount']}, "
+            f"numberedSteps={docs_index['numberedStepCount']}, "
+            f"commandDump={str(docs_index['hasCommandDump']).lower()}, "
+            f"releaseWall={str(docs_index['hasReleaseWall']).lower()}"
+        ),
+        recommendation="Keep docs/index.md as a short first-user map with a first useful run, not a long command dump or release wall.",
+    )
     for doc_path, doc_text, rule_id, phrase in [
         (codex_status_doc_path, codex_status_doc, "codex-status-doc-install-flow", "codex plugin marketplace add ."),
         (adoption_doc_path, adoption_doc, "adoption-doc-install-flow", "codex plugin marketplace add ."),
@@ -525,11 +576,25 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         },
         "statusProof": status_proof,
         "submissionPacket": submission_packet,
+        "publicOnboarding": {
+            "docsIndex": {
+                "path": rel(docs_index_path, root),
+                **docs_index,
+            },
+            "readmeLead": {
+                "path": rel(readme_path, root),
+                "appNeutral": "Ringly" not in readme[:2500],
+                "mentionsLocalFirst": "local-first" in readme[:2500].lower(),
+                "mentionsOpenSource": "open source" in readme[:2500].lower(),
+                "mentionsAppNeutral": "app-neutral" in readme[:2500].lower(),
+            },
+        },
         "findings": findings,
         "reportQualityQuestions": [
             "Can a fresh Codex user understand what ShipGuard does from the README and plugin listing without prior private-app context?",
             "Can a maintainer prove plugin install freshness from tracked source, local marketplace, and strict status output?",
             "Are icon, composer icon, screenshot policy, privacy notes, model-choice boundary, and proof commands ready for a public marketplace submission packet?",
+            "Can docs/index.md guide first-time users without a long command dump or stale release wall?",
             "Does the GitHub About/sidebar copy and social preview still match the latest published release without claiming unreleased v4 stability?",
         ],
     }
@@ -574,6 +639,20 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.extend(["", "## Public Assets", "", "| Asset | Path | Status |", "| --- | --- | --- |"])
     for item in report["submissionPacket"]["assetChecklist"]:
         lines.append(f"| {table_cell(item['asset'])} | `{table_cell(item['path'])}` | {table_cell(item['status'])} |")
+    docs_index = report["publicOnboarding"]["docsIndex"]
+    lines.extend(
+        [
+            "",
+            "## Public Onboarding",
+            "",
+            f"- Docs index: `{docs_index['path']}`",
+            f"- Lines: {docs_index['lineCount']}",
+            f"- Links: {docs_index['linkCount']}",
+            f"- Numbered steps: {docs_index['numberedStepCount']}",
+            f"- Command dump detected: {str(docs_index['hasCommandDump']).lower()}",
+            f"- Release wall detected: {str(docs_index['hasReleaseWall']).lower()}",
+        ]
+    )
     lines.extend(["", "## Status Proof", ""])
     proof = report["statusProof"]
     lines.append(f"- Command: `{proof['command']}`")

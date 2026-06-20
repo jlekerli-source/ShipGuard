@@ -744,6 +744,17 @@ def question_focus_priority(row: dict[str, Any]) -> int:
             priority = min(priority, -30)
         if is_launchdeck_receipt_question(question, tool):
             priority = min(priority, -20)
+    if tool == "shipguard codex marketplace-readiness" and any(
+        token in question
+        for token in (
+            "docs/index",
+            "first-time users",
+            "command dump",
+            "release wall",
+            "onboarding",
+        )
+    ):
+        priority = min(priority, -20)
     if release_stabilization_signal_text(question):
         priority = min(priority, -35)
     if launchkey_release_artifact_question(question):
@@ -3402,6 +3413,11 @@ def should_create_fixture_candidate(question: str) -> bool:
             "model-choice boundary",
             "github about",
             "social preview",
+            "docs/index",
+            "first-time users",
+            "command dump",
+            "release wall",
+            "onboarding",
             "plugin install freshness",
             "tracked source",
             "strict status",
