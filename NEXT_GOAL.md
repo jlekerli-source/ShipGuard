@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-20T03:21:54Z
+- Generated: 2026-06-20T03:39:05Z
 - Current toolkit version: 3.131.0
-- Target release: v3.155.0
-- Title: Stable V4 Publication Evidence Starter Kit
+- Target release: v3.156.0
+- Title: Real Stable V4 Blocked-State UX
 
 ## Slash Plan
 
 ```text
-/plan v3.155.0 Stable V4 Publication Evidence Starter Kit for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make the stable-v4 publication evidence packet concrete and easier to collect without claiming stable v4: every stable-publication report should write a draft-only starter kit with checklist, adoption evidence starter, security-review starter, and clear report-quality coverage.
+/plan v3.156.0 Real Stable V4 Blocked-State UX for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Use the stable-publication starter kit against the real public ShipGuard release state and improve the blocked-state UX where real evidence is unavailable or contradictory.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,39 +18,39 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.155.0 Stable V4 Publication Evidence Starter Kit for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make the stable-v4 publication evidence packet concrete and easier to collect without claiming stable v4: every stable-publication report should write a draft-only starter kit with checklist, adoption evidence starter, security-review starter, and clear report-quality coverage, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.156.0 Real Stable V4 Blocked-State UX for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Use the stable-publication starter kit against the real public ShipGuard release state and improve the blocked-state UX where real evidence is unavailable or contradictory, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make the stable-v4 publication evidence packet concrete and easier to collect without claiming stable v4: every stable-publication report should write a draft-only starter kit with checklist, adoption evidence starter, security-review starter, and clear report-quality coverage.
+Use the stable-publication starter kit against the real public ShipGuard release state and improve the blocked-state UX where real evidence is unavailable or contradictory.
 
 ## Completion Receipt
 
-- Completed scope: Added stablePublicationEvidenceStarterKit to shipguard v4 stable-publication, generated stable-publication-evidence-kit/ with README, checklist JSON, adoption starter JSON, and security-review starter JSON on every run, rendered the kit in Markdown, skipped the generated kit during report-quality recursion, and protected the behavior through focused, report-quality, package, docs, self-audit, and value-gauntlet proof.
-- Evidence: Passed: python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3155-stable-publication-after --out /tmp/shipguard-v3155-stable-publication-after-quality2 --shareable; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3155-starter-kit; ./bin/shipguard validate; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3155-value-gauntlet-after; ./bin/shipguard codex status --strict.
+- Completed scope: Ran LaunchKey and stable-publication against the real public v3.131.0 release assets. Public release assets and current package fresh-install/rollback proof passed, but same-prefix upgrade proof blocked on the previous v3.130.0 tarball's AppleDouble metadata, and stable-publication remained blocked on releaseNotesProof plus missing independent adoption and final security-review evidence. Fixed v4 release-candidate so supplied package/release-asset readiness summary rows reflect actual receipt status, and made the blocked upgrade nextCommand point to package rebuild, package-release proof, and the focused LaunchKey test.
+- Evidence: Passed: gh release view v3.131.0 --repo jlekerli-source/ShipGuard; ./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v3156-real-release-candidate-final --package-tarball dist/shipguard-v3.131.0.tar.gz --upgrade-from-tarball dist/shipguard-v3.130.0.tar.gz --download-release-assets --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --shipguard-eval --shareable (review expected); ./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v3156-real-stable-publication-final --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --release-candidate-report /tmp/shipguard-v3156-real-release-candidate-final --release-assets /tmp/shipguard-v3156-real-release-candidate-final/downloaded-release-assets --release-consume-out /tmp/shipguard-v3156-real-stable-consume-final --shipguard-eval --shareable (review expected); ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3156-real-release-candidate-final --reports /tmp/shipguard-v3156-real-stable-publication-final --out /tmp/shipguard-v3156-real-report-quality-final --shareable; git diff --check; python3 -m py_compile scripts/v4_release_candidate.py; ./tests/v4_release_candidate_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3156-blocked-ux; ./bin/shipguard validate; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3156-value-gauntlet-final; ./bin/shipguard codex status --strict.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.156.0 Real Stable V4 Evidence Packet Collection for jlekerli-source/ShipGuard:
-1. Use the new stable-publication evidence starter kit against the real public ShipGuard release state: run LaunchKey/release-candidate where possible, download or supply release assets, fill or explicitly mark adoption/security evidence as missing, and run `shipguard v4 stable-publication`.
-2. If real evidence is unavailable, improve ShipGuard's blocked-state UX rather than faking proof: add a publication packet status page or command output that says exactly which external artifacts are missing, where to obtain them, and which claims stay forbidden.
-3. Convert any confusing or repetitive blocked-state output into public fixtures, report-quality checks, docs, package proof, and value-gauntlet coverage.
+/plan v3.157.0 Release Package Lineage Hygiene for jlekerli-source/ShipGuard:
+1. Turn the real v3.130.0 AppleDouble blocker into a ShipGuard-owned package-lineage hygiene surface: scan local `dist/shipguard-v*.tar.gz` and optionally downloaded GitHub release assets for forbidden archive members, unsafe links/devices, missing package roots, and install-risk summaries.
+2. Keep the output read-only and honest: do not rewrite historical release assets or claim they are fixed; produce a repair plan, affected versions, safe current baseline, and exact next commands for rebuilding/replacing future packages.
+3. Wire the surface into docs, tests, package proof, and report-quality/value-gauntlet coverage so old package hygiene regressions are caught before LaunchKey upgrade proof.
 4. Generate the next completion receipt and following /plan plus /goal after validation passes, keeping the active goal loop alive.
 ```
 
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.156.0 Real Stable V4 Evidence Packet Collection for jlekerli-source/ShipGuard: follow the following /plan above, use the stable-publication starter kit against the real public ShipGuard release state, either collect the missing real evidence or improve the blocked-state UX so the missing external artifacts and forbidden claims are unmistakable, prove the behavior with fixtures/tests/docs/package/value-gauntlet, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.157.0 Release Package Lineage Hygiene for jlekerli-source/ShipGuard: follow the following /plan above, add a read-only ShipGuard package-lineage hygiene report for release tarballs and downloaded assets, prove it catches the historical AppleDouble blocker without rewriting releases or faking repair, wire docs/tests/package/report-quality/value-gauntlet coverage, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.156.0 --title "Real Stable V4 Evidence Packet Collection" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.157.0 --title "Release Package Lineage Hygiene" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.155.0.
+1. Open or update the tracking issue for v3.156.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.155.0` and upload `dist/shipguard-v3.155.0.tar.gz`.
+6. Create release `v3.156.0` and upload `dist/shipguard-v3.156.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

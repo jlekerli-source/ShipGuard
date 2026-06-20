@@ -4,6 +4,23 @@ Generated: 2026-06-17
 
 This is the current usefulness and refinement evaluation for ShipGuard after the rename and README repositioning work.
 
+## Current Real Stable Publication Blocked-State QA
+
+The latest read-only real-release QA run used the public `v3.131.0` ShipGuard release assets as the target evidence. It found a useful ShipGuard product weakness without editing any target app:
+
+- Public release metadata and downloaded release assets passed consumer verification.
+- Fresh install and rollback proof passed for the current `shipguard-v3.131.0.tar.gz` package.
+- Same-prefix upgrade proof blocked because the previous `v3.130.0` tarball contains generated AppleDouble metadata.
+- Stable publication correctly remained blocked because release notes do not describe stable-v4 publication proof and independent adoption/security evidence is not supplied.
+
+The weakness was report UX: the detailed upgrade receipt said blocked, but the top `Readiness Proof` summary still said `Upgrade: pass` because it was reporting route availability instead of supplied proof status. This slice fixes that:
+
+- `v4 release-candidate` readiness summary rows now prefer actual supplied receipt status for fresh install, upgrade, rollback, and release-consume proof.
+- Blocked same-prefix upgrade proof now points to `./scripts/package_release.sh && ./tests/package_release_test.sh && ./tests/v4_release_candidate_test.sh` instead of only the focused test.
+- Focused tests now assert that blocked supplied upgrade and release-asset proof cannot appear as passing readiness summary rows.
+
+This preserves the honest boundary: real stable v4 remains unclaimed until the public release notes, LaunchKey candidate packet, release assets, independent adoption evidence, and final security review all pass.
+
 ## Current Stable Publication Evidence Starter Kit
 
 The latest read-only stable-publication QA run showed a practical usability gap: ShipGuard could identify the missing stable-v4 evidence packet, but a maintainer still had to assemble the fillable evidence files by hand.

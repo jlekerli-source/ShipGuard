@@ -773,6 +773,17 @@ fi
 test -f "$tmp_dir/missing-upgrade-tarball/v4-release-candidate.json"
 grep -q '"status": "review"' "$tmp_dir/missing-upgrade-tarball/v4-release-candidate.json"
 grep -q '"upgradePackageProof": "blocked"' "$tmp_dir/missing-upgrade-tarball/v4-release-candidate.json"
+python3 - "$tmp_dir/missing-upgrade-tarball/v4-release-candidate.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+assert report["readinessProof"]["upgrade"]["status"] == "blocked"
+assert report["upgradeProof"]["status"] == "blocked"
+assert "./scripts/package_release.sh" in report["blockingProof"]["nextCommand"]
+assert "./tests/package_release_test.sh" in report["blockingProof"]["nextCommand"]
+assert "./tests/v4_release_candidate_test.sh" in report["blockingProof"]["nextCommand"]
+PY
 
 if ./bin/shipguard v4 release-candidate \
   --path . \
@@ -787,6 +798,14 @@ fi
 test -f "$tmp_dir/missing-assets/v4-release-candidate.json"
 grep -q '"status": "review"' "$tmp_dir/missing-assets/v4-release-candidate.json"
 grep -q '"publishedReleaseAssetProof": "blocked"' "$tmp_dir/missing-assets/v4-release-candidate.json"
+python3 - "$tmp_dir/missing-assets/v4-release-candidate.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+assert report["readinessProof"]["releaseProofConsumption"]["status"] == "blocked"
+assert report["releaseProofConsumption"]["status"] == "blocked"
+PY
 
 if ./bin/shipguard v4 release-candidate \
   --path . \

@@ -1380,7 +1380,7 @@ def build_blocking_proof_detail(
             upgrade_package_proof,
             "Supplied previous/candidate package pair failed same-prefix upgrade validation.",
             "Rebuild the package pair, verify package release tests, then rerun LaunchKey with --upgrade-from-tarball against the previous release tarball.",
-            "./tests/v4_release_candidate_test.sh",
+            "./scripts/package_release.sh && ./tests/package_release_test.sh && ./tests/v4_release_candidate_test.sh",
             "same-prefix package upgrade receipt",
         ),
         (
@@ -1672,18 +1672,27 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     failed_required = [check for check in required_checks if check["status"] != "pass"]
     status = "pass" if not failed_required else "review"
 
+    def route_status(check_id: str) -> str:
+        return "pass" if any(check["id"] == check_id and check["status"] == "pass" for check in checks) else "review"
+
+    def supplied_or_route_status(proof: dict[str, Any], check_id: str) -> str:
+        if proof.get("provided"):
+            return str(proof.get("status") or "review")
+        return route_status(check_id)
+
     readiness_proof = {
         "freshInstall": {
-            "status": "pass" if any(check["id"] == "fresh-install-proof-present" and check["status"] == "pass" for check in checks) else "review",
+            "status": supplied_or_route_status(fresh_install_package_proof, "fresh-install-proof-present"),
             "commands": [
                 "./scripts/package_release.sh",
                 "tar -tzf <release-tarball>",
                 "<package>/scripts/install.sh --prefix <tmp-prefix>",
                 "<tmp-prefix>/bin/shipguard validate <package>",
             ],
+            "packageProofStatus": fresh_install_package_proof["status"],
         },
         "upgrade": {
-            "status": "pass" if any(check["id"] == "upgrade-proof-present" and check["status"] == "pass" for check in checks) else "review",
+            "status": supplied_or_route_status(upgrade_package_proof, "upgrade-proof-present"),
             "commands": [
                 "shipguard version",
                 "./scripts/install.sh --prefix <existing-prefix>",
@@ -1692,7 +1701,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "packageProofStatus": upgrade_package_proof["status"],
         },
         "uninstall": {
-            "status": "pass" if any(check["id"] == "uninstall-proof-present" and check["status"] == "pass" for check in checks) else "review",
+            "status": supplied_or_route_status(rollback_package_proof, "uninstall-proof-present"),
             "commands": [
                 "rm -rf <tmp-prefix>",
                 "test ! -e <tmp-prefix>/bin/shipguard",
@@ -1700,22 +1709,23 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "rollbackPackageProofStatus": rollback_package_proof["status"],
         },
         "releaseProofConsumption": {
-            "status": "pass" if any(check["id"] == "release-proof-consumption-present" and check["status"] == "pass" for check in checks) else "review",
+            "status": supplied_or_route_status(published_release_asset_proof, "release-proof-consumption-present"),
             "commands": [
                 "./bin/shipguard release-proof build --out <proof-dir> --release-url <url> --version <version> --tag <tag> --commit <sha> --ci-run-url <url>",
                 "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>",
             ],
+            "publishedReleaseAssetProofStatus": published_release_asset_proof["status"],
         },
         "externalAdoptionPacket": {
-            "status": "pass" if any(check["id"] == "external-adoption-packet-present" and check["status"] == "pass" for check in checks) else "review",
+            "status": route_status("external-adoption-packet-present"),
             "artifacts": ["README.md", "docs/v4-release-candidate.md", "docs/cli.md", "release proof bundle"],
         },
         "finalSchemaDocs": {
-            "status": "pass" if any(check["id"] == "final-schema-docs-present" and check["status"] == "pass" for check in checks) else "review",
+            "status": route_status("final-schema-docs-present"),
             "artifacts": ["docs/v4-schema-freeze.md", "docs/compatibility.md"],
         },
         "pluginRefreshProof": {
-            "status": "pass" if any(check["id"] == "plugin-refresh-proof-present" and check["status"] == "pass" for check in checks) else "review",
+            "status": route_status("plugin-refresh-proof-present"),
             "commands": [
                 "codex plugin marketplace add .",
                 "codex plugin add ios-shipguard@shipguard",
