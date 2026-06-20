@@ -40,6 +40,17 @@ The v3.201 read-only loop reran `shipguard action verify-pr` over the starter wo
 
 Fresh QA now runs the broken workflow and broken runtime artifact through report-quality before treating Verify-PR guidance as useful for new maintainers.
 
+## Current Verify-PR Runtime Reviewer Handoff QA
+
+The v3.202 read-only loop reran `shipguard action verify-pr` over configured static setup, valid runtime artifact, and broken runtime artifact fixtures, then graded the reports with `ios report-quality`.
+
+- Finding: a passing runtime artifact report was structurally correct but still told reviewers to "use the verdict status to decide" and exposed a rerun command instead of a reviewer-ready decision.
+- Product weakness: a maintainer reviewing a first ShipGuard PR needs the artifact translated into ready-for-maintainer-review, needs-review, do-not-merge, or do-not-use-artifact, plus the exact proof files to attach and what failure means.
+- Native fix: `shipguard action verify-pr` now emits `runtimeReviewerHandoff`, extracting verdict status, diff-first merge verdict, validation coverage, v2 schema, proof-to-attach files, reviewer action, failure meaning, and a read-only PR state command.
+- Report-quality fix: `ios report-quality` now flags runtime artifact reports that omit the reviewer handoff, omit its Markdown section, hide proof-to-attach, or route invalid artifacts to anything other than a do-not-use/do-not-merge decision.
+
+Fresh QA now treats a passing artifact as proof routing for human review, not automatic merge permission.
+
 ## Current Ponytail Behavior-Gate QA
 
 The v3.200 read-only QA pass inspected the public Ponytail repo and ran ShipGuard's native Lean Deck against both this checkout and the public Ponytail checkout.

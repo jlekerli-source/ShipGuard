@@ -120,6 +120,13 @@ def inspect_runtime_artifact(args: argparse.Namespace, root: Path) -> dict[str, 
             "verdictStatus": "",
             "verdictPath": "",
             "markdownPath": "",
+            "proofReportSummary": "",
+            "proofReportNextAction": "",
+            "validationCoverageStatus": "",
+            "evidenceReceiptSchemaVersion": "",
+            "mergeVerdictStatus": "",
+            "mergeVerdictAllowed": None,
+            "changedFileCount": 0,
             "summary": "No downloaded shipguard-verdict artifact was provided.",
         }
 
@@ -188,8 +195,28 @@ def inspect_runtime_artifact(args: argparse.Namespace, root: Path) -> dict[str, 
 
     verdict_status = ""
     markdown_path = verdict_path.with_suffix(".md")
+    proof_report_summary = ""
+    proof_report_next_action = ""
+    validation_coverage_status = ""
+    evidence_receipt_schema_version = ""
+    merge_verdict_status = ""
+    merge_verdict_allowed: bool | None = None
+    changed_file_count = 0
     if verdict is not None:
         verdict_status = str(verdict.get("status") or "")
+        proof_report_summary = str(get_path(verdict, "proofReport.summary") or "")
+        proof_report_next_action = str(get_path(verdict, "proofReport.nextAction.command") or "")
+        validation_coverage_status = str(get_path(verdict, "validationCoverage.status") or "")
+        evidence_receipt_schema_version = str(get_path(verdict, "evidenceReceiptSchema.schemaVersion") or "")
+        merge_verdict = get_path(verdict, "diffFirstAnalysis.mergeVerdict")
+        if isinstance(merge_verdict, dict):
+            merge_verdict_status = str(merge_verdict.get("status") or "")
+            allowed = merge_verdict.get("allowed")
+            if isinstance(allowed, bool):
+                merge_verdict_allowed = allowed
+        changed_files = get_path(verdict, "diffFirstAnalysis.changedFiles")
+        if isinstance(changed_files, list):
+            changed_file_count = len(changed_files)
         required_paths = [
             ("runtime-verdict-tool", "tool", "shipguard verify", "Verdict came from shipguard verify"),
             ("runtime-verdict-status", "status", None, "Verdict status present"),
@@ -274,6 +301,13 @@ def inspect_runtime_artifact(args: argparse.Namespace, root: Path) -> dict[str, 
         "verdictStatus": verdict_status,
         "verdictPath": rel_path(verdict_path, root, bool(args.shareable)) if verdict_candidates else "",
         "markdownPath": rel_path(markdown_path, root, bool(args.shareable)) if markdown_exists else "",
+        "proofReportSummary": proof_report_summary,
+        "proofReportNextAction": proof_report_next_action,
+        "validationCoverageStatus": validation_coverage_status,
+        "evidenceReceiptSchemaVersion": evidence_receipt_schema_version,
+        "mergeVerdictStatus": merge_verdict_status,
+        "mergeVerdictAllowed": merge_verdict_allowed,
+        "changedFileCount": changed_file_count,
         "summary": f"{len(checks)} runtime artifact signal(s) checked; verdict status {verdict_status or 'unknown'}.",
     }
 
@@ -353,6 +387,69 @@ def build_failure_guide(
             "rerunStaticAudit": static_audit_command,
             "downloadArtifactAndAudit": artifact_audit_command,
         },
+    }
+
+
+def build_runtime_reviewer_handoff(runtime_artifact: dict[str, Any], *, artifact_audit_command: str) -> dict[str, Any]:
+    provided = bool(runtime_artifact.get("provided"))
+    runtime_status = str(runtime_artifact.get("status") or "")
+    verdict_status = str(runtime_artifact.get("verdictStatus") or "")
+    merge_status = str(runtime_artifact.get("mergeVerdictStatus") or "")
+    merge_allowed = runtime_artifact.get("mergeVerdictAllowed")
+    validation_status = str(runtime_artifact.get("validationCoverageStatus") or "")
+    schema_version = str(runtime_artifact.get("evidenceReceiptSchemaVersion") or "")
+    proof_next_action = str(runtime_artifact.get("proofReportNextAction") or "")
+    findings = runtime_artifact.get("findings") if isinstance(runtime_artifact.get("findings"), list) else []
+    first_finding = prioritized_finding(findings)
+    reviewer_command = "gh pr view <pr-number> --json statusCheckRollup,reviewDecision,mergeStateStatus"
+    proof_to_attach = [
+        "shipguard-verdict.json",
+        "shipguard-verdict.md",
+        "validation receipt referenced by shipguard-verdict.json",
+    ]
+
+    if not provided:
+        decision = "download-runtime-artifact"
+        reviewer_action = "Open a tiny PR, download the shipguard-verdict artifact, then rerun this audit with --artifact-dir."
+        failure_meaning = "Static workflow text can be ready while reviewer proof is still absent; do not treat setup-only output as PR proof."
+        reviewer_command = artifact_audit_command
+        proof_to_attach = ["downloaded shipguard-verdict artifact from a real pull request run"]
+    elif runtime_status != "pass":
+        decision = "do-not-use-artifact"
+        reviewer_action = str(first_finding.get("recommendation")) if first_finding else "Regenerate the shipguard-verdict artifact before review."
+        failure_meaning = "The downloaded artifact is incomplete, stale, or not produced by shipguard verify, so it cannot route a reviewer decision."
+        reviewer_command = artifact_audit_command
+    elif merge_allowed is False or verdict_status == "blocked" or merge_status == "blocked":
+        decision = "do-not-merge"
+        reviewer_action = proof_next_action or "Keep the PR blocked until ShipGuard verification and normal review are green."
+        failure_meaning = "The artifact is consumable, but its verdict says the PR is blocked."
+    elif verdict_status == "review" or merge_status == "review":
+        decision = "needs-maintainer-review"
+        reviewer_action = proof_next_action or "Attach the verdict artifacts and complete manual maintainer review before merging."
+        failure_meaning = "The artifact is consumable, but it requests maintainer review instead of a clean pass."
+    elif verdict_status == "pass" and merge_allowed is True:
+        decision = "ready-for-maintainer-review"
+        reviewer_action = proof_next_action or "Attach the verdict artifacts to the PR and finish normal code review."
+        failure_meaning = "No ShipGuard runtime-artifact blocker was found; this is proof routing, not automatic merge permission."
+    else:
+        decision = "needs-maintainer-review"
+        reviewer_action = proof_next_action or "Inspect the verdict artifact and complete normal maintainer review."
+        failure_meaning = "The artifact is consumable, but ShipGuard could not reduce it to a clean pass/block decision."
+
+    return {
+        "applicable": provided,
+        "decision": decision,
+        "verdictStatus": verdict_status,
+        "mergeVerdictStatus": merge_status,
+        "mergeVerdictAllowed": merge_allowed,
+        "validationCoverageStatus": validation_status,
+        "evidenceReceiptSchemaVersion": schema_version,
+        "changedFileCount": runtime_artifact.get("changedFileCount") or 0,
+        "reviewerCommand": reviewer_command,
+        "reviewerAction": reviewer_action,
+        "proofToAttach": proof_to_attach,
+        "failureMeaning": failure_meaning,
+        "nonClaim": "ShipGuard verifies the uploaded proof artifact and workflow wiring; it does not replace normal PR review or repository policy.",
     }
 
 
@@ -558,8 +655,9 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --artifact-dir /tmp/shipguard-verdict-artifact --out /tmp/shipguard-action-verify-pr --shareable"
     )
     static_audit_command = "shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --out /tmp/shipguard-action-verify-pr --shareable"
+    runtime_reviewer_handoff = build_runtime_reviewer_handoff(runtime_artifact, artifact_audit_command=artifact_audit_command)
     if status == "pass" and runtime_artifact.get("provided"):
-        next_command = "shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --artifact-dir /tmp/shipguard-verdict-artifact --out /tmp/shipguard-action-verify-pr --shareable"
+        next_command = str(runtime_reviewer_handoff.get("reviewerCommand") or "")
     elif runtime_artifact.get("provided") and runtime_artifact.get("status") != "pass":
         next_command = artifact_audit_command
     elif status == "pass":
@@ -588,7 +686,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             next_finding["recommendation"]
             if next_finding
             else (
-                "Runtime artifact is consumable by ShipGuard; use the verdict status to decide whether the PR itself can merge."
+                str(runtime_reviewer_handoff.get("reviewerAction") or "")
                 if runtime_artifact.get("provided")
                 else "Workflow is structurally ready for a real PR run; open a tiny PR, then download and inspect the uploaded shipguard-verdict artifact with ShipGuard."
             )
@@ -614,6 +712,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "checks": checks,
         "findings": findings,
         "runtimeArtifact": runtime_artifact,
+        "runtimeReviewerHandoff": runtime_reviewer_handoff,
         "freshMaintainerFailureGuide": failure_guide,
         "firstRunProofPath": [
             {"step": "Copy the transparent workflow starter.", "command": "cp examples/workflows/verify-pr.yml .github/workflows/shipguard-verify-pr.yml"},
@@ -639,6 +738,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does it distinguish static workflow setup proof from runtime GitHub artifact proof?",
             "Does it block missing task/diff/receipt/verify/upload wiring instead of accepting decorative workflow text?",
             "When a downloaded artifact is provided, does it verify that shipguard-verdict.json and Markdown are complete enough for a reviewer to trust the artifact as proof routing?",
+            "When a runtime artifact is consumable, does the report give the reviewer a concrete decision, proof-to-attach list, and failure meaning instead of a vague status note?",
         ],
         "resultUX": result_ux,
         "shareable": bool(args.shareable),
@@ -687,6 +787,24 @@ def render_markdown(report: dict[str, Any]) -> str:
     if artifact.get("markdownPath"):
         lines.append(f"- Verdict Markdown: `{artifact.get('markdownPath')}`")
     lines.append(f"- Summary: {artifact.get('summary')}")
+    reviewer = report.get("runtimeReviewerHandoff") if isinstance(report.get("runtimeReviewerHandoff"), dict) else {}
+    lines.extend(["", "## Runtime Reviewer Handoff", ""])
+    lines.append(f"- Decision: `{reviewer.get('decision') or 'unknown'}`")
+    lines.append(f"- Verdict status: `{reviewer.get('verdictStatus') or 'unknown'}`")
+    lines.append(f"- Merge verdict: `{reviewer.get('mergeVerdictStatus') or 'unknown'}` (allowed: {reviewer.get('mergeVerdictAllowed')})")
+    lines.append(f"- Validation coverage: `{reviewer.get('validationCoverageStatus') or 'unknown'}`")
+    lines.append(f"- Evidence receipt schema: `{reviewer.get('evidenceReceiptSchemaVersion') or 'unknown'}`")
+    lines.append(f"- Changed files in verdict: {reviewer.get('changedFileCount') or 0}")
+    if reviewer.get("reviewerCommand"):
+        lines.append(f"- Reviewer command: `{reviewer.get('reviewerCommand')}`")
+    lines.append(f"- Reviewer action: {reviewer.get('reviewerAction')}")
+    proof_to_attach = reviewer.get("proofToAttach") if isinstance(reviewer.get("proofToAttach"), list) else []
+    if proof_to_attach:
+        lines.append("- Proof to attach:")
+        for item in proof_to_attach:
+            lines.append(f"  - {item}")
+    lines.append(f"- Failure meaning: {reviewer.get('failureMeaning')}")
+    lines.append(f"- Non-claim: {reviewer.get('nonClaim')}")
     guide = report.get("freshMaintainerFailureGuide") or {}
     lines.extend(["", "## Fresh Maintainer Failure Guide", ""])
     lines.append(f"- Summary: {guide.get('summary')}")

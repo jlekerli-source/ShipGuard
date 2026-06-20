@@ -40,6 +40,9 @@ grep -q 'read-only workflow text inspection; no target validation command execut
 
 grep -q '"status": "pass"' "$tmp_dir/configured/action-verify-pr.json"
 grep -q '"placeholderValidationCommand": false' "$tmp_dir/configured/action-verify-pr.json"
+grep -q '"runtimeReviewerHandoff":' "$tmp_dir/configured/action-verify-pr.json"
+grep -q '"decision": "download-runtime-artifact"' "$tmp_dir/configured/action-verify-pr.json"
+grep -q 'Runtime Reviewer Handoff' "$tmp_dir/configured/action-verify-pr.md"
 grep -q 'shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --artifact-dir /tmp/shipguard-verdict-artifact' "$tmp_dir/configured/action-verify-pr.md"
 grep -q 'open a tiny PR, then download and inspect the uploaded shipguard-verdict artifact' "$tmp_dir/configured/action-verify-pr.md"
 
@@ -54,11 +57,19 @@ grep -q 'open a tiny PR, then download and inspect the uploaded shipguard-verdic
 grep -q '"status": "pass"' "$tmp_dir/runtime/action-verify-pr.json"
 grep -q '"runtimeArtifactProvided": true' "$tmp_dir/runtime/action-verify-pr.json"
 grep -q '"verdictStatus": "pass"' "$tmp_dir/runtime/action-verify-pr.json"
+grep -q '"runtimeReviewerHandoff":' "$tmp_dir/runtime/action-verify-pr.json"
+grep -q '"decision": "ready-for-maintainer-review"' "$tmp_dir/runtime/action-verify-pr.json"
+grep -q '"mergeVerdictAllowed": true' "$tmp_dir/runtime/action-verify-pr.json"
+grep -q '"validationCoverageStatus": "covered"' "$tmp_dir/runtime/action-verify-pr.json"
+grep -q 'shipguard-verdict.md' "$tmp_dir/runtime/action-verify-pr.json"
 grep -q '"freshMaintainerFailureGuide":' "$tmp_dir/runtime/action-verify-pr.json"
 grep -q '"ruleId": "runtime-verdict-tool"' "$tmp_dir/runtime/action-verify-pr.json"
 grep -q 'Runtime Artifact' "$tmp_dir/runtime/action-verify-pr.md"
+grep -q 'Runtime Reviewer Handoff' "$tmp_dir/runtime/action-verify-pr.md"
+grep -q 'Decision: `ready-for-maintainer-review`' "$tmp_dir/runtime/action-verify-pr.md"
+grep -q 'Proof to attach:' "$tmp_dir/runtime/action-verify-pr.md"
 grep -q 'Fresh Maintainer Failure Guide' "$tmp_dir/runtime/action-verify-pr.md"
-grep -q 'shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --artifact-dir /tmp/shipguard-verdict-artifact' "$tmp_dir/runtime/action-verify-pr.md"
+grep -q 'gh pr view <pr-number> --json statusCheckRollup,reviewDecision,mergeStateStatus' "$tmp_dir/runtime/action-verify-pr.md"
 
 set +e
 ./bin/shipguard action verify-pr \
@@ -77,10 +88,12 @@ fi
 
 grep -q '"status": "blocked"' "$tmp_dir/runtime-broken/action-verify-pr.json"
 grep -q '"firstBlockingRuleId": "runtime-verdict-tool"' "$tmp_dir/runtime-broken/action-verify-pr.json"
+grep -q '"decision": "do-not-use-artifact"' "$tmp_dir/runtime-broken/action-verify-pr.json"
 grep -q '"ruleId": "runtime-verdict-tool"' "$tmp_dir/runtime-broken/action-verify-pr.json"
 grep -q '"ruleId": "runtime-proof-report"' "$tmp_dir/runtime-broken/action-verify-pr.json"
 grep -q '"ruleId": "runtime-evidence-receipt-schema"' "$tmp_dir/runtime-broken/action-verify-pr.json"
 grep -q 'Markdown verdict not found beside JSON: fixtures/action-verify-pr/runtime-broken/shipguard-verdict.md' "$tmp_dir/runtime-broken/action-verify-pr.json"
+grep -q 'Decision: `do-not-use-artifact`' "$tmp_dir/runtime-broken/action-verify-pr.md"
 if grep -R -q '/Users/' "$tmp_dir/runtime-broken"; then
   echo "shareable broken runtime verify-pr report leaked a local absolute path" >&2
   exit 1
@@ -147,5 +160,24 @@ PY
   --shareable >/dev/null
 
 grep -q '"ruleId": "verify-pr-failure-guide-missing"' "$tmp_dir/missing-guide-quality/ios-report-quality.json"
+
+cp -R "$tmp_dir/runtime" "$tmp_dir/missing-reviewer-handoff"
+python3 - <<'PY' "$tmp_dir/missing-reviewer-handoff/action-verify-pr.json"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data.pop("runtimeReviewerHandoff", None)
+path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+PY
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/missing-reviewer-handoff" \
+  --out "$tmp_dir/missing-reviewer-handoff-quality" \
+  --shareable >/dev/null
+
+grep -q '"ruleId": "verify-pr-runtime-reviewer-handoff-missing"' "$tmp_dir/missing-reviewer-handoff-quality/ios-report-quality.json"
 
 echo "action verify-pr tests passed"

@@ -451,6 +451,10 @@ required_artifacts=(
   "fixtures/ios-report-quality/02-shipguard-action-verify-pr-does-the-freshmaintainerfail-0c0f8769/fixture-candidate.json"
   "fixtures/ios-report-quality/02-shipguard-action-verify-pr-does-the-freshmaintainerfail-0c0f8769/fixture-report.json"
   "fixtures/ios-report-quality/02-shipguard-action-verify-pr-does-the-freshmaintainerfail-0c0f8769/fixture-report.md"
+  "fixtures/ios-report-quality/01-shipguard-action-verify-pr-when-a-runtime-artifact-is-c-c950c6b0/README.md"
+  "fixtures/ios-report-quality/01-shipguard-action-verify-pr-when-a-runtime-artifact-is-c-c950c6b0/fixture-candidate.json"
+  "fixtures/ios-report-quality/01-shipguard-action-verify-pr-when-a-runtime-artifact-is-c-c950c6b0/fixture-report.json"
+  "fixtures/ios-report-quality/01-shipguard-action-verify-pr-when-a-runtime-artifact-is-c-c950c6b0/fixture-report.md"
 )
 
 artifact_count=0

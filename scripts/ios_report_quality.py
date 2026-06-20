@@ -912,6 +912,78 @@ def verify_pr_report_quality_issues(report: dict[str, Any], *, markdown: str, pa
             evidence=f"{path_name} freshMaintainerFailureGuide does not include both static and runtime phases",
             recommendation="Separate static workflow setup from runtime artifact proof so maintainers know which proof lane failed.",
         )
+    runtime_artifact = report.get("runtimeArtifact") if isinstance(report.get("runtimeArtifact"), dict) else {}
+    if runtime_artifact.get("provided"):
+        handoff = report.get("runtimeReviewerHandoff")
+        if not isinstance(handoff, dict):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="verify-pr-runtime-reviewer-handoff-missing",
+                evidence=f"{path_name} inspected a runtime artifact but has no runtimeReviewerHandoff",
+                recommendation="Emit a reviewer handoff with decision, proof-to-attach, reviewer action, and failure meaning.",
+            )
+            return issues
+        if "Runtime Reviewer Handoff" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="verify-pr-runtime-reviewer-handoff-markdown-missing",
+                evidence=f"{path_name} Markdown does not render the runtime reviewer handoff",
+                recommendation="Render the runtime reviewer handoff in Markdown so PR reviewers do not need to parse JSON.",
+            )
+        decision = str(handoff.get("decision") or "").strip()
+        reviewer_action = str(handoff.get("reviewerAction") or "").strip()
+        failure_meaning = str(handoff.get("failureMeaning") or "").strip()
+        proof_to_attach = handoff.get("proofToAttach") if isinstance(handoff.get("proofToAttach"), list) else []
+        if not decision:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="verify-pr-runtime-reviewer-decision-missing",
+                evidence=f"{path_name} runtimeReviewerHandoff.decision is empty",
+                recommendation="State whether the runtime artifact means ready-for-maintainer-review, needs review, do-not-merge, or do-not-use-artifact.",
+            )
+        if not reviewer_action:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="verify-pr-runtime-reviewer-action-missing",
+                evidence=f"{path_name} runtimeReviewerHandoff.reviewerAction is empty",
+                recommendation="Tell the reviewer exactly what to do next with the downloaded artifact.",
+            )
+        if not failure_meaning:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="verify-pr-runtime-reviewer-failure-meaning-missing",
+                evidence=f"{path_name} runtimeReviewerHandoff.failureMeaning is empty",
+                recommendation="Explain what a failed or incomplete artifact means so a green-looking decorative artifact is not trusted.",
+            )
+        if not proof_to_attach:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="verify-pr-runtime-reviewer-proof-list-missing",
+                evidence=f"{path_name} runtimeReviewerHandoff.proofToAttach is empty",
+                recommendation="List the exact proof files or receipts a maintainer should attach to the PR review.",
+            )
+        if str(runtime_artifact.get("status") or "") != "pass" and not decision.startswith("do-not"):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="verify-pr-runtime-reviewer-invalid-artifact-decision",
+                evidence=f"{path_name} runtime artifact is not pass but reviewer decision is {decision!r}",
+                recommendation="Route incomplete or invalid runtime artifacts to a do-not-use/do-not-merge reviewer decision.",
+            )
+        if str(runtime_artifact.get("status") or "") == "pass" and decision in {"", "download-runtime-artifact", "do-not-use-artifact"}:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="verify-pr-runtime-reviewer-pass-decision-too-vague",
+                evidence=f"{path_name} runtime artifact passed but reviewer decision is {decision!r}",
+                recommendation="Translate a consumable runtime artifact into ready-for-maintainer-review, needs-maintainer-review, or do-not-merge based on verdict status and merge verdict.",
+            )
     return issues
 
 
@@ -3613,6 +3685,12 @@ def should_create_fixture_candidate(question: str) -> bool:
             "freshmaintainerfailureguide",
             "first blocker",
             "failure guide",
+            "runtime reviewer",
+            "reviewer handoff",
+            "proof-to-attach",
+            "proof to attach",
+            "merge verdict",
+            "vague status note",
             "permission-state",
             "denied-state",
             "physical-device prompt",
