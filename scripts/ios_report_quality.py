@@ -3251,6 +3251,17 @@ def fixture_type_for_question(question: str, tool: str) -> str:
         return "ios-performance-report-quality-fixture"
     if "preview" in text or "devspace" in text or "visual proof" in text:
         return "ios-preview-devspace-routing-fixture"
+    if (
+        "product release" in text
+        or "stable v4" in text
+        or "stable-v4" in text
+        or "release proof" in text
+        or "release consumption" in text
+        or "rollback proof" in text
+        or "external adoption" in text
+        or "security review" in text
+    ):
+        return "shipguard-release-proof-quality-fixture"
     if "design" in text or "app type" in text or "coherence" in text:
         return "ios-design-report-quality-fixture"
     if "evidence" in text or "source suspicion" in text:
@@ -3279,6 +3290,14 @@ def should_create_fixture_candidate(question: str) -> bool:
             "execution receipt",
             "execution proof",
             "proof for the selected lane",
+            "product release",
+            "stable v4",
+            "stable-v4",
+            "release proof",
+            "release consumption",
+            "rollback proof",
+            "external adoption",
+            "security review",
         )
     )
 

@@ -86,6 +86,19 @@ The report-quality weakness was loop hygiene. That stable-v4 publication questio
 
 This keeps the loop honest: ShipGuard does not fake real stable-v4 publication evidence, but it also does not waste the next refinement cycle rediscovering the same external evidence gate as a missing public fixture.
 
+## Current Product Release Stabilization Value-Gauntlet Fixture
+
+The next read-only ShipGuard QA pass advanced to the product-release stabilization question: whether ShipGuard should stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption. The useful defect was in ShipGuard itself: `ios report-quality --write-fixture-candidates` did not treat release/adoption/security/rollback/consumption proof questions as promotion-ready release-proof fixtures.
+
+This slice improves the loop:
+
+- `ios report-quality` now classifies product-release, stable-v4, release-proof, release-consumption, rollback-proof, external-adoption, and security-review questions as `shipguard-release-proof-quality-fixture` candidates.
+- `fixtures/ios-report-quality/product-release-stabilization-value-gauntlet-question` promotes the product-release stabilization value-gauntlet question into public synthetic coverage.
+- Focused tests prove the promoted fixture scores as `review-existing-fixture`, emits no recursive `fixtureCandidates`, and lets fresh value-gauntlet report-quality runs advance to the next uncovered proof-boundary question.
+- Package proof now checks that the new fixture ships in release tarballs.
+
+This is still ShipGuard-only product QA. It does not claim stable v4 is released, does not edit private apps, and does not treat synthetic fixture evidence as external adoption or security evidence.
+
 ## Current Development Loop Efficiency Receipt
 
 The latest self-QA pass showed a real development-process weakness: after the design observation question was promoted into a public fixture, the existing workflow-chain receipt became too coupled to that now-covered design question. The receipt failed even though the product behavior was improving, which meant the proof loop could waste maintainer time on manual interpretation.
