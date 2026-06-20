@@ -6,6 +6,22 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current Full Audit Slash Handoff Fixture
+
+The latest read-only Full Audit QA pass advanced from the slow-lane rerun question to the slash-handoff freshness question:
+
+- Question: "Does the slash handoff come from the current NEXT_GOAL.md instead of stale hardcoded roadmap text?"
+- Candidate type: `shipguard-full-audit-proof-boundary-fixture`
+
+This slice promotes that final current Full Audit question into public fixture coverage:
+
+- `fixtures/ios-report-quality/01-shipguard-full-audit-does-the-slash-handoff-come-from-the-curren` covers the NEXT_GOAL-backed slash-handoff question without private app data.
+- The fixture keeps ShipGuard-only and target-app read-only boundaries explicit, and it preserves the synthetic Full Audit report shape needed for report-quality scoring.
+- Fresh Full Audit report-quality now covers proof boundaries, the resumable evidence lane, slow-lane rerun guidance, and slash-handoff freshness.
+- With all four current Full Audit actionability questions covered, fresh Full Audit QA returns `all-actionability-covered` and zero duplicate fixture candidates, telling the maintainer to move to a fresh read-only ShipGuard QA source.
+
+This completes the current Full Audit report-quality fixture flywheel without claiming executed release proof from a plan-only report.
+
 ## Current Full Audit Evidence Lane Fixture
 
 ## Current Full Audit Slow Lane Fixture

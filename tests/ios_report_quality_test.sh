@@ -98,19 +98,20 @@ covered = {
         "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated",
     "Are slow lanes summarized clearly enough for a solo developer to decide what to rerun?":
         "fixtures/ios-report-quality/01-shipguard-full-audit-are-slow-lanes-summarized-clearly-enough-fo",
+    "Does the slash handoff come from the current NEXT_GOAL.md instead of stale hardcoded roadmap text?":
+        "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-slash-handoff-come-from-the-curren",
 }
-expected = "Does the slash handoff come from the current NEXT_GOAL.md instead of stale hardcoded roadmap text?"
-if priority.get("kind") != "answer-actionability-question":
-    raise SystemExit(f"expected next uncovered full-audit question priority: {priority!r}")
-if priority.get("question") != expected:
-    raise SystemExit(f"expected full-audit slash-handoff question after fixture coverage, got {priority!r}")
+if priority.get("kind") != "all-actionability-covered":
+    raise SystemExit(f"expected all full-audit actionability questions covered, got {priority!r}")
+if priority.get("coveredQuestionCount") != len(covered):
+    raise SystemExit(f"expected all covered question count, got {priority!r}")
 coverage = data.get("fixtureCoverage") or []
 for question, path in covered.items():
     if not any(item.get("question") == question and item.get("publicFixturePath") == path for item in coverage):
         raise SystemExit(f"expected full-audit fixture coverage for {question!r}: {coverage!r}")
 candidates = data.get("fixtureCandidates") or []
-if not candidates or candidates[0].get("sourceQuestion") != expected:
-    raise SystemExit(f"expected slash-handoff fixture candidate first, got {candidates!r}")
+if candidates:
+    raise SystemExit(f"expected no duplicate full-audit fixture candidates after coverage, got {candidates!r}")
 PY
 grep -q 'shipguard-full-audit-proof-boundary-fixture' "$tmp_dir/full-audit-plan-quality/ios-report-quality.json"
 
@@ -191,6 +192,33 @@ assert "slow lanes" in item.get("question", ""), item
 priority = data.get("priorityAction") or {}
 assert priority.get("kind") == "review-existing-fixture", priority
 assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-full-audit-are-slow-lanes-summarized-clearly-enough-fo", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
+
+full_audit_slash_handoff_fixture="fixtures/ios-report-quality/01-shipguard-full-audit-does-the-slash-handoff-come-from-the-curren"
+./bin/shipguard ios report-quality \
+  --reports "$full_audit_slash_handoff_fixture" \
+  --out "$tmp_dir/full-audit-slash-handoff-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/full-audit-slash-handoff-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/full-audit-slash-handoff-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-slash-handoff-come-from-the-curren"' "$tmp_dir/full-audit-slash-handoff-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/full-audit-slash-handoff-fixture-quality/ios-report-quality.json"
+python3 - <<'PY' "$tmp_dir/full-audit-slash-handoff-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard full-audit", item
+assert item.get("fixtureType") == "shipguard-full-audit-proof-boundary-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-slash-handoff-come-from-the-curren", item
+assert "slash handoff" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-slash-handoff-come-from-the-curren", priority
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 

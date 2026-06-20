@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-20T09:02:32Z
+- Generated: 2026-06-20T09:19:48Z
 - Current toolkit version: 3.131.0
-- Target release: v3.171.0
-- Title: Full Audit Slow Lane Fixture
+- Target release: v3.172.0
+- Title: Full Audit Slash Handoff Fixture
 
 ## Slash Plan
 
 ```text
-/plan v3.171.0 Full Audit Slow Lane Fixture for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Promote the Full Audit slow-lane report-quality candidate into a public fixture so fresh Full Audit QA advances beyond slow-lane rerun guidance.
+/plan v3.172.0 Full Audit Slash Handoff Fixture for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Promote the Full Audit slash-handoff freshness report-quality candidate into a public fixture so fresh Full Audit QA covers all current Full Audit actionability questions.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.171.0 Full Audit Slow Lane Fixture for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the Full Audit slow-lane report-quality candidate into a public fixture so fresh Full Audit QA advances beyond slow-lane rerun guidance, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.172.0 Full Audit Slash Handoff Fixture for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the Full Audit slash-handoff freshness report-quality candidate into a public fixture so fresh Full Audit QA covers all current Full Audit actionability questions, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Promote the Full Audit slow-lane report-quality candidate into a public fixture so fresh Full Audit QA advances beyond slow-lane rerun guidance.
+Promote the Full Audit slash-handoff freshness report-quality candidate into a public fixture so fresh Full Audit QA covers all current Full Audit actionability questions.
 
 ## Completion Receipt
 
-- Completed scope: Promoted the Full Audit slow-lane question into fixtures/ios-report-quality/01-shipguard-full-audit-are-slow-lanes-summarized-clearly-enough-fo, kept it public-safe and ShipGuard-only, and proved fresh Full Audit QA now advances to the slash-handoff freshness question.
-- Evidence: Passed: python3 -m py_compile scripts/ios_report_quality.py; ./tests/ios_report_quality_test.sh; ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-full-audit-are-slow-lanes-summarized-clearly-enough-fo --out /tmp/shipguard-v3171-slow-lane-fixture-quality --shareable; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3171-full-audit --out /tmp/shipguard-v3171-full-audit-current-quality --shareable --write-fixture-candidates /tmp/shipguard-v3171-current-fixtures; git diff --check; ./bin/shipguard docs-check . --out /tmp/shipguard-v3171-docs-check; ./bin/shipguard validate; ./tests/package_release_test.sh.
+- Completed scope: Promoted the Full Audit slash-handoff freshness question into fixtures/ios-report-quality/01-shipguard-full-audit-does-the-slash-handoff-come-from-the-curren, added copy-ready slash plan and slash goal fixture proof, and proved fresh Full Audit QA now reports all-actionability-covered with zero duplicate candidates.
+- Evidence: Passed: ./bin/shipguard full-audit --path . --out /tmp/shipguard-v3172-full-audit --profile quick --plan-only --shipguard-eval --shareable; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3172-full-audit --out /tmp/shipguard-v3172-full-audit-quality --shareable --write-fixture-candidates /tmp/shipguard-v3172-fixture-candidates; ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-full-audit-does-the-slash-handoff-come-from-the-curren --out /tmp/shipguard-v3172-slash-handoff-fixture-quality --shareable; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3172-full-audit --out /tmp/shipguard-v3172-full-audit-current-quality --shareable --write-fixture-candidates /tmp/shipguard-v3172-current-fixtures; ./tests/ios_report_quality_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.172.0 Full Audit Slash Handoff Fixture for jlekerli-source/ShipGuard:
+/plan v3.173.0 Fresh QA Source Rotation for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Promote the Full Audit slow-lane report-quality candidate into a public fixture 
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.172.0 Full Audit Slash Handoff Fixture for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.173.0 Fresh QA Source Rotation for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.172.0 --title "Full Audit Slash Handoff Fixture" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.173.0 --title "Fresh QA Source Rotation" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.171.0.
+1. Open or update the tracking issue for v3.172.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.171.0` and upload `dist/shipguard-v3.171.0.tar.gz`.
+6. Create release `v3.172.0` and upload `dist/shipguard-v3.172.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
