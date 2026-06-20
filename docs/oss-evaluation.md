@@ -6,6 +6,24 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current Full Audit Evidence Lane Fixture
+
+The latest read-only ShipGuard QA loop reran Full Audit after the proof-boundary fixture was promoted. Report-quality correctly advanced to the next Full Audit question:
+
+- Question: "Does the full-audit report replace repeated manual validation ceremony with one resumable evidence lane?"
+- Initial weakness: the question was prioritized, but `--write-fixture-candidates` did not materialize a promotion-ready candidate for this evidence-lane wording.
+
+This slice closes that gap:
+
+- `ios report-quality` now treats `resumable evidence lane`, `manual validation ceremony`, `slow lanes`, and `slash handoff` as fixture-candidate triggers.
+- `fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated` promotes the evidence-lane question as a public synthetic fixture.
+- The fixture stays ShipGuard-only and public-safe, with explicit target-app read-only boundaries and synthetic slash handoff fields.
+- Fresh Full Audit report-quality now covers both proof-boundary and evidence-lane questions, emits no duplicate evidence-lane candidate, and advances to the slow-lane rerun question.
+
+This turns Full Audit report-quality from a single proof-boundary check into a stepwise fixture flywheel across the whole Full Audit proof lane.
+
+## Previous Full Audit Fixture Promotion
+
 The latest read-only ShipGuard QA loop reran `shipguard full-audit --profile quick --plan-only --shipguard-eval --shareable` and graded the output with `ios report-quality`. The top actionability question was still the Full Audit proof-boundary prompt:
 
 - Question: "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?"

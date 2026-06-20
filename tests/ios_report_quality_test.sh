@@ -91,24 +91,26 @@ import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 priority = data.get("priorityAction") or {}
-covered = "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?"
-expected = "Does the full-audit report replace repeated manual validation ceremony with one resumable evidence lane?"
+covered = {
+    "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?":
+        "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-command-preserve-proof-boundaries",
+    "Does the full-audit report replace repeated manual validation ceremony with one resumable evidence lane?":
+        "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated",
+}
+expected = "Are slow lanes summarized clearly enough for a solo developer to decide what to rerun?"
 if priority.get("kind") != "answer-actionability-question":
     raise SystemExit(f"expected next uncovered full-audit question priority: {priority!r}")
 if priority.get("question") != expected:
-    raise SystemExit(f"expected full-audit evidence-lane question after fixture coverage, got {priority!r}")
+    raise SystemExit(f"expected full-audit slow-lane question after fixture coverage, got {priority!r}")
 coverage = data.get("fixtureCoverage") or []
-if not any(
-    item.get("question") == covered
-    and item.get("publicFixturePath") == "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-command-preserve-proof-boundaries"
-    for item in coverage
-):
-    raise SystemExit(f"expected full-audit proof-boundary fixture coverage, got {coverage!r}")
+for question, path in covered.items():
+    if not any(item.get("question") == question and item.get("publicFixturePath") == path for item in coverage):
+        raise SystemExit(f"expected full-audit fixture coverage for {question!r}: {coverage!r}")
 candidates = data.get("fixtureCandidates") or []
-if candidates:
-    raise SystemExit(f"covered full-audit proof-boundary question emitted duplicate candidates: {candidates!r}")
+if not candidates or candidates[0].get("sourceQuestion") != expected:
+    raise SystemExit(f"expected slow-lane fixture candidate first, got {candidates!r}")
 PY
-grep -q '"fixtureCandidates": \[\]' "$tmp_dir/full-audit-plan-quality/ios-report-quality.json"
+grep -q 'shipguard-full-audit-proof-boundary-fixture' "$tmp_dir/full-audit-plan-quality/ios-report-quality.json"
 
 full_audit_proof_boundary_fixture="fixtures/ios-report-quality/01-shipguard-full-audit-does-the-command-preserve-proof-boundaries"
 ./bin/shipguard ios report-quality \
@@ -133,6 +135,33 @@ assert item.get("publicFixturePath") == "fixtures/ios-report-quality/01-shipguar
 priority = data.get("priorityAction") or {}
 assert priority.get("kind") == "review-existing-fixture", priority
 assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-command-preserve-proof-boundaries", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
+
+full_audit_evidence_lane_fixture="fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated"
+./bin/shipguard ios report-quality \
+  --reports "$full_audit_evidence_lane_fixture" \
+  --out "$tmp_dir/full-audit-evidence-lane-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/full-audit-evidence-lane-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/full-audit-evidence-lane-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated"' "$tmp_dir/full-audit-evidence-lane-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/full-audit-evidence-lane-fixture-quality/ios-report-quality.json"
+python3 - <<'PY' "$tmp_dir/full-audit-evidence-lane-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard full-audit", item
+assert item.get("fixtureType") == "shipguard-full-audit-proof-boundary-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated", item
+assert "resumable evidence lane" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated", priority
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 

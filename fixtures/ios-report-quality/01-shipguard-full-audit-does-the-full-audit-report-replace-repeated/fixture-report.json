@@ -1,0 +1,95 @@
+{
+  "findings": [],
+  "fixtureCandidate": {
+    "candidateId": "01-shipguard-full-audit-does-the-full-audit-report-replace-repeated",
+    "duplicateCount": 1,
+    "expectedAssertions": [
+      "report-quality preserves the actionability question in JSON and Markdown",
+      "report-quality emits a fixtureCandidates entry for the public synthetic case",
+      "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+      "shareable output contains no local absolute paths or private app identifiers"
+    ],
+    "fixtureType": "shipguard-full-audit-proof-boundary-fixture",
+    "materialization": {
+      "files": [
+        "README.md",
+        "fixture-candidate.json",
+        "fixture-report.json",
+        "fixture-report.md"
+      ],
+      "safeSyntheticOnly": true,
+      "writeCommand": "./bin/shipguard ios report-quality --reports <report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>"
+    },
+    "priority": 1,
+    "privateDataPolicy": "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
+    "promotion": {
+      "candidateId": "01-shipguard-full-audit-does-the-full-audit-report-replace-repeated",
+      "copyCommands": [
+        "mkdir -p fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated",
+        "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated/README.md",
+        "cp <materialized-candidate-dir>/fixture-candidate.json fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated/fixture-candidate.json",
+        "cp <materialized-candidate-dir>/fixture-report.json fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated/fixture-report.json",
+        "cp <materialized-candidate-dir>/fixture-report.md fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated/fixture-report.md"
+      ],
+      "files": [
+        "README.md",
+        "fixture-candidate.json",
+        "fixture-report.json",
+        "fixture-report.md"
+      ],
+      "promotionPolicy": "Promotion is explicit maintainer work. ShipGuard writes starter files only to the requested output directory and does not auto-copy them into the repository.",
+      "reviewChecklist": [
+        "Confirm the fixture is synthetic and public-safe.",
+        "Confirm no private app code, screenshots, local paths, tokens, app identifiers, or proprietary text were copied.",
+        "Confirm scopeBoundary.shipguardOnly and targetAppsReadOnly remain explicit.",
+        "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates.",
+        "Register the fixture in validation only after the report-quality check passes."
+      ],
+      "sourceDirectory": "<materialized-fixture-output>/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated",
+      "suggestedFixturePath": "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated",
+      "validationCommands": [
+        "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated --out <quality-dir> --shareable",
+        "./tests/ios_report_quality_test.sh",
+        "./bin/shipguard validate"
+      ]
+    },
+    "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated",
+    "publicFixtureRecipe": "Create a minimal synthetic ShipGuard report pair that reproduces this report-quality question without private app code, local paths, screenshots, customer data, app names, or proprietary source snippets.",
+    "sourceQuestion": "Does the full-audit report replace repeated manual validation ceremony with one resumable evidence lane?",
+    "sourceReportCount": 1,
+    "sourceReportsRedacted": true,
+    "sourceTool": "shipguard full-audit",
+    "validationCommands": [
+      "./bin/shipguard ios report-quality --reports <fixture-dir> --out <quality-dir> --shareable",
+      "./tests/ios_report_quality_test.sh"
+    ]
+  },
+  "generatedAt": "2026-06-20T08:43:37Z",
+  "intent": "shipguard-evaluation",
+  "reportQualityQuestions": [
+    "Does the full-audit report replace repeated manual validation ceremony with one resumable evidence lane?"
+  ],
+  "scanScope": {
+    "note": "Synthetic fixture; no private source tree was scanned.",
+    "skippedDirectories": [],
+    "skippedDirectoryCount": 0
+  },
+  "schemaVersion": 1,
+    "scopeBoundary": {
+        "purpose": "Synthetic public fixture for ShipGuard report-quality behavior.",
+        "shipguardOnly": true,
+        "targetAppsReadOnly": true
+    },
+    "slashGoal": "/goal Implement the next ShipGuard evidence-lane fixture slice: keep Full Audit resumable proof visible, validate the promoted fixture, update NEXT_GOAL.md, and hand off the next goal.",
+    "slashHandoffSource": {
+        "sourcePath": "NEXT_GOAL.md",
+        "status": "loaded"
+    },
+    "slashPlan": "/plan Promote the Full Audit evidence-lane fixture, validate report-quality coverage, update docs and package proof, then generate the next goal.",
+    "shareability": {
+        "localAbsolutePathsIncluded": false,
+        "mode": "shareable"
+  },
+  "status": "pass",
+  "tool": "shipguard full-audit"
+}
