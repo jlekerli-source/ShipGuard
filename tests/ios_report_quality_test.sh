@@ -1064,6 +1064,30 @@ candidate_dirs = [p for p in fixture_root.iterdir() if p.is_dir()]
 if candidate_dirs:
     raise SystemExit(f"covered preview/devspace question should not materialize duplicate candidate dirs: {candidate_dirs!r}")
 PY
+./bin/shipguard ios report-quality \
+  --reports fixtures/ios-report-quality/design-observation-promotion \
+  --out "$tmp_dir/design-observation-quality" \
+  --write-fixture-candidates "$tmp_dir/design-observation-fixtures" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/design-observation-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/design-observation-promotion"' "$tmp_dir/design-observation-quality/ios-report-quality.json"
+grep -q 'Fixture Coverage' "$tmp_dir/design-observation-quality/ios-report-quality.md"
+python3 - <<'PY' "$tmp_dir/design-observation-quality/ios-report-quality.json" "$tmp_dir/design-observation-fixtures"
+import json
+import sys
+from pathlib import Path
+
+data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+fixture_root = Path(sys.argv[2])
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"covered design observation question should not emit duplicate fixture candidates: {data['fixtureCandidates']!r}")
+coverage = data.get("fixtureCoverage") or []
+if not any(item.get("publicFixturePath") == "fixtures/ios-report-quality/design-observation-promotion" for item in coverage):
+    raise SystemExit(f"design observation fixture coverage missing: {coverage!r}")
+candidate_dirs = [p for p in fixture_root.iterdir() if p.is_dir()]
+if candidate_dirs:
+    raise SystemExit(f"covered design observation question should not materialize duplicate candidate dirs: {candidate_dirs!r}")
+PY
 broken_materialized="$tmp_dir/broken-materialized-fixtures"
 cp -R "$tmp_dir/materialized-fixtures" "$broken_materialized"
 python3 - <<'PY' "$broken_materialized/fixture-promotion-manifest.json"

@@ -4,6 +4,26 @@ Generated: 2026-06-17
 
 This is the current usefulness and refinement evaluation for ShipGuard after the rename and README repositioning work.
 
+## Current Development Loop Efficiency Receipt
+
+The latest self-QA pass showed a real development-process weakness: after the design observation question was promoted into a public fixture, the existing workflow-chain receipt became too coupled to that now-covered design question. The receipt failed even though the product behavior was improving, which meant the proof loop could waste maintainer time on manual interpretation.
+
+This slice fixes the ShipGuard development loop:
+
+- `fixtures/tool-value-gauntlet/workflow-chain-receipts/report-quality-to-spec-and-next-goal` now uses its own synthetic uncovered report-quality question instead of depending on whichever design question happens to be uncovered that day.
+- The receipt proves the intended chain directly: report-quality priority question -> `ios spec-workflow` -> SpecForge tasks and validation commands -> slash plan/goal -> `next-goal`.
+- `shipguard value-gauntlet` now reports the workflow-chain receipt as passing again, so the next weak surface moves forward to stable-v4 publication proof instead of getting stuck on stale fixture coupling.
+
+## Current Design Observation Promotion Fixture
+
+The latest broad read-only ShipGuard product-QA loop against local app checkouts generated 10 shareable reports across performance, design, modernization, app-intelligence, and AI-readiness. Report-quality scored the set 100/100, and the next uncovered ShipGuard-owned question was design-specific: which private-app observation should become a public design fixture or eval case.
+
+This slice fixes ShipGuard's fixture flywheel, not either target app:
+
+- A new public `fixtures/ios-report-quality/design-observation-promotion` fixture covers the repeated design observation-promotion question without copying private app code, paths, screenshots, or identifiers.
+- The fixture keeps `scopeBoundary.shipguardOnly` and `targetAppsReadOnly` explicit, includes app-type tailoring, design-coherence boundary, preview guidance, and synthetic education-profile source signals, and proves the promoted question does not recurse into another fixture candidate.
+- Fresh read-only product-QA now treats that design question as fixture-covered, so future loops can move to the next uncovered modernize or app-intelligence report-quality gap instead of re-deciding the same design fixture promotion.
+
 ## Current Fixture Candidate Naming
 
 The latest broad read-only ShipGuard product-QA loop against local app checkouts generated 10 shareable source reports across performance, design, modernization, app-intelligence, and AI-readiness. Report-quality scored the set 100/100, but the materialized fixture starter directories still exposed a ShipGuard product weakness: repeated boundary-oriented candidates were written as generic duplicate names such as `01-shipguard-eval-boundary-fixture`, even though the report itself already knew the more useful tool/question slug.

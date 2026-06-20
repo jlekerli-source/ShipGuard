@@ -1,0 +1,336 @@
+{
+  "appType": {
+    "confidence": 0.78,
+    "inferred": "education",
+    "override": null,
+    "scores": {
+      "education": 25,
+      "game": 3,
+      "utility": 4
+    },
+    "signals": [
+      {
+        "appType": "education",
+        "count": 12,
+        "file": "Sources/SyntheticDesignFixture/LearningFlow.swift",
+        "token": "lesson"
+      },
+      {
+        "appType": "education",
+        "count": 8,
+        "file": "Sources/SyntheticDesignFixture/LearningFlow.swift",
+        "token": "learn"
+      },
+      {
+        "appType": "education",
+        "count": 5,
+        "file": "Sources/SyntheticDesignFixture/LearningFlow.swift",
+        "token": "progress"
+      }
+    ],
+    "value": "education"
+  },
+  "designCoherenceBoundary": {
+    "appWorkAuthorization": {
+      "allowedShipGuardActions": [
+        "Improve ShipGuard report fields, Markdown, rules, docs, plugin guidance, or public fixtures.",
+        "Use private app evidence only to choose the shape of synthetic public eval coverage."
+      ],
+      "forbiddenActions": [
+        "Do not edit the scanned app from this report.",
+        "Do not open target-app redesign, icon, haptic, motion, or localization tasks from this report."
+      ],
+      "requiresExplicitRequest": true,
+      "status": "not-authorized-from-this-run"
+    },
+    "coherenceRisks": [
+      {
+        "category": "Design DNA",
+        "evidence": "Synthetic design inventory has visual, motion, haptic, and copy signals but no app-work authorization.",
+        "ruleId": "design-coherence-target-work-boundary",
+        "severity": "review",
+        "title": "Design coherence finding must not become target-app work"
+      }
+    ],
+    "proofBoundary": {
+      "expectedArtifact": "ios-report-quality.json plus fixture coverage for design coherence boundaries.",
+      "localProof": "Run shipguard ios report-quality on this synthetic design fixture.",
+      "manualProof": "A human may later authorize target-app design work, but this fixture does not authorize it."
+    },
+    "purpose": "Keep design-system coherence findings as ShipGuard product-QA evidence until target-app work is separately authorized.",
+    "separationChecks": {
+      "appWorkRequiresSeparateAuthorization": true,
+      "coherenceRiskIsNotTargetTask": true,
+      "inventoryIsNotRemediation": true,
+      "shipguardActionIsPublicFixtureOrRule": true
+    },
+    "shipguardNextAction": {
+      "expectedArtifact": "A public synthetic report-quality fixture that checks the coherence boundary without private app data.",
+      "failureMeaning": "Private app design evidence can still become unreviewed app remediation advice instead of ShipGuard product QA.",
+      "kind": "public-fixture-or-report-rule",
+      "owner": "ShipGuard maintainer",
+      "sourceQuestion": "Did it separate design-system coherence findings from target-app implementation work?",
+      "successCondition": "Report-quality fails if a design report turns coherence inventory into target-app implementation work or hides the authorization boundary."
+    },
+    "sourceInventory": {
+      "appType": "education",
+      "colorSignals": 12,
+      "componentSignals": {
+        "Button": 3,
+        "NavigationStack": 1,
+        "ProgressView": 1
+      },
+      "copySignals": {
+        "localizationSignals": 2,
+        "visibleStringCount": 9
+      },
+      "hapticSignals": {
+        "coreHapticsSignals": 0,
+        "sensoryFeedbackSignals": 0,
+        "uikitFeedbackSignals": 1
+      },
+      "iconographySignals": {
+        "customImageSignals": 0,
+        "sfSymbolSignals": 6,
+        "symbolEffectSignals": 1
+      },
+      "motionSignals": {
+        "animationModifiers": 2,
+        "reduceMotion": 2,
+        "repeatForever": 1,
+        "timelineView": 0,
+        "withAnimation": 4
+      },
+      "typographySignals": 6,
+      "visualEffectSignals": {
+        "blur": 1,
+        "cardNames": 3,
+        "rounded": 8,
+        "shadow": 2
+      }
+    },
+    "targetRemediationStatus": "not-authorized-from-this-run"
+  },
+  "designDNA": {
+    "copyTone": {
+      "localizationSignals": 2,
+      "samples": [
+        "Lesson complete",
+        "Try again"
+      ],
+      "visibleStringCount": 9
+    },
+    "haptics": {
+      "coreHapticsSignals": 0,
+      "sensoryFeedbackSignals": 0,
+      "uikitFeedbackSignals": 1
+    },
+    "layout": {
+      "blurSignals": 1,
+      "cardNameSignals": 3,
+      "roundedSignals": 8,
+      "shadowSignals": 2
+    },
+    "motion": {
+      "animationModifiers": 2,
+      "reduceMotionSignals": 2,
+      "repeatForeverSignals": 1,
+      "timelineViewSignals": 0,
+      "withAnimationSignals": 4
+    }
+  },
+  "designTailoring": {
+    "dimensions": {
+      "copyTone": {
+        "localizationSignals": 2,
+        "stance": "specific to the app task and audience",
+        "visibleStringCount": 9
+      },
+      "haptics": {
+        "deviceProofRequired": true,
+        "observedSignals": {
+          "coreHapticsSignals": 0,
+          "sensoryFeedbackSignals": 0,
+          "uikitFeedbackSignals": 1
+        },
+        "tone": "encouraging, milestone-aware, and interruption-sparse"
+      },
+      "motion": {
+        "observedSignals": {
+          "animationModifiers": 2,
+          "repeatForever": 1,
+          "timelineView": 0,
+          "withAnimation": 4
+        },
+        "reason": "Motion should clarify learning state, feedback, and recovery rather than apply utility-only restraint.",
+        "stance": "production-polish"
+      },
+      "visualDensity": {
+        "observedSignals": {
+          "blur": 1,
+          "cardNames": 3,
+          "rounded": 8,
+          "shadow": 2
+        },
+        "stance": "allow expressive hierarchy with proof"
+      }
+    },
+    "guidanceProfile": "learning-progress",
+    "nextAction": {
+      "expectedArtifact": "A same-flow screenshot or preview receipt plus one note mapping the learning-progress profile to source signals.",
+      "failureMeaning": "The design report remains an inventory, not an app-type-specific design QA recommendation.",
+      "kind": "manual-proof",
+      "manualProof": "Review one synthetic learning flow and confirm motion, haptics, visual density, and copy guidance match the education profile rather than a universal design checklist.",
+      "owner": "developer",
+      "successCondition": "The report explains why learning-progress is the right profile for education and avoids utility-only advice."
+    },
+    "risk": "Generic utility restraint can make learning feedback feel flat, while generic game delight can distract from comprehension.",
+    "sourceSignalSummary": "lesson->education, learn->education, progress->education",
+    "sourceSignals": [
+      {
+        "appType": "education",
+        "count": 12,
+        "file": "Sources/SyntheticDesignFixture/LearningFlow.swift",
+        "token": "lesson"
+      },
+      {
+        "appType": "education",
+        "count": 8,
+        "file": "Sources/SyntheticDesignFixture/LearningFlow.swift",
+        "token": "learn"
+      },
+      {
+        "appType": "education",
+        "count": 5,
+        "file": "Sources/SyntheticDesignFixture/LearningFlow.swift",
+        "token": "progress"
+      }
+    ],
+    "tailoredFor": "education",
+    "universalDefaultsRejected": true
+  },
+  "findings": [
+    {
+      "category": "Design DNA",
+      "evidence": "Synthetic design inventory has visual, motion, haptic, and copy signals but no app-work authorization.",
+      "proof": "Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.",
+      "proofGuidance": "Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.",
+      "recommendation": "Improve ShipGuard report-quality rules or public fixtures before using this as target-app implementation guidance.",
+      "ruleId": "design-coherence-target-work-boundary",
+      "severity": "review",
+      "title": "Design coherence finding must not become target-app work"
+    },
+    {
+      "category": "Preview",
+      "evidence": "No synthetic preview receipt was supplied.",
+      "proof": "Attach preview-events.jsonl, handoff.md, and refreshed screenshot evidence for visual claims.",
+      "proofGuidance": "Attach preview-events.jsonl, handoff.md, and refreshed screenshot evidence for visual claims.",
+      "recommendation": "Run shipguard ios preview for a phone-shaped visual proof loop; use ios devspace when ChatGPT should plan from that widget.",
+      "ruleId": "preview-proof-not-provided",
+      "severity": "opportunity",
+      "title": "Design audit has no live iPhone preview evidence"
+    }
+  ],
+  "fixtureCandidate": {
+    "candidateId": "design-observation-promotion",
+    "duplicateCount": 2,
+    "expectedAssertions": [
+      "report-quality preserves the actionability question in JSON and Markdown",
+      "report-quality emits a fixtureCandidates entry for the public synthetic case",
+      "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+      "shareable output contains no local absolute paths or private app identifiers"
+    ],
+    "fixtureType": "shipguard-eval-boundary-fixture",
+    "materialization": {
+      "files": [
+        "README.md",
+        "fixture-candidate.json",
+        "fixture-report.json",
+        "fixture-report.md"
+      ],
+      "safeSyntheticOnly": true,
+      "writeCommand": "./bin/shipguard ios report-quality --reports <report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>"
+    },
+    "priority": 1,
+    "privateDataPolicy": "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
+    "promotion": {
+      "candidateId": "design-observation-promotion",
+      "copyCommands": [
+        "mkdir -p fixtures/ios-report-quality/design-observation-promotion",
+        "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/design-observation-promotion/README.md",
+        "cp <materialized-candidate-dir>/fixture-candidate.json fixtures/ios-report-quality/design-observation-promotion/fixture-candidate.json",
+        "cp <materialized-candidate-dir>/fixture-report.json fixtures/ios-report-quality/design-observation-promotion/fixture-report.json",
+        "cp <materialized-candidate-dir>/fixture-report.md fixtures/ios-report-quality/design-observation-promotion/fixture-report.md"
+      ],
+      "files": [
+        "README.md",
+        "fixture-candidate.json",
+        "fixture-report.json",
+        "fixture-report.md"
+      ],
+      "promotionPolicy": "Promotion is explicit maintainer work. ShipGuard writes starter files only to the requested output directory and does not auto-copy them into the repository.",
+      "reviewChecklist": [
+        "Confirm the fixture is synthetic and public-safe.",
+        "Confirm no private app code, screenshots, local paths, tokens, app identifiers, or proprietary text were copied.",
+        "Confirm scopeBoundary.shipguardOnly and targetAppsReadOnly remain explicit.",
+        "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates.",
+        "Register the fixture in validation only after the report-quality check passes."
+      ],
+      "sourceDirectory": "<materialized-fixture-output>/design-observation-promotion",
+      "suggestedFixturePath": "fixtures/ios-report-quality/design-observation-promotion",
+      "validationCommands": [
+        "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/design-observation-promotion --out <quality-dir> --shareable",
+        "./tests/ios_report_quality_test.sh",
+        "./bin/shipguard validate"
+      ]
+    },
+    "publicFixturePath": "fixtures/ios-report-quality/design-observation-promotion",
+    "publicFixtureRecipe": "Create a minimal synthetic ShipGuard report pair that reproduces this report-quality question without private app code, local paths, screenshots, customer data, app names, or proprietary source snippets.",
+    "sourceQuestion": "Which private-app observation should become a public design fixture or eval case?",
+    "sourceReportCount": 2,
+    "sourceReportsRedacted": true,
+    "sourceTool": "shipguard ios design",
+    "validationCommands": [
+      "./bin/shipguard ios report-quality --reports <fixture-dir> --out <quality-dir> --shareable",
+      "./tests/ios_report_quality_test.sh"
+    ]
+  },
+  "generatedAt": "2026-06-20T00:33:31Z",
+  "intent": "shipguard-evaluation",
+  "previewEvidence": {
+    "recommendedCommands": [
+      "shipguard ios preview --out /tmp/ios-shipguard-preview",
+      "shipguard ios devspace --port 8787 --preview-out /tmp/ios-shipguard-preview --bearer-token-env SHIPGUARD_DEVSPACE_TOKEN"
+    ],
+    "status": "not-provided"
+  },
+  "reportQualityQuestions": [
+    "Which private-app observation should become a public design fixture or eval case?"
+  ],
+  "resultUX": {
+    "nextActionSummary": "Run preview for phone-shaped visual evidence; use Devspace when ChatGPT should plan from the preview widget.",
+    "nextCommand": "shipguard ios preview --out /tmp/ios-shipguard-preview",
+    "proofSource": "designTailoring.nextAction + designDNA + optional previewEvidence",
+    "sourceStatus": "review",
+    "status": "review",
+    "verdict": "REVIEW: Synthetic design fixture needs preview proof before visual claims.",
+    "whyItMatters": "Design QA must route visual claims through phone-shaped preview or Devspace proof."
+  },
+  "scanScope": {
+    "note": "Synthetic fixture; no private source tree was scanned.",
+    "skippedDirectories": [],
+    "skippedDirectoryCount": 0
+  },
+  "schemaVersion": 1,
+  "scopeBoundary": {
+    "purpose": "Synthetic public fixture for ShipGuard report-quality behavior.",
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "shareability": {
+    "localAbsolutePathsIncluded": false,
+    "mode": "shareable"
+  },
+  "status": "review",
+  "tool": "shipguard ios design"
+}

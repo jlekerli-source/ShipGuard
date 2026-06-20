@@ -74,12 +74,12 @@
     },
     {
       "id": "report-quality",
-      "display": "./bin/shipguard ios report-quality --reports <receipt-out>/design --out <receipt-out>/quality --shareable",
+      "display": "./bin/shipguard ios report-quality --reports <receipt-out>/workflow-source --out <receipt-out>/quality --shareable",
       "args": [
         "ios",
         "report-quality",
         "--reports",
-        "{out}/design",
+        "{out}/workflow-source",
         "--out",
         "{out}/quality",
         "--shareable"
@@ -119,6 +119,16 @@
             "If implementation needs planning, feed this report-quality output into ios spec-workflow with --from-report"
           ],
           "forbidLocalPaths": true
+        }
+      ],
+      "prepareFiles": [
+        {
+          "path": "workflow-source/workflow-chain-source.json",
+          "text": "{\n  \"findings\": [],\n  \"generatedAt\": \"2026-06-20T00:00:00Z\",\n  \"intent\": \"shipguard-evaluation\",\n  \"reportQualityQuestions\": [\n    \"Can ShipGuard prove report-quality questions become SpecForge tasks and next slash plans without manual interpretation?\"\n  ],\n  \"resultUX\": {\n    \"nextActionSummary\": \"Feed this report-quality output into SpecForge and then generate the next goal.\",\n    \"nextCommand\": \"./bin/shipguard ios spec-workflow --path fixtures/demo-ios-repo --feature \\\"ShipGuard Workflow Chain Receipts\\\" --from-report <report-quality-dir> --out <spec-dir> --shipguard-eval --shareable\",\n    \"proofSource\": \"public synthetic workflow-chain fixture\",\n    \"status\": \"review\",\n    \"verdict\": \"REVIEW: Synthetic workflow-chain source report needs a SpecForge handoff.\",\n    \"whyItMatters\": \"The development loop should turn report-quality questions into tasks, validation, and slash handoffs without manual interpretation.\"\n  },\n  \"schemaVersion\": 1,\n  \"scopeBoundary\": {\n    \"purpose\": \"Synthetic workflow-chain source report; no target app was inspected.\",\n    \"shipguardOnly\": true,\n    \"targetAppsReadOnly\": true\n  },\n  \"shareability\": {\n    \"localAbsolutePathsIncluded\": false,\n    \"mode\": \"shareable\"\n  },\n  \"status\": \"review\",\n  \"surface\": \"Workflow Chain Synthetic Source\",\n  \"tool\": \"shipguard inspect\"\n}\n"
+        },
+        {
+          "path": "workflow-source/workflow-chain-source.md",
+          "text": "# Workflow Chain Synthetic Source\n\n## ShipGuard Evaluation Boundary\n\nThis public synthetic report is ShipGuard-only process evidence. It does not inspect or authorize target-app work.\n\n## Result\n\n- Verdict: REVIEW: Synthetic workflow-chain source report needs a SpecForge handoff.\n- Proof source: public synthetic workflow-chain fixture\n- Why it matters: The development loop should turn report-quality questions into tasks, validation, and slash handoffs without manual interpretation.\n- Next command: `./bin/shipguard ios spec-workflow --path fixtures/demo-ios-repo --feature \"ShipGuard Workflow Chain Receipts\" --from-report <report-quality-dir> --out <spec-dir> --shipguard-eval --shareable`\n- Next action: Feed this report-quality output into SpecForge and then generate the next goal.\n\n## Report Quality Questions\n\n- Can ShipGuard prove report-quality questions become SpecForge tasks and next slash plans without manual interpretation?\n"
         }
       ]
     },
@@ -179,7 +189,7 @@
           "path": "spec/ios-spec-workflow.json",
           "type": "text",
           "requiredPhrases": [
-            "Did the report tailor advice to the app type instead of applying one universal design rule?",
+            "Can ShipGuard prove report-quality questions become SpecForge tasks and next slash plans without manual interpretation?",
             "Resolve report-quality actionability question:",
             "./tests/ios_spec_workflow_test.sh",
             "\"slashPlan\"",
@@ -193,7 +203,7 @@
           "requiredPhrases": [
             "# Tasks",
             "Resolve report-quality actionability question:",
-            "Did the report tailor advice to the app type instead of applying one universal design rule?"
+            "Can ShipGuard prove report-quality questions become SpecForge tasks and next slash plans without manual interpretation?"
           ],
           "forbidLocalPaths": true
         },

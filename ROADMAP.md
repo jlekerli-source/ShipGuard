@@ -21,6 +21,7 @@ Near-term strategy:
 - Freeze broad public-command expansion unless the command feeds `inspect`, `prepare`, `verify`, `doctor`, or core initialization.
 - Build a persistent task object that connects repo context, risk, authorized files, validation, agent run evidence, and verdict.
 - Treat command-family runtime-output receipts as regression coverage, not a headline product pillar.
+- Remove development-loop waste when proof shows it: workflow-chain receipts should prove that report-quality questions become SpecForge tasks, validation commands, slash plans/goals, and the following goal without manual interpretation.
 - Accelerate trust hardening, task contracts, and the iOS notification/permission proof workflow.
 - Delay broad web/backend/CLI maturity until the core task/evidence schema and first iOS domain pack prove value.
 - Keep evaluation running beside every feature through gold fixtures, negative fixtures, model critique, and human review where useful.
@@ -44,6 +45,8 @@ Major-version definitions:
 - v4 means product: a solo developer can trust and recommend ShipGuard without author help.
 - v5 means platform: teams can govern AI-generated changes across repositories, policies, agents, approvals, and releases.
 - v6 means standard: other tools can produce and consume ShipGuard-compatible task contracts, evidence receipts, verdicts, domain packs, and attestations.
+
+When a major milestone reaches its exit gate (`v4`, `v5`, `v6`, or later), the release loop must create a fresh Codex launch/promotion thread before final announcement work. That thread should be separate from implementation context and should prepare Product Hunt, r/ShipGuard, X, README/release copy, screenshots/assets, and launch proof from the verified milestone state. Computer-use may help prepare drafts, fill preview fields, and stage launch pages, but public posting, publishing, submission, or account-visible external actions require explicit approval for that exact launch run.
 
 Keep the core open-source verdict engine honest. Future Pro, Team, or Enterprise surfaces can add Studio, Hub, policy simulation, registries, analytics, or hosted/self-hosted collaboration, but the local `prepare` -> `verify` decision loop must not become decorative or paywalled into uselessness.
 
