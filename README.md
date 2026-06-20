@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".github/assets/shipguard-icon.png" width="104" alt="ShipGuard logo">
+  <img src=".github/assets/shipguard-icon.png" width="96" alt="ShipGuard logo">
 </p>
 
 <h1 align="center">ShipGuard</h1>
@@ -16,31 +16,27 @@
   <a href="docs/index.md">Docs</a>
 </p>
 
-ShipGuard helps you use Codex and other coding agents without accepting vague handoffs like "done", "tested", or "looks good".
+ShipGuard helps developers use Codex and other coding agents without accepting vague handoffs like "done", "tested", or "looks good".
 
-It turns an AI-assisted change into a proof loop:
+It turns AI-assisted work into a simple proof loop:
 
 ```text
-prepare the task -> run the work -> verify the evidence -> ship, review, or block
+scope the task -> run the work -> check the evidence -> ship, review, or block
 ```
 
 ShipGuard is local-first, open source, and app-neutral. The strongest track today is iOS, with growing support for web, backend, and CLI projects.
 
-## Why It Exists
+## What You Get
 
-AI coding gets risky when the agent changes real software faster than the maintainer can review the scope, tests, and claims.
+- A local CLI for task contracts, proof checks, release evidence, and repo health.
+- Starter profiles for iOS, web, backend, and CLI repos.
+- A Codex plugin for iOS maintenance, design QA, performance audits, preview routing, and modernization planning.
+- GitHub Action helpers for proof reports on pull requests and releases.
+- Public fixtures and evals so useful behavior is tested, not just described.
 
-ShipGuard keeps the important questions visible:
+## Start In 3 Minutes
 
-- What was the agent allowed to change?
-- What changed in the diff?
-- What evidence was actually produced?
-- Which claims are unsupported?
-- Is the next step ship, review, or block?
-
-## Start Fast
-
-From a ShipGuard checkout:
+From this checkout:
 
 ```bash
 ./bin/shipguard validate
@@ -54,7 +50,7 @@ PREFIX="$HOME/.local" ./scripts/install.sh
 shipguard version
 ```
 
-Add ShipGuard to an app or service repo:
+Add ShipGuard to a project:
 
 ```bash
 shipguard init ios .
@@ -63,9 +59,9 @@ shipguard doctor ios .
 
 Use `web`, `backend`, or `cli` instead of `ios` for those starter profiles.
 
-## The Main Loop
+## The Core Workflow
 
-Create a task contract before agent work:
+Create a scoped task before agent work:
 
 ```bash
 shipguard prepare "Add notification permission copy" \
@@ -87,23 +83,23 @@ shipguard verify \
   --out /tmp/shipguard-verdict
 ```
 
-ShipGuard writes Markdown and JSON with changed files, proof coverage, unsupported claims, scope issues, and one next action.
+The verdict tells you what changed, what proof exists, which claims are unsupported, and the next action.
 
-## Useful Commands
+## Common Commands
 
 | Need | Command |
 | --- | --- |
-| Validate ShipGuard itself | `shipguard validate` |
-| Add starter files to a repo | `shipguard init ios .` |
+| Validate ShipGuard | `shipguard validate` |
+| Add starter files | `shipguard init ios .` |
 | Check repo setup | `shipguard doctor ios .` |
 | Prepare an AI task | `shipguard prepare "task" --path . --out /tmp/task --profile ios` |
-| Verify AI claims | `shipguard verify --task /tmp/task/shipguard-task.json --diff /tmp/change.diff --evidence /tmp/receipt.json --out /tmp/verdict` |
-| Inspect iOS risk | `shipguard ios doctor --path . --out /tmp/ios-doctor` |
+| Verify AI work | `shipguard verify --task /tmp/task/shipguard-task.json --diff /tmp/change.diff --evidence /tmp/receipt.json --out /tmp/verdict` |
+| Audit iOS risk | `shipguard ios doctor --path . --out /tmp/ios-doctor` |
 | Audit iOS performance | `shipguard ios performance --path . --out /tmp/ios-performance` |
 | Audit iOS design | `shipguard ios design --path . --out /tmp/ios-design` |
-| Run a full ShipGuard proof lane | `shipguard full-audit --path . --out /tmp/shipguard-full-audit` |
+| Run the full proof lane | `shipguard full-audit --path . --out /tmp/shipguard-full-audit` |
 
-The full command surface lives in the [CLI reference](docs/cli.md) and [command matrix](docs/command-matrix.md).
+See the [CLI reference](docs/cli.md) and [command matrix](docs/command-matrix.md) for the full surface.
 
 ## Codex Plugin
 
@@ -119,9 +115,7 @@ Start a new Codex thread after refreshing the plugin so the latest skill text is
 
 ## GitHub Action
 
-ShipGuard can run proof checks in CI and produce reviewable evidence on pull requests.
-
-Start here:
+ShipGuard can run proof checks in CI and upload reviewable evidence.
 
 - [GitHub Action](docs/github-action.md)
 - [Release proof](docs/release-proof.md)
