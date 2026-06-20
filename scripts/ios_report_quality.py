@@ -862,6 +862,59 @@ def result_ux_quality_issues(report: dict[str, Any], *, path_name: str) -> list[
     return issues
 
 
+def verify_pr_report_quality_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    if str(report.get("tool") or "") != "shipguard action verify-pr":
+        return issues
+    guide = report.get("freshMaintainerFailureGuide")
+    if not isinstance(guide, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="verify-pr-failure-guide-missing",
+            evidence=f"{path_name} has no freshMaintainerFailureGuide",
+            recommendation="Emit a blocker-first failure guide so a fresh maintainer sees the first real fix before lower-severity review items.",
+        )
+        return issues
+    if "Fresh Maintainer Failure Guide" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="verify-pr-failure-guide-markdown-missing",
+            evidence=f"{path_name} Markdown does not render the fresh maintainer failure guide",
+            recommendation="Render the static/runtime phase guide in Markdown so humans do not have to inspect JSON.",
+        )
+    status = str(report.get("status") or "")
+    first_action = guide.get("firstAction") if isinstance(guide.get("firstAction"), dict) else {}
+    if status == "blocked" and first_action.get("severity") != "blocked":
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="verify-pr-first-action-not-blocker",
+            evidence=f"{path_name} is blocked but freshMaintainerFailureGuide.firstAction is not a blocker",
+            recommendation="Choose the first blocked finding as the next action before lower-severity review findings.",
+        )
+    if status == "blocked" and not guide.get("firstBlockingRuleId"):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="verify-pr-first-blocker-missing",
+            evidence=f"{path_name} is blocked but freshMaintainerFailureGuide.firstBlockingRuleId is empty",
+            recommendation="Record the first blocking rule id so report-quality and humans can verify blocker-first routing.",
+        )
+    phases = guide.get("phases")
+    phase_titles = {str(item.get("title") or "") for item in phases if isinstance(item, dict)} if isinstance(phases, list) else set()
+    if not {"Static workflow setup", "Runtime artifact proof"}.issubset(phase_titles):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="verify-pr-failure-guide-phases-missing",
+            evidence=f"{path_name} freshMaintainerFailureGuide does not include both static and runtime phases",
+            recommendation="Separate static workflow setup from runtime artifact proof so maintainers know which proof lane failed.",
+        )
+    return issues
+
+
 def full_audit_slash_handoff_issues(report: dict[str, Any], *, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     if str(report.get("tool") or "") != "shipguard full-audit":
@@ -2868,6 +2921,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
         )
     issues.extend(finding_quality_issues(loaded))
     issues.extend(result_ux_quality_issues(loaded, path_name=path.name))
+    issues.extend(verify_pr_report_quality_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(full_audit_slash_handoff_issues(loaded, path_name=path.name))
     issues.extend(full_audit_execution_command_issues(loaded, markdown=markdown, path_name=path.name))
     if tool == "shipguard ios performance":
@@ -3555,6 +3609,10 @@ def should_create_fixture_candidate(question: str) -> bool:
             "unsupported completion claim",
             "unsupported completion claims",
             "exact next action",
+            "fresh maintainer",
+            "freshmaintainerfailureguide",
+            "first blocker",
+            "failure guide",
             "permission-state",
             "denied-state",
             "physical-device prompt",

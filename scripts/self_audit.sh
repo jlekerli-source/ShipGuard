@@ -443,6 +443,14 @@ required_artifacts=(
   "fixtures/action-verify-pr/runtime-artifact/shipguard-verdict.json"
   "fixtures/action-verify-pr/runtime-artifact/shipguard-verdict.md"
   "fixtures/action-verify-pr/runtime-broken/shipguard-verdict.json"
+  "fixtures/ios-report-quality/01-shipguard-action-verify-pr-does-the-report-tell-a-fresh-9fdb2055/README.md"
+  "fixtures/ios-report-quality/01-shipguard-action-verify-pr-does-the-report-tell-a-fresh-9fdb2055/fixture-candidate.json"
+  "fixtures/ios-report-quality/01-shipguard-action-verify-pr-does-the-report-tell-a-fresh-9fdb2055/fixture-report.json"
+  "fixtures/ios-report-quality/01-shipguard-action-verify-pr-does-the-report-tell-a-fresh-9fdb2055/fixture-report.md"
+  "fixtures/ios-report-quality/02-shipguard-action-verify-pr-does-the-freshmaintainerfail-0c0f8769/README.md"
+  "fixtures/ios-report-quality/02-shipguard-action-verify-pr-does-the-freshmaintainerfail-0c0f8769/fixture-candidate.json"
+  "fixtures/ios-report-quality/02-shipguard-action-verify-pr-does-the-freshmaintainerfail-0c0f8769/fixture-report.json"
+  "fixtures/ios-report-quality/02-shipguard-action-verify-pr-does-the-freshmaintainerfail-0c0f8769/fixture-report.md"
 )
 
 artifact_count=0

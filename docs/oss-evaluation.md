@@ -28,6 +28,18 @@ The v3.199 read-only loop reran the configured Verify-PR static audit, `shipguar
 
 Fresh QA now runs the action audit over static, valid-runtime, broken-runtime, and broken-workflow fixtures before treating the first PR-proof path as healthy.
 
+## Current Verify-PR Fresh Maintainer Failure Guidance QA
+
+The v3.201 read-only loop reran `shipguard action verify-pr` over the starter workflow, configured workflow, valid runtime artifact, broken runtime artifact, and broken workflow fixture, then graded the reports with `ios report-quality`.
+
+- Finding: the broken workflow report was blocked but its next action could point at a lower-severity checkout review before the first real blocker.
+- Finding: a shareable broken-runtime report still carried an absolute local path in one artifact finding.
+- Product weakness: a fresh maintainer needs the first real fix and the static-versus-runtime proof lane immediately, without local path leakage or generic checklist noise.
+- Native fix: `shipguard action verify-pr` now emits `freshMaintainerFailureGuide`, separates static workflow setup from runtime artifact proof, routes blocked reports to the first blocking rule, and uses path-safe artifact evidence under `--shareable`.
+- Fixture fix: report-quality now enforces the failure guide and two public fixtures cover the fresh-maintainer explanation question and first-blocker-before-review question.
+
+Fresh QA now runs the broken workflow and broken runtime artifact through report-quality before treating Verify-PR guidance as useful for new maintainers.
+
 ## Current Ponytail Behavior-Gate QA
 
 The v3.200 read-only QA pass inspected the public Ponytail repo and ran ShipGuard's native Lean Deck against both this checkout and the public Ponytail checkout.

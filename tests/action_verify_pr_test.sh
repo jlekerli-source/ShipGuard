@@ -54,8 +54,10 @@ grep -q 'open a tiny PR, then download and inspect the uploaded shipguard-verdic
 grep -q '"status": "pass"' "$tmp_dir/runtime/action-verify-pr.json"
 grep -q '"runtimeArtifactProvided": true' "$tmp_dir/runtime/action-verify-pr.json"
 grep -q '"verdictStatus": "pass"' "$tmp_dir/runtime/action-verify-pr.json"
+grep -q '"freshMaintainerFailureGuide":' "$tmp_dir/runtime/action-verify-pr.json"
 grep -q '"ruleId": "runtime-verdict-tool"' "$tmp_dir/runtime/action-verify-pr.json"
 grep -q 'Runtime Artifact' "$tmp_dir/runtime/action-verify-pr.md"
+grep -q 'Fresh Maintainer Failure Guide' "$tmp_dir/runtime/action-verify-pr.md"
 grep -q 'shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --artifact-dir /tmp/shipguard-verdict-artifact' "$tmp_dir/runtime/action-verify-pr.md"
 
 set +e
@@ -74,9 +76,15 @@ if [[ "$runtime_broken_status" -ne 1 ]]; then
 fi
 
 grep -q '"status": "blocked"' "$tmp_dir/runtime-broken/action-verify-pr.json"
+grep -q '"firstBlockingRuleId": "runtime-verdict-tool"' "$tmp_dir/runtime-broken/action-verify-pr.json"
 grep -q '"ruleId": "runtime-verdict-tool"' "$tmp_dir/runtime-broken/action-verify-pr.json"
 grep -q '"ruleId": "runtime-proof-report"' "$tmp_dir/runtime-broken/action-verify-pr.json"
 grep -q '"ruleId": "runtime-evidence-receipt-schema"' "$tmp_dir/runtime-broken/action-verify-pr.json"
+grep -q 'Markdown verdict not found beside JSON: fixtures/action-verify-pr/runtime-broken/shipguard-verdict.md' "$tmp_dir/runtime-broken/action-verify-pr.json"
+if grep -R -q '/Users/' "$tmp_dir/runtime-broken"; then
+  echo "shareable broken runtime verify-pr report leaked a local absolute path" >&2
+  exit 1
+fi
 
 set +e
 ./bin/shipguard action verify-pr \
@@ -93,9 +101,12 @@ if [[ "$broken_status" -ne 1 ]]; then
 fi
 
 grep -q '"status": "blocked"' "$tmp_dir/broken/action-verify-pr.json"
+grep -q '"firstBlockingRuleId": "shipguard-install-step"' "$tmp_dir/broken/action-verify-pr.json"
 grep -q '"ruleId": "shipguard-install-step"' "$tmp_dir/broken/action-verify-pr.json"
 grep -q '"ruleId": "verify-step"' "$tmp_dir/broken/action-verify-pr.json"
 grep -q '"ruleId": "proof-artifact-upload"' "$tmp_dir/broken/action-verify-pr.json"
+grep -q 'Next action: Install ShipGuard before prepare/verify' "$tmp_dir/broken/action-verify-pr.md"
+grep -q 'Fresh Maintainer Failure Guide' "$tmp_dir/broken/action-verify-pr.md"
 
 ./bin/shipguard ios report-quality \
   --reports "$tmp_dir/configured/action-verify-pr.json" \
@@ -104,5 +115,37 @@ grep -q '"ruleId": "proof-artifact-upload"' "$tmp_dir/broken/action-verify-pr.js
   --strict >/dev/null
 
 grep -q '"status": "pass"' "$tmp_dir/report-quality/ios-report-quality.json"
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/runtime-broken" \
+  --reports "$tmp_dir/broken" \
+  --out "$tmp_dir/blocker-quality" \
+  --shareable \
+  --strict >/dev/null
+
+grep -q '"status": "pass"' "$tmp_dir/blocker-quality/ios-report-quality.json"
+if grep -q 'local-path-shareability-warning' "$tmp_dir/blocker-quality/ios-report-quality.json"; then
+  echo "shareable verify-pr reports should not trigger local path warnings" >&2
+  exit 1
+fi
+
+cp -R "$tmp_dir/broken" "$tmp_dir/missing-guide"
+python3 - <<'PY' "$tmp_dir/missing-guide/action-verify-pr.json"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+data.pop("freshMaintainerFailureGuide", None)
+path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+PY
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/missing-guide" \
+  --out "$tmp_dir/missing-guide-quality" \
+  --shareable >/dev/null
+
+grep -q '"ruleId": "verify-pr-failure-guide-missing"' "$tmp_dir/missing-guide-quality/ios-report-quality.json"
 
 echo "action verify-pr tests passed"

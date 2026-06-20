@@ -131,6 +131,7 @@ def inspect_runtime_artifact(args: argparse.Namespace, root: Path) -> dict[str, 
     findings: list[dict[str, Any]] = []
     verdict_candidates = find_verdict_json(artifact_dir)
     artifact_exists = artifact_dir.exists()
+    artifact_display = rel_path(artifact_dir, root, bool(args.shareable))
     check_signal(
         checks,
         findings,
@@ -139,7 +140,7 @@ def inspect_runtime_artifact(args: argparse.Namespace, root: Path) -> dict[str, 
         passed=artifact_exists,
         required=True,
         severity="blocked",
-        evidence=f"Artifact directory not found: {artifact_dir}",
+        evidence=f"Artifact directory not found: {artifact_display}",
         recommendation="Download the GitHub Actions artifact before runtime verification.",
         proof="Run gh run download <run-id> --name shipguard-verdict --dir /tmp/shipguard-verdict-artifact.",
     )
@@ -240,7 +241,7 @@ def inspect_runtime_artifact(args: argparse.Namespace, root: Path) -> dict[str, 
         passed=markdown_exists,
         required=True,
         severity="review",
-        evidence=f"Markdown verdict not found beside JSON: {markdown_path}",
+        evidence=f"Markdown verdict not found beside JSON: {rel_path(markdown_path, root, bool(args.shareable))}",
         recommendation="Upload both shipguard-verdict.json and shipguard-verdict.md so humans can inspect the proof without parsing JSON.",
         proof="Download the artifact and confirm shipguard-verdict.md is present.",
         category="artifact",
@@ -266,7 +267,7 @@ def inspect_runtime_artifact(args: argparse.Namespace, root: Path) -> dict[str, 
     status = "blocked" if blocked else "review" if review else "pass"
     return {
         "provided": True,
-        "path": rel_path(artifact_dir, root, bool(args.shareable)),
+        "path": artifact_display,
         "status": status,
         "checks": checks,
         "findings": findings,
@@ -274,6 +275,84 @@ def inspect_runtime_artifact(args: argparse.Namespace, root: Path) -> dict[str, 
         "verdictPath": rel_path(verdict_path, root, bool(args.shareable)) if verdict_candidates else "",
         "markdownPath": rel_path(markdown_path, root, bool(args.shareable)) if markdown_exists else "",
         "summary": f"{len(checks)} runtime artifact signal(s) checked; verdict status {verdict_status or 'unknown'}.",
+    }
+
+
+def prioritized_finding(findings: list[dict[str, Any]]) -> dict[str, Any] | None:
+    for severity in ("blocked", "review", "opportunity"):
+        for item in findings:
+            if item.get("severity") == severity:
+                return item
+    return findings[0] if findings else None
+
+
+def phase_summary(title: str, findings: list[dict[str, Any]], *, not_run: bool = False) -> dict[str, Any]:
+    blocked = [item for item in findings if item.get("severity") == "blocked"]
+    review = [item for item in findings if item.get("severity") == "review"]
+    first = prioritized_finding(findings)
+    if not_run:
+        status = "not-run"
+    elif blocked:
+        status = "blocked"
+    elif review:
+        status = "review"
+    else:
+        status = "pass"
+    return {
+        "title": title,
+        "status": status,
+        "blockedRules": [str(item.get("ruleId")) for item in blocked],
+        "reviewRules": [str(item.get("ruleId")) for item in review],
+        "firstFix": {
+            "ruleId": str(first.get("ruleId")) if first else "",
+            "recommendation": str(first.get("recommendation")) if first else "",
+            "proofGuidance": str(first.get("proofGuidance")) if first else "",
+        },
+    }
+
+
+def build_failure_guide(
+    findings: list[dict[str, Any]],
+    runtime_artifact: dict[str, Any],
+    *,
+    static_audit_command: str,
+    artifact_audit_command: str,
+) -> dict[str, Any]:
+    runtime_findings = runtime_artifact.get("findings") if isinstance(runtime_artifact.get("findings"), list) else []
+    runtime_ids = {id(item) for item in runtime_findings}
+    static_findings = [item for item in findings if id(item) not in runtime_ids]
+    first = prioritized_finding(findings)
+    runtime_not_run = not bool(runtime_artifact.get("provided"))
+    runtime_phase = phase_summary("Runtime artifact proof", runtime_findings, not_run=runtime_not_run)
+    if runtime_not_run:
+        runtime_phase["firstFix"] = {
+            "ruleId": "runtime-artifact-not-provided",
+            "recommendation": "Open a tiny PR, download the shipguard-verdict artifact, then rerun this audit with --artifact-dir.",
+            "proofGuidance": artifact_audit_command,
+        }
+    if first:
+        summary = f"First blocker: {first.get('ruleId')} - {first.get('recommendation')}"
+    elif runtime_not_run:
+        summary = "Static setup is ready; runtime proof still needs one small PR run and downloaded shipguard-verdict artifact inspection."
+    else:
+        summary = "Workflow setup and runtime artifact are ready for reviewer proof routing."
+    return {
+        "summary": summary,
+        "firstBlockingRuleId": str(first.get("ruleId")) if first and first.get("severity") == "blocked" else "",
+        "firstAction": {
+            "ruleId": str(first.get("ruleId")) if first else "",
+            "severity": str(first.get("severity")) if first else "",
+            "recommendation": str(first.get("recommendation")) if first else "",
+            "proofGuidance": str(first.get("proofGuidance")) if first else "",
+        },
+        "phases": [
+            phase_summary("Static workflow setup", static_findings),
+            runtime_phase,
+        ],
+        "commands": {
+            "rerunStaticAudit": static_audit_command,
+            "downloadArtifactAndAudit": artifact_audit_command,
+        },
     }
 
 
@@ -487,6 +566,13 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         next_command = artifact_audit_command
     else:
         next_command = static_audit_command
+    failure_guide = build_failure_guide(
+        findings,
+        runtime_artifact,
+        static_audit_command=static_audit_command,
+        artifact_audit_command=artifact_audit_command,
+    )
+    next_finding = prioritized_finding(findings)
     proof_source = (
         "read-only workflow text inspection plus downloaded shipguard-verdict artifact inspection; no target validation command executed locally"
         if runtime_artifact.get("provided")
@@ -499,8 +585,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         why_it_matters="The first GitHub Action path should fail setup mistakes before a maintainer trusts a missing or decorative proof artifact.",
         next_command=next_command,
         next_action_summary=(
-            findings[0]["recommendation"]
-            if findings
+            next_finding["recommendation"]
+            if next_finding
             else (
                 "Runtime artifact is consumable by ShipGuard; use the verdict status to decide whether the PR itself can merge."
                 if runtime_artifact.get("provided")
@@ -528,6 +614,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "checks": checks,
         "findings": findings,
         "runtimeArtifact": runtime_artifact,
+        "freshMaintainerFailureGuide": failure_guide,
         "firstRunProofPath": [
             {"step": "Copy the transparent workflow starter.", "command": "cp examples/workflows/verify-pr.yml .github/workflows/shipguard-verify-pr.yml"},
             {"step": "Replace the placeholder validation command.", "command": "edit SHIPGUARD_VALIDATION_COMMAND in .github/workflows/shipguard-verify-pr.yml"},
@@ -548,6 +635,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ],
         "reportQualityQuestions": [
             "Does the report tell a fresh maintainer exactly why their verify-PR workflow is not ready yet?",
+            "Does the freshMaintainerFailureGuide identify the first blocker before lower-severity review items?",
             "Does it distinguish static workflow setup proof from runtime GitHub artifact proof?",
             "Does it block missing task/diff/receipt/verify/upload wiring instead of accepting decorative workflow text?",
             "When a downloaded artifact is provided, does it verify that shipguard-verdict.json and Markdown are complete enough for a reviewer to trust the artifact as proof routing?",
@@ -599,6 +687,21 @@ def render_markdown(report: dict[str, Any]) -> str:
     if artifact.get("markdownPath"):
         lines.append(f"- Verdict Markdown: `{artifact.get('markdownPath')}`")
     lines.append(f"- Summary: {artifact.get('summary')}")
+    guide = report.get("freshMaintainerFailureGuide") or {}
+    lines.extend(["", "## Fresh Maintainer Failure Guide", ""])
+    lines.append(f"- Summary: {guide.get('summary')}")
+    first_action = guide.get("firstAction") if isinstance(guide.get("firstAction"), dict) else {}
+    if first_action.get("ruleId"):
+        lines.append(f"- First action: `{first_action.get('ruleId')}` ({first_action.get('severity')}) - {first_action.get('recommendation')}")
+    phases = guide.get("phases") if isinstance(guide.get("phases"), list) else []
+    if phases:
+        lines.extend(["", "| Phase | Status | First fix |", "| --- | --- | --- |"])
+        for phase in phases:
+            if not isinstance(phase, dict):
+                continue
+            first_fix = phase.get("firstFix") if isinstance(phase.get("firstFix"), dict) else {}
+            fix_text = first_fix.get("recommendation") or "No action required."
+            lines.append(f"| {phase.get('title')} | `{phase.get('status')}` | {fix_text} |")
     lines.extend(["", "## First-Run Proof Path", ""])
     for item in report["firstRunProofPath"]:
         lines.append(f"- {item['step']} `{item['command']}`")

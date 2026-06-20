@@ -41,4 +41,6 @@ shipguard action verify-pr \
 
 With `--artifact-dir`, the report checks for `shipguard-verdict.json`, `shipguard-verdict.md`, `tool: shipguard verify`, a known verdict status, proof-report summary, validation coverage, v2 evidence receipt schema, diff-first merge verdict, and a reviewer next action. This proves the PR action produced a consumable ShipGuard verdict artifact; it does not mean the PR itself passed.
 
+Blocked reports include a `freshMaintainerFailureGuide` in JSON and a matching Markdown section. The guide separates static workflow setup from runtime artifact proof and chooses the first blocking rule as the next action before lower-severity review items, so a new maintainer sees the first real fix instead of generic checklist noise.
+
 This command does not run target tests, push code, or claim the GitHub workflow has executed.
