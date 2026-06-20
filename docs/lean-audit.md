@@ -64,6 +64,7 @@ Lean Deck also emits `precisionReview`, a ShipGuard-native Ponytail-style action
 - `blockedByProof`: large or risky candidates that need call-site evidence before edits.
 - `actionGroups`: repeated findings grouped by decision, rule, first experiment, validation route, and stop condition.
 - `topActions`: the first few concrete bets a maintainer should inspect.
+- `cleanStateAction`: the pass-state handoff when there are no delete, simplify, or proof-blocked action groups. It names the first proof probe, next command, validation route, and stop condition so a clean report does not send a maintainer chasing a missing action group.
 
 It also emits `leanDebtLedger`, a native version of Ponytail's shortcut ledger.
 Any `ponytail:` or `shipguard-lean:` comment should name both a ceiling and an

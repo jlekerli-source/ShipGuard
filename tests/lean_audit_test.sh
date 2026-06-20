@@ -62,6 +62,44 @@ if grep -q '/Users/' "$tmp_dir/lean/lean-audit.json"; then
   exit 1
 fi
 
+clean_repo="$tmp_dir/clean-lean-repo"
+mkdir -p "$clean_repo/Sources"
+cat > "$clean_repo/Sources/Tiny.py" <<'PY'
+def add(left, right):
+    return left + right
+PY
+
+./bin/shipguard lean audit \
+  --path "$clean_repo" \
+  --out "$tmp_dir/clean-lean" \
+  --mode ultra \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+grep -q '"status": "pass"' "$tmp_dir/clean-lean/lean-audit.json"
+grep -q '"cleanStateAction":' "$tmp_dir/clean-lean/lean-audit.json"
+grep -q '"kind": "pass-state-next-probe"' "$tmp_dir/clean-lean/lean-audit.json"
+grep -q '"evidenceCommand":' "$tmp_dir/clean-lean/lean-audit.json"
+grep -q '"nextCommand":' "$tmp_dir/clean-lean/lean-audit.json"
+grep -q 'Clean State Action' "$tmp_dir/clean-lean/lean-audit.md"
+grep -q 'Do not force a delete/simplify pass' "$tmp_dir/clean-lean/lean-audit.md"
+if grep -q 'Start with the first delete action group' "$tmp_dir/clean-lean/lean-audit.md"; then
+  echo "clean pass-state Lean Audit should not tell maintainers to start with a missing delete group" >&2
+  exit 1
+fi
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/clean-lean" \
+  --out "$tmp_dir/clean-lean-quality" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+grep -q '"status": "pass"' "$tmp_dir/clean-lean-quality/ios-report-quality.json"
+if grep -q 'lean-clean-state-action' "$tmp_dir/clean-lean-quality/ios-report-quality.json"; then
+  echo "report-quality should accept clean pass-state Lean Audit handoffs" >&2
+  exit 1
+fi
+
 ./bin/shipguard lean audit \
   --path fixtures/lean-audit-demo \
   --out "$tmp_dir/lean-ultra" \
@@ -266,6 +304,41 @@ PY
 grep -q '"status": "pass"' "$tmp_dir/review-quality/ios-report-quality.json"
 if grep -q 'lean-action-groups-markdown-missing' "$tmp_dir/review-quality/ios-report-quality.json"; then
   echo "report-quality should accept Lean Review Markdown grouped action plans" >&2
+  exit 1
+fi
+
+cat > "$tmp_dir/empty.diff" <<'DIFF'
+DIFF
+
+./bin/shipguard lean review \
+  --path fixtures/lean-audit-demo \
+  --diff "$tmp_dir/empty.diff" \
+  --out "$tmp_dir/clean-review" \
+  --mode ultra \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+grep -q '"status": "pass"' "$tmp_dir/clean-review/lean-review.json"
+grep -q '"cleanStateAction":' "$tmp_dir/clean-review/lean-review.json"
+grep -q '"kind": "pass-state-next-probe"' "$tmp_dir/clean-review/lean-review.json"
+grep -q '"evidenceCommand":' "$tmp_dir/clean-review/lean-review.json"
+grep -q '"nextCommand":' "$tmp_dir/clean-review/lean-review.json"
+grep -q 'Clean State Action' "$tmp_dir/clean-review/lean-review.md"
+grep -q 'Do not force a delete/simplify pass' "$tmp_dir/clean-review/lean-review.md"
+if grep -q 'Start with precisionReview.topActions\[0\]' "$tmp_dir/clean-review/lean-review.md"; then
+  echo "clean pass-state Lean Review should not point to a missing top action" >&2
+  exit 1
+fi
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/clean-review" \
+  --out "$tmp_dir/clean-review-quality" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+grep -q '"status": "pass"' "$tmp_dir/clean-review-quality/ios-report-quality.json"
+if grep -q 'lean-clean-state-action' "$tmp_dir/clean-review-quality/ios-report-quality.json"; then
+  echo "report-quality should accept clean pass-state Lean Review handoffs" >&2
   exit 1
 fi
 

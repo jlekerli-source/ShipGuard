@@ -162,7 +162,7 @@ if [[ -n "$completion_evidence" ]]; then
 ## Following Slash Goal
 
 \`\`\`text
-/goal Implement v$following_version $following_title for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v$following_version $following_title for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 \`\`\`
 
 Generate that follow-up file with:

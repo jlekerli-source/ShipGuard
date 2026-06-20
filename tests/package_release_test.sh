@@ -1506,7 +1506,11 @@ grep -q '## Following Slash Plan' "$tmp_dir/package-scoped-next-goal.md"
 grep -q '/plan v2.7.0 Package Followup Two' "$tmp_dir/package-scoped-next-goal.md"
 grep -q 'latest read-only ShipGuard product-QA evidence' "$tmp_dir/package-scoped-next-goal.md"
 grep -q '/goal Implement v2.7.0 Package Followup Two' "$tmp_dir/package-scoped-next-goal.md"
-grep -q 'following /plan above' "$tmp_dir/package-scoped-next-goal.md"
+grep -q 'follow the /plan above' "$tmp_dir/package-scoped-next-goal.md"
+if grep -q 'follow the following /plan above' "$tmp_dir/package-scoped-next-goal.md"; then
+  echo "package scoped next-goal should not repeat following" >&2
+  exit 1
+fi
 grep -q './bin/shipguard next-goal --release 2.7.0 --title "Package Followup Two" --out NEXT_GOAL.md' "$tmp_dir/package-scoped-next-goal.md"
 
 install_prefix="$tmp_dir/install"

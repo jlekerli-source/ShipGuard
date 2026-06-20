@@ -112,7 +112,7 @@ Most users only need these:
 | `shipguard prepare ...` | Create a scoped task contract before agent work. |
 | `shipguard verify ...` | Check a diff, evidence, and claims after agent work. |
 | `shipguard action verify-pr ...` | Audit the first GitHub Actions PR-proof workflow and consume the downloaded verdict artifact before trusting uploaded proof. |
-| `shipguard lean audit --mode full ...` | Find repo-level code that may not need to exist, with mode-aware delete/simplify/keep/proof-blocked actions and proof-required safety boundaries. |
+| `shipguard lean audit --mode full ...` | Find repo-level code that may not need to exist, with mode-aware delete/simplify/keep/proof-blocked actions, clean-pass next probes, and proof-required safety boundaries. |
 | `shipguard lean review --mode ultra ...` | Review the current diff for over-engineering before merging; use lite/full/ultra to bias suggestion-first, balanced, or delete-first cleanup. |
 | `shipguard lean debt ...` | Harvest `ponytail:` and `shipguard-lean:` shortcut markers into a ledger. |
 | `shipguard lean gain ...` | Show benchmark-backed lean-code impact without inventing fake per-repo savings. |

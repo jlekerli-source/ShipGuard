@@ -13,10 +13,12 @@ from typing import Any
 from lean_audit import (
     build_lean_mode_profile,
     build_behavior_gates,
+    build_clean_state_action,
     build_precision_review,
     finding,
     has_calibration_signal,
     has_safety_context,
+    next_actions_for_precision,
     read_text,
 )
 
@@ -418,6 +420,11 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     findings = scan_diff(root, files, proof_signals)
     lean_mode = build_lean_mode_profile(args.mode)
     precision = build_precision_review(findings, mode=args.mode)
+    if not precision.get("actionGroups") and not precision.get("topActions"):
+        precision["cleanStateAction"] = build_clean_state_action(
+            tool=TOOL,
+            mode=str(lean_mode.get("mode") or args.mode),
+        )
     behavior_gates = build_behavior_gates(findings, {"summary": {"markers": 0, "missingUpgradeTrigger": 0}})
     if proof_signals and isinstance(behavior_gates.get("oneRunnableCheck"), dict):
         behavior_gates["oneRunnableCheck"]["status"] = "same-diff-proof-signal-present"
@@ -453,12 +460,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "opportunityFindings": len([item for item in findings if item.get("severity") == "opportunity"]),
             "infoFindings": len([item for item in findings if item.get("severity") == "info"]),
         },
-        "nextActions": [
-            "Start with precisionReview.topActions[0]; its order is biased by leanMode.",
-            "Use precisionReview.actionGroups[0] when repeated diff findings share the same rule.",
-            "Delete or simplify only when search proof and a small runnable check preserve behavior.",
-            "Use shipguard lean audit for whole-repo cleanup after the diff-specific review is handled.",
-        ],
+        "nextActions": next_actions_for_precision(str(lean_mode.get("mode") or args.mode), precision),
     }
     if args.shipguard_eval:
         report["scopeBoundary"] = (
@@ -558,6 +560,15 @@ def render_markdown(report: dict[str, Any]) -> str:
                 f"{str(group.get('validationRoute', '')).replace('|', '\\|')} | "
                 f"{str(group.get('stopCondition', '')).replace('|', '\\|')} |"
             )
+    clean_state = precision.get("cleanStateAction")
+    if isinstance(clean_state, dict):
+        lines.extend(["", "### Clean State Action", ""])
+        lines.append(f"- Summary: {clean_state.get('summary', '')}")
+        lines.append(f"- First experiment: {clean_state.get('firstExperiment', '')}")
+        lines.append(f"- Evidence command: `{clean_state.get('evidenceCommand', '')}`")
+        lines.append(f"- Next command: `{clean_state.get('nextCommand', '')}`")
+        lines.append(f"- Validation route: {clean_state.get('validationRoute', '')}")
+        lines.append(f"- Stop condition: {clean_state.get('stopCondition', '')}")
     top_actions = precision.get("topActions", [])
     if top_actions:
         lines.extend(["", "### Individual Starting Points", ""])

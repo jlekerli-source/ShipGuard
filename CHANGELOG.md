@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Improved Lean Deck pass-state actionability after read-only ShipGuard self-QA: `shipguard lean audit` and `lean review` now emit `precisionReview.cleanStateAction` when no delete/simplify/proof-blocked action groups exist, Markdown renders a `Clean State Action` section, next actions stop pointing at missing groups, and `ios report-quality` fails pass-state Lean reports that hide the clean-state handoff.
 - Added native Ponytail-style intensity modes to Lean Deck: `shipguard lean audit` and `shipguard lean review` now accept `--mode lite|full|ultra`, record `leanMode` in JSON/Markdown, and bias first actions toward suggestion-first, balanced proof-ladder, or delete-first cleanup without vendoring Ponytail code.
 - Tightened Lean Review detector precision after native Ponytail self-review: prose such as `momentum` no longer trips the date-helper rule, and generic profile text mentioning hardware no longer triggers hardware-calibration findings without a stronger device/sensor signal.
 - Improved Lean Deck large-file proof precision after read-only ShipGuard self-QA: `shipguard lean audit` now ignores incidental legacy/compatibility strings and API names when finding large-file debt markers, records a `markerPolicy` in `leanEvidence`, and `ios report-quality` fails Lean Deck reports that hide large-file proof packets or Markdown evidence tables.

@@ -1760,6 +1760,64 @@ MD
 grep -q '"ruleId": "lean-action-groups-missing"' "$tmp_dir/lean-missing-groups-quality/ios-report-quality.json"
 grep -q '"ruleId": "lean-action-groups-markdown-missing"' "$tmp_dir/lean-missing-groups-quality/ios-report-quality.json"
 
+mkdir -p "$tmp_dir/lean-clean-state-missing"
+cat > "$tmp_dir/lean-clean-state-missing/lean-audit.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard lean audit",
+  "generatedAt": "2026-06-20T00:00:00Z",
+  "status": "pass",
+  "behaviorGates": {
+    "oneRunnableCheck": {"status": "enforced-in-lean-review"},
+    "hardwareCalibration": {"status": "available"},
+    "requestedExplanation": {"status": "policy"},
+    "adapterBoundary": {"status": "available"},
+    "gainHonesty": {"status": "available-in-lean-gain"}
+  },
+  "precisionReview": {
+    "summary": {
+      "deleteCandidates": 0,
+      "simplifyCandidates": 0,
+      "keepBoundaries": 2,
+      "proofBlockedCandidates": 0,
+      "actionGroups": 0
+    },
+    "actionGroups": [],
+    "topActions": [],
+    "keepList": [
+      {
+        "ruleId": "thin-adapter-boundary",
+        "location": "scripts/example.py",
+        "reason": "Keep adapter boundary.",
+        "proofRequired": "Host proof required."
+      }
+    ]
+  },
+  "findings": [],
+  "reportQualityQuestions": [
+    "Does a pass-state Lean report still tell the developer what to do next?"
+  ]
+}
+JSON
+cat > "$tmp_dir/lean-clean-state-missing/lean-audit.md" <<'MD'
+# ShipGuard Lean Deck
+
+## Behavior Gates
+
+- `oneRunnableCheck`: enforced-in-lean-review
+
+## Precision Review
+
+- Delete candidates: 0; simplify candidates: 0; keep boundaries: 2; proof-blocked candidates: 0; action groups: 0
+MD
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-clean-state-missing" \
+  --out "$tmp_dir/lean-clean-state-missing-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-clean-state-action-missing"' "$tmp_dir/lean-clean-state-missing-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-clean-state-action-markdown-missing"' "$tmp_dir/lean-clean-state-missing-quality/ios-report-quality.json"
+
 mkdir -p "$tmp_dir/lean-large-missing-evidence"
 cat > "$tmp_dir/lean-large-missing-evidence/lean-audit.json" <<'JSON'
 {

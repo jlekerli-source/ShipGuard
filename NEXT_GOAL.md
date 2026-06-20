@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-20T22:36:21Z
+- Generated: 2026-06-20T23:23:09Z
 - Current toolkit version: 3.131.0
-- Target release: v3.136.0
-- Title: Lean Deck Ponytail Mode And Proof Packet QA
+- Target release: v3.137.0
+- Title: Lean Deck Pass-State Actionability QA
 
 ## Slash Plan
 
 ```text
-/plan v3.136.0 Lean Deck Ponytail Mode And Proof Packet QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Improve Lean Deck so large-file findings only trigger on actionable comment-based legacy/TODO markers, expose marker policy in leanEvidence, fail report-quality when large-file proof packets or Markdown evidence tables are missing, and expose native Ponytail-style `--mode lite|full|ultra` action bias without vendoring Ponytail code.
+/plan v3.137.0 Lean Deck Pass-State Actionability QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make Lean Deck pass-state reports actionable: when lean audit or lean review has no delete, simplify, or proof-blocked action groups, emit a structured clean-state handoff with a first proof probe, next command, validation route, and stop condition, and make report-quality fail old pass reports that hide that handoff.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.136.0 Lean Deck Ponytail Mode And Proof Packet QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Improve Lean Deck so large-file findings only trigger on actionable comment-based legacy/TODO markers, expose marker policy in leanEvidence, fail report-quality when large-file proof packets or Markdown evidence tables are missing, and expose native Ponytail-style `--mode lite|full|ultra` action bias without vendoring Ponytail code, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.137.0 Lean Deck Pass-State Actionability QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make Lean Deck pass-state reports actionable: when lean audit or lean review has no delete, simplify, or proof-blocked action groups, emit a structured clean-state handoff with a first proof probe, next command, validation route, and stop condition, and make report-quality fail old pass reports that hide that handoff, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Improve Lean Deck so large-file findings only trigger on actionable comment-based legacy/TODO markers, expose marker policy in leanEvidence, fail report-quality when large-file proof packets or Markdown evidence tables are missing, and expose native Ponytail-style `--mode lite|full|ultra` action bias without vendoring Ponytail code.
+Make Lean Deck pass-state reports actionable: when lean audit or lean review has no delete, simplify, or proof-blocked action groups, emit a structured clean-state handoff with a first proof probe, next command, validation route, and stop condition, and make report-quality fail old pass reports that hide that handoff.
 
 ## Completion Receipt
 
-- Completed scope: Added comment-based Lean Deck marker filtering, markerPolicy in leanEvidence, report-quality enforcement for missing large-file proof packets and Markdown tables, native `--mode lite|full|ultra` Lean Deck and Lean Review action bias, Ponytail SourceScout refresh, false-positive calibration for prose tokens, docs, plugin routing, and read-only ShipGuard self-QA.
-- Evidence: Passed: python3 -m py_compile scripts/lean_audit.py scripts/lean_review.py scripts/ios_external_audit.py scripts/ios_report_quality.py scripts/tool_value_gauntlet.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh. Read-only self-QA passed: /tmp/shipguard-ponytail-source-quality, /tmp/shipguard-ponytail-lean-audit-quality, /tmp/shipguard-ponytail-debt-gain-quality, and /tmp/shipguard-ponytail-lean-review-quality-after3 with current diff Lean Review status pass.
+- Completed scope: Added precisionReview.cleanStateAction to Lean Audit and Lean Review pass-state reports, rendered Clean State Action in Markdown, updated nextActions to stop referencing missing action groups, and taught ios report-quality to reject pass-state Lean reports without the clean-state handoff.
+- Evidence: Passed: python3 -m py_compile scripts/lean_audit.py scripts/lean_review.py scripts/ios_report_quality.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; read-only self-QA /tmp/shipguard-v3137-lean-pass-quality-after status pass with averageScore 100; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3137-value-gauntlet-after status pass; git diff --check; ./bin/shipguard validate; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard docs-check . --out /tmp/shipguard-v3137-docs-check; ./tests/command_family_runtime_output_receipts_test.sh; ./tests/next_goal_test.sh; ./tests/inspect_test.sh; ./tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard --json; ./bin/shipguard codex status --strict.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.137.0 Lean Deck Pass-State Actionability QA for jlekerli-source/ShipGuard:
+/plan v3.138.0 Lean Deck Priority Question Fixture QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Improve Lean Deck so large-file findings only trigger on actionable comment-base
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.137.0 Lean Deck Pass-State Actionability QA for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.138.0 Lean Deck Priority Question Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.137.0 --title "Lean Deck Pass-State Actionability QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.138.0 --title "Lean Deck Priority Question Fixture QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.136.0.
+1. Open or update the tracking issue for v3.137.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.136.0` and upload `dist/shipguard-v3.136.0.tar.gz`.
+6. Create release `v3.137.0` and upload `dist/shipguard-v3.137.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

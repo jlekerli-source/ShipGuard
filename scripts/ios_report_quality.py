@@ -2963,6 +2963,11 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 int(summary.get(key) or 0) > 0
                 for key in ("deleteCandidates", "simplifyCandidates", "proofBlockedCandidates")
             ) or bool(precision.get("topActions"))
+            is_clean_pass_state = (
+                str(report.get("status") or "") == "pass"
+                and not has_precision_work
+                and int(summary.get("actionGroups") or 0) == 0
+            )
             if has_precision_work:
                 groups = precision.get("actionGroups")
                 if not isinstance(groups, list) or not groups:
@@ -3017,6 +3022,43 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                         rule_id="lean-action-groups-markdown-missing",
                         evidence=f"{path_name} Markdown does not expose the grouped action plan",
                         recommendation="Render precisionReview.actionGroups in Markdown so maintainers see the bounded plan before individual findings.",
+                    )
+            if is_clean_pass_state:
+                clean = precision.get("cleanStateAction")
+                if not isinstance(clean, dict):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-clean-state-action-missing",
+                        evidence=f"{path_name} is pass with no Lean action groups but no precisionReview.cleanStateAction",
+                        recommendation="Emit a clean-state action so pass reports still tell maintainers what proof probe or next loop to run.",
+                    )
+                else:
+                    required = {
+                        "kind",
+                        "summary",
+                        "firstExperiment",
+                        "evidenceCommand",
+                        "nextCommand",
+                        "validationRoute",
+                        "stopCondition",
+                    }
+                    missing = sorted(key for key in required if not clean.get(key))
+                    if missing:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="lean-clean-state-action-incomplete",
+                            evidence=f"{path_name} cleanStateAction missing: {', '.join(missing)}",
+                            recommendation="Clean pass reports should include the first proof probe, exact next command, validation route, and stop condition.",
+                        )
+                if "Clean State Action" not in markdown:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-clean-state-action-markdown-missing",
+                        evidence=f"{path_name} Markdown does not expose the clean-state action",
+                        recommendation="Render cleanStateAction in Markdown so a pass report remains actionable without opening JSON.",
                     )
     if tool == "shipguard lean gain":
         boundary = report.get("currentRepoBoundary")

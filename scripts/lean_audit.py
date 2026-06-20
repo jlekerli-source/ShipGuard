@@ -717,7 +717,51 @@ def top_actions_for_mode(
     return (delete_list + simplify_first + blocked_by_proof)[:5]
 
 
-def next_actions_for_mode(mode: str) -> list[str]:
+def build_clean_state_action(*, tool: str, mode: str, keep_count: int = 0) -> dict[str, Any]:
+    if tool == "shipguard lean review":
+        first_experiment = (
+            "Confirm the diff is the intended input, then move to the next changed diff instead of inventing cleanup work."
+        )
+        evidence_command = "git diff --stat && git diff --check"
+        next_command = "./bin/shipguard lean review --path . --diff <diff> --out <lean-review-dir> --mode " + mode
+        validation_route = "Run the focused validation command for the next real code change, not a broad rewrite."
+        stop_condition = "Stop if the diff is empty or only contains already-reviewed proof/metadata changes."
+    else:
+        if keep_count:
+            first_experiment = (
+                "Inspect the first keep boundary only if it is in scope; otherwise treat this as a clean pass and move to diff review."
+            )
+        else:
+            first_experiment = (
+                "Run one focused marker/dependency probe before deciding that there is no useful cleanup work in this scan."
+            )
+        evidence_command = 'rg -n "shipguard-lean|ponytail|TODO|FIXME|temporary|legacy|compat" .'
+        next_command = "./bin/shipguard lean review --path . --diff <diff> --out <lean-review-dir> --mode " + mode
+        validation_route = "Use Lean Review on the next actual diff, or answer the top report-quality actionability question."
+        stop_condition = (
+            "Stop if the only evidence is safety, adapter, hardware, accessibility, migration, payment, or data-loss boundary code."
+        )
+    return {
+        "kind": "pass-state-next-probe",
+        "summary": "No delete, simplify, or proof-blocked Lean action groups were found; do not force cleanup work.",
+        "firstExperiment": first_experiment,
+        "evidenceCommand": evidence_command,
+        "nextCommand": next_command,
+        "validationRoute": validation_route,
+        "stopCondition": stop_condition,
+    }
+
+
+def next_actions_for_precision(mode: str, precision_review: dict[str, Any]) -> list[str]:
+    if not precision_review.get("actionGroups") and not precision_review.get("topActions"):
+        clean = precision_review.get("cleanStateAction") if isinstance(precision_review, dict) else {}
+        command = clean.get("evidenceCommand") if isinstance(clean, dict) else ""
+        return [
+            "Do not force a delete/simplify pass; this scan found no Lean action groups.",
+            f"Use the clean-state probe if you need one more check: `{command}`." if command else "Use the clean-state probe before creating cleanup work.",
+            "Move to Lean Review on the next real diff, or answer the top report-quality actionability question.",
+            "Run shipguard ios report-quality on this Lean Deck output if you are improving ShipGuard itself.",
+        ]
     if mode == "lite":
         return [
             "Start with the first simplify action; treat delete candidates as review prompts unless search proof is already obvious.",
@@ -806,7 +850,14 @@ def build_precision_review(findings: list[dict[str, Any]], mode: str = "full") -
         simplify_first=simplify_first,
         blocked_by_proof=blocked_by_proof,
     )
-    return {
+    clean_state_action: dict[str, Any] | None = None
+    if not action_groups and not top_actions:
+        clean_state_action = build_clean_state_action(
+            tool=TOOL,
+            mode=lean_mode["mode"],
+            keep_count=len(keep_list),
+        )
+    precision: dict[str, Any] = {
         "principle": "The best ShipGuard code is the code that proves it needs to exist.",
         "mode": lean_mode,
         "decisionLadder": [
@@ -831,6 +882,9 @@ def build_precision_review(findings: list[dict[str, Any]], mode: str = "full") -
             "actionGroups": len(action_groups),
         },
     }
+    if clean_state_action:
+        precision["cleanStateAction"] = clean_state_action
+    return precision
 
 
 def build_behavior_gates(findings: list[dict[str, Any]], lean_debt_ledger: dict[str, Any]) -> dict[str, Any]:
@@ -961,7 +1015,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             for rule_id, count in rule_counts.most_common()
         ],
         "findings": emitted_findings,
-        "nextActions": next_actions_for_mode(args.mode),
+        "nextActions": next_actions_for_precision(args.mode, precision_review),
     }
     if args.shipguard_eval:
         report["scopeBoundary"] = (
@@ -1051,6 +1105,15 @@ def render_markdown(report: dict[str, Any]) -> str:
                 f"{str(group.get('validationRoute', '')).replace('|', '\\|')} | "
                 f"{str(group.get('stopCondition', '')).replace('|', '\\|')} |"
             )
+    clean_state = precision.get("cleanStateAction")
+    if isinstance(clean_state, dict):
+        lines.extend(["", "### Clean State Action", ""])
+        lines.append(f"- Summary: {clean_state.get('summary', '')}")
+        lines.append(f"- First experiment: {clean_state.get('firstExperiment', '')}")
+        lines.append(f"- Evidence command: `{clean_state.get('evidenceCommand', '')}`")
+        lines.append(f"- Next command: `{clean_state.get('nextCommand', '')}`")
+        lines.append(f"- Validation route: {clean_state.get('validationRoute', '')}")
+        lines.append(f"- Stop condition: {clean_state.get('stopCondition', '')}")
     top_actions = precision.get("topActions", [])
     if top_actions:
         lines.extend(["", "### Individual Starting Points", ""])

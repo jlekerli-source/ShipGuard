@@ -110,7 +110,11 @@ grep -q '/plan v2.7.0 Next Reliability Slice' "$tmp_dir/SCOPED_NEXT_GOAL.md"
 grep -q 'latest read-only ShipGuard product-QA evidence' "$tmp_dir/SCOPED_NEXT_GOAL.md"
 grep -q '## Following Slash Goal' "$tmp_dir/SCOPED_NEXT_GOAL.md"
 grep -q '/goal Implement v2.7.0 Next Reliability Slice' "$tmp_dir/SCOPED_NEXT_GOAL.md"
-grep -q 'following /plan above' "$tmp_dir/SCOPED_NEXT_GOAL.md"
+grep -q 'follow the /plan above' "$tmp_dir/SCOPED_NEXT_GOAL.md"
+if grep -q 'follow the following /plan above' "$tmp_dir/SCOPED_NEXT_GOAL.md"; then
+  echo "scoped following goal should not repeat following" >&2
+  exit 1
+fi
 grep -q './bin/shipguard next-goal --release 2.7.0 --title "Next Reliability Slice" --out NEXT_GOAL.md' "$tmp_dir/SCOPED_NEXT_GOAL.md"
 
 SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \
