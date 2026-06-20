@@ -237,78 +237,82 @@ def scan_file(root: Path, path: Path) -> list[dict[str, Any]]:
     safe_context = has_safety_context(path, text)
     findings: list[dict[str, Any]] = []
 
-    checks = [
-        (
-            "native-date-input",
-            r"(?:react-datepicker|DatePicker|flatpickr|moment|date-fns|luxon|dayjs)",
-            "native-platform-opportunity",
-            "If the UI only captures a simple date/time, prefer native input, SwiftUI DatePicker, or platform formatters over custom picker plumbing.",
-            "Prove with one focused interaction test and timezone/locale formatting coverage before deleting custom behavior.",
-        ),
-        (
-            "native-color-input",
-            r"(?:SketchPicker|ChromePicker|ColorPicker|react-color|tinycolor|color picker)",
-            "native-platform-opportunity",
-            "If this is simple color selection, check whether native color controls or design-system tokens remove custom picker code.",
-            "Keep custom color logic when alpha, palette constraints, accessibility contrast, or brand-token validation are real product requirements.",
-        ),
-        (
-            "native-dialog",
-            r"(?:CustomModal|ModalPortal|aria-modal|role=[\"']dialog[\"'])",
-            "native-platform-opportunity",
-            "For basic confirmation flows, compare custom modal code with native dialog/sheet patterns or the platform design-system component.",
-            "Do not remove focus trapping, escape handling, screen-reader labels, or destructive-action confirmations without accessibility proof.",
-        ),
-        (
-            "browser-storage-wrapper",
-            r"(?:localStorage|sessionStorage).{0,80}(?:JSON\.parse|JSON\.stringify)",
-            "wrapper-simplification",
-            "If this is a thin storage wrapper, consolidate it behind one tiny helper instead of duplicating parse/stringify/error handling.",
-            "Keep migration, corrupt-data recovery, and privacy boundaries covered by tests.",
-        ),
-        (
-            "manual-url-params",
-            r"(?:split\([\"']&[\"']\)|split\([\"']=[\"']\)|encodeURIComponent|decodeURIComponent)",
-            "stdlib-opportunity",
-            "Prefer URL and URLSearchParams for query parsing and construction unless a legacy runtime blocks it.",
-            "Add tests for repeated keys, empty values, encoding, and malformed input.",
-        ),
-    ]
-    for rule_id, pattern, category, recommendation, proof in checks:
-        match = re.search(pattern, text, flags=re.IGNORECASE | re.DOTALL)
-        if not match:
-            continue
-        findings.append(
-            finding(
-                severity="review" if safe_context and rule_id in {"native-dialog", "browser-storage-wrapper"} else "opportunity",
-                category=category,
-                rule_id=rule_id,
-                file=relative,
-                line=line_for(text, match.group(0)),
-                evidence=match.group(0).replace("\n", " ")[:160],
-                recommendation=recommendation,
-                proof=proof,
+    if path.suffix in CODE_SUFFIXES:
+        checks = [
+            (
+                "native-date-input",
+                r"(?:from\s+[\"'](?:react-datepicker|flatpickr|moment|date-fns|luxon|dayjs)[\"']|"
+                r"import\s+.*[\"'](?:react-datepicker|flatpickr|moment|date-fns|luxon|dayjs)[\"']|"
+                r"<DatePicker\b|DatePicker\s*\()",
+                "native-platform-opportunity",
+                "If the UI only captures a simple date/time, prefer native input, SwiftUI DatePicker, or platform formatters over custom picker plumbing.",
+                "Prove with one focused interaction test and timezone/locale formatting coverage before deleting custom behavior.",
+            ),
+            (
+                "native-color-input",
+                r"(?:SketchPicker|ChromePicker|ColorPicker|react-color|tinycolor|color picker)",
+                "native-platform-opportunity",
+                "If this is simple color selection, check whether native color controls or design-system tokens remove custom picker code.",
+                "Keep custom color logic when alpha, palette constraints, accessibility contrast, or brand-token validation are real product requirements.",
+            ),
+            (
+                "native-dialog",
+                r"(?:CustomModal|ModalPortal|aria-modal|role=[\"']dialog[\"'])",
+                "native-platform-opportunity",
+                "For basic confirmation flows, compare custom modal code with native dialog/sheet patterns or the platform design-system component.",
+                "Do not remove focus trapping, escape handling, screen-reader labels, or destructive-action confirmations without accessibility proof.",
+            ),
+            (
+                "browser-storage-wrapper",
+                r"(?:localStorage|sessionStorage).{0,80}(?:JSON\.parse|JSON\.stringify)",
+                "wrapper-simplification",
+                "If this is a thin storage wrapper, consolidate it behind one tiny helper instead of duplicating parse/stringify/error handling.",
+                "Keep migration, corrupt-data recovery, and privacy boundaries covered by tests.",
+            ),
+            (
+                "manual-url-params",
+                r"(?:split\([\"']&[\"']\)|split\([\"']=[\"']\)|encodeURIComponent|decodeURIComponent)",
+                "stdlib-opportunity",
+                "Prefer URL and URLSearchParams for query parsing and construction unless a legacy runtime blocks it.",
+                "Add tests for repeated keys, empty values, encoding, and malformed input.",
+            ),
+        ]
+        for rule_id, pattern, category, recommendation, proof in checks:
+            match = re.search(pattern, text, flags=re.IGNORECASE | re.DOTALL)
+            if not match:
+                continue
+            findings.append(
+                finding(
+                    severity="review" if safe_context and rule_id in {"native-dialog", "browser-storage-wrapper"} else "opportunity",
+                    category=category,
+                    rule_id=rule_id,
+                    file=relative,
+                    line=line_for(text, match.group(0)),
+                    evidence=match.group(0).replace("\n", " ")[:160],
+                    recommendation=recommendation,
+                    proof=proof,
+                )
             )
-        )
 
-    trivial_wrappers = re.findall(
-        r"(?:export\s+)?(?:function|const)\s+([A-Za-z0-9_]+)\s*(?:=\s*)?(?:\([^)]*\)|[^=]*)\s*(?:=>|\{)\s*(?:return\s+)?([A-Za-z0-9_.]+)\([^;\n{}]*\)\s*;?\s*\}?",
-        text,
-    )
-    if trivial_wrappers and not safe_context:
-        name, target = trivial_wrappers[0]
-        findings.append(
-            finding(
-                severity="opportunity",
-                category="wrapper-simplification",
-                rule_id="thin-wrapper-review",
-                file=relative,
-                line=line_for(text, name),
-                evidence=f"{name} delegates to {target}",
-                recommendation="Check whether this wrapper adds naming, policy, logging, typing, or test value. If not, inline it or delete it.",
-                proof="Use search results to confirm call sites stay readable and no public API/backward-compatibility contract depends on the wrapper.",
-            )
+    if path.suffix in CODE_SUFFIXES:
+        trivial_wrappers = re.findall(
+            r"(?:export\s+)?(?:function|const)\s+([A-Za-z0-9_]+)\s*(?:=\s*)?(?:\([^)]*\)|[^=]*)\s*(?:=>|\{)\s*(?:return\s+)?([A-Za-z0-9_.]+)\([^;\n{}]*\)\s*;?\s*\}?",
+            text,
         )
+        if trivial_wrappers and not safe_context:
+            name, target = trivial_wrappers[0]
+            findings.append(
+                finding(
+                    severity="opportunity",
+                    category="wrapper-simplification",
+                    rule_id="thin-wrapper-review",
+                    file=relative,
+                    line=line_for(text, name),
+                    evidence=f"{name} delegates to {target}",
+                    recommendation="Check whether this wrapper adds naming, policy, logging, typing, or test value. If not, inline it or delete it.",
+                    proof="Use search results to confirm call sites stay readable and no public API/backward-compatibility contract depends on the wrapper.",
+                )
+            )
 
     if path.suffix in CODE_SUFFIXES and len(text.splitlines()) > 700 and LEGACY_MARKER_RE.search(text):
         signal = legacy_signal(text)

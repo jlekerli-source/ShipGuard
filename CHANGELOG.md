@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed `shipguard lean audit` date-helper precision after read-only ShipGuard self-QA: the native-date rule now matches actual date-picker imports, package names, JSX usage, or explicit `DatePicker(...)` calls instead of ordinary prose such as "moments", and the focused Lean Deck test now blocks that false positive on repo-level scans.
 - Improved `shipguard lean audit` into a native Ponytail-style precision review: reports now emit `precisionReview` with `deleteList`, `simplifyFirst`, `keepList`, `blockedByProof`, and `topActions`, Markdown renders a `Precision Review` section, the Codex skill routes Ponytail/less-clutter requests through the ledger, and the public Lean Deck fixture now covers thin-wrapper delete candidates without vendoring Ponytail code.
 - Improved the verify-first launch path: `shipguard verify` now prints the copy-ready `ShipGuard Proof Report` line to stdout after writing `shipguard-verdict.json` and Markdown, so first-run users see pass/review/blocked, validation coverage, claim coverage, risk files, and release-evidence status without opening the report first.
 - Improved `shipguard v4 stable-publication` product proof UX: when `--github-release-repo` is omitted, the command now infers `owner/repo` from the target repo's `origin` remote, records `githubReleaseRepoInference` in the report, and still blocks stable-v4 claims on the real release metadata/assets/adoption/security gates instead of stopping at a generic missing-repo argument.

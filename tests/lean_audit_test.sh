@@ -64,5 +64,9 @@ if grep -q 'fixtures/lean-audit-demo' "$tmp_dir/repo-lean/lean-audit.json"; then
   echo "repo-level lean audit should not let public fixtures dominate findings" >&2
   exit 1
 fi
+if grep -q '"ruleId": "native-date-input"' "$tmp_dir/repo-lean/lean-audit.json"; then
+  echo "repo-level lean audit should not treat prose such as 'moments' as a date picker dependency" >&2
+  exit 1
+fi
 
 echo "lean audit tests passed"
