@@ -359,25 +359,29 @@ data = json.load(open(sys.argv[1], encoding="utf-8"))
 priority = data.get("priorityAction") or {}
 covered_question = "Can a fresh Codex user understand what ShipGuard does from the README and plugin listing without prior private-app context?"
 covered_path = "fixtures/ios-report-quality/01-shipguard-codex-marketplace-readiness-can-a-fresh-codex-user-und"
-next_question = "Can a maintainer prove plugin install freshness from tracked source, local marketplace, and strict status output?"
+covered_plugin_question = "Can a maintainer prove plugin install freshness from tracked source, local marketplace, and strict status output?"
+covered_plugin_path = "fixtures/ios-report-quality/01-shipguard-codex-marketplace-readiness-can-a-maintainer-prove-plu"
+next_question = "Are icon, composer icon, screenshot policy, privacy notes, model-choice boundary, and proof commands ready for a public marketplace submission packet?"
 if priority.get("kind") != "answer-actionability-question":
     raise SystemExit(f"expected MarketplaceDeck to advance to next uncovered question, got {priority!r}")
 if priority.get("question") != next_question:
-    raise SystemExit(f"expected plugin freshness question after fresh-user fixture coverage, got {priority!r}")
+    raise SystemExit(f"expected submission-packet question after MarketplaceDeck fixture coverage, got {priority!r}")
 coverage = data.get("fixtureCoverage") or []
 if not any(item.get("question") == covered_question and item.get("publicFixturePath") == covered_path for item in coverage):
     raise SystemExit(f"expected MarketplaceDeck fresh-user fixture coverage: {coverage!r}")
+if not any(item.get("question") == covered_plugin_question and item.get("publicFixturePath") == covered_plugin_path for item in coverage):
+    raise SystemExit(f"expected MarketplaceDeck plugin-freshness fixture coverage: {coverage!r}")
 candidates = data.get("fixtureCandidates") or []
 if not candidates:
     raise SystemExit("expected next MarketplaceDeck question to materialize as a candidate")
 first = candidates[0]
 if first.get("sourceQuestion") != next_question:
-    raise SystemExit(f"expected first MarketplaceDeck candidate to be plugin freshness, got {first!r}")
+    raise SystemExit(f"expected first MarketplaceDeck candidate to be submission-packet readiness, got {first!r}")
 if first.get("fixtureType") != "shipguard-marketplace-readiness-fixture":
     raise SystemExit(f"expected native MarketplaceDeck fixture type, got {first!r}")
 for candidate in candidates:
-    if candidate.get("sourceQuestion") == covered_question:
-        raise SystemExit(f"covered fresh-user question should not create a duplicate candidate: {candidate!r}")
+    if candidate.get("sourceQuestion") in {covered_question, covered_plugin_question}:
+        raise SystemExit(f"covered MarketplaceDeck question should not create a duplicate candidate: {candidate!r}")
 PY
 grep -q 'shipguard-marketplace-readiness-fixture' "$tmp_dir/marketplace-readiness-quality/ios-report-quality.json"
 
@@ -405,6 +409,33 @@ assert "fresh Codex user" in item.get("question", ""), item
 priority = data.get("priorityAction") or {}
 assert priority.get("kind") == "review-existing-fixture", priority
 assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-codex-marketplace-readiness-can-a-fresh-codex-user-und", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
+
+marketplace_plugin_freshness_fixture="fixtures/ios-report-quality/01-shipguard-codex-marketplace-readiness-can-a-maintainer-prove-plu"
+./bin/shipguard ios report-quality \
+  --reports "$marketplace_plugin_freshness_fixture" \
+  --out "$tmp_dir/marketplace-plugin-freshness-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/marketplace-plugin-freshness-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/marketplace-plugin-freshness-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/01-shipguard-codex-marketplace-readiness-can-a-maintainer-prove-plu"' "$tmp_dir/marketplace-plugin-freshness-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/marketplace-plugin-freshness-fixture-quality/ios-report-quality.json"
+python3 - <<'PY' "$tmp_dir/marketplace-plugin-freshness-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard codex marketplace-readiness", item
+assert item.get("fixtureType") == "shipguard-marketplace-readiness-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/01-shipguard-codex-marketplace-readiness-can-a-maintainer-prove-plu", item
+assert "plugin install freshness" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-codex-marketplace-readiness-can-a-maintainer-prove-plu", priority
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 

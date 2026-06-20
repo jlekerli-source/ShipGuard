@@ -6,6 +6,18 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current MarketplaceDeck Plugin Freshness Fixture Promotion
+
+The next read-only MarketplaceDeck QA pass started from the state where the fresh-user README/plugin-listing question was already covered by a promoted public fixture. Fresh `shipguard codex marketplace-readiness` plus `ios report-quality --write-fixture-candidates` advanced to the next public-distribution gap:
+
+- Question: "Can a maintainer prove plugin install freshness from tracked source, local marketplace, and strict status output?"
+- Candidate type: `shipguard-marketplace-readiness-fixture`
+- Product weakness: a marketplace-ready Codex plugin must not only look understandable. Maintainers need a repeatable proof trail showing the installed plugin came from the tracked source, the local marketplace source is current, and strict status output confirms there is no stale plugin cache.
+
+This slice promotes `fixtures/ios-report-quality/01-shipguard-codex-marketplace-readiness-can-a-maintainer-prove-plu` as public synthetic coverage. Fresh MarketplaceDeck report-quality now covers both the fresh-user comprehension question and the plugin install freshness question, then advances to the public submission-packet question for icon, screenshot policy, privacy notes, model-choice boundary, and proof commands.
+
+This keeps the public distribution QA loop focused on install trust and submission readiness instead of only README wording.
+
 ## Current MarketplaceDeck Fresh-User Fixture Promotion
 
 The next read-only QA rotation moved beyond the saturated InspectDeck fixture set and used `shipguard codex marketplace-readiness` as the fresh root ShipGuard report source. Fresh MarketplaceDeck output plus `ios report-quality --write-fixture-candidates` exposed the next public-readiness gap:

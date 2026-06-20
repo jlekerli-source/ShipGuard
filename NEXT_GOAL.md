@@ -1,14 +1,14 @@
 # Next Goal
 
-- Generated: 2026-06-20T10:37:34Z
+- Generated: 2026-06-20T10:52:00Z
 - Current toolkit version: 3.131.0
-- Target release: v3.177.0
-- Title: MarketplaceDeck Plugin Freshness Fixture
+- Target release: v3.178.0
+- Title: MarketplaceDeck Submission Packet Fixture
 
 ## Slash Plan
 
 ```text
-/plan v3.177.0 MarketplaceDeck Plugin Freshness Fixture for jlekerli-source/ShipGuard:
+/plan v3.178.0 MarketplaceDeck Submission Packet Fixture for jlekerli-source/ShipGuard:
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
@@ -18,19 +18,19 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.177.0 MarketplaceDeck Plugin Freshness Fixture for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.178.0 MarketplaceDeck Submission Packet Fixture for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Completion Receipt
 
-- Completed scope: Promoted the MarketplaceDeck fresh-user README/plugin-listing question into public fixture coverage and taught report-quality to classify marketplace-readiness questions as native marketplace fixtures.
-- Evidence: Passed: python3 -m py_compile scripts/ios_report_quality.py; ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-codex-marketplace-readiness-can-a-fresh-codex-user-und --out /tmp/shipguard-v3176-marketplace-fixture-quality --shareable; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3176-marketplace --out /tmp/shipguard-v3176-marketplace-quality-after-fixture --shareable --write-fixture-candidates /tmp/shipguard-v3176-marketplace-fixtures-after-fixture; ./tests/ios_report_quality_test.sh.
+- Completed scope: Promoted the MarketplaceDeck plugin install freshness question into public fixture coverage, proving tracked source, local marketplace, and strict status output are part of public plugin-readiness QA.
+- Evidence: Passed: ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-codex-marketplace-readiness-can-a-maintainer-prove-plu --out /tmp/shipguard-v3177-marketplace-plugin-fixture-quality --shareable; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3177-marketplace --out /tmp/shipguard-v3177-marketplace-quality-after-fixture --shareable --write-fixture-candidates /tmp/shipguard-v3177-marketplace-fixtures-after-fixture; python3 -m py_compile scripts/ios_report_quality.py; ./tests/ios_report_quality_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.178.0 MarketplaceDeck Submission Packet Fixture for jlekerli-source/ShipGuard:
+/plan v3.179.0 MarketplaceDeck GitHub Presentation Fixture for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -40,13 +40,13 @@
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.178.0 MarketplaceDeck Submission Packet Fixture for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.179.0 MarketplaceDeck GitHub Presentation Fixture for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.178.0 --title "MarketplaceDeck Submission Packet Fixture" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.179.0 --title "MarketplaceDeck GitHub Presentation Fixture" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -146,12 +146,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.177.0.
+1. Open or update the tracking issue for v3.178.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.177.0` and upload `dist/shipguard-v3.177.0.tar.gz`.
+6. Create release `v3.178.0` and upload `dist/shipguard-v3.178.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
