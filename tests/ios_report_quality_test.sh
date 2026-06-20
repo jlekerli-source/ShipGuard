@@ -2556,6 +2556,71 @@ MD
   --shareable >/dev/null
 grep -q '"ruleId": "stable-publication-evidence-packet-missing"' "$tmp_dir/stable-publication-packet-quality/ios-report-quality.json"
 
+stable_publication_templates_dir="$tmp_dir/stable-publication-templates"
+mkdir -p "$stable_publication_templates_dir"
+cat > "$stable_publication_templates_dir/v4-stable-publication.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-20T00:00:00Z",
+  "tool": "shipguard v4 stable-publication",
+  "surface": "ShipGuard V4 Stable Publication Proof",
+  "status": "review",
+  "stableV4Release": false,
+  "stablePublicationEvidencePacket": {
+    "schemaVersion": 1,
+    "status": "review",
+    "stableV4Release": false,
+    "requiredEvidenceCount": 7,
+    "passedEvidenceCount": 5,
+    "missingEvidenceIds": [
+      "independent-adoption-evidence",
+      "final-security-review-evidence"
+    ],
+    "firstBlockingGate": {
+      "id": "independent-adoption-evidence",
+      "receipt": "externalAdoptionEvidenceStableGate",
+      "status": "not-provided",
+      "summary": "Adoption evidence missing.",
+      "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable"
+    },
+    "requiredEvidence": [
+      {"id": "github-release-metadata", "receipt": "githubReleaseMetadataProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "release-notes", "receipt": "releaseNotesProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "launchkey-candidate-packet", "receipt": "releaseCandidatePacketProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "downloaded-release-assets", "receipt": "publishedReleaseAssetProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "post-release-consumer-proof", "receipt": "postReleaseConsumerProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "independent-adoption-evidence", "receipt": "externalAdoptionEvidenceStableGate", "status": "not-provided", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "final-security-review-evidence", "receipt": "securityReviewEvidenceStableGate", "status": "not-provided", "requiredForStableV4": true, "realEvidenceRequired": true}
+    ],
+    "nonClaims": [
+      "Fixture adoption records do not prove real stable-v4 publication."
+    ]
+  },
+  "reportQualityQuestions": [
+    "Does the stable-publication evidence packet list every required real-evidence input, first blocker, next command, and non-claim before a stable-v4 announcement?"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  }
+}
+JSON
+cat > "$stable_publication_templates_dir/v4-stable-publication.md" <<'MD'
+# ShipGuard V4 Stable Publication Proof
+
+## Evidence Packet
+
+| Evidence | Status |
+| --- | --- |
+| `independent-adoption-evidence` | `not-provided` |
+MD
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_templates_dir" \
+  --out "$tmp_dir/stable-publication-templates-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "stable-publication-evidence-templates-missing"' "$tmp_dir/stable-publication-templates-quality/ios-report-quality.json"
+grep -q '"ruleId": "stable-publication-evidence-templates-markdown-missing"' "$tmp_dir/stable-publication-templates-quality/ios-report-quality.json"
+
 launchkey_skip_dir="$tmp_dir/launchkey-proof-dir-skip"
 mkdir -p \
   "$launchkey_skip_dir/fresh-install-prefix/lib/shipguard/examples/demo-reports/arena" \

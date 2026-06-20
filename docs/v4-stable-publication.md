@@ -43,6 +43,7 @@ Outputs:
 - `downloaded-release-assets/` when `--download-release-assets` is supplied and no custom destination is given
 - `release-consume/consumer-report.json` when downloaded or supplied release assets are verified
 - `stablePublicationEvidencePacket` in JSON, rendered as `Evidence Packet` in Markdown
+- `stablePublicationEvidenceTemplates` in JSON, rendered as `Evidence Templates` in Markdown
 
 ## Stable Gates
 
@@ -70,6 +71,25 @@ The JSON report includes `stablePublicationEvidencePacket` so humans and tools c
 - non-claims for marketplace acceptance, fixture-only proof, and GitHub download counts
 
 `ios report-quality` checks this packet. A stable-publication report that has the gates but hides the packet receives a report-quality issue.
+
+## Evidence Templates
+
+Stable publication also exposes draft-only evidence templates:
+
+- `templates/stable-publication/external-adoption-evidence.template.json`
+- `templates/stable-publication/security-review-evidence.template.json`
+
+The report includes those paths, accepted evidence classes, required fields, copy commands, and validation commands in `stablePublicationEvidenceTemplates`. The adoption and security entries inside `stablePublicationEvidencePacket.requiredEvidence` also link back to their template path and copy command.
+
+These templates are intentionally not pass-ready. They default to `status: draft`, `privateDataRedacted: false`, and consent fields that must be reviewed before the record can pass. Copy them into a private evidence directory, replace placeholder text with real reviewed evidence, redact local paths/private app details/token-like strings/account data, then pass the completed file or directory to `--external-adoption-evidence` or `--security-review-evidence`.
+
+Example:
+
+```bash
+mkdir -p /tmp/shipguard-stable-evidence
+cp templates/stable-publication/external-adoption-evidence.template.json /tmp/shipguard-stable-evidence/external-adoption-evidence.json
+cp templates/stable-publication/security-review-evidence.template.json /tmp/shipguard-stable-evidence/security-review-evidence.json
+```
 
 ## Evidence Boundary
 

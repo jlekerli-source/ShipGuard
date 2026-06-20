@@ -62,6 +62,8 @@ Next three to five releases should harden the core before broadening the surface
 - Keep GitHub Action, archive, Devspace, and release-provenance trust receipts green.
 - Introduce and stabilize the canonical task object through `shipguard prepare`.
 - Make `shipguard verify` the default post-Codex verdict path.
+- Make `shipguard verify` the launch-facing hero before promoting internal ShipYard machinery: one short quickstart, one tiny broken demo repo, one PR Action path, and one clean proof report.
+- Treat one-command install, GitHub Action setup, agent templates, demo project, docs site, release proof, honesty checker, PR review, badges, and integrations as the launch ladder around `verify`, not as disconnected feature work.
 - Establish schema, compatibility, and deprecation rules before adding more public verbs.
 
 Exit gate: a new developer can install ShipGuard, initialize a repo, prepare a risky task, and get a useful verify verdict without reading internal ShipYard docs.
@@ -152,9 +154,20 @@ v3.143  Stable-v4 external adoption evidence gate
 v3.144  Stable-v4 final security-review evidence gate
 v3.145  Full Audit release-packet plan honesty
 v3.146  Full Audit NEXT_GOAL-backed slash handoff
+v3.147  Full Audit copy-ready execution-command receipts
+v3.148  Tool Value Gauntlet stable-publication priority
+v3.149  Stable-publication final claim gate
+v3.150  Stable-publication report-quality priority and proof boundary
+v3.151  Stable-publication evidence packet
+v3.152  Stable-publication draft evidence templates
+v3.153  Verify-first launch quickstart
+v3.154  Guarded launch relay drafts
+v3.155  One-command installer proof path
+v3.156  GitHub Action first-run proof path
+v3.157  Demo project and docs-site quickstart polish
 ```
 
-Current state: latest published release `v3.131.0` adds `shipguard v4 release-candidate` and V4 Release Candidate Readiness receipts that make fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, release-readiness commands, and blocked stable-release claims explicit. Active local ShipYard handoffs may target later v3 stabilization slices, but those are not stable-v4 release claims. Current `main` has moved through LaunchKey published release-asset proof, package fresh-install proof, report-quality proof-directory exclusion, same-prefix upgrade receipts, rollback cleanup receipts, generated archive-member blocking, blocking-proof result UX, native GitHub release-asset download, external adoption evidence gating, final security-review evidence gating, Full Audit release-packet plan honesty, and NEXT_GOAL-backed Full Audit slash handoff proof. The next local handoff should move to the next missing v4 stabilization proof surfaced by read-only self-QA after Full Audit release packets no longer carry stale hardcoded handoff text. The active architectural priority remains v4 product release stabilization: external adoption evidence, final security review, package proof, rollback proof, report-quality precision, result-UX command discipline, and release proof consumption on published assets before any stable v4 claim.
+Current state: latest published release `v3.131.0` adds `shipguard v4 release-candidate` and V4 Release Candidate Readiness receipts that make fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, release-readiness commands, and blocked stable-release claims explicit. Active local ShipYard handoffs may target later v3 stabilization slices, but those are not stable-v4 release claims. Current `main` has moved through LaunchKey published release-asset proof, package fresh-install proof, report-quality proof-directory exclusion, same-prefix upgrade receipts, rollback cleanup receipts, generated archive-member blocking, blocking-proof result UX, native GitHub release-asset download, external adoption evidence gating, final security-review evidence gating, Full Audit release-packet plan honesty, NEXT_GOAL-backed Full Audit slash handoff proof, stable-publication evidence packets, and draft-only stable-publication evidence templates. The next local handoff should make `shipguard verify` the launch-facing first-run path before adding broader launch automation: installer, PR Action, demo repo, docs-site quickstart, badges, and guarded announcement drafts should orbit the verify proof report. The active architectural priority remains v4 product release stabilization: external adoption evidence, final security review, package proof, rollback proof, report-quality precision, result-UX command discipline, and release proof consumption on published assets before any stable v4 claim.
 
 Every release proposal must answer:
 

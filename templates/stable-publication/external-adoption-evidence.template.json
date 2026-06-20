@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "shipguard-external-adoption",
+  "evidenceClass": "private-redacted-external",
+  "actorRelationship": "independent",
+  "generatedAt": "YYYY-MM-DDTHH:MM:SSZ",
+  "status": "draft",
+  "privateDataRedacted": false,
+  "source": "public issue, external maintainer note, public post, or private-redacted adoption receipt",
+  "actor": "redacted independent user or maintainer",
+  "commands": [
+    "shipguard version",
+    "shipguard validate"
+  ],
+  "artifacts": [
+    "redacted install transcript",
+    "redacted generated ShipGuard report",
+    "public release asset URL or release tag"
+  ],
+  "outcome": "Describe what the independent actor used ShipGuard for and what passed or failed. Remove private app names, local paths, screenshots, identifiers, tokens, and account data.",
+  "nonClaims": [
+    "Does not prove OpenAI marketplace acceptance.",
+    "Does not prove private target-app quality.",
+    "Does not include private app source, paths, screenshots, identifiers, or secrets."
+  ],
+  "consentToShare": false,
+  "shareableSummaryOnly": true,
+  "fixtureSynthetic": false,
+  "templateInstructions": [
+    "Do not submit this unchanged.",
+    "Set status to pass only after real independent adoption evidence exists.",
+    "Set privateDataRedacted to true only after reviewing the record for local paths, private app identifiers, screenshots, token-like strings, and account data.",
+    "Use evidenceClass public-external for public evidence or private-redacted-external for private evidence summarized without sensitive details."
+  ]
+}

@@ -2031,6 +2031,88 @@ def stable_publication_evidence_packet_issues(
             evidence=f"{path_name} Markdown does not render the stable-publication evidence packet",
             recommendation="Render the packet summary and evidence statuses in Markdown so maintainers can review it without opening JSON.",
         )
+    templates = report.get("stablePublicationEvidenceTemplates")
+    if not isinstance(templates, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-evidence-templates-missing",
+            evidence=f"{path_name} has no stablePublicationEvidenceTemplates",
+            recommendation="Emit draft-only adoption and security-review evidence templates so maintainers can collect real stable-v4 evidence without reverse-engineering JSON from tests.",
+        )
+    else:
+        template_items = templates.get("templates")
+        if not isinstance(template_items, list) or len(template_items) < 2:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-evidence-template-list-incomplete",
+                evidence=f"{path_name} stablePublicationEvidenceTemplates does not list both stable-v4 evidence templates",
+                recommendation="List independent adoption and final security-review templates with paths, copy commands, accepted evidence classes, and draft-only instructions.",
+            )
+        else:
+            by_id = {str(item.get("id") or ""): item for item in template_items if isinstance(item, dict)}
+            expected_templates = {
+                "independent-adoption-evidence": "templates/stable-publication/external-adoption-evidence.template.json",
+                "final-security-review-evidence": "templates/stable-publication/security-review-evidence.template.json",
+            }
+            for template_id, expected_path in expected_templates.items():
+                item = by_id.get(template_id)
+                if not item:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id=f"stable-publication-{template_id}-template-missing",
+                        evidence=f"{path_name} stablePublicationEvidenceTemplates missing {template_id}",
+                        recommendation="Expose a draft-only template for every stable-v4 evidence record users must collect.",
+                    )
+                    continue
+                if item.get("path") != expected_path or not item.get("copyCommand"):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id=f"stable-publication-{template_id}-template-routing-missing",
+                        evidence=f"{path_name} template {template_id} does not expose the expected path and copy command",
+                        recommendation="Attach repo-relative template paths and copy commands so users can create evidence records without searching docs.",
+                    )
+                if item.get("exists") is not True:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id=f"stable-publication-{template_id}-template-file-missing",
+                        evidence=f"{path_name} template {template_id} was reported as missing on disk",
+                        recommendation="Package and validate the stable-publication evidence template files.",
+                    )
+            required_items = required if isinstance(required, list) else []
+            required_by_id = {str(item.get("id") or ""): item for item in required_items if isinstance(item, dict)}
+            for evidence_id in expected_templates:
+                evidence_item = required_by_id.get(evidence_id)
+                if not evidence_item:
+                    continue
+                if not evidence_item.get("templatePath") or not evidence_item.get("templateCommand"):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id=f"stable-publication-{evidence_id}-packet-template-link-missing",
+                        evidence=f"{path_name} packet evidence {evidence_id} does not link to its template",
+                        recommendation="Include templatePath and templateCommand on adoption and security evidence packet entries.",
+                    )
+        if templates.get("draftOnly") is not True:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-evidence-templates-draft-boundary-missing",
+                evidence=f"{path_name} stablePublicationEvidenceTemplates does not mark templates as draft-only",
+                recommendation="Keep template output honest: unchanged templates must guide collection, not pass as evidence.",
+            )
+    if "Evidence Templates" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-evidence-templates-markdown-missing",
+            evidence=f"{path_name} Markdown does not render the stable-publication evidence templates",
+            recommendation="Render stable-publication evidence templates in Markdown so maintainers can copy the right starting files without opening JSON.",
+        )
     return issues
 
 

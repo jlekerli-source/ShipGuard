@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "shipguard-security-review",
+  "evidenceClass": "private-redacted-security-review",
+  "reviewerRelationship": "maintainer-security-review",
+  "generatedAt": "YYYY-MM-DDTHH:MM:SSZ",
+  "status": "draft",
+  "privateDataRedacted": false,
+  "source": "external review, maintainer security review, public issue, or private-redacted security receipt",
+  "reviewer": "redacted reviewer",
+  "scope": {
+    "areas": [
+      "cli",
+      "plugin",
+      "github-actions",
+      "release-proof",
+      "package-install",
+      "redaction-privacy"
+    ]
+  },
+  "methodology": [
+    "reviewed command routing and dangerous side-effect boundaries",
+    "reviewed plugin metadata and installed skill guidance",
+    "reviewed GitHub Actions permissions and release proof artifacts",
+    "reviewed package install, upgrade, rollback, and consumer verification paths",
+    "reviewed redaction and privacy behavior for shareable reports"
+  ],
+  "commands": [
+    "shipguard validate",
+    "shipguard codex status --strict",
+    "shipguard v4 stable-publication --help"
+  ],
+  "artifacts": [
+    "security review notes",
+    "release proof bundle",
+    "plugin status report",
+    "redaction review notes"
+  ],
+  "findingsSummary": {
+    "criticalOpen": 0,
+    "highOpen": 0,
+    "mediumOpen": 0,
+    "lowOpen": 0
+  },
+  "outcome": "Describe reviewed surfaces, resolved issues, residual risks, and why there are no open critical or high findings. Remove private app names, local paths, screenshots, identifiers, tokens, and account data.",
+  "nonClaims": [
+    "Does not prove OpenAI marketplace acceptance.",
+    "Does not review private target app code unless a separate authorized app-specific task exists.",
+    "Does not claim zero risk; it reports open critical and high findings for the stable-v4 release boundary."
+  ],
+  "consentToShare": false,
+  "shareableSummaryOnly": true,
+  "fixtureSynthetic": false,
+  "templateInstructions": [
+    "Do not submit this unchanged.",
+    "Set status to pass only after the review happened.",
+    "Set privateDataRedacted to true only after reviewing the record for local paths, private app identifiers, screenshots, token-like strings, and account data.",
+    "Stable-v4 security evidence needs all required scope areas and criticalOpen=0 plus highOpen=0."
+  ]
+}

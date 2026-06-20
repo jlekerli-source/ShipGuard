@@ -34,6 +34,58 @@ REQUIRED_RELEASE_ASSETS = {
     "attestation-badge.json",
 }
 
+STABLE_PUBLICATION_TEMPLATE_DIR = "templates/stable-publication"
+STABLE_PUBLICATION_TEMPLATE_SPECS = [
+    {
+        "id": "independent-adoption-evidence",
+        "title": "Independent adoption evidence",
+        "path": f"{STABLE_PUBLICATION_TEMPLATE_DIR}/external-adoption-evidence.template.json",
+        "targetFile": "<evidence-dir>/external-adoption-evidence.json",
+        "commandFlag": "--external-adoption-evidence",
+        "evidenceType": "shipguard-external-adoption",
+        "acceptedEvidenceClasses": ["public-external", "private-redacted-external"],
+        "requiredFields": [
+            "schemaVersion",
+            "evidenceType",
+            "evidenceClass",
+            "actorRelationship",
+            "generatedAt",
+            "status",
+            "privateDataRedacted",
+            "commands",
+            "artifacts",
+            "outcome",
+            "nonClaims",
+        ],
+        "stableRequirement": "Real independent public or private-redacted external adoption evidence; unchanged template records are draft-only and must not pass.",
+    },
+    {
+        "id": "final-security-review-evidence",
+        "title": "Final security review evidence",
+        "path": f"{STABLE_PUBLICATION_TEMPLATE_DIR}/security-review-evidence.template.json",
+        "targetFile": "<evidence-dir>/security-review-evidence.json",
+        "commandFlag": "--security-review-evidence",
+        "evidenceType": "shipguard-security-review",
+        "acceptedEvidenceClasses": ["public-security-review", "private-redacted-security-review"],
+        "requiredFields": [
+            "schemaVersion",
+            "evidenceType",
+            "evidenceClass",
+            "reviewerRelationship",
+            "generatedAt",
+            "status",
+            "privateDataRedacted",
+            "scope",
+            "methodology",
+            "commands",
+            "artifacts",
+            "findingsSummary",
+            "nonClaims",
+        ],
+        "stableRequirement": "Real final review evidence covering CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy with no open critical or high findings.",
+    },
+]
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -283,28 +335,78 @@ def evidence_id_for_receipt(receipt: str) -> str:
     return mapping.get(receipt, re.sub(r"[^a-z0-9]+", "-", receipt.lower()).strip("-"))
 
 
+def build_stable_publication_evidence_templates(root: Path) -> dict[str, Any]:
+    templates: list[dict[str, Any]] = []
+    full_validate_command = (
+        "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> "
+        "--github-release-repo <owner/repo> --release-version <version> "
+        "--release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets "
+        "--external-adoption-evidence <adoption-evidence-json-or-dir> "
+        "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
+    )
+    for spec in STABLE_PUBLICATION_TEMPLATE_SPECS:
+        relative_path = str(spec["path"])
+        target_file = str(spec["targetFile"])
+        templates.append(
+            {
+                **spec,
+                "exists": (root / relative_path).is_file(),
+                "copyCommand": f"cp {relative_path} {target_file}",
+                "attachArgument": f"{spec['commandFlag']} {target_file}",
+                "validateCommand": full_validate_command,
+            }
+        )
+    return {
+        "schemaVersion": 1,
+        "templateDirectory": STABLE_PUBLICATION_TEMPLATE_DIR,
+        "templates": templates,
+        "templateIds": [str(item["id"]) for item in templates],
+        "draftOnly": True,
+        "instructions": [
+            "Copy a template into a private evidence directory, replace placeholder text with real reviewed evidence, and keep private app details redacted.",
+            "Do not use unchanged templates as proof. They intentionally default to draft/privateDataRedacted=false so stable-publication blocks fake evidence.",
+            "Pass the completed JSON file or directory to --external-adoption-evidence or --security-review-evidence.",
+        ],
+    }
+
+
 def build_stable_publication_evidence_packet(
     *,
     gates: list[tuple[str, dict[str, Any], str]],
     blocked: tuple[str, dict[str, Any], str] | None,
     release_version: str,
     stable_v4_release: bool,
+    evidence_templates: dict[str, Any],
 ) -> dict[str, Any]:
+    templates_by_id = {
+        str(item.get("id")): item
+        for item in evidence_templates.get("templates", [])
+        if isinstance(item, dict)
+    }
     required_evidence: list[dict[str, Any]] = []
     for receipt, proof, command in gates:
         status = str(proof.get("status") or "not-provided")
-        required_evidence.append(
-            {
-                "id": evidence_id_for_receipt(receipt),
-                "receipt": receipt,
-                "status": status,
-                "provided": bool(proof.get("provided", status == "pass")),
-                "requiredForStableV4": True,
-                "realEvidenceRequired": True,
-                "summary": proof.get("summary") or f"{receipt} status is {status}.",
-                "nextCommand": command,
-            }
-        )
+        evidence_id = evidence_id_for_receipt(receipt)
+        item = {
+            "id": evidence_id,
+            "receipt": receipt,
+            "status": status,
+            "provided": bool(proof.get("provided", status == "pass")),
+            "requiredForStableV4": True,
+            "realEvidenceRequired": True,
+            "summary": proof.get("summary") or f"{receipt} status is {status}.",
+            "nextCommand": command,
+        }
+        template = templates_by_id.get(evidence_id)
+        if template:
+            item.update(
+                {
+                    "templateId": template.get("id"),
+                    "templatePath": template.get("path"),
+                    "templateCommand": template.get("copyCommand"),
+                }
+            )
+        required_evidence.append(item)
 
     missing = [item for item in required_evidence if item.get("status") != "pass"]
     first_blocking = None
@@ -420,11 +522,13 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     blocked = first_blocking_gate(gates)
     status = "pass" if blocked is None else "review"
     stable_v4_release = status == "pass"
+    evidence_templates = build_stable_publication_evidence_templates(root)
     evidence_packet = build_stable_publication_evidence_packet(
         gates=gates,
         blocked=blocked,
         release_version=release_version,
         stable_v4_release=stable_v4_release,
+        evidence_templates=evidence_templates,
     )
 
     if blocked:
@@ -460,6 +564,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "productStage": "v4-stable-publication-proof",
         "stableV4Release": stable_v4_release,
         "stablePublicationEvidencePacket": evidence_packet,
+        "stablePublicationEvidenceTemplates": evidence_templates,
         "githubReleaseMetadataProof": metadata_proof,
         "releaseNotesProof": release_notes_proof,
         "releaseCandidatePacketProof": release_candidate_packet_proof,
@@ -490,6 +595,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Can ShipGuard prove stable-v4 publication from real release metadata, release notes, downloaded assets, external adoption evidence, security evidence, and post-release consumer proof?",
             "Does the stable-publication report block every stable-v4 claim until independent adoption and final security evidence are attached?",
             "Does the stable-publication evidence packet list every required real-evidence input, first blocker, next command, and non-claim before a stable-v4 announcement?",
+            "Does the stable-publication report provide draft-only evidence templates for independent adoption and final security review without manufacturing proof?",
         ],
         "resultUX": result_ux,
     }
@@ -540,6 +646,24 @@ def render_markdown(report: dict[str, Any]) -> str:
         for item in packet.get("requiredEvidence", []):
             if isinstance(item, dict):
                 lines.append(f"| `{item.get('id')}` | `{item.get('status')}` |")
+    templates = report.get("stablePublicationEvidenceTemplates") if isinstance(report.get("stablePublicationEvidenceTemplates"), dict) else {}
+    if templates:
+        lines.extend(
+            [
+                "",
+                "## Evidence Templates",
+                "",
+                f"- Draft-only templates: `{templates.get('draftOnly')}`",
+                "",
+                "| Template | Exists | Copy command |",
+                "| --- | --- | --- |",
+            ]
+        )
+        for item in templates.get("templates", []):
+            if isinstance(item, dict):
+                lines.append(
+                    f"| `{item.get('id')}` | `{item.get('exists')}` | `{item.get('copyCommand')}` |"
+                )
     lines.extend(
         [
             "",

@@ -205,6 +205,19 @@ assert packet["passedEvidenceCount"] < 7
 assert "launchkey-candidate-packet" in packet["missingEvidenceIds"]
 assert packet["firstBlockingGate"]["receipt"] == "releaseCandidatePacketProof"
 assert packet["firstBlockingGate"]["nextCommand"].startswith("./bin/shipguard v4 release-candidate")
+templates = report["stablePublicationEvidenceTemplates"]
+assert templates["draftOnly"] is True
+assert templates["templateDirectory"] == "templates/stable-publication"
+assert {
+    "independent-adoption-evidence",
+    "final-security-review-evidence",
+} <= set(templates["templateIds"])
+by_id = {item["id"]: item for item in templates["templates"]}
+assert by_id["independent-adoption-evidence"]["exists"] is True
+assert by_id["final-security-review-evidence"]["exists"] is True
+required_by_id = {item["id"]: item for item in packet["requiredEvidence"]}
+assert required_by_id["independent-adoption-evidence"]["templatePath"] == "templates/stable-publication/external-adoption-evidence.template.json"
+assert required_by_id["final-security-review-evidence"]["templatePath"] == "templates/stable-publication/security-review-evidence.template.json"
 PY
 
 SHIPGUARD_GENERATED_AT="2026-06-20T00:00:00Z" \
@@ -264,11 +277,18 @@ assert {
     "final-security-review-evidence",
 } <= ids
 assert all(item["requiredForStableV4"] and item["realEvidenceRequired"] for item in packet["requiredEvidence"])
+templates = report["stablePublicationEvidenceTemplates"]
+assert templates["draftOnly"] is True
+assert len(templates["templates"]) == 2
+required_by_id = {item["id"]: item for item in packet["requiredEvidence"]}
+assert "templateCommand" in required_by_id["independent-adoption-evidence"]
+assert "templateCommand" in required_by_id["final-security-review-evidence"]
 PY
 
 grep -q '# ShipGuard V4 Stable Publication Proof' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Stable Publication Gates' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Packet' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Evidence Templates' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Stable v4 release claim allowed: `True`' "$tmp_dir/pass/v4-stable-publication.md"
 
 ./bin/shipguard ios report-quality \

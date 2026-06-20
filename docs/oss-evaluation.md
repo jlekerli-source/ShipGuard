@@ -14,6 +14,31 @@ This slice fixes the ShipGuard development loop:
 - The receipt proves the intended chain directly: report-quality priority question -> `ios spec-workflow` -> SpecForge tasks and validation commands -> slash plan/goal -> `next-goal`.
 - `shipguard value-gauntlet` now reports the workflow-chain receipt as passing again, so the next weak surface moves forward to stable-v4 publication proof instead of getting stuck on stale fixture coupling.
 
+## Current Stable Publication Evidence Templates
+
+The latest stable-publication product-QA pass showed the next usability gap: ShipGuard could tell users that independent adoption and final security-review evidence were missing, but users still had to infer the exact record shape from implementation details.
+
+This slice improves the real publication-proof path:
+
+- `templates/stable-publication/external-adoption-evidence.template.json` and `templates/stable-publication/security-review-evidence.template.json` now ship as draft-only public templates.
+- `shipguard v4 stable-publication` now emits `stablePublicationEvidenceTemplates`, including template paths, accepted evidence classes, required fields, copy commands, validation commands, and draft-only instructions.
+- The adoption and security entries in `stablePublicationEvidencePacket.requiredEvidence` link to their template path and copy command, and Markdown reports render an `Evidence Templates` section.
+- `ios report-quality` now flags stable-publication reports that hide the template catalog or omit template links from the evidence packet.
+
+The templates deliberately do not pass unchanged: they default to draft status and require a real redaction review before they can become stable-v4 evidence.
+
+## Current Verify-First Launch Priority
+
+The next product-facing slice should make `shipguard verify` the obvious launch feature. The repo already has the core pieces: `prepare`, `verify`, release proof, GitHub Actions, check-run/review-comment/SARIF adapters, init profiles, badges, package proof, and Codex plugin guidance. The weakness is discoverability and first-run value, not absence of a verdict engine.
+
+Near-term launch work should therefore orbit one clean proof report:
+
+- one short install/quickstart path
+- one tiny broken demo repo or fixture where ShipGuard catches weak proof
+- one GitHub Action path for PR proof reports
+- one README/docs-site story around proof-gated AI maintenance
+- one guarded launch-relay draft workflow for Product Hunt, X, Reddit, GitHub, and ShipYard channels, with final public posting still requiring action-time approval
+
 ## Current Stable Publication Evidence Packet
 
 The next ShipYard gauntlet pass keeps every fixture-backed receipt green and correctly leaves `runtimeV4StableReleasePublication` as the remaining real-world gap. The useful improvement is not to fake a stable v4 release; it is to make the final gate easier to execute and review.

@@ -158,6 +158,8 @@ required_artifacts=(
   ".github/ISSUE_TEMPLATE/bug-report.yml"
   ".github/ISSUE_TEMPLATE/proposal.yml"
   "templates/policy/default.conf"
+  "templates/stable-publication/external-adoption-evidence.template.json"
+  "templates/stable-publication/security-review-evidence.template.json"
   ".agents/plugins/marketplace.json"
   "actions/arena-compare/action.yml"
   "plugins/ios-shipguard/.codex-plugin/plugin.json"

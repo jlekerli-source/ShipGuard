@@ -152,6 +152,8 @@ grep -q "^$package_name/docs/v4-preview.md$" "$tar_list"
 grep -q "^$package_name/docs/v4-schema-freeze.md$" "$tar_list"
 grep -q "^$package_name/docs/v4-release-candidate.md$" "$tar_list"
 grep -q "^$package_name/docs/v4-stable-publication.md$" "$tar_list"
+grep -q "^$package_name/templates/stable-publication/external-adoption-evidence.template.json$" "$tar_list"
+grep -q "^$package_name/templates/stable-publication/security-review-evidence.template.json$" "$tar_list"
 grep -q "^$package_name/docs/compatibility.md$" "$tar_list"
 grep -q "^$package_name/docs/command-matrix.md$" "$tar_list"
 grep -q "^$package_name/docs/demo-reports.md$" "$tar_list"
@@ -619,7 +621,10 @@ fi
 grep -q '"tool": "shipguard v4 stable-publication"' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
 grep -q '"status": "review"' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
 grep -q '"stableV4Release": false' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
+grep -q '"stablePublicationEvidenceTemplates":' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
+grep -q '"path": "templates/stable-publication/external-adoption-evidence.template.json"' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
 grep -q 'ShipGuard V4 Stable Publication Proof' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.md"
+grep -q 'Evidence Templates' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.md"
 "$package_root/bin/shipguard" inspect \
   --path "$package_root" \
   --out "$tmp_dir/package-inspect" \
