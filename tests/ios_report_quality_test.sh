@@ -539,9 +539,10 @@ grep -q 'Source Report Findings' "$tmp_dir/launchdeck-receipt-quality/ios-report
 grep -q 'launchdeck-build-run-receipt-missing' "$tmp_dir/launchdeck-receipt-quality/ios-report-quality.md"
 grep -q 'launchdeck-performance-receipt-missing' "$tmp_dir/launchdeck-receipt-quality/ios-report-quality.md"
 test -f "$tmp_dir/launchdeck-receipt-fixtures/fixture-promotion-manifest.json"
-test -d "$tmp_dir/launchdeck-receipt-fixtures/01-ios-launchdeck-receipt-quality-fixture"
-test -f "$tmp_dir/launchdeck-receipt-fixtures/01-ios-launchdeck-receipt-quality-fixture/fixture-report.json"
-grep -q '"sourceReportsRedacted": true' "$tmp_dir/launchdeck-receipt-fixtures/01-ios-launchdeck-receipt-quality-fixture/fixture-candidate.json"
+launchdeck_materialized_candidate_dir="$(find "$tmp_dir/launchdeck-receipt-fixtures" -mindepth 1 -maxdepth 1 -type d -name '*shipguard-ios-launchdeck*' | sort | head -n 1)"
+test -n "$launchdeck_materialized_candidate_dir"
+test -f "$launchdeck_materialized_candidate_dir/fixture-report.json"
+grep -q '"sourceReportsRedacted": true' "$launchdeck_materialized_candidate_dir/fixture-candidate.json"
 
 dedupe_fixture="$tmp_dir/dedupe-fixture"
 mkdir -p "$dedupe_fixture"
@@ -884,6 +885,20 @@ if "no private app code" not in checklist:
 PY
 materialized_candidate_dir="$(find "$tmp_dir/materialized-fixtures" -mindepth 1 -maxdepth 1 -type d | sort | head -n 1)"
 test -n "$materialized_candidate_dir"
+materialized_candidate_name="$(basename "$materialized_candidate_dir")"
+case "$materialized_candidate_name" in
+  *shipguard-ios-*|*shipguard-value-gauntlet*) ;;
+  *)
+    echo "materialized fixture candidate should use a descriptive tool/question slug, got $materialized_candidate_name" >&2
+    exit 1
+    ;;
+esac
+case "$materialized_candidate_name" in
+  *shipguard-eval-boundary-fixture|*report-quality-actionability-fixture)
+    echo "materialized fixture candidate should not collapse to a generic fixture type slug: $materialized_candidate_name" >&2
+    exit 1
+    ;;
+esac
 test -f "$materialized_candidate_dir/README.md"
 test -f "$materialized_candidate_dir/fixture-candidate.json"
 test -f "$materialized_candidate_dir/fixture-report.json"

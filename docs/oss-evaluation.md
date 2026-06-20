@@ -4,6 +4,16 @@ Generated: 2026-06-17
 
 This is the current usefulness and refinement evaluation for ShipGuard after the rename and README repositioning work.
 
+## Current Fixture Candidate Naming
+
+The latest broad read-only ShipGuard product-QA loop against local app checkouts generated 10 shareable source reports across performance, design, modernization, app-intelligence, and AI-readiness. Report-quality scored the set 100/100, but the materialized fixture starter directories still exposed a ShipGuard product weakness: repeated boundary-oriented candidates were written as generic duplicate names such as `01-shipguard-eval-boundary-fixture`, even though the report itself already knew the more useful tool/question slug.
+
+This slice fixes the ShipGuard promotion workflow, not either target app:
+
+- `ios report-quality --write-fixture-candidates` now preserves the generated candidate's descriptive tool/question ID when writing starter directories and promotion metadata.
+- Materialized candidates now read like `01-shipguard-ios-design-which-private-app-observation...` or `04-shipguard-ios-app-intelligence-were-candidate-actions...`, making promotion, review, and fixture dedupe easier to follow.
+- The focused report-quality regression lane now fails if materialized candidates collapse back to generic fixture-type names.
+
 ## Current Design Preview/Devspace Routing Fixture
 
 The latest read-only ShipGuard product-QA loop against local app checkouts showed the next ShipGuard-owned design gap after app-type tailoring and coherence boundaries: `ios design` mentioned the iPhone preview and Devspace bridge, but `ios report-quality` did not yet enforce whether that visual-proof path was obvious, authenticated, and honest about ChatGPT-side model selection.

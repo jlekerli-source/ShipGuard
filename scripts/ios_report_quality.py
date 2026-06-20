@@ -3410,6 +3410,11 @@ def materialized_source_question(candidate: dict[str, Any]) -> str:
 
 
 def materialized_candidate_id(candidate: dict[str, Any]) -> str:
+    raw_candidate_id = sanitize_materialized_text(candidate.get("candidateId"))
+    if raw_candidate_id:
+        stable_candidate_id = slugify(raw_candidate_id, limit=96)
+        if stable_candidate_id != "report-quality-fixture":
+            return stable_candidate_id
     try:
         priority = int(candidate.get("priority") or 0)
     except (TypeError, ValueError):
