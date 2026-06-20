@@ -22,7 +22,7 @@ grep -q '"surface": "ShipGuard Tool Value Gauntlet"' "$tmp_dir/gauntlet/tool-val
 grep -q '"intent": "shipguard-product-qa"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"shipguardOnly": true' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"targetAppsReadOnly": true' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
-grep -q '"commandCount": 67' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"commandCount": 68' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"pluginCount": 1' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"actions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"skills":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -242,7 +242,7 @@ for item in negative.get("cases") or []:
         raise SystemExit(f"negative fixture should fail report scoring but pass fixture expectation: {item!r}")
 if command_family.get("status") != "pass":
     raise SystemExit(f"runtime command-family coverage should pass: {command_family!r}")
-if command_family.get("commandCount") != 67 or command_family.get("passedCommandCount") != 67:
+if command_family.get("commandCount") != 68 or command_family.get("passedCommandCount") != 68:
     raise SystemExit(f"expected all public command help paths to pass: {command_family!r}")
 for item in command_family.get("commands") or []:
     if item.get("status") != "pass" or item.get("missing"):
@@ -603,8 +603,8 @@ for item in profile_proof_handoff.get("receipts") or []:
             raise SystemExit(f"profile-native proof handoff command should pass without missing checks: {command!r}")
 if command_family_output.get("status") != "pass":
     raise SystemExit(f"command-family runtime-output receipts should pass: {command_family_output!r}")
-if command_family_output.get("receiptCount") != 1 or command_family_output.get("passedReceiptCount") != 1 or command_family_output.get("commandCount") != 7:
-    raise SystemExit(f"expected one command-family runtime-output receipt and seven commands: {command_family_output!r}")
+if command_family_output.get("receiptCount") != 1 or command_family_output.get("passedReceiptCount") != 1 or command_family_output.get("commandCount") != 8:
+    raise SystemExit(f"expected one command-family runtime-output receipt and eight commands: {command_family_output!r}")
 command_family_output_ids = {item.get("id") for item in command_family_output.get("receipts") or []}
 if command_family_output_ids != {"major-family-report-outputs"}:
     raise SystemExit(f"unexpected command-family runtime-output receipt fixtures: {command_family_output_ids!r}")
@@ -619,6 +619,7 @@ for item in command_family_output.get("receipts") or []:
         "web-audit-output",
         "web-plan-output",
         "docs-check-output",
+        "action-verify-pr-output",
         "release-manifest-output",
     }
     if command_ids != expected_commands:

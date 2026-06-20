@@ -63,6 +63,7 @@ Next three to five releases should harden the core before broadening the surface
 - Introduce and stabilize the canonical task object through `shipguard prepare`.
 - Make `shipguard verify` the default post-Codex verdict path.
 - Make `shipguard verify` the launch-facing hero before promoting internal ShipYard machinery: one short quickstart, one tiny broken demo repo, one PR Action path, and one clean proof report.
+- Keep the PR Action path proofable with `shipguard action verify-pr`, so copied workflows fail setup mistakes before maintainers trust missing or decorative artifacts.
 - Treat one-command install, GitHub Action setup, agent templates, demo project, docs site, release proof, honesty checker, PR review, badges, and integrations as the launch ladder around `verify`, not as disconnected feature work.
 - Establish schema, compatibility, and deprecation rules before adding more public verbs.
 

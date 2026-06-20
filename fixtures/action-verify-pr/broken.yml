@@ -1,0 +1,11 @@
+name: Broken ShipGuard Verify PR
+
+on:
+  pull_request:
+
+jobs:
+  shipguard-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: echo "no proof"

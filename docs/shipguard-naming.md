@@ -45,6 +45,7 @@ The rule is simple: a fun name is allowed only when its plain job and proof boun
 | `shipguard check-run` | ShipGuard CheckPilot | Generate or post GitHub Checks API payloads from gate output. |
 | `shipguard sarif` | ShipGuard AlertBeacon | Convert autopsy findings into SARIF for code scanning surfaces. |
 | `shipguard docs-check` | ShipGuard LinkSweep | Check Markdown docs for broken local links. |
+| `shipguard action verify-pr` | ShipGuard Verify-PR First-Run Proof | Audit a copied GitHub Actions PR-proof workflow for static setup, proof wiring, and runtime artifact boundaries before trusting it. |
 | `shipguard value-gauntlet` | ShipGuard Tool Value Gauntlet | Grade every ShipGuard command, skill, plugin, action, doc, and proof path for real developer usefulness. |
 | `shipguard full-audit` | ShipGuard Full Audit | Run or plan the full ShipYard validation, value, package, plugin, CI, and release-proof lane from one resumable report. |
 | `shipguard inspect` | ShipGuard InspectDeck | Summarize repo state, proof receipts, plugin state, release state, underlying evidence, and one exact next action. |

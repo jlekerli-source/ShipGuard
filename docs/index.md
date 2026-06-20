@@ -10,6 +10,7 @@ Use this page as a map. Start with the smallest path that matches what you are t
 | --- | --- |
 | Understand the core idea | [Verify-First Quickstart](verify-first-quickstart.md) |
 | Install ShipGuard and check a repo | [Install and Doctor](install-doctor.md) |
+| Audit the first PR workflow | [Verify-PR Action Audit](action-verify-pr.md) |
 | Add ShipGuard to your own project | [Use in your repo](use-in-your-repo.md) |
 | Choose the right command | [Command Matrix](command-matrix.md) |
 | Look up every CLI option | [CLI reference](cli.md) |
@@ -46,6 +47,7 @@ Open `/tmp/shipguard-verdict/shipguard-verdict.md`. The report shows whether the
 - [Verify-First Quickstart](verify-first-quickstart.md)
 - [Policy Configuration](policy.md)
 - [GitHub Action](github-action.md)
+- [Verify-PR Action Audit](action-verify-pr.md)
 - [PR Review Bot Mode](pr-review-bot.md)
 
 ### Repo Setup

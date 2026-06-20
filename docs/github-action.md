@@ -4,6 +4,17 @@ This repo exposes reusable composite actions for validating a workflow-bundle ch
 
 For the first PR-proof path, start with `examples/workflows/verify-pr.yml`. It is intentionally transparent shell instead of a hidden action: it installs ShipGuard, prepares a task contract, records a PR diff, writes a structured validation receipt, runs `shipguard verify`, and uploads `shipguard-verdict.json` plus `shipguard-verdict.md`. Set `SHIPGUARD_VALIDATION_COMMAND` once near the top of the workflow before using it in a real repository.
 
+Before trusting a copied workflow, run the read-only first-run audit:
+
+```bash
+shipguard action verify-pr \
+  --workflow .github/workflows/shipguard-verify-pr.yml \
+  --out /tmp/shipguard-action-verify-pr \
+  --shareable
+```
+
+The audit blocks missing install, diff, receipt, verify, or artifact-upload wiring and returns `review` while the starter validation placeholder is still present. A static pass still needs runtime proof from a real PR run and the uploaded `shipguard-verdict` artifact.
+
 ## Usage
 
 ```yaml

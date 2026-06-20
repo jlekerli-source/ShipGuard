@@ -96,6 +96,7 @@ STATUS_PRIORITY = {"blocked": 0, "review": 1, "pass": 2}
 TOOL_NEXT_ACTION_PRIORITY = {
     "shipguard brand": 0,
     "shipguard value-gauntlet": 0,
+    "shipguard action verify-pr": 0,
     "shipguard lean audit": 0,
     "shipguard lean review": 0,
     "shipguard lean debt": 0,
@@ -132,6 +133,7 @@ ROOT_REPORT_TOOLS = {
     "shipguard brand",
     "shipguard docs-check",
     "shipguard value-gauntlet",
+    "shipguard action verify-pr",
     "shipguard lean audit",
     "shipguard lean review",
     "shipguard lean debt",
@@ -3303,8 +3305,10 @@ def fixture_type_for_question(question: str, tool: str) -> str:
     question_text = normalized_question_text(question)
     if (
         tool in {"shipguard prepare", "shipguard verify"}
+        or tool == "shipguard action verify-pr"
         or "task contract" in text
         or "verify-first" in text
+        or "verify-pr" in text
         or "proof report" in text
         or "unsupported completion claim" in text
         or "durable object" in text

@@ -36,6 +36,7 @@ Usage:
   shipguard check-run post --payload <payload.json> --repo <owner/repo> --out <response.json> [--api-url <url>] [--token <token>] [--dry-run]
   shipguard sarif --report <report.json> --out <results.sarif>
   shipguard docs-check [path] [--out <dir>]
+  shipguard action verify-pr [--path <repo>] [--workflow <workflow.yml>] --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard brand [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
   shipguard lean audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard lean review --diff <patch.diff> --out <dir> [--path <repo>] [--shipguard-eval] [--shareable] [--json|--markdown]
@@ -119,6 +120,7 @@ Commands:
   check-run   Generate or optionally post GitHub Checks API payloads from gate JSON.
   sarif       Convert an autopsy report JSON file into SARIF 2.1.0.
   docs-check  Check Markdown files for broken local links.
+  action      Audit first-run GitHub Action proof paths.
   brand       Audit the full ShipGuard branded naming scheme.
   lean        Audit code and diffs for native, stdlib, dependency, shortcut-debt, and does-this-need-to-exist simplification opportunities.
   value-gauntlet
@@ -460,6 +462,13 @@ cmd_docs_check() {
   run_sh "$tool_root/scripts/docs_check.sh" "$@"
 }
 
+cmd_action() {
+  local subcommand="${1:-}"
+  [[ "$subcommand" == "verify-pr" ]] || fail "action requires subcommand: verify-pr"
+  shift || true
+  run_py "$tool_root/scripts/action_verify_pr.py" "$@"
+}
+
 cmd_brand() {
   run_py "$tool_root/scripts/ios_branding.py" "$@"
 }
@@ -767,6 +776,9 @@ main() {
       ;;
     docs-check)
       cmd_docs_check "$@"
+      ;;
+    action)
+      cmd_action "$@"
       ;;
     brand)
       cmd_brand "$@"

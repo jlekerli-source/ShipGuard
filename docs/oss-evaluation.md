@@ -6,6 +6,17 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current Verify-PR First-Run QA
+
+The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `shipguard full-audit --plan-only`, docs-check, and the verify-first quickstart tests against this checkout.
+
+- Finding: the verify-first demo and `examples/workflows/verify-pr.yml` were covered by tests, but a fresh maintainer had no ShipGuard command that audits a copied GitHub Actions verify-PR workflow before trusting it.
+- Product weakness: first-run users could copy the starter with the placeholder validation command or accidentally remove the task, diff, receipt, verify, or artifact-upload chain and only discover the mistake after a failed GitHub run.
+- Native fix: `shipguard action verify-pr` now writes `action-verify-pr.json` and `action-verify-pr.md`, blocks missing proof wiring, returns `review` while `replace-with-your-test-command` is still present, and marks runtime PR artifact proof as required before trust.
+- Boundary: the command is read-only. It does not execute target tests, push code, or claim the GitHub workflow has run.
+
+Fresh QA now runs the action audit over the bundled starter, a configured copy, and a broken workflow fixture before treating the first PR-proof path as healthy.
+
 ## Current Ponytail Native Precision QA
 
 The v3.197 read-only QA pass inspected the public Ponytail repo, refreshed the installed local Codex Ponytail plugin, then ran ShipGuard's existing Lean Deck against this checkout as the native precision-code baseline.

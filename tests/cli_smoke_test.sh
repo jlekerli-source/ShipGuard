@@ -25,6 +25,7 @@ test "$(./bin/codex-maintainer version)" = "$(sed -n '1p' VERSION)"
 ./bin/shipguard check-run post --help >/dev/null
 ./bin/shipguard sarif --help >/dev/null
 ./bin/shipguard docs-check --help >/dev/null
+./bin/shipguard action verify-pr --help >/dev/null
 ./bin/shipguard brand --help >/dev/null
 ./bin/shipguard lean audit --help >/dev/null
 ./bin/shipguard lean review --help >/dev/null

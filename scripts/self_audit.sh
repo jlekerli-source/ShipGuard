@@ -71,6 +71,7 @@ commands=(
   "check-run post --help"
   "sarif --help"
   "docs-check --help"
+  "action verify-pr --help"
   "brand --help"
   "lean audit --help"
   "lean review --help"
@@ -187,6 +188,7 @@ required_artifacts=(
   "examples/demo-reports/transcripts/corpus.json"
   "examples/demo-reports/transcripts/index.md"
   "docs/next-goal.md"
+  "docs/action-verify-pr.md"
   "docs/arena-compare-action.md"
   "docs/sarif.md"
   "docs/docs-check.md"
@@ -364,6 +366,7 @@ required_artifacts=(
   "scripts/v4_release_candidate.py"
   "scripts/v4_stable_publication.py"
   "scripts/agent_trace.py"
+  "scripts/action_verify_pr.py"
   "scripts/ios_launchdeck.py"
   "scripts/ios_codex_handoff.py"
   "scripts/ios_devspace_check.py"
@@ -402,6 +405,7 @@ required_artifacts=(
   "tests/structured_evidence_receipts_test.sh"
   "tests/external_pilot_verdict_bench_test.sh"
   "tests/tool_value_gauntlet_test.sh"
+  "tests/action_verify_pr_test.sh"
   "tests/lean_audit_test.sh"
   "tests/full_audit_test.sh"
   "tests/inspect_test.sh"
@@ -431,6 +435,8 @@ required_artifacts=(
   "fixtures/lean-audit-demo/src/ColorPicker.tsx"
   "fixtures/lean-audit-demo/src/SafeAuth.ts"
   "fixtures/lean-audit-demo/src/ThinWrapper.ts"
+  "fixtures/action-verify-pr/configured.yml"
+  "fixtures/action-verify-pr/broken.yml"
 )
 
 artifact_count=0
