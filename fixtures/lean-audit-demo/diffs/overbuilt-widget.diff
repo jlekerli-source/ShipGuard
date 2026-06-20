@@ -3,13 +3,26 @@ new file mode 100644
 index 0000000..1111111
 --- /dev/null
 +++ b/src/OverbuiltWidget.tsx
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,32 @@
 +import DatePicker from "react-datepicker";
 +import { uniq } from "lodash";
 +
 +// shipguard-lean: shortcut marker without enough context
 +export function normalizeLabels(labels: string[]) {
 +  return uniq(labels.map((label) => label.trim()));
++}
++
++export function parseDurationSeconds(input: string) {
++  const match = input.match(/^(\d+)h(\d+)m$/);
++  if (!match) {
++    return 0;
++  }
++  return Number(match[1]) * 3600 + Number(match[2]) * 60;
++}
++
++export function readThermistorCelsius(channel: number) {
++  const raw = channel * 17;
++  return (raw - 512) / 10;
 +}
 +
 +export function toLabel(value: string) {

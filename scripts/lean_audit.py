@@ -70,6 +70,49 @@ SAFETY_TOKENS = (
     "delete",
     "payment",
 )
+ADAPTER_TOKENS = (
+    ".claude-plugin",
+    ".codex-plugin",
+    ".opencode",
+    "adapter",
+    "bridge",
+    "claude",
+    "codex",
+    "gemini",
+    "hook",
+    "hooks",
+    "mcp",
+    "opencode",
+    "plugin",
+    "plugins",
+)
+HARDWARE_TOKENS = (
+    "adc",
+    "avcapturedevice",
+    "barometer",
+    "bluetooth",
+    "calibration",
+    "calibrate",
+    "camera",
+    "clock drift",
+    "corebluetooth",
+    "gps",
+    "gyroscope",
+    "hardware",
+    "mcp3008",
+    "pca9685",
+    "sensor",
+    "thermistor",
+)
+CALIBRATION_TOKENS = (
+    "calibration",
+    "calibrate",
+    "drift",
+    "offset",
+    "threshold",
+    "trim",
+    "tuning",
+)
 FINDING_PRIORITY = {"review": 0, "opportunity": 1, "info": 2}
 LEGACY_MARKER_RE = re.compile(r"\bTODO\b|\bFIXME\b|temporary|legacy|compat", re.IGNORECASE)
 LEAN_DEBT_RE = re.compile(
@@ -149,6 +192,32 @@ def line_for(text: str, needle: str) -> int | None:
 def has_safety_context(path: Path, text: str) -> bool:
     haystack = f"{path.as_posix()}\n{text[:4000]}".lower()
     return any(token in haystack for token in SAFETY_TOKENS)
+
+
+def has_adapter_context(path: Path, text: str) -> bool:
+    haystack = f"{path.as_posix()}\n{text[:1200]}".lower()
+    return any(token in haystack for token in ADAPTER_TOKENS)
+
+
+def has_hardware_context(text: str) -> bool:
+    haystack = text[:6000].lower()
+    return any(token in haystack for token in HARDWARE_TOKENS)
+
+
+def has_calibration_signal(text: str) -> bool:
+    haystack = text[:6000].lower()
+    for token in CALIBRATION_TOKENS:
+        if token == "trim":
+            if re.search(r"(?<![.\w])trim(?:s|med|ming)?\b", haystack):
+                return True
+            continue
+        if token in haystack:
+            return True
+    return False
+
+
+def has_calibration_context(text: str) -> bool:
+    return has_calibration_signal(text)
 
 
 def finding(
@@ -291,8 +360,9 @@ def scan_file(root: Path, path: Path) -> list[dict[str, Any]]:
     if not text:
         return []
     relative = rel(path, root)
-    safe_context = has_safety_context(path, text)
     findings: list[dict[str, Any]] = []
+    safe_context = has_safety_context(path, text)
+    adapter_context = has_adapter_context(Path(relative), text)
 
     if path.suffix in CODE_SUFFIXES:
         checks = [
@@ -356,7 +426,21 @@ def scan_file(root: Path, path: Path) -> list[dict[str, Any]]:
             r"(?:export\s+)?(?:function|const)\s+([A-Za-z0-9_]+)\s*(?:=\s*)?(?:\([^)]*\)|[^=]*)\s*(?:=>|\{)\s*(?:return\s+)?([A-Za-z0-9_.]+)\([^;\n{}]*\)\s*;?\s*\}?",
             text,
         )
-        if trivial_wrappers and not safe_context:
+        if trivial_wrappers and adapter_context:
+            name, target = trivial_wrappers[0]
+            findings.append(
+                finding(
+                    severity="info",
+                    category="adapter-boundary",
+                    rule_id="thin-adapter-boundary",
+                    file=relative,
+                    line=line_for(text, name),
+                    evidence=f"{name} delegates to {target}",
+                    recommendation="Thin plugin, hook, MCP, or agent adapters may be the correct host boundary; do not treat them as automatic deletion targets.",
+                    proof="Keep the adapter unless host registration tests and call-site search prove the bridge is redundant.",
+                )
+            )
+        elif trivial_wrappers and not safe_context:
             name, target = trivial_wrappers[0]
             findings.append(
                 finding(
@@ -370,6 +454,20 @@ def scan_file(root: Path, path: Path) -> list[dict[str, Any]]:
                     proof="Use search results to confirm call sites stay readable and no public API/backward-compatibility contract depends on the wrapper.",
                 )
             )
+
+    if path.suffix in CODE_SUFFIXES and has_hardware_context(text) and has_calibration_context(text):
+        findings.append(
+            finding(
+                severity="info",
+                category="hardware-boundary",
+                rule_id="hardware-calibration-proof-boundary",
+                file=relative,
+                line=None,
+                evidence="hardware or sensor code includes calibration/tuning language",
+                recommendation="Keep calibration knobs and device proof boundaries visible; less code is not a reason to delete physical-world tuning.",
+                proof="Attach real-device, simulator-vs-device, sensor, timing, or calibration evidence before simplifying hardware-facing code.",
+            )
+        )
 
     if path.suffix in CODE_SUFFIXES and len(text.splitlines()) > 700 and LEGACY_MARKER_RE.search(text):
         signal = legacy_signal(text)
@@ -425,6 +523,10 @@ def precision_action_for(item: dict[str, Any]) -> str:
         return "List imports before changing anything; remove the dependency only when usage is trivial and covered."
     if rule_id == "thin-wrapper-review":
         return "Inline or delete the wrapper if search proves it adds no policy, naming, compatibility, or test value."
+    if rule_id == "thin-adapter-boundary":
+        return "Keep the thin adapter unless host registration proof says the bridge is redundant."
+    if rule_id == "hardware-calibration-proof-boundary":
+        return "Do not delete calibration/tuning paths without real-device or hardware-facing proof."
     if rule_id == "large-legacy-file-review":
         return "Do not split the whole file first; start at the first marker line and prove one removable branch."
     return str(item.get("recommendation", "Review whether this code still earns its complexity."))
@@ -460,13 +562,18 @@ def build_precision_review(findings: list[dict[str, Any]]) -> dict[str, Any]:
             simplify_first.append(entry)
 
     safety_items = [item for item in findings if item.get("ruleId") == "do-not-cut-safety-logic-without-proof"]
-    for item in safety_items[:20]:
+    boundary_items = safety_items + [
+        item
+        for item in findings
+        if item.get("ruleId") in {"thin-adapter-boundary", "hardware-calibration-proof-boundary"}
+    ]
+    for item in boundary_items[:20]:
         evidence = item.get("evidence", {})
         keep_list.append(
             {
                 "ruleId": item.get("ruleId"),
                 "location": str(evidence.get("file", "")),
-                "reason": "Safety boundary detected; less-code pressure is not enough.",
+                "reason": str(item.get("recommendation") or "Less-code pressure is not enough."),
                 "proofRequired": item.get("proofGuidance"),
             }
         )
@@ -494,6 +601,54 @@ def build_precision_review(findings: list[dict[str, Any]]) -> dict[str, Any]:
             "proofBlockedCandidates": len(blocked_by_proof),
         },
     }
+
+
+def build_behavior_gates(findings: list[dict[str, Any]], lean_debt_ledger: dict[str, Any]) -> dict[str, Any]:
+    rule_ids = {str(item.get("ruleId") or "") for item in findings}
+    return {
+        "oneRunnableCheck": {
+            "status": "enforced-in-lean-review",
+            "ruleIds": ["one-runnable-check-missing-diff"],
+            "policy": "Non-trivial new logic should leave one smallest runnable check; trivial one-liners do not need ceremony.",
+        },
+        "hardwareCalibration": {
+            "status": "active" if "hardware-calibration-proof-boundary" in rule_ids else "available",
+            "ruleIds": ["hardware-calibration-proof-boundary", "hardware-calibration-missing-diff"],
+            "policy": "Hardware, sensors, clocks, and physical devices need calibration/tuning proof before simplification.",
+        },
+        "requestedExplanation": {
+            "status": "policy",
+            "policy": "Explicitly requested reports, walkthroughs, or phase notes are not clutter; Lean Deck targets unrequested code/prose bloat.",
+        },
+        "adapterBoundary": {
+            "status": "active" if "thin-adapter-boundary" in rule_ids else "available",
+            "ruleIds": ["thin-adapter-boundary"],
+            "policy": "Thin host adapters can be the product surface; flag them as keep-with-proof instead of deletion candidates.",
+        },
+        "shortcutDebt": {
+            "status": "pass"
+            if int(lean_debt_ledger.get("summary", {}).get("missingUpgradeTrigger") or 0) == 0
+            else "review",
+            "markers": int(lean_debt_ledger.get("summary", {}).get("markers") or 0),
+            "missingUpgradeTrigger": int(lean_debt_ledger.get("summary", {}).get("missingUpgradeTrigger") or 0),
+            "policy": "Every intentional shortcut needs a ceiling and upgrade trigger.",
+        },
+        "gainHonesty": {
+            "status": "available-in-lean-gain",
+            "policy": "ShipGuard reports benchmark impact separately and does not invent per-repo line, token, cost, or time savings.",
+        },
+    }
+
+
+def native_opportunity_catalog() -> list[dict[str, str]]:
+    return [
+        {"surface": "browser forms", "insteadOf": "date/color/range/dialog libraries", "prefer": "native input, dialog, details, progress, meter, and datalist controls when product behavior fits"},
+        {"surface": "browser APIs", "insteadOf": "query-string, uuid, clipboard, clone, observer wrappers", "prefer": "URLSearchParams, crypto.randomUUID, navigator.clipboard, structuredClone, IntersectionObserver, ResizeObserver"},
+        {"surface": "CSS", "insteadOf": "JavaScript for basic layout or motion preferences", "prefer": "container queries, CSS custom properties, prefers-reduced-motion, sticky, scroll snap, aspect-ratio"},
+        {"surface": "Python", "insteadOf": "small compatibility packages for modern Python", "prefer": "dataclasses, pathlib, enum, argparse, zoneinfo, datetime.fromisoformat, itertools, functools"},
+        {"surface": "Node", "insteadOf": "mkdirp/rimraf/path-exists/load-json wrappers", "prefer": "fs.mkdirSync({recursive:true}), fs.rmSync({recursive:true,force:true}), fs.existsSync, JSON.parse/readFileSync"},
+        {"surface": "database", "insteadOf": "application code for constraints and aggregation", "prefer": "unique/check/foreign-key constraints, window functions, recursive CTEs, generated columns, full-text indexes"},
+    ]
 
 
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
@@ -538,6 +693,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Can one clear line replace a helper?",
             "Only then write the minimum code that works.",
         ],
+        "behaviorGates": build_behavior_gates(emitted_findings, lean_debt_ledger),
+        "nativeOpportunityCatalog": native_opportunity_catalog(),
         "precisionReview": precision_review,
         "leanDebtLedger": lean_debt_ledger,
         "safetyBoundary": [
@@ -587,9 +744,11 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         report["reportQualityQuestions"] = [
             "Does precisionReview identify delete, simplify, keep, and proof-blocked decisions instead of dumping findings?",
             "Does Lean Deck separate real simplification candidates from safety-boundary files?",
+            "Does Lean Deck protect host adapters, hardware calibration, requested explanation, and one-check minimums from false less-code pressure?",
             "Does each finding explain the proof needed before removing code?",
             "Does the report help a solo developer delete clutter without deleting product behavior?",
             "Does leanDebtLedger make intentional shortcuts auditable with ceilings and upgrade triggers?",
+            "Does lean gain avoid fake per-repo savings while still showing benchmark-backed impact?",
             "Should this observation become a public fixture instead of depending on a private repo?",
         ]
     return report
@@ -610,6 +769,24 @@ def render_markdown(report: dict[str, Any]) -> str:
     ]
     for step in report["leanLadder"]:
         lines.append(f"- {step}")
+    gates = report.get("behaviorGates", {})
+    if gates:
+        lines.extend(["", "## Behavior Gates", ""])
+        for name, gate in gates.items():
+            if not isinstance(gate, dict):
+                continue
+            status = gate.get("status", "available")
+            policy = str(gate.get("policy", "")).replace("|", "\\|")
+            lines.append(f"- `{name}`: {status} - {policy}")
+    catalog = report.get("nativeOpportunityCatalog", [])
+    if catalog:
+        lines.extend(["", "## Native Opportunity Catalog", ""])
+        lines.extend(["| Surface | Before Owning Code | Prefer |", "| --- | --- | --- |"])
+        for item in catalog:
+            lines.append(
+                f"| {item.get('surface', '')} | {str(item.get('insteadOf', '')).replace('|', '\\|')} | "
+                f"{str(item.get('prefer', '')).replace('|', '\\|')} |"
+            )
     precision = report.get("precisionReview", {})
     lines.extend(["", "## Precision Review", ""])
     summary = precision.get("summary", {})

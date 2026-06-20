@@ -308,6 +308,7 @@ required_files=(
   "scripts/lean_audit.py"
   "scripts/lean_review.py"
   "scripts/lean_debt.py"
+  "scripts/lean_gain.py"
   "scripts/shipguard_result.py"
   "scripts/full_audit.py"
   "scripts/shipguard_inspect.py"

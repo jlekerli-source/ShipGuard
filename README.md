@@ -115,6 +115,7 @@ Most users only need these:
 | `shipguard lean audit ...` | Find repo-level code that may not need to exist, with a delete/simplify/keep ledger and proof-required safety boundaries. |
 | `shipguard lean review ...` | Review the current diff for over-engineering before merging. |
 | `shipguard lean debt ...` | Harvest `ponytail:` and `shipguard-lean:` shortcut markers into a ledger. |
+| `shipguard lean gain ...` | Show benchmark-backed lean-code impact without inventing fake per-repo savings. |
 | `shipguard docs-check ...` | Find broken local Markdown links. |
 | `shipguard full-audit ...` | Run a broader ShipGuard maintainer audit. |
 

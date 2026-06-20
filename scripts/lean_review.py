@@ -10,13 +10,29 @@ import re
 from pathlib import Path
 from typing import Any
 
-from lean_audit import build_precision_review, finding, has_safety_context, read_text
+from lean_audit import (
+    build_behavior_gates,
+    build_precision_review,
+    finding,
+    has_calibration_signal,
+    has_hardware_context,
+    has_safety_context,
+    read_text,
+)
 
 
 TOOL = "shipguard lean review"
 SURFACE = "ShipGuard Lean Review"
 SCHEMA_VERSION = 1
 CODE_SUFFIXES = {".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".py", ".sh", ".swift"}
+NONTRIVIAL_LOGIC_RE = re.compile(
+    r"\b(if|for|while|try|except|catch|switch|case)\b|=>\s*\{|\bparse[A-Za-z0-9_]*\s*\(|\.map\(|\.filter\(|\.reduce\(",
+    re.IGNORECASE,
+)
+CHECK_SIGNAL_RE = re.compile(
+    r"\b(assert|console\.assert|unittest|pytest|describe\s*\(|it\s*\(|test\s*\(|XCTest|__main__|demo\s*\()\b",
+    re.IGNORECASE,
+)
 
 
 def utc_now() -> str:
@@ -87,6 +103,17 @@ def first_added_line(file_diff: dict[str, Any], pattern: str) -> int | None:
     return None
 
 
+def has_added_check(file_name: str, added_text: str) -> bool:
+    lowered = file_name.lower()
+    if "test" in lowered or "spec" in lowered:
+        return True
+    return bool(CHECK_SIGNAL_RE.search(added_text))
+
+
+def has_calibration_token(text: str) -> bool:
+    return has_calibration_signal(text)
+
+
 def scan_diff(root: Path, files: list[dict[str, Any]]) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
     for file_diff in files:
@@ -100,6 +127,34 @@ def scan_diff(root: Path, files: list[dict[str, Any]]) -> list[dict[str, Any]]:
         context_path = root / file_name
         context_text = read_text(context_path)
         safe_context = has_safety_context(context_path, context_text + "\n" + added_text)
+
+        if is_code and NONTRIVIAL_LOGIC_RE.search(added_text) and not has_added_check(file_name, added_text):
+            findings.append(
+                finding(
+                    severity="review",
+                    category="proof-diff-review",
+                    rule_id="one-runnable-check-missing-diff",
+                    file=file_name,
+                    line=first_added_line(file_diff, NONTRIVIAL_LOGIC_RE.pattern),
+                    evidence="non-trivial branch, loop, parser, or collection logic added without a runnable check signal",
+                    recommendation="Leave one smallest runnable check for the new logic instead of treating tests as optional ceremony.",
+                    proof="Add an assert-based self-check, one focused test, or an equivalent existing test reference before merge.",
+                )
+            )
+
+        if is_code and has_hardware_context(added_text) and not has_calibration_token(added_text):
+            findings.append(
+                finding(
+                    severity="review",
+                    category="hardware-diff-review",
+                    rule_id="hardware-calibration-missing-diff",
+                    file=file_name,
+                    line=first_added_line(file_diff, r"hardware|sensor|thermistor|adc|mcp3008|pca9685|bluetooth|gps"),
+                    evidence="hardware or sensor code added without an obvious calibration/tuning knob",
+                    recommendation="Keep a minimal calibration or tuning boundary when code touches real hardware or physical-device behavior.",
+                    proof="Attach real-device, sensor, timing, or calibration evidence before simplifying the physical-world edge case away.",
+                )
+            )
 
         checks = [
             (
@@ -220,6 +275,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     files = parse_unified_diff(diff_text)
     findings = scan_diff(root, files)
     precision = build_precision_review(findings)
+    behavior_gates = build_behavior_gates(findings, {"summary": {"markers": 0, "missingUpgradeTrigger": 0}})
     status = "pass" if not [item for item in findings if item.get("severity") in {"review", "opportunity"}] else "review"
     report: dict[str, Any] = {
         "schemaVersion": SCHEMA_VERSION,
@@ -235,6 +291,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "boundary": "ShipGuard implements a native diff review for unnecessary code. It does not vendor Ponytail code.",
         },
         "reviewLines": review_lines(findings),
+        "behaviorGates": behavior_gates,
         "precisionReview": precision,
         "findings": findings,
         "metrics": {
@@ -257,6 +314,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         )
         report["reportQualityQuestions"] = [
             "Does Lean Review give a current-diff delete/simplify list instead of a whole-repo inventory?",
+            "Does Lean Review require one smallest runnable check for non-trivial new logic?",
+            "Does Lean Review protect hardware calibration and host boundaries from false less-code pressure?",
             "Does it keep safety-boundary code out of automatic deletion?",
             "Does it make the first simplification action obvious enough for a solo developer?",
         ]
@@ -282,6 +341,13 @@ def render_markdown(report: dict[str, Any]) -> str:
     else:
         lines.append("Lean already. Ship.")
     precision = report.get("precisionReview", {})
+    gates = report.get("behaviorGates", {})
+    if gates:
+        lines.extend(["", "## Behavior Gates", ""])
+        for name, gate in gates.items():
+            if not isinstance(gate, dict):
+                continue
+            lines.append(f"- `{name}`: {gate.get('status', 'available')} - {gate.get('policy', '')}")
     summary = precision.get("summary", {})
     lines.extend(["", "## Precision Ledger", ""])
     lines.append(

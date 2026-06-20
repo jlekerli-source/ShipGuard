@@ -18,6 +18,16 @@ Outputs:
 
 The report uses a ShipGuard-native Lean Deck inspired by Ponytail's “best code is the code you never wrote” ladder, but it does not vendor Ponytail code. Source influence stays explicit so ShipGuard remains honest open source.
 
+Lean Deck also emits `behaviorGates`:
+
+- `oneRunnableCheck`: diff review expects one smallest runnable check for non-trivial new logic.
+- `hardwareCalibration`: hardware, sensor, timing, and physical-device code keeps calibration proof visible.
+- `requestedExplanation`: explicitly requested reports or walkthroughs are not treated as clutter.
+- `adapterBoundary`: thin plugin, hook, MCP, or agent adapters are keep-with-proof boundaries, not automatic delete targets.
+- `gainHonesty`: benchmark impact is shown separately from current-repo evidence.
+
+`nativeOpportunityCatalog` gives maintainers a compact platform-native checklist across browser controls, browser APIs, CSS, Python, Node, and database capabilities before they add code or dependencies.
+
 For current changes, use diff review instead of a whole-repo scan:
 
 ```bash
@@ -67,6 +77,18 @@ For a ledger-only pass:
 
 `lean debt` writes `lean-debt.json` and `lean-debt.md`.
 
+For the benchmark-backed impact card:
+
+```bash
+./bin/shipguard lean gain \
+  --path . \
+  --out /tmp/shipguard-lean-gain \
+  --shipguard-eval \
+  --shareable
+```
+
+`lean gain` writes `lean-gain.json` and `lean-gain.md`. It reports Ponytail-style benchmark direction but explicitly marks current-repo savings as `not-computed`; the unbuilt baseline was never produced, so ShipGuard must not claim fake line, token, cost, or time savings for a live repo.
+
 ## What It Checks
 
 - Does this code need to exist?
@@ -75,6 +97,7 @@ For a ledger-only pass:
 - Is an installed dependency already enough?
 - Can one clear line replace a helper?
 - Only then, what is the minimum code that works?
+- Is this a host adapter, hardware calibration path, explicitly requested explanation, or one-check minimum that should be kept instead of cut?
 
 ## Safety Boundary
 

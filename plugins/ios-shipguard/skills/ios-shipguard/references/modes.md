@@ -74,6 +74,26 @@ Proof:
 - package, self-audit, CLI smoke, and docs-check coverage before claiming the naming scheme is complete
 - do not rename stable public commands only for flavor; keep automation-safe commands and put personality in surface names, report headings, section labels, docs, and aliases
 
+## lean-code-audit
+
+Use when the user mentions Ponytail, precise code, less clutter, unnecessary code, over-engineering, lazy senior-dev mode, or asks what can be deleted.
+
+Ask:
+
+- Is this a whole-repo audit, current-diff review, shortcut ledger, or benchmark-impact question?
+- Is the target a private app used only as read-only ShipGuard product QA?
+- Are any findings touching security, validation, hardware calibration, host adapters, accessibility, or explicitly requested reports?
+
+Proof:
+
+- whole repo: `shipguard lean audit --path . --out /tmp/shipguard-lean-audit --shipguard-eval --shareable`
+- current diff: `shipguard lean review --diff <patch.diff> --path . --out /tmp/shipguard-lean-review --shipguard-eval --shareable`
+- shortcut ledger: `shipguard lean debt --path . --out /tmp/shipguard-lean-debt --shipguard-eval --shareable`
+- benchmark card: `shipguard lean gain --path . --out /tmp/shipguard-lean-gain --shipguard-eval --shareable`
+- inspect `behaviorGates`, `nativeOpportunityCatalog`, `precisionReview`, and `leanDebtLedger` before proposing deletions
+- do not claim current-repo line, token, cost, or time savings from `lean gain`; it is benchmark direction only unless a matched baseline exists
+- feed Lean reports to `shipguard ios report-quality --reports <lean-output-dir> --out /tmp/shipguard-lean-quality --shareable` when improving ShipGuard itself
+
 ## release-proof
 
 Use for release readiness, TestFlight, App Store review, proof packets, privacy-sensitive claims, and final merge/shipping gates.

@@ -41,6 +41,7 @@ Usage:
   shipguard lean audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard lean review --diff <patch.diff> --out <dir> [--path <repo>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard lean debt --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard lean gain [--path <repo>] --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard value-gauntlet [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
   shipguard full-audit --out <dir> [--path <shipguard-repo>] [--profile quick|release|shipyard] [--stage <id> ...] [--resume] [--plan-only] [--include-install] [--release-url <url>] [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--shipguard-eval] [--shareable] [--strict] [--json|--markdown]
   shipguard inspect --path <shipguard-repo> --out <dir> [--value-gauntlet <file-or-dir>] [--full-audit <file-or-dir>] [--release-assets <dir>] [--shipguard-eval] [--shareable] [--json|--markdown]
@@ -489,6 +490,9 @@ cmd_lean() {
       ;;
     debt)
       run_py "$tool_root/scripts/lean_debt.py" "$@"
+      ;;
+    gain)
+      run_py "$tool_root/scripts/lean_gain.py" "$@"
       ;;
     help|--help|-h|"")
       run_py "$tool_root/scripts/lean_audit.py" --help

@@ -205,6 +205,30 @@
       ]
     },
     {
+      "id": "lean-gain-output",
+      "display": "./bin/shipguard lean gain --path fixtures/lean-audit-demo --out <out>/lean-gain --shipguard-eval --shareable",
+      "args": ["lean", "gain", "--path", "fixtures/lean-audit-demo", "--out", "{out}/lean-gain", "--shipguard-eval", "--shareable"],
+      "artifacts": [
+        {
+          "path": "lean-gain/lean-gain.json",
+          "type": "json",
+          "requiredJsonKeys": ["tool", "status", "surface", "benchmarkScoreboard", "currentRepoBoundary", "leanDebtLedger", "reportQualityQuestions"],
+          "requiredNonEmptyJsonPaths": ["benchmarkScoreboard.primary", "currentRepoBoundary.realRepoSignals", "reportQualityQuestions"],
+          "requiredValues": [
+            {"path": "tool", "equals": "shipguard lean gain"},
+            {"path": "status", "equals": "pass"},
+            {"path": "currentRepoBoundary.perRepoSavingsClaim", "equals": "not-computed"}
+          ]
+        },
+        {
+          "path": "lean-gain/lean-gain.md",
+          "type": "markdown",
+          "requiredPhrases": ["# ShipGuard Lean Gain", "Benchmark Scoreboard", "Honesty Boundary", "Report Quality Questions"],
+          "forbidLocalPaths": true
+        }
+      ]
+    },
+    {
       "id": "release-manifest-output",
       "display": "./bin/shipguard release-manifest --tarball <out>/release/shipguard-v9.9.9.tar.gz --out <out>/release-manifest --version 9.9.9 --tag v9.9.9",
       "args": [

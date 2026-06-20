@@ -141,7 +141,7 @@ Use `lean audit` when you want ShipGuard to look for code that may not need to e
   --shareable
 ```
 
-The command writes `lean-audit.json` and `lean-audit.md`. It reports native platform, standard-library, dependency, and thin-wrapper opportunities, while marking security, validation, data-loss, permission, payment, migration, and accessibility files as proof-required safety boundaries. The JSON includes `precisionReview.deleteList`, `simplifyFirst`, `keepList`, `blockedByProof`, `topActions`, and `leanDebtLedger` so the output is a concrete simplification ledger instead of a generic finding dump. See `lean-audit.md`.
+The command writes `lean-audit.json` and `lean-audit.md`. It reports native platform, standard-library, dependency, and thin-wrapper opportunities, while marking security, validation, data-loss, permission, payment, migration, accessibility, hardware calibration, and host-adapter files as proof-required boundaries. The JSON includes `behaviorGates`, `nativeOpportunityCatalog`, `precisionReview.deleteList`, `simplifyFirst`, `keepList`, `blockedByProof`, `topActions`, and `leanDebtLedger` so the output is a concrete simplification ledger instead of a generic finding dump. See `lean-audit.md`.
 
 Use `lean review` on the active diff before merge:
 
@@ -168,6 +168,18 @@ Use `lean debt` when you only need the shortcut ledger:
 ```
 
 The command writes `lean-debt.json` and `lean-debt.md`. It harvests `ponytail:` and `shipguard-lean:` markers and flags any marker that lacks both a `ceiling:` and an `upgrade:` trigger.
+
+Use `lean gain` when you want the Ponytail-style impact scoreboard without pretending the current repo has measured savings:
+
+```bash
+./bin/shipguard lean gain \
+  --path . \
+  --out /tmp/shipguard-lean-gain \
+  --shipguard-eval \
+  --shareable
+```
+
+The command writes `lean-gain.json` and `lean-gain.md`. It reports benchmark-backed line/token/cost/time direction, marks current-repo savings as `not-computed`, and points current repo proof back to `lean audit`, `lean review`, and `lean debt`.
 
 ## Release Package Hygiene
 

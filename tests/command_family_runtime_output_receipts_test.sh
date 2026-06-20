@@ -40,8 +40,8 @@ if receipts.get("status") != "pass":
     raise SystemExit(f"command-family runtime-output receipts should pass: {receipts!r}")
 if receipts.get("receiptCount") != 1 or receipts.get("passedReceiptCount") != 1:
     raise SystemExit(f"expected one passing receipt: {receipts!r}")
-if receipts.get("commandCount") != 8:
-    raise SystemExit(f"expected eight report-producing commands in the receipt: {receipts!r}")
+if receipts.get("commandCount") != 9:
+    raise SystemExit(f"expected nine report-producing commands in the receipt: {receipts!r}")
 receipt_ids = {item.get("id") for item in receipts.get("receipts") or []}
 if receipt_ids != {"major-family-report-outputs"}:
     raise SystemExit(f"unexpected receipt ids: {receipt_ids!r}")
@@ -58,6 +58,7 @@ expected_commands = {
     "web-plan-output",
     "docs-check-output",
     "action-verify-pr-output",
+    "lean-gain-output",
     "release-manifest-output",
 }
 if command_ids != expected_commands:

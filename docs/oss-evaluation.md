@@ -28,6 +28,18 @@ The v3.199 read-only loop reran the configured Verify-PR static audit, `shipguar
 
 Fresh QA now runs the action audit over static, valid-runtime, broken-runtime, and broken-workflow fixtures before treating the first PR-proof path as healthy.
 
+## Current Ponytail Behavior-Gate QA
+
+The v3.200 read-only QA pass inspected the public Ponytail repo and ran ShipGuard's native Lean Deck against both this checkout and the public Ponytail checkout.
+
+- Finding: ShipGuard already had the core ladder, diff review, shortcut debt, and safety boundaries, but it lacked behavior gates for one runnable check, hardware calibration, requested explanation, adapter boundaries, and benchmark-gain honesty.
+- Finding: running Lean Deck on the public Ponytail repo produced thin-wrapper noise on plugin, hook, MCP, and agent-host adapters; those are often the product boundary rather than needless helpers.
+- Product weakness: without explicit gates, "less code" can become false pressure to delete host adapters, physical-world calibration knobs, explicitly requested reports, or the single check that proves non-trivial logic.
+- Native fix: `shipguard lean audit` and `shipguard lean review` now emit `behaviorGates`, Lean Deck keeps adapter/hardware calibration surfaces as proof-required boundaries, and `shipguard lean gain` reports benchmark direction without inventing per-repo line/token/cost/time savings.
+- Boundary: ShipGuard remains native and does not vendor Ponytail source. The source influence stays explicit, and any copied/adapted content must keep license boundaries honest.
+
+Fresh QA now runs `lean audit`, `lean review`, `lean debt`, `lean gain`, report-quality, and command-family runtime-output receipts before treating precise-code work as integrated.
+
 ## Current Ponytail Native Precision QA
 
 The v3.197 read-only QA pass inspected the public Ponytail repo, refreshed the installed local Codex Ponytail plugin, then ran ShipGuard's existing Lean Deck against this checkout as the native precision-code baseline.

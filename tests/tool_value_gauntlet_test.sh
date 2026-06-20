@@ -603,8 +603,8 @@ for item in profile_proof_handoff.get("receipts") or []:
             raise SystemExit(f"profile-native proof handoff command should pass without missing checks: {command!r}")
 if command_family_output.get("status") != "pass":
     raise SystemExit(f"command-family runtime-output receipts should pass: {command_family_output!r}")
-if command_family_output.get("receiptCount") != 1 or command_family_output.get("passedReceiptCount") != 1 or command_family_output.get("commandCount") != 8:
-    raise SystemExit(f"expected one command-family runtime-output receipt and eight commands: {command_family_output!r}")
+if command_family_output.get("receiptCount") != 1 or command_family_output.get("passedReceiptCount") != 1 or command_family_output.get("commandCount") != 9:
+    raise SystemExit(f"expected one command-family runtime-output receipt and nine commands: {command_family_output!r}")
 command_family_output_ids = {item.get("id") for item in command_family_output.get("receipts") or []}
 if command_family_output_ids != {"major-family-report-outputs"}:
     raise SystemExit(f"unexpected command-family runtime-output receipt fixtures: {command_family_output_ids!r}")
@@ -620,6 +620,7 @@ for item in command_family_output.get("receipts") or []:
         "web-plan-output",
         "docs-check-output",
         "action-verify-pr-output",
+        "lean-gain-output",
         "release-manifest-output",
     }
     if command_ids != expected_commands:

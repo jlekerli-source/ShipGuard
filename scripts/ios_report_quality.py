@@ -100,6 +100,7 @@ TOOL_NEXT_ACTION_PRIORITY = {
     "shipguard lean audit": 0,
     "shipguard lean review": 0,
     "shipguard lean debt": 0,
+    "shipguard lean gain": 0,
     "shipguard full-audit": 0,
     "shipguard inspect": 0,
     "shipguard prepare": 0,
@@ -137,6 +138,7 @@ ROOT_REPORT_TOOLS = {
     "shipguard lean audit",
     "shipguard lean review",
     "shipguard lean debt",
+    "shipguard lean gain",
     "shipguard full-audit",
     "shipguard inspect",
     "shipguard v4 preview",
@@ -2662,6 +2664,74 @@ def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_nam
     return issues
 
 
+def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    tool = str(report.get("tool") or "")
+    if tool in {"shipguard lean audit", "shipguard lean review"}:
+        gates = report.get("behaviorGates")
+        required_gates = {
+            "oneRunnableCheck",
+            "hardwareCalibration",
+            "requestedExplanation",
+            "adapterBoundary",
+            "gainHonesty",
+        }
+        if not isinstance(gates, dict):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="lean-behavior-gates-missing",
+                evidence=f"{path_name} has no behaviorGates object",
+                recommendation="Emit behavior gates for one-check minimums, hardware calibration, requested explanations, adapter boundaries, and gain honesty.",
+            )
+        else:
+            missing = sorted(required_gates - set(gates))
+            if missing:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-behavior-gates-incomplete",
+                    evidence=f"{path_name} missing behavior gates: {', '.join(missing)}",
+                    recommendation="Keep Lean Deck behavior gates complete so Ponytail-style precision does not become blind less-code pressure.",
+                )
+        if "Behavior Gates" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="lean-behavior-gates-markdown-missing",
+                evidence=f"{path_name} Markdown does not expose behavior gates",
+                recommendation="Render behavior gates in Markdown so maintainers see what Lean Deck is protecting.",
+            )
+    if tool == "shipguard lean gain":
+        boundary = report.get("currentRepoBoundary")
+        if not isinstance(boundary, dict) or boundary.get("perRepoSavingsClaim") != "not-computed":
+            add_issue(
+                issues,
+                severity="high",
+                rule_id="lean-gain-fake-repo-savings-risk",
+                evidence=f"{path_name} does not explicitly mark current-repo savings as not-computed",
+                recommendation="Do not claim local line, token, cost, or time savings without a matched untreated baseline.",
+            )
+        scoreboard = report.get("benchmarkScoreboard")
+        if not isinstance(scoreboard, dict) or not scoreboard.get("primary"):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="lean-gain-scoreboard-missing",
+                evidence=f"{path_name} has no benchmarkScoreboard.primary",
+                recommendation="Show benchmark-backed impact separately from current-repo evidence.",
+            )
+        if "Honesty Boundary" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="lean-gain-honesty-markdown-missing",
+                evidence=f"{path_name} Markdown does not expose the honesty boundary",
+                recommendation="Render the no-per-repo-savings boundary in Markdown, not only JSON.",
+            )
+    return issues
+
+
 def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: Path) -> dict[str, Any]:
     loaded = read_json(path)
     markdown_path = paired_markdown(path)
@@ -2785,6 +2855,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
 
     if tool == SPEC_WORKFLOW_TOOL:
         issues.extend(spec_workflow_quality_issues(loaded, path=path, path_name=path.name))
+    issues.extend(lean_report_quality_issues(loaded, markdown=markdown, path_name=path.name))
 
     findings = loaded.get("findings")
     if isinstance(findings, list) and len(findings) > 30 and not loaded.get("ruleSummary"):
@@ -3322,6 +3393,16 @@ def fixture_type_for_question(question: str, tool: str) -> str:
         return "shipguard-marketplace-readiness-fixture"
     if tool == "shipguard docs-check" or "docs-check" in text or "docslink" in text:
         return "shipguard-docs-check-report-fixture"
+    if (
+        tool.startswith("shipguard lean ")
+        or "lean deck" in text
+        or "ponytail" in text
+        or "one-check" in text
+        or "one runnable check" in text
+        or "gain honesty" in text
+        or "fake per-repo" in text
+    ):
+        return "shipguard-lean-report-quality-fixture"
     if tool == "shipguard full-audit" and (
         "proof boundaries" in question_text
         or "proof boundary" in question_text
