@@ -42,8 +42,13 @@ Outputs:
 - `v4-stable-publication.md`
 - `downloaded-release-assets/` when `--download-release-assets` is supplied and no custom destination is given
 - `release-consume/consumer-report.json` when downloaded or supplied release assets are verified
+- `stable-publication-evidence-kit/README.md`
+- `stable-publication-evidence-kit/stable-publication-checklist.json`
+- `stable-publication-evidence-kit/external-adoption-evidence.json`
+- `stable-publication-evidence-kit/security-review-evidence.json`
 - `stablePublicationEvidencePacket` in JSON, rendered as `Evidence Packet` in Markdown
 - `stablePublicationEvidenceTemplates` in JSON, rendered as `Evidence Templates` in Markdown
+- `stablePublicationEvidenceStarterKit` in JSON, rendered as `Evidence Starter Kit` in Markdown
 
 ## Stable Gates
 
@@ -71,6 +76,21 @@ The JSON report includes `stablePublicationEvidencePacket` so humans and tools c
 - non-claims for marketplace acceptance, fixture-only proof, and GitHub download counts
 
 `ios report-quality` checks this packet. A stable-publication report that has the gates but hides the packet receives a report-quality issue.
+
+## Evidence Starter Kit
+
+Every run also writes `stable-publication-evidence-kit/` inside the report directory.
+
+This directory is a convenience artifact, not proof. It contains:
+
+- `README.md` with the collection rules and next command template
+- `stable-publication-checklist.json` with the current seven-gate packet, first blocker, missing evidence IDs, and non-claims
+- `external-adoption-evidence.json` copied from the draft-only adoption template
+- `security-review-evidence.json` copied from the draft-only security-review template
+
+The report exposes the same information in `stablePublicationEvidenceStarterKit`. `ios report-quality` flags stable-publication reports that do not write or render this starter kit, because the final publication gate should be actionable without making maintainers reverse-engineer JSON shapes from source code.
+
+Starter-kit files are intentionally not pass-ready. Fill them with real reviewed evidence, redact private details, and pass the completed files back with `--external-adoption-evidence` and `--security-review-evidence`.
 
 ## Evidence Templates
 

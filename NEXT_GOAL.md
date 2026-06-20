@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-20T03:01:30Z
+- Generated: 2026-06-20T03:21:54Z
 - Current toolkit version: 3.131.0
-- Target release: v3.154.0
-- Title: One-Command Installer Doctor
+- Target release: v3.155.0
+- Title: Stable V4 Publication Evidence Starter Kit
 
 ## Slash Plan
 
 ```text
-/plan v3.154.0 One-Command Installer Doctor for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make ShipGuard easier to try from a fresh checkout or release package: one installer path, one shipguard doctor RepoVitals verdict, and a clean README that gets a new maintainer to prepare/verify without release-internals noise.
+/plan v3.155.0 Stable V4 Publication Evidence Starter Kit for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make the stable-v4 publication evidence packet concrete and easier to collect without claiming stable v4: every stable-publication report should write a draft-only starter kit with checklist, adoption evidence starter, security-review starter, and clear report-quality coverage.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,39 +18,39 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.154.0 One-Command Installer Doctor for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make ShipGuard easier to try from a fresh checkout or release package: one installer path, one shipguard doctor RepoVitals verdict, and a clean README that gets a new maintainer to prepare/verify without release-internals noise, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.155.0 Stable V4 Publication Evidence Starter Kit for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make the stable-v4 publication evidence packet concrete and easier to collect without claiming stable v4: every stable-publication report should write a draft-only starter kit with checklist, adoption evidence starter, security-review starter, and clear report-quality coverage, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make ShipGuard easier to try from a fresh checkout or release package: one installer path, one shipguard doctor RepoVitals verdict, and a clean README that gets a new maintainer to prepare/verify without release-internals noise.
+Make the stable-v4 publication evidence packet concrete and easier to collect without claiming stable v4: every stable-publication report should write a draft-only starter kit with checklist, adoption evidence starter, security-review starter, and clear report-quality coverage.
 
 ## Completion Receipt
 
-- Completed scope: Reworked README into a short product entry point, added docs/install-doctor.md, added shipguard doctor --help, changed doctor output to ShipGuard RepoVitals with status/required-files/next-action while preserving existing ok/missing lines, added tests/install_doctor_test.sh for installed CLI validate/init/doctor proof, wired the test into GitHub Actions, and protected the new doc/test through self-audit and package-release checks.
-- Evidence: Focused proof passed: ./tests/install_doctor_test.sh; ./tests/cli_smoke_test.sh; ./tests/template_profiles_test.sh; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3154-readme2; ./tests/self_audit_test.sh; ./tests/codex_marketplace_readiness_test.sh; ./tests/ios_branding_test.sh; ./tests/package_release_test.sh; ./bin/shipguard validate; ./bin/shipguard codex marketplace-readiness --path . --out /tmp/shipguard-marketplace-readiness-v3154 --shareable --strict; ./bin/shipguard brand --path . --out /tmp/shipguard-brand-v3154 --strict; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3154-value-gauntlet-final; ./bin/shipguard codex status --strict. Product-QA proof generated: ./bin/shipguard full-audit --path . --out /tmp/shipguard-v3154-full-audit --profile quick --plan-only --shipguard-eval --shareable; ./bin/shipguard inspect --path . --value-gauntlet /tmp/shipguard-v3154-value-gauntlet-final --full-audit /tmp/shipguard-v3154-full-audit --out /tmp/shipguard-v3154-inspect-final --shipguard-eval --shareable; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3154-value-gauntlet-final --out /tmp/shipguard-v3154-report-quality-final --shareable.
+- Completed scope: Added stablePublicationEvidenceStarterKit to shipguard v4 stable-publication, generated stable-publication-evidence-kit/ with README, checklist JSON, adoption starter JSON, and security-review starter JSON on every run, rendered the kit in Markdown, skipped the generated kit during report-quality recursion, and protected the behavior through focused, report-quality, package, docs, self-audit, and value-gauntlet proof.
+- Evidence: Passed: python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3155-stable-publication-after --out /tmp/shipguard-v3155-stable-publication-after-quality2 --shareable; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3155-starter-kit; ./bin/shipguard validate; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3155-value-gauntlet-after; ./bin/shipguard codex status --strict.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.155.0 Stable V4 Publication Proof Packet for jlekerli-source/ShipGuard:
-1. Turn the current Value Gauntlet priority into a concrete ShipGuard-owned proof packet for stable-v4 publication: downloaded GitHub release assets, release notes, post-release consumer proof, independent adoption evidence, final security-review evidence, and non-claims.
-2. Keep the packet honest: fixture receipts may prove command behavior, but stable-v4 release claims require real public release evidence and must remain review/blocked until supplied.
-3. Implement the docs, templates, report-quality fixture/eval coverage, package proof, and LaunchKey/stable-publication guidance needed to make that packet easy to collect without faking adoption or security review.
-4. Generate the next completion receipt and following /plan plus /goal after validation passes.
+/plan v3.156.0 Real Stable V4 Evidence Packet Collection for jlekerli-source/ShipGuard:
+1. Use the new stable-publication evidence starter kit against the real public ShipGuard release state: run LaunchKey/release-candidate where possible, download or supply release assets, fill or explicitly mark adoption/security evidence as missing, and run `shipguard v4 stable-publication`.
+2. If real evidence is unavailable, improve ShipGuard's blocked-state UX rather than faking proof: add a publication packet status page or command output that says exactly which external artifacts are missing, where to obtain them, and which claims stay forbidden.
+3. Convert any confusing or repetitive blocked-state output into public fixtures, report-quality checks, docs, package proof, and value-gauntlet coverage.
+4. Generate the next completion receipt and following /plan plus /goal after validation passes, keeping the active goal loop alive.
 ```
 
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.155.0 Stable V4 Publication Proof Packet for jlekerli-source/ShipGuard: follow the following /plan above, make the stable-v4 publication evidence packet concrete and honest across docs, templates, report-quality fixtures/evals, package proof, and LaunchKey/stable-publication guidance without claiming stable v4 until real public release evidence exists, then generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.156.0 Real Stable V4 Evidence Packet Collection for jlekerli-source/ShipGuard: follow the following /plan above, use the stable-publication starter kit against the real public ShipGuard release state, either collect the missing real evidence or improve the blocked-state UX so the missing external artifacts and forbidden claims are unmistakable, prove the behavior with fixtures/tests/docs/package/value-gauntlet, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.155.0 --title "Stable V4 Publication Proof Packet" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.156.0 --title "Real Stable V4 Evidence Packet Collection" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.154.0.
+1. Open or update the tracking issue for v3.155.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.154.0` and upload `dist/shipguard-v3.154.0.tar.gz`.
+6. Create release `v3.155.0` and upload `dist/shipguard-v3.155.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

@@ -219,6 +219,7 @@ SOURCE_REPORT_SKIP_DIR_NAMES = {
     "downloaded-release-assets",
     "release-consume",
     "stage-receipts",
+    "stable-publication-evidence-kit",
 }
 
 
@@ -2112,6 +2113,61 @@ def stable_publication_evidence_packet_issues(
             rule_id="stable-publication-evidence-templates-markdown-missing",
             evidence=f"{path_name} Markdown does not render the stable-publication evidence templates",
             recommendation="Render stable-publication evidence templates in Markdown so maintainers can copy the right starting files without opening JSON.",
+        )
+    starter = report.get("stablePublicationEvidenceStarterKit")
+    if not isinstance(starter, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-evidence-starter-kit-missing",
+            evidence=f"{path_name} has no stablePublicationEvidenceStarterKit",
+            recommendation="Emit a draft-only evidence starter kit manifest and write ready-to-fill evidence files into the report directory.",
+        )
+    else:
+        if starter.get("draftOnly") is not True:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-evidence-starter-kit-draft-boundary-missing",
+                evidence=f"{path_name} stablePublicationEvidenceStarterKit is not marked draft-only",
+                recommendation="Make clear that generated starter-kit files are collection aids, not stable-v4 evidence.",
+            )
+        starter_files = starter.get("files")
+        starter_paths = {str(item.get("path") or "") for item in starter_files if isinstance(item, dict)} if isinstance(starter_files, list) else set()
+        expected_starter_paths = {
+            "stable-publication-evidence-kit/README.md",
+            "stable-publication-evidence-kit/stable-publication-checklist.json",
+            "stable-publication-evidence-kit/external-adoption-evidence.json",
+            "stable-publication-evidence-kit/security-review-evidence.json",
+        }
+        missing_starter_paths = sorted(expected_starter_paths - starter_paths)
+        if missing_starter_paths:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-evidence-starter-kit-files-missing",
+                evidence=f"{path_name} starter kit missing files: {', '.join(missing_starter_paths)}",
+                recommendation="List the checklist, README, adoption starter, and security-review starter files in stablePublicationEvidenceStarterKit.files.",
+            )
+        next_command_template = str(starter.get("nextCommandTemplate") or "")
+        if (
+            "stable-publication-evidence-kit/external-adoption-evidence.json" not in next_command_template
+            or "stable-publication-evidence-kit/security-review-evidence.json" not in next_command_template
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-evidence-starter-kit-next-command-missing",
+                evidence=f"{path_name} starter kit does not include an attach-ready nextCommandTemplate",
+                recommendation="Include a stable-publication nextCommandTemplate that references the generated adoption and security starter files.",
+            )
+    if "Evidence Starter Kit" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-evidence-starter-kit-markdown-missing",
+            evidence=f"{path_name} Markdown does not render the stable-publication evidence starter kit",
+            recommendation="Render the generated starter-kit directory and files in Markdown so maintainers can find them immediately.",
         )
     return issues
 

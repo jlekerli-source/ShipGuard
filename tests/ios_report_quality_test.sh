@@ -2620,6 +2620,8 @@ MD
   --shareable >/dev/null
 grep -q '"ruleId": "stable-publication-evidence-templates-missing"' "$tmp_dir/stable-publication-templates-quality/ios-report-quality.json"
 grep -q '"ruleId": "stable-publication-evidence-templates-markdown-missing"' "$tmp_dir/stable-publication-templates-quality/ios-report-quality.json"
+grep -q '"ruleId": "stable-publication-evidence-starter-kit-missing"' "$tmp_dir/stable-publication-templates-quality/ios-report-quality.json"
+grep -q '"ruleId": "stable-publication-evidence-starter-kit-markdown-missing"' "$tmp_dir/stable-publication-templates-quality/ios-report-quality.json"
 
 launchkey_skip_dir="$tmp_dir/launchkey-proof-dir-skip"
 mkdir -p \

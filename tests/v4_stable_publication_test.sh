@@ -215,10 +215,26 @@ assert {
 by_id = {item["id"]: item for item in templates["templates"]}
 assert by_id["independent-adoption-evidence"]["exists"] is True
 assert by_id["final-security-review-evidence"]["exists"] is True
+starter = report["stablePublicationEvidenceStarterKit"]
+assert starter["draftOnly"] is True
+assert starter["directory"] == "stable-publication-evidence-kit"
+assert {
+    "stable-publication-evidence-kit/README.md",
+    "stable-publication-evidence-kit/stable-publication-checklist.json",
+    "stable-publication-evidence-kit/external-adoption-evidence.json",
+    "stable-publication-evidence-kit/security-review-evidence.json",
+} <= {item["path"] for item in starter["files"]}
+assert "stable-publication-evidence-kit/external-adoption-evidence.json" in starter["nextCommandTemplate"]
 required_by_id = {item["id"]: item for item in packet["requiredEvidence"]}
 assert required_by_id["independent-adoption-evidence"]["templatePath"] == "templates/stable-publication/external-adoption-evidence.template.json"
 assert required_by_id["final-security-review-evidence"]["templatePath"] == "templates/stable-publication/security-review-evidence.template.json"
 PY
+test -f "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
+test -f "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
+test -f "$tmp_dir/blocked/stable-publication-evidence-kit/external-adoption-evidence.json"
+test -f "$tmp_dir/blocked/stable-publication-evidence-kit/security-review-evidence.json"
+grep -q '"draftOnly": true' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
+grep -q 'Stable Publication Evidence Kit' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 
 SHIPGUARD_GENERATED_AT="2026-06-20T00:00:00Z" \
   ./bin/shipguard v4 stable-publication \
@@ -280,6 +296,10 @@ assert all(item["requiredForStableV4"] and item["realEvidenceRequired"] for item
 templates = report["stablePublicationEvidenceTemplates"]
 assert templates["draftOnly"] is True
 assert len(templates["templates"]) == 2
+starter = report["stablePublicationEvidenceStarterKit"]
+assert starter["draftOnly"] is True
+assert starter["directory"] == "stable-publication-evidence-kit"
+assert "stable-publication-evidence-kit/security-review-evidence.json" in starter["nextCommandTemplate"]
 required_by_id = {item["id"]: item for item in packet["requiredEvidence"]}
 assert "templateCommand" in required_by_id["independent-adoption-evidence"]
 assert "templateCommand" in required_by_id["final-security-review-evidence"]
@@ -289,7 +309,12 @@ grep -q '# ShipGuard V4 Stable Publication Proof' "$tmp_dir/pass/v4-stable-publi
 grep -q 'Stable Publication Gates' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Packet' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Templates' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Evidence Starter Kit' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Stable v4 release claim allowed: `True`' "$tmp_dir/pass/v4-stable-publication.md"
+test -f "$tmp_dir/pass/stable-publication-evidence-kit/README.md"
+test -f "$tmp_dir/pass/stable-publication-evidence-kit/stable-publication-checklist.json"
+test -f "$tmp_dir/pass/stable-publication-evidence-kit/external-adoption-evidence.json"
+test -f "$tmp_dir/pass/stable-publication-evidence-kit/security-review-evidence.json"
 
 ./bin/shipguard ios report-quality \
   --reports "$tmp_dir/pass" \

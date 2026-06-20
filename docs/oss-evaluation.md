@@ -4,6 +4,19 @@ Generated: 2026-06-17
 
 This is the current usefulness and refinement evaluation for ShipGuard after the rename and README repositioning work.
 
+## Current Stable Publication Evidence Starter Kit
+
+The latest read-only stable-publication QA run showed a practical usability gap: ShipGuard could identify the missing stable-v4 evidence packet, but a maintainer still had to assemble the fillable evidence files by hand.
+
+This slice improves the execution path without weakening the gate:
+
+- `shipguard v4 stable-publication` now writes `stable-publication-evidence-kit/` into every report directory.
+- The kit contains `README.md`, `stable-publication-checklist.json`, `external-adoption-evidence.json`, and `security-review-evidence.json`.
+- The JSON report exposes the same artifact as `stablePublicationEvidenceStarterKit`, and Markdown renders an `Evidence Starter Kit` section.
+- `ios report-quality`, focused stable-publication tests, and package proof now fail if the starter-kit manifest or generated files disappear.
+
+The starter kit is still draft-only. It helps collect real independent adoption and final security-review evidence; it does not turn fixture evidence or placeholders into stable-v4 proof.
+
 ## Current Development Loop Efficiency Receipt
 
 The latest self-QA pass showed a real development-process weakness: after the design observation question was promoted into a public fixture, the existing workflow-chain receipt became too coupled to that now-covered design question. The receipt failed even though the product behavior was improving, which meant the proof loop could waste maintainer time on manual interpretation.

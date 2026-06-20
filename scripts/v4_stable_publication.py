@@ -85,6 +85,7 @@ STABLE_PUBLICATION_TEMPLATE_SPECS = [
         "stableRequirement": "Real final review evidence covering CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy with no open critical or high findings.",
     },
 ]
+STARTER_KIT_DIRNAME = "stable-publication-evidence-kit"
 
 
 def utc_now() -> str:
@@ -370,6 +371,53 @@ def build_stable_publication_evidence_templates(root: Path) -> dict[str, Any]:
     }
 
 
+def build_stable_publication_evidence_starter_kit_manifest() -> dict[str, Any]:
+    return {
+        "schemaVersion": 1,
+        "draftOnly": True,
+        "directory": STARTER_KIT_DIRNAME,
+        "files": [
+            {
+                "id": "checklist",
+                "path": f"{STARTER_KIT_DIRNAME}/README.md",
+                "purpose": "Human checklist for collecting the real stable-v4 publication packet.",
+            },
+            {
+                "id": "stable-publication-checklist",
+                "path": f"{STARTER_KIT_DIRNAME}/stable-publication-checklist.json",
+                "purpose": "Machine-readable draft checklist with the seven required stable-publication gates.",
+            },
+            {
+                "id": "independent-adoption-evidence",
+                "path": f"{STARTER_KIT_DIRNAME}/external-adoption-evidence.json",
+                "sourceTemplate": "templates/stable-publication/external-adoption-evidence.template.json",
+                "attachArgument": f"--external-adoption-evidence {STARTER_KIT_DIRNAME}/external-adoption-evidence.json",
+                "purpose": "Draft-only independent adoption evidence record. Fill with real external evidence before use.",
+            },
+            {
+                "id": "final-security-review-evidence",
+                "path": f"{STARTER_KIT_DIRNAME}/security-review-evidence.json",
+                "sourceTemplate": "templates/stable-publication/security-review-evidence.template.json",
+                "attachArgument": f"--security-review-evidence {STARTER_KIT_DIRNAME}/security-review-evidence.json",
+                "purpose": "Draft-only final security-review evidence record. Fill with real review evidence before use.",
+            },
+        ],
+        "instructions": [
+            "These files are generated as a starter kit only; unchanged starter-kit JSON must not pass stable-publication.",
+            "Replace placeholder values with real reviewed evidence, keep private paths and private app details redacted, then pass the completed files back to v4 stable-publication.",
+            "Use the report's firstBlockingGate and this checklist together; do not claim stable v4 until v4 stable-publication returns pass.",
+        ],
+        "nextCommandTemplate": (
+            "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> "
+            "--github-release-repo <owner/repo> --release-version <version> "
+            "--release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets "
+            f"--external-adoption-evidence {STARTER_KIT_DIRNAME}/external-adoption-evidence.json "
+            f"--security-review-evidence {STARTER_KIT_DIRNAME}/security-review-evidence.json "
+            "--shipguard-eval --shareable"
+        ),
+    }
+
+
 def build_stable_publication_evidence_packet(
     *,
     gates: list[tuple[str, dict[str, Any], str]],
@@ -443,6 +491,75 @@ def build_stable_publication_evidence_packet(
             "GitHub release metadata and download counts are not independent adoption evidence.",
         ],
     }
+
+
+def write_stable_publication_evidence_starter_kit(
+    out_dir: Path,
+    *,
+    report: dict[str, Any],
+    root: Path,
+) -> None:
+    starter_kit = report.get("stablePublicationEvidenceStarterKit")
+    if not isinstance(starter_kit, dict):
+        return
+    kit_dir = out_dir / STARTER_KIT_DIRNAME
+    kit_dir.mkdir(parents=True, exist_ok=True)
+
+    for spec in STABLE_PUBLICATION_TEMPLATE_SPECS:
+        source = root / str(spec["path"])
+        if not source.is_file():
+            continue
+        if spec["id"] == "independent-adoption-evidence":
+            target = kit_dir / "external-adoption-evidence.json"
+        elif spec["id"] == "final-security-review-evidence":
+            target = kit_dir / "security-review-evidence.json"
+        else:
+            continue
+        target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+
+    packet = report.get("stablePublicationEvidencePacket") if isinstance(report.get("stablePublicationEvidencePacket"), dict) else {}
+    checklist = {
+        "schemaVersion": 1,
+        "draftOnly": True,
+        "status": packet.get("status", report.get("status")),
+        "stableV4Release": False,
+        "firstBlockingGate": packet.get("firstBlockingGate"),
+        "requiredEvidence": packet.get("requiredEvidence", []),
+        "missingEvidenceIds": packet.get("missingEvidenceIds", []),
+        "blockedClaims": report.get("blockedClaims", []),
+        "nextCommandTemplate": starter_kit.get("nextCommandTemplate"),
+    }
+    (kit_dir / "stable-publication-checklist.json").write_text(
+        json.dumps(checklist, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    readme_lines = [
+        "# Stable Publication Evidence Kit",
+        "",
+        "This directory is a draft-only starter kit for `shipguard v4 stable-publication`.",
+        "It helps collect the real evidence packet; it is not evidence by itself.",
+        "",
+        "## Files",
+        "",
+        "- `stable-publication-checklist.json`: the current seven-gate checklist and first blocker.",
+        "- `external-adoption-evidence.json`: starter record for independent adoption evidence.",
+        "- `security-review-evidence.json`: starter record for final security-review evidence.",
+        "",
+        "## Rules",
+        "",
+        "- Do not use unchanged starter-kit JSON as stable-v4 proof.",
+        "- Redact private app names, private paths, screenshots, account data, and token-like strings before sharing.",
+        "- Stable v4 is only claimable when `shipguard v4 stable-publication` returns `pass`.",
+        "",
+        "## Next Command",
+        "",
+        "```bash",
+        str(starter_kit.get("nextCommandTemplate") or ""),
+        "```",
+        "",
+    ]
+    (kit_dir / "README.md").write_text("\n".join(readme_lines), encoding="utf-8")
 
 
 def redact_report(report: dict[str, Any], args: argparse.Namespace, root: Path) -> dict[str, Any]:
@@ -523,6 +640,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     status = "pass" if blocked is None else "review"
     stable_v4_release = status == "pass"
     evidence_templates = build_stable_publication_evidence_templates(root)
+    evidence_starter_kit = build_stable_publication_evidence_starter_kit_manifest()
     evidence_packet = build_stable_publication_evidence_packet(
         gates=gates,
         blocked=blocked,
@@ -565,6 +683,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "stableV4Release": stable_v4_release,
         "stablePublicationEvidencePacket": evidence_packet,
         "stablePublicationEvidenceTemplates": evidence_templates,
+        "stablePublicationEvidenceStarterKit": evidence_starter_kit,
         "githubReleaseMetadataProof": metadata_proof,
         "releaseNotesProof": release_notes_proof,
         "releaseCandidatePacketProof": release_candidate_packet_proof,
@@ -596,6 +715,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the stable-publication report block every stable-v4 claim until independent adoption and final security evidence are attached?",
             "Does the stable-publication evidence packet list every required real-evidence input, first blocker, next command, and non-claim before a stable-v4 announcement?",
             "Does the stable-publication report provide draft-only evidence templates for independent adoption and final security review without manufacturing proof?",
+            "Does the stable-publication report write a draft-only evidence starter kit so maintainers can collect the packet without reverse-engineering JSON shapes?",
         ],
         "resultUX": result_ux,
     }
@@ -664,6 +784,24 @@ def render_markdown(report: dict[str, Any]) -> str:
                 lines.append(
                     f"| `{item.get('id')}` | `{item.get('exists')}` | `{item.get('copyCommand')}` |"
                 )
+    starter_kit = report.get("stablePublicationEvidenceStarterKit") if isinstance(report.get("stablePublicationEvidenceStarterKit"), dict) else {}
+    if starter_kit:
+        lines.extend(
+            [
+                "",
+                "## Evidence Starter Kit",
+                "",
+                f"- Directory: `{starter_kit.get('directory')}`",
+                f"- Draft-only: `{starter_kit.get('draftOnly')}`",
+                "",
+                "| File | Purpose |",
+                "| --- | --- |",
+            ]
+        )
+        for item in starter_kit.get("files", []):
+            if isinstance(item, dict):
+                lines.append(f"| `{item.get('path')}` | {item.get('purpose')} |")
+        lines.extend(["", "Next command template:", "", "```bash", str(starter_kit.get("nextCommandTemplate") or ""), "```"])
     lines.extend(
         [
             "",
@@ -727,6 +865,7 @@ def main(argv: list[str]) -> int:
         (out_dir / "v4-stable-publication.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     if write_markdown:
         (out_dir / "v4-stable-publication.md").write_text(render_markdown(report), encoding="utf-8")
+    write_stable_publication_evidence_starter_kit(out_dir, report=report, root=Path(args.path).expanduser().resolve())
     print(f"wrote {out_dir}")
     return 0 if report["status"] == "pass" else 1
 
