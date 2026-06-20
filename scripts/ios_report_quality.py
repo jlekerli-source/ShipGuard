@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import hashlib
 import json
 import re
 import shlex
@@ -3283,7 +3284,12 @@ def next_command_for_priority_action(priority_action: dict[str, Any]) -> str:
 
 def slugify(value: object, *, limit: int = 72) -> str:
     text = re.sub(r"[^a-z0-9]+", "-", str(value).lower()).strip("-")
-    return (text[:limit].strip("-") or "report-quality-fixture")
+    if len(text) <= limit:
+        return text or "report-quality-fixture"
+    digest = hashlib.sha1(text.encode("utf-8")).hexdigest()[:8]
+    trimmed_limit = max(1, limit - len(digest) - 1)
+    trimmed = text[:trimmed_limit].strip("-") or "report-quality-fixture"
+    return f"{trimmed}-{digest}"
 
 
 def fixture_type_for_question(question: str, tool: str) -> str:

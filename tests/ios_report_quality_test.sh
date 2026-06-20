@@ -1407,6 +1407,50 @@ grep -q 'First experiment' "$materialized_performance_candidate_dir/fixture-repo
 grep -q 'Validation route' "$materialized_performance_candidate_dir/fixture-report.md"
 grep -q 'Stop condition' "$materialized_performance_candidate_dir/fixture-report.md"
 grep -q 'Proof Boundaries' "$materialized_performance_candidate_dir/fixture-report.md"
+collision_fixture="$tmp_dir/candidate-collision"
+mkdir -p "$collision_fixture"
+cat > "$collision_fixture/report.json" <<'JSON'
+{
+  "tool": "shipguard v4 stable-publication",
+  "status": "review",
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "reportQualityQuestions": [
+    "Does the stable-publication collision probe keep a long same-prefix fixture candidate unique for release template evidence alpha?",
+    "Does the stable-publication collision probe keep a long same-prefix fixture candidate unique for release template evidence beta?"
+  ]
+}
+JSON
+cat > "$collision_fixture/report.md" <<'MD'
+# Synthetic stable-publication candidate collision report
+MD
+./bin/shipguard ios report-quality \
+  --reports "$collision_fixture" \
+  --out "$tmp_dir/candidate-collision-quality" \
+  --write-fixture-candidates "$tmp_dir/candidate-collision-fixtures" \
+  --shareable >/dev/null
+python3 - <<'PY' "$tmp_dir/candidate-collision-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+candidates = data.get("fixtureCandidates") or []
+ids = [item.get("candidateId") for item in candidates]
+paths = [item.get("publicFixturePath") for item in candidates]
+if len(ids) != 2:
+    raise SystemExit(f"expected two stable-publication candidates, got {ids!r}")
+if len(set(ids)) != len(ids):
+    raise SystemExit(f"candidate ids must stay unique for long same-prefix questions: {ids!r}")
+if len(set(paths)) != len(paths):
+    raise SystemExit(f"candidate paths must stay unique for long same-prefix questions: {paths!r}")
+if not all(str(item).startswith(("01-shipguard-v4-stable-publication-", "02-shipguard-v4-stable-publication-")) for item in ids):
+    raise SystemExit(f"candidate ids should keep a readable stable-publication prefix: {ids!r}")
+suffixes = [str(item).rsplit("-", 1)[-1] for item in ids]
+if not all(len(suffix) == 8 and all(char in "0123456789abcdef" for char in suffix) for suffix in suffixes):
+    raise SystemExit(f"expected hash-suffixed long candidate ids: {ids!r}")
+PY
 materialized_design_candidate_dir="$(find "$tmp_dir/materialized-fixtures" -mindepth 1 -maxdepth 1 -type d -name '*ios-design*' | sort | head -n 1)"
 test -n "$materialized_design_candidate_dir"
 grep -q '"designTailoring":' "$materialized_design_candidate_dir/fixture-report.json"
@@ -3335,6 +3379,33 @@ assert "evidence packet list every required real-evidence input" in item.get("qu
 priority = data.get("priorityAction") or {}
 assert priority.get("kind") == "review-existing-fixture", priority
 assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publication-evid", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
+
+stable_publication_templates_fixture="fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f54b9564"
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_templates_fixture" \
+  --out "$tmp_dir/stable-publication-templates-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/stable-publication-templates-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/stable-publication-templates-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f54b9564"' "$tmp_dir/stable-publication-templates-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/stable-publication-templates-fixture-quality/ios-report-quality.json"
+python3 - <<'PY' "$tmp_dir/stable-publication-templates-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard v4 stable-publication", item
+assert item.get("fixtureType") == "shipguard-release-proof-quality-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f54b9564", item
+assert "draft-only evidence templates" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f54b9564", priority
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 
