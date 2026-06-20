@@ -6,6 +6,18 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current MarketplaceDeck Submission-Packet Fixture Promotion
+
+The next read-only MarketplaceDeck QA pass started from the state where fresh-user comprehension and plugin install freshness were already covered by promoted public fixtures. Fresh `shipguard codex marketplace-readiness` plus `ios report-quality --write-fixture-candidates` advanced to the next marketplace-readiness gap:
+
+- Question: "Are icon, composer icon, screenshot policy, privacy notes, model-choice boundary, and proof commands ready for a public marketplace submission packet?"
+- Candidate type: `shipguard-marketplace-readiness-fixture`
+- Product weakness: a public plugin submission is more than a working local install. It needs icon assets, screenshot policy, privacy/model-choice boundaries, and copy-ready proof commands to stay reviewable without overclaiming what ShipGuard can publish or which ChatGPT/Codex model a user selects.
+
+This slice promotes `fixtures/ios-report-quality/01-shipguard-codex-marketplace-readiness-are-icon-composer-icon-scr` as public synthetic coverage. Fresh MarketplaceDeck report-quality now covers fresh-user comprehension, plugin install freshness, and public submission-packet readiness, then advances to the GitHub About/sidebar and social-preview alignment question.
+
+This keeps ShipGuard's public distribution QA focused on the actual submission packet a maintainer needs, not only on local command success.
+
 ## Current MarketplaceDeck Plugin Freshness Fixture Promotion
 
 The next read-only MarketplaceDeck QA pass started from the state where the fresh-user README/plugin-listing question was already covered by a promoted public fixture. Fresh `shipguard codex marketplace-readiness` plus `ios report-quality --write-fixture-candidates` advanced to the next public-distribution gap:
