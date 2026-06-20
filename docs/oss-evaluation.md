@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current InspectDeck Underlying-Evidence Fixture Promotion
+
+The next read-only InspectDeck QA pass started from the v3.174 state, where the next-action/source-proof and missing-input honesty questions were already covered by public fixtures. Fresh `shipguard inspect` plus `ios report-quality --write-fixture-candidates` advanced to the last current InspectDeck actionability gap:
+
+- Question: "Can a maintainer jump from the summary to the underlying full-audit, value-gauntlet, release, and plugin evidence?"
+- Candidate type: `shipguard-inspect-proof-state-fixture`
+- Product weakness: InspectDeck is only useful as a control panel if it preserves the route from the concise summary back to the underlying proof receipts.
+
+This slice promotes `fixtures/ios-report-quality/01-shipguard-inspect-can-a-maintainer-jump-from-the-summary-to-the` as public synthetic coverage. Fresh InspectDeck report-quality now covers all three current InspectDeck questions and returns `all-actionability-covered`, which tells the next loop to rotate to a fresh ShipGuard QA source instead of repeatedly fixture-promoting the same root report.
+
 ## Current InspectDeck Missing-Inputs Fixture Promotion
 
 The next read-only InspectDeck QA pass started from the v3.173 state, where the next-action/source-proof question was already covered by a promoted public fixture. Fresh `shipguard inspect` plus `ios report-quality --write-fixture-candidates` advanced to the next useful gap:
