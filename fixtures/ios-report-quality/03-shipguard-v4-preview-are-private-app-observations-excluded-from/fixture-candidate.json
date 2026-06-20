@@ -1,0 +1,64 @@
+{
+  "candidateId": "03-shipguard-v4-preview-are-private-app-observations-excluded-from",
+  "duplicateCount": 1,
+  "expectedAssertions": [
+    "report-quality preserves the actionability question in JSON and Markdown",
+    "report-quality emits a fixtureCandidates entry for the public synthetic case",
+    "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+    "shareable output contains no local absolute paths or private app identifiers"
+  ],
+  "fixtureType": "shipguard-eval-boundary-fixture",
+  "materialization": {
+    "files": [
+      "README.md",
+      "fixture-candidate.json",
+      "fixture-report.json",
+      "fixture-report.md"
+    ],
+    "safeSyntheticOnly": true,
+    "writeCommand": "./bin/shipguard ios report-quality --reports <report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>"
+  },
+  "priority": 3,
+  "privateDataPolicy": "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
+  "promotion": {
+    "candidateId": "03-shipguard-v4-preview-are-private-app-observations-excluded-from",
+    "copyCommands": [
+      "mkdir -p fixtures/ios-report-quality/03-shipguard-v4-preview-are-private-app-observations-excluded-from",
+      "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/03-shipguard-v4-preview-are-private-app-observations-excluded-from/README.md",
+      "cp <materialized-candidate-dir>/fixture-candidate.json fixtures/ios-report-quality/03-shipguard-v4-preview-are-private-app-observations-excluded-from/fixture-candidate.json",
+      "cp <materialized-candidate-dir>/fixture-report.json fixtures/ios-report-quality/03-shipguard-v4-preview-are-private-app-observations-excluded-from/fixture-report.json",
+      "cp <materialized-candidate-dir>/fixture-report.md fixtures/ios-report-quality/03-shipguard-v4-preview-are-private-app-observations-excluded-from/fixture-report.md"
+    ],
+    "files": [
+      "README.md",
+      "fixture-candidate.json",
+      "fixture-report.json",
+      "fixture-report.md"
+    ],
+    "promotionPolicy": "Promotion is explicit maintainer work. ShipGuard writes starter files only to the requested output directory and does not auto-copy them into the repository.",
+    "reviewChecklist": [
+      "Confirm the fixture is synthetic and public-safe.",
+      "Confirm no private app code, screenshots, local paths, tokens, app identifiers, or proprietary text were copied.",
+      "Confirm scopeBoundary.shipguardOnly and targetAppsReadOnly remain explicit.",
+      "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates.",
+      "Register the fixture in validation only after the report-quality check passes."
+    ],
+    "sourceDirectory": "<materialized-fixture-output>/03-shipguard-v4-preview-are-private-app-observations-excluded-from",
+    "suggestedFixturePath": "fixtures/ios-report-quality/03-shipguard-v4-preview-are-private-app-observations-excluded-from",
+    "validationCommands": [
+      "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/03-shipguard-v4-preview-are-private-app-observations-excluded-from --out <quality-dir> --shareable",
+      "./tests/ios_report_quality_test.sh",
+      "./bin/shipguard validate"
+    ]
+  },
+  "publicFixturePath": "fixtures/ios-report-quality/03-shipguard-v4-preview-are-private-app-observations-excluded-from",
+  "publicFixtureRecipe": "Create a minimal synthetic ShipGuard report pair that reproduces this report-quality question without private app code, local paths, screenshots, customer data, app names, or proprietary source snippets.",
+  "sourceQuestion": "Are private-app observations excluded from public artifacts unless converted into redacted fixtures?",
+  "sourceReportCount": 1,
+  "sourceReportsRedacted": true,
+  "sourceTool": "shipguard v4 preview",
+  "validationCommands": [
+    "./bin/shipguard ios report-quality --reports <fixture-dir> --out <quality-dir> --shareable",
+    "./tests/ios_report_quality_test.sh"
+  ]
+}

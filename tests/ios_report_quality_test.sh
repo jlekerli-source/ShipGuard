@@ -3386,6 +3386,77 @@ assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/plugi
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 
+./bin/shipguard v4 preview \
+  --path . \
+  --out "$tmp_dir/v4-preview" \
+  --shipguard-eval \
+  --shareable >/dev/null
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/v4-preview" \
+  --out "$tmp_dir/v4-preview-quality" \
+  --shareable \
+  --write-fixture-candidates "$tmp_dir/v4-preview-fixtures" >/dev/null
+python3 - <<'PY' "$tmp_dir/v4-preview-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+priority = data.get("priorityAction") or {}
+covered = {
+    "Are all v4 preview claims backed by runnable ShipGuard commands instead of roadmap prose?":
+        (
+            "fixtures/ios-report-quality/01-shipguard-v4-preview-are-all-v4-preview-claims-backed-by-runnabl",
+            "shipguard-v4-preview-quality-fixture",
+        ),
+    "Can a solo developer understand what is stable, what is preview-only, and what remains blocked?":
+        (
+            "fixtures/ios-report-quality/02-shipguard-v4-preview-can-a-solo-developer-understand-what-is-sta",
+            "shipguard-v4-preview-quality-fixture",
+        ),
+    "Does the report give a concrete next proof step rather than a broad product wish?":
+        (
+            "fixtures/ios-report-quality/01-shipguard-v4-preview-does-the-report-give-a-concrete-next-proof",
+            "shipguard-v4-preview-quality-fixture",
+        ),
+    "Are private-app observations excluded from public artifacts unless converted into redacted fixtures?":
+        (
+            "fixtures/ios-report-quality/03-shipguard-v4-preview-are-private-app-observations-excluded-from",
+            "shipguard-eval-boundary-fixture",
+        ),
+}
+if priority.get("kind") != "all-actionability-covered":
+    raise SystemExit(f"expected all v4 preview actionability questions covered, got {priority!r}")
+if priority.get("coveredQuestionCount") != len(covered):
+    raise SystemExit(f"expected all covered v4 preview questions, got {priority!r}")
+coverage = data.get("fixtureCoverage") or []
+for question, (path, fixture_type) in covered.items():
+    if not any(
+        item.get("question") == question
+        and item.get("publicFixturePath") == path
+        and item.get("fixtureType") == fixture_type
+        for item in coverage
+    ):
+        raise SystemExit(f"expected v4 preview fixture coverage for {question!r}: {coverage!r}")
+candidates = data.get("fixtureCandidates") or []
+if candidates:
+    raise SystemExit(f"expected no duplicate v4 preview fixture candidates after coverage, got {candidates!r}")
+PY
+
+for fixture in \
+  fixtures/ios-report-quality/01-shipguard-v4-preview-are-all-v4-preview-claims-backed-by-runnabl \
+  fixtures/ios-report-quality/01-shipguard-v4-preview-does-the-report-give-a-concrete-next-proof \
+  fixtures/ios-report-quality/02-shipguard-v4-preview-can-a-solo-developer-understand-what-is-sta \
+  fixtures/ios-report-quality/03-shipguard-v4-preview-are-private-app-observations-excluded-from
+do
+  ./bin/shipguard ios report-quality \
+    --reports "$fixture" \
+    --out "$tmp_dir/$(basename "$fixture")-quality" \
+    --shareable >/dev/null
+  grep -q '"status": "pass"' "$tmp_dir/$(basename "$fixture")-quality/ios-report-quality.json"
+  grep -q '"kind": "review-existing-fixture"' "$tmp_dir/$(basename "$fixture")-quality/ios-report-quality.json"
+  grep -q '"fixtureCandidates": \[\]' "$tmp_dir/$(basename "$fixture")-quality/ios-report-quality.json"
+done
+
 python3 - <<'PY'
 import json
 from pathlib import Path

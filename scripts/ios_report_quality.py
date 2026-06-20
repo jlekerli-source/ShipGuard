@@ -3319,6 +3319,13 @@ def fixture_type_for_question(question: str, tool: str) -> str:
         return "ios-design-coherence-boundary-fixture"
     if "private-app" in question_text or "private app" in question_text or "target-app" in question_text or "target app" in question_text:
         return "shipguard-eval-boundary-fixture"
+    if (
+        tool == "shipguard v4 preview"
+        or "v4 preview" in text
+        or "shipguard v4 preview" in text
+        or "preview-only" in question_text
+    ):
+        return "shipguard-v4-preview-quality-fixture"
     if "grouped performance" in text or "performance" in text:
         return "ios-performance-report-quality-fixture"
     if "preview" in text or "devspace" in text or "visual proof" in text:
@@ -3430,6 +3437,9 @@ def should_create_fixture_candidate(question: str) -> bool:
             "local documentation links",
             "external urls",
             "in-page anchors",
+            "concrete next proof step",
+            "broad product wish",
+            "roadmap prose",
         )
     )
 

@@ -6,6 +6,22 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current V4 Preview Fixture Taxonomy Promotion
+
+The next read-only QA rotation used `inspect`, `codex marketplace-readiness`, and `v4 preview` as fresh ShipGuard product-QA sources after MarketplaceDeck and DocsLink coverage landed. The reports passed, but `ios report-quality --write-fixture-candidates` exposed a reusable taxonomy weakness:
+
+- Finding: `shipguard v4 preview` questions containing the word "preview" were materialized as generic `ios-preview-devspace-routing-fixture` candidates.
+- Product weakness: v4 product-contract reports need their own fixture family, otherwise release-readiness and preview-only stability questions get mixed with iOS simulator preview and Devspace visual-planning routing.
+
+This slice fixes the classifier precedence:
+
+- `shipguard v4 preview` claims, stability, and preview-only questions now materialize as `shipguard-v4-preview-quality-fixture`.
+- Private-app boundary questions keep the stronger `shipguard-eval-boundary-fixture` classification.
+- Public fixtures now cover v4 runnable-command backing, stable-versus-preview-only clarity, concrete next proof-step guidance, and private-app observation boundaries.
+- Fresh `v4 preview` report-quality runs now return `all-actionability-covered` instead of generating duplicate or misleading generic preview candidates.
+
+This keeps the QA rotation honest about v4 product readiness without confusing it with iOS preview bridge work.
+
 ## Current DocsLink Report Contract Promotion
 
 The next read-only QA rotation used `value-gauntlet`, `inspect`, and an actual quick `full-audit` as fresh ShipGuard product-QA sources after MarketplaceDeck became fully covered. `ios report-quality` found a concrete nested-report weakness inside the full-audit output:
