@@ -223,6 +223,7 @@ SOURCE_REPORT_SKIP_DIR_NAMES = {
     "release-consume",
     "stage-receipts",
     "stable-publication-evidence-kit",
+    "stable-publication-release-notes",
 }
 
 

@@ -6,6 +6,21 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current Release Proof Freshness Audit
+
+The v3.184 read-only QA rotation generated a fresh local release package, built release proof, reshaped it into downloaded release assets, verified `release-consume`, ran package hygiene, ran LaunchKey release-candidate proof, and ran stable-publication proof. `ios report-quality` found a concrete recursive-scoring weakness:
+
+- Finding: generated `stable-publication-release-notes/release-notes-checklist.json` was scored as a standalone ShipGuard report and blocked with `report-tool-missing`.
+- Product weakness: the release-notes authoring kit is a draft attachment inside the stable-publication report, not a separate report-quality source. Scoring it recursively hides the actual root stable-publication actionability questions.
+
+This slice fixes the boundary:
+
+- `ios report-quality` now skips generated `stable-publication-release-notes/` directories during recursive report discovery.
+- The root `v4-stable-publication.json` report remains graded, including release-notes proof, evidence packet, templates, starter kit, authoring kit, blocked claims, and next command.
+- The docs now state that the generated release-notes kit is an authoring attachment, not independent proof or a separate report.
+
+Fresh release-proof QA now passes report-quality and advances to legitimate stable-publication fixture candidates instead of a false metadata block.
+
 ## Current V4 Preview Fixture Taxonomy Promotion
 
 The next read-only QA rotation used `inspect`, `codex marketplace-readiness`, and `v4 preview` as fresh ShipGuard product-QA sources after MarketplaceDeck and DocsLink coverage landed. The reports passed, but `ios report-quality --write-fixture-candidates` exposed a reusable taxonomy weakness:
