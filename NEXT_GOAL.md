@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-20T07:16:57Z
+- Generated: 2026-06-20T07:30:20Z
 - Current toolkit version: 3.131.0
-- Target release: v3.165.0
-- Title: Stable Publication Fixture Review Loop
+- Target release: v3.166.0
+- Title: Existing Fixture Metadata Consistency Sweep
 
 ## Slash Plan
 
 ```text
-/plan v3.165.0 Stable Publication Fixture Review Loop for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Review the existing stable-publication value-gauntlet fixture from the read-only ShipGuard QA loop and refine any stale promoted-fixture metadata so fixture coverage remains canonical and useful.
+/plan v3.166.0 Existing Fixture Metadata Consistency Sweep for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Sweep promoted ios-report-quality fixtures for stale metadata and make fixture candidate ids, public paths, and nested fixture report metadata canonical so existing-fixture review remains trustworthy.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.165.0 Stable Publication Fixture Review Loop for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Review the existing stable-publication value-gauntlet fixture from the read-only ShipGuard QA loop and refine any stale promoted-fixture metadata so fixture coverage remains canonical and useful, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.166.0 Existing Fixture Metadata Consistency Sweep for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Sweep promoted ios-report-quality fixtures for stale metadata and make fixture candidate ids, public paths, and nested fixture report metadata canonical so existing-fixture review remains trustworthy, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Review the existing stable-publication value-gauntlet fixture from the read-only ShipGuard QA loop and refine any stale promoted-fixture metadata so fixture coverage remains canonical and useful.
+Sweep promoted ios-report-quality fixtures for stale metadata and make fixture candidate ids, public paths, and nested fixture report metadata canonical so existing-fixture review remains trustworthy.
 
 ## Completion Receipt
 
-- Completed scope: Normalized the stable-publication value-gauntlet fixture metadata: candidate id, fixture type, nested report metadata, and promotion paths now consistently point to fixtures/ios-report-quality/stable-publication-value-gauntlet-question as a shipguard-release-proof-quality-fixture; focused tests assert that canonical fixture coverage.
-- Evidence: Passed: ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3165-value-gauntlet; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3165-value-gauntlet --out /tmp/shipguard-v3165-report-quality-final --shareable --write-fixture-candidates /tmp/shipguard-v3165-fixture-candidates-final with zero fixtureCandidates and stable fixture coverage candidateId stable-publication-value-gauntlet-question; ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/stable-publication-value-gauntlet-question --out /tmp/shipguard-stable-publication-fixture-review --shareable; ./tests/ios_report_quality_test.sh; git diff --check; ./bin/shipguard docs-check . --out /tmp/shipguard-v3165-docs-check; ./bin/shipguard validate; ./tests/package_release_test.sh.
+- Completed scope: Normalized promoted fixture metadata across fixtures/ios-report-quality: fixture-candidate.json files now use folder-matching candidateId and publicFixturePath values, nested fixtureCandidate metadata matches the promoted folder/path/type, and ios_report_quality_test.sh includes a repository-wide consistency check.
+- Evidence: Passed: ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3166-value-gauntlet; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3166-value-gauntlet --out /tmp/shipguard-v3166-report-quality-final --shareable --write-fixture-candidates /tmp/shipguard-v3166-fixture-candidates-final with zero fixtureCandidates and five fixtureCoverage entries; promoted-fixture metadata consistency scan reported problem_count 0; ./tests/ios_report_quality_test.sh; git diff --check; ./bin/shipguard docs-check . --out /tmp/shipguard-v3166-docs-check; ./bin/shipguard validate; ./tests/package_release_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.166.0 Existing Fixture Metadata Consistency Sweep for jlekerli-source/ShipGuard:
+/plan v3.167.0 Fixture Review Priority UX for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Review the existing stable-publication value-gauntlet fixture from the read-only
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.166.0 Existing Fixture Metadata Consistency Sweep for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.167.0 Fixture Review Priority UX for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.166.0 --title "Existing Fixture Metadata Consistency Sweep" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.167.0 --title "Fixture Review Priority UX" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.165.0.
+1. Open or update the tracking issue for v3.166.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.165.0` and upload `dist/shipguard-v3.165.0.tar.gz`.
+6. Create release `v3.166.0` and upload `dist/shipguard-v3.166.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

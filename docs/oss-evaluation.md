@@ -701,6 +701,10 @@ The promoted public fixture is `fixtures/ios-report-quality/plugin-skill-routing
 
 The following read-only self-QA pass moved from uncovered candidate generation to existing-fixture review. Reviewing `fixtures/ios-report-quality/stable-publication-value-gauntlet-question` exposed stale generated metadata inside the promoted fixture: nested candidate ids and suggested paths still referenced the original materialized slug instead of the stable public fixture path. The fixture now uses `stable-publication-value-gauntlet-question` consistently and records the fixture type as `shipguard-release-proof-quality-fixture`; focused tests assert both fields during report-quality scoring.
 
+## Current Existing-Fixture Metadata Sweep
+
+The next read-only sweep broadened that review from one fixture to all promoted report-quality fixtures. It found older fixtures whose `fixture-candidate.json` or nested `fixtureCandidate` metadata did not consistently name the promoted folder or public fixture path. The fixture set now carries canonical `candidateId`, `publicFixturePath`, and nested fixture type metadata, and `ios_report_quality_test.sh` includes a repository-wide consistency check so future promoted fixtures cannot drift from their public paths.
+
 ### Phase 1: Plugin Source And Local Cache
 
 Status: done.

@@ -4,6 +4,7 @@
     "candidateId": "performance-runtime-boundary",
     "fixtureType": "shipguard-eval-boundary-fixture",
     "privateDataPolicy": "Synthetic public fixture. No private app code, local paths, screenshots, app-specific identifiers, or proprietary text were copied.",
+    "publicFixturePath": "fixtures/ios-report-quality/performance-runtime-boundary",
     "sourceQuestion": "Did report wording keep target-app remediation separate from ShipGuard product QA next steps?",
     "sourceReportsRedacted": true,
     "sourceTool": "shipguard ios performance"

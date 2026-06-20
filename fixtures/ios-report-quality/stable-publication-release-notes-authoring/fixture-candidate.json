@@ -1,11 +1,11 @@
 {
   "candidateId": "stable-publication-release-notes-authoring",
-  "fixtureType": "stable-publication-release-notes-authoring-fixture",
-  "source": "public-synthetic",
-  "sourceTool": "shipguard v4 stable-publication",
-  "sourceQuestion": "Does the stable-publication report provide a release-notes authoring kit when release notes need public edits?",
-  "privateDataCopied": false,
   "expectedReportQualityStatus": "pass",
-  "pairedFixture": "fixtures/ios-report-quality/stable-publication-complete"
+  "fixtureType": "stable-publication-release-notes-authoring-fixture",
+  "pairedFixture": "fixtures/ios-report-quality/stable-publication-complete",
+  "privateDataCopied": false,
+  "publicFixturePath": "fixtures/ios-report-quality/stable-publication-release-notes-authoring",
+  "source": "public-synthetic",
+  "sourceQuestion": "Does the stable-publication report provide a release-notes authoring kit when release notes need public edits?",
+  "sourceTool": "shipguard v4 stable-publication"
 }
-

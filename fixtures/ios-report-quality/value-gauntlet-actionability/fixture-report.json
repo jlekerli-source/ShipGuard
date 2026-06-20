@@ -1,9 +1,10 @@
 {
   "findings": [],
   "fixtureCandidate": {
-    "candidateId": "value-gauntlet-actionability-fixture",
+    "candidateId": "value-gauntlet-actionability",
     "fixtureType": "report-quality-actionability-fixture",
     "privateDataPolicy": "Synthetic public fixture. No private app code, local paths, screenshots, app-specific identifiers, or proprietary text were copied.",
+    "publicFixturePath": "fixtures/ios-report-quality/value-gauntlet-actionability",
     "sourceQuestion": "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?",
     "sourceReportsRedacted": true,
     "sourceTool": "shipguard value-gauntlet"

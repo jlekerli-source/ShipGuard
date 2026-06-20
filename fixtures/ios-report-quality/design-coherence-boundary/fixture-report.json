@@ -225,6 +225,7 @@
     "candidateId": "design-coherence-boundary",
     "fixtureType": "ios-design-coherence-boundary-fixture",
     "privateDataPolicy": "Synthetic public fixture. No private app code, local paths, screenshots, app-specific identifiers, or proprietary text were copied.",
+    "publicFixturePath": "fixtures/ios-report-quality/design-coherence-boundary",
     "sourceQuestion": "Did it separate design-system coherence findings from target-app implementation work?",
     "sourceReportsRedacted": true,
     "sourceTool": "shipguard ios design"

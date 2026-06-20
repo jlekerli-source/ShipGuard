@@ -1,5 +1,5 @@
 {
-  "candidateId": "value-gauntlet-actionability-fixture",
+  "candidateId": "value-gauntlet-actionability",
   "duplicateCount": 1,
   "expectedAssertions": [
     "report-quality preserves the value-gauntlet actionability question in JSON and Markdown",
@@ -21,7 +21,7 @@
   "priority": 1,
   "privateDataPolicy": "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
   "promotion": {
-    "candidateId": "value-gauntlet-actionability-fixture",
+    "candidateId": "value-gauntlet-actionability",
     "copyCommands": [
       "mkdir -p fixtures/ios-report-quality/value-gauntlet-actionability",
       "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/value-gauntlet-actionability/README.md",
@@ -43,7 +43,7 @@
       "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates.",
       "Register the fixture in validation only after the report-quality check passes."
     ],
-    "sourceDirectory": "<materialized-fixture-output>/value-gauntlet-actionability-fixture",
+    "sourceDirectory": "<materialized-fixture-output>/value-gauntlet-actionability",
     "suggestedFixturePath": "fixtures/ios-report-quality/value-gauntlet-actionability",
     "validationCommands": [
       "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/value-gauntlet-actionability --out <quality-dir> --shareable",

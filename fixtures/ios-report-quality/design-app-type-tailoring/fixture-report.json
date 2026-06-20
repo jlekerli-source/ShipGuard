@@ -225,6 +225,7 @@
     "candidateId": "design-app-type-tailoring",
     "fixtureType": "ios-design-report-quality-fixture",
     "privateDataPolicy": "Synthetic public fixture. No private app code, local paths, screenshots, app-specific identifiers, or proprietary text were copied.",
+    "publicFixturePath": "fixtures/ios-report-quality/design-app-type-tailoring",
     "sourceQuestion": "Did the report tailor advice to the app type instead of applying one universal design rule?",
     "sourceReportsRedacted": true,
     "sourceTool": "shipguard ios design"

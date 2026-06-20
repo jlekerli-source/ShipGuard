@@ -2906,6 +2906,38 @@ assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/plugi
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+root = Path("fixtures/ios-report-quality")
+problems = []
+for candidate_path in sorted(root.rglob("fixture-candidate.json")):
+    folder = candidate_path.parent.name
+    expected_path = f"fixtures/ios-report-quality/{folder}"
+    candidate = json.load(open(candidate_path, encoding="utf-8"))
+    if candidate.get("candidateId") != folder:
+        problems.append(f"{candidate_path}: candidateId={candidate.get('candidateId')!r}, expected {folder!r}")
+    if candidate.get("publicFixturePath") != expected_path:
+        problems.append(f"{candidate_path}: publicFixturePath={candidate.get('publicFixturePath')!r}, expected {expected_path!r}")
+    report_path = candidate_path.parent / "fixture-report.json"
+    if not report_path.exists():
+        continue
+    report = json.load(open(report_path, encoding="utf-8"))
+    nested = report.get("fixtureCandidate")
+    if not isinstance(nested, dict):
+        continue
+    if nested.get("candidateId") != folder:
+        problems.append(f"{report_path}: fixtureCandidate.candidateId={nested.get('candidateId')!r}, expected {folder!r}")
+    if nested.get("publicFixturePath") != expected_path:
+        problems.append(f"{report_path}: fixtureCandidate.publicFixturePath={nested.get('publicFixturePath')!r}, expected {expected_path!r}")
+    if candidate.get("fixtureType") and nested.get("fixtureType") != candidate.get("fixtureType"):
+        problems.append(f"{report_path}: fixtureCandidate.fixtureType={nested.get('fixtureType')!r}, expected {candidate.get('fixtureType')!r}")
+
+if problems:
+    raise SystemExit("\n".join(problems))
+PY
+
 json_stdout="$(./bin/shipguard ios report-quality --reports "$reports" --json)"
 printf '%s\n' "$json_stdout" | python3 -m json.tool >/dev/null
 grep -q '"tool": "shipguard ios report-quality"' <<<"$json_stdout"
