@@ -17,6 +17,17 @@ The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `
 
 Fresh QA now runs the action audit over the bundled starter, a configured copy, and a broken workflow fixture before treating the first PR-proof path as healthy.
 
+## Current Verify-PR Runtime Artifact QA
+
+The v3.199 read-only loop reran the configured Verify-PR static audit, `shipguard inspect`, `shipguard value-gauntlet`, and `ios report-quality` over the current action report.
+
+- Finding: the static Verify-PR report correctly ended at `gh run download`, but ShipGuard did not yet have a native way to consume the downloaded `shipguard-verdict` artifact and prove that the JSON/Markdown proof packet was complete enough for review.
+- Product weakness: a fresh maintainer could see a structurally valid workflow and still manually inspect a partial, wrong, duplicated, or decorative artifact without ShipGuard catching that the runtime proof packet was unusable.
+- Native fix: `shipguard action verify-pr --artifact-dir <downloaded-artifact-dir>` now consumes the downloaded artifact, checks `shipguard-verdict.json`, Markdown, `tool: shipguard verify`, known verdict status, proof report, validation coverage, v2 evidence schema, diff-first merge verdict, and reviewer next action.
+- Boundary: artifact consumption proves the CI proof packet is readable and routable. It does not approve the PR, execute target tests locally, or turn the runtime verdict status into a merge claim.
+
+Fresh QA now runs the action audit over static, valid-runtime, broken-runtime, and broken-workflow fixtures before treating the first PR-proof path as healthy.
+
 ## Current Ponytail Native Precision QA
 
 The v3.197 read-only QA pass inspected the public Ponytail repo, refreshed the installed local Codex Ponytail plugin, then ran ShipGuard's existing Lean Deck against this checkout as the native precision-code baseline.

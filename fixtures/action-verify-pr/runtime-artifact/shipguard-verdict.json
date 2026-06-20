@@ -1,0 +1,44 @@
+{
+  "diffFirstAnalysis": {
+    "changedFiles": [
+      "Sources/DemoShipGuardApp/DemoPermissions.swift"
+    ],
+    "evidenceReceiptSchema": {
+      "schemaVersion": "2.0",
+      "structuredValidationCount": 1
+    },
+    "mergeVerdict": {
+      "allowed": true,
+      "status": "pass"
+    },
+    "validationCoverage": {
+      "status": "covered"
+    }
+  },
+  "evidenceReceiptSchema": {
+    "schemaVersion": "2.0",
+    "structuredValidationCount": 1,
+    "v2Count": 1
+  },
+  "proofReport": {
+    "claims": {
+      "label": "1/1 accepted"
+    },
+    "nextAction": {
+      "command": "Attach shipguard-verdict.json and the evidence receipts to the review."
+    },
+    "riskFiles": {
+      "label": "0 risk file(s)"
+    },
+    "summary": "ShipGuard Proof Report: pass. Validation 1/1 covered; claims 1/1 accepted; 0 risk file(s); release evidence not-applicable.",
+    "validation": {
+      "status": "covered"
+    }
+  },
+  "status": "pass",
+  "tool": "shipguard verify",
+  "validationCoverage": {
+    "evidenceReceiptCount": 1,
+    "status": "covered"
+  }
+}

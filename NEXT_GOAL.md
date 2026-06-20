@@ -1,14 +1,14 @@
 # Next Goal
 
-- Generated: 2026-06-20T18:31:30Z
+- Generated: 2026-06-20T18:58:05Z
 - Current toolkit version: 3.131.0
-- Target release: v3.198.0
-- Title: GitHub Action First-Run Proof Path QA
+- Target release: v3.199.0
+- Title: Verify-PR Runtime Artifact Consumption QA
 
 ## Slash Plan
 
 ```text
-/plan v3.198.0 GitHub Action First-Run Proof Path QA for jlekerli-source/ShipGuard:
+/plan v3.199.0 Verify-PR Runtime Artifact Consumption QA for jlekerli-source/ShipGuard:
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
@@ -18,19 +18,19 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.198.0 GitHub Action First-Run Proof Path QA for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.199.0 Verify-PR Runtime Artifact Consumption QA for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Completion Receipt
 
-- Completed scope: Added native Verify-PR first-run proof audit through shipguard action verify-pr, including configured and broken public workflow fixtures, report-quality recognition, value-gauntlet command/runtime-output coverage, docs, package proof, and plugin routing.
-- Evidence: Passed: git diff --check; python3 -m py_compile scripts/action_verify_pr.py scripts/ios_report_quality.py scripts/tool_value_gauntlet.py; ./tests/action_verify_pr_test.sh; ./tests/command_family_runtime_output_receipts_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-action-docs-check; ./tests/self_audit_test.sh; ./tests/ios_report_quality_test.sh; ./tests/tool_value_gauntlet_test.sh; ./tests/package_release_test.sh; codex plugin marketplace add . && codex plugin add ios-shipguard@shipguard && ./bin/shipguard codex status --strict. Read-only ShipGuard QA generated /tmp/shipguard-action-verify-pr-starter, /tmp/shipguard-action-verify-pr-configured, and /tmp/shipguard-action-verify-pr-quality.
+- Completed scope: Extended shipguard action verify-pr with --artifact-dir so the existing read-only Verify-PR report consumes downloaded shipguard-verdict artifacts, checks JSON and Markdown proof packet shape, preserves runtime verdict status separately from workflow setup, blocks partial/decorative artifacts, and promotes the static Verify-PR wiring question into a public report-quality fixture.
+- Evidence: Passed: git diff --check; python3 -m py_compile scripts/action_verify_pr.py scripts/ios_report_quality.py scripts/tool_value_gauntlet.py; ./tests/action_verify_pr_test.sh; ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-action-verify-pr-does-it-block-missing-task-d-aad0ce94 --out /tmp/shipguard-v3199-promoted-fixture-quality --shareable; ./tests/command_family_runtime_output_receipts_test.sh; ./tests/ios_report_quality_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3199-docs-check; ./tests/self_audit_test.sh; ./tests/tool_value_gauntlet_test.sh; ./tests/package_release_test.sh; codex plugin marketplace add . && codex plugin add ios-shipguard@shipguard && ./bin/shipguard codex status --strict. Read-only ShipGuard QA generated /tmp/shipguard-v3199-action-static, /tmp/shipguard-v3199-action-runtime, /tmp/shipguard-v3199-action-runtime-quality-after-promotion, and /tmp/shipguard-v3199-value-gauntlet.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.199.0 Verify-PR Runtime Artifact Consumption QA for jlekerli-source/ShipGuard:
+/plan v3.200.0 Verify-PR Fresh Maintainer Failure Guidance QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -40,13 +40,13 @@
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.199.0 Verify-PR Runtime Artifact Consumption QA for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.200.0 Verify-PR Fresh Maintainer Failure Guidance QA for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.199.0 --title "Verify-PR Runtime Artifact Consumption QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.200.0 --title "Verify-PR Fresh Maintainer Failure Guidance QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -146,12 +146,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.198.0.
+1. Open or update the tracking issue for v3.199.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.198.0` and upload `dist/shipguard-v3.198.0.tar.gz`.
+6. Create release `v3.199.0` and upload `dist/shipguard-v3.199.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

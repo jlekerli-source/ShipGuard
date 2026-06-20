@@ -111,7 +111,7 @@ Most users only need these:
 | `shipguard doctor <profile> <repo>` | Check whether the workflow files are present. |
 | `shipguard prepare ...` | Create a scoped task contract before agent work. |
 | `shipguard verify ...` | Check a diff, evidence, and claims after agent work. |
-| `shipguard action verify-pr ...` | Audit the first GitHub Actions PR-proof workflow before trusting uploaded proof. |
+| `shipguard action verify-pr ...` | Audit the first GitHub Actions PR-proof workflow and consume the downloaded verdict artifact before trusting uploaded proof. |
 | `shipguard lean audit ...` | Find repo-level code that may not need to exist, with a delete/simplify/keep ledger and proof-required safety boundaries. |
 | `shipguard lean review ...` | Review the current diff for over-engineering before merging. |
 | `shipguard lean debt ...` | Harvest `ponytail:` and `shipguard-lean:` shortcut markers into a ledger. |

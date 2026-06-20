@@ -50,6 +50,35 @@ def has_regex(text: str, pattern: str) -> bool:
     return re.search(pattern, text, flags=re.MULTILINE) is not None
 
 
+def load_json(path: Path) -> tuple[dict[str, Any] | None, str]:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return None, "file not found"
+    except json.JSONDecodeError as exc:
+        return None, f"invalid JSON: {exc}"
+    if not isinstance(data, dict):
+        return None, "JSON root is not an object"
+    return data, ""
+
+
+def get_path(data: dict[str, Any], path: str) -> Any:
+    current: Any = data
+    for part in path.split("."):
+        if not isinstance(current, dict):
+            return None
+        current = current.get(part)
+    return current
+
+
+def find_verdict_json(artifact_dir: Path) -> list[Path]:
+    if not artifact_dir.exists():
+        return []
+    if artifact_dir.is_file() and artifact_dir.name == "shipguard-verdict.json":
+        return [artifact_dir]
+    return sorted(item for item in artifact_dir.rglob("shipguard-verdict.json") if item.is_file())
+
+
 def finding(severity: str, rule_id: str, evidence: str, recommendation: str, proof: str, category: str = "workflow") -> dict[str, Any]:
     return {
         "severity": severity,
@@ -73,10 +102,179 @@ def check_signal(
     evidence: str,
     recommendation: str,
     proof: str,
+    category: str = "workflow",
 ) -> None:
     checks.append({"ruleId": rule_id, "label": label, "required": required, "status": "pass" if passed else severity})
     if not passed:
-        findings.append(finding(severity, rule_id, evidence, recommendation, proof))
+        findings.append(finding(severity, rule_id, evidence, recommendation, proof, category=category))
+
+
+def inspect_runtime_artifact(args: argparse.Namespace, root: Path) -> dict[str, Any]:
+    artifact_arg = getattr(args, "artifact_dir", "") or ""
+    if not artifact_arg:
+        return {
+            "provided": False,
+            "status": "not-provided",
+            "checks": [],
+            "findings": [],
+            "verdictStatus": "",
+            "verdictPath": "",
+            "markdownPath": "",
+            "summary": "No downloaded shipguard-verdict artifact was provided.",
+        }
+
+    artifact_dir = Path(artifact_arg)
+    if not artifact_dir.is_absolute():
+        artifact_dir = root / artifact_dir
+
+    checks: list[dict[str, Any]] = []
+    findings: list[dict[str, Any]] = []
+    verdict_candidates = find_verdict_json(artifact_dir)
+    artifact_exists = artifact_dir.exists()
+    check_signal(
+        checks,
+        findings,
+        rule_id="runtime-artifact-directory-present",
+        label="Downloaded artifact directory exists",
+        passed=artifact_exists,
+        required=True,
+        severity="blocked",
+        evidence=f"Artifact directory not found: {artifact_dir}",
+        recommendation="Download the GitHub Actions artifact before runtime verification.",
+        proof="Run gh run download <run-id> --name shipguard-verdict --dir /tmp/shipguard-verdict-artifact.",
+    )
+    check_signal(
+        checks,
+        findings,
+        rule_id="runtime-verdict-json-present",
+        label="shipguard-verdict.json present",
+        passed=len(verdict_candidates) >= 1,
+        required=True,
+        severity="blocked",
+        evidence="No shipguard-verdict.json file was found in the downloaded artifact.",
+        recommendation="Confirm the workflow uploads /tmp/shipguard-verdict as the shipguard-verdict artifact.",
+        proof="Download the artifact again and rerun shipguard action verify-pr --artifact-dir <dir>.",
+    )
+    if len(verdict_candidates) > 1:
+        checks.append({"ruleId": "runtime-verdict-json-unique", "label": "Single verdict JSON", "required": False, "status": "review"})
+        findings.append(
+            finding(
+                "review",
+                "runtime-verdict-json-unique",
+                f"Found {len(verdict_candidates)} shipguard-verdict.json files under the artifact directory.",
+                "Keep the uploaded artifact to one ShipGuard verdict directory so reviewers do not choose between conflicting reports.",
+                "Rerun after downloading the intended artifact name or cleaning duplicate extracted directories.",
+                category="artifact",
+            )
+        )
+    elif verdict_candidates:
+        checks.append({"ruleId": "runtime-verdict-json-unique", "label": "Single verdict JSON", "required": False, "status": "pass"})
+
+    verdict_path = verdict_candidates[0] if verdict_candidates else artifact_dir / "shipguard-verdict.json"
+    verdict, parse_error = load_json(verdict_path)
+    check_signal(
+        checks,
+        findings,
+        rule_id="runtime-verdict-json-parseable",
+        label="Verdict JSON parses",
+        passed=verdict is not None,
+        required=True,
+        severity="blocked",
+        evidence=parse_error or "shipguard-verdict.json could not be parsed.",
+        recommendation="Use the JSON artifact produced by shipguard verify, not a log or partial file.",
+        proof="Open shipguard-verdict.json and confirm it is valid JSON.",
+    )
+
+    verdict_status = ""
+    markdown_path = verdict_path.with_suffix(".md")
+    if verdict is not None:
+        verdict_status = str(verdict.get("status") or "")
+        required_paths = [
+            ("runtime-verdict-tool", "tool", "shipguard verify", "Verdict came from shipguard verify"),
+            ("runtime-verdict-status", "status", None, "Verdict status present"),
+            ("runtime-proof-report", "proofReport.summary", None, "Proof report summary present"),
+            ("runtime-proof-report-validation", "proofReport.validation.status", None, "Proof report validation status present"),
+            ("runtime-proof-report-claims", "proofReport.claims.label", None, "Proof report claim summary present"),
+            ("runtime-validation-coverage", "validationCoverage.status", None, "Validation coverage present"),
+            ("runtime-evidence-receipt-schema", "evidenceReceiptSchema.schemaVersion", "2.0", "Evidence receipt schema v2 present"),
+            ("runtime-diff-first-analysis", "diffFirstAnalysis.mergeVerdict", None, "Diff-first merge verdict present"),
+            ("runtime-next-action", "proofReport.nextAction.command", None, "Next action command present"),
+        ]
+        for rule_id, path, expected, label in required_paths:
+            value = get_path(verdict, path)
+            passed = bool(value) if expected is None else value == expected
+            check_signal(
+                checks,
+                findings,
+                rule_id=rule_id,
+                label=label,
+                passed=passed,
+                required=True,
+                severity="blocked",
+                evidence=f"{path} is {value!r}; expected {expected!r}" if expected is not None else f"{path} is missing or empty.",
+                recommendation="Download the full shipguard-verdict artifact produced by shipguard verify.",
+                proof="Inspect shipguard-verdict.json and rerun this runtime artifact audit.",
+                category="artifact",
+            )
+        if verdict_status not in {"pass", "review", "blocked"}:
+            checks.append({"ruleId": "runtime-verdict-status-known", "label": "Verdict status is recognized", "required": True, "status": "blocked"})
+            findings.append(
+                finding(
+                    "blocked",
+                    "runtime-verdict-status-known",
+                    f"Verdict status {verdict_status!r} is not one of pass/review/blocked.",
+                    "Use a current shipguard verify artifact so automation can route the PR result.",
+                    "Regenerate the artifact with shipguard verify from the current toolkit.",
+                    category="artifact",
+                )
+            )
+        else:
+            checks.append({"ruleId": "runtime-verdict-status-known", "label": "Verdict status is recognized", "required": True, "status": "pass"})
+
+    markdown_exists = markdown_path.exists()
+    check_signal(
+        checks,
+        findings,
+        rule_id="runtime-verdict-markdown-present",
+        label="shipguard-verdict.md present",
+        passed=markdown_exists,
+        required=True,
+        severity="review",
+        evidence=f"Markdown verdict not found beside JSON: {markdown_path}",
+        recommendation="Upload both shipguard-verdict.json and shipguard-verdict.md so humans can inspect the proof without parsing JSON.",
+        proof="Download the artifact and confirm shipguard-verdict.md is present.",
+        category="artifact",
+    )
+    if markdown_exists:
+        markdown = read_text(markdown_path)
+        check_signal(
+            checks,
+            findings,
+            rule_id="runtime-verdict-markdown-proof-report",
+            label="Markdown renders proof report",
+            passed="ShipGuard Proof Report" in markdown,
+            required=True,
+            severity="review",
+            evidence="shipguard-verdict.md does not contain the proof-report heading.",
+            recommendation="Upload the Markdown emitted by shipguard verify, not a renamed or truncated file.",
+            proof="Open shipguard-verdict.md and confirm the top proof report is readable.",
+            category="artifact",
+        )
+
+    blocked = [item for item in findings if item["severity"] == "blocked"]
+    review = [item for item in findings if item["severity"] == "review"]
+    status = "blocked" if blocked else "review" if review else "pass"
+    return {
+        "provided": True,
+        "path": rel_path(artifact_dir, root, bool(args.shareable)),
+        "status": status,
+        "checks": checks,
+        "findings": findings,
+        "verdictStatus": verdict_status,
+        "verdictPath": rel_path(verdict_path, root, bool(args.shareable)) if verdict_candidates else "",
+        "markdownPath": rel_path(markdown_path, root, bool(args.shareable)) if markdown_exists else "",
+        "summary": f"{len(checks)} runtime artifact signal(s) checked; verdict status {verdict_status or 'unknown'}.",
+    }
 
 
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
@@ -267,27 +465,47 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             )
             checks.append({"ruleId": "secret-reference-review", "label": "No first-run secrets", "required": False, "status": "review"})
 
-        blocked = [item for item in findings if item["severity"] == "blocked"]
-        review = [item for item in findings if item["severity"] == "review"]
-        status = "blocked" if blocked else "review" if review else "pass"
+    runtime_artifact = inspect_runtime_artifact(args, root)
+    artifact_findings = runtime_artifact.get("findings") if isinstance(runtime_artifact.get("findings"), list) else []
+    findings.extend(artifact_findings)
+    if runtime_artifact.get("provided"):
+        checks.extend(runtime_artifact.get("checks") or [])
 
     blocked_count = sum(1 for item in findings if item["severity"] == "blocked")
     review_count = sum(1 for item in findings if item["severity"] == "review")
-    next_command = (
-        "shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --out /tmp/shipguard-action-verify-pr --shareable"
-        if status != "pass"
-        else "gh run download <run-id> --name shipguard-verdict --dir /tmp/shipguard-verdict-artifact"
+    status = "blocked" if blocked_count else "review" if review_count else "pass"
+    artifact_audit_command = (
+        "gh run download <run-id> --name shipguard-verdict --dir /tmp/shipguard-verdict-artifact && "
+        "shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --artifact-dir /tmp/shipguard-verdict-artifact --out /tmp/shipguard-action-verify-pr --shareable"
+    )
+    static_audit_command = "shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --out /tmp/shipguard-action-verify-pr --shareable"
+    if status == "pass" and runtime_artifact.get("provided"):
+        next_command = "shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --artifact-dir /tmp/shipguard-verdict-artifact --out /tmp/shipguard-action-verify-pr --shareable"
+    elif runtime_artifact.get("provided") and runtime_artifact.get("status") != "pass":
+        next_command = artifact_audit_command
+    elif status == "pass":
+        next_command = artifact_audit_command
+    else:
+        next_command = static_audit_command
+    proof_source = (
+        "read-only workflow text inspection plus downloaded shipguard-verdict artifact inspection; no target validation command executed locally"
+        if runtime_artifact.get("provided")
+        else "read-only workflow text inspection; no target validation command executed"
     )
     result_ux = build_result_ux(
         status=status,
         summary=f"{len(checks)} verify-PR workflow signal(s) checked; {blocked_count} blocked, {review_count} review.",
-        proof_source="read-only workflow text inspection; no target validation command executed",
+        proof_source=proof_source,
         why_it_matters="The first GitHub Action path should fail setup mistakes before a maintainer trusts a missing or decorative proof artifact.",
         next_command=next_command,
         next_action_summary=(
             findings[0]["recommendation"]
             if findings
-            else "Workflow is structurally ready for a real PR run; open a tiny PR, then download and inspect the uploaded shipguard-verdict artifact."
+            else (
+                "Runtime artifact is consumable by ShipGuard; use the verdict status to decide whether the PR itself can merge."
+                if runtime_artifact.get("provided")
+                else "Workflow is structurally ready for a real PR run; open a tiny PR, then download and inspect the uploaded shipguard-verdict artifact with ShipGuard."
+            )
         ),
     )
 
@@ -305,14 +523,16 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "reviewFindings": review_count,
             "placeholderValidationCommand": PLACEHOLDER in text,
             "runtimeProofRequired": True,
+            "runtimeArtifactProvided": bool(runtime_artifact.get("provided")),
         },
         "checks": checks,
         "findings": findings,
+        "runtimeArtifact": runtime_artifact,
         "firstRunProofPath": [
             {"step": "Copy the transparent workflow starter.", "command": "cp examples/workflows/verify-pr.yml .github/workflows/shipguard-verify-pr.yml"},
             {"step": "Replace the placeholder validation command.", "command": "edit SHIPGUARD_VALIDATION_COMMAND in .github/workflows/shipguard-verify-pr.yml"},
             {"step": "Run the read-only setup audit.", "command": "shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --out /tmp/shipguard-action-verify-pr --shareable"},
-            {"step": "Open a tiny PR and inspect the uploaded proof.", "command": "download the shipguard-verdict artifact from the GitHub Actions run"},
+            {"step": "Open a tiny PR and inspect the uploaded proof.", "command": "gh run download <run-id> --name shipguard-verdict --dir /tmp/shipguard-verdict-artifact && shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --artifact-dir /tmp/shipguard-verdict-artifact --out /tmp/shipguard-action-verify-pr --shareable"},
         ],
         "scopeBoundary": {
             "readOnly": True,
@@ -330,6 +550,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the report tell a fresh maintainer exactly why their verify-PR workflow is not ready yet?",
             "Does it distinguish static workflow setup proof from runtime GitHub artifact proof?",
             "Does it block missing task/diff/receipt/verify/upload wiring instead of accepting decorative workflow text?",
+            "When a downloaded artifact is provided, does it verify that shipguard-verdict.json and Markdown are complete enough for a reviewer to trust the artifact as proof routing?",
         ],
         "resultUX": result_ux,
         "shareable": bool(args.shareable),
@@ -352,6 +573,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Review findings: {report['summary']['reviewFindings']}",
         f"- Placeholder validation command: {report['summary']['placeholderValidationCommand']}",
         f"- Runtime proof required: {report['summary']['runtimeProofRequired']}",
+        f"- Runtime artifact provided: {report['summary']['runtimeArtifactProvided']}",
         "",
         "## Checks",
         "",
@@ -367,6 +589,16 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"| `{item['severity']}` | `{item['ruleId']}` | {item['evidence']} | {item['recommendation']} |")
     else:
         lines.append("No static verify-PR setup findings.")
+    artifact = report.get("runtimeArtifact") or {}
+    lines.extend(["", "## Runtime Artifact", ""])
+    lines.append(f"- Provided: {artifact.get('provided')}")
+    lines.append(f"- Status: `{artifact.get('status')}`")
+    lines.append(f"- Verdict status: `{artifact.get('verdictStatus') or 'unknown'}`")
+    if artifact.get("verdictPath"):
+        lines.append(f"- Verdict JSON: `{artifact.get('verdictPath')}`")
+    if artifact.get("markdownPath"):
+        lines.append(f"- Verdict Markdown: `{artifact.get('markdownPath')}`")
+    lines.append(f"- Summary: {artifact.get('summary')}")
     lines.extend(["", "## First-Run Proof Path", ""])
     for item in report["firstRunProofPath"]:
         lines.append(f"- {item['step']} `{item['command']}`")
@@ -387,6 +619,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Audit the transparent ShipGuard verify-PR GitHub Actions workflow without executing target tests.")
     parser.add_argument("--path", default=".", help="Repository root for relative workflow paths.")
     parser.add_argument("--workflow", default="examples/workflows/verify-pr.yml", help="Workflow file to inspect.")
+    parser.add_argument("--artifact-dir", default="", help="Downloaded shipguard-verdict artifact directory from gh run download.")
     parser.add_argument("--out", required=False, help="Output directory.")
     parser.add_argument("--shipguard-eval", action="store_true", help="Mark output as ShipGuard product QA.")
     parser.add_argument("--shareable", action="store_true", help="Redact local absolute paths from report fields.")

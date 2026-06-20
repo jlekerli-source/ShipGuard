@@ -179,24 +179,27 @@
     },
     {
       "id": "action-verify-pr-output",
-      "display": "./bin/shipguard action verify-pr --workflow fixtures/action-verify-pr/configured.yml --out <out>/action-verify-pr --shipguard-eval --shareable",
-      "args": ["action", "verify-pr", "--workflow", "fixtures/action-verify-pr/configured.yml", "--out", "{out}/action-verify-pr", "--shipguard-eval", "--shareable"],
+      "display": "./bin/shipguard action verify-pr --workflow fixtures/action-verify-pr/configured.yml --artifact-dir fixtures/action-verify-pr/runtime-artifact --out <out>/action-verify-pr --shipguard-eval --shareable",
+      "args": ["action", "verify-pr", "--workflow", "fixtures/action-verify-pr/configured.yml", "--artifact-dir", "fixtures/action-verify-pr/runtime-artifact", "--out", "{out}/action-verify-pr", "--shipguard-eval", "--shareable"],
       "artifacts": [
         {
           "path": "action-verify-pr/action-verify-pr.json",
           "type": "json",
-          "requiredJsonKeys": ["tool", "status", "surface", "summary", "checks", "scopeBoundary", "reportQualityQuestions", "resultUX"],
-          "requiredNonEmptyJsonPaths": ["checks", "reportQualityQuestions", "resultUX.nextCommand"],
+          "requiredJsonKeys": ["tool", "status", "surface", "summary", "checks", "runtimeArtifact", "scopeBoundary", "reportQualityQuestions", "resultUX"],
+          "requiredNonEmptyJsonPaths": ["checks", "runtimeArtifact.checks", "reportQualityQuestions", "resultUX.nextCommand"],
           "requiredValues": [
             {"path": "tool", "equals": "shipguard action verify-pr"},
             {"path": "status", "equals": "pass"},
-            {"path": "summary.placeholderValidationCommand", "equals": false}
+            {"path": "summary.placeholderValidationCommand", "equals": false},
+            {"path": "summary.runtimeArtifactProvided", "equals": true},
+            {"path": "runtimeArtifact.status", "equals": "pass"},
+            {"path": "runtimeArtifact.verdictStatus", "equals": "pass"}
           ]
         },
         {
           "path": "action-verify-pr/action-verify-pr.md",
           "type": "markdown",
-          "requiredPhrases": ["# ShipGuard Verify-PR First-Run Proof", "First-Run Proof Path", "Runtime proof required", "Report-Quality Questions"],
+          "requiredPhrases": ["# ShipGuard Verify-PR First-Run Proof", "First-Run Proof Path", "Runtime proof required", "Runtime Artifact", "Report-Quality Questions"],
           "forbidLocalPaths": true
         }
       ]

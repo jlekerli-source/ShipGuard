@@ -437,6 +437,9 @@ required_artifacts=(
   "fixtures/lean-audit-demo/src/ThinWrapper.ts"
   "fixtures/action-verify-pr/configured.yml"
   "fixtures/action-verify-pr/broken.yml"
+  "fixtures/action-verify-pr/runtime-artifact/shipguard-verdict.json"
+  "fixtures/action-verify-pr/runtime-artifact/shipguard-verdict.md"
+  "fixtures/action-verify-pr/runtime-broken/shipguard-verdict.json"
 )
 
 artifact_count=0

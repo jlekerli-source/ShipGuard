@@ -15,6 +15,19 @@ shipguard action verify-pr \
 
 The audit blocks missing install, diff, receipt, verify, or artifact-upload wiring and returns `review` while the starter validation placeholder is still present. A static pass still needs runtime proof from a real PR run and the uploaded `shipguard-verdict` artifact.
 
+After the first small PR run, download and consume the uploaded proof:
+
+```bash
+gh run download <run-id> --name shipguard-verdict --dir /tmp/shipguard-verdict-artifact
+shipguard action verify-pr \
+  --workflow .github/workflows/shipguard-verify-pr.yml \
+  --artifact-dir /tmp/shipguard-verdict-artifact \
+  --out /tmp/shipguard-action-verify-pr \
+  --shareable
+```
+
+This second pass verifies the artifact shape, not the product change. A consumed artifact proves reviewers can inspect `shipguard-verdict.json` and Markdown from CI; the verdict status still decides whether the PR itself passes, needs review, or is blocked.
+
 ## Usage
 
 ```yaml
