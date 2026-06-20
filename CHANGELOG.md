@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added a stable-publication evidence packet to `shipguard v4 stable-publication`: reports now expose one machine-readable checklist of every required real stable-v4 evidence input, current gate status, first blocker, next command, proof order, and non-claims, and report-quality now flags stable-publication reports that hide that packet.
 - Restored the workflow-chain receipt after promoted design fixtures made the old receipt input fully covered: the receipt now uses a synthetic uncovered report-quality question to prove the development loop still goes from report-quality to SpecForge tasks, validation commands, slash plan/goal, and next-goal without manual interpretation.
 - Promoted the next read-only Ringly/Ilmify design-QA observation into `fixtures/ios-report-quality/design-observation-promotion`, so `ios report-quality` treats the design observation-promotion question as covered and moves future ShipGuard-only loops to the next uncovered report-quality gap instead of repeatedly asking for the same public design fixture.
 - Fixed the next broad read-only Ringly/Ilmify product-QA loop: `ios report-quality --write-fixture-candidates` now preserves descriptive tool/question candidate IDs when materializing starter fixtures, so repeated private-app and target-app boundary questions become promotion-ready public fixture directories instead of generic duplicate `shipguard-eval-boundary-fixture` names.

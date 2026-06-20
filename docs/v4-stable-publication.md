@@ -42,6 +42,7 @@ Outputs:
 - `v4-stable-publication.md`
 - `downloaded-release-assets/` when `--download-release-assets` is supplied and no custom destination is given
 - `release-consume/consumer-report.json` when downloaded or supplied release assets are verified
+- `stablePublicationEvidencePacket` in JSON, rendered as `Evidence Packet` in Markdown
 
 ## Stable Gates
 
@@ -56,6 +57,19 @@ The report returns `pass` only when every gate passes:
 - Final security-review evidence passes the stable-v4 gate with CLI, plugin, GitHub Actions, release-proof, package-install, and redaction/privacy scope coverage.
 
 If any gate fails, the report returns `review`, sets `stableV4Release` to `false`, and puts the next command in `resultUX.nextCommand`.
+
+## Evidence Packet
+
+The JSON report includes `stablePublicationEvidencePacket` so humans and tools can inspect the real publication packet without piecing it together from scattered sections. It lists:
+
+- all seven required evidence inputs with stable IDs and statuses
+- whether each input is required for stable v4 and must be real evidence
+- `missingEvidenceIds`
+- `firstBlockingGate` with the exact next command
+- proof order from LaunchKey candidate proof to published release proof
+- non-claims for marketplace acceptance, fixture-only proof, and GitHub download counts
+
+`ios report-quality` checks this packet. A stable-publication report that has the gates but hides the packet receives a report-quality issue.
 
 ## Evidence Boundary
 

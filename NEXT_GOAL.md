@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-20T00:58:31Z
+- Generated: 2026-06-20T01:31:42Z
 - Current toolkit version: 3.131.0
-- Target release: v3.150.0
-- Title: Design Fixture Promotion And Workflow Chain Efficiency
+- Target release: v3.151.0
+- Title: Stable V4 Publication Evidence Packet
 
 ## Slash Plan
 
 ```text
-/plan v3.150.0 Design Fixture Promotion And Workflow Chain Efficiency for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Promote the next read-only product-QA design observation into a public report-quality fixture and keep the ShipGuard development loop efficient by proving report-quality questions still flow into SpecForge tasks, validation commands, slash plan/goal, and next-goal without manual interpretation.
+/plan v3.151.0 Stable V4 Publication Evidence Packet for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make the stable-v4 publication gate easier to execute and review by adding one durable evidence packet that lists every required real publication input, first blocker, exact next command, proof order, and non-claims without pretending stable v4 has shipped.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.150.0 Design Fixture Promotion And Workflow Chain Efficiency for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next read-only product-QA design observation into a public report-quality fixture and keep the ShipGuard development loop efficient by proving report-quality questions still flow into SpecForge tasks, validation commands, slash plan/goal, and next-goal without manual interpretation, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.151.0 Stable V4 Publication Evidence Packet for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make the stable-v4 publication gate easier to execute and review by adding one durable evidence packet that lists every required real publication input, first blocker, exact next command, proof order, and non-claims without pretending stable v4 has shipped, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Promote the next read-only product-QA design observation into a public report-quality fixture and keep the ShipGuard development loop efficient by proving report-quality questions still flow into SpecForge tasks, validation commands, slash plan/goal, and next-goal without manual interpretation.
+Make the stable-v4 publication gate easier to execute and review by adding one durable evidence packet that lists every required real publication input, first blocker, exact next command, proof order, and non-claims without pretending stable v4 has shipped.
 
 ## Completion Receipt
 
-- Completed scope: Added fixtures/ios-report-quality/design-observation-promotion, restored the workflow-chain receipt with a synthetic uncovered report-quality handoff question, and documented the major-version launch-thread boundary with explicit approval required for public posting.
-- Evidence: Fresh read-only Ringly/Ilmify ShipGuard product-QA loop generated 10 shareable reports without modifying either private app; ios report-quality initially scored 100.0 with five fixture candidates, then after promoting the design-observation fixture scored 100.0 with four remaining candidates and seven coverage fixtures. Validation passed: git diff --check; python3 -m py_compile scripts/ios_report_quality.py scripts/tool_value_gauntlet.py; ./tests/ios_report_quality_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check; ./bin/shipguard validate; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet; ./tests/package_release_test.sh.
+- Completed scope: Added stablePublicationEvidencePacket to shipguard v4 stable-publication, rendered the packet in Markdown, taught ios report-quality to flag stable-publication reports that hide the packet, and updated docs plus plugin guidance for packet-first review.
+- Evidence: Read-only ShipGuard probes passed: ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet still reports shipguard v4-stable-release-publication as the honest remaining real-world gap; ./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v3151-stable-blocked --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --release-candidate-report /tmp/missing-candidate.json --external-adoption-evidence /tmp/missing-adoption --security-review-evidence /tmp/missing-security --shipguard-eval --shareable returned review with a 7-input evidence packet; ./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --reports /tmp/shipguard-v3151-stable-blocked --out /tmp/shipguard-v3151-final-quality --shareable --write-fixture-candidates /tmp/shipguard-v3151-final-candidates scored 100.0/100. Validation passed: git diff --check; python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check; ./bin/shipguard validate; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/package_release_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.151.0 Stable V4 Publication Proof for jlekerli-source/ShipGuard:
+/plan v3.152.0 Stable V4 Publication Evidence Templates for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Promote the next read-only product-QA design observation into a public report-qu
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.151.0 Stable V4 Publication Proof for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.152.0 Stable V4 Publication Evidence Templates for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.151.0 --title "Stable V4 Publication Proof" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.152.0 --title "Stable V4 Publication Evidence Templates" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.150.0.
+1. Open or update the tracking issue for v3.151.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.150.0` and upload `dist/shipguard-v3.150.0.tar.gz`.
+6. Create release `v3.151.0` and upload `dist/shipguard-v3.151.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

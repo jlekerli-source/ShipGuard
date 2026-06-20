@@ -192,6 +192,20 @@ test -f "$tmp_dir/blocked/v4-stable-publication.json"
 grep -q '"stableV4Release": false' "$tmp_dir/blocked/v4-stable-publication.json"
 grep -q '"releaseCandidatePacketProof":' "$tmp_dir/blocked/v4-stable-publication.json"
 grep -q '"status": "review"' "$tmp_dir/blocked/v4-stable-publication.json"
+python3 - "$tmp_dir/blocked/v4-stable-publication.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+packet = report["stablePublicationEvidencePacket"]
+assert packet["status"] == "review"
+assert packet["stableV4Release"] is False
+assert packet["requiredEvidenceCount"] == 7
+assert packet["passedEvidenceCount"] < 7
+assert "launchkey-candidate-packet" in packet["missingEvidenceIds"]
+assert packet["firstBlockingGate"]["receipt"] == "releaseCandidatePacketProof"
+assert packet["firstBlockingGate"]["nextCommand"].startswith("./bin/shipguard v4 release-candidate")
+PY
 
 SHIPGUARD_GENERATED_AT="2026-06-20T00:00:00Z" \
   ./bin/shipguard v4 stable-publication \
@@ -232,11 +246,37 @@ assert report["securityReviewEvidenceProof"]["stableV4GateStatus"] == "pass"
 assert report["scopeBoundary"]["shipguardOnly"] is True
 assert report["shipguardEval"]["mode"] == "ShipGuard product QA"
 assert "value-gauntlet" in report["resultUX"]["nextCommand"]
+packet = report["stablePublicationEvidencePacket"]
+assert packet["status"] == "pass"
+assert packet["stableV4Release"] is True
+assert packet["requiredEvidenceCount"] == 7
+assert packet["passedEvidenceCount"] == 7
+assert packet["missingEvidenceIds"] == []
+assert packet["firstBlockingGate"] is None
+ids = {item["id"] for item in packet["requiredEvidence"]}
+assert {
+    "github-release-metadata",
+    "release-notes",
+    "launchkey-candidate-packet",
+    "downloaded-release-assets",
+    "post-release-consumer-proof",
+    "independent-adoption-evidence",
+    "final-security-review-evidence",
+} <= ids
+assert all(item["requiredForStableV4"] and item["realEvidenceRequired"] for item in packet["requiredEvidence"])
 PY
 
 grep -q '# ShipGuard V4 Stable Publication Proof' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Stable Publication Gates' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Evidence Packet' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Stable v4 release claim allowed: `True`' "$tmp_dir/pass/v4-stable-publication.md"
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/pass" \
+  --out "$tmp_dir/pass-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/pass-quality/ios-report-quality.json"
+grep -q 'stable-publication proof is the current release proof source' "$tmp_dir/pass-quality/ios-report-quality.json"
 
 if grep -R -F -q "$tmp_dir" "$tmp_dir/pass/v4-stable-publication.json" "$tmp_dir/pass/v4-stable-publication.md"; then
   echo "shareable stable-publication output must redact local tmp paths" >&2

@@ -270,6 +270,79 @@ def first_blocking_gate(gates: list[tuple[str, dict[str, Any], str]]) -> tuple[s
     return None
 
 
+def evidence_id_for_receipt(receipt: str) -> str:
+    mapping = {
+        "githubReleaseMetadataProof": "github-release-metadata",
+        "releaseNotesProof": "release-notes",
+        "releaseCandidatePacketProof": "launchkey-candidate-packet",
+        "publishedReleaseAssetProof": "downloaded-release-assets",
+        "postReleaseConsumerProof": "post-release-consumer-proof",
+        "externalAdoptionEvidenceStableGate": "independent-adoption-evidence",
+        "securityReviewEvidenceStableGate": "final-security-review-evidence",
+    }
+    return mapping.get(receipt, re.sub(r"[^a-z0-9]+", "-", receipt.lower()).strip("-"))
+
+
+def build_stable_publication_evidence_packet(
+    *,
+    gates: list[tuple[str, dict[str, Any], str]],
+    blocked: tuple[str, dict[str, Any], str] | None,
+    release_version: str,
+    stable_v4_release: bool,
+) -> dict[str, Any]:
+    required_evidence: list[dict[str, Any]] = []
+    for receipt, proof, command in gates:
+        status = str(proof.get("status") or "not-provided")
+        required_evidence.append(
+            {
+                "id": evidence_id_for_receipt(receipt),
+                "receipt": receipt,
+                "status": status,
+                "provided": bool(proof.get("provided", status == "pass")),
+                "requiredForStableV4": True,
+                "realEvidenceRequired": True,
+                "summary": proof.get("summary") or f"{receipt} status is {status}.",
+                "nextCommand": command,
+            }
+        )
+
+    missing = [item for item in required_evidence if item.get("status") != "pass"]
+    first_blocking = None
+    if blocked:
+        receipt, proof, command = blocked
+        first_blocking = {
+            "id": evidence_id_for_receipt(receipt),
+            "receipt": receipt,
+            "status": proof.get("status"),
+            "summary": proof.get("summary") or f"{receipt} has not passed.",
+            "nextCommand": command,
+        }
+
+    return {
+        "schemaVersion": 1,
+        "releaseVersion": release_version,
+        "status": "pass" if not missing else "review",
+        "stableV4Release": stable_v4_release,
+        "requiredEvidence": required_evidence,
+        "requiredEvidenceCount": len(required_evidence),
+        "passedEvidenceCount": len(required_evidence) - len(missing),
+        "missingEvidenceIds": [str(item.get("id")) for item in missing],
+        "firstBlockingGate": first_blocking,
+        "proofOrder": [
+            "Run LaunchKey release-candidate proof with package install, upgrade, rollback, release assets, adoption, and security receipts.",
+            "Publish the GitHub release with stable-v4 release notes and required release-proof assets.",
+            "Run stable-publication against the published release metadata, downloaded assets, independent adoption evidence, and final security review evidence.",
+            "Use a passing stable-publication report as the only local permission to claim ShipGuard v4 is stable.",
+        ],
+        "nonClaims": [
+            "This packet does not publish a GitHub release.",
+            "This packet does not prove OpenAI marketplace acceptance.",
+            "Fixture adoption or fixture security records prove tooling only; they do not prove real stable-v4 publication.",
+            "GitHub release metadata and download counts are not independent adoption evidence.",
+        ],
+    }
+
+
 def redact_report(report: dict[str, Any], args: argparse.Namespace, root: Path) -> dict[str, Any]:
     home = Path.home().resolve()
     replacements = {
@@ -346,6 +419,13 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     ]
     blocked = first_blocking_gate(gates)
     status = "pass" if blocked is None else "review"
+    stable_v4_release = status == "pass"
+    evidence_packet = build_stable_publication_evidence_packet(
+        gates=gates,
+        blocked=blocked,
+        release_version=release_version,
+        stable_v4_release=stable_v4_release,
+    )
 
     if blocked:
         receipt, proof, next_command = blocked
@@ -378,7 +458,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "releaseVersion": release_version,
         "repo": root.as_posix(),
         "productStage": "v4-stable-publication-proof",
-        "stableV4Release": status == "pass",
+        "stableV4Release": stable_v4_release,
+        "stablePublicationEvidencePacket": evidence_packet,
         "githubReleaseMetadataProof": metadata_proof,
         "releaseNotesProof": release_notes_proof,
         "releaseCandidatePacketProof": release_candidate_packet_proof,
@@ -408,6 +489,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "reportQualityQuestions": [
             "Can ShipGuard prove stable-v4 publication from real release metadata, release notes, downloaded assets, external adoption evidence, security evidence, and post-release consumer proof?",
             "Does the stable-publication report block every stable-v4 claim until independent adoption and final security evidence are attached?",
+            "Does the stable-publication evidence packet list every required real-evidence input, first blocker, next command, and non-claim before a stable-v4 announcement?",
         ],
         "resultUX": result_ux,
     }
@@ -440,6 +522,24 @@ def render_markdown(report: dict[str, Any]) -> str:
     )
     for item in report.get("stablePublicationGates", []):
         lines.append(f"| `{item.get('receipt')}` | `{item.get('status')}` |")
+    packet = report.get("stablePublicationEvidencePacket") if isinstance(report.get("stablePublicationEvidencePacket"), dict) else {}
+    if packet:
+        lines.extend(
+            [
+                "",
+                "## Evidence Packet",
+                "",
+                f"- Packet status: `{packet.get('status')}`",
+                f"- Required evidence passed: `{packet.get('passedEvidenceCount')}/{packet.get('requiredEvidenceCount')}`",
+                f"- First blocking gate: `{(packet.get('firstBlockingGate') or {}).get('receipt') or 'none'}`",
+                "",
+                "| Evidence | Status |",
+                "| --- | --- |",
+            ]
+        )
+        for item in packet.get("requiredEvidence", []):
+            if isinstance(item, dict):
+                lines.append(f"| `{item.get('id')}` | `{item.get('status')}` |")
     lines.extend(
         [
             "",

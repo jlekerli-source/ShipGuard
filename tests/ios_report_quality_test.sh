@@ -2506,6 +2506,56 @@ if not ranked or ranked[0].get("question") != expected:
     raise SystemExit(f"stable-v4 injected question did not rank first: {ranked!r}")
 PY
 
+stable_publication_packet_dir="$tmp_dir/stable-publication-packet"
+mkdir -p "$stable_publication_packet_dir"
+cat > "$stable_publication_packet_dir/v4-stable-publication.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-20T00:00:00Z",
+  "tool": "shipguard v4 stable-publication",
+  "surface": "ShipGuard V4 Stable Publication Proof",
+  "status": "review",
+  "stableV4Release": false,
+  "stablePublicationGates": [
+    {
+      "receipt": "githubReleaseMetadataProof",
+      "status": "review",
+      "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable"
+    }
+  ],
+  "resultUX": {
+    "status": "review",
+    "verdict": "REVIEW: Stable publication blocked.",
+    "proofSource": "githubReleaseMetadataProof",
+    "whyItMatters": "Stable-v4 publication must be proven from public release artifacts and external evidence.",
+    "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+    "nextActionSummary": "Complete githubReleaseMetadataProof before claiming stable-v4 publication."
+  },
+  "reportQualityQuestions": [
+    "Can ShipGuard prove stable-v4 publication from real release metadata, release notes, downloaded assets, external adoption evidence, security evidence, and post-release consumer proof?"
+  ],
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  }
+}
+JSON
+cat > "$stable_publication_packet_dir/v4-stable-publication.md" <<'MD'
+# ShipGuard V4 Stable Publication Proof
+
+## Result
+
+- Verdict: REVIEW: Stable publication blocked.
+- Proof source: githubReleaseMetadataProof
+- Why it matters: Stable-v4 publication must be proven from public release artifacts and external evidence.
+- Next command: `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable`
+MD
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_packet_dir" \
+  --out "$tmp_dir/stable-publication-packet-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "stable-publication-evidence-packet-missing"' "$tmp_dir/stable-publication-packet-quality/ios-report-quality.json"
+
 launchkey_skip_dir="$tmp_dir/launchkey-proof-dir-skip"
 mkdir -p \
   "$launchkey_skip_dir/fresh-install-prefix/lib/shipguard/examples/demo-reports/arena" \

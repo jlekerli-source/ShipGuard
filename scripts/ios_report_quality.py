@@ -1911,6 +1911,129 @@ def design_preview_routing_issues(
     return issues
 
 
+def stable_publication_evidence_packet_issues(
+    report: dict[str, Any], *, markdown: str, path_name: str
+) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    packet = report.get("stablePublicationEvidencePacket")
+    if not isinstance(packet, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-evidence-packet-missing",
+            evidence=f"{path_name} has no stablePublicationEvidencePacket",
+            recommendation="Emit one evidence packet that lists every real stable-v4 evidence input, current status, first blocker, next command, and non-claims.",
+        )
+        return issues
+
+    required = packet.get("requiredEvidence")
+    if not isinstance(required, list) or len(required) < 7:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-required-evidence-incomplete",
+            evidence=f"{path_name} evidence packet does not list all seven stable-publication evidence gates",
+            recommendation="List release metadata, release notes, LaunchKey candidate proof, downloaded assets, consumer proof, adoption evidence, and security review evidence.",
+        )
+    else:
+        required_ids = {str(item.get("id") or "") for item in required if isinstance(item, dict)}
+        expected = {
+            "github-release-metadata",
+            "release-notes",
+            "launchkey-candidate-packet",
+            "downloaded-release-assets",
+            "post-release-consumer-proof",
+            "independent-adoption-evidence",
+            "final-security-review-evidence",
+        }
+        missing_ids = sorted(expected - required_ids)
+        if missing_ids:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-required-evidence-ids-missing",
+                evidence=f"{path_name} evidence packet missing ids: {', '.join(missing_ids)}",
+                recommendation="Use stable evidence ids so downstream tools can identify exactly which stable-v4 proof is missing.",
+            )
+        for item in required:
+            if not isinstance(item, dict):
+                continue
+            if item.get("requiredForStableV4") is not True or item.get("realEvidenceRequired") is not True:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-real-evidence-boundary-missing",
+                    evidence=f"{path_name} evidence `{item.get('id')}` does not mark stable-v4 real-evidence requirements",
+                    recommendation="Mark each stable-publication evidence input as requiredForStableV4 and realEvidenceRequired.",
+                )
+
+    missing_evidence = packet.get("missingEvidenceIds")
+    if not isinstance(missing_evidence, list):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-missing-evidence-list-missing",
+            evidence=f"{path_name} evidence packet has no missingEvidenceIds list",
+            recommendation="Expose missingEvidenceIds so the next stable-v4 action is machine-readable.",
+        )
+
+    first_blocking = packet.get("firstBlockingGate")
+    stable_release = report.get("stableV4Release") is True
+    if stable_release:
+        if packet.get("status") != "pass" or missing_evidence:
+            add_issue(
+                issues,
+                severity="high",
+                rule_id="stable-publication-packet-contradicts-pass",
+                evidence=f"{path_name} claims stableV4Release while the evidence packet is not fully passing",
+                recommendation="Only allow stableV4Release when the evidence packet status is pass and missingEvidenceIds is empty.",
+            )
+        if first_blocking is not None:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-pass-has-first-blocker",
+                evidence=f"{path_name} passing evidence packet still includes firstBlockingGate",
+                recommendation="Clear firstBlockingGate once every stable-publication evidence input passes.",
+            )
+    else:
+        if not isinstance(first_blocking, dict):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-first-blocker-missing",
+                evidence=f"{path_name} blocks stable-v4 but does not identify the first blocking gate",
+                recommendation="Set stablePublicationEvidencePacket.firstBlockingGate with receipt, status, summary, and nextCommand.",
+            )
+        elif not first_blocking.get("nextCommand"):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-first-blocker-command-missing",
+                evidence=f"{path_name} first blocking gate has no nextCommand",
+                recommendation="Attach the exact next command needed to clear the first stable-publication blocker.",
+            )
+
+    non_claims = packet.get("nonClaims")
+    if not isinstance(non_claims, list) or not non_claims:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-non-claims-missing",
+            evidence=f"{path_name} evidence packet has no nonClaims",
+            recommendation="Keep fake adoption, marketplace acceptance, and fixture-proof non-claims visible in the packet.",
+        )
+    if "Evidence Packet" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-evidence-packet-markdown-missing",
+            evidence=f"{path_name} Markdown does not render the stable-publication evidence packet",
+            recommendation="Render the packet summary and evidence statuses in Markdown so maintainers can review it without opening JSON.",
+        )
+    return issues
+
+
 def spec_workflow_quality_issues(report: dict[str, Any], *, path: Path, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     inputs = report.get("reportInputs")
@@ -2462,6 +2585,8 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
         issues.extend(design_app_type_tailoring_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(design_coherence_boundary_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(design_preview_routing_issues(loaded, markdown=markdown, path_name=path.name))
+    if tool == "shipguard v4 stable-publication":
+        issues.extend(stable_publication_evidence_packet_issues(loaded, markdown=markdown, path_name=path.name))
 
     if has_local_path(raw_text):
         add_issue(

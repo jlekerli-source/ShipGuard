@@ -14,6 +14,16 @@ This slice fixes the ShipGuard development loop:
 - The receipt proves the intended chain directly: report-quality priority question -> `ios spec-workflow` -> SpecForge tasks and validation commands -> slash plan/goal -> `next-goal`.
 - `shipguard value-gauntlet` now reports the workflow-chain receipt as passing again, so the next weak surface moves forward to stable-v4 publication proof instead of getting stuck on stale fixture coupling.
 
+## Current Stable Publication Evidence Packet
+
+The next ShipYard gauntlet pass keeps every fixture-backed receipt green and correctly leaves `runtimeV4StableReleasePublication` as the remaining real-world gap. The useful improvement is not to fake a stable v4 release; it is to make the final gate easier to execute and review.
+
+This slice improves the real publication-proof path:
+
+- `shipguard v4 stable-publication` now emits `stablePublicationEvidencePacket`, a single machine-readable checklist with all seven required real-evidence inputs, stable evidence IDs, pass/missing counts, the first blocking gate, exact next command, proof order, and non-claims.
+- The Markdown report renders the same packet as `Evidence Packet`, so a maintainer can review the proof packet without opening JSON.
+- `ios report-quality` now flags stable-publication reports that expose gates but hide this packet, keeping the final v4 claim gate action-oriented without pretending fixture receipts prove real adoption or security review.
+
 ## Current Design Observation Promotion Fixture
 
 The latest broad read-only ShipGuard product-QA loop against local app checkouts generated 10 shareable reports across performance, design, modernization, app-intelligence, and AI-readiness. Report-quality scored the set 100/100, and the next uncovered ShipGuard-owned question was design-specific: which private-app observation should become a public design fixture or eval case.
