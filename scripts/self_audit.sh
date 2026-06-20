@@ -73,6 +73,8 @@ commands=(
   "docs-check --help"
   "brand --help"
   "lean audit --help"
+  "lean review --help"
+  "lean debt --help"
   "value-gauntlet --help"
   "full-audit --help"
   "inspect --help"
@@ -352,6 +354,8 @@ required_artifacts=(
   "scripts/external_pilot_verdict_bench.py"
   "scripts/tool_value_gauntlet.py"
   "scripts/lean_audit.py"
+  "scripts/lean_review.py"
+  "scripts/lean_debt.py"
   "scripts/shipguard_result.py"
   "scripts/full_audit.py"
   "scripts/shipguard_inspect.py"
@@ -422,9 +426,11 @@ required_artifacts=(
   "evals/ios_shipguard_cases.jsonl"
   "evals/run_local.py"
   "fixtures/lean-audit-demo/package.json"
+  "fixtures/lean-audit-demo/diffs/overbuilt-widget.diff"
   "fixtures/lean-audit-demo/src/DatePicker.tsx"
   "fixtures/lean-audit-demo/src/ColorPicker.tsx"
   "fixtures/lean-audit-demo/src/SafeAuth.ts"
+  "fixtures/lean-audit-demo/src/ThinWrapper.ts"
 )
 
 artifact_count=0

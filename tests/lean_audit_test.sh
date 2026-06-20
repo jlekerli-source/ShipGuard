@@ -9,7 +9,9 @@ trap 'rm -rf "$tmp_dir"' EXIT
 cd "$repo_root"
 
 ./bin/shipguard lean audit --help >/dev/null
-python3 -m py_compile scripts/lean_audit.py
+./bin/shipguard lean review --help >/dev/null
+./bin/shipguard lean debt --help >/dev/null
+python3 -m py_compile scripts/lean_audit.py scripts/lean_review.py scripts/lean_debt.py
 
 ./bin/shipguard lean audit \
   --path fixtures/lean-audit-demo \
@@ -74,5 +76,58 @@ if grep -q '"ruleId": "native-date-input"' "$tmp_dir/repo-lean/lean-audit.json";
   echo "repo-level lean audit should not treat prose such as 'moments' as a date picker dependency" >&2
   exit 1
 fi
+
+./bin/shipguard lean review \
+  --path fixtures/lean-audit-demo \
+  --diff fixtures/lean-audit-demo/diffs/overbuilt-widget.diff \
+  --out "$tmp_dir/review" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+test -f "$tmp_dir/review/lean-review.json"
+test -f "$tmp_dir/review/lean-review.md"
+grep -q '"tool": "shipguard lean review"' "$tmp_dir/review/lean-review.json"
+grep -q '"surface": "ShipGuard Lean Review"' "$tmp_dir/review/lean-review.json"
+grep -q '"ruleId": "native-date-input-diff"' "$tmp_dir/review/lean-review.json"
+grep -q '"ruleId": "dependency-small-helper-diff"' "$tmp_dir/review/lean-review.json"
+grep -q '"ruleId": "thin-wrapper-diff-review"' "$tmp_dir/review/lean-review.json"
+grep -q '"ruleId": "deferred-shortcut-without-trigger"' "$tmp_dir/review/lean-review.json"
+grep -q '"reviewLines":' "$tmp_dir/review/lean-review.json"
+grep -q '"precisionReview":' "$tmp_dir/review/lean-review.json"
+grep -q 'ShipGuard Lean Review' "$tmp_dir/review/lean-review.md"
+grep -q 'Diff Review' "$tmp_dir/review/lean-review.md"
+if grep -q '/Users/' "$tmp_dir/review/lean-review.json"; then
+  echo "shareable lean review leaked an absolute user path" >&2
+  exit 1
+fi
+
+./bin/shipguard lean debt \
+  --path fixtures/lean-audit-demo \
+  --out "$tmp_dir/debt" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+test -f "$tmp_dir/debt/lean-debt.json"
+test -f "$tmp_dir/debt/lean-debt.md"
+grep -q '"tool": "shipguard lean debt"' "$tmp_dir/debt/lean-debt.json"
+grep -q '"surface": "ShipGuard Lean Debt"' "$tmp_dir/debt/lean-debt.json"
+grep -q '"marker": "shipguard-lean"' "$tmp_dir/debt/lean-debt.json"
+grep -q '"status": "tracked"' "$tmp_dir/debt/lean-debt.json"
+grep -q 'ShipGuard Lean Debt' "$tmp_dir/debt/lean-debt.md"
+if grep -q '/Users/' "$tmp_dir/debt/lean-debt.json"; then
+  echo "shareable lean debt leaked an absolute user path" >&2
+  exit 1
+fi
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean" \
+  --reports "$tmp_dir/review" \
+  --reports "$tmp_dir/debt" \
+  --out "$tmp_dir/lean-family-quality" \
+  --shareable >/dev/null
+
+grep -q 'shipguard lean audit' "$tmp_dir/lean-family-quality/ios-report-quality.json"
+grep -q 'shipguard lean review' "$tmp_dir/lean-family-quality/ios-report-quality.json"
+grep -q 'shipguard lean debt' "$tmp_dir/lean-family-quality/ios-report-quality.json"
 
 echo "lean audit tests passed"

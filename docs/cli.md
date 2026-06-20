@@ -126,6 +126,32 @@ Use `lean audit` when you want ShipGuard to look for code that may not need to e
 
 The command writes `lean-audit.json` and `lean-audit.md`. It reports native platform, standard-library, dependency, and thin-wrapper opportunities, while marking security, validation, data-loss, permission, payment, migration, and accessibility files as proof-required safety boundaries. The JSON includes `precisionReview.deleteList`, `simplifyFirst`, `keepList`, `blockedByProof`, `topActions`, and `leanDebtLedger` so the output is a concrete simplification ledger instead of a generic finding dump. See `lean-audit.md`.
 
+Use `lean review` on the active diff before merge:
+
+```bash
+git diff > /tmp/change.diff
+./bin/shipguard lean review \
+  --path . \
+  --diff /tmp/change.diff \
+  --out /tmp/shipguard-lean-review \
+  --shipguard-eval \
+  --shareable
+```
+
+The command writes `lean-review.json` and `lean-review.md`. It is diff-scoped and reports native, standard-library, dependency, speculative placeholder, and thin-wrapper findings without turning a whole-repo audit into noise.
+
+Use `lean debt` when you only need the shortcut ledger:
+
+```bash
+./bin/shipguard lean debt \
+  --path . \
+  --out /tmp/shipguard-lean-debt \
+  --shipguard-eval \
+  --shareable
+```
+
+The command writes `lean-debt.json` and `lean-debt.md`. It harvests `ponytail:` and `shipguard-lean:` markers and flags any marker that lacks both a `ceiling:` and an `upgrade:` trigger.
+
 ## Release Package Hygiene
 
 Use `release-package hygiene` before package install or upgrade proof when release tarball lineage matters:

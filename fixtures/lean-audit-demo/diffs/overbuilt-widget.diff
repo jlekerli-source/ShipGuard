@@ -1,0 +1,25 @@
+diff --git a/src/OverbuiltWidget.tsx b/src/OverbuiltWidget.tsx
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/src/OverbuiltWidget.tsx
+@@ -0,0 +1,17 @@
++import DatePicker from "react-datepicker";
++import { uniq } from "lodash";
++
++// shipguard-lean: shortcut marker without enough context
++export function normalizeLabels(labels: string[]) {
++  return uniq(labels.map((label) => label.trim()));
++}
++
++export function toLabel(value: string) {
++  return String(value).trim();
++}
++
++export function DueDateWidget({ value, onChange }) {
++  return (
++    <div className="future-proof date-widget">
++      <DatePicker selected={value} onChange={onChange} />
++    </div>
++  );
++}

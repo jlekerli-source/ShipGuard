@@ -47,7 +47,12 @@ SKIP_DIRS = {
     "tests",
     "vendor",
 }
-SCANNER_SELF_SKIP_FILES = {"scripts/lean_audit.py", "scripts/self_audit.sh"}
+SCANNER_SELF_SKIP_FILES = {
+    "scripts/lean_audit.py",
+    "scripts/lean_review.py",
+    "scripts/lean_debt.py",
+    "scripts/self_audit.sh",
+}
 SAFETY_TOKENS = (
     "auth",
     "token",

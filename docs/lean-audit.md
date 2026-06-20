@@ -18,6 +18,20 @@ Outputs:
 
 The report uses a ShipGuard-native Lean Deck inspired by Ponytail's “best code is the code you never wrote” ladder, but it does not vendor Ponytail code. Source influence stays explicit so ShipGuard remains honest open source.
 
+For current changes, use diff review instead of a whole-repo scan:
+
+```bash
+git diff > /tmp/change.diff
+./bin/shipguard lean review \
+  --path . \
+  --diff /tmp/change.diff \
+  --out /tmp/shipguard-lean-review \
+  --shipguard-eval \
+  --shareable
+```
+
+`lean review` writes `lean-review.json` and `lean-review.md` with one-line diff findings plus a precision ledger. It is the native ShipGuard equivalent of a Ponytail-style “what can this change delete or avoid?” review.
+
 Repo-level audits skip public fixtures, examples, tests, generated packages, and scanner maintenance manifests by default so demo code does not dominate the findings. The JSON `scanScope` records skipped directory names, skipped files, file limits, and whether the scan was truncated. If you point `--path` directly at a fixture or demo repo, ShipGuard scans that target normally.
 
 Large-file findings include a `leanEvidence` packet instead of only saying “this file is big.” The packet records line count, legacy/TODO marker count, first marker lines, safety context, and a first-action hint. The Markdown report mirrors that in a Lean Evidence Packets table so a maintainer can start with a small marker cluster instead of staring at a giant file.
@@ -40,6 +54,18 @@ upgrade trigger, for example:
 
 Markers without an upgrade trigger are reported as `needs-trigger` so intentional
 simplifications stay visible instead of turning into permanent mystery debt.
+
+For a ledger-only pass:
+
+```bash
+./bin/shipguard lean debt \
+  --path . \
+  --out /tmp/shipguard-lean-debt \
+  --shipguard-eval \
+  --shareable
+```
+
+`lean debt` writes `lean-debt.json` and `lean-debt.md`.
 
 ## What It Checks
 

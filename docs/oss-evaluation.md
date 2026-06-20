@@ -6,6 +6,17 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current Ponytail Native Precision QA
+
+The v3.197 read-only QA pass inspected the public Ponytail repo, refreshed the installed local Codex Ponytail plugin, then ran ShipGuard's existing Lean Deck against this checkout as the native precision-code baseline.
+
+- Finding: ShipGuard already had `lean audit`, `precisionReview`, safety-boundary handling, and a shortcut ledger, but it lacked a fast current-diff review path and a standalone debt-only command.
+- Product weakness: a solo developer needs to answer "what in this change can be deleted or avoided?" before merge without reading a whole-repo audit. They also need a shortcut ledger without running the entire audit.
+- Native fix: `shipguard lean review` now writes `lean-review.json` and `lean-review.md` from a unified diff, and `shipguard lean debt` now writes `lean-debt.json` and `lean-debt.md` from `ponytail:` / `shipguard-lean:` markers.
+- Boundary: ShipGuard keeps Ponytail as explicit source influence and implements its own read-only report logic instead of vendoring Ponytail code or hiding attribution.
+
+Fresh self-QA now runs `lean audit`, `lean review`, `lean debt`, and report-quality on the generated outputs before treating precise-code work as integrated.
+
 ## Current Release Proof Freshness Audit
 
 The v3.184 read-only QA rotation generated a fresh local release package, built release proof, reshaped it into downloaded release assets, verified `release-consume`, ran package hygiene, ran LaunchKey release-candidate proof, and ran stable-publication proof. `ios report-quality` found a concrete recursive-scoring weakness:

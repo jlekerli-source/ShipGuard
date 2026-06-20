@@ -38,6 +38,8 @@ Usage:
   shipguard docs-check [path] [--out <dir>]
   shipguard brand [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
   shipguard lean audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard lean review --diff <patch.diff> --out <dir> [--path <repo>] [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard lean debt --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard value-gauntlet [--path <shipguard-repo>] [--out <dir>] [--strict] [--json|--markdown]
   shipguard full-audit --out <dir> [--path <shipguard-repo>] [--profile quick|release|shipyard] [--stage <id> ...] [--resume] [--plan-only] [--include-install] [--release-url <url>] [--version <version>] [--tag <tag>] [--commit <sha>] [--ci-run-url <url>] [--shipguard-eval] [--shareable] [--strict] [--json|--markdown]
   shipguard inspect --path <shipguard-repo> --out <dir> [--value-gauntlet <file-or-dir>] [--full-audit <file-or-dir>] [--release-assets <dir>] [--shipguard-eval] [--shareable] [--json|--markdown]
@@ -118,7 +120,7 @@ Commands:
   sarif       Convert an autopsy report JSON file into SARIF 2.1.0.
   docs-check  Check Markdown files for broken local links.
   brand       Audit the full ShipGuard branded naming scheme.
-  lean        Audit code for native, stdlib, dependency, and does-this-need-to-exist simplification opportunities.
+  lean        Audit code and diffs for native, stdlib, dependency, shortcut-debt, and does-this-need-to-exist simplification opportunities.
   value-gauntlet
               Grade every ShipGuard command, skill, plugin, action, and proof surface for developer value.
   full-audit  Run or plan one resumable validation, value-gauntlet, report-quality, package, plugin, CI, and release-proof lane.
@@ -472,6 +474,12 @@ cmd_lean() {
   case "$subcommand" in
     audit)
       run_py "$tool_root/scripts/lean_audit.py" "$@"
+      ;;
+    review)
+      run_py "$tool_root/scripts/lean_review.py" "$@"
+      ;;
+    debt)
+      run_py "$tool_root/scripts/lean_debt.py" "$@"
       ;;
     help|--help|-h|"")
       run_py "$tool_root/scripts/lean_audit.py" --help
