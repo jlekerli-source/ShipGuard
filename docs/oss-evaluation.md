@@ -6,6 +6,18 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current MarketplaceDeck GitHub Presentation Fixture Promotion
+
+The next read-only MarketplaceDeck QA pass started from a state where fresh-user comprehension, plugin install freshness, submission-packet readiness, and docs-index clarity were already covered by public fixtures. Fresh `shipguard codex marketplace-readiness` plus `ios report-quality --write-fixture-candidates` advanced to the last current MarketplaceDeck gap:
+
+- Question: "Does the GitHub About/sidebar copy and social preview still match the latest published release without claiming unreleased v4 stability?"
+- Candidate type: `shipguard-marketplace-readiness-fixture`
+- Product weakness: public marketplace readiness must cover the live GitHub profile surface, not only tracked README/docs/plugin files.
+
+This slice promotes `fixtures/ios-report-quality/01-shipguard-codex-marketplace-readiness-does-the-github-about-side` as public synthetic coverage. Fresh MarketplaceDeck report-quality now covers all five current MarketplaceDeck actionability questions and returns `all-actionability-covered`, which tells the maintainer to rotate to a fresh read-only ShipGuard QA source instead of re-reviewing the first covered fixture.
+
+This keeps the public-distribution QA loop honest about GitHub-facing presentation while avoiding claims about manually changed GitHub settings beyond the tracked guidance and social-preview asset.
+
 ## Current MarketplaceDeck Docs-Index Clarity Fixture Promotion
 
 The next read-only MarketplaceDeck QA pass started from a real product weakness: the README had been simplified, but `docs/index.md` still behaved like a command dump. `shipguard codex marketplace-readiness` and `ios report-quality` both passed before the cleanup, which showed a ShipGuard weakness rather than an app weakness:

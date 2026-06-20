@@ -1,14 +1,14 @@
 # Next Goal
 
-- Generated: 2026-06-20T11:44:23Z
+- Generated: 2026-06-20T11:57:55Z
 - Current toolkit version: 3.131.0
-- Target release: v3.180.0
-- Title: MarketplaceDeck GitHub Presentation Fixture
+- Target release: v3.181.0
+- Title: MarketplaceDeck Coverage Rotation
 
 ## Slash Plan
 
 ```text
-/plan v3.180.0 MarketplaceDeck GitHub Presentation Fixture for jlekerli-source/ShipGuard:
+/plan v3.181.0 MarketplaceDeck Coverage Rotation for jlekerli-source/ShipGuard:
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
@@ -18,19 +18,19 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.180.0 MarketplaceDeck GitHub Presentation Fixture for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.181.0 MarketplaceDeck Coverage Rotation for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Completion Receipt
 
-- Completed scope: Added MarketplaceDeck public-onboarding clarity checks for docs/index.md, promoted the docs-index clarity report-quality question into a public synthetic fixture, and taught report-quality to prioritize and materialize docs-index/onboarding questions before advancing to GitHub About/sidebar and social-preview alignment.
-- Evidence: Passed: python3 -m py_compile scripts/codex_marketplace_readiness.py scripts/ios_report_quality.py; ./tests/codex_marketplace_readiness_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard codex marketplace-readiness --path . --out /tmp/shipguard-marketplace-docs-clarity-readiness --strict --shareable; ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-codex-marketplace-readiness-can-docs-index-md-guide-fi --out /tmp/shipguard-marketplace-docs-clarity-fixture-quality --shareable; ./bin/shipguard docs-check . --out /tmp/shipguard-marketplace-docs-clarity-docs-check; ./bin/shipguard validate; ./tests/self_audit_test.sh; ./tests/package_release_test.sh.
+- Completed scope: Promoted the MarketplaceDeck GitHub About/sidebar and social-preview alignment question into public fixture coverage, so fresh marketplace-readiness report-quality now covers all five current MarketplaceDeck questions and returns all-actionability-covered before rotating to a fresh ShipGuard QA source.
+- Evidence: Passed: ./bin/shipguard codex marketplace-readiness --path . --out /tmp/shipguard-v3181-marketplace --strict --shareable; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3181-marketplace --out /tmp/shipguard-v3181-marketplace-quality-final --shareable --write-fixture-candidates /tmp/shipguard-v3181-marketplace-fixtures-final; ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-codex-marketplace-readiness-does-the-github-about-side --out /tmp/shipguard-v3181-github-fixture-quality --shareable; ./tests/ios_report_quality_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.181.0 MarketplaceDeck Coverage Rotation for jlekerli-source/ShipGuard:
+/plan v3.182.0 Fresh QA Source Rotation for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -40,13 +40,13 @@
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.181.0 MarketplaceDeck Coverage Rotation for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.182.0 Fresh QA Source Rotation for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.181.0 --title "MarketplaceDeck Coverage Rotation" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.182.0 --title "Fresh QA Source Rotation" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -146,12 +146,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.180.0.
+1. Open or update the tracking issue for v3.181.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.180.0` and upload `dist/shipguard-v3.180.0.tar.gz`.
+6. Create release `v3.181.0` and upload `dist/shipguard-v3.181.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
