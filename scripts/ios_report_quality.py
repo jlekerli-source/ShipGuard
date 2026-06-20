@@ -3274,6 +3274,17 @@ def slugify(value: object, *, limit: int = 72) -> str:
 def fixture_type_for_question(question: str, tool: str) -> str:
     text = normalized_question_text(f"{tool} {question}")
     question_text = normalized_question_text(question)
+    if tool == "shipguard full-audit" and (
+        "proof boundaries" in question_text
+        or "proof boundary" in question_text
+        or "pushing" in question_text
+        or "publishing" in question_text
+        or "target apps" in question_text
+        or "resumable evidence lane" in question_text
+        or "slow lanes" in question_text
+        or "slash handoff" in question_text
+    ):
+        return "shipguard-full-audit-proof-boundary-fixture"
     if is_launchdeck_receipt_question(question_text, tool):
         return "ios-launchdeck-receipt-quality-fixture"
     if "design-system coherence" in question_text or "design coherence" in question_text:

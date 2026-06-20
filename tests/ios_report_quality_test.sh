@@ -73,6 +73,43 @@ if grep -R -F -q "$tmp_dir" "$tmp_dir/shareable-quality"; then
   echo "shareable report-quality output must not include local absolute temp paths" >&2
   exit 1
 fi
+./bin/shipguard full-audit \
+  --path . \
+  --out "$tmp_dir/full-audit-plan" \
+  --profile quick \
+  --plan-only \
+  --shipguard-eval \
+  --shareable >/dev/null
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/full-audit-plan" \
+  --out "$tmp_dir/full-audit-plan-quality" \
+  --shareable \
+  --write-fixture-candidates "$tmp_dir/full-audit-plan-fixtures" >/dev/null
+python3 - <<'PY' "$tmp_dir/full-audit-plan-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+priority = data.get("priorityAction") or {}
+expected = "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?"
+if priority.get("kind") != "answer-actionability-question":
+    raise SystemExit(f"expected full-audit boundary question priority: {priority!r}")
+if priority.get("question") != expected:
+    raise SystemExit(f"expected full-audit proof-boundary question, got {priority!r}")
+candidates = data.get("fixtureCandidates") or []
+if len(candidates) != 1:
+    raise SystemExit(f"expected one full-audit fixture candidate, got {candidates!r}")
+candidate = candidates[0]
+if candidate.get("fixtureType") != "shipguard-full-audit-proof-boundary-fixture":
+    raise SystemExit(f"full-audit proof-boundary question used generic fixture type: {candidate!r}")
+if candidate.get("sourceQuestion") != expected:
+    raise SystemExit(f"unexpected full-audit source question: {candidate!r}")
+PY
+grep -q 'shipguard-full-audit-proof-boundary-fixture' "$tmp_dir/full-audit-plan-quality/ios-report-quality.md"
+full_audit_materialized_candidate_dir="$(find "$tmp_dir/full-audit-plan-fixtures" -mindepth 1 -maxdepth 1 -type d -name '*shipguard-full-audit*' | sort | head -n 1)"
+test -n "$full_audit_materialized_candidate_dir"
+grep -q '"fixtureType": "shipguard-full-audit-proof-boundary-fixture"' "$full_audit_materialized_candidate_dir/fixture-candidate.json"
+
 leaky_private="$tmp_dir/leaky-private"
 cp -R "$shareable_reports/design" "$leaky_private"
 python3 - <<'PY' "$leaky_private/ios-design.json"

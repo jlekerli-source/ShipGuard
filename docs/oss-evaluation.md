@@ -4,6 +4,21 @@ Generated: 2026-06-17
 
 This is the current usefulness and refinement evaluation for ShipGuard after the rename and README repositioning work.
 
+## Current Fresh QA Source Expansion
+
+The latest read-only ShipGuard QA loop moved beyond the saturated value-gauntlet path and used `shipguard full-audit --profile quick --plan-only --shipguard-eval --shareable` as a fresh source. Report-quality passed the Full Audit report, but the materialized candidate for the top question was still generic:
+
+- Question: "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?"
+- Old fixture type: `shipguard-eval-boundary-fixture`
+
+That was too vague for a Full Audit-specific proof lane. This slice makes the new QA source useful:
+
+- Full Audit proof-boundary, pushing/publishing, target-app, slow-lane, resumable evidence-lane, and slash-handoff questions now materialize as `shipguard-full-audit-proof-boundary-fixture`.
+- The focused report-quality test runs Full Audit in plan-only/shareable mode, grades it, and fails if the candidate falls back to the generic boundary fixture type.
+- The fixture remains a starter candidate only; ShipGuard does not auto-promote it into the repo or claim executed release proof from a plan-only report.
+
+This expands the loop from value-gauntlet-only QA to another root ShipGuard report family while preserving the read-only boundary.
+
 ## Current Fixture Review Priority UX
 
 The latest read-only ShipGuard QA loop ran `shipguard value-gauntlet` and graded the output with `shipguard ios report-quality`. The gauntlet passed, and report-quality correctly detected that the five ranked value-gauntlet actionability questions already have promoted public fixture coverage.
