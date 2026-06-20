@@ -55,7 +55,7 @@ Outputs:
 The report returns `pass` only when every gate passes:
 
 - GitHub release metadata exists for the requested tag, is not draft/prerelease, and includes the required release assets.
-- Release notes explicitly describe stable-v4 publication proof.
+- Release notes pass the stable-publication topic matrix: stable-v4 claim, publication-proof boundary, downloaded release assets, post-release consumer proof, independent adoption evidence, final security review evidence, and non-claim boundaries.
 - The supplied `v4 release-candidate` report is from LaunchKey, passed, and still claims only `candidate-ready`.
 - Downloaded or supplied release assets pass `shipguard release-consume verify`.
 - Post-release consumer proof is attached from the release assets.
@@ -63,6 +63,22 @@ The report returns `pass` only when every gate passes:
 - Final security-review evidence passes the stable-v4 gate with CLI, plugin, GitHub Actions, release-proof, package-install, and redaction/privacy scope coverage.
 
 If any gate fails, the report returns `review`, sets `stableV4Release` to `false`, and puts the next command in `resultUX.nextCommand`.
+
+## Release Notes Proof
+
+`releaseNotesProof` is a structured gate, not a keyword vibe check. The report analyzes the full GitHub release body, records a SHA-256 digest, counts lines, and emits `topicMatrix` plus `missingTopicIds`.
+
+The release notes must mention:
+
+- the stable-v4 release claim
+- the publication or release-proof boundary
+- downloaded release assets
+- post-release consumer proof
+- independent adoption evidence
+- final security-review evidence
+- non-claims or blocked claims
+
+Markdown renders the same matrix under `Release Notes Proof` so maintainers can fix the public release text without reading JSON.
 
 ## Evidence Packet
 

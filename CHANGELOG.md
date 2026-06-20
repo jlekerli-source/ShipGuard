@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Tightened `shipguard v4 stable-publication` release-notes proof: the gate now analyzes the full GitHub release body, emits a digest plus seven-topic matrix, renders `Release Notes Proof` in Markdown, and blocks stable-v4 publication when notes omit downloaded release assets, post-release consumer proof, independent adoption, final security review, or non-claim boundaries.
 - Added `shipguard release-package hygiene`, a read-only package-lineage report that scans ShipGuard release tarballs and downloaded release assets for AppleDouble `._*`, `.DS_Store`, `__MACOSX`, cache artifacts, unsafe links/devices, path traversal, and missing installable package roots before LaunchKey install or upgrade proof.
 
 ## Unreleased

@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-20T04:16:34Z
+- Generated: 2026-06-20T04:31:41Z
 - Current toolkit version: 3.131.0
-- Target release: v3.157.0
-- Title: Release Package Lineage Hygiene
+- Target release: v3.158.0
+- Title: Stable Release Notes Proof Gate
 
 ## Slash Plan
 
 ```text
-/plan v3.157.0 Release Package Lineage Hygiene for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add a read-only ShipGuard package-lineage hygiene report for release tarballs and downloaded assets, prove it catches the historical AppleDouble blocker without rewriting releases or faking repair, wire docs/tests/package/report-quality/value-gauntlet coverage, and keep the next slash plan/goal loop alive.
+/plan v3.158.0 Stable Release Notes Proof Gate for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Tighten stable-publication release-notes proof so weak public GitHub release notes cannot pass stable-v4 publication when they omit the actual evidence packet topics.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.157.0 Release Package Lineage Hygiene for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add a read-only ShipGuard package-lineage hygiene report for release tarballs and downloaded assets, prove it catches the historical AppleDouble blocker without rewriting releases or faking repair, wire docs/tests/package/report-quality/value-gauntlet coverage, and keep the next slash plan/goal loop alive, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.158.0 Stable Release Notes Proof Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Tighten stable-publication release-notes proof so weak public GitHub release notes cannot pass stable-v4 publication when they omit the actual evidence packet topics, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add a read-only ShipGuard package-lineage hygiene report for release tarballs and downloaded assets, prove it catches the historical AppleDouble blocker without rewriting releases or faking repair, wire docs/tests/package/report-quality/value-gauntlet coverage, and keep the next slash plan/goal loop alive.
+Tighten stable-publication release-notes proof so weak public GitHub release notes cannot pass stable-v4 publication when they omit the actual evidence packet topics.
 
 ## Completion Receipt
 
-- Completed scope: Added shipguard release-package hygiene as a read-only package-lineage report. It scans explicit tarballs, downloaded release asset directories, or local dist packages for AppleDouble metadata, Finder metadata, bytecode/cache artifacts, unsafe links/devices, path traversal, and missing installable package roots. Real read-only QA against dist/shipguard-v3.130.0.tar.gz and dist/shipguard-v3.131.0.tar.gz blocked only v3.130.0 on ._shipguard-v3.130.0 while proving shipguard-v3.131.0.tar.gz as the safe current baseline. Report-quality initially found two ShipGuard weaknesses, then the report added ruleSummary and ios report-quality learned the new root tool; the real package-hygiene report now scores pass.
-- Evidence: Passed: python3 -m py_compile scripts/release_package_hygiene.py scripts/ios_report_quality.py; ./tests/release_package_hygiene_test.sh; real read-only package hygiene on dist/shipguard-v3.130.0.tar.gz and dist/shipguard-v3.131.0.tar.gz; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3157-real-package-hygiene --out /tmp/shipguard-v3157-real-package-hygiene-quality --shareable; git diff --check; ./tests/cli_smoke_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3157-package-hygiene; ./tests/self_audit_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3157-value-gauntlet; ./bin/shipguard codex status --strict; ./tests/package_release_test.sh.
+- Completed scope: Added a structured stable-publication release-notes proof matrix that analyzes the full GitHub release body, emits a digest and exact missing topic IDs, renders the matrix in Markdown, and blocks stable-v4 publication when notes omit downloaded release assets, post-release consumer proof, independent adoption evidence, final security review, or non-claim boundaries.
+- Evidence: Passed: python3 -m py_compile scripts/v4_stable_publication.py; ./tests/v4_stable_publication_test.sh with a weak-notes negative fixture proving releaseNotesProof blocks even when candidate packet, release assets, adoption evidence, and security evidence pass.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.158.0 Stable Release Notes Proof Gate for jlekerli-source/ShipGuard:
+/plan v3.159.0 Release Notes Authoring Kit for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add a read-only ShipGuard package-lineage hygiene report for release tarballs an
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.158.0 Stable Release Notes Proof Gate for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.159.0 Release Notes Authoring Kit for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.158.0 --title "Stable Release Notes Proof Gate" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.159.0 --title "Release Notes Authoring Kit" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.157.0.
+1. Open or update the tracking issue for v3.158.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.157.0` and upload `dist/shipguard-v3.157.0.tar.gz`.
+6. Create release `v3.158.0` and upload `dist/shipguard-v3.158.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

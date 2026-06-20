@@ -34,6 +34,19 @@ This slice improves the execution path without weakening the gate:
 
 The starter kit is still draft-only. It helps collect real independent adoption and final security-review evidence; it does not turn fixture evidence or placeholders into stable-v4 proof.
 
+## Current Stable Release Notes Proof Gate
+
+The next stable-publication QA pass showed that the release-notes gate was too easy to satisfy: a short phrase like "stable v4 release proof is ready" could pass the old keyword check even when the public notes did not explain downloaded release assets, post-release consumer proof, independent adoption, final security review, or non-claim boundaries.
+
+This slice makes the gate evidence-shaped:
+
+- `shipguard v4 stable-publication` now analyzes the full GitHub release body, not only the preview stored for human reading.
+- `releaseNotesProof` emits a notes digest, line count, seven-topic matrix, and exact `missingTopicIds`.
+- Markdown renders a `Release Notes Proof` section so the maintainer can fix the release page directly.
+- Focused tests prove weak notes block stable publication even when the candidate packet, release assets, adoption evidence, and security review all pass.
+
+The stable-v4 claim remains blocked until the public release notes describe the real stable-publication proof packet.
+
 ## Current Development Loop Efficiency Receipt
 
 The latest self-QA pass showed a real development-process weakness: after the design observation question was promoted into a public fixture, the existing workflow-chain receipt became too coupled to that now-covered design question. The receipt failed even though the product behavior was improving, which meant the proof loop could waste maintainer time on manual interpretation.

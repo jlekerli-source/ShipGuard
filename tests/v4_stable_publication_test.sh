@@ -158,7 +158,7 @@ target.write_text(
             "html_url": f"https://github.com/jlekerli-source/ShipGuard/releases/tag/v{version}",
             "published_at": "2026-06-20T00:00:00Z",
             "target_commitish": "0123456789abcdef0123456789abcdef01234567",
-            "body": "ShipGuard stable v4 publication release proof. Includes stable-v4 publication boundaries, release proof, downloaded asset verification, independent adoption evidence, and final security review evidence.",
+            "body": "ShipGuard stable v4 publication proof. Includes stable-v4 publication boundaries, release proof, downloaded release asset verification, post-release consumer proof, independent adoption evidence, final security review evidence, and blocked claims/non-claims for marketplace acceptance and private app validation.",
             "assets": [
                 {
                     "name": name,
@@ -236,6 +236,120 @@ test -f "$tmp_dir/blocked/stable-publication-evidence-kit/security-review-eviden
 grep -q '"draftOnly": true' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q 'Stable Publication Evidence Kit' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 
+python3 - "$release_endpoint_file" "$version" "$tmp_dir/downloaded" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+target = Path(sys.argv[1])
+version = sys.argv[2]
+downloaded = Path(sys.argv[3])
+asset_names = [
+    f"shipguard-v{version}.tar.gz",
+    "release-manifest.json",
+    "release-index.json",
+    "proof-ledger.md",
+    "replay-report.json",
+    "attestation.json",
+    "attestation-badge.json",
+]
+target.write_text(
+    json.dumps(
+        {
+            "tag_name": f"v{version}",
+            "html_url": f"https://github.com/jlekerli-source/ShipGuard/releases/tag/v{version}",
+            "published_at": "2026-06-20T00:00:00Z",
+            "target_commitish": "0123456789abcdef0123456789abcdef01234567",
+            "body": "ShipGuard stable v4 release proof is ready.",
+            "assets": [
+                {
+                    "name": name,
+                    "browser_download_url": (downloaded / name).as_uri()
+                }
+                for name in asset_names
+            ]
+        }
+    ),
+    encoding="utf-8",
+)
+PY
+
+if ./bin/shipguard v4 stable-publication \
+  --path . \
+  --out "$tmp_dir/weak-notes" \
+  --github-release-repo jlekerli-source/ShipGuard \
+  --github-api-url "file://$api_root" \
+  --release-version "$version" \
+  --release-candidate-report "$tmp_dir/candidate-pass.json" \
+  --release-assets "$tmp_dir/downloaded" \
+  --release-consume-out "$tmp_dir/weak-notes-consume" \
+  --external-adoption-evidence "$tmp_dir/evidence/stable-adoption" \
+  --security-review-evidence "$tmp_dir/evidence/stable-security" \
+  --shipguard-eval \
+  --shareable >/dev/null 2>&1; then
+  echo "expected weak release notes to block stable publication" >&2
+  exit 1
+fi
+python3 - "$tmp_dir/weak-notes/v4-stable-publication.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+assert report["status"] == "review"
+assert report["stableV4Release"] is False
+assert report["releaseNotesProof"]["status"] == "review"
+assert report["stablePublicationEvidencePacket"]["firstBlockingGate"]["receipt"] == "releaseNotesProof"
+missing = set(report["releaseNotesProof"]["missingTopicIds"])
+assert {
+    "downloaded-release-assets",
+    "post-release-consumer-proof",
+    "independent-adoption-evidence",
+    "final-security-review-evidence",
+    "non-claims-boundary",
+} <= missing
+assert len(report["releaseNotesProof"]["topicMatrix"]) == 7
+PY
+grep -q 'Release Notes Proof' "$tmp_dir/weak-notes/v4-stable-publication.md"
+grep -q 'post-release-consumer-proof' "$tmp_dir/weak-notes/v4-stable-publication.md"
+
+python3 - "$release_endpoint_file" "$version" "$tmp_dir/downloaded" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+target = Path(sys.argv[1])
+version = sys.argv[2]
+downloaded = Path(sys.argv[3])
+asset_names = [
+    f"shipguard-v{version}.tar.gz",
+    "release-manifest.json",
+    "release-index.json",
+    "proof-ledger.md",
+    "replay-report.json",
+    "attestation.json",
+    "attestation-badge.json",
+]
+target.write_text(
+    json.dumps(
+        {
+            "tag_name": f"v{version}",
+            "html_url": f"https://github.com/jlekerli-source/ShipGuard/releases/tag/v{version}",
+            "published_at": "2026-06-20T00:00:00Z",
+            "target_commitish": "0123456789abcdef0123456789abcdef01234567",
+            "body": "ShipGuard stable v4 publication proof. Includes stable-v4 publication boundaries, release proof, downloaded release asset verification, post-release consumer proof, independent adoption evidence, final security review evidence, and blocked claims/non-claims for marketplace acceptance and private app validation.",
+            "assets": [
+                {
+                    "name": name,
+                    "browser_download_url": (downloaded / name).as_uri()
+                }
+                for name in asset_names
+            ]
+        }
+    ),
+    encoding="utf-8",
+)
+PY
+
 SHIPGUARD_GENERATED_AT="2026-06-20T00:00:00Z" \
   ./bin/shipguard v4 stable-publication \
     --path . \
@@ -266,6 +380,9 @@ assert report["status"] == "pass"
 assert report["stableV4Release"] is True
 assert report["githubReleaseMetadataProof"]["status"] == "pass"
 assert report["releaseNotesProof"]["status"] == "pass"
+assert report["releaseNotesProof"]["missingTopicIds"] == []
+assert len(report["releaseNotesProof"]["topicMatrix"]) == 7
+assert report["releaseNotesProof"]["releaseNotesSha256"]
 assert report["releaseCandidatePacketProof"]["status"] == "pass"
 assert report["githubReleaseAssetDownloadProof"]["status"] == "pass"
 assert report["publishedReleaseAssetProof"]["status"] == "pass"
@@ -308,6 +425,8 @@ PY
 grep -q '# ShipGuard V4 Stable Publication Proof' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Stable Publication Gates' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Packet' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Release Notes Proof' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'independent-adoption-evidence' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Templates' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Starter Kit' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Stable v4 release claim allowed: `True`' "$tmp_dir/pass/v4-stable-publication.md"

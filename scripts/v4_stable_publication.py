@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -33,6 +34,50 @@ REQUIRED_RELEASE_ASSETS = {
     "attestation.json",
     "attestation-badge.json",
 }
+RELEASE_NOTES_TOPIC_RULES = [
+    {
+        "id": "stable-v4-claim",
+        "title": "Stable v4 release claim",
+        "terms": ("stable-v4", "stable v4"),
+        "summary": "Names the stable-v4 release claim explicitly.",
+    },
+    {
+        "id": "publication-proof-boundary",
+        "title": "Publication proof boundary",
+        "terms": ("publication proof", "release proof", "stable-publication", "stable publication"),
+        "summary": "Explains that stable publication depends on proof, not intent.",
+    },
+    {
+        "id": "downloaded-release-assets",
+        "title": "Downloaded release assets",
+        "terms": ("downloaded release asset", "release asset", "release assets"),
+        "summary": "Mentions downloaded release assets or asset verification.",
+    },
+    {
+        "id": "post-release-consumer-proof",
+        "title": "Post-release consumer proof",
+        "terms": ("post-release consumer", "consumer proof", "release-consume", "release consume"),
+        "summary": "Mentions post-release consumer verification.",
+    },
+    {
+        "id": "independent-adoption-evidence",
+        "title": "Independent adoption evidence",
+        "terms": ("independent adoption", "external adoption", "adoption evidence"),
+        "summary": "Mentions independent or external adoption evidence.",
+    },
+    {
+        "id": "final-security-review-evidence",
+        "title": "Final security review evidence",
+        "terms": ("final security", "security review", "security evidence"),
+        "summary": "Mentions final security review evidence.",
+    },
+    {
+        "id": "non-claims-boundary",
+        "title": "Non-claims boundary",
+        "terms": ("non-claim", "nonclaim", "does not claim", "blocked claim", "blocked claims"),
+        "summary": "States what the release notes do not prove or claim.",
+    },
+]
 
 STABLE_PUBLICATION_TEMPLATE_DIR = "templates/stable-publication"
 STABLE_PUBLICATION_TEMPLATE_SPECS = [
@@ -248,6 +293,7 @@ def build_github_release_metadata_proof(args: argparse.Namespace, version: str) 
     required_assets = set(proof["requiredAssets"])
     missing_assets = sorted(required_assets - set(asset_names))
     body = str(release.get("body") or "")
+    release_notes_analysis = analyze_release_notes(body)
     proof.update(
         {
             "status": "pass" if not missing_assets else "review",
@@ -260,7 +306,11 @@ def build_github_release_metadata_proof(args: argparse.Namespace, version: str) 
             "assetNames": asset_names,
             "missingAssets": missing_assets,
             "releaseNotesLength": len(body.strip()),
+            "releaseNotesLineCount": release_notes_analysis["lineCount"],
+            "releaseNotesSha256": release_notes_analysis["sha256"],
             "releaseNotesPreview": launchkey.short_output(body, 700),
+            "releaseNotesTopicMatrix": release_notes_analysis["topicMatrix"],
+            "releaseNotesMissingTopicIds": release_notes_analysis["missingTopicIds"],
             "isDraft": bool(release.get("draft") or release.get("isDraft")),
             "isPrerelease": bool(release.get("prerelease") or release.get("isPrerelease")),
         }
@@ -273,13 +323,36 @@ def build_github_release_metadata_proof(args: argparse.Namespace, version: str) 
     return proof
 
 
+def analyze_release_notes(body: str) -> dict[str, Any]:
+    text = str(body or "").strip()
+    normalized = re_normalized(text)
+    topic_matrix: list[dict[str, Any]] = []
+    for rule in RELEASE_NOTES_TOPIC_RULES:
+        matched_terms = [term for term in rule["terms"] if term in normalized]
+        topic_matrix.append(
+            {
+                "id": rule["id"],
+                "title": rule["title"],
+                "status": "pass" if matched_terms else "missing",
+                "matchedTerms": matched_terms,
+                "summary": rule["summary"],
+            }
+        )
+    missing_topic_ids = [item["id"] for item in topic_matrix if item["status"] != "pass"]
+    return {
+        "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest() if text else "",
+        "lineCount": len(text.splitlines()) if text else 0,
+        "topicMatrix": topic_matrix,
+        "missingTopicIds": missing_topic_ids,
+    }
+
+
 def build_release_notes_proof(metadata_proof: dict[str, Any]) -> dict[str, Any]:
-    body = str(metadata_proof.get("releaseNotesPreview") or "")
-    normalized = re_normalized(body)
-    stable_terms = ("stable-v4" in normalized or "stable v4" in normalized) and (
-        "release proof" in normalized or "publication" in normalized or "stable release" in normalized
-    )
-    pass_status = metadata_proof.get("status") == "pass" and stable_terms
+    topic_matrix = metadata_proof.get("releaseNotesTopicMatrix")
+    if not isinstance(topic_matrix, list):
+        topic_matrix = analyze_release_notes(str(metadata_proof.get("releaseNotesPreview") or ""))["topicMatrix"]
+    missing_topic_ids = [str(item.get("id")) for item in topic_matrix if isinstance(item, dict) and item.get("status") != "pass"]
+    pass_status = metadata_proof.get("status") == "pass" and not missing_topic_ids
     return {
         "status": "pass" if pass_status else "review",
         "requiredForStableV4": True,
@@ -289,7 +362,11 @@ def build_release_notes_proof(metadata_proof: dict[str, Any]) -> dict[str, Any]:
             else "Release notes do not yet explicitly describe stable-v4 publication proof."
         ),
         "releaseNotesLength": metadata_proof.get("releaseNotesLength", 0),
-        "requiredLanguage": "Mention stable-v4 publication plus release proof or stable-release proof boundaries.",
+        "releaseNotesLineCount": metadata_proof.get("releaseNotesLineCount", 0),
+        "releaseNotesSha256": metadata_proof.get("releaseNotesSha256", ""),
+        "topicMatrix": topic_matrix,
+        "missingTopicIds": missing_topic_ids,
+        "requiredLanguage": "Mention stable-v4 publication proof, downloaded release assets, post-release consumer proof, independent adoption evidence, final security review evidence, and non-claim boundaries.",
     }
 
 
@@ -766,6 +843,25 @@ def render_markdown(report: dict[str, Any]) -> str:
         for item in packet.get("requiredEvidence", []):
             if isinstance(item, dict):
                 lines.append(f"| `{item.get('id')}` | `{item.get('status')}` |")
+    release_notes = report.get("releaseNotesProof") if isinstance(report.get("releaseNotesProof"), dict) else {}
+    topic_matrix = release_notes.get("topicMatrix") if isinstance(release_notes.get("topicMatrix"), list) else []
+    if topic_matrix:
+        lines.extend(
+            [
+                "",
+                "## Release Notes Proof",
+                "",
+                f"- Notes digest: `{release_notes.get('releaseNotesSha256') or 'not-available'}`",
+                f"- Missing topics: `{', '.join(release_notes.get('missingTopicIds') or []) or 'none'}`",
+                "",
+                "| Topic | Status | Matched terms |",
+                "| --- | --- | --- |",
+            ]
+        )
+        for item in topic_matrix:
+            if isinstance(item, dict):
+                terms = ", ".join(str(term) for term in item.get("matchedTerms", [])) or "none"
+                lines.append(f"| `{item.get('id')}` | `{item.get('status')}` | {terms} |")
     templates = report.get("stablePublicationEvidenceTemplates") if isinstance(report.get("stablePublicationEvidenceTemplates"), dict) else {}
     if templates:
         lines.extend(
