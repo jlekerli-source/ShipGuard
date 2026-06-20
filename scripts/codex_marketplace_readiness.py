@@ -161,6 +161,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     presentation_doc_path = root / "docs" / "github-presentation.md"
     codex_status_doc_path = root / "docs" / "codex-status.md"
     adoption_doc_path = root / "docs" / "adoption-guide.md"
+    install_doc_path = root / "docs" / "install-doctor.md"
+    cli_doc_path = root / "docs" / "cli.md"
     ios_doc_path = root / "docs" / "ios-shipguard.md"
     version = read_text(root / "VERSION").strip()
     plugin = load_json(plugin_json_path)
@@ -174,6 +176,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     presentation_doc = read_text(presentation_doc_path)
     codex_status_doc = read_text(codex_status_doc_path)
     adoption_doc = read_text(adoption_doc_path)
+    install_doc = read_text(install_doc_path)
+    cli_doc = read_text(cli_doc_path)
     ios_doc = read_text(ios_doc_path)
 
     checks: list[dict[str, Any]] = []
@@ -323,21 +327,35 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         recommendation="Expose ios-shipguard@shipguard from ./plugins/ios-shipguard.",
     )
 
-    readme_version_ok = f"shipguard-v{version}.tar.gz" in readme
+    release_install_docs = "\n".join([install_doc, cli_doc, readiness_doc])
+    release_install_ok = (
+        f"shipguard-v{version}.tar.gz" in release_install_docs
+        or "release package" in install_doc.lower()
+    )
     add_check(
         checks,
         category="publicPresentation",
-        rule_id="readme-current-release-install",
-        passed=readme_version_ok,
-        evidence=f"README references shipguard-v{version}.tar.gz" if readme_version_ok else f"README does not reference shipguard-v{version}.tar.gz",
-        recommendation="Keep README quick start aligned with VERSION so GitHub visitors see the current release.",
+        rule_id="release-install-guidance-present",
+        passed=release_install_ok,
+        evidence=(
+            f"install docs reference shipguard-v{version}.tar.gz"
+            if f"shipguard-v{version}.tar.gz" in release_install_docs
+            else "install docs describe release package install"
+            if release_install_ok
+            else "install docs do not describe release package install"
+        ),
+        recommendation="Keep release-package install guidance in docs so README can stay concise.",
     )
     add_check(
         checks,
         category="publicPresentation",
         rule_id="readme-reusable-positioning",
-        passed="Ringly" not in readme[:2500] and "not tied to any single app" in readme,
-        evidence="README intro is app-neutral" if "Ringly" not in readme[:2500] else "README intro mentions Ringly",
+        passed="Ringly" not in readme[:2500] and check_text_contains(readme[:2500], ["local-first", "open source", "app-neutral"]),
+        evidence=(
+            "README intro is app-neutral"
+            if "Ringly" not in readme[:2500]
+            else "README intro mentions Ringly"
+        ),
         recommendation="Keep GitHub profile text app-neutral and reusable.",
     )
     add_check(

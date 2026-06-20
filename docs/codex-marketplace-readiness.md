@@ -22,7 +22,8 @@ Use `--cache <dir>` with a fixture cache in tests or with the real Codex plugin 
 - tracked plugin metadata in `plugins/ios-shipguard/.codex-plugin/plugin.json`
 - local marketplace source in `.agents/plugins/marketplace.json`
 - plugin logo and composer icon assets under `plugins/ios-shipguard/assets/`
-- README logo and release-install presentation
+- README logo and app-neutral positioning
+- release-package install guidance in the install/release docs
 - app-neutral public positioning with no Ringly-only framing
 - install and refresh docs for `codex plugin marketplace add .`
 - strict `shipguard codex status --strict` proof against the selected plugin cache
