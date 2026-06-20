@@ -2832,6 +2832,78 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 evidence=f"{path_name} Markdown does not expose behavior gates",
                 recommendation="Render behavior gates in Markdown so maintainers see what Lean Deck is protecting.",
             )
+    if tool == "shipguard lean review":
+        findings = report.get("findings") if isinstance(report.get("findings"), list) else []
+        proof_related = [
+            item
+            for item in findings
+            if isinstance(item, dict)
+            and str(item.get("ruleId") or "").startswith("one-runnable-check")
+        ]
+        calibration = report.get("proofSignalCalibration")
+        if proof_related:
+            if not isinstance(calibration, dict):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-review-proof-signal-calibration-missing",
+                    evidence=f"{path_name} has runnable-check findings but no proofSignalCalibration",
+                    recommendation="Emit proofSignalCalibration so Lean Review separates missing proof from same-diff test evidence.",
+                )
+            else:
+                status = str(calibration.get("sameDiffProofStatus") or "")
+                signal_count = int(calibration.get("sameDiffProofSignalCount") or 0)
+                covered_count = int(calibration.get("codeFindingsCoveredBySameDiffProof") or 0)
+                missing_count = int(calibration.get("missingRunnableCheckFindings") or 0)
+                if status == "present" and signal_count < 1:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-proof-signal-count-missing",
+                        evidence=f"{path_name} marks same-diff proof present without proof signals",
+                        recommendation="List the changed test/assertion files that caused same-diff proof calibration.",
+                    )
+                if status == "present" and covered_count < 1 and any(
+                    str(item.get("ruleId") or "") == "one-runnable-check-signal-present-diff"
+                    for item in proof_related
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-proof-signal-covered-count-missing",
+                        evidence=f"{path_name} has same-diff proof findings without a covered count",
+                        recommendation="Set codeFindingsCoveredBySameDiffProof so the report shows how many findings were calibrated.",
+                    )
+                if status == "present" and any(
+                    str(item.get("ruleId") or "") == "one-runnable-check-missing-diff"
+                    for item in proof_related
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-proof-signal-overflagged",
+                        evidence=f"{path_name} still reports missing runnable checks even though same-diff proof is present",
+                        recommendation="Use one-runnable-check-signal-present-diff for calibrated same-diff proof instead of duplicate missing-check warnings.",
+                    )
+                if status == "missing" and missing_count < 1 and any(
+                    str(item.get("ruleId") or "") == "one-runnable-check-missing-diff"
+                    for item in proof_related
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-proof-signal-missing-count-missing",
+                        evidence=f"{path_name} has missing runnable-check findings without a missing count",
+                        recommendation="Set missingRunnableCheckFindings so the report explains why proof remains missing.",
+                    )
+        if proof_related and "Proof Signal Calibration" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="lean-review-proof-signal-markdown-missing",
+                evidence=f"{path_name} Markdown does not expose proof signal calibration",
+                recommendation="Render proofSignalCalibration in Markdown so maintainers can see whether tests were absent or present elsewhere in the diff.",
+            )
     if tool in {"shipguard lean audit", "shipguard lean review"}:
         precision = report.get("precisionReview")
         if isinstance(precision, dict):

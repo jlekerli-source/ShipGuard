@@ -144,6 +144,9 @@ grep -q '"ruleId": "hardware-calibration-missing-diff"' "$tmp_dir/review/lean-re
 grep -q '"ruleId": "speculative-future-hook-diff"' "$tmp_dir/review/lean-review.json"
 grep -q '"reviewLines":' "$tmp_dir/review/lean-review.json"
 grep -q '"behaviorGates":' "$tmp_dir/review/lean-review.json"
+grep -q '"proofSignalCalibration":' "$tmp_dir/review/lean-review.json"
+grep -q '"sameDiffProofStatus": "missing"' "$tmp_dir/review/lean-review.json"
+grep -q '"missingRunnableCheckFindings":' "$tmp_dir/review/lean-review.json"
 grep -q '"precisionReview":' "$tmp_dir/review/lean-review.json"
 grep -q '"actionGroups":' "$tmp_dir/review/lean-review.json"
 python3 - <<'PY' "$tmp_dir/review/lean-review.json"
@@ -167,6 +170,7 @@ PY
 grep -q 'ShipGuard Lean Review' "$tmp_dir/review/lean-review.md"
 grep -q 'Diff Review' "$tmp_dir/review/lean-review.md"
 grep -q 'Behavior Gates' "$tmp_dir/review/lean-review.md"
+grep -q 'Proof Signal Calibration' "$tmp_dir/review/lean-review.md"
 grep -q 'Grouped Action Plan' "$tmp_dir/review/lean-review.md"
 grep -q 'delete | `speculative-future-hook-diff`' "$tmp_dir/review/lean-review.md"
 grep -q 'Individual Starting Points' "$tmp_dir/review/lean-review.md"
@@ -210,6 +214,54 @@ if grep -q '"ruleId": "speculative-future-hook-diff"' "$tmp_dir/detector-review/
   echo "Lean Review should not flag a diagnostic rg command as speculative code" >&2
   exit 1
 fi
+
+cat > "$tmp_dir/same-diff-proof.diff" <<'DIFF'
+diff --git a/src/proof_target.py b/src/proof_target.py
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/src/proof_target.py
+@@ -0,0 +1,5 @@
++def classify(value):
++    if value > 0:
++        return "positive"
++    return "other"
+diff --git a/tests/test_proof_target.py b/tests/test_proof_target.py
+new file mode 100644
+index 0000000..2222222
+--- /dev/null
++++ b/tests/test_proof_target.py
+@@ -0,0 +1,4 @@
++from src.proof_target import classify
++
++def test_classify_positive():
++    assert classify(1) == "positive"
+DIFF
+
+./bin/shipguard lean review \
+  --path fixtures/lean-audit-demo \
+  --diff "$tmp_dir/same-diff-proof.diff" \
+  --out "$tmp_dir/same-diff-proof-review" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+grep -q '"ruleId": "one-runnable-check-signal-present-diff"' "$tmp_dir/same-diff-proof-review/lean-review.json"
+grep -q '"sameDiffProofStatus": "present"' "$tmp_dir/same-diff-proof-review/lean-review.json"
+grep -q '"codeFindingsCoveredBySameDiffProof": 1' "$tmp_dir/same-diff-proof-review/lean-review.json"
+grep -q '"sameDiffProofSignalCount": 1' "$tmp_dir/same-diff-proof-review/lean-review.json"
+grep -q 'Proof Signal Calibration' "$tmp_dir/same-diff-proof-review/lean-review.md"
+grep -q 'tests/test_proof_target.py:1' "$tmp_dir/same-diff-proof-review/lean-review.md"
+if grep -q '"ruleId": "one-runnable-check-missing-diff"' "$tmp_dir/same-diff-proof-review/lean-review.json"; then
+  echo "Lean Review should calibrate same-diff test evidence instead of reporting a missing runnable check" >&2
+  exit 1
+fi
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/same-diff-proof-review" \
+  --out "$tmp_dir/same-diff-proof-quality" \
+  --shipguard-eval \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/same-diff-proof-quality/ios-report-quality.json"
 
 ./bin/shipguard lean debt \
   --path fixtures/lean-audit-demo \

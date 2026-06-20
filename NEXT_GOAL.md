@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-20T21:44:23Z
+- Generated: 2026-06-20T22:08:04Z
 - Current toolkit version: 3.131.0
-- Target release: v3.134.0
-- Title: Lean Review Diff Action Groups QA
+- Target release: v3.135.0
+- Title: Lean Review Proof Signal Calibration QA
 
 ## Slash Plan
 
 ```text
-/plan v3.134.0 Lean Review Diff Action Groups QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Improve Lean Review so diff-scoped grouped action plans are visible in Markdown, report-quality fails hidden groups, and delete-vs-simplify decisions stay precise for speculative future-hook findings.
+/plan v3.135.0 Lean Review Proof Signal Calibration QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Improve Lean Review so same-diff test/assertion changes are shown as proof signals to review and run, rather than duplicated missing-runnable-check warnings.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.134.0 Lean Review Diff Action Groups QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Improve Lean Review so diff-scoped grouped action plans are visible in Markdown, report-quality fails hidden groups, and delete-vs-simplify decisions stay precise for speculative future-hook findings, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.135.0 Lean Review Proof Signal Calibration QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Improve Lean Review so same-diff test/assertion changes are shown as proof signals to review and run, rather than duplicated missing-runnable-check warnings, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Improve Lean Review so diff-scoped grouped action plans are visible in Markdown, report-quality fails hidden groups, and delete-vs-simplify decisions stay precise for speculative future-hook findings.
+Improve Lean Review so same-diff test/assertion changes are shown as proof signals to review and run, rather than duplicated missing-runnable-check warnings.
 
 ## Completion Receipt
 
-- Completed scope: Added Lean Review Markdown grouped action plans, routed repeated diff findings through precisionReview.actionGroups first, extended report-quality enforcement to Lean Review Markdown, corrected speculative future-hook findings into delete groups, and added self-noise fixtures for detector command/token definitions after read-only ShipGuard self-QA.
-- Evidence: Passed: python3 -m py_compile scripts/lean_audit.py scripts/lean_review.py scripts/ios_report_quality.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; git diff --check. Read-only self-QA: /tmp/shipguard-v3134-lean-review-final and /tmp/shipguard-v3134-lean-review-quality-final passed with Markdown Grouped Action Plan, zero report-quality issues, and speculative-future-hook-diff grouped as delete. Current-diff QA: /tmp/shipguard-v3134-current-lean-review-final3 and /tmp/shipguard-v3134-current-quality-final3 passed with zero report-quality issues.
+- Completed scope: Added Lean Review proofSignalCalibration, same-diff proof-signal findings, Markdown calibration output, report-quality enforcement, docs, plugin routing, and focused public fixtures after read-only ShipGuard/Ponytail Lean Deck QA.
+- Evidence: Passed: python3 -m py_compile scripts/lean_review.py scripts/ios_report_quality.py scripts/lean_audit.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh. Read-only self-QA passed: /tmp/shipguard-v3135-lean-review-quality-after and /tmp/shipguard-v3135-current-lean-review-quality. Ponytail SourceScout and Lean Deck QA passed: /tmp/shipguard-v3135-ponytail-external-quality, /tmp/shipguard-v3135-lean-audit-quality-after, /tmp/shipguard-v3135-lean-gain-quality-after.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.135.0 Lean Review Proof Signal Calibration QA for jlekerli-source/ShipGuard:
+/plan v3.136.0 Lean Deck Large-File Proof Packet QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Improve Lean Review so diff-scoped grouped action plans are visible in Markdown,
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.135.0 Lean Review Proof Signal Calibration QA for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.136.0 Lean Deck Large-File Proof Packet QA for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.135.0 --title "Lean Review Proof Signal Calibration QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.136.0 --title "Lean Deck Large-File Proof Packet QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.134.0.
+1. Open or update the tracking issue for v3.135.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.134.0` and upload `dist/shipguard-v3.134.0.tar.gz`.
+6. Create release `v3.135.0` and upload `dist/shipguard-v3.135.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

@@ -1837,6 +1837,95 @@ if grep -q '"ruleId": "lean-action-groups-missing"' "$tmp_dir/lean-review-missin
   exit 1
 fi
 
+mkdir -p "$tmp_dir/lean-review-missing-proof-calibration"
+cat > "$tmp_dir/lean-review-missing-proof-calibration/lean-review.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard lean review",
+  "generatedAt": "2026-06-20T00:00:00Z",
+  "status": "review",
+  "behaviorGates": {
+    "oneRunnableCheck": {"status": "enforced-in-lean-review"},
+    "hardwareCalibration": {"status": "available"},
+    "requestedExplanation": {"status": "policy"},
+    "adapterBoundary": {"status": "available"},
+    "gainHonesty": {"status": "available-in-lean-gain"}
+  },
+  "precisionReview": {
+    "summary": {
+      "deleteCandidates": 0,
+      "simplifyCandidates": 1,
+      "keepBoundaries": 0,
+      "proofBlockedCandidates": 0,
+      "actionGroups": 1
+    },
+    "actionGroups": [
+      {
+        "rank": 1,
+        "decision": "simplify",
+        "ruleId": "one-runnable-check-missing-diff",
+        "evidenceCount": 1,
+        "firstLocation": "scripts/example.py:12",
+        "firstExperiment": "Add one smallest runnable check at the first changed branch.",
+        "validationRoute": "Run the focused test that covers the changed branch.",
+        "stopCondition": "Stop if the check would only restate implementation details."
+      }
+    ],
+    "topActions": [
+      {
+        "rank": 1,
+        "ruleId": "one-runnable-check-missing-diff",
+        "location": "scripts/example.py:12",
+        "severity": "review",
+        "action": "Leave one smallest runnable check.",
+        "proofRequired": "Add a focused test."
+      }
+    ]
+  },
+  "findings": [
+    {
+      "severity": "review",
+      "category": "proof-diff-review",
+      "ruleId": "one-runnable-check-missing-diff",
+      "evidence": {
+        "file": "scripts/example.py",
+        "line": 12,
+        "snippet": "non-trivial logic added without a runnable check signal"
+      },
+      "recommendation": "Leave one smallest runnable check.",
+      "proofGuidance": "Add a focused test."
+    }
+  ],
+  "reportQualityQuestions": [
+    "Does proofSignalCalibration distinguish missing runnable checks from same-diff proof signals?"
+  ]
+}
+JSON
+cat > "$tmp_dir/lean-review-missing-proof-calibration/lean-review.md" <<'MD'
+# ShipGuard Lean Review
+
+## Behavior Gates
+
+- `oneRunnableCheck`: enforced-in-lean-review
+
+## Precision Ledger
+
+- Delete candidates: 0; simplify candidates: 1; keep boundaries: 0; proof-blocked candidates: 0; action groups: 1
+
+### Grouped Action Plan
+
+| Rank | Decision | Rule | Affected | First Location | First Experiment | Validation | Stop Condition |
+| ---: | --- | --- | ---: | --- | --- | --- | --- |
+| 1 | simplify | `one-runnable-check-missing-diff` | 1 | scripts/example.py:12 | Add one smallest runnable check. | Run the focused test. | Stop if redundant. |
+MD
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-review-missing-proof-calibration" \
+  --out "$tmp_dir/lean-review-missing-proof-calibration-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-review-proof-signal-calibration-missing"' "$tmp_dir/lean-review-missing-proof-calibration-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-proof-signal-markdown-missing"' "$tmp_dir/lean-review-missing-proof-calibration-quality/ios-report-quality.json"
+
 performance_boundary_fixture="fixtures/ios-report-quality/performance-runtime-boundary"
 ./bin/shipguard ios report-quality \
   --reports "$performance_boundary_fixture" \

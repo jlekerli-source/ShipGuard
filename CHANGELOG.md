@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Improved Lean Review proof-signal calibration after read-only ShipGuard self-QA: `shipguard lean review` now emits `proofSignalCalibration`, distinguishes true missing runnable checks from same-diff test/assertion signals, renders the calibration table in Markdown, and `ios report-quality` fails Lean Review reports that hide or overflag that proof boundary.
 - Improved Lean Deck actionability after read-only ShipGuard self-QA: `shipguard lean audit` now emits `precisionReview.actionGroups` with evidence counts, first experiments, validation routes, stop conditions, and evidence commands, Markdown renders a grouped action plan before individual findings, and `ios report-quality` flags Lean reports that have precision findings without grouped actions.
 - Improved Lean Review actionability after read-only ShipGuard self-QA: `shipguard lean review` now renders diff-scoped `precisionReview.actionGroups` as a Markdown `Grouped Action Plan`, its next actions route repeated findings through the grouped plan first, and `ios report-quality` now fails Lean Review reports whose JSON groups are hidden from Markdown.
 - Added Ponytail as a first-class SourceScout profile: `shipguard ios external-audit` now recognizes Ponytail checkouts and URLs, maps the lean ladder, diff review, shortcut ledger, benchmark-honesty card, and always-on host mode into ShipGuard-native Lean Deck decisions, and tests that Ponytail is no longer reported as an unclassified external source.

@@ -40,7 +40,7 @@ git diff > /tmp/change.diff
   --shareable
 ```
 
-`lean review` writes `lean-review.json` and `lean-review.md` with one-line diff findings plus a precision ledger. Repeated diff findings are also rendered as a `Grouped Action Plan`, so a maintainer sees the first experiment, validation route, and stop condition before chasing individual changed lines. It is the native ShipGuard equivalent of a Ponytail-style “what can this change delete or avoid?” review.
+`lean review` writes `lean-review.json` and `lean-review.md` with one-line diff findings plus a precision ledger. Repeated diff findings are also rendered as a `Grouped Action Plan`, so a maintainer sees the first experiment, validation route, and stop condition before chasing individual changed lines. It also emits `proofSignalCalibration`: if non-trivial code changes are paired with changed test files or assertion signals in the same diff, Lean Review records those signals instead of blindly reporting a missing runnable check. That is not a proof pass; it tells the maintainer which changed checks to review and run before merge. It is the native ShipGuard equivalent of a Ponytail-style “what can this change delete or avoid?” review.
 
 Repo-level audits skip public fixtures, examples, tests, generated packages, and scanner maintenance manifests by default so demo code does not dominate the findings. The JSON `scanScope` records skipped directory names, skipped files, file limits, and whether the scan was truncated. If you point `--path` directly at a fixture or demo repo, ShipGuard scans that target normally.
 

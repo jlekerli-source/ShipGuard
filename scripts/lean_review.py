@@ -103,6 +103,11 @@ def line_texts(file_diff: dict[str, Any]) -> list[str]:
     return [str(item.get("text", "")) for item in file_diff.get("added", [])]
 
 
+def is_test_file(file_name: str) -> bool:
+    lowered = file_name.lower()
+    return any(part in lowered for part in ("test", "tests", "spec", "specs"))
+
+
 def first_added_line(file_diff: dict[str, Any], pattern: str) -> int | None:
     regex = re.compile(pattern, re.IGNORECASE)
     for item in file_diff.get("added", []):
@@ -112,8 +117,7 @@ def first_added_line(file_diff: dict[str, Any], pattern: str) -> int | None:
 
 
 def has_added_check(file_name: str, added_text: str) -> bool:
-    lowered = file_name.lower()
-    if "test" in lowered or "spec" in lowered:
+    if is_test_file(file_name):
         return True
     return bool(CHECK_SIGNAL_RE.search(added_text))
 
@@ -133,7 +137,75 @@ def has_calibration_token(text: str) -> bool:
     return has_calibration_signal(text)
 
 
-def scan_diff(root: Path, files: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def collect_proof_signals(files: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    signals: list[dict[str, Any]] = []
+    for file_diff in files:
+        file_name = str(file_diff.get("file", ""))
+        added_items = file_diff.get("added", [])
+        if not added_items:
+            continue
+        added_text = "\n".join(str(item.get("text", "")) for item in added_items)
+        check_line = next(
+            (
+                item
+                for item in added_items
+                if CHECK_SIGNAL_RE.search(str(item.get("text", ""))) or is_test_file(file_name)
+            ),
+            None,
+        )
+        if not check_line:
+            continue
+        kind = "test-file" if is_test_file(file_name) else "inline-check-signal"
+        signals.append(
+            {
+                "file": file_name,
+                "line": int(check_line.get("line") or 0) or None,
+                "kind": kind,
+                "addedLines": len(added_items),
+                "snippet": str(check_line.get("text", "")).strip()[:160],
+                "checkSignal": bool(CHECK_SIGNAL_RE.search(added_text)),
+            }
+        )
+    return signals[:20]
+
+
+def proof_signal_summary(proof_signals: list[dict[str, Any]]) -> str:
+    first = proof_signals[0] if proof_signals else {}
+    location = str(first.get("file") or "")
+    if first.get("line"):
+        location = f"{location}:{first['line']}"
+    if not location:
+        return "same diff includes runnable-check signals"
+    return f"same diff includes runnable-check signals starting at {location}"
+
+
+def build_proof_signal_calibration(
+    *,
+    proof_signals: list[dict[str, Any]],
+    findings: list[dict[str, Any]],
+) -> dict[str, Any]:
+    same_diff_count = len(
+        [
+            item
+            for item in findings
+            if item.get("ruleId") == "one-runnable-check-signal-present-diff"
+        ]
+    )
+    missing_count = len([item for item in findings if item.get("ruleId") == "one-runnable-check-missing-diff"])
+    return {
+        "sameDiffProofStatus": "present" if proof_signals else "missing",
+        "proofSignals": proof_signals,
+        "sameDiffProofSignalCount": len(proof_signals),
+        "codeFindingsCoveredBySameDiffProof": same_diff_count,
+        "missingRunnableCheckFindings": missing_count,
+        "policy": (
+            "Lean Review should distinguish no proof signal from same-diff proof signal. Same-diff tests still need "
+            "human relevance review, but they should not produce duplicate missing-check ceremony."
+        ),
+    }
+
+
+def scan_diff(root: Path, files: list[dict[str, Any]], proof_signals: list[dict[str, Any]]) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
     for file_diff in files:
         file_name = str(file_diff.get("file", ""))
@@ -148,6 +220,29 @@ def scan_diff(root: Path, files: list[dict[str, Any]]) -> list[dict[str, Any]]:
         safe_context = has_safety_context(context_path, context_text + "\n" + added_text)
 
         if is_code and NONTRIVIAL_LOGIC_RE.search(added_text) and not has_added_check(file_name, added_text):
+            if proof_signals:
+                findings.append(
+                    finding(
+                        severity="info",
+                        category="proof-signal-diff-review",
+                        rule_id="one-runnable-check-signal-present-diff",
+                        file=file_name,
+                        line=first_added_line(file_diff, NONTRIVIAL_LOGIC_RE.pattern),
+                        evidence=(
+                            "non-trivial branch, loop, parser, or collection logic added; "
+                            f"{proof_signal_summary(proof_signals)}"
+                        ),
+                        recommendation=(
+                            "Do not add duplicate test ceremony before checking whether the same-diff proof signal "
+                            "already covers this logic."
+                        ),
+                        proof=(
+                            "Review the changed test/assertion files listed in proofSignalCalibration, then run the "
+                            "focused validation command before merge."
+                        ),
+                    )
+                )
+                continue
             findings.append(
                 finding(
                     severity="review",
@@ -302,9 +397,16 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         raise SystemExit(f"lean-review: diff does not exist: {diff_path}")
     diff_text = diff_path.read_text(encoding="utf-8", errors="ignore")
     files = parse_unified_diff(diff_text)
-    findings = scan_diff(root, files)
+    proof_signals = collect_proof_signals(files)
+    findings = scan_diff(root, files, proof_signals)
     precision = build_precision_review(findings)
     behavior_gates = build_behavior_gates(findings, {"summary": {"markers": 0, "missingUpgradeTrigger": 0}})
+    if proof_signals and isinstance(behavior_gates.get("oneRunnableCheck"), dict):
+        behavior_gates["oneRunnableCheck"]["status"] = "same-diff-proof-signal-present"
+        behavior_gates["oneRunnableCheck"][
+            "policy"
+        ] = "Same-diff runnable-check signals are visible; verify relevance before adding duplicate proof ceremony."
+    proof_calibration = build_proof_signal_calibration(proof_signals=proof_signals, findings=findings)
     status = "pass" if not [item for item in findings if item.get("severity") in {"review", "opportunity"}] else "review"
     report: dict[str, Any] = {
         "schemaVersion": SCHEMA_VERSION,
@@ -321,6 +423,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         },
         "reviewLines": review_lines(findings),
         "behaviorGates": behavior_gates,
+        "proofSignalCalibration": proof_calibration,
         "precisionReview": precision,
         "findings": findings,
         "metrics": {
@@ -345,6 +448,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         report["reportQualityQuestions"] = [
             "Does Lean Review give a current-diff delete/simplify list instead of a whole-repo inventory?",
             "Does Lean Review require one smallest runnable check for non-trivial new logic?",
+            "Does proofSignalCalibration distinguish missing runnable checks from same-diff proof signals?",
             "Does Lean Review protect hardware calibration and host boundaries from false less-code pressure?",
             "Does it keep safety-boundary code out of automatic deletion?",
             "Does it make the first simplification action obvious enough for a solo developer?",
@@ -378,6 +482,29 @@ def render_markdown(report: dict[str, Any]) -> str:
             if not isinstance(gate, dict):
                 continue
             lines.append(f"- `{name}`: {gate.get('status', 'available')} - {gate.get('policy', '')}")
+    calibration = report.get("proofSignalCalibration", {})
+    if isinstance(calibration, dict):
+        lines.extend(["", "## Proof Signal Calibration", ""])
+        lines.append(f"- Same-diff proof status: `{calibration.get('sameDiffProofStatus', 'missing')}`")
+        lines.append(f"- Proof signals: {calibration.get('sameDiffProofSignalCount', 0)}")
+        lines.append(
+            f"- Code findings covered by same-diff proof: {calibration.get('codeFindingsCoveredBySameDiffProof', 0)}"
+        )
+        lines.append(f"- Missing runnable-check findings: {calibration.get('missingRunnableCheckFindings', 0)}")
+        policy = calibration.get("policy")
+        if policy:
+            lines.append(f"- Policy: {policy}")
+        signals = calibration.get("proofSignals")
+        if isinstance(signals, list) and signals:
+            lines.extend(["", "| Kind | Location | Added Lines | Signal |", "| --- | --- | ---: | --- |"])
+            for signal in signals[:8]:
+                location = str(signal.get("file", ""))
+                if signal.get("line"):
+                    location = f"{location}:{signal['line']}"
+                lines.append(
+                    f"| {signal.get('kind', '')} | {location} | {signal.get('addedLines', 0)} | "
+                    f"{str(signal.get('snippet', '')).replace('|', '\\|')} |"
+                )
     summary = precision.get("summary", {})
     lines.extend(["", "## Precision Ledger", ""])
     lines.append(
