@@ -30,7 +30,14 @@ From a ShipGuard checkout:
   --out /tmp/shipguard-verify-first/verdict
 ```
 
-Open:
+The command prints the verdict immediately:
+
+```text
+ShipGuard Proof Report: pass. Validation 1/1 covered; claims 1/1 accepted; 0 risk file(s): 0 protected, 0 out of scope, 0 deleted test(s); release evidence not-applicable.
+status: pass
+```
+
+For the full review packet, open:
 
 ```bash
 /tmp/shipguard-verify-first/verdict/shipguard-verdict.md
@@ -71,6 +78,7 @@ Run the same diff with a plain log:
 ```
 
 That returns `review`: the log is useful context, but it is not a structured validation receipt.
+The terminal summary starts with `ShipGuard Proof Report: review`.
 
 ## Risky Diff Demo
 
@@ -86,6 +94,7 @@ Run the protected workflow diff:
 ```
 
 That returns `blocked`: the diff touches a protected workflow path and the claim says "fully verified" without physical-device proof.
+The terminal summary starts with `ShipGuard Proof Report: blocked`.
 
 ## PR Workflow
 

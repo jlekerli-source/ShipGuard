@@ -22,13 +22,14 @@ cd "$repo_root"
   --diff examples/verify-first/diffs/scoped-permission.diff \
   --evidence examples/verify-first/receipts/swift-test-receipt.json \
   --claim "Implemented scoped notification permission copy." \
-  --out "$tmp_dir/pass" >/dev/null
+  --out "$tmp_dir/pass" >"$tmp_dir/pass.out"
 
 grep -q '## Proof Report' "$tmp_dir/pass/shipguard-verdict.md"
 grep -q 'Status: `pass`' "$tmp_dir/pass/shipguard-verdict.md"
 grep -q 'Validation: `1/1 covered`' "$tmp_dir/pass/shipguard-verdict.md"
 grep -q 'Claims checked: `1/1 accepted`' "$tmp_dir/pass/shipguard-verdict.md"
 grep -q 'Release evidence: `not-applicable`' "$tmp_dir/pass/shipguard-verdict.md"
+grep -q 'ShipGuard Proof Report: pass. Validation 1/1 covered; claims 1/1 accepted;' "$tmp_dir/pass.out"
 
 python3 - "$tmp_dir/pass/shipguard-verdict.json" <<'PY'
 import json
@@ -52,10 +53,11 @@ PY
   --diff examples/verify-first/diffs/scoped-permission.diff \
   --evidence examples/verify-first/receipts/swift-test.log \
   --claim "Implemented scoped notification permission copy." \
-  --out "$tmp_dir/review" >/dev/null
+  --out "$tmp_dir/review" >"$tmp_dir/review.out"
 
 grep -q 'Status: `review`' "$tmp_dir/review/shipguard-verdict.md"
 grep -q 'Validation: `0/1 covered`' "$tmp_dir/review/shipguard-verdict.md"
+grep -q 'ShipGuard Proof Report: review. Validation 0/1 covered; claims 1/1 accepted;' "$tmp_dir/review.out"
 
 set +e
 ./bin/shipguard verify \
@@ -63,7 +65,7 @@ set +e
   --diff examples/verify-first/diffs/protected-workflow.diff \
   --evidence examples/verify-first/receipts/swift-test-receipt.json \
   --claim "Notification permission copy is fully verified." \
-  --out "$tmp_dir/blocked" >/dev/null
+  --out "$tmp_dir/blocked" >"$tmp_dir/blocked.out"
 blocked_status=$?
 set -e
 
@@ -74,6 +76,7 @@ fi
 
 grep -q 'Status: `blocked`' "$tmp_dir/blocked/shipguard-verdict.md"
 grep -q 'Risk files: `1 risk file(s): 1 protected, 1 out of scope, 0 deleted test(s)`' "$tmp_dir/blocked/shipguard-verdict.md"
+grep -q 'ShipGuard Proof Report: blocked. Validation 1/1 covered; claims 0/1 accepted;' "$tmp_dir/blocked.out"
 grep -q 'replace-with-your-test-command' examples/workflows/verify-pr.yml
 
 echo "verify-first quickstart tests passed"

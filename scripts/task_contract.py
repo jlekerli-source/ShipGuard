@@ -2085,6 +2085,10 @@ def main() -> None:
         print(markdown, end="")
     print(f"wrote: {out_dir / 'shipguard-verdict.json'}")
     print(f"wrote: {out_dir / 'shipguard-verdict.md'}")
+    proof_report = report.get("proofReport") if isinstance(report.get("proofReport"), dict) else {}
+    copy_ready_text = str(proof_report.get("copyReadyText") or "").strip()
+    if copy_ready_text:
+        print(copy_ready_text)
     print(f"status: {report['status']}")
     if report["status"] == "blocked":
         raise SystemExit(2)

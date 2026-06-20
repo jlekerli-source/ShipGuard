@@ -26,7 +26,14 @@ Run it from the repository root:
   --out /tmp/shipguard-verify-first/verdict
 ```
 
-Open `/tmp/shipguard-verify-first/verdict/shipguard-verdict.md`.
+The terminal prints the proof report line immediately:
+
+```text
+ShipGuard Proof Report: pass. Validation 1/1 covered; claims 1/1 accepted; 0 risk file(s): 0 protected, 0 out of scope, 0 deleted test(s); release evidence not-applicable.
+status: pass
+```
+
+Open `/tmp/shipguard-verify-first/verdict/shipguard-verdict.md` for the full review packet.
 
 The top `Proof Report` is the launch-facing summary:
 
@@ -63,4 +70,3 @@ To see ShipGuard block a risky change, use the protected workflow diff:
 ```
 
 That returns `blocked` because the diff touches a protected workflow file and the claim overreaches the attached proof.
-
