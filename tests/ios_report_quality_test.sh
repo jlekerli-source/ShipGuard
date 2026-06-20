@@ -239,18 +239,22 @@ import sys
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 priority = data.get("priorityAction") or {}
 expected_covered = "Does InspectDeck make the next action obvious without hiding the source proof?"
-expected_next = "Are missing inputs marked as missing instead of silently downgraded into confidence?"
+expected_covered_missing = "Are missing inputs marked as missing instead of silently downgraded into confidence?"
+expected_next = "Can a maintainer jump from the summary to the underlying full-audit, value-gauntlet, release, and plugin evidence?"
 expected_path = "fixtures/ios-report-quality/01-shipguard-inspect-does-inspectdeck-make-the-next-action-obvious"
+expected_missing_path = "fixtures/ios-report-quality/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o"
 if priority.get("kind") != "answer-actionability-question":
     raise SystemExit(f"expected next InspectDeck question priority, got {priority!r}")
 if priority.get("question") != expected_next:
-    raise SystemExit(f"expected InspectDeck missing-inputs question after fixture coverage, got {priority!r}")
+    raise SystemExit(f"expected InspectDeck underlying-evidence question after fixture coverage, got {priority!r}")
 coverage = data.get("fixtureCoverage") or []
 if not any(item.get("question") == expected_covered and item.get("publicFixturePath") == expected_path for item in coverage):
     raise SystemExit(f"expected InspectDeck fixture coverage for next-action question: {coverage!r}")
+if not any(item.get("question") == expected_covered_missing and item.get("publicFixturePath") == expected_missing_path for item in coverage):
+    raise SystemExit(f"expected InspectDeck fixture coverage for missing-inputs question: {coverage!r}")
 candidates = data.get("fixtureCandidates") or []
 if not candidates or candidates[0].get("sourceQuestion") != expected_next:
-    raise SystemExit(f"expected InspectDeck missing-inputs fixture candidate first, got {candidates!r}")
+    raise SystemExit(f"expected InspectDeck underlying-evidence fixture candidate first, got {candidates!r}")
 if candidates[0].get("fixtureType") != "shipguard-inspect-proof-state-fixture":
     raise SystemExit(f"expected InspectDeck proof-state fixture candidate, got {candidates!r}")
 PY
@@ -280,6 +284,33 @@ assert "InspectDeck" in item.get("question", ""), item
 priority = data.get("priorityAction") or {}
 assert priority.get("kind") == "review-existing-fixture", priority
 assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-inspect-does-inspectdeck-make-the-next-action-obvious", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
+
+inspect_missing_inputs_fixture="fixtures/ios-report-quality/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o"
+./bin/shipguard ios report-quality \
+  --reports "$inspect_missing_inputs_fixture" \
+  --out "$tmp_dir/inspect-missing-inputs-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/inspect-missing-inputs-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/inspect-missing-inputs-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o"' "$tmp_dir/inspect-missing-inputs-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/inspect-missing-inputs-fixture-quality/ios-report-quality.json"
+python3 - <<'PY' "$tmp_dir/inspect-missing-inputs-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard inspect", item
+assert item.get("fixtureType") == "shipguard-inspect-proof-state-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o", item
+assert "missing inputs" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o", priority
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 

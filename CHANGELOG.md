@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Promoted the InspectDeck missing-inputs question into `fixtures/ios-report-quality/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o`, so fresh `shipguard inspect` QA now treats missing-proof honesty as covered and advances to the underlying-evidence navigation question.
 - Added InspectDeck report-quality fixture classification and promoted the first InspectDeck proof-state question into `fixtures/ios-report-quality/01-shipguard-inspect-does-inspectdeck-make-the-next-action-obvious`, so fresh `shipguard inspect` QA can materialize public fixtures and advances from the next-action/source-proof question to the missing-inputs question.
 - Promoted the Full Audit slash-handoff freshness question into `fixtures/ios-report-quality/01-shipguard-full-audit-does-the-slash-handoff-come-from-the-curren`, so fresh Full Audit report-quality runs now cover all four current Full Audit actionability questions and return `all-actionability-covered` instead of generating duplicate candidates.
 - Promoted the Full Audit slow-lane question into `fixtures/ios-report-quality/01-shipguard-full-audit-are-slow-lanes-summarized-clearly-enough-fo`, so fresh Full Audit report-quality runs now cover proof boundaries, the resumable evidence lane, and slow-lane rerun guidance before advancing to the slash-handoff freshness question.

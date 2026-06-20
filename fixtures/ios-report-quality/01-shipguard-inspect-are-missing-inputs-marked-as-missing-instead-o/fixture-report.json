@@ -1,0 +1,89 @@
+{
+  "findings": [],
+  "fixtureCandidate": {
+    "candidateId": "01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o",
+    "duplicateCount": 1,
+    "expectedAssertions": [
+      "report-quality preserves the actionability question in JSON and Markdown",
+      "report-quality emits a fixtureCandidates entry for the public synthetic case",
+      "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+      "shareable output contains no local absolute paths or private app identifiers"
+    ],
+    "fixtureType": "shipguard-inspect-proof-state-fixture",
+    "materialization": {
+      "files": [
+        "README.md",
+        "fixture-candidate.json",
+        "fixture-report.json",
+        "fixture-report.md"
+      ],
+      "safeSyntheticOnly": true,
+      "writeCommand": "./bin/shipguard ios report-quality --reports <report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>"
+    },
+    "priority": 1,
+    "privateDataPolicy": "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
+    "promotion": {
+      "candidateId": "01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o",
+      "copyCommands": [
+        "mkdir -p fixtures/ios-report-quality/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o",
+        "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o/README.md",
+        "cp <materialized-candidate-dir>/fixture-candidate.json fixtures/ios-report-quality/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o/fixture-candidate.json",
+        "cp <materialized-candidate-dir>/fixture-report.json fixtures/ios-report-quality/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o/fixture-report.json",
+        "cp <materialized-candidate-dir>/fixture-report.md fixtures/ios-report-quality/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o/fixture-report.md"
+      ],
+      "files": [
+        "README.md",
+        "fixture-candidate.json",
+        "fixture-report.json",
+        "fixture-report.md"
+      ],
+      "promotionPolicy": "Promotion is explicit maintainer work. ShipGuard writes starter files only to the requested output directory and does not auto-copy them into the repository.",
+      "reviewChecklist": [
+        "Confirm the fixture is synthetic and public-safe.",
+        "Confirm no private app code, screenshots, local paths, tokens, app identifiers, or proprietary text were copied.",
+        "Confirm scopeBoundary.shipguardOnly and targetAppsReadOnly remain explicit.",
+        "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates.",
+        "Register the fixture in validation only after the report-quality check passes."
+      ],
+      "sourceDirectory": "<materialized-fixture-output>/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o",
+      "suggestedFixturePath": "fixtures/ios-report-quality/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o",
+      "validationCommands": [
+        "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o --out <quality-dir> --shareable",
+        "./tests/ios_report_quality_test.sh",
+        "./bin/shipguard validate"
+      ]
+    },
+    "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o",
+    "publicFixtureRecipe": "Create a minimal synthetic ShipGuard report pair that reproduces this report-quality question without private app code, local paths, screenshots, customer data, app names, or proprietary source snippets.",
+    "sourceQuestion": "Are missing inputs marked as missing instead of silently downgraded into confidence?",
+    "sourceReportCount": 1,
+    "sourceReportsRedacted": true,
+    "sourceTool": "shipguard inspect",
+    "validationCommands": [
+      "./bin/shipguard ios report-quality --reports <fixture-dir> --out <quality-dir> --shareable",
+      "./tests/ios_report_quality_test.sh"
+    ]
+  },
+  "generatedAt": "2026-06-20T09:53:16Z",
+  "intent": "shipguard-evaluation",
+  "reportQualityQuestions": [
+    "Are missing inputs marked as missing instead of silently downgraded into confidence?"
+  ],
+  "scanScope": {
+    "note": "Synthetic fixture; no private source tree was scanned.",
+    "skippedDirectories": [],
+    "skippedDirectoryCount": 0
+  },
+  "schemaVersion": 1,
+  "scopeBoundary": {
+    "purpose": "Synthetic public fixture for ShipGuard report-quality behavior.",
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "shareability": {
+    "localAbsolutePathsIncluded": false,
+    "mode": "shareable"
+  },
+  "status": "pass",
+  "tool": "shipguard inspect"
+}

@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current InspectDeck Missing-Inputs Fixture Promotion
+
+The next read-only InspectDeck QA pass started from the v3.173 state, where the next-action/source-proof question was already covered by a promoted public fixture. Fresh `shipguard inspect` plus `ios report-quality --write-fixture-candidates` advanced to the next useful gap:
+
+- Question: "Are missing inputs marked as missing instead of silently downgraded into confidence?"
+- Candidate type: `shipguard-inspect-proof-state-fixture`
+- Product weakness: InspectDeck reports are only useful if missing proof inputs stay visibly missing instead of becoming implied confidence.
+
+This slice promotes `fixtures/ios-report-quality/01-shipguard-inspect-are-missing-inputs-marked-as-missing-instead-o` as public synthetic coverage. The fixture stays ShipGuard-only, target-app read-only, and shareable. Fresh InspectDeck report-quality now covers both InspectDeck next-action/source-proof and missing-input honesty, then advances to the underlying-evidence navigation question.
+
 ## Current InspectDeck Fixture Promotion
 
 The latest read-only QA rotation moved away from Full Audit after all four current Full Audit questions were covered. A fresh `shipguard value-gauntlet` pass also returned `all-actionability-covered`, so the loop used `shipguard inspect` as the next targeted root report source.
