@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-20T06:22:56Z
+- Generated: 2026-06-20T06:38:46Z
 - Current toolkit version: 3.131.0
-- Target release: v3.162.0
-- Title: Product Release Stabilization Fixture Candidate
+- Target release: v3.163.0
+- Title: Surface Proof-Boundary Fixture Candidate
 
 ## Slash Plan
 
 ```text
-/plan v3.162.0 Product Release Stabilization Fixture Candidate for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make value-gauntlet product-release stabilization questions promotion-ready by generating and promoting a public report-quality fixture for release/adoption/security/rollback/consumption proof gaps.
+/plan v3.163.0 Surface Proof-Boundary Fixture Candidate for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make value-gauntlet surface proof-boundary questions promotion-ready by generating and promoting a public report-quality fixture for docs/tests/package-proof/proof-boundary gaps behind branded ShipGuard surfaces.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.162.0 Product Release Stabilization Fixture Candidate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make value-gauntlet product-release stabilization questions promotion-ready by generating and promoting a public report-quality fixture for release/adoption/security/rollback/consumption proof gaps, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.163.0 Surface Proof-Boundary Fixture Candidate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make value-gauntlet surface proof-boundary questions promotion-ready by generating and promoting a public report-quality fixture for docs/tests/package-proof/proof-boundary gaps behind branded ShipGuard surfaces, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make value-gauntlet product-release stabilization questions promotion-ready by generating and promoting a public report-quality fixture for release/adoption/security/rollback/consumption proof gaps.
+Make value-gauntlet surface proof-boundary questions promotion-ready by generating and promoting a public report-quality fixture for docs/tests/package-proof/proof-boundary gaps behind branded ShipGuard surfaces.
 
 ## Completion Receipt
 
-- Completed scope: Updated report-quality release-proof fixture candidate detection, promoted the product-release stabilization value-gauntlet question into fixtures/ios-report-quality/product-release-stabilization-value-gauntlet-question, wired focused tests and package proof, and documented the ShipGuard-only loop refinement.
-- Evidence: Passed: python3 -m py_compile scripts/ios_report_quality.py; python3 -m json.tool fixtures/ios-report-quality/product-release-stabilization-value-gauntlet-question/fixture-candidate.json; python3 -m json.tool fixtures/ios-report-quality/product-release-stabilization-value-gauntlet-question/fixture-report.json; ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/product-release-stabilization-value-gauntlet-question --out /tmp/shipguard-product-release-value-question-quality --shareable; ./tests/ios_report_quality_test.sh; live value-gauntlet plus report-quality advanced to the proof-boundary question with zero fixtureCandidates; git diff --check; ./bin/shipguard docs-check . --out /tmp/shipguard-v3162-docs-check; ./bin/shipguard validate; ./tests/package_release_test.sh.
+- Completed scope: Updated report-quality proof-boundary fixture candidate detection, promoted the surface proof-boundary value-gauntlet question into fixtures/ios-report-quality/surface-proof-boundary-value-gauntlet-question, wired focused tests and package proof, and documented the ShipGuard-only loop refinement.
+- Evidence: Passed: python3 -m py_compile scripts/ios_report_quality.py; python3 -m json.tool fixtures/ios-report-quality/surface-proof-boundary-value-gauntlet-question/fixture-candidate.json; python3 -m json.tool fixtures/ios-report-quality/surface-proof-boundary-value-gauntlet-question/fixture-report.json; ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/surface-proof-boundary-value-gauntlet-question --out /tmp/shipguard-surface-proof-value-question-quality --shareable; ./tests/ios_report_quality_test.sh; live value-gauntlet plus report-quality advanced to the plugin-skill routing question with zero fixtureCandidates; git diff --check; ./bin/shipguard docs-check . --out /tmp/shipguard-v3163-docs-check; ./bin/shipguard validate; ./tests/package_release_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.163.0 Useful Surface Proof-Boundary Gap for jlekerli-source/ShipGuard:
+/plan v3.164.0 Plugin Skill Routing Actionability Gap for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Make value-gauntlet product-release stabilization questions promotion-ready by g
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.163.0 Useful Surface Proof-Boundary Gap for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.164.0 Plugin Skill Routing Actionability Gap for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.163.0 --title "Useful Surface Proof-Boundary Gap" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.164.0 --title "Plugin Skill Routing Actionability Gap" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.162.0.
+1. Open or update the tracking issue for v3.163.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.162.0` and upload `dist/shipguard-v3.162.0.tar.gz`.
+6. Create release `v3.163.0` and upload `dist/shipguard-v3.163.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

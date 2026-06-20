@@ -5,45 +5,28 @@
 <h1 align="center">ShipGuard</h1>
 
 <p align="center">
-  A local proof layer for AI-assisted software work.
+  Local proof gates for AI-assisted software work.
 </p>
 
 <p align="center">
-  <a href="docs/install-doctor.md">Install</a> ·
   <a href="docs/verify-first-quickstart.md">Quickstart</a> ·
+  <a href="docs/install-doctor.md">Install</a> ·
   <a href="docs/github-action.md">GitHub Action</a> ·
   <a href="docs/cli.md">CLI</a> ·
   <a href="docs/index.md">Docs</a>
 </p>
 
-ShipGuard helps you use Codex and other coding agents without accepting vague status updates like "done", "tested", or "looks good".
+ShipGuard helps developers use Codex and other coding agents without accepting vague handoffs like "done", "tested", or "looks good".
 
-It turns agent work into a reviewable loop:
+It turns AI work into a simple proof loop:
 
 ```text
-scope the change -> collect evidence -> check the claims -> ship or block
+scope the task -> run the work -> check the evidence -> ship, review, or block
 ```
 
-The result is a local Markdown and JSON verdict that says what was actually proven, what is still missing, and what to do next.
+ShipGuard is local-first, open source, and app-neutral. It is not tied to any single app. The strongest track today is iOS, with support for repo inspection, task contracts, claim verification, performance and design audits, release proof, GitHub Actions, and a Codex plugin.
 
-ShipGuard is not tied to any single app. It is a reusable proof system for production software maintenance.
-
-## Why ShipGuard
-
-AI can write code quickly. Production maintenance still needs discipline.
-
-ShipGuard is built for developers who want agent speed without losing control of:
-
-- task scope
-- risky files and ownership boundaries
-- test and build evidence
-- unsupported agent claims
-- release proof
-- local-first review artifacts
-
-The strongest track today is iOS, with Codex plugin support and audits for app risk, performance, design quality, modernization, previews, release readiness, and proof handoff. ShipGuard also includes starter profiles for web, backend, and CLI projects.
-
-## Try It
+## Start Here
 
 From a ShipGuard checkout:
 
@@ -52,7 +35,7 @@ From a ShipGuard checkout:
 ./bin/shipguard version
 ```
 
-Latest release package: `shipguard-v3.131.0.tar.gz`.
+Current release package: `shipguard-v3.131.0.tar.gz`.
 
 Install the CLI locally:
 
@@ -61,14 +44,16 @@ PREFIX="$HOME/.local" ./scripts/install.sh
 shipguard version
 ```
 
-Add ShipGuard to a project:
+Add ShipGuard to your project:
 
 ```bash
 shipguard init ios .
 shipguard doctor ios .
 ```
 
-## The Core Loop
+For a guided first run, use the [verify-first quickstart](docs/verify-first-quickstart.md).
+
+## The Core Workflow
 
 Create a task contract before agent work:
 
@@ -81,7 +66,7 @@ shipguard prepare "Add notification permission copy" \
   --shareable
 ```
 
-Check the result after the agent works:
+Verify the result after the agent changes code:
 
 ```bash
 shipguard verify \
@@ -92,35 +77,33 @@ shipguard verify \
   --out /tmp/shipguard-verdict
 ```
 
-Example verdict:
+The output is a Markdown and JSON verdict with:
 
-```text
-ShipGuard Proof Report
-Status: pass
-Validation: 1/1 covered
-Claims checked: 1/1 accepted
-Risk files: 0 risk file(s)
-```
+- what changed
+- what proof exists
+- which claims are unsupported
+- whether the work should pass, be reviewed, or be blocked
+- the next exact action
 
-## Useful Commands
+## What ShipGuard Does
 
 | Need | Command |
 | --- | --- |
-| Check ShipGuard itself | `shipguard validate` |
-| Add starter files | `shipguard init ios .` |
-| Check a repo setup | `shipguard doctor ios .` |
+| Validate this toolkit | `shipguard validate` |
+| Add starter workflow files | `shipguard init ios .` |
+| Check repo setup | `shipguard doctor ios .` |
 | Scope agent work | `shipguard prepare "task" --path . --out /tmp/task --profile ios` |
-| Verify claims and proof | `shipguard verify --task /tmp/task/shipguard-task.json --diff /tmp/change.diff --evidence /tmp/receipt.json --out /tmp/verdict` |
+| Verify claims and evidence | `shipguard verify --task /tmp/task/shipguard-task.json --diff /tmp/change.diff --evidence /tmp/receipt.json --out /tmp/verdict` |
 | Inspect iOS risk | `shipguard ios doctor --path . --out /tmp/ios-doctor` |
 | Audit iOS performance | `shipguard ios performance --path . --out /tmp/ios-performance` |
 | Audit iOS design | `shipguard ios design --path . --out /tmp/ios-design` |
 | Run the maintainer proof lane | `shipguard full-audit --path . --out /tmp/shipguard-full-audit` |
 
-See the [CLI reference](docs/cli.md) for the complete command list.
+See the [CLI reference](docs/cli.md) and [command matrix](docs/command-matrix.md) for the full surface.
 
 ## Codex Plugin
 
-ShipGuard ships with an iOS-focused Codex plugin:
+ShipGuard includes an iOS-focused Codex plugin:
 
 ```bash
 codex plugin marketplace add .
@@ -132,15 +115,15 @@ Start a new Codex thread after refreshing the plugin so the latest skill text is
 
 ## GitHub Action
 
-ShipGuard can run proof checks in CI and attach evidence to pull requests.
+ShipGuard can run proof checks in CI and produce reviewable evidence on pull requests.
 
-Start here:
+Start with:
 
 - [GitHub Action](docs/github-action.md)
-- [Verify-first quickstart](docs/verify-first-quickstart.md)
 - [Release proof](docs/release-proof.md)
+- [Release proof consumption](docs/release-proof-consumption.md)
 
-## What Is In The Repo
+## Repo Map
 
 ```text
 bin/                   CLI entry point
@@ -155,7 +138,7 @@ actions/               reusable GitHub Actions
 
 ## ShipYard
 
-ShipYard is the maintainer side of ShipGuard: fixtures, evals, release proof, package checks, plugin readiness, and roadmap execution.
+ShipYard is the maintainer side of ShipGuard: fixtures, evals, package checks, release proof, plugin readiness, and roadmap execution.
 
 Useful links:
 
@@ -164,8 +147,6 @@ Useful links:
 - [Next goal](NEXT_GOAL.md)
 - [Changelog](CHANGELOG.md)
 - [Open source model](docs/open-source.md)
-
-Current published release: `v3.131.0`.
 
 ## License
 

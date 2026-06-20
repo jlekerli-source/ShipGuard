@@ -2247,7 +2247,8 @@ data = json.load(open(sys.argv[1], encoding="utf-8"))
 covered_question = "Should repeated low-value patterns become public fixtures or eval cases so ShipGuard cannot regress into decorative output?"
 stable_publication_question = "Can ShipGuard prove stable-v4 publication with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof?"
 product_release_question = "Should ShipGuard stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption?"
-next_uncovered_question = "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?"
+proof_boundary_question = "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?"
+next_uncovered_question = "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?"
 coverage = data.get("fixtureCoverage") or []
 if not any(item.get("question") == covered_question for item in coverage):
     raise SystemExit(f"expected value-gauntlet question to be covered by a promoted fixture: {coverage!r}")
@@ -2260,16 +2261,20 @@ for item in coverage:
         raise SystemExit(f"unexpected stable-publication coverage path: {item!r}")
     if item.get("question") == product_release_question and item.get("publicFixturePath") != "fixtures/ios-report-quality/product-release-stabilization-value-gauntlet-question":
         raise SystemExit(f"unexpected product-release coverage path: {item!r}")
+    if item.get("question") == proof_boundary_question and item.get("publicFixturePath") != "fixtures/ios-report-quality/surface-proof-boundary-value-gauntlet-question":
+        raise SystemExit(f"unexpected proof-boundary coverage path: {item!r}")
 if not any(item.get("question") == product_release_question for item in coverage):
     raise SystemExit(f"expected product-release stabilization question to be covered by a promoted fixture: {coverage!r}")
+if not any(item.get("question") == proof_boundary_question for item in coverage):
+    raise SystemExit(f"expected proof-boundary question to be covered by a promoted fixture: {coverage!r}")
 for candidate in data.get("fixtureCandidates") or []:
-    if candidate.get("sourceQuestion") in {covered_question, stable_publication_question, product_release_question}:
+    if candidate.get("sourceQuestion") in {covered_question, stable_publication_question, product_release_question, proof_boundary_question}:
         raise SystemExit(f"covered value-gauntlet question should not create a duplicate fixture candidate: {candidate!r}")
 priority = data.get("priorityAction") or {}
-if priority.get("question") in {covered_question, stable_publication_question, product_release_question}:
+if priority.get("question") in {covered_question, stable_publication_question, product_release_question, proof_boundary_question}:
     raise SystemExit(f"covered value-gauntlet question should not remain the priority action: {priority!r}")
 if priority.get("question") != next_uncovered_question:
-    raise SystemExit(f"expected next uncovered proof-boundary question as priority: {priority!r}")
+    raise SystemExit(f"expected next uncovered plugin-skill routing question as priority: {priority!r}")
 PY
 
 mixed_release_priority_dir="$tmp_dir/mixed-release-priority"
@@ -2836,6 +2841,33 @@ assert "v4 product release" in item.get("question", ""), item
 priority = data.get("priorityAction") or {}
 assert priority.get("kind") == "review-existing-fixture", priority
 assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/product-release-stabilization-value-gauntlet-question", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
+
+surface_proof_value_fixture="fixtures/ios-report-quality/surface-proof-boundary-value-gauntlet-question"
+./bin/shipguard ios report-quality \
+  --reports "$surface_proof_value_fixture" \
+  --out "$tmp_dir/surface-proof-value-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/surface-proof-value-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/surface-proof-value-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/surface-proof-boundary-value-gauntlet-question"' "$tmp_dir/surface-proof-value-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/surface-proof-value-fixture-quality/ios-report-quality.json"
+grep -q 'proof boundary' "$tmp_dir/surface-proof-value-fixture-quality/ios-report-quality.md"
+python3 - <<'PY' "$tmp_dir/surface-proof-value-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard value-gauntlet", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/surface-proof-boundary-value-gauntlet-question", item
+assert "proof boundary" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/surface-proof-boundary-value-gauntlet-question", priority
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 

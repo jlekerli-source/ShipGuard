@@ -3262,6 +3262,14 @@ def fixture_type_for_question(question: str, tool: str) -> str:
         or "security review" in text
     ):
         return "shipguard-release-proof-quality-fixture"
+    if (
+        "proof boundary" in text
+        or "branded name" in text
+        or "branded names" in text
+        or "useful-looking surface" in text
+        or "useful looking surface" in text
+    ):
+        return "shipguard-surface-proof-boundary-fixture"
     if "design" in text or "app type" in text or "coherence" in text:
         return "ios-design-report-quality-fixture"
     if "evidence" in text or "source suspicion" in text:
@@ -3298,6 +3306,11 @@ def should_create_fixture_candidate(question: str) -> bool:
             "rollback proof",
             "external adoption",
             "security review",
+            "proof boundary",
+            "branded name",
+            "branded names",
+            "useful-looking surface",
+            "useful looking surface",
         )
     )
 

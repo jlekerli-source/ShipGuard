@@ -99,6 +99,19 @@ This slice improves the loop:
 
 This is still ShipGuard-only product QA. It does not claim stable v4 is released, does not edit private apps, and does not treat synthetic fixture evidence as external adoption or security evidence.
 
+## Current Surface Proof-Boundary Value-Gauntlet Fixture
+
+The next read-only ShipGuard QA pass advanced to the proof-boundary question: whether every useful-looking surface has docs, tests, package proof, and a concrete proof boundary instead of only a branded name. The weakness was again in ShipGuard's loop mechanics: the question was prioritized, but `ios report-quality --write-fixture-candidates` produced no materialized candidate for this proof-boundary class.
+
+This slice makes that gap reusable:
+
+- `ios report-quality` now classifies proof-boundary, branded-name, and useful-surface questions as `shipguard-surface-proof-boundary-fixture` candidates.
+- `fixtures/ios-report-quality/surface-proof-boundary-value-gauntlet-question` promotes the value-gauntlet proof-boundary question into public synthetic coverage.
+- Focused tests prove the promoted fixture scores as `review-existing-fixture`, emits no recursive `fixtureCandidates`, and lets fresh value-gauntlet report-quality runs advance to the next uncovered plugin-skill routing question.
+- Package proof now checks that the new fixture ships in release tarballs.
+
+This keeps ShipGuard's funny/vibey naming work honest: names are allowed only when the docs, tests, package proof, and proof boundary are also visible.
+
 ## Current Development Loop Efficiency Receipt
 
 The latest self-QA pass showed a real development-process weakness: after the design observation question was promoted into a public fixture, the existing workflow-chain receipt became too coupled to that now-covered design question. The receipt failed even though the product behavior was improving, which meant the proof loop could waste maintainer time on manual interpretation.
