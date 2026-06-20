@@ -1,14 +1,14 @@
 # Next Goal
 
-- Generated: 2026-06-20T13:00:01Z
+- Generated: 2026-06-20T13:55:04Z
 - Current toolkit version: 3.131.0
-- Target release: v3.184.0
-- Title: Release Proof Freshness Audit
+- Target release: v3.186.0
+- Title: Lean Deck Report-Quality Fixture
 
 ## Slash Plan
 
 ```text
-/plan v3.184.0 Release Proof Freshness Audit for jlekerli-source/ShipGuard:
+/plan v3.186.0 Lean Deck Report-Quality Fixture for jlekerli-source/ShipGuard:
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
@@ -18,19 +18,19 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.184.0 Release Proof Freshness Audit for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.186.0 Lean Deck Report-Quality Fixture for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Completion Receipt
 
-- Completed scope: Read-only release-proof QA built a fresh local package, release-proof bundle, downloaded-assets-shaped consumer proof, package hygiene report, LaunchKey release-candidate report, and stable-publication report. Report-quality exposed a false block: generated stable-publication-release-notes/release-notes-checklist.json was scored as a standalone source report. Fixed recursive discovery so stable-publication release-notes authoring kits are internal attachments while the root v4-stable-publication report remains graded.
-- Evidence: Passed: ./scripts/package_release.sh; ./bin/shipguard release-proof build --out /tmp/shipguard-v3184/release-proof --release-url https://github.com/jlekerli-source/ShipGuard/releases/tag/v3.131.0 --version 3.131.0 --tag v3.131.0 --commit a0667a2593c52f8ddee874608ce4e48b19a42a72 --ci-run-url https://github.com/jlekerli-source/ShipGuard/actions/runs/27871657649; ./bin/shipguard release-consume verify --dir /tmp/shipguard-v3184/downloaded-assets --out /tmp/shipguard-v3184/release-consume --version 3.131.0; ./bin/shipguard release-package hygiene --path . --tarball dist/shipguard-v3.131.0.tar.gz --assets /tmp/shipguard-v3184/release-proof --out /tmp/shipguard-v3184/package-hygiene --shareable; ./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v3184/v4-release-candidate-good --package-tarball dist/shipguard-v3.131.0.tar.gz --release-assets /tmp/shipguard-v3184/downloaded-assets --release-version 3.131.0 --shipguard-eval --shareable; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3184/v4-release-candidate-good --reports /tmp/shipguard-v3184/v4-stable-publication --reports /tmp/shipguard-v3184/package-hygiene --reports /tmp/shipguard-v3184/release-consume --out /tmp/shipguard-v3184/report-quality-fixed --shareable --write-fixture-candidates /tmp/shipguard-v3184/fixture-candidates-fixed.
+- Completed scope: Added and refined ShipGuard Lean Deck for Ponytail-style precise-code review. Follow-up refinement made repo-level audits skip public fixtures, examples, tests, generated packages, and scanner maintenance manifests by default while preserving direct fixture scans.
+- Evidence: Passed: ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet --strict; ./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet --out /tmp/shipguard-value-quality --shareable. Lean Deck self-eval now reports 211 files scanned, 20 findings, scanScope skip evidence for fixtures/examples/tests, and report-quality status pass.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.185.0 Stable Publication Fixture Promotion for jlekerli-source/ShipGuard:
+/plan v3.187.0 Stable V4 Publication Proof Packet for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -40,13 +40,13 @@
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.185.0 Stable Publication Fixture Promotion for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.187.0 Stable V4 Publication Proof Packet for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.185.0 --title "Stable Publication Fixture Promotion" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.187.0 --title "Stable V4 Publication Proof Packet" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -146,12 +146,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.184.0.
+1. Open or update the tracking issue for v3.186.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.184.0` and upload `dist/shipguard-v3.184.0.tar.gz`.
+6. Create release `v3.186.0` and upload `dist/shipguard-v3.186.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

@@ -41,9 +41,13 @@ SKIP_DIRS = {
     "__pycache__",
     "build",
     "dist",
+    "examples",
+    "fixtures",
     "node_modules",
+    "tests",
     "vendor",
 }
+SCANNER_SELF_SKIP_FILES = {"scripts/lean_audit.py", "scripts/self_audit.sh"}
 SAFETY_TOKENS = (
     "auth",
     "token",
@@ -95,16 +99,34 @@ def read_text(path: Path) -> str:
         return ""
 
 
-def iter_files(root: Path, limit: int = 550) -> list[Path]:
+def iter_files(root: Path, limit: int = 550) -> tuple[list[Path], dict[str, Any]]:
     files: list[Path] = []
+    skipped_dirs: Counter[str] = Counter()
+    skipped_files: list[str] = []
     for path in sorted(root.rglob("*")):
         if len(files) >= limit:
             break
-        if any(part in SKIP_DIRS for part in path.parts):
+        try:
+            relative_parts = path.relative_to(root).parts
+        except ValueError:
+            relative_parts = path.parts
+        skip_part = next((part for part in relative_parts[:-1] if part in SKIP_DIRS), None)
+        if skip_part:
+            skipped_dirs[skip_part] += 1
+            continue
+        relative_name = "/".join(relative_parts)
+        if relative_name in SCANNER_SELF_SKIP_FILES:
+            skipped_files.append(relative_name)
             continue
         if path.is_file() and (path.suffix in TEXT_SUFFIXES or path.name in {"Dockerfile", "Makefile"}):
             files.append(path)
-    return files
+    return files, {
+        "skippedDirectoryNames": sorted(skipped_dirs),
+        "skippedDirectoryFileCount": sum(skipped_dirs.values()),
+        "skippedFiles": skipped_files,
+        "truncated": len(files) >= limit,
+        "fileLimit": limit,
+    }
 
 
 def line_for(text: str, needle: str) -> int | None:
@@ -302,7 +324,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     root = Path(args.path).resolve()
     if not root.exists():
         raise SystemExit(f"lean-audit: path does not exist: {root}")
-    files = iter_files(root)
+    files, scan_scope = iter_files(root)
     findings = scan_package(root)
     for path in files:
         findings.extend(scan_file(root, path))
@@ -352,6 +374,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "infoFindings": len([f for f in emitted_findings if f["severity"] == "info"]),
             "findingsOmittedByLimit": max(0, len(findings) - len(emitted_findings)),
         },
+        "scanScope": scan_scope,
         "ruleSummary": [
             {
                 "ruleId": rule_id,

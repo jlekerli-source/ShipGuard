@@ -27,6 +27,7 @@ grep -q '"ruleId": "dependency-date-helper-review"' "$tmp_dir/lean/lean-audit.js
 grep -q '"ruleId": "do-not-cut-safety-logic-without-proof"' "$tmp_dir/lean/lean-audit.json"
 grep -q '"scopeBoundary"' "$tmp_dir/lean/lean-audit.json"
 grep -q '"reportQualityQuestions"' "$tmp_dir/lean/lean-audit.json"
+grep -q '"scanScope":' "$tmp_dir/lean/lean-audit.json"
 grep -q 'Ponytail' "$tmp_dir/lean/lean-audit.md"
 grep -q 'Do not cut trust-boundary validation without proof' "$tmp_dir/lean/lean-audit.md"
 if grep -q '/Users/' "$tmp_dir/lean/lean-audit.json"; then
@@ -40,5 +41,17 @@ fi
   --shareable >/dev/null
 
 grep -q 'shipguard lean audit' "$tmp_dir/quality/ios-report-quality.json"
+
+./bin/shipguard lean audit \
+  --path . \
+  --out "$tmp_dir/repo-lean" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+grep -q '"fixtures"' "$tmp_dir/repo-lean/lean-audit.json"
+if grep -q 'fixtures/lean-audit-demo' "$tmp_dir/repo-lean/lean-audit.json"; then
+  echo "repo-level lean audit should not let public fixtures dominate findings" >&2
+  exit 1
+fi
 
 echo "lean audit tests passed"
