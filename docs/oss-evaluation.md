@@ -8,6 +8,24 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Evidence Lane Fixture
 
+## Current Full Audit Slow Lane Fixture
+
+The latest read-only Full Audit QA pass advanced from the evidence-lane question to the slow-lane rerun question:
+
+- Question: "Are slow lanes summarized clearly enough for a solo developer to decide what to rerun?"
+- Candidate type: `shipguard-full-audit-proof-boundary-fixture`
+
+This slice promotes that question into public fixture coverage:
+
+- `fixtures/ios-report-quality/01-shipguard-full-audit-are-slow-lanes-summarized-clearly-enough-fo` covers the slow-lane rerun question without private app data.
+- The fixture keeps ShipGuard-only and target-app read-only boundaries explicit and includes synthetic slash handoff fields so it represents a valid Full Audit report.
+- Fresh Full Audit report-quality now covers proof boundaries, the resumable evidence lane, and slow-lane rerun guidance, then advances to the slash-handoff freshness question.
+- Focused tests prove the slow-lane fixture scores as `review-existing-fixture`, emits no recursive `fixtureCandidates`, and ships in release packages.
+
+This keeps the Full Audit report-quality flywheel moving through each remaining Full Audit proof-lane question instead of recurring on the same report weakness.
+
+## Previous Full Audit Evidence Lane Fixture
+
 The latest read-only ShipGuard QA loop reran Full Audit after the proof-boundary fixture was promoted. Report-quality correctly advanced to the next Full Audit question:
 
 - Question: "Does the full-audit report replace repeated manual validation ceremony with one resumable evidence lane?"

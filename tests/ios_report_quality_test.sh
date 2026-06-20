@@ -96,19 +96,21 @@ covered = {
         "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-command-preserve-proof-boundaries",
     "Does the full-audit report replace repeated manual validation ceremony with one resumable evidence lane?":
         "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated",
+    "Are slow lanes summarized clearly enough for a solo developer to decide what to rerun?":
+        "fixtures/ios-report-quality/01-shipguard-full-audit-are-slow-lanes-summarized-clearly-enough-fo",
 }
-expected = "Are slow lanes summarized clearly enough for a solo developer to decide what to rerun?"
+expected = "Does the slash handoff come from the current NEXT_GOAL.md instead of stale hardcoded roadmap text?"
 if priority.get("kind") != "answer-actionability-question":
     raise SystemExit(f"expected next uncovered full-audit question priority: {priority!r}")
 if priority.get("question") != expected:
-    raise SystemExit(f"expected full-audit slow-lane question after fixture coverage, got {priority!r}")
+    raise SystemExit(f"expected full-audit slash-handoff question after fixture coverage, got {priority!r}")
 coverage = data.get("fixtureCoverage") or []
 for question, path in covered.items():
     if not any(item.get("question") == question and item.get("publicFixturePath") == path for item in coverage):
         raise SystemExit(f"expected full-audit fixture coverage for {question!r}: {coverage!r}")
 candidates = data.get("fixtureCandidates") or []
 if not candidates or candidates[0].get("sourceQuestion") != expected:
-    raise SystemExit(f"expected slow-lane fixture candidate first, got {candidates!r}")
+    raise SystemExit(f"expected slash-handoff fixture candidate first, got {candidates!r}")
 PY
 grep -q 'shipguard-full-audit-proof-boundary-fixture' "$tmp_dir/full-audit-plan-quality/ios-report-quality.json"
 
@@ -162,6 +164,33 @@ assert "resumable evidence lane" in item.get("question", ""), item
 priority = data.get("priorityAction") or {}
 assert priority.get("kind") == "review-existing-fixture", priority
 assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-full-audit-report-replace-repeated", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
+
+full_audit_slow_lane_fixture="fixtures/ios-report-quality/01-shipguard-full-audit-are-slow-lanes-summarized-clearly-enough-fo"
+./bin/shipguard ios report-quality \
+  --reports "$full_audit_slow_lane_fixture" \
+  --out "$tmp_dir/full-audit-slow-lane-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/full-audit-slow-lane-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/full-audit-slow-lane-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/01-shipguard-full-audit-are-slow-lanes-summarized-clearly-enough-fo"' "$tmp_dir/full-audit-slow-lane-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/full-audit-slow-lane-fixture-quality/ios-report-quality.json"
+python3 - <<'PY' "$tmp_dir/full-audit-slow-lane-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard full-audit", item
+assert item.get("fixtureType") == "shipguard-full-audit-proof-boundary-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/01-shipguard-full-audit-are-slow-lanes-summarized-clearly-enough-fo", item
+assert "slow lanes" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-full-audit-are-slow-lanes-summarized-clearly-enough-fo", priority
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 
