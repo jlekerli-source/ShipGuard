@@ -75,7 +75,7 @@ Usage:
   shipguard ios ai-readiness --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard ios external-audit --path <shipguard-repo> [--source-path <repo> ...] [--source-url <url> ...] [--out <dir>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard ios spec-workflow --path <repo> --feature <text> --out <dir> [--from-report <file-or-dir> ...] [--app-type auto|utility|game|fitness|health|education|kids|creative|commerce|social|finance|saas] [--shipguard-eval] [--shareable] [--json|--markdown]
-  shipguard ios report-quality --reports <file-or-dir> [--reports <file-or-dir> ...] [--out <dir>] [--shareable] [--write-fixture-candidates <dir>] [--strict] [--json|--markdown]
+  shipguard ios report-quality --reports <file-or-dir> [--reports <file-or-dir> ...] [--out <dir>] [--shipguard-eval] [--shareable] [--write-fixture-candidates <dir>] [--strict] [--json|--markdown]
   shipguard ios redact --in <file-or-dir> --out <file-or-dir> [--report <report.json>] [--private-term <text> ...]
   shipguard ios eval [--cases <cases.jsonl>] [--out <dir>] [--json|--markdown]
   shipguard ios demo --out <dir> [--fixture <repo>] [--cases <cases.jsonl>]

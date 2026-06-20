@@ -52,6 +52,7 @@ Lean Deck also emits `precisionReview`, a ShipGuard-native Ponytail-style action
 - `simplifyFirst`: native, standard-library, or dependency replacements to try before writing more code.
 - `keepList`: safety-boundary files where less-code pressure is not enough.
 - `blockedByProof`: large or risky candidates that need call-site evidence before edits.
+- `actionGroups`: repeated findings grouped by decision, rule, first experiment, validation route, and stop condition.
 - `topActions`: the first few concrete bets a maintainer should inspect.
 
 It also emits `leanDebtLedger`, a native version of Ponytail's shortcut ledger.

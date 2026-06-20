@@ -38,6 +38,7 @@ grep -q '"deleteList":' "$tmp_dir/lean/lean-audit.json"
 grep -q '"simplifyFirst":' "$tmp_dir/lean/lean-audit.json"
 grep -q '"keepList":' "$tmp_dir/lean/lean-audit.json"
 grep -q '"blockedByProof":' "$tmp_dir/lean/lean-audit.json"
+grep -q '"actionGroups":' "$tmp_dir/lean/lean-audit.json"
 grep -q '"ruleId": "thin-wrapper-review"' "$tmp_dir/lean/lean-audit.json"
 grep -q '"ruleId": "thin-adapter-boundary"' "$tmp_dir/lean/lean-audit.json"
 grep -q '"scopeBoundary"' "$tmp_dir/lean/lean-audit.json"
@@ -47,6 +48,7 @@ grep -q 'Ponytail' "$tmp_dir/lean/lean-audit.md"
 grep -q '## Behavior Gates' "$tmp_dir/lean/lean-audit.md"
 grep -q '## Native Opportunity Catalog' "$tmp_dir/lean/lean-audit.md"
 grep -q '## Precision Review' "$tmp_dir/lean/lean-audit.md"
+grep -q 'Grouped Action Plan' "$tmp_dir/lean/lean-audit.md"
 grep -q '## Lean Debt Ledger' "$tmp_dir/lean/lean-audit.md"
 grep -q 'replace when fixture needs multi-call-site proof' "$tmp_dir/lean/lean-audit.md"
 grep -q 'Keep Without More Proof' "$tmp_dir/lean/lean-audit.md"
@@ -73,6 +75,7 @@ grep -q '"fixtures"' "$tmp_dir/repo-lean/lean-audit.json"
 grep -q '"leanEvidence":' "$tmp_dir/repo-lean/lean-audit.json"
 grep -q '"leanDebtLedger":' "$tmp_dir/repo-lean/lean-audit.json"
 grep -q '"behaviorGates":' "$tmp_dir/repo-lean/lean-audit.json"
+grep -q '"actionGroups":' "$tmp_dir/repo-lean/lean-audit.json"
 grep -q '"firstMarkerLines":' "$tmp_dir/repo-lean/lean-audit.json"
 grep -q '## Lean Evidence Packets' "$tmp_dir/repo-lean/lean-audit.md"
 if grep -q 'fixtures/lean-audit-demo' "$tmp_dir/repo-lean/lean-audit.json"; then
@@ -81,6 +84,43 @@ if grep -q 'fixtures/lean-audit-demo' "$tmp_dir/repo-lean/lean-audit.json"; then
 fi
 if grep -q '"ruleId": "native-date-input"' "$tmp_dir/repo-lean/lean-audit.json"; then
   echo "repo-level lean audit should not treat prose such as 'moments' as a date picker dependency" >&2
+  exit 1
+fi
+
+large_repo="$tmp_dir/large-legacy-repo"
+mkdir -p "$large_repo/scripts"
+for name in LargeOne.py LargeTwo.py; do
+  {
+    echo "# TODO remove compatibility branch after callers are migrated"
+    for index in $(seq 1 705); do
+      echo "value_${index} = ${index}"
+    done
+  } > "$large_repo/scripts/$name"
+done
+
+./bin/shipguard lean audit \
+  --path "$large_repo" \
+  --out "$tmp_dir/large-lean" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+grep -q '"actionGroups":' "$tmp_dir/large-lean/lean-audit.json"
+grep -q '"ruleId": "large-legacy-file-review"' "$tmp_dir/large-lean/lean-audit.json"
+grep -q '"evidenceCount": 2' "$tmp_dir/large-lean/lean-audit.json"
+grep -q '"firstExperiment": "Open the first marker line' "$tmp_dir/large-lean/lean-audit.json"
+grep -q '"validationRoute": "Run call-site search for each marker line' "$tmp_dir/large-lean/lean-audit.json"
+grep -q '"stopCondition": "Stop if search or focused tests show the code is still active product behavior."' "$tmp_dir/large-lean/lean-audit.json"
+grep -q 'Grouped Action Plan' "$tmp_dir/large-lean/lean-audit.md"
+grep -q 'Individual Starting Points' "$tmp_dir/large-lean/lean-audit.md"
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/large-lean" \
+  --out "$tmp_dir/large-lean-quality" \
+  --shareable >/dev/null
+
+grep -q '"status": "pass"' "$tmp_dir/large-lean-quality/ios-report-quality.json"
+if grep -q 'lean-action-groups-missing' "$tmp_dir/large-lean-quality/ios-report-quality.json"; then
+  echo "report-quality should accept grouped Lean action plans" >&2
   exit 1
 fi
 

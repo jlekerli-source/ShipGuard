@@ -48,6 +48,15 @@ grep -q 'local-path-shareability-warning' "$tmp_dir/quality/ios-report-quality.j
 grep -q '"redactionPlan":' "$tmp_dir/quality/ios-report-quality.json"
 grep -q 'Redaction Plan' "$tmp_dir/quality/ios-report-quality.md"
 
+./bin/shipguard ios report-quality \
+  --reports "$reports" \
+  --out "$tmp_dir/quality-eval" \
+  --shipguard-eval >/dev/null
+grep -q '"intent": "shipguard-evaluation"' "$tmp_dir/quality-eval/ios-report-quality.json"
+grep -q '"explicitShipGuardEval": true' "$tmp_dir/quality-eval/ios-report-quality.json"
+grep -q '"reportQualityQuestions":' "$tmp_dir/quality-eval/ios-report-quality.json"
+grep -q 'ShipGuard-eval mode: `yes`' "$tmp_dir/quality-eval/ios-report-quality.md"
+
 shareable_reports="$tmp_dir/shareable-reports"
 ./bin/shipguard ios design \
   --path fixtures/demo-ios-repo \
@@ -1691,6 +1700,65 @@ if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_
   echo "Lean Deck public fixture must not include local paths or private app identifiers" >&2
   exit 1
 fi
+
+mkdir -p "$tmp_dir/lean-missing-groups"
+cat > "$tmp_dir/lean-missing-groups/lean-audit.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard lean audit",
+  "generatedAt": "2026-06-20T00:00:00Z",
+  "status": "review",
+  "behaviorGates": {
+    "oneRunnableCheck": {"status": "enforced-in-lean-review"},
+    "hardwareCalibration": {"status": "available"},
+    "requestedExplanation": {"status": "policy"},
+    "adapterBoundary": {"status": "available"},
+    "gainHonesty": {"status": "available-in-lean-gain"}
+  },
+  "precisionReview": {
+    "summary": {
+      "deleteCandidates": 0,
+      "simplifyCandidates": 0,
+      "keepBoundaries": 0,
+      "proofBlockedCandidates": 2
+    },
+    "topActions": [
+      {
+        "rank": 1,
+        "ruleId": "large-legacy-file-review",
+        "location": "scripts/example.py:1",
+        "severity": "review",
+        "action": "Do not split the whole file first; start at the first marker line and prove one removable branch.",
+        "proofRequired": "Attach call-site evidence."
+      }
+    ]
+  },
+  "findings": [],
+  "reportQualityQuestions": [
+    "Does precisionReview group repeated proof-blocked decisions into a bounded action plan?"
+  ]
+}
+JSON
+cat > "$tmp_dir/lean-missing-groups/lean-audit.md" <<'MD'
+# ShipGuard Lean Deck
+
+## Behavior Gates
+
+- `oneRunnableCheck`: enforced-in-lean-review
+
+## Precision Review
+
+| Rank | Decision | Location | Action | Proof |
+| ---: | --- | --- | --- | --- |
+| 1 | proof-blocked | scripts/example.py:1 | Start small. | Attach call-site evidence. |
+MD
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-missing-groups" \
+  --out "$tmp_dir/lean-missing-groups-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-action-groups-missing"' "$tmp_dir/lean-missing-groups-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-action-groups-markdown-missing"' "$tmp_dir/lean-missing-groups-quality/ios-report-quality.json"
 
 performance_boundary_fixture="fixtures/ios-report-quality/performance-runtime-boundary"
 ./bin/shipguard ios report-quality \

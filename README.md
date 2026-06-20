@@ -112,7 +112,7 @@ Most users only need these:
 | `shipguard prepare ...` | Create a scoped task contract before agent work. |
 | `shipguard verify ...` | Check a diff, evidence, and claims after agent work. |
 | `shipguard action verify-pr ...` | Audit the first GitHub Actions PR-proof workflow and consume the downloaded verdict artifact before trusting uploaded proof. |
-| `shipguard lean audit ...` | Find repo-level code that may not need to exist, with a delete/simplify/keep ledger and proof-required safety boundaries. |
+| `shipguard lean audit ...` | Find repo-level code that may not need to exist, with grouped delete/simplify/keep/proof-blocked actions and proof-required safety boundaries. |
 | `shipguard lean review ...` | Review the current diff for over-engineering before merging. |
 | `shipguard lean debt ...` | Harvest `ponytail:` and `shipguard-lean:` shortcut markers into a ledger. |
 | `shipguard lean gain ...` | Show benchmark-backed lean-code impact without inventing fake per-repo savings. |
@@ -136,7 +136,7 @@ ShipGuard has first-class iOS and Codex support:
 shipguard ios design --path . --out /tmp/ios-design --icon-brief
 shipguard ios performance --path . --out /tmp/ios-performance
 shipguard ios modernize --focus swift --path . --out /tmp/ios-modernize
-shipguard ios report-quality --reports /tmp/ios-design --out /tmp/report-quality
+shipguard ios report-quality --reports /tmp/ios-design --out /tmp/report-quality --shipguard-eval
 ```
 
 Useful iOS surfaces:

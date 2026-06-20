@@ -66,6 +66,7 @@ test "$(./bin/codex-maintainer version)" = "$(sed -n '1p' VERSION)"
 ./bin/shipguard ios external-audit --help >/dev/null
 ./bin/shipguard ios spec-workflow --help >/dev/null
 ./bin/shipguard ios report-quality --help >/dev/null
+./bin/shipguard --help | grep -q 'ios report-quality .*--shipguard-eval'
 ./bin/shipguard ios redact --help >/dev/null
 ./bin/shipguard ios eval --help >/dev/null
 ./bin/shipguard ios demo --help >/dev/null

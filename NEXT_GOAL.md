@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-20T20:58:27Z
+- Generated: 2026-06-20T21:16:45Z
 - Current toolkit version: 3.131.0
-- Target release: v3.132.0
-- Title: Ponytail SourceScout Native Integration QA
+- Target release: v3.133.0
+- Title: Lean Deck Precision Actionability QA
 
 ## Slash Plan
 
 ```text
-/plan v3.132.0 Ponytail SourceScout Native Integration QA for jlekerli-source/ShipGuard:
-1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
+/plan v3.133.0 Lean Deck Precision Actionability QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Improve Lean Deck precision reports so repeated findings become grouped action plans with first experiments, validation routes, stop conditions, and report-quality enforcement.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,19 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.132.0 Ponytail SourceScout Native Integration QA for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.133.0 Lean Deck Precision Actionability QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Improve Lean Deck precision reports so repeated findings become grouped action plans with first experiments, validation routes, stop conditions, and report-quality enforcement, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
+## Bounded Scope
+
+Improve Lean Deck precision reports so repeated findings become grouped action plans with first experiments, validation routes, stop conditions, and report-quality enforcement.
+
 ## Completion Receipt
 
-- Completed scope: Added Ponytail as a first-class SourceScout profile for shipguard ios external-audit, mapped Ponytail's lean ladder, diff review, shortcut ledger, benchmark-honesty card, and always-on host mode to ShipGuard-native Lean Deck decisions, refreshed local Codex Ponytail and iOS ShipGuard plugin installs, tightened Lean Deck fixture wording, and promoted a public Lean Deck report-quality fixture so this QA question no longer depends on one live repo scan.
-- Evidence: Passed: git diff --check; python3 -m py_compile scripts/ios_external_audit.py scripts/lean_audit.py; ./tests/lean_audit_test.sh; ./tests/ios_external_audit_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard docs-check . --out /tmp/shipguard-ponytail-docs-check; ./tests/self_audit_test.sh; ./bin/shipguard validate; ./tests/cli_smoke_test.sh; ./tests/command_family_runtime_output_receipts_test.sh; ./tests/tool_value_gauntlet_test.sh; ./tests/package_release_test.sh; codex plugin marketplace upgrade ponytail; codex plugin add ponytail@ponytail --json; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict. Read-only Ponytail QA produced /tmp/shipguard-ponytail-external-after with sourceKey ponytail for local checkout and URL, Ponytail capability ledger entries, and no external-source-unclassified findings; combined report-quality at /tmp/shipguard-ponytail-quality-after3 passed with 0 issues and 0 fixtureCandidates.
+- Completed scope: Added Lean Deck precisionReview.actionGroups, Markdown grouped action plans, report-quality enforcement for missing Lean action groups, and ios report-quality --shipguard-eval support after read-only ShipGuard self-QA.
+- Evidence: Passed: git diff --check; python3 -m py_compile scripts/lean_audit.py scripts/ios_report_quality.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; ./tests/cli_smoke_test.sh. Read-only self-QA at /tmp/shipguard-v3133-lean-audit-after produced one proof-blocked action group covering 10 large-legacy findings, and /tmp/shipguard-v3133-quality-after2 passed with intent=shipguard-evaluation and 0 issues.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.133.0 Lean Deck Precision Actionability QA for jlekerli-source/ShipGuard:
+/plan v3.134.0 Lean Review Diff Action Groups QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -40,13 +44,13 @@
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.133.0 Lean Deck Precision Actionability QA for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.134.0 Lean Review Diff Action Groups QA for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.133.0 --title "Lean Deck Precision Actionability QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.134.0 --title "Lean Review Diff Action Groups QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -146,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.132.0.
+1. Open or update the tracking issue for v3.133.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.132.0` and upload `dist/shipguard-v3.132.0.tar.gz`.
+6. Create release `v3.133.0` and upload `dist/shipguard-v3.133.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

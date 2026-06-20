@@ -205,6 +205,11 @@ def parse_args() -> argparse.Namespace:
         "--write-fixture-candidates",
         help="Write public-safe synthetic fixture starter directories for generated fixtureCandidates.",
     )
+    parser.add_argument(
+        "--shipguard-eval",
+        action="store_true",
+        help="Mark the report-quality run itself as ShipGuard product-QA output.",
+    )
     parser.add_argument("--strict", action="store_true", help="Exit non-zero when report-quality status is not pass")
     parser.add_argument("--json", action="store_true", help="Print JSON to stdout")
     parser.add_argument("--markdown", action="store_true", help="Print Markdown to stdout")
@@ -2827,6 +2832,69 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 evidence=f"{path_name} Markdown does not expose behavior gates",
                 recommendation="Render behavior gates in Markdown so maintainers see what Lean Deck is protecting.",
             )
+    if tool == "shipguard lean audit":
+        precision = report.get("precisionReview")
+        if isinstance(precision, dict):
+            summary = precision.get("summary") if isinstance(precision.get("summary"), dict) else {}
+            has_precision_work = any(
+                int(summary.get(key) or 0) > 0
+                for key in ("deleteCandidates", "simplifyCandidates", "proofBlockedCandidates")
+            ) or bool(precision.get("topActions"))
+            if has_precision_work:
+                groups = precision.get("actionGroups")
+                if not isinstance(groups, list) or not groups:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-action-groups-missing",
+                        evidence=f"{path_name} has precision findings but no precisionReview.actionGroups",
+                        recommendation="Group repeated Lean findings into actionGroups with a first experiment, validation route, and stop condition.",
+                    )
+                else:
+                    required = {
+                        "decision",
+                        "ruleId",
+                        "evidenceCount",
+                        "firstLocation",
+                        "firstExperiment",
+                        "validationRoute",
+                        "stopCondition",
+                    }
+                    for index, group in enumerate(groups[:8], start=1):
+                        if not isinstance(group, dict):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="lean-action-group-invalid",
+                                evidence=f"{path_name} actionGroups[{index}] is not an object",
+                                recommendation="Emit every action group as a structured object so agents can follow the plan deterministically.",
+                            )
+                            continue
+                        missing = sorted(key for key in required if not group.get(key))
+                        if missing:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="lean-action-group-incomplete",
+                                evidence=f"{path_name} actionGroups[{index}] missing: {', '.join(missing)}",
+                                recommendation="Each Lean action group should explain what to inspect first, how to prove it, and when to stop.",
+                            )
+                        if int(group.get("evidenceCount") or 0) < 1:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="lean-action-group-count-missing",
+                                evidence=f"{path_name} actionGroups[{index}] has no evidence count",
+                                recommendation="Set evidenceCount so repeated findings are summarized instead of hidden.",
+                            )
+                if "Grouped Action Plan" not in markdown:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-action-groups-markdown-missing",
+                        evidence=f"{path_name} Markdown does not expose the grouped action plan",
+                        recommendation="Render precisionReview.actionGroups in Markdown so maintainers see the bounded plan before individual findings.",
+                    )
     if tool == "shipguard lean gain":
         boundary = report.get("currentRepoBoundary")
         if not isinstance(boundary, dict) or boundary.get("perRepoSavingsClaim") != "not-computed":
@@ -3830,7 +3898,7 @@ def build_fixture_candidates(ranked_questions: list[dict[str, Any]]) -> list[dic
     return candidates
 
 
-def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any]:
+def build_report(inputs: list[str], *, shareable: bool = False, shipguard_eval: bool = False) -> dict[str, Any]:
     paths = report_json_files(inputs)
     promotion_manifest_paths = fixture_promotion_manifest_files(inputs)
     input_paths = resolved_input_paths(inputs)
@@ -3879,6 +3947,7 @@ def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any
     return {
         "schemaVersion": SCHEMA_VERSION,
         "tool": REPORT_QUALITY_TOOL,
+        "intent": "shipguard-evaluation" if shipguard_eval else "report-quality",
         "generatedAt": utc_now(),
         "status": status,
         "reportCount": len(graded),
@@ -3895,7 +3964,13 @@ def build_report(inputs: list[str], *, shareable: bool = False) -> dict[str, Any
             "shipguardOnly": True,
             "targetAppsReadOnly": True,
             "purpose": "Grade ShipGuard report usefulness; do not convert target-app findings into app work.",
+            "explicitShipGuardEval": bool(shipguard_eval),
         },
+        "reportQualityQuestions": [
+            "Did report-quality produce one concrete priority action without turning source findings into target-app work?",
+        ]
+        if shipguard_eval
+        else [],
         "reports": graded,
         "fixturePromotionManifests": promotion_manifests,
         "findings": issues,
@@ -3926,6 +4001,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Average score: {report['averageScore']}/100",
         f"- Shareability mode: `{report['shareability']['mode']}`",
         "- Purpose: grade ShipGuard report usefulness, not target-app quality.",
+        f"- ShipGuard-eval mode: `{'yes' if report.get('intent') == 'shipguard-evaluation' else 'no'}`",
         "",
         *render_result_markdown(report["resultUX"]),
         "## Reports",
@@ -4852,7 +4928,7 @@ def write_fixture_candidate_files(report: dict[str, Any], output_dir: Path) -> d
 
 def main() -> int:
     args = parse_args()
-    report = build_report(args.reports, shareable=args.shareable)
+    report = build_report(args.reports, shareable=args.shareable, shipguard_eval=args.shipguard_eval)
     if args.write_fixture_candidates:
         materialization = write_fixture_candidate_files(report, Path(args.write_fixture_candidates).expanduser().resolve())
         report["fixtureMaterialization"] = materialization

@@ -532,6 +532,114 @@ def precision_action_for(item: dict[str, Any]) -> str:
     return str(item.get("recommendation", "Review whether this code still earns its complexity."))
 
 
+def group_first_experiment(rule_id: str, decision: str) -> str:
+    if rule_id == "large-legacy-file-review":
+        return "Open the first marker line, identify one removable branch or split seam, then prove it with call-site search before editing."
+    if rule_id == "thin-wrapper-review":
+        return "Search every call site for the first wrapper; inline only when the wrapper adds no policy, naming, compatibility, or test value."
+    if rule_id in {"native-date-input", "native-color-input", "native-dialog"}:
+        return "Try the native/platform control in the smallest surface first, then keep custom code only for proven product behavior."
+    if rule_id == "manual-url-params":
+        return "Write the smallest equivalence test for encoding, empty values, and repeated keys, then try URL/URLSearchParams."
+    if rule_id.startswith("dependency-"):
+        return "List imports and usages first; remove or replace only the trivial usage that existing tests can prove."
+    if decision == "delete":
+        return "Search call sites for the first location, then delete only with behavior-neutral proof."
+    if decision == "simplify":
+        return "Run the smallest replacement experiment at the first location before touching similar files."
+    return "Gather proof for the first location before splitting, deleting, or rewriting behavior."
+
+
+def group_validation_route(rule_id: str) -> str:
+    if rule_id == "large-legacy-file-review":
+        return "Run call-site search for each marker line plus the focused tests that cover the first touched behavior."
+    if rule_id == "thin-wrapper-review":
+        return "Run call-site search plus the smallest focused test for the caller that remains after inlining."
+    if rule_id in {"native-date-input", "native-color-input", "native-dialog", "manual-url-params"}:
+        return "Run one focused behavior test covering the native/stdlib replacement edge cases before applying the pattern elsewhere."
+    if rule_id.startswith("dependency-"):
+        return "Run dependency import search plus the smallest test covering the replaced usage."
+    return "Run the smallest existing test that proves the first touched behavior; add one if none exists."
+
+
+def group_stop_condition(rule_id: str, decision: str) -> str:
+    if decision == "proof-blocked":
+        return "Stop if search or focused tests show the code is still active product behavior."
+    if rule_id in {"native-dialog", "native-date-input", "native-color-input"}:
+        return "Stop if the native control loses required accessibility, validation, brand, locale, or interaction behavior."
+    if rule_id == "manual-url-params":
+        return "Stop if URLSearchParams does not match required repeated-key, malformed-input, or encoding behavior."
+    if decision == "delete":
+        return "Stop if the wrapper is public API, compatibility surface, host adapter, or policy boundary."
+    return "Stop if the replacement makes the call site less clear or removes tested behavior."
+
+
+def group_evidence_command(rule_id: str, first_location: str) -> str:
+    file_name = first_location.split(":", 1)[0]
+    if not file_name:
+        return "rg -n \"TODO|FIXME|temporary|legacy|compat\" ."
+    if rule_id == "large-legacy-file-review":
+        return f"rg -n \"TODO|FIXME|temporary|legacy|compat\" {file_name}"
+    if rule_id == "thin-wrapper-review":
+        return f"rg -n \"function|const|export\" {file_name}"
+    if rule_id.startswith("dependency-"):
+        return f"rg -n \"import|require\" {file_name}"
+    return f"rg -n \"{rule_id}\" {file_name}"
+
+
+def build_action_groups(
+    *,
+    delete_list: list[dict[str, Any]],
+    simplify_first: list[dict[str, Any]],
+    blocked_by_proof: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    groups: dict[tuple[str, str, str, str], dict[str, Any]] = {}
+    ordered_keys: list[tuple[str, str, str, str]] = []
+    classified = [
+        ("delete", delete_list),
+        ("simplify", simplify_first),
+        ("proof-blocked", blocked_by_proof),
+    ]
+    for decision, entries in classified:
+        for entry in entries:
+            rule_id = str(entry.get("ruleId") or "unknown")
+            action = str(entry.get("action") or "")
+            proof = str(entry.get("proofRequired") or "")
+            key = (decision, rule_id, action, proof)
+            location = str(entry.get("location") or "")
+            if key not in groups:
+                groups[key] = {
+                    "decision": decision,
+                    "ruleId": rule_id,
+                    "severity": entry.get("severity"),
+                    "action": action,
+                    "proofRequired": proof,
+                    "firstLocation": location,
+                    "locations": [],
+                    "evidenceCount": 0,
+                    "firstExperiment": group_first_experiment(rule_id, decision),
+                    "validationRoute": group_validation_route(rule_id),
+                    "stopCondition": group_stop_condition(rule_id, decision),
+                    "evidenceCommand": group_evidence_command(rule_id, location),
+                }
+                ordered_keys.append(key)
+            group = groups[key]
+            group["evidenceCount"] = int(group["evidenceCount"]) + 1
+            locations = group["locations"]
+            if isinstance(locations, list) and location and location not in locations and len(locations) < 8:
+                locations.append(location)
+
+    action_groups: list[dict[str, Any]] = []
+    for rank, key in enumerate(ordered_keys, start=1):
+        group = groups[key]
+        locations = group.get("locations") if isinstance(group.get("locations"), list) else []
+        count = int(group.get("evidenceCount") or 0)
+        group["rank"] = rank
+        group["omittedLocationCount"] = max(0, count - len(locations))
+        action_groups.append(group)
+    return action_groups
+
+
 def build_precision_review(findings: list[dict[str, Any]]) -> dict[str, Any]:
     """Turn raw lean findings into a Ponytail-style action ledger."""
     candidates = [item for item in findings if item.get("severity") in {"review", "opportunity"}]
@@ -578,6 +686,11 @@ def build_precision_review(findings: list[dict[str, Any]]) -> dict[str, Any]:
             }
         )
 
+    action_groups = build_action_groups(
+        delete_list=delete_list,
+        simplify_first=simplify_first,
+        blocked_by_proof=blocked_by_proof,
+    )
     top_actions = (delete_list + simplify_first + blocked_by_proof)[:5]
     return {
         "principle": "The best ShipGuard code is the code that proves it needs to exist.",
@@ -593,12 +706,14 @@ def build_precision_review(findings: list[dict[str, Any]]) -> dict[str, Any]:
         "simplifyFirst": simplify_first[:20],
         "keepList": keep_list[:20],
         "blockedByProof": blocked_by_proof[:20],
+        "actionGroups": action_groups[:12],
         "topActions": top_actions,
         "summary": {
             "deleteCandidates": len(delete_list),
             "simplifyCandidates": len(simplify_first),
             "keepBoundaries": len(keep_list),
             "proofBlockedCandidates": len(blocked_by_proof),
+            "actionGroups": len(action_groups),
         },
     }
 
@@ -730,7 +845,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ],
         "findings": emitted_findings,
         "nextActions": [
-            "Start with precisionReview.topActions[0] and prove whether the code earns its complexity.",
+            "Start with precisionReview.actionGroups[0]; inspect its firstLocation and evidenceCommand before editing.",
+            "Use each action group's firstExperiment, validationRoute, and stopCondition so repeated findings become one bounded plan.",
             "If precisionReview.deleteList is empty, do not force deletion; simplify the smallest proven surface instead.",
             "Prove current behavior first, then simplify the smallest surface.",
             "Run shipguard ios report-quality on this Lean Deck output if you are improving ShipGuard itself.",
@@ -795,10 +911,29 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"- Delete candidates: {summary.get('deleteCandidates', 0)}; "
             f"simplify candidates: {summary.get('simplifyCandidates', 0)}; "
             f"keep boundaries: {summary.get('keepBoundaries', 0)}; "
-            f"proof-blocked candidates: {summary.get('proofBlockedCandidates', 0)}"
+            f"proof-blocked candidates: {summary.get('proofBlockedCandidates', 0)}; "
+            f"action groups: {summary.get('actionGroups', 0)}"
         )
+    action_groups = precision.get("actionGroups", [])
+    if action_groups:
+        lines.extend(["", "### Grouped Action Plan", ""])
+        lines.extend(
+            [
+                "| Rank | Decision | Rule | Affected | First Location | First Experiment | Validation | Stop Condition |",
+                "| ---: | --- | --- | ---: | --- | --- | --- | --- |",
+            ]
+        )
+        for group in action_groups[:8]:
+            lines.append(
+                f"| {group.get('rank', '-')} | {group.get('decision', '')} | `{group.get('ruleId', '')}` | "
+                f"{group.get('evidenceCount', 0)} | {group.get('firstLocation', '')} | "
+                f"{str(group.get('firstExperiment', '')).replace('|', '\\|')} | "
+                f"{str(group.get('validationRoute', '')).replace('|', '\\|')} | "
+                f"{str(group.get('stopCondition', '')).replace('|', '\\|')} |"
+            )
     top_actions = precision.get("topActions", [])
     if top_actions:
+        lines.extend(["", "### Individual Starting Points", ""])
         lines.extend(["", "| Rank | Decision | Location | Action | Proof |", "| ---: | --- | --- | --- | --- |"])
         for action in top_actions:
             decision = "delete" if action in precision.get("deleteList", []) else "simplify"
