@@ -10,7 +10,6 @@ It does not publish a GitHub release, change repository rules, edit target apps,
 ./bin/shipguard v4 stable-publication \
   --path . \
   --out /tmp/shipguard-v4-stable-publication \
-  --github-release-repo <owner/repo> \
   --release-version <version> \
   --release-candidate-report <v4-release-candidate-json-or-dir> \
   --download-release-assets \
@@ -20,13 +19,14 @@ It does not publish a GitHub release, change repository rules, edit target apps,
   --shareable
 ```
 
+When `--github-release-repo` is omitted, ShipGuard tries to infer `<owner/repo>` from the target repo's `origin` remote. Pass the flag explicitly when validating a fork, mirror, fixture API, or non-`origin` publication target.
+
 If release assets were already downloaded:
 
 ```bash
 ./bin/shipguard v4 stable-publication \
   --path . \
   --out /tmp/shipguard-v4-stable-publication \
-  --github-release-repo <owner/repo> \
   --release-version <version> \
   --release-candidate-report <v4-release-candidate-json-or-dir> \
   --release-assets <downloaded-assets-dir> \

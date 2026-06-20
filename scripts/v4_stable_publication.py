@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 import urllib.error
 from datetime import datetime, timezone
@@ -157,6 +158,63 @@ def normalize_version(version: str) -> str:
     return version.removeprefix("v")
 
 
+def github_repo_from_remote_url(remote_url: str) -> str:
+    value = str(remote_url or "").strip()
+    if not value:
+        return ""
+    patterns = [
+        r"^git@github\.com:(?P<repo>[^/]+/[^/]+?)(?:\.git)?$",
+        r"^https://github\.com/(?P<repo>[^/]+/[^/]+?)(?:\.git)?/?$",
+        r"^ssh://git@github\.com/(?P<repo>[^/]+/[^/]+?)(?:\.git)?/?$",
+    ]
+    for pattern in patterns:
+        match = re.match(pattern, value)
+        if match:
+            return match.group("repo")
+    return ""
+
+
+def infer_github_release_repo(root: Path) -> dict[str, Any]:
+    try:
+        completed = subprocess.run(
+            ["git", "-C", root.as_posix(), "config", "--get", "remote.origin.url"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return {"status": "not-detected", "source": "git-remote-origin", "repo": "", "remoteUrl": ""}
+    remote_url = completed.stdout.strip()
+    repo = github_repo_from_remote_url(remote_url)
+    return {
+        "status": "detected" if repo else "not-detected",
+        "source": "git-remote-origin",
+        "repo": repo,
+        "remoteUrl": remote_url,
+    }
+
+
+def normalize_args(args: argparse.Namespace, root: Path) -> argparse.Namespace:
+    normalized = argparse.Namespace(**vars(args))
+    normalized.githubReleaseRepoInference = {
+        "used": False,
+        "status": "not-needed" if normalized.github_release_repo else "not-detected",
+        "source": "explicit-argument" if normalized.github_release_repo else "git-remote-origin",
+        "repo": normalized.github_release_repo or "",
+    }
+    if normalized.github_release_repo:
+        return normalized
+    inference = infer_github_release_repo(root)
+    normalized.githubReleaseRepoInference = {
+        **inference,
+        "used": bool(inference.get("repo")),
+    }
+    if inference.get("repo"):
+        normalized.github_release_repo = str(inference["repo"])
+    return normalized
+
+
 def stable_publication_command(args: argparse.Namespace, *, placeholders: bool = False) -> str:
     release_version = args.release_version or "<version>"
     repo = args.github_release_repo or "<owner/repo>"
@@ -258,6 +316,7 @@ def build_github_release_metadata_proof(args: argparse.Namespace, version: str) 
         "provided": bool(args.github_release_repo),
         "requiredForStableV4": True,
         "repo": args.github_release_repo or "",
+        "repoInference": getattr(args, "githubReleaseRepoInference", {}),
         "version": release_version,
         "tag": release_tag,
         "apiUrl": args.github_api_url.rstrip("/"),
@@ -266,7 +325,7 @@ def build_github_release_metadata_proof(args: argparse.Namespace, version: str) 
     }
     if not args.github_release_repo:
         proof["status"] = "not-provided"
-        proof["summary"] = "No GitHub release repository was supplied."
+        proof["summary"] = "No GitHub release repository was supplied or detected from git remote origin."
         return proof
     if "/" not in args.github_release_repo:
         proof["summary"] = "GitHub release repository must use owner/repo syntax."
@@ -822,6 +881,7 @@ def redact_report(report: dict[str, Any], args: argparse.Namespace, root: Path) 
 
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
     root = Path(args.path).expanduser().resolve()
+    args = normalize_args(args, root)
     version = read_text(root / "VERSION").strip() or "unknown"
     release_version = args.release_version or version
     out_dir = Path(args.out).expanduser().resolve()
@@ -902,6 +962,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "version": version,
         "releaseVersion": release_version,
         "repo": root.as_posix(),
+        "githubReleaseRepoInference": getattr(args, "githubReleaseRepoInference", {}),
         "productStage": "v4-stable-publication-proof",
         "stableV4Release": stable_v4_release,
         "stablePublicationEvidencePacket": evidence_packet,

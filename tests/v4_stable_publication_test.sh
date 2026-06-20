@@ -369,7 +369,6 @@ SHIPGUARD_GENERATED_AT="2026-06-20T00:00:00Z" \
   ./bin/shipguard v4 stable-publication \
     --path . \
     --out "$tmp_dir/pass" \
-    --github-release-repo jlekerli-source/ShipGuard \
     --github-api-url "file://$api_root" \
     --release-version "v$version" \
     --release-candidate-report "$tmp_dir/candidate-pass.json" \
@@ -393,7 +392,10 @@ assert report["tool"] == "shipguard v4 stable-publication"
 assert report["surface"] == "ShipGuard V4 Stable Publication Proof"
 assert report["status"] == "pass"
 assert report["stableV4Release"] is True
+assert report["githubReleaseRepoInference"]["used"] is True
+assert report["githubReleaseRepoInference"]["repo"] == "jlekerli-source/ShipGuard"
 assert report["githubReleaseMetadataProof"]["status"] == "pass"
+assert report["githubReleaseMetadataProof"]["repoInference"]["used"] is True
 assert report["releaseNotesProof"]["status"] == "pass"
 assert report["releaseNotesProof"]["missingTopicIds"] == []
 assert len(report["releaseNotesProof"]["topicMatrix"]) == 7

@@ -1,14 +1,14 @@
 # Next Goal
 
-- Generated: 2026-06-20T14:10:01Z
+- Generated: 2026-06-20T14:26:42Z
 - Current toolkit version: 3.131.0
-- Target release: v3.187.0
-- Title: Stable V4 Publication Proof Packet
+- Target release: v3.188.0
+- Title: Verify-First Launch Quickstart
 
 ## Slash Plan
 
 ```text
-/plan v3.187.0 Stable V4 Publication Proof Packet for jlekerli-source/ShipGuard:
+/plan v3.188.0 Verify-First Launch Quickstart for jlekerli-source/ShipGuard:
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
@@ -18,9 +18,36 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.187.0 Stable V4 Publication Proof Packet for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.188.0 Verify-First Launch Quickstart for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
+
+## Completion Receipt
+
+- Completed scope: Improved stable-publication proof UX so ShipGuard infers the GitHub owner/repo from the target repo origin remote when --github-release-repo is omitted, records githubReleaseRepoInference in the report, and advances to the real publication blocker instead of stopping on a redundant argument.
+- Evidence: Passed: git diff --check; python3 -m py_compile scripts/v4_stable_publication.py scripts/v4_release_candidate.py; ./tests/v4_stable_publication_test.sh; read-only stable-publication rerun without --github-release-repo detected jlekerli-source/ShipGuard, loaded GitHub release metadata, and moved first blocker to releaseNotesProof; ./bin/shipguard ios report-quality --reports /tmp/shipguard-loop2-stable-v2 --out /tmp/shipguard-loop2-stable-v2-quality --shareable; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check; ./tests/ios_report_quality_test.sh; ./tests/cli_smoke_test.sh.
+
+## Following Slash Plan
+
+```text
+/plan v3.189.0 One-Command Installer Proof Path for jlekerli-source/ShipGuard:
+1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
+2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
+3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
+4. Generate the next completion receipt and following /plan plus /goal after validation passes.
+```
+
+## Following Slash Goal
+
+```text
+/goal Implement v3.189.0 One-Command Installer Proof Path for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+```
+
+Generate that follow-up file with:
+
+```bash
+./bin/shipguard next-goal --release 3.189.0 --title "One-Command Installer Proof Path" --out NEXT_GOAL.md
+```
 
 ## Constraints
 
@@ -119,12 +146,12 @@
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.187.0.
+1. Open or update the tracking issue for v3.188.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.187.0` and upload `dist/shipguard-v3.187.0.tar.gz`.
+6. Create release `v3.188.0` and upload `dist/shipguard-v3.188.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
