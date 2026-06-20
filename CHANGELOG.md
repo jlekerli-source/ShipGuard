@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Promoted the Full Audit proof-boundary question into `fixtures/ios-report-quality/01-shipguard-full-audit-does-the-command-preserve-proof-boundaries`, so fresh Full Audit report-quality runs treat pushing/publishing/target-app boundary proof as covered and advance to the next uncovered evidence-lane question instead of rematerializing the same candidate.
 - Added Full Audit proof-boundary fixture classification: report-quality now materializes `shipguard full-audit` proof-boundary, pushing/publishing, target-app, slow-lane, and slash-handoff questions as `shipguard-full-audit-proof-boundary-fixture` candidates instead of generic eval-boundary fixtures.
 - Improved report-quality priority UX: when a fresh ShipGuard QA report has no findings, no fixture candidates, and every ranked actionability question is already covered by promoted fixtures, `ios report-quality` now reports `all-actionability-covered` and tells the maintainer to move to a fresh read-only QA source instead of re-reviewing the first covered fixture.
 - Added a promoted fixture metadata consistency sweep: all `fixtures/ios-report-quality/**/fixture-candidate.json` files now carry canonical `candidateId` and `publicFixturePath` values, nested `fixtureCandidate` metadata matches the promoted folder, and `ios_report_quality_test.sh` fails on future drift.

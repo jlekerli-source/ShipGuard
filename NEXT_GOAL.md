@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-20T08:09:47Z
+- Generated: 2026-06-20T08:37:05Z
 - Current toolkit version: 3.131.0
-- Target release: v3.168.0
-- Title: Fresh QA Source Expansion
+- Target release: v3.169.0
+- Title: Full Audit Fixture Promotion
 
 ## Slash Plan
 
 ```text
-/plan v3.168.0 Fresh QA Source Expansion for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Expand the read-only ShipGuard QA loop beyond the saturated value-gauntlet path by using Full Audit plan-only output as a fresh report-quality source and making its top proof-boundary candidate specific enough for future fixture promotion.
+/plan v3.169.0 Full Audit Fixture Promotion for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Promote the Full Audit proof-boundary report-quality candidate into a public fixture so fresh Full Audit QA does not rediscover the same boundary question.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.168.0 Fresh QA Source Expansion for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Expand the read-only ShipGuard QA loop beyond the saturated value-gauntlet path by using Full Audit plan-only output as a fresh report-quality source and making its top proof-boundary candidate specific enough for future fixture promotion, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.169.0 Full Audit Fixture Promotion for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the Full Audit proof-boundary report-quality candidate into a public fixture so fresh Full Audit QA does not rediscover the same boundary question, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Expand the read-only ShipGuard QA loop beyond the saturated value-gauntlet path by using Full Audit plan-only output as a fresh report-quality source and making its top proof-boundary candidate specific enough for future fixture promotion.
+Promote the Full Audit proof-boundary report-quality candidate into a public fixture so fresh Full Audit QA does not rediscover the same boundary question.
 
 ## Completion Receipt
 
-- Completed scope: Ran Full Audit plan-only/shareable as a fresh ShipGuard QA source, graded it with ios report-quality, and updated fixture classification so Full Audit proof-boundary, pushing/publishing, target-app, slow-lane, resumable evidence-lane, and slash-handoff questions materialize as shipguard-full-audit-proof-boundary-fixture instead of generic eval-boundary candidates.
-- Evidence: Passed: ./bin/shipguard full-audit --path . --out /tmp/shipguard-v3168-full-audit --profile quick --plan-only --shipguard-eval --shareable; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3168-full-audit --out /tmp/shipguard-v3168-full-audit-quality-fixed --shareable --write-fixture-candidates /tmp/shipguard-v3168-fixture-candidates-fixed with fixtureType shipguard-full-audit-proof-boundary-fixture; python3 -m py_compile scripts/ios_report_quality.py; ./tests/ios_report_quality_test.sh.
+- Completed scope: Promoted the Full Audit proof-boundary report-quality candidate into fixtures/ios-report-quality/01-shipguard-full-audit-does-the-command-preserve-proof-boundaries, kept the synthetic report public-safe, and proved fresh Full Audit QA advances to the next uncovered evidence-lane question.
+- Evidence: Passed: ./tests/ios_report_quality_test.sh; ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-full-audit-does-the-command-preserve-proof-boundaries --out /tmp/shipguard-v3169-full-audit-fixture-quality-fixed --shareable; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3169-full-audit --out /tmp/shipguard-v3169-full-audit-quality-after-fixture --shareable --write-fixture-candidates /tmp/shipguard-v3169-fixture-candidates-after-fixture; git diff --check; ./bin/shipguard docs-check . --out /tmp/shipguard-v3169-docs-check; ./bin/shipguard validate; ./tests/package_release_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.169.0 Full Audit Fixture Promotion for jlekerli-source/ShipGuard:
+/plan v3.170.0 Full Audit Evidence Lane Fixture for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Expand the read-only ShipGuard QA loop beyond the saturated value-gauntlet path 
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.169.0 Full Audit Fixture Promotion for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.170.0 Full Audit Evidence Lane Fixture for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.169.0 --title "Full Audit Fixture Promotion" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.170.0 --title "Full Audit Evidence Lane Fixture" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.168.0.
+1. Open or update the tracking issue for v3.169.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.168.0` and upload `dist/shipguard-v3.168.0.tar.gz`.
+6. Create release `v3.169.0` and upload `dist/shipguard-v3.169.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

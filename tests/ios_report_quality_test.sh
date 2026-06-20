@@ -91,24 +91,50 @@ import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 priority = data.get("priorityAction") or {}
-expected = "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?"
+covered = "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?"
+expected = "Does the full-audit report replace repeated manual validation ceremony with one resumable evidence lane?"
 if priority.get("kind") != "answer-actionability-question":
-    raise SystemExit(f"expected full-audit boundary question priority: {priority!r}")
+    raise SystemExit(f"expected next uncovered full-audit question priority: {priority!r}")
 if priority.get("question") != expected:
-    raise SystemExit(f"expected full-audit proof-boundary question, got {priority!r}")
+    raise SystemExit(f"expected full-audit evidence-lane question after fixture coverage, got {priority!r}")
+coverage = data.get("fixtureCoverage") or []
+if not any(
+    item.get("question") == covered
+    and item.get("publicFixturePath") == "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-command-preserve-proof-boundaries"
+    for item in coverage
+):
+    raise SystemExit(f"expected full-audit proof-boundary fixture coverage, got {coverage!r}")
 candidates = data.get("fixtureCandidates") or []
-if len(candidates) != 1:
-    raise SystemExit(f"expected one full-audit fixture candidate, got {candidates!r}")
-candidate = candidates[0]
-if candidate.get("fixtureType") != "shipguard-full-audit-proof-boundary-fixture":
-    raise SystemExit(f"full-audit proof-boundary question used generic fixture type: {candidate!r}")
-if candidate.get("sourceQuestion") != expected:
-    raise SystemExit(f"unexpected full-audit source question: {candidate!r}")
+if candidates:
+    raise SystemExit(f"covered full-audit proof-boundary question emitted duplicate candidates: {candidates!r}")
 PY
-grep -q 'shipguard-full-audit-proof-boundary-fixture' "$tmp_dir/full-audit-plan-quality/ios-report-quality.md"
-full_audit_materialized_candidate_dir="$(find "$tmp_dir/full-audit-plan-fixtures" -mindepth 1 -maxdepth 1 -type d -name '*shipguard-full-audit*' | sort | head -n 1)"
-test -n "$full_audit_materialized_candidate_dir"
-grep -q '"fixtureType": "shipguard-full-audit-proof-boundary-fixture"' "$full_audit_materialized_candidate_dir/fixture-candidate.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/full-audit-plan-quality/ios-report-quality.json"
+
+full_audit_proof_boundary_fixture="fixtures/ios-report-quality/01-shipguard-full-audit-does-the-command-preserve-proof-boundaries"
+./bin/shipguard ios report-quality \
+  --reports "$full_audit_proof_boundary_fixture" \
+  --out "$tmp_dir/full-audit-proof-boundary-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/full-audit-proof-boundary-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/full-audit-proof-boundary-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-command-preserve-proof-boundaries"' "$tmp_dir/full-audit-proof-boundary-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/full-audit-proof-boundary-fixture-quality/ios-report-quality.json"
+python3 - <<'PY' "$tmp_dir/full-audit-proof-boundary-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard full-audit", item
+assert item.get("fixtureType") == "shipguard-full-audit-proof-boundary-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-command-preserve-proof-boundaries", item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-full-audit-does-the-command-preserve-proof-boundaries", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
 
 leaky_private="$tmp_dir/leaky-private"
 cp -R "$shareable_reports/design" "$leaky_private"

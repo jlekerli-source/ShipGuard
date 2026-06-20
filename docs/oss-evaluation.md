@@ -4,7 +4,23 @@ Generated: 2026-06-17
 
 This is the current usefulness and refinement evaluation for ShipGuard after the rename and README repositioning work.
 
-## Current Fresh QA Source Expansion
+## Current Full Audit Fixture Promotion
+
+The latest read-only ShipGuard QA loop reran `shipguard full-audit --profile quick --plan-only --shipguard-eval --shareable` and graded the output with `ios report-quality`. The top actionability question was still the Full Audit proof-boundary prompt:
+
+- Question: "Does the command preserve proof boundaries instead of pushing, publishing, or editing target apps?"
+- Candidate type: `shipguard-full-audit-proof-boundary-fixture`
+
+This slice promotes that candidate into a public synthetic fixture:
+
+- `fixtures/ios-report-quality/01-shipguard-full-audit-does-the-command-preserve-proof-boundaries` now covers the Full Audit proof-boundary question without private app code, local paths, screenshots, app identifiers, or proprietary text.
+- The fixture includes explicit `scopeBoundary.shipguardOnly`, `targetAppsReadOnly`, `slashPlan`, `slashGoal`, and `slashHandoffSource` fields so it scores as a valid Full Audit report instead of a broken synthetic starter.
+- Fresh Full Audit report-quality runs now report fixture coverage for question #1, emit no duplicate candidate, and advance priority to question #2: whether Full Audit replaces repeated manual validation ceremony with one resumable evidence lane.
+- Focused tests prove the fixture scores as `review-existing-fixture`, emits no recursive `fixtureCandidates`, and ships in release packages.
+
+This keeps the read-only QA loop moving from candidate generation into durable public regression coverage.
+
+## Previous Fresh QA Source Expansion
 
 The latest read-only ShipGuard QA loop moved beyond the saturated value-gauntlet path and used `shipguard full-audit --profile quick --plan-only --shipguard-eval --shareable` as a fresh source. Report-quality passed the Full Audit report, but the materialized candidate for the top question was still generic:
 
