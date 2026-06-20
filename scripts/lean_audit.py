@@ -67,6 +67,10 @@ SAFETY_TOKENS = (
 )
 FINDING_PRIORITY = {"review": 0, "opportunity": 1, "info": 2}
 LEGACY_MARKER_RE = re.compile(r"\bTODO\b|\bFIXME\b|temporary|legacy|compat", re.IGNORECASE)
+LEAN_DEBT_RE = re.compile(
+    r"(?P<prefix>#|//|/\*|<!--)\s*(?P<label>ponytail|shipguard-lean):\s*(?P<body>.*)",
+    re.IGNORECASE,
+)
 
 
 def utc_now() -> str:
@@ -181,6 +185,54 @@ def legacy_signal(text: str) -> dict[str, Any]:
         "lineCount": len(lines),
         "markerCount": sum(int(item["markerCount"]) for item in markers),
         "firstMarkerLines": markers[:5],
+    }
+
+
+def parse_lean_debt_body(body: str) -> dict[str, str]:
+    normalized = body.strip().rstrip("*/").rstrip("-->").strip()
+    result = {"summary": normalized, "ceiling": "", "upgrade": ""}
+    ceiling_match = re.search(r"\bceiling\s*:\s*([^.;]+)", normalized, flags=re.IGNORECASE)
+    upgrade_match = re.search(r"\bupgrade\s*:\s*([^.;]+)", normalized, flags=re.IGNORECASE)
+    if ceiling_match:
+        result["ceiling"] = ceiling_match.group(1).strip()
+    if upgrade_match:
+        result["upgrade"] = upgrade_match.group(1).strip()
+    return result
+
+
+def scan_lean_debt(root: Path, files: list[Path]) -> dict[str, Any]:
+    items: list[dict[str, Any]] = []
+    for path in files:
+        text = read_text(path)
+        if not text:
+            continue
+        relative = rel(path, root)
+        for number, line in enumerate(text.splitlines(), start=1):
+            match = LEAN_DEBT_RE.search(line)
+            if not match:
+                continue
+            parsed = parse_lean_debt_body(match.group("body"))
+            has_trigger = bool(parsed["upgrade"])
+            items.append(
+                {
+                    "file": relative,
+                    "line": number,
+                    "marker": match.group("label").lower(),
+                    "summary": parsed["summary"][:240],
+                    "ceiling": parsed["ceiling"],
+                    "upgrade": parsed["upgrade"],
+                    "hasUpgradeTrigger": has_trigger,
+                    "status": "tracked" if has_trigger else "needs-trigger",
+                }
+            )
+    return {
+        "description": "Intentional lean shortcuts found in comments. Every shortcut should name a ceiling and an upgrade trigger so deferrals stay reviewable.",
+        "markers": items[:80],
+        "summary": {
+            "markers": len(items),
+            "missingUpgradeTrigger": len([item for item in items if not item["hasUpgradeTrigger"]]),
+            "omittedByLimit": max(0, len(items) - 80),
+        },
     }
 
 
@@ -457,6 +509,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     )
     emitted_findings = findings[:120]
     precision_review = build_precision_review(emitted_findings)
+    lean_debt_ledger = scan_lean_debt(root, files)
     rule_counts = Counter(str(f["ruleId"]) for f in emitted_findings)
     result = "pass" if not [f for f in emitted_findings if f["severity"] in {"review", "opportunity"}] else "review"
     display_root = "." if args.shareable else str(root)
@@ -481,6 +534,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Only then write the minimum code that works.",
         ],
         "precisionReview": precision_review,
+        "leanDebtLedger": lean_debt_ledger,
         "safetyBoundary": [
             "Do not cut trust-boundary validation without proof.",
             "Do not cut data-loss handling without proof.",
@@ -530,6 +584,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does Lean Deck separate real simplification candidates from safety-boundary files?",
             "Does each finding explain the proof needed before removing code?",
             "Does the report help a solo developer delete clutter without deleting product behavior?",
+            "Does leanDebtLedger make intentional shortcuts auditable with ceilings and upgrade triggers?",
             "Should this observation become a public fixture instead of depending on a private repo?",
         ]
     return report
@@ -580,6 +635,27 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.extend(["", "## Safety Boundary", ""])
     for item in report["safetyBoundary"]:
         lines.append(f"- {item}")
+    debt = report.get("leanDebtLedger", {})
+    if debt:
+        debt_summary = debt.get("summary", {})
+        lines.extend(["", "## Lean Debt Ledger", ""])
+        lines.append(
+            f"- Markers: {debt_summary.get('markers', 0)}; "
+            f"missing upgrade trigger: {debt_summary.get('missingUpgradeTrigger', 0)}"
+        )
+        markers = debt.get("markers", [])
+        if markers:
+            lines.extend(["", "| Status | Marker | Location | Shortcut | Ceiling | Upgrade Trigger |", "| --- | --- | --- | --- | --- | --- |"])
+            for item in markers[:20]:
+                location = f"{item.get('file', '')}:{item.get('line', '')}"
+                lines.append(
+                    f"| {item.get('status', '')} | `{item.get('marker', '')}` | {location} | "
+                    f"{str(item.get('summary', '')).replace('|', '\\|')} | "
+                    f"{str(item.get('ceiling', '') or '-').replace('|', '\\|')} | "
+                    f"{str(item.get('upgrade', '') or '-').replace('|', '\\|')} |"
+                )
+        else:
+            lines.append("No `ponytail:` or `shipguard-lean:` shortcut markers found.")
     lines.extend(["", "## Findings", ""])
     if report.get("ruleSummary"):
         lines.extend(["| Rule | Count | First Evidence |", "| --- | ---: | --- |"])

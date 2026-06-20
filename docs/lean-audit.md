@@ -30,6 +30,17 @@ Lean Deck also emits `precisionReview`, a ShipGuard-native Ponytail-style action
 - `blockedByProof`: large or risky candidates that need call-site evidence before edits.
 - `topActions`: the first few concrete bets a maintainer should inspect.
 
+It also emits `leanDebtLedger`, a native version of Ponytail's shortcut ledger.
+Any `ponytail:` or `shipguard-lean:` comment should name both a ceiling and an
+upgrade trigger, for example:
+
+```ts
+// shipguard-lean: use the native parser here. ceiling: only one query string shape. upgrade: replace when repeated-key support is required.
+```
+
+Markers without an upgrade trigger are reported as `needs-trigger` so intentional
+simplifications stay visible instead of turning into permanent mystery debt.
+
 ## What It Checks
 
 - Does this code need to exist?
