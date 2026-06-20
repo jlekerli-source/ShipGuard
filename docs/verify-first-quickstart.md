@@ -108,4 +108,5 @@ Use `examples/workflows/verify-pr.yml` as the transparent GitHub Actions startin
 6. run `shipguard verify`
 7. upload `shipguard-verdict.json` and `shipguard-verdict.md`
 
-Replace `replace-with-your-test-command` with your real test command before using the workflow.
+Set `SHIPGUARD_VALIDATION_COMMAND` once near the top of the workflow before using it in a real repository.
+The workflow uses that single value for the task contract, the CI command, and the structured receipt; if the placeholder is left in place, it fails early with a clear setup message.

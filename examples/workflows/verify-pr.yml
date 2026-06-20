@@ -6,6 +6,8 @@ on:
 jobs:
   shipguard-verify:
     runs-on: ubuntu-latest
+    env:
+      SHIPGUARD_VALIDATION_COMMAND: replace-with-your-test-command
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
@@ -23,22 +25,26 @@ jobs:
 
       - name: Prepare ShipGuard task
         run: |
+          if [ "$SHIPGUARD_VALIDATION_COMMAND" = "replace-with-your-test-command" ]; then
+            echo "Set SHIPGUARD_VALIDATION_COMMAND to your real test command before enabling this workflow." >&2
+            exit 2
+          fi
           shipguard prepare "${{ github.event.pull_request.title }}" \
             --path . \
             --out /tmp/shipguard-task \
             --profile auto \
-            --validation "replace-with-your-test-command" \
+            --validation "$SHIPGUARD_VALIDATION_COMMAND" \
             --shareable
 
       - name: Run validation and write receipt
         run: |
           started_at="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
           set +e
-          replace-with-your-test-command > /tmp/shipguard-validation.log 2>&1
+          bash -lc "$SHIPGUARD_VALIDATION_COMMAND" > /tmp/shipguard-validation.log 2>&1
           status=$?
           set -e
           completed_at="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-          python3 - <<'PY' "$status" "$started_at" "$completed_at" "$GITHUB_SHA"
+          python3 - <<'PY' "$status" "$started_at" "$completed_at" "$GITHUB_SHA" "$SHIPGUARD_VALIDATION_COMMAND"
           import hashlib
           import json
           import sys
@@ -48,14 +54,15 @@ jobs:
           started_at = sys.argv[2]
           completed_at = sys.argv[3]
           commit = sys.argv[4]
+          command = sys.argv[5]
           artifact = Path("/tmp/shipguard-validation.log")
           payload = artifact.read_bytes()
           receipt = {
               "schemaVersion": "2.0",
               "receiptId": "pr-validation",
               "receiptType": "validation",
-              "requirementId": "replace-with-your-test-command",
-              "command": "replace-with-your-test-command",
+              "requirementId": command,
+              "command": command,
               "exitCode": status,
               "status": "pass" if status == 0 else "fail",
               "startedAt": started_at,

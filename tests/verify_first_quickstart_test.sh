@@ -77,6 +77,16 @@ fi
 grep -q 'Status: `blocked`' "$tmp_dir/blocked/shipguard-verdict.md"
 grep -q 'Risk files: `1 risk file(s): 1 protected, 1 out of scope, 0 deleted test(s)`' "$tmp_dir/blocked/shipguard-verdict.md"
 grep -q 'ShipGuard Proof Report: blocked. Validation 1/1 covered; claims 0/1 accepted;' "$tmp_dir/blocked.out"
-grep -q 'replace-with-your-test-command' examples/workflows/verify-pr.yml
+grep -q 'SHIPGUARD_VALIDATION_COMMAND: replace-with-your-test-command' examples/workflows/verify-pr.yml
+grep -q 'Set SHIPGUARD_VALIDATION_COMMAND to your real test command' examples/workflows/verify-pr.yml
+grep -q -- '--validation "$SHIPGUARD_VALIDATION_COMMAND"' examples/workflows/verify-pr.yml
+grep -q 'bash -lc "$SHIPGUARD_VALIDATION_COMMAND"' examples/workflows/verify-pr.yml
+grep -q 'command = sys.argv\[5\]' examples/workflows/verify-pr.yml
+
+placeholder_count="$(grep -c 'replace-with-your-test-command' examples/workflows/verify-pr.yml)"
+if [[ "$placeholder_count" -ne 2 ]]; then
+  echo "expected workflow placeholder only in env default and guard, got $placeholder_count occurrences" >&2
+  exit 1
+fi
 
 echo "verify-first quickstart tests passed"

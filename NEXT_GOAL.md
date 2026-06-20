@@ -1,14 +1,14 @@
 # Next Goal
 
-- Generated: 2026-06-20T15:03:37Z
+- Generated: 2026-06-20T15:20:31Z
 - Current toolkit version: 3.131.0
-- Target release: v3.190.0
-- Title: Lean Deck Date-Helper Precision
+- Target release: v3.191.0
+- Title: GitHub Action First-Run Proof Path
 
 ## Slash Plan
 
 ```text
-/plan v3.190.0 Lean Deck Date-Helper Precision for jlekerli-source/ShipGuard:
+/plan v3.191.0 GitHub Action First-Run Proof Path for jlekerli-source/ShipGuard:
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
@@ -18,19 +18,19 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.190.0 Lean Deck Date-Helper Precision for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.191.0 GitHub Action First-Run Proof Path for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Completion Receipt
 
-- Completed scope: Improved the read-only ShipGuard Lean Deck after Ponytail-style self-QA by narrowing native-date detection to real date-picker imports/package usage/JSX calls instead of prose such as 'moments', removing the false positive against scripts/ios_design.py while preserving the public date-picker fixture.
-- Evidence: Passed: python3 -m py_compile scripts/lean_audit.py; ./tests/lean_audit_test.sh; ./bin/shipguard lean audit --path . --out /tmp/shipguard-loop-lean-v2 --shipguard-eval --shareable now reports no native-date-input finding for the ShipGuard repo and keeps only proof-blocked large-file/safety-boundary findings; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-loop-value-gauntlet --strict returned pass with average score 100.0.
+- Completed scope: Improved the verify-first GitHub Actions starter so one SHIPGUARD_VALIDATION_COMMAND drives prepare, CI execution, and structured receipt metadata, with an early placeholder guard and docs/tests covering the first-run path.
+- Evidence: Passed: ./tests/verify_first_quickstart_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-loop-vg --strict returned pass with average score 100.0 and identified real stable-v4 publication proof as the next product-depth gap.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.191.0 GitHub Action First-Run Proof Path for jlekerli-source/ShipGuard:
+/plan v3.192.0 Stable V4 Publication Proof Packet for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -40,13 +40,13 @@
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.191.0 GitHub Action First-Run Proof Path for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.192.0 Stable V4 Publication Proof Packet for jlekerli-source/ShipGuard: follow the following /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.191.0 --title "GitHub Action First-Run Proof Path" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.192.0 --title "Stable V4 Publication Proof Packet" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -146,12 +146,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.190.0.
+1. Open or update the tracking issue for v3.191.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.190.0` and upload `dist/shipguard-v3.190.0.tar.gz`.
+6. Create release `v3.191.0` and upload `dist/shipguard-v3.191.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
