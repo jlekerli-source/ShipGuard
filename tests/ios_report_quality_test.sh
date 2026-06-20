@@ -522,6 +522,35 @@ assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-sh
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 
+./bin/shipguard docs-check . --out "$tmp_dir/docs-check-report" >/dev/null
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/docs-check-report" \
+  --out "$tmp_dir/docs-check-report-quality" \
+  --shareable \
+  --write-fixture-candidates "$tmp_dir/docs-check-report-fixtures" >/dev/null
+python3 - <<'PY' "$tmp_dir/docs-check-report-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+priority = data.get("priorityAction") or {}
+if priority.get("kind") != "all-actionability-covered":
+    raise SystemExit(f"expected docs-check questions to be fully covered, got {priority!r}")
+if priority.get("coveredQuestionCount") != 3:
+    raise SystemExit(f"expected three covered docs-check questions, got {priority!r}")
+coverage = data.get("fixtureCoverage") or []
+expected = {
+    "Does docs-check expose a stable tool name and result summary when nested inside full-audit?": "fixtures/ios-report-quality/01-shipguard-docs-check-does-docs-check-expose-a-stable-tool-name-a",
+    "Are broken local documentation links listed with file, link, and missing target?": "fixtures/ios-report-quality/02-shipguard-docs-check-are-broken-local-documentation-links-listed",
+    "Does docs-check avoid implying external URLs or in-page anchors were verified?": "fixtures/ios-report-quality/03-shipguard-docs-check-does-docs-check-avoid-implying-external-url",
+}
+for question, path in expected.items():
+    if not any(item.get("question") == question and item.get("publicFixturePath") == path for item in coverage):
+        raise SystemExit(f"missing docs-check fixture coverage for {question!r}: {coverage!r}")
+if data.get("fixtureCandidates") != []:
+    raise SystemExit(f"fully covered docs-check should not create candidates: {data.get('fixtureCandidates')!r}")
+PY
+
 leaky_private="$tmp_dir/leaky-private"
 cp -R "$shareable_reports/design" "$leaky_private"
 python3 - <<'PY' "$leaky_private/ios-design.json"

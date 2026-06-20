@@ -57,6 +57,7 @@ use File::Basename qw(dirname basename);
 use File::Find;
 use File::Spec;
 use JSON::PP;
+use POSIX qw(strftime);
 
 sub fail {
   die "docs-check: $_[0]\n";
@@ -157,14 +158,45 @@ for my $file (@files) {
 }
 
 my $status = @broken ? 'blocked' : 'pass';
+my $generated_at = strftime('%Y-%m-%dT%H:%M:%SZ', gmtime());
+my $summary = @broken
+  ? scalar(@broken) . " broken local Markdown link(s) found."
+  : "All checked local Markdown links resolved.";
+my $next_action = @broken
+  ? "Fix the broken local Markdown links, then rerun shipguard docs-check."
+  : "Use this docs-check report as local-link proof for docs-heavy changes.";
 my $report = {
   schema_version => '1.0',
+  schemaVersion => 1,
+  tool => 'shipguard docs-check',
+  surface => 'ShipGuard DocsLink',
   status => $status,
+  generatedAt => $generated_at,
   root => basename($root),
   files_checked => scalar(@files),
   links_checked => $links_checked,
   broken_count => scalar(@broken),
   broken_links => \@broken,
+  resultUX => {
+    status => $status,
+    summary => $summary,
+    proofSource => 'Markdown local-link scan',
+    whyItMatters => 'Broken local documentation links make ShipGuard harder to adopt and review.',
+    nextCommand => 'shipguard docs-check . --out /tmp/shipguard-docs-check',
+    nextActionSummary => $next_action,
+  },
+  scopeBoundary => {
+    shipguardOnly => JSON::PP::true,
+    targetAppsReadOnly => JSON::PP::true,
+    doesNotEditFiles => JSON::PP::true,
+    doesNotFetchExternalUrls => JSON::PP::true,
+    purpose => 'Check Markdown files for broken local links.',
+  },
+  reportQualityQuestions => [
+    'Does docs-check expose a stable tool name and result summary when nested inside full-audit?',
+    'Are broken local documentation links listed with file, link, and missing target?',
+    'Does docs-check avoid implying external URLs or in-page anchors were verified?',
+  ],
 };
 
 if (length $out_dir) {
@@ -175,13 +207,29 @@ if (length $out_dir) {
     . "- Status: $status\n"
     . "- Files checked: " . scalar(@files) . "\n"
     . "- Local links checked: $links_checked\n"
-    . "- Broken links: " . scalar(@broken) . "\n\n";
+    . "- Broken links: " . scalar(@broken) . "\n\n"
+    . "## Result\n\n"
+    . "- Verdict: " . uc($status) . ": $summary\n"
+    . "- Proof source: Markdown local-link scan\n"
+    . "- Why it matters: Broken local documentation links make ShipGuard harder to adopt and review.\n"
+    . "- Next command: `shipguard docs-check . --out /tmp/shipguard-docs-check`\n"
+    . "- Next action: $next_action\n\n";
   if (@broken) {
     $md .= "| File | Link | Missing target |\n| --- | --- | --- |\n";
     for my $broken (@broken) {
       $md .= "| `$broken->{file}` | `$broken->{link}` | `$broken->{target}` |\n";
     }
+    $md .= "\n";
   }
+  $md .= "## Scope Boundary\n\n"
+    . "- shipguardOnly: true\n"
+    . "- targetAppsReadOnly: true\n"
+    . "- doesNotEditFiles: true\n"
+    . "- doesNotFetchExternalUrls: true\n\n"
+    . "## Report Quality Questions\n\n"
+    . "- Does docs-check expose a stable tool name and result summary when nested inside full-audit?\n"
+    . "- Are broken local documentation links listed with file, link, and missing target?\n"
+    . "- Does docs-check avoid implying external URLs or in-page anchors were verified?\n";
   write_text(File::Spec->catfile($out_dir, 'docs-check.md'), $md);
   print "wrote: " . File::Spec->catfile($out_dir, 'docs-check.json') . "\n";
   print "wrote: " . File::Spec->catfile($out_dir, 'docs-check.md') . "\n";

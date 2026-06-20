@@ -5,7 +5,7 @@
 <h1 align="center">ShipGuard</h1>
 
 <p align="center">
-  Local-first CLI and Codex plugin for proof-gated app maintenance.
+  Local-first proof reports for AI-assisted development.
 </p>
 
 <p align="center">
@@ -16,37 +16,30 @@
   <a href="docs/index.md">Docs</a>
 </p>
 
-ShipGuard helps developers use AI coding agents without trusting vague handoffs like "done", "tested", or "should work".
+ShipGuard helps you use Codex and other coding agents without accepting vague handoffs like "done", "tested", or "should work".
 
-It turns agent work into a simple proof loop:
+It gives every task a simple loop:
 
 ```text
-prepare the task -> attach evidence -> verify the claims -> review or ship
+scope the work -> collect proof -> check the claims -> review or block
 ```
 
-ShipGuard is open source, app-neutral, and local-first. The deepest support today is for iOS and Codex, with starter profiles for web, backend, and CLI projects.
+ShipGuard is open source, local-first, and app-neutral. It works as a CLI today, with deeper Codex and iOS support where proof needs to be especially concrete.
 
-## The Problem
+## Why ShipGuard Exists
 
-AI coding tools can move fast, but the handoff is often weak:
+AI agents can make useful code changes quickly. The hard part is knowing whether the work is actually safe to review.
 
-- the task scope is unclear
-- the changed files are not easy to review
-- test claims are not backed by receipts
-- risky files are touched quietly
-- the next action is vague
+ShipGuard checks the parts that usually get hand-waved:
 
-ShipGuard makes those things explicit before the work is treated as ready.
+- What was the task supposed to touch?
+- Which files changed?
+- Were risky or protected files touched?
+- Did tests or runtime checks actually run?
+- Are the agent's claims supported by evidence?
+- What should the maintainer do next?
 
-## The Core Loop
-
-1. Prepare a scoped task contract.
-2. Let the coding agent work inside that scope.
-3. Attach test logs, receipts, screenshots, or runtime proof.
-4. Verify the diff, evidence, and claims.
-5. Review, merge, or block with a concrete reason.
-
-The goal is not to slow developers down. The goal is to make fast AI-assisted work reviewable.
+The output is a Markdown and JSON report you can read, attach to a PR, or archive as release proof.
 
 ## Install
 
@@ -65,11 +58,11 @@ shipguard init ios .
 shipguard doctor ios .
 ```
 
-Use `web`, `backend`, or `cli` instead of `ios` for those starter profiles.
+Starter profiles are available for `ios`, `web`, `backend`, and `cli`.
 
-## First Proof Report
+## Try It In 3 Minutes
 
-Run this from the ShipGuard checkout:
+Run the built-in proof demo from this repository:
 
 ```bash
 ./bin/shipguard prepare \
@@ -88,13 +81,13 @@ Run this from the ShipGuard checkout:
   --out /tmp/shipguard-verdict
 ```
 
-Open the verdict:
+Open:
 
 ```bash
 /tmp/shipguard-verdict/shipguard-verdict.md
 ```
 
-The report leads with the decision:
+You should see a verdict like:
 
 ```text
 ShipGuard Proof Report
@@ -104,44 +97,50 @@ Claims checked: accepted
 Next action: review or merge with the attached proof
 ```
 
-See [Verify-First Quickstart](docs/verify-first-quickstart.md) for pass, review, and blocked examples.
+For more examples, see [Verify-First Quickstart](docs/verify-first-quickstart.md).
 
-## What ShipGuard Includes
+## Daily Commands
 
-| Surface | Purpose |
+Most users only need these:
+
+| Command | Use it when |
 | --- | --- |
-| `prepare` / `verify` | task scope, evidence receipts, claim checks, and merge verdicts |
-| `init` / `doctor` | starter workflow files and repo setup checks |
-| GitHub Action examples | PR proof reports and CI handoff patterns |
-| iOS reports | design, performance, modernization, preview, Devspace, and report-quality audits |
-| Codex plugin | local Codex guidance for iOS ShipGuard workflows |
-| ShipYard | maintainer fixtures, evals, release proof, marketplace checks, and product QA |
+| `shipguard init <profile> <repo>` | Add ShipGuard workflow files to a project. |
+| `shipguard doctor <profile> <repo>` | Check whether the workflow files are present. |
+| `shipguard prepare ...` | Create a scoped task contract before agent work. |
+| `shipguard verify ...` | Check a diff, evidence, and claims after agent work. |
+| `shipguard docs-check ...` | Find broken local Markdown links. |
+| `shipguard full-audit ...` | Run a broader ShipGuard maintainer audit. |
 
-Most users should start with `prepare`, `verify`, `init`, and `doctor`.
-
-## Common Commands
+Common flow:
 
 ```bash
-shipguard init ios .
-shipguard doctor ios .
 shipguard prepare "Fix the checkout empty state" --path . --out /tmp/task --profile ios
 shipguard verify --task /tmp/task/shipguard-task.json --diff /tmp/change.diff --evidence /tmp/test-receipt.json --out /tmp/verdict
-shipguard docs-check . --out /tmp/docs-check
 ```
 
-iOS-specific reports:
+Full reference: [CLI](docs/cli.md) and [Command Matrix](docs/command-matrix.md).
+
+## iOS And Codex
+
+ShipGuard has first-class iOS and Codex support:
 
 ```bash
 shipguard ios design --path . --out /tmp/ios-design --icon-brief
 shipguard ios performance --path . --out /tmp/ios-performance
+shipguard ios modernize --focus swift --path . --out /tmp/ios-modernize
 shipguard ios report-quality --reports /tmp/ios-design --out /tmp/report-quality
 ```
 
-Full command reference: [CLI](docs/cli.md) and [Command Matrix](docs/command-matrix.md).
+Useful iOS surfaces:
 
-## Codex Plugin
+- `ios design`: UI, motion, haptics, app type, design DNA, and icon brief guidance.
+- `ios performance`: source-level performance risk report.
+- `ios preview`: phone-shaped simulator preview for visual review.
+- `ios devspace`: ChatGPT/Codex visual planning bridge for the preview.
+- `ios report-quality`: checks whether ShipGuard reports are actually useful.
 
-Install or refresh the local ShipGuard plugin while developing:
+Refresh the local Codex plugin while developing ShipGuard:
 
 ```bash
 codex plugin marketplace add .
@@ -150,6 +149,16 @@ shipguard codex status --strict
 ```
 
 Start a new Codex thread after refreshing the plugin so the latest skill text is loaded.
+
+## GitHub Action
+
+ShipGuard can run in CI and attach proof reports to pull requests.
+
+Start here:
+
+- [GitHub Action guide](docs/github-action.md)
+- [PR review bot mode](docs/pr-review-bot.md)
+- [Release proof bundle](docs/release-proof.md)
 
 ## Repo Map
 
@@ -164,11 +173,20 @@ tests/                 validation lanes
 actions/               reusable GitHub Actions
 ```
 
+## ShipYard
+
+ShipGuard is the product. ShipYard is the maintainer layer around it: fixtures, evals, release proof, marketplace checks, report-quality tests, and product QA.
+
+That split matters:
+
+- ShipGuard is what developers install and run.
+- ShipYard is how contributors keep ShipGuard honest.
+
 ## Learn More
 
+- [Docs Home](docs/index.md)
 - [Install and Doctor](docs/install-doctor.md)
-- [Verify-First Quickstart](docs/verify-first-quickstart.md)
-- [GitHub Action](docs/github-action.md)
+- [Use in your repo](docs/use-in-your-repo.md)
 - [iOS ShipGuard](docs/ios-shipguard.md)
 - [Codex Marketplace Readiness](docs/codex-marketplace-readiness.md)
 - [Roadmap](ROADMAP.md)

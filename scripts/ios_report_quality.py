@@ -124,6 +124,7 @@ TOOL_NEXT_ACTION_PRIORITY = {
 }
 ROOT_REPORT_TOOLS = {
     "shipguard brand",
+    "shipguard docs-check",
     "shipguard value-gauntlet",
     "shipguard full-audit",
     "shipguard inspect",
@@ -3291,6 +3292,8 @@ def fixture_type_for_question(question: str, tool: str) -> str:
         or "marketplacedeck" in text
     ):
         return "shipguard-marketplace-readiness-fixture"
+    if tool == "shipguard docs-check" or "docs-check" in text or "docslink" in text:
+        return "shipguard-docs-check-report-fixture"
     if tool == "shipguard full-audit" and (
         "proof boundaries" in question_text
         or "proof boundary" in question_text
@@ -3421,6 +3424,12 @@ def should_create_fixture_candidate(question: str) -> bool:
             "plugin install freshness",
             "tracked source",
             "strict status",
+            "docs-check",
+            "docslink",
+            "stable tool name",
+            "local documentation links",
+            "external urls",
+            "in-page anchors",
         )
     )
 

@@ -6,6 +6,22 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current DocsLink Report Contract Promotion
+
+The next read-only QA rotation used `value-gauntlet`, `inspect`, and an actual quick `full-audit` as fresh ShipGuard product-QA sources after MarketplaceDeck became fully covered. `ios report-quality` found a concrete nested-report weakness inside the full-audit output:
+
+- Finding: `docs-check.json` did not expose a report-quality-compatible stable report contract.
+- Product weakness: full-audit embeds docs-check as release-loop evidence, but report-quality could not treat that nested report as a first-class ShipGuard report because it lacked stable metadata and result fields.
+
+This slice upgrades `shipguard docs-check` into `ShipGuard DocsLink`:
+
+- JSON now includes `tool`, `surface`, `schemaVersion`, `generatedAt`, `resultUX`, `scopeBoundary`, and `reportQualityQuestions`.
+- Markdown now renders `Result`, `Scope Boundary`, and `Report Quality Questions`.
+- `ios report-quality` recognizes `shipguard docs-check` as a root/nested report tool.
+- Public fixtures cover the three docs-check report-quality questions: stable tool/result metadata, broken local-link rows, and the boundary that external URLs and in-page anchors are ignored rather than verified.
+
+This turns a hidden full-audit nested-report blocker into reusable docs-link proof.
+
 ## Current MarketplaceDeck GitHub Presentation Fixture Promotion
 
 The next read-only MarketplaceDeck QA pass started from a state where fresh-user comprehension, plugin install freshness, submission-packet readiness, and docs-index clarity were already covered by public fixtures. Fresh `shipguard codex marketplace-readiness` plus `ios report-quality --write-fixture-candidates` advanced to the last current MarketplaceDeck gap:

@@ -14,8 +14,18 @@ cd "$repo_root"
 test -f "$tmp_dir/docs-check/docs-check.json"
 test -f "$tmp_dir/docs-check/docs-check.md"
 grep -q '"status" : "pass"' "$tmp_dir/docs-check/docs-check.json"
+grep -q '"tool" : "shipguard docs-check"' "$tmp_dir/docs-check/docs-check.json"
+grep -q '"surface" : "ShipGuard DocsLink"' "$tmp_dir/docs-check/docs-check.json"
+grep -q '"schemaVersion" : 1' "$tmp_dir/docs-check/docs-check.json"
+grep -q '"generatedAt"' "$tmp_dir/docs-check/docs-check.json"
+grep -q '"resultUX"' "$tmp_dir/docs-check/docs-check.json"
+grep -q '"scopeBoundary"' "$tmp_dir/docs-check/docs-check.json"
+grep -q '"reportQualityQuestions"' "$tmp_dir/docs-check/docs-check.json"
 grep -q '"broken_count" : 0' "$tmp_dir/docs-check/docs-check.json"
 grep -q '# Docs Check' "$tmp_dir/docs-check/docs-check.md"
+grep -q '## Result' "$tmp_dir/docs-check/docs-check.md"
+grep -q '## Scope Boundary' "$tmp_dir/docs-check/docs-check.md"
+grep -q '## Report Quality Questions' "$tmp_dir/docs-check/docs-check.md"
 
 mkdir -p "$tmp_dir/broken"
 cat > "$tmp_dir/broken/README.md" <<'MD'
@@ -31,7 +41,9 @@ if ./bin/shipguard docs-check "$tmp_dir/broken" --out "$tmp_dir/broken-out" >/de
   exit 1
 fi
 grep -q '"status" : "blocked"' "$tmp_dir/broken-out/docs-check.json"
+grep -q '"tool" : "shipguard docs-check"' "$tmp_dir/broken-out/docs-check.json"
 grep -q '"broken_count" : 1' "$tmp_dir/broken-out/docs-check.json"
 grep -q '"link" : "missing.md"' "$tmp_dir/broken-out/docs-check.json"
+grep -q 'Fix the broken local Markdown links' "$tmp_dir/broken-out/docs-check.md"
 
 echo "docs check tests passed"
