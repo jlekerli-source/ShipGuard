@@ -8,7 +8,7 @@
 | Check workflow kit | `validate` | Validation pass/fail |
 | Check target repo setup | `doctor ios`, `doctor web`, `doctor backend`, `doctor cli` | Missing file report |
 | Prepare a Codex task contract | `prepare` | `shipguard-task.json` and Markdown with goal, risk, authorized files, protected boundaries, validation contract, tracked claims, and next exact action |
-| Verify a Codex task result | `verify` | `shipguard-verdict.json` and Markdown with changed files, scope checks, v2 evidence receipt schema, validation coverage, rejected overclaims, pass/review/blocked status, and next exact action |
+| Verify a Codex task result | `verify` | `shipguard-verdict.json` and Markdown with a concise `proofReport`, changed files, scope checks, v2 evidence receipt schema, validation coverage, rejected overclaims, pass/review/blocked status, and next exact action |
 | First-audit a web app | `web audit` | ShipGuard WebScan: framework, auth/payment, validation, starter health, and next-command report |
 | Plan web work from first-audit evidence | `web plan` | ShipGuard WebForge: scoped web tasks, validation commands, read-only validation receipts, validation rerun receipts, copy-ready proof handoff packets, stop conditions, and report-quality questions from a WebScan report |
 | First-audit a backend service | `backend audit` | ShipGuard ServiceRadar: API, auth, migration, queue, webhook, observability, validation, and next-command report |

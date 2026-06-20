@@ -202,6 +202,11 @@ import sys
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 assert data["tool"] == "shipguard verify"
 assert data["status"] == "pass"
+proof = data["proofReport"]
+assert proof["status"] == "pass"
+assert proof["validation"]["label"] == "1/1 covered"
+assert proof["claims"]["label"] == "1/1 accepted"
+assert proof["mergeAllowed"] is True
 assert data["changedFiles"] == ["Sources/DemoShipGuardApp/DemoPermissions.swift"]
 assert data["scopeChecks"]["outOfScope"] == []
 assert data["scopeChecks"]["forbiddenTouched"] == []
@@ -232,6 +237,9 @@ assert analysis["notificationPermissionWorkflow"]["status"] == workflow["status"
 assert data["nextAction"]["expectedArtifact"] == "review-ready proof packet"
 assert data["nextAction"]["priority"] == 7
 PY
+grep -q '## Proof Report' "$tmp_dir/verify-pass/shipguard-verdict.md"
+grep -q 'Status: `pass`' "$tmp_dir/verify-pass/shipguard-verdict.md"
+grep -q 'Validation: `1/1 covered`' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Merge allowed: True' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Behavior Categories' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Validation Coverage' "$tmp_dir/verify-pass/shipguard-verdict.md"

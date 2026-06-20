@@ -2,6 +2,8 @@
 
 This repo exposes reusable composite actions for validating a workflow-bundle checkout, comparing Arena benchmark results, verifying redacted maintainer transcripts, verifying transcript corpora, building release proof artifacts, consuming published release proof assets, comparing release proof, exporting release evidence, verifying downloaded evidence artifacts, and auditing the release evidence negative fixture corpus.
 
+For the first PR-proof path, start with `examples/workflows/verify-pr.yml`. It is intentionally transparent shell instead of a hidden action: it installs ShipGuard, prepares a task contract, records a PR diff, writes a structured validation receipt, runs `shipguard verify`, and uploads `shipguard-verdict.json` plus `shipguard-verdict.md`. Replace `replace-with-your-test-command` before using it in a real repository.
+
 ## Usage
 
 ```yaml

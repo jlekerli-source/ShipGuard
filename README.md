@@ -79,6 +79,7 @@ Start with these docs:
 
 - `docs/adoption-guide.md`: first 30 minutes with ShipGuard.
 - `docs/task-contract.md`: proof-gated `prepare` and `verify` loop.
+- `docs/verify-first-quickstart.md`: the shortest public pass/review/blocked `shipguard verify` demo.
 - `docs/command-matrix.md`: map maintainer jobs to CLI commands.
 - `docs/ios-shipguard.md`: iOS plugin, skill, and CLI workflow.
 - `docs/shipguard-devspace.md`: ChatGPT visual-planning bridge from the iPhone preview.
@@ -99,6 +100,7 @@ Common loops:
 | Job | Command |
 | --- | --- |
 | Audit an AI coding run | `./bin/shipguard autopsy --help` |
+| Try the verify-first proof report | `./tests/verify_first_quickstart_test.sh`, `docs/verify-first-quickstart.md` |
 | Prepare and verify a Codex task | `./bin/shipguard prepare --help`, `./bin/shipguard verify --help` |
 | Inspect risky iOS surfaces | `./bin/shipguard ios doctor --help` |
 | Check the branded naming scheme | `./bin/shipguard brand --help` |
@@ -148,7 +150,7 @@ Read `docs/cli.md` for the full command reference and `examples/demo-walkthrough
 - `.agents/skills/`: reusable skill templates for risky app maintenance workflows.
 - `templates/`: starter profiles for adapting ShipGuard into another app.
 - `docs/`: product strategy, command reference, adoption guide, iOS workflow docs, Devspace docs, security model, and release-proof docs.
-- `examples/` and `fixtures/`: public demo runs, benchmark fixtures, and regression cases used to prove behavior without private app code.
+- `examples/` and `fixtures/`: public demo runs, verify-first quickstart assets, benchmark fixtures, and regression cases used to prove behavior without private app code.
 - `actions/`: reusable GitHub Actions for validation, report comparison, transcript checks, and release evidence.
 - `evals/`: deterministic behavior checks for the ShipGuard workflow itself.
 

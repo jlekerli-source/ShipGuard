@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-20T02:04:27Z
+- Generated: 2026-06-20T02:42:58Z
 - Current toolkit version: 3.131.0
-- Target release: v3.152.0
-- Title: Stable V4 Publication Evidence Templates
+- Target release: v3.153.0
+- Title: Verify-First Launch Quickstart
 
 ## Slash Plan
 
 ```text
-/plan v3.152.0 Stable V4 Publication Evidence Templates for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make stable-v4 publication evidence easier to collect by shipping draft-only adoption and security-review evidence templates, surfacing them from stable-publication reports, and linking the missing evidence packet entries to copyable template commands without manufacturing stable-v4 proof.
+/plan v3.153.0 Verify-First Launch Quickstart for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make shipguard verify the first-run product story with a concise proofReport, public verify-first demo fixtures, a short quickstart, and a GitHub Actions PR workflow template.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,39 +18,39 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.152.0 Stable V4 Publication Evidence Templates for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make stable-v4 publication evidence easier to collect by shipping draft-only adoption and security-review evidence templates, surfacing them from stable-publication reports, and linking the missing evidence packet entries to copyable template commands without manufacturing stable-v4 proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.153.0 Verify-First Launch Quickstart for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make shipguard verify the first-run product story with a concise proofReport, public verify-first demo fixtures, a short quickstart, and a GitHub Actions PR workflow template, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make stable-v4 publication evidence easier to collect by shipping draft-only adoption and security-review evidence templates, surfacing them from stable-publication reports, and linking the missing evidence packet entries to copyable template commands without manufacturing stable-v4 proof.
+Make shipguard verify the first-run product story with a concise proofReport, public verify-first demo fixtures, a short quickstart, and a GitHub Actions PR workflow template.
 
 ## Completion Receipt
 
-- Completed scope: Added draft-only stable-publication evidence templates for independent adoption and final security review, exposed them through stablePublicationEvidenceTemplates, linked adoption/security evidence packet entries to templatePath and templateCommand, rendered an Evidence Templates section in Markdown, and taught report-quality/package/self-audit proof to require the template catalog.
-- Evidence: Read-only ShipGuard probes passed after the change: ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3152-value-gauntlet-final returned pass; ./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v3152-stable-final --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --release-candidate-report /tmp/missing-candidate.json --external-adoption-evidence /tmp/missing-adoption --security-review-evidence /tmp/missing-security --shipguard-eval --shareable returned review with stablePublicationEvidenceTemplates and Evidence Templates; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3152-value-gauntlet-final --reports /tmp/shipguard-v3152-stable-final --out /tmp/shipguard-v3152-final-quality --shareable --write-fixture-candidates /tmp/shipguard-v3152-final-candidates returned pass. Validation passed: git diff --check; python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check; ./bin/shipguard validate; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/package_release_test.sh.
+- Completed scope: Added proofReport to shipguard verify JSON and Markdown, shipped examples/verify-first public pass/review/blocked fixtures, added docs/verify-first-quickstart.md, added examples/workflows/verify-pr.yml with structured CI receipt generation, wired README/docs/index/task-contract/CLI/GitHub Action docs, added focused verify-first tests, and protected the new public files in self-audit and package-release tests.
+- Evidence: Focused proof passed: python3 -m py_compile scripts/task_contract.py scripts/shipguard_receipts.py; ./tests/verify_first_quickstart_test.sh; ./tests/task_contract_test.sh. Repo proof passed: git diff --check; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3153; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/package_release_test.sh; ./bin/shipguard validate; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3153-value-gauntlet-final; ./bin/shipguard codex status --strict. Product-QA proof generated: ./bin/shipguard full-audit --path . --out /tmp/shipguard-v3153-full-audit --profile quick --plan-only --shipguard-eval --shareable; ./bin/shipguard inspect --path . --value-gauntlet /tmp/shipguard-v3153-value-gauntlet-final --full-audit /tmp/shipguard-v3153-full-audit --out /tmp/shipguard-v3153-inspect-with-full-audit --shipguard-eval --shareable; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3153-value-gauntlet-final --out /tmp/shipguard-v3153-report-quality-final --shareable.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.153.0 Verify-First Launch Quickstart for jlekerli-source/ShipGuard:
-1. Make `shipguard verify` the first-run product story: one short quickstart, one tiny demo repo/fixture, one copy-ready proof report, and one GitHub Action path that a maintainer understands quickly.
-2. Audit the existing verify/release-proof/GitHub Action surfaces and remove or hide launch-facing friction before adding new public commands.
-3. Implement the docs, demo artifacts, report polish, tests, package proof, and plugin-refresh proof needed for the verify-first path.
+/plan v3.154.0 One-Command Installer Doctor for jlekerli-source/ShipGuard:
+1. Make ShipGuard easier to try from a fresh checkout or release package: one installer path, one `shipguard doctor` first-run verdict, and one copyable command sequence that proves the CLI is usable before any app-specific audit.
+2. Audit the current install, package, local binary, and Codex-plugin refresh flow for friction; remove duplicated or confusing steps without weakening proof.
+3. Implement installer/doctor docs, package checks, focused tests, and release-package proof so the verify-first quickstart has a clean setup path.
 4. Generate the next completion receipt and following /plan plus /goal after validation passes.
 ```
 
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.153.0 Verify-First Launch Quickstart for jlekerli-source/ShipGuard: follow the following /plan above, make `shipguard verify` the first-run product story with a short quickstart, tiny demo repo/fixture, copy-ready proof report, and GitHub Action path, preserve guarded external posting as a later launch-relay slice, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.154.0 One-Command Installer Doctor for jlekerli-source/ShipGuard: follow the following /plan above, make ShipGuard easy to install and verify from a fresh checkout or release package with one installer path, a clear `shipguard doctor` verdict, docs, focused tests, package proof, and the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.153.0 --title "Verify-First Launch Quickstart" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.154.0 --title "One-Command Installer Doctor" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.152.0.
+1. Open or update the tracking issue for v3.153.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.152.0` and upload `dist/shipguard-v3.152.0.tar.gz`.
+6. Create release `v3.153.0` and upload `dist/shipguard-v3.153.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

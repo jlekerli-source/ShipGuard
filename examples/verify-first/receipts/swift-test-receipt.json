@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "2.0",
+  "receiptId": "verify-first-swift-test",
+  "receiptType": "validation",
+  "requirementId": "swift-test",
+  "command": "swift test",
+  "exitCode": 0,
+  "status": "pass",
+  "startedAt": "2099-01-01T00:00:00Z",
+  "completedAt": "2099-01-01T00:00:10Z",
+  "repositoryCommit": "synthetic-verify-first-demo",
+  "environment": "simulator",
+  "proofType": "ios-permission-simulator-reset",
+  "artifact": {
+    "path": "swift-test.log"
+  },
+  "scope": [
+    "DemoPermissionsTests",
+    "permission-state",
+    "denied-state",
+    "not-determined-state",
+    "simulator-permission-reset"
+  ]
+}

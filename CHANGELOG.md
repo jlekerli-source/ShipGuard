@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added a verify-first launch quickstart: `shipguard verify` now emits a concise `proofReport` summary in JSON and Markdown, `examples/verify-first/` ships pass/review/blocked demo inputs, `docs/verify-first-quickstart.md` explains the first-run path, and `examples/workflows/verify-pr.yml` shows the transparent PR proof workflow shape.
 - Added stable-publication evidence templates: `templates/stable-publication/external-adoption-evidence.template.json` and `templates/stable-publication/security-review-evidence.template.json` now ship as draft-only starting points, `shipguard v4 stable-publication` exposes them through `stablePublicationEvidenceTemplates`, links adoption/security packet entries to their template commands, renders an `Evidence Templates` Markdown section, and report-quality flags stable-publication reports that hide the template catalog.
 - Added a stable-publication evidence packet to `shipguard v4 stable-publication`: reports now expose one machine-readable checklist of every required real stable-v4 evidence input, current gate status, first blocker, next command, proof order, and non-claims, and report-quality now flags stable-publication reports that hide that packet.
 - Restored the workflow-chain receipt after promoted design fixtures made the old receipt input fully covered: the receipt now uses a synthetic uncovered report-quality question to prove the development loop still goes from report-quality to SpecForge tasks, validation commands, slash plan/goal, and next-goal without manual interpretation.

@@ -104,9 +104,9 @@ Use `prepare` before Codex edits and `verify` after Codex edits when a task need
   --out /tmp/shipguard-verdict
 ```
 
-`prepare` writes `shipguard-task.json` and `shipguard-task.md` with repo context, risk, allowed files, protected boundaries, required validation, tracked claims, `domainPackSDK` registry metadata, and the next exact action. For iOS notification, permission, authorization, denied-state, or provisional-flow goals, it also emits `domainRiskPack.id = ios-notification-permission-workflow` with scope recommendations, receipt requirements, and simulator/device proof boundaries. `verify` writes `shipguard-verdict.json` and `shipguard-verdict.md` with changed files, scope violations, v2 evidence receipt normalization, structured validation coverage, rejected overclaims, diff-first merge status, active domain-workflow proof lanes, compatibility fields such as `notificationPermissionWorkflow`, and the next exact action. The verdict includes `evidenceReceiptSchema` so current v2, legacy-compatible, stale, invalid, downgraded, artifact-only, and missing evidence are visible instead of collapsed into a vague pass/fail.
+`prepare` writes `shipguard-task.json` and `shipguard-task.md` with repo context, risk, allowed files, protected boundaries, required validation, tracked claims, `domainPackSDK` registry metadata, and the next exact action. For iOS notification, permission, authorization, denied-state, or provisional-flow goals, it also emits `domainRiskPack.id = ios-notification-permission-workflow` with scope recommendations, receipt requirements, and simulator/device proof boundaries. `verify` writes `shipguard-verdict.json` and `shipguard-verdict.md` with a concise `Proof Report` first, then changed files, scope violations, v2 evidence receipt normalization, structured validation coverage, rejected overclaims, diff-first merge status, active domain-workflow proof lanes, compatibility fields such as `notificationPermissionWorkflow`, and the next exact action. The verdict includes `proofReport` for copy-ready PR/status summaries and `evidenceReceiptSchema` so current v2, legacy-compatible, stale, invalid, downgraded, artifact-only, and missing evidence are visible instead of collapsed into a vague pass/fail.
 
-See `task-contract.md`.
+See `task-contract.md` and `verify-first-quickstart.md`.
 
 ## V4 Product Track
 

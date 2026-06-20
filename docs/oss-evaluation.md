@@ -39,6 +39,8 @@ Near-term launch work should therefore orbit one clean proof report:
 - one README/docs-site story around proof-gated AI maintenance
 - one guarded launch-relay draft workflow for Product Hunt, X, Reddit, GitHub, and ShipYard channels, with final public posting still requiring action-time approval
 
+The v3.153 slice begins that by adding a concise `proofReport` to `shipguard verify`, a public `examples/verify-first/` pass/review/blocked demo, `docs/verify-first-quickstart.md`, and a transparent `examples/workflows/verify-pr.yml` starter workflow. This is deliberately centered on the existing verdict engine rather than adding another branded command.
+
 ## Current Stable Publication Evidence Packet
 
 The next ShipYard gauntlet pass keeps every fixture-backed receipt green and correctly leaves `runtimeV4StableReleasePublication` as the remaining real-world gap. The useful improvement is not to fake a stable v4 release; it is to make the final gate easier to execute and review.

@@ -1,0 +1,89 @@
+name: ShipGuard Verify PR
+
+on:
+  pull_request:
+
+jobs:
+  shipguard-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Install ShipGuard
+        run: |
+          git clone --depth 1 https://github.com/jlekerli-source/ShipGuard /tmp/ShipGuard
+          echo "/tmp/ShipGuard/bin" >> "$GITHUB_PATH"
+
+      - name: Build PR diff
+        run: |
+          git diff "origin/${{ github.base_ref }}...HEAD" > /tmp/shipguard-pr.diff
+
+      - name: Prepare ShipGuard task
+        run: |
+          shipguard prepare "${{ github.event.pull_request.title }}" \
+            --path . \
+            --out /tmp/shipguard-task \
+            --profile auto \
+            --validation "replace-with-your-test-command" \
+            --shareable
+
+      - name: Run validation and write receipt
+        run: |
+          started_at="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+          set +e
+          replace-with-your-test-command > /tmp/shipguard-validation.log 2>&1
+          status=$?
+          set -e
+          completed_at="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+          python3 - <<'PY' "$status" "$started_at" "$completed_at" "$GITHUB_SHA"
+          import hashlib
+          import json
+          import sys
+          from pathlib import Path
+
+          status = int(sys.argv[1])
+          started_at = sys.argv[2]
+          completed_at = sys.argv[3]
+          commit = sys.argv[4]
+          artifact = Path("/tmp/shipguard-validation.log")
+          payload = artifact.read_bytes()
+          receipt = {
+              "schemaVersion": "2.0",
+              "receiptId": "pr-validation",
+              "receiptType": "validation",
+              "requirementId": "replace-with-your-test-command",
+              "command": "replace-with-your-test-command",
+              "exitCode": status,
+              "status": "pass" if status == 0 else "fail",
+              "startedAt": started_at,
+              "completedAt": completed_at,
+              "repositoryCommit": commit,
+              "artifact": {
+                  "path": "shipguard-validation.log",
+                  "sha256": hashlib.sha256(payload).hexdigest(),
+                  "bytes": len(payload),
+              },
+          }
+          Path("/tmp/shipguard-validation-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
+          PY
+          exit "$status"
+
+      - name: Verify ShipGuard proof
+        if: always()
+        run: |
+          shipguard verify \
+            --task /tmp/shipguard-task/shipguard-task.json \
+            --diff /tmp/shipguard-pr.diff \
+            --evidence /tmp/shipguard-validation-receipt.json \
+            --claim "PR validation was run in CI." \
+            --out /tmp/shipguard-verdict
+
+      - name: Upload ShipGuard proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shipguard-verdict
+          path: /tmp/shipguard-verdict

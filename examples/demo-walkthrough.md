@@ -17,6 +17,7 @@ This walkthrough proves the toolkit without private app code.
   --diff fixtures/autopsy/good-run/diff.patch \
   --tests fixtures/autopsy/good-run/tests.log \
   --out /tmp/autopsy-good
+./tests/verify_first_quickstart_test.sh
 ```
 
 ## From A Release Package
@@ -47,5 +48,6 @@ PREFIX="$HOME/.local" ./scripts/install.sh
 - `init web` copies the web workflow starter into a target repo.
 - `doctor` confirms copied workflow files exist.
 - `inspect`, `v4 release-candidate`, and `codex marketplace-readiness` show the current ShipGuard proof state, v4 release-candidate boundary, and public plugin presentation packet.
+- `verify_first_quickstart_test.sh` runs the shortest pass/review/blocked `shipguard verify` demo and proves the concise `Proof Report` section.
 - `score` turns a run summary into a maintainer-quality verdict.
 - `autopsy` checks whether an agent's claims are backed by task, diff, and test evidence.

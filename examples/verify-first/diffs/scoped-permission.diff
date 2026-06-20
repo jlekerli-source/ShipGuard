@@ -1,0 +1,8 @@
+diff --git a/Sources/DemoShipGuardApp/DemoPermissions.swift b/Sources/DemoShipGuardApp/DemoPermissions.swift
+--- a/Sources/DemoShipGuardApp/DemoPermissions.swift
++++ b/Sources/DemoShipGuardApp/DemoPermissions.swift
+@@ -1,3 +1,4 @@
++// ShipGuard verify-first scoped demo change.
+ import AppIntents
+ import SwiftUI
+ import UserNotifications

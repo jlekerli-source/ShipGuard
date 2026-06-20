@@ -131,6 +131,18 @@ Outputs:
 - `shipguard-verdict.json`
 - `shipguard-verdict.md`
 
+The Markdown report starts with a copy-ready `Proof Report` section:
+
+```text
+Status: pass
+Validation: 1/1 covered
+Claims checked: 1/1 accepted
+Risk files: 0 protected, 0 out of scope, 0 deleted tests
+Release evidence: not-applicable
+```
+
+The same data is exposed in JSON as `proofReport` so PR bots, launch docs, and review comments can show the concise verdict without parsing the full diff analysis.
+
 The verdict is:
 
 - `pass` when changed files stay inside scope, required validation is covered by structured receipts, and claims do not overreach.
@@ -188,6 +200,8 @@ Blocked and review results always include `nextAction` with:
 - `expectedArtifact`
 - `successCondition`
 - `failureMeaning`
+
+For a runnable public demo, see [Verify-First Quickstart](verify-first-quickstart.md) and `examples/verify-first/`.
 
 ## Product Rule
 

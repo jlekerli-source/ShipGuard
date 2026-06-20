@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "$tmp_dir"' EXIT
+
+cd "$repo_root"
+
+./bin/shipguard prepare \
+  "Add notification permission copy" \
+  --path fixtures/demo-ios-repo \
+  --out "$tmp_dir/task" \
+  --profile ios \
+  --validation "swift test" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+./bin/shipguard verify \
+  --task "$tmp_dir/task/shipguard-task.json" \
+  --diff examples/verify-first/diffs/scoped-permission.diff \
+  --evidence examples/verify-first/receipts/swift-test-receipt.json \
+  --claim "Implemented scoped notification permission copy." \
+  --out "$tmp_dir/pass" >/dev/null
+
+grep -q '## Proof Report' "$tmp_dir/pass/shipguard-verdict.md"
+grep -q 'Status: `pass`' "$tmp_dir/pass/shipguard-verdict.md"
+grep -q 'Validation: `1/1 covered`' "$tmp_dir/pass/shipguard-verdict.md"
+grep -q 'Claims checked: `1/1 accepted`' "$tmp_dir/pass/shipguard-verdict.md"
+grep -q 'Release evidence: `not-applicable`' "$tmp_dir/pass/shipguard-verdict.md"
+
+python3 - "$tmp_dir/pass/shipguard-verdict.json" <<'PY'
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+proof = data["proofReport"]
+assert proof["title"] == "ShipGuard Proof Report"
+assert proof["status"] == "pass"
+assert proof["validation"]["label"] == "1/1 covered"
+assert proof["claims"]["label"] == "1/1 accepted"
+assert proof["riskFiles"]["protectedCount"] == 0
+assert proof["riskFiles"]["outOfScopeCount"] == 0
+assert proof["releaseEvidence"] == "not-applicable"
+assert proof["mergeAllowed"] is True
+assert "ShipGuard Proof Report: pass" in proof["copyReadyText"]
+PY
+
+./bin/shipguard verify \
+  --task "$tmp_dir/task/shipguard-task.json" \
+  --diff examples/verify-first/diffs/scoped-permission.diff \
+  --evidence examples/verify-first/receipts/swift-test.log \
+  --claim "Implemented scoped notification permission copy." \
+  --out "$tmp_dir/review" >/dev/null
+
+grep -q 'Status: `review`' "$tmp_dir/review/shipguard-verdict.md"
+grep -q 'Validation: `0/1 covered`' "$tmp_dir/review/shipguard-verdict.md"
+
+set +e
+./bin/shipguard verify \
+  --task "$tmp_dir/task/shipguard-task.json" \
+  --diff examples/verify-first/diffs/protected-workflow.diff \
+  --evidence examples/verify-first/receipts/swift-test-receipt.json \
+  --claim "Notification permission copy is fully verified." \
+  --out "$tmp_dir/blocked" >/dev/null
+blocked_status=$?
+set -e
+
+if [[ "$blocked_status" -ne 2 ]]; then
+  echo "expected protected workflow quickstart diff to exit 2, got $blocked_status" >&2
+  exit 1
+fi
+
+grep -q 'Status: `blocked`' "$tmp_dir/blocked/shipguard-verdict.md"
+grep -q 'Risk files: `1 risk file(s): 1 protected, 1 out of scope, 0 deleted test(s)`' "$tmp_dir/blocked/shipguard-verdict.md"
+grep -q 'replace-with-your-test-command' examples/workflows/verify-pr.yml
+
+echo "verify-first quickstart tests passed"

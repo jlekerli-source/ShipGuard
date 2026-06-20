@@ -1372,6 +1372,92 @@ def build_diff_first_analysis(
     return analysis
 
 
+def build_proof_report(
+    *,
+    status: str,
+    goal: str,
+    changed: list[str],
+    coverage: dict[str, Any],
+    claim_results: list[dict[str, Any]],
+    evidence_receipt_schema: dict[str, Any],
+    forbidden_touched: list[str],
+    out_of_scope: list[str],
+    deleted_tests: list[dict[str, Any]],
+    next_action: dict[str, Any],
+) -> dict[str, Any]:
+    covered = coverage.get("coveredCommands") or []
+    uncovered = coverage.get("uncoveredCommands") or []
+    invalid = coverage.get("invalidReceipts") or []
+    downgraded = coverage.get("downgradedReceipts") or []
+    accepted_claims = [item for item in claim_results if item.get("status") == "accepted"]
+    rejected_claims = [item for item in claim_results if item.get("status") == "rejected"]
+    manual_claims = [item for item in claim_results if item.get("status") == "needs-manual-proof"]
+    risk_file_count = len(set(forbidden_touched + out_of_scope + [str(item.get("path")) for item in deleted_tests]))
+    validation_total = len(covered) + len(uncovered)
+    validation_label = (
+        f"{len(covered)}/{validation_total} covered"
+        if validation_total
+        else "not required"
+    )
+    claims_label = (
+        f"{len(accepted_claims)}/{len(claim_results)} accepted"
+        if claim_results
+        else "none supplied"
+    )
+    risk_label = (
+        f"{risk_file_count} risk file(s): {len(forbidden_touched)} protected, {len(out_of_scope)} out of scope, {len(deleted_tests)} deleted test(s)"
+    )
+    release_evidence = "not-applicable"
+    summary = (
+        f"ShipGuard Proof Report: {status}. Validation {validation_label}; "
+        f"claims {claims_label}; {risk_label}; release evidence {release_evidence}."
+    )
+    return {
+        "title": "ShipGuard Proof Report",
+        "status": status,
+        "goal": goal,
+        "summary": summary,
+        "changedFiles": len(changed),
+        "validation": {
+            "status": coverage.get("status"),
+            "requiredCount": validation_total,
+            "coveredCount": len(covered),
+            "missingCount": len(uncovered),
+            "invalidReceiptCount": len(invalid),
+            "downgradedReceiptCount": len(downgraded),
+            "label": validation_label,
+        },
+        "claims": {
+            "checkedCount": len(claim_results),
+            "acceptedCount": len(accepted_claims),
+            "rejectedCount": len(rejected_claims),
+            "manualProofCount": len(manual_claims),
+            "label": claims_label,
+        },
+        "riskFiles": {
+            "count": risk_file_count,
+            "protectedCount": len(forbidden_touched),
+            "outOfScopeCount": len(out_of_scope),
+            "deletedTestCount": len(deleted_tests),
+            "label": risk_label,
+        },
+        "evidenceReceipts": {
+            "v2Count": evidence_receipt_schema.get("v2Count", 0),
+            "legacyCount": evidence_receipt_schema.get("legacyCount", 0),
+            "downgradedCount": evidence_receipt_schema.get("downgradedCount", 0),
+            "staleCount": evidence_receipt_schema.get("staleCount", 0),
+        },
+        "releaseEvidence": release_evidence,
+        "mergeAllowed": status == "pass",
+        "nextAction": {
+            "command": next_action.get("command"),
+            "expectedArtifact": next_action.get("expectedArtifact"),
+            "successCondition": next_action.get("successCondition"),
+        },
+        "copyReadyText": summary,
+    }
+
+
 def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
     task_path = resolve_task(args.task)
     task = read_json(task_path)
@@ -1505,6 +1591,18 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         effective_domain_workflows,
     )
     diff_first["configurationBaseline"] = baseline_result
+    proof_report = build_proof_report(
+        status=status,
+        goal=str(task.get("goal") or ""),
+        changed=changed,
+        coverage=effective_coverage,
+        claim_results=claim_results,
+        evidence_receipt_schema=evidence_receipt_schema,
+        forbidden_touched=effective_forbidden_touched,
+        out_of_scope=effective_out_of_scope,
+        deleted_tests=effective_deleted_tests,
+        next_action=next_action,
+    )
     report = {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard verify",
@@ -1517,6 +1615,7 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
             evaluated_packs=[str(workflow.get("id") or field) for field, workflow in domain_workflows.items()],
         ),
         "status": status,
+        "proofReport": proof_report,
         "changedFiles": changed,
         "scopeChecks": {
             "authorizedFiles": allowed,
@@ -1777,6 +1876,7 @@ def render_prepare_markdown(contract: dict[str, Any]) -> str:
 def render_verify_markdown(verdict: dict[str, Any]) -> str:
     diff_first = verdict.get("diffFirstAnalysis") or {}
     merge = diff_first.get("mergeVerdict") or {}
+    proof_report = verdict.get("proofReport") or {}
     lines = [
         "# ShipGuard Task Verdict",
         "",
@@ -1785,6 +1885,16 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
         f"- Goal: {verdict.get('goal')}",
         f"- Merge allowed: {merge.get('allowedToMerge')}",
         f"- Merge reason: {merge.get('reason')}",
+        "",
+        "## Proof Report",
+        "",
+        f"- Status: `{proof_report.get('status')}`",
+        f"- Validation: `{(proof_report.get('validation') or {}).get('label')}`",
+        f"- Claims checked: `{(proof_report.get('claims') or {}).get('label')}`",
+        f"- Risk files: `{(proof_report.get('riskFiles') or {}).get('label')}`",
+        f"- Release evidence: `{proof_report.get('releaseEvidence')}`",
+        f"- Merge allowed: `{proof_report.get('mergeAllowed')}`",
+        f"- Next action: `{(proof_report.get('nextAction') or {}).get('command')}`",
         "",
         "## Changed Files",
         "",
