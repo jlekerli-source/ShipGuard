@@ -26,6 +26,8 @@ scope the change -> collect evidence -> check the claims -> ship or block
 
 The result is a local Markdown and JSON verdict that says what was actually proven, what is still missing, and what to do next.
 
+ShipGuard is not tied to any single app. It is a reusable proof system for production software maintenance.
+
 ## Why ShipGuard
 
 AI can write code quickly. Production maintenance still needs discipline.
@@ -49,6 +51,8 @@ From a ShipGuard checkout:
 ./bin/shipguard validate
 ./bin/shipguard version
 ```
+
+Latest release package: `shipguard-v3.131.0.tar.gz`.
 
 Install the CLI locally:
 
