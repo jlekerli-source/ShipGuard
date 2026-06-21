@@ -1,0 +1,72 @@
+{
+  "candidateId": "01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc",
+  "duplicateCount": 1,
+  "expectedAssertions": [
+    "report-quality preserves the actionability question in JSON and Markdown",
+    "report-quality emits a fixtureCandidates entry for the public synthetic case",
+    "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+    "shareable output contains no local absolute paths or private app identifiers",
+    "the fixture exposes markerVisibilityReview.summary counts for total, visible, ceiling, missing-ceiling, upgrade-trigger, missing-trigger, upgrade-status, and omitted marker rows",
+    "the fixture exposes markerVisibilityReview.visibilityRows for tracked and needs-trigger shortcuts",
+    "the fixture keeps every shortcut marker location, ceiling, and upgrade-trigger status visible without claiming benchmark savings",
+    "the Markdown exposes Marker Visibility Review with the same shortcut rows before the raw ledger table",
+    "the fixture exposes currentRepoBoundary.perRepoSavingsClaim as not-computed",
+    "the fixture states shortcut markers are shortcut-ledger evidence only and do not prove current-repo line, token, cost, or time savings",
+    "the fixture routes benchmark direction to shipguard lean gain instead of treating Lean Debt marker counts as savings",
+    "the Markdown exposes Benchmark Savings Boundary with the not-computed claim and lean gain route"
+  ],
+  "fixtureType": "shipguard-lean-report-quality-fixture",
+  "materialization": {
+    "files": [
+      "README.md",
+      "fixture-candidate.json",
+      "fixture-report.json",
+      "fixture-report.md"
+    ],
+    "safeSyntheticOnly": true,
+    "writeCommand": "./bin/shipguard ios report-quality --reports <report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>"
+  },
+  "priority": 1,
+  "privateDataPolicy": "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
+  "promotion": {
+    "candidateId": "01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc",
+    "copyCommands": [
+      "mkdir -p fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc",
+      "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc/README.md",
+      "cp <materialized-candidate-dir>/fixture-candidate.json fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc/fixture-candidate.json",
+      "cp <materialized-candidate-dir>/fixture-report.json fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc/fixture-report.json",
+      "cp <materialized-candidate-dir>/fixture-report.md fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc/fixture-report.md"
+    ],
+    "files": [
+      "README.md",
+      "fixture-candidate.json",
+      "fixture-report.json",
+      "fixture-report.md"
+    ],
+    "promotionPolicy": "Promotion is explicit maintainer work. ShipGuard writes starter files only to the requested output directory and does not auto-copy them into the repository.",
+    "reviewChecklist": [
+      "Confirm the fixture is synthetic and public-safe.",
+      "Confirm no private app code, screenshots, local paths, tokens, app identifiers, or proprietary text were copied.",
+      "Confirm scopeBoundary.shipguardOnly and targetAppsReadOnly remain explicit.",
+      "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates.",
+      "Register the fixture in validation only after the report-quality check passes."
+    ],
+    "sourceDirectory": "<materialized-fixture-output>/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc",
+    "suggestedFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc",
+    "validationCommands": [
+      "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc --out <quality-dir> --shareable",
+      "./tests/ios_report_quality_test.sh",
+      "./bin/shipguard validate"
+    ]
+  },
+  "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc",
+  "publicFixtureRecipe": "Create a minimal synthetic ShipGuard report pair that reproduces this report-quality question without private app code, local paths, screenshots, customer data, app names, or proprietary source snippets.",
+  "sourceQuestion": "Does it avoid pretending benchmark savings are measurable in this repo?",
+  "sourceReportCount": 1,
+  "sourceReportsRedacted": true,
+  "sourceTool": "shipguard lean debt",
+  "validationCommands": [
+    "./bin/shipguard ios report-quality --reports <fixture-dir> --out <quality-dir> --shareable",
+    "./tests/ios_report_quality_test.sh"
+  ]
+}

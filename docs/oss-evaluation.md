@@ -180,6 +180,18 @@ The v3.151 read-only loop reran `shipguard lean audit`, `shipguard lean review`,
 
 Fresh combined Lean QA now treats the marker-visibility question as covered and advances to the Lean Debt benchmark-savings honesty question.
 
+## Current Lean Debt Benchmark-Savings Honesty Fixture QA
+
+The v3.152 read-only loop reran `shipguard lean audit`, `shipguard lean review`, `shipguard lean gain`, `shipguard lean debt`, and `ios report-quality --write-fixture-candidates` against this checkout after the marker-visibility fixture landed.
+
+- Finding: fresh combined Lean QA passed, but the next uncovered actionability question was "Does it avoid pretending benchmark savings are measurable in this repo?"
+- Product weakness: standalone Lean Debt showed shortcut marker counts but did not yet carry its own no-savings boundary, so a downstream report could reframe marker counts as line, token, cost, or time savings.
+- Native fix: `shipguard lean debt` now emits `currentRepoBoundary` with `perRepoSavingsClaim: not-computed`, `evidenceType: shortcut-ledger-only`, explicit no-claim text, and a `lean gain` benchmark route.
+- Report-quality fix: `ios report-quality` now flags standalone Lean Debt reports that omit, weaken, or under-render the benchmark-savings boundary.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc` uses public synthetic evidence to prove marker counts remain ledger evidence and do not become fake benchmark savings.
+
+Fresh combined Lean QA now treats the benchmark-savings honesty question as covered and advances to the Lean Debt rot-risk visibility question.
+
 ## Current Verify-PR First-Run QA
 
 The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `shipguard full-audit --plan-only`, docs-check, and the verify-first quickstart tests against this checkout.

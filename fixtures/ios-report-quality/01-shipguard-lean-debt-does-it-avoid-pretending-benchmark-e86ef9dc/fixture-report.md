@@ -11,7 +11,7 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 ## Fixture Intent
 
 - Type: `shipguard-lean-report-quality-fixture`
-- Source question: Does Lean Debt make every shortcut marker visible with a ceiling and upgrade trigger?
+- Source question: Does it avoid pretending benchmark savings are measurable in this repo?
 
 ## Marker Visibility Review
 

@@ -1850,12 +1850,16 @@ grep -q '"status": "pass"' "$tmp_dir/lean-debt-marker-public-quality/ios-report-
 grep -q 'Does Lean Debt make every shortcut marker visible with a ceiling and upgrade trigger?' "$tmp_dir/lean-debt-marker-public-quality/ios-report-quality.md"
 grep -q '"tool": "shipguard lean debt"' "$lean_debt_marker_fixture/fixture-report.json"
 grep -q '"markerVisibilityReview":' "$lean_debt_marker_fixture/fixture-report.json"
+grep -q '"currentRepoBoundary":' "$lean_debt_marker_fixture/fixture-report.json"
+grep -q '"perRepoSavingsClaim": "not-computed"' "$lean_debt_marker_fixture/fixture-report.json"
 grep -q '"rowsWithCeiling": 2' "$lean_debt_marker_fixture/fixture-report.json"
 grep -q '"rowsNeedingUpgradeTrigger": 1' "$lean_debt_marker_fixture/fixture-report.json"
 grep -q '"rowsWithUpgradeStatus": 2' "$lean_debt_marker_fixture/fixture-report.json"
 grep -q '"status": "tracked"' "$lean_debt_marker_fixture/fixture-report.json"
 grep -q '"status": "needs-trigger"' "$lean_debt_marker_fixture/fixture-report.json"
 grep -q 'Marker Visibility Review' "$lean_debt_marker_fixture/fixture-report.md"
+grep -q 'Benchmark Savings Boundary' "$lean_debt_marker_fixture/fixture-report.md"
+grep -q 'shipguard lean gain' "$lean_debt_marker_fixture/fixture-report.md"
 grep -q 'Rows needing upgrade trigger' "$lean_debt_marker_fixture/fixture-report.md"
 grep -q 'Sources/SyntheticLeanDebt/LegacyPanel.swift:27' "$lean_debt_marker_fixture/fixture-report.md"
 python3 - <<'PY' "$tmp_dir/lean-debt-marker-public-quality/ios-report-quality.json"
@@ -1872,6 +1876,39 @@ if not top or not (top.get("sourceMaterializedFixture") is True or top.get("exis
 PY
 if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_debt_marker_fixture"; then
   echo "Lean Debt marker-visibility fixture must not include local paths or private app identifiers" >&2
+  exit 1
+fi
+
+lean_debt_benchmark_fixture="fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc"
+./bin/shipguard ios report-quality \
+  --reports "$lean_debt_benchmark_fixture" \
+  --out "$tmp_dir/lean-debt-benchmark-public-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/lean-debt-benchmark-public-quality/ios-report-quality.json"
+grep -q 'Does it avoid pretending benchmark savings are measurable in this repo?' "$tmp_dir/lean-debt-benchmark-public-quality/ios-report-quality.md"
+grep -q '"tool": "shipguard lean debt"' "$lean_debt_benchmark_fixture/fixture-report.json"
+grep -q '"currentRepoBoundary":' "$lean_debt_benchmark_fixture/fixture-report.json"
+grep -q '"perRepoSavingsClaim": "not-computed"' "$lean_debt_benchmark_fixture/fixture-report.json"
+grep -q '"evidenceType": "shortcut-ledger-only"' "$lean_debt_benchmark_fixture/fixture-report.json"
+grep -q '"benchmarkRoute":' "$lean_debt_benchmark_fixture/fixture-report.json"
+grep -q 'Benchmark Savings Boundary' "$lean_debt_benchmark_fixture/fixture-report.md"
+grep -q 'Do not claim current-repo line, token, cost, or time savings' "$lean_debt_benchmark_fixture/fixture-report.md"
+grep -q 'Do not treat shortcut marker counts as benchmark savings' "$lean_debt_benchmark_fixture/fixture-report.md"
+grep -q 'shipguard lean gain' "$lean_debt_benchmark_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/lean-debt-benchmark-public-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"Lean Debt benchmark-savings public fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+top = questions[0] if questions else {}
+if not top or not (top.get("sourceMaterializedFixture") is True or top.get("existingFixture")):
+    raise SystemExit(f"Lean Debt benchmark-savings fixture should retain materialized or fixture-coverage question evidence: {questions!r}")
+PY
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_debt_benchmark_fixture"; then
+  echo "Lean Debt benchmark-savings fixture must not include local paths or private app identifiers" >&2
   exit 1
 fi
 
@@ -1937,6 +1974,70 @@ cp "$lean_debt_marker_fixture/fixture-report.md" "$tmp_dir/lean-debt-marker-visi
   --out "$tmp_dir/lean-debt-marker-visibility-ceiling-mismatch-quality" \
   --shareable >/dev/null
 grep -q '"ruleId": "lean-debt-marker-visibility-counts-mismatch"' "$tmp_dir/lean-debt-marker-visibility-ceiling-mismatch-quality/ios-report-quality.json"
+
+mkdir -p "$tmp_dir/lean-debt-fake-benchmark-savings"
+python3 - <<'PY' "$lean_debt_benchmark_fixture/fixture-report.json" "$tmp_dir/lean-debt-fake-benchmark-savings/lean-debt.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+data["currentRepoBoundary"]["perRepoSavingsClaim"] = "saved-54-percent"
+json.dump(data, open(sys.argv[2], "w", encoding="utf-8"), indent=2, sort_keys=True)
+PY
+cp "$lean_debt_benchmark_fixture/fixture-report.md" "$tmp_dir/lean-debt-fake-benchmark-savings/lean-debt.md"
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-debt-fake-benchmark-savings" \
+  --out "$tmp_dir/lean-debt-fake-benchmark-savings-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-debt-benchmark-savings-boundary-missing"' "$tmp_dir/lean-debt-fake-benchmark-savings-quality/ios-report-quality.json"
+
+mkdir -p "$tmp_dir/lean-debt-incomplete-benchmark-boundary"
+python3 - <<'PY' "$lean_debt_benchmark_fixture/fixture-report.json" "$tmp_dir/lean-debt-incomplete-benchmark-boundary/lean-debt.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+boundary = data["currentRepoBoundary"]
+boundary["reason"] = "Shortcut counts are useful."
+boundary["nonClaims"] = []
+boundary.pop("benchmarkRoute", None)
+json.dump(data, open(sys.argv[2], "w", encoding="utf-8"), indent=2, sort_keys=True)
+PY
+cp "$lean_debt_benchmark_fixture/fixture-report.md" "$tmp_dir/lean-debt-incomplete-benchmark-boundary/lean-debt.md"
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-debt-incomplete-benchmark-boundary" \
+  --out "$tmp_dir/lean-debt-incomplete-benchmark-boundary-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-debt-benchmark-savings-boundary-incomplete"' "$tmp_dir/lean-debt-incomplete-benchmark-boundary-quality/ios-report-quality.json"
+
+mkdir -p "$tmp_dir/lean-debt-missing-benchmark-markdown"
+cp "$lean_debt_benchmark_fixture/fixture-report.json" "$tmp_dir/lean-debt-missing-benchmark-markdown/lean-debt.json"
+python3 - <<'PY' "$lean_debt_benchmark_fixture/fixture-report.md" "$tmp_dir/lean-debt-missing-benchmark-markdown/lean-debt.md"
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+lines = open(source, encoding="utf-8").read().splitlines()
+out = []
+skip = False
+removed = False
+for line in lines:
+    if line == "## Benchmark Savings Boundary":
+        skip = True
+        removed = True
+        continue
+    if skip and line.startswith("## "):
+        skip = False
+    if not skip:
+        out.append(line)
+if not removed:
+    raise SystemExit("did not remove benchmark savings boundary")
+open(target, "w", encoding="utf-8").write("\n".join(out) + "\n")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-debt-missing-benchmark-markdown" \
+  --out "$tmp_dir/lean-debt-missing-benchmark-markdown-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-debt-benchmark-savings-markdown-missing"' "$tmp_dir/lean-debt-missing-benchmark-markdown-quality/ios-report-quality.json"
 
 lean_gain_fixture="fixtures/ios-report-quality/01-shipguard-lean-audit-does-lean-gain-avoid-fake-per-repo-08315752"
 ./bin/shipguard ios report-quality \
@@ -2421,21 +2522,25 @@ grep -q '01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422' "$
 grep -q '01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q '01-shipguard-lean-review-does-it-keep-safety-boundary-code-df36ee0b' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q '01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q '01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q '01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review give a current-diff delete/simplify list instead of a whole-repo inventory?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review require one smallest runnable check for non-trivial new logic?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does proofSignalCalibration distinguish missing runnable checks from same-diff proof signals?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review protect hardware calibration and host boundaries from false less-code pressure?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does it keep safety-boundary code out of automatic deletion?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review expose the selected lite/full/ultra mode and bias first actions accordingly?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q 'Does Lean Debt make every shortcut marker visible with a ceiling and upgrade trigger?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q 'Does it avoid pretending benchmark savings are measurable in this repo?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 python3 - <<'PY' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 import json
 import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 question = (data.get("priorityAction") or {}).get("question")
-expected = "Does it avoid pretending benchmark savings are measurable in this repo?"
+expected = "Can a maintainer tell which marker will rot without another source inspection pass?"
 if question != expected:
-    raise SystemExit(f"expected combined Lean QA to advance to Lean Debt benchmark-savings honesty, got {question!r}")
+    raise SystemExit(f"expected combined Lean QA to advance to Lean Debt rot-risk visibility, got {question!r}")
 PY
 if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$tmp_dir/lean-fresh-combined-candidates"; then
   echo "materialized combined Lean candidate must not include local paths or private app identifiers" >&2

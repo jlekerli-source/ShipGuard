@@ -82,6 +82,11 @@ ceilings, rows with upgrade triggers, rows needing upgrade triggers, and rows
 with explicit upgrade status. The Markdown renders this review before the raw
 ledger table so a maintainer can see which shortcut will rot without opening
 JSON or re-scanning source.
+It also renders a `Benchmark Savings Boundary`: Lean Debt sets
+`currentRepoBoundary.perRepoSavingsClaim` to `not-computed`, treats marker counts
+as `shortcut-ledger-only` evidence, and routes benchmark direction to
+`shipguard lean gain` instead of letting shortcut counts become fake line, token,
+cost, or time savings.
 
 For a ledger-only pass:
 

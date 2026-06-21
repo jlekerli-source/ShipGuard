@@ -1,7 +1,22 @@
 {
+  "currentRepoBoundary": {
+    "benchmarkRoute": {
+      "answers": "What benchmark-backed lean-code direction can be shown without claiming current-repo savings?",
+      "command": "shipguard lean gain --path <repo> --out <lean-gain-out> --shipguard-eval --shareable",
+      "expectedArtifact": "lean-gain.json and lean-gain.md",
+      "proofBoundary": "Benchmark direction is separate from this shortcut-ledger evidence and still does not measure this repo without a matched baseline."
+    },
+    "evidenceType": "shortcut-ledger-only",
+    "nonClaims": [
+      "Do not claim current-repo line, token, cost, or time savings from shortcut marker counts.",
+      "Do not treat shortcut marker counts as benchmark savings."
+    ],
+    "perRepoSavingsClaim": "not-computed",
+    "reason": "Lean Debt counts intentional shortcut markers and missing triggers; it has no untreated baseline for current-repo line, token, cost, or time savings."
+  },
   "findings": [],
   "fixtureCandidate": {
-    "candidateId": "01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4",
+    "candidateId": "01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc",
     "duplicateCount": 1,
     "expectedAssertions": [
       "report-quality preserves the actionability question in JSON and Markdown",
@@ -11,7 +26,11 @@
       "the fixture exposes markerVisibilityReview.summary counts for total, visible, ceiling, missing-ceiling, upgrade-trigger, missing-trigger, upgrade-status, and omitted marker rows",
       "the fixture exposes markerVisibilityReview.visibilityRows for tracked and needs-trigger shortcuts",
       "the fixture keeps every shortcut marker location, ceiling, and upgrade-trigger status visible without claiming benchmark savings",
-      "the Markdown exposes Marker Visibility Review with the same shortcut rows before the raw ledger table"
+      "the Markdown exposes Marker Visibility Review with the same shortcut rows before the raw ledger table",
+      "the fixture exposes currentRepoBoundary.perRepoSavingsClaim as not-computed",
+      "the fixture states shortcut markers are shortcut-ledger evidence only and do not prove current-repo line, token, cost, or time savings",
+      "the fixture routes benchmark direction to shipguard lean gain instead of treating Lean Debt marker counts as savings",
+      "the Markdown exposes Benchmark Savings Boundary with the not-computed claim and lean gain route"
     ],
     "fixtureType": "shipguard-lean-report-quality-fixture",
     "materialization": {
@@ -27,13 +46,13 @@
     "priority": 1,
     "privateDataPolicy": "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
     "promotion": {
-      "candidateId": "01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4",
+      "candidateId": "01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc",
       "copyCommands": [
-        "mkdir -p fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4",
-        "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4/README.md",
-        "cp <materialized-candidate-dir>/fixture-candidate.json fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4/fixture-candidate.json",
-        "cp <materialized-candidate-dir>/fixture-report.json fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4/fixture-report.json",
-        "cp <materialized-candidate-dir>/fixture-report.md fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4/fixture-report.md"
+        "mkdir -p fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc",
+        "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc/README.md",
+        "cp <materialized-candidate-dir>/fixture-candidate.json fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc/fixture-candidate.json",
+        "cp <materialized-candidate-dir>/fixture-report.json fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc/fixture-report.json",
+        "cp <materialized-candidate-dir>/fixture-report.md fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc/fixture-report.md"
       ],
       "files": [
         "README.md",
@@ -49,17 +68,17 @@
         "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates.",
         "Register the fixture in validation only after the report-quality check passes."
       ],
-      "sourceDirectory": "<materialized-fixture-output>/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4",
-      "suggestedFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4",
+      "sourceDirectory": "<materialized-fixture-output>/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc",
+      "suggestedFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc",
       "validationCommands": [
-        "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4 --out <quality-dir> --shareable",
+        "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc --out <quality-dir> --shareable",
         "./tests/ios_report_quality_test.sh",
         "./bin/shipguard validate"
       ]
     },
-    "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4",
+    "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc",
     "publicFixtureRecipe": "Create a minimal synthetic ShipGuard report pair that reproduces this report-quality question without private app code, local paths, screenshots, customer data, app names, or proprietary source snippets.",
-    "sourceQuestion": "Does Lean Debt make every shortcut marker visible with a ceiling and upgrade trigger?",
+    "sourceQuestion": "Does it avoid pretending benchmark savings are measurable in this repo?",
     "sourceReportCount": 1,
     "sourceReportsRedacted": true,
     "sourceTool": "shipguard lean debt",
@@ -68,7 +87,7 @@
       "./tests/ios_report_quality_test.sh"
     ]
   },
-  "generatedAt": "2026-06-21T06:47:39Z",
+  "generatedAt": "2026-06-21T07:18:50Z",
   "intent": "shipguard-evaluation",
   "leanDebtLedger": {
     "description": "Synthetic shortcut markers for standalone Lean Debt marker-visibility coverage.",
@@ -147,28 +166,13 @@
       }
     ]
   },
-  "currentRepoBoundary": {
-    "benchmarkRoute": {
-      "answers": "What benchmark-backed lean-code direction can be shown without claiming current-repo savings?",
-      "command": "shipguard lean gain --path <repo> --out <lean-gain-out> --shipguard-eval --shareable",
-      "expectedArtifact": "lean-gain.json and lean-gain.md",
-      "proofBoundary": "Benchmark direction is separate from this shortcut-ledger evidence and still does not measure this repo without a matched baseline."
-    },
-    "evidenceType": "shortcut-ledger-only",
-    "nonClaims": [
-      "Do not claim current-repo line, token, cost, or time savings from shortcut marker counts.",
-      "Do not treat shortcut marker counts as benchmark savings."
-    ],
-    "perRepoSavingsClaim": "not-computed",
-    "reason": "Lean Debt counts intentional shortcut markers and missing triggers; it has no untreated baseline for current-repo line, token, cost, or time savings."
-  },
   "nextActions": [
     "Add an upgrade trigger to every needs-trigger marker.",
     "Remove markers whose ceiling no longer applies.",
     "Use shipguard lean review on active diffs so new shortcuts are tracked before merge."
   ],
   "reportQualityQuestions": [
-    "Does Lean Debt make every shortcut marker visible with a ceiling and upgrade trigger?"
+    "Does it avoid pretending benchmark savings are measurable in this repo?"
   ],
   "scanScope": {
     "note": "Synthetic fixture; no private source tree was scanned.",

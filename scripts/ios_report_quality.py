@@ -4310,6 +4310,67 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                             evidence=f"{path_name} Marker Visibility Review Markdown missing rows: {', '.join(missing_rows[:5])}",
                             recommendation="Render each marker visibility row in Markdown so the ledger can be reviewed without opening JSON.",
                         )
+            boundary = report.get("currentRepoBoundary")
+            if not isinstance(boundary, dict) or boundary.get("perRepoSavingsClaim") != "not-computed":
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-debt-benchmark-savings-boundary-missing",
+                    evidence=f"{path_name} does not mark Lean Debt current-repo savings as not-computed",
+                    recommendation="Emit currentRepoBoundary.perRepoSavingsClaim=not-computed so shortcut marker counts cannot become fake benchmark savings.",
+                )
+            else:
+                reason = normalized_question_text(boundary.get("reason") or "")
+                evidence_type = normalized_question_text(boundary.get("evidenceType") or "")
+                non_claims = boundary.get("nonClaims")
+                non_claim_text = normalized_question_text(" ".join(str(item) for item in non_claims or []))
+                route = boundary.get("benchmarkRoute")
+                route_text = normalized_question_text(json.dumps(route, sort_keys=True) if isinstance(route, dict) else "")
+                missing_boundary_parts = []
+                if "shortcut" not in evidence_type or "ledger" not in evidence_type:
+                    missing_boundary_parts.append("evidenceType=shortcut-ledger-only")
+                if "baseline" not in reason or "savings" not in reason:
+                    missing_boundary_parts.append("reason blocks current-repo savings")
+                if (
+                    not isinstance(non_claims, list)
+                    or "do not" not in non_claim_text
+                    or "marker" not in non_claim_text
+                    or "savings" not in non_claim_text
+                    or "line" not in non_claim_text
+                    or "token" not in non_claim_text
+                    or "cost" not in non_claim_text
+                    or "time" not in non_claim_text
+                ):
+                    missing_boundary_parts.append("nonClaims block marker-count savings")
+                if not isinstance(route, dict) or "lean gain" not in route_text or "benchmark" not in route_text:
+                    missing_boundary_parts.append("benchmarkRoute points to lean gain")
+                if missing_boundary_parts:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-debt-benchmark-savings-boundary-incomplete",
+                        evidence=f"{path_name} currentRepoBoundary incomplete: {', '.join(missing_boundary_parts)}",
+                        recommendation="State that Lean Debt is shortcut-ledger evidence only, has no matched baseline, cannot prove line/token/cost/time savings, and routes benchmark direction to lean gain.",
+                    )
+            required_debt_honesty_markdown = [
+                "Benchmark Savings Boundary",
+                "not-computed",
+                "shortcut marker counts",
+                "Do not claim current-repo line, token, cost, or time savings",
+                "Do not treat shortcut marker counts as benchmark savings",
+                "shipguard lean gain",
+            ]
+            missing_debt_honesty_markdown = [
+                token for token in required_debt_honesty_markdown if token not in markdown
+            ]
+            if missing_debt_honesty_markdown:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-debt-benchmark-savings-markdown-missing",
+                    evidence=f"{path_name} Markdown missing Lean Debt savings-boundary tokens: {', '.join(missing_debt_honesty_markdown)}",
+                    recommendation="Render the Lean Debt benchmark-savings boundary in Markdown so marker counts cannot be mistaken for measured savings.",
+                )
     return issues
 
 
@@ -5157,6 +5218,8 @@ def should_create_fixture_candidate(question: str) -> bool:
             "shortcut marker",
             "shortcut markers",
             "upgrade trigger",
+            "benchmark savings",
+            "measurable in this repo",
             "benchmark-backed impact",
             "fake per-repo",
             "safety-boundary",
@@ -5250,6 +5313,15 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
                 "the Markdown exposes Marker Visibility Review with the same shortcut rows before the raw ledger table",
             ]
         )
+        if "benchmark savings" in normalized_question or "measurable in this repo" in normalized_question:
+            expected_assertions.extend(
+                [
+                    "the fixture exposes currentRepoBoundary.perRepoSavingsClaim as not-computed",
+                    "the fixture states shortcut markers are shortcut-ledger evidence only and do not prove current-repo line, token, cost, or time savings",
+                    "the fixture routes benchmark direction to shipguard lean gain instead of treating Lean Debt marker counts as savings",
+                    "the Markdown exposes Benchmark Savings Boundary with the not-computed claim and lean gain route",
+                ]
+            )
     return {
         "priority": index,
         "candidateId": candidate_id,
@@ -6007,6 +6079,21 @@ def synthetic_lean_debt_report_fields() -> dict[str, Any]:
             "allVisibleRowsHaveCeiling": True,
             "allVisibleRowsExposeUpgradeStatus": True,
             "visibilityRows": visibility_rows,
+        },
+        "currentRepoBoundary": {
+            "perRepoSavingsClaim": "not-computed",
+            "evidenceType": "shortcut-ledger-only",
+            "reason": "Lean Debt counts intentional shortcut markers and missing triggers; it has no untreated baseline for current-repo line, token, cost, or time savings.",
+            "nonClaims": [
+                "Do not claim current-repo line, token, cost, or time savings from shortcut marker counts.",
+                "Do not treat shortcut marker counts as benchmark savings.",
+            ],
+            "benchmarkRoute": {
+                "command": "shipguard lean gain --path <repo> --out <lean-gain-out> --shipguard-eval --shareable",
+                "expectedArtifact": "lean-gain.json and lean-gain.md",
+                "answers": "What benchmark-backed lean-code direction can be shown without claiming current-repo savings?",
+                "proofBoundary": "Benchmark direction is separate from this shortcut-ledger evidence and still does not measure this repo without a matched baseline.",
+            },
         },
         "nextActions": [
             "Add an upgrade trigger to every needs-trigger marker.",
@@ -6963,6 +7050,17 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "",
                 "- Shortcut markers are current-repo evidence only.",
                 "- Do not claim benchmark, line, token, cost, or time savings from marker counts.",
+                "",
+                "## Benchmark Savings Boundary",
+                "",
+                "- Per-repo savings claim: `not-computed`",
+                "- Evidence type: `shortcut-ledger-only`",
+                "- Reason: Lean Debt counts intentional shortcut markers and missing triggers; it has no untreated baseline for current-repo line, token, cost, or time savings.",
+                "- Do not claim current-repo line, token, cost, or time savings from shortcut marker counts.",
+                "- Do not treat shortcut marker counts as benchmark savings.",
+                "- Benchmark route: `shipguard lean gain --path <repo> --out <lean-gain-out> --shipguard-eval --shareable`",
+                "- Benchmark artifact: lean-gain.json and lean-gain.md",
+                "- Boundary: Benchmark direction is separate from this shortcut-ledger evidence and still does not measure this repo without a matched baseline.",
                 "",
             ]
         )

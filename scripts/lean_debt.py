@@ -118,6 +118,21 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         },
         "leanDebtLedger": ledger,
         "markerVisibilityReview": marker_visibility,
+        "currentRepoBoundary": {
+            "perRepoSavingsClaim": "not-computed",
+            "evidenceType": "shortcut-ledger-only",
+            "reason": "Lean Debt counts intentional shortcut markers and missing triggers; it has no untreated baseline for current-repo line, token, cost, or time savings.",
+            "nonClaims": [
+                "Do not claim current-repo line, token, cost, or time savings from shortcut marker counts.",
+                "Do not treat shortcut marker counts as benchmark savings.",
+            ],
+            "benchmarkRoute": {
+                "command": "shipguard lean gain --path <repo> --out <lean-gain-out> --shipguard-eval --shareable",
+                "expectedArtifact": "lean-gain.json and lean-gain.md",
+                "answers": "What benchmark-backed lean-code direction can be shown without claiming current-repo savings?",
+                "proofBoundary": "Benchmark direction is separate from this shortcut-ledger evidence and still does not measure this repo without a matched baseline.",
+            },
+        },
         "scanScope": scan_scope,
         "nextActions": [
             "Add an upgrade trigger to every needs-trigger marker.",
@@ -195,6 +210,23 @@ def render_markdown(report: dict[str, Any]) -> str:
             )
     else:
         lines.append("No `ponytail:` or `shipguard-lean:` shortcut markers found.")
+    boundary = report.get("currentRepoBoundary", {})
+    benchmark_route = boundary.get("benchmarkRoute", {}) if isinstance(boundary, dict) else {}
+    lines.extend(
+        [
+            "",
+            "## Benchmark Savings Boundary",
+            "",
+            f"- Per-repo savings claim: `{boundary.get('perRepoSavingsClaim', 'not-computed')}`",
+            f"- Evidence type: `{boundary.get('evidenceType', 'shortcut-ledger-only')}`",
+            f"- Reason: {boundary.get('reason', '')}",
+            "- Do not claim current-repo line, token, cost, or time savings from shortcut marker counts.",
+            "- Do not treat shortcut marker counts as benchmark savings.",
+            f"- Benchmark route: `{benchmark_route.get('command', 'shipguard lean gain --path <repo> --out <lean-gain-out> --shipguard-eval --shareable')}`",
+            f"- Benchmark artifact: {benchmark_route.get('expectedArtifact', 'lean-gain.json and lean-gain.md')}",
+            f"- Boundary: {benchmark_route.get('proofBoundary', '')}",
+        ]
+    )
     lines.extend(["", "## Source Influence", ""])
     lines.append(
         f"Native ShipGuard implementation influenced by {report['sourceInfluence']['name']} "
