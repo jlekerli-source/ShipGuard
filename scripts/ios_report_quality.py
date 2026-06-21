@@ -2868,6 +2868,13 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 if isinstance(item, dict) and str(item.get("ruleId") or "") == "host-adapter-boundary-diff"
             ]
         )
+        safety_rule_count = len(
+            [
+                item
+                for item in findings
+                if isinstance(item, dict) and str(item.get("ruleId") or "") == "do-not-cut-safety-diff-without-proof"
+            ]
+        )
         calibration = report.get("proofSignalCalibration")
         if proof_related:
             if not isinstance(calibration, dict):
@@ -3252,6 +3259,151 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                     evidence=f"{path_name} Markdown missing boundary review tokens: {', '.join(missing_boundary_markdown)}",
                     recommendation="Render hardwareHostBoundaryReview in Markdown so maintainers see calibration and host-adapter keep/proof guidance.",
                 )
+        if safety_rule_count:
+            safety_review = report.get("safetyBoundaryReview")
+            if not isinstance(safety_review, dict):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-review-safety-boundary-review-missing",
+                    evidence=f"{path_name} has safety-boundary findings but no safetyBoundaryReview",
+                    recommendation="Emit safetyBoundaryReview so Lean Review proves safety code stays out of automatic deletion pressure.",
+                )
+            else:
+                summary = safety_review.get("summary") if isinstance(safety_review.get("summary"), dict) else {}
+                safety_rows = safety_review.get("safetyBoundaryFindings")
+                policy_text = normalized_question_text(
+                    " ".join(
+                        str(safety_review.get(key) or "")
+                        for key in ("policy", "automaticDeletionBoundary")
+                    )
+                )
+                required_summary = {
+                    "safetyBoundaryFindings",
+                    "falseDeletionPressureBlocked",
+                    "keepSafetyBoundaryFiles",
+                }
+                missing_summary = sorted(key for key in required_summary if key not in summary)
+                if missing_summary:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-safety-boundary-summary-incomplete",
+                        evidence=f"{path_name} safetyBoundaryReview.summary missing: {', '.join(missing_summary)}",
+                        recommendation="Expose safety-boundary row counts, false deletion pressure blocked, and keep-file counts.",
+                    )
+                if (
+                    int(summary.get("safetyBoundaryFindings") or 0) < safety_rule_count
+                    or not isinstance(safety_rows, list)
+                    or len(safety_rows) < safety_rule_count
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-safety-boundary-rows-incomplete",
+                        evidence=f"{path_name} has {safety_rule_count} safety-boundary finding(s) but incomplete safety rows",
+                        recommendation="List every safety-boundary finding with location, recommendation, and proof guidance.",
+                    )
+                if isinstance(safety_rows, list):
+                    required_row_fields = {"file", "location", "ruleId", "recommendation", "proofGuidance"}
+                    malformed_rows = []
+                    for index, row in enumerate(safety_rows):
+                        if not isinstance(row, dict):
+                            malformed_rows.append(f"row {index}")
+                            continue
+                        missing_fields = sorted(
+                            field
+                            for field in required_row_fields
+                            if not str(row.get(field) or "").strip()
+                        )
+                        if str(row.get("ruleId") or "") != "do-not-cut-safety-diff-without-proof":
+                            missing_fields.append("ruleId=do-not-cut-safety-diff-without-proof")
+                        if missing_fields:
+                            malformed_rows.append(f"row {index} missing {', '.join(missing_fields)}")
+                    if malformed_rows:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="lean-review-safety-boundary-row-fields-incomplete",
+                            evidence=f"{path_name} safetyBoundaryReview rows incomplete: {'; '.join(malformed_rows[:5])}",
+                            recommendation="Each safety-boundary row must include file, location, ruleId, recommendation, and proofGuidance.",
+                        )
+                if (
+                    "safety" not in policy_text
+                    or "proof" not in policy_text
+                    or ("delete" not in policy_text and "deletion" not in policy_text)
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-safety-boundary-policy-incomplete",
+                        evidence=f"{path_name} safetyBoundaryReview policy does not explain the no-automatic-deletion proof boundary",
+                        recommendation="State that safety-boundary rows are keep-with-proof decisions and cannot be deleted from source-only less-code pressure.",
+                    )
+                decision_map_for_safety = report.get("currentDiffDecisionMap")
+                if isinstance(decision_map_for_safety, dict):
+                    decisions = decision_map_for_safety.get("decisions")
+                    decision_by_file = {}
+                    if isinstance(decisions, list):
+                        decision_by_file = {
+                            str(row.get("file") or ""): row for row in decisions if isinstance(row, dict)
+                        }
+                    safety_files = {
+                        str((item.get("evidence") or {}).get("file") or "")
+                        for item in findings
+                        if isinstance(item, dict)
+                        and str(item.get("ruleId") or "") == "do-not-cut-safety-diff-without-proof"
+                    }
+                    bad_safety = []
+                    for file_name in sorted(file for file in safety_files if file):
+                        row = decision_by_file.get(file_name)
+                        rule_ids = row.get("ruleIds") if isinstance(row, dict) else []
+                        if (
+                            not isinstance(row, dict)
+                            or row.get("decision") != "keep"
+                            or not isinstance(rule_ids, list)
+                            or "do-not-cut-safety-diff-without-proof" not in rule_ids
+                        ):
+                            bad_safety.append(file_name)
+                    if bad_safety:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="lean-review-safety-boundary-decision-map-incomplete",
+                            evidence=f"{path_name} currentDiffDecisionMap does not keep safety-boundary files: {', '.join(bad_safety[:5])}",
+                            recommendation="Mark safety-boundary files as keep with do-not-cut-safety-diff-without-proof in the current diff decision map.",
+                        )
+            required_safety_markdown = ["Safety Boundary Review", "Keep With Proof Boundaries"]
+            missing_safety_markdown = [token for token in required_safety_markdown if token not in markdown]
+            if missing_safety_markdown:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-review-safety-boundary-markdown-missing",
+                    evidence=f"{path_name} Markdown missing safety-boundary tokens: {', '.join(missing_safety_markdown)}",
+                    recommendation="Render safetyBoundaryReview in Markdown so maintainers see safety keep/proof guidance.",
+                )
+            elif isinstance(safety_review, dict):
+                safety_rows = safety_review.get("safetyBoundaryFindings")
+                safety_section = markdown.split("Keep With Proof Boundaries", 1)[1]
+                missing_safety_rows = []
+                if isinstance(safety_rows, list):
+                    for row in safety_rows:
+                        if not isinstance(row, dict):
+                            continue
+                        location = str(row.get("location") or "").strip()
+                        file_name = str(row.get("file") or "").strip()
+                        token = location or file_name
+                        if token and token not in safety_section:
+                            missing_safety_rows.append(token)
+                if missing_safety_rows:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-safety-boundary-markdown-rows-missing",
+                        evidence=f"{path_name} Markdown safety table missing rows: {', '.join(missing_safety_rows[:5])}",
+                        recommendation="Render each safetyBoundaryReview row in the Markdown Keep With Proof Boundaries table.",
+                    )
         decision_map = report.get("currentDiffDecisionMap")
         if not isinstance(decision_map, dict):
             add_issue(
@@ -4707,6 +4859,14 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
                     "the Markdown exposes Hardware And Host Boundary Review, Hardware Calibration Proof, and Host Adapter Boundaries",
                 ]
             )
+        if "safety-boundary code" in normalized_question and "automatic deletion" in normalized_question:
+            expected_assertions.extend(
+                [
+                    "the fixture exposes safetyBoundaryReview.safetyBoundaryFindings for keep-with-proof safety rows",
+                    "the fixture currentDiffDecisionMap keeps safety-boundary files instead of deleting or proof-blocking them",
+                    "the Markdown exposes Safety Boundary Review and Keep With Proof Boundaries",
+                ]
+            )
     return {
         "priority": index,
         "candidateId": candidate_id,
@@ -5861,6 +6021,36 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
                 "For host-adapter rows, attach call-site, protocol, plugin, MCP, preview, or runtime proof before deleting a thin adapter.",
             ],
         },
+        "safetyBoundaryReview": {
+            "policy": (
+                "Lean Review must keep safety, trust, permission, accessibility, validation, data-loss, and security "
+                "boundaries out of automatic deletion. Less-code pressure is only allowed after focused behavior proof."
+            ),
+            "automaticDeletionBoundary": (
+                "A safety-boundary row is a keep-with-proof decision, even when the same file also contains cleanup pressure."
+            ),
+            "safetyBoundaryFindings": [
+                {
+                    "file": "Sources/SyntheticLeanReview/PermissionGate.swift",
+                    "line": 31,
+                    "location": "Sources/SyntheticLeanReview/PermissionGate.swift:31",
+                    "ruleId": "do-not-cut-safety-diff-without-proof",
+                    "severity": "info",
+                    "evidence": "guard authorizationStatus == .authorized else { return .blocked }",
+                    "recommendation": keep_finding["recommendation"],
+                    "proofGuidance": keep_finding["proofGuidance"],
+                }
+            ],
+            "summary": {
+                "safetyBoundaryFindings": 1,
+                "falseDeletionPressureBlocked": 1,
+                "keepSafetyBoundaryFiles": 1,
+            },
+            "proofToAttach": [
+                "Attach focused before/after tests for trust-boundary, data-loss, security, permission, or accessibility behavior.",
+                "Do not delete or simplify a safety-boundary row from source-only less-code pressure.",
+            ],
+        },
         "precisionReview": {
             "principle": "The best ShipGuard code is the code that proves it needs to exist.",
             "mode": {"mode": "full", "firstActionBias": "proof-ladder"},
@@ -6342,6 +6532,20 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "| Location | Recommendation | Proof |",
                 "| --- | --- | --- |",
                 "| Sources/SyntheticLeanReview/PluginHostAdapter.swift:12 | Keep this host, plugin, MCP, preview, simulator, or platform adapter until call-site or protocol proof shows it is redundant. | Attach call-site, protocol, plugin, MCP, preview, or runtime proof before simplifying the adapter boundary. |",
+                "",
+                "## Safety Boundary Review",
+                "",
+                "- Safety-boundary findings: 1",
+                "- False deletion pressure blocked: 1",
+                "- Keep safety-boundary files: 1",
+                "- Policy: Lean Review must keep safety, trust, permission, accessibility, validation, data-loss, and security boundaries out of automatic deletion. Less-code pressure is only allowed after focused behavior proof.",
+                "- Automatic deletion boundary: A safety-boundary row is a keep-with-proof decision, even when the same file also contains cleanup pressure.",
+                "",
+                "### Keep With Proof Boundaries",
+                "",
+                "| Location | Recommendation | Proof |",
+                "| --- | --- | --- |",
+                "| Sources/SyntheticLeanReview/PermissionGate.swift:31 | Less code is not the goal in this file until behavior proof exists. | Attach focused before/after tests for trust-boundary, data-loss, security, permission, or accessibility behavior. |",
                 "",
                 "## Precision Ledger",
                 "",

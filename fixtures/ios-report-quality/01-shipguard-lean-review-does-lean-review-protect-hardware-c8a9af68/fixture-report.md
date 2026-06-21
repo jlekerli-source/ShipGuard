@@ -122,6 +122,20 @@ Non-claims:
 | --- | --- | --- |
 | Sources/SyntheticLeanReview/PluginHostAdapter.swift:12 | Keep this host, plugin, MCP, preview, simulator, or platform adapter until call-site or protocol proof shows it is redundant. | Attach call-site, protocol, plugin, MCP, preview, or runtime proof before simplifying the adapter boundary. |
 
+## Safety Boundary Review
+
+- Safety-boundary findings: 1
+- False deletion pressure blocked: 1
+- Keep safety-boundary files: 1
+- Policy: Lean Review must keep safety, trust, permission, accessibility, validation, data-loss, and security boundaries out of automatic deletion. Less-code pressure is only allowed after focused behavior proof.
+- Automatic deletion boundary: A safety-boundary row is a keep-with-proof decision, even when the same file also contains cleanup pressure.
+
+### Keep With Proof Boundaries
+
+| Location | Recommendation | Proof |
+| --- | --- | --- |
+| Sources/SyntheticLeanReview/PermissionGate.swift:31 | Less code is not the goal in this file until behavior proof exists. | Attach focused before/after tests for trust-boundary, data-loss, security, permission, or accessibility behavior. |
+
 ## Precision Ledger
 
 - Delete candidates: 1; simplify candidates: 1; keep boundaries: 2; proof-blocked candidates: 2; action groups: 4

@@ -405,7 +405,7 @@
       "./tests/ios_report_quality_test.sh"
     ]
   },
-  "generatedAt": "2026-06-21T04:52:08Z",
+  "generatedAt": "2026-06-21T05:34:22Z",
   "hardwareHostBoundaryReview": {
     "hardwareCalibrationFindings": [
       {
@@ -752,6 +752,31 @@
       "missingRunnableCheckFindings": 1,
       "sameDiffProofFindings": 1,
       "sameDiffProofSignalCount": 2
+    }
+  },
+  "safetyBoundaryReview": {
+    "automaticDeletionBoundary": "A safety-boundary row is a keep-with-proof decision, even when the same file also contains cleanup pressure.",
+    "policy": "Lean Review must keep safety, trust, permission, accessibility, validation, data-loss, and security boundaries out of automatic deletion. Less-code pressure is only allowed after focused behavior proof.",
+    "proofToAttach": [
+      "Attach focused before/after tests for trust-boundary, data-loss, security, permission, or accessibility behavior.",
+      "Do not delete or simplify a safety-boundary row from source-only less-code pressure."
+    ],
+    "safetyBoundaryFindings": [
+      {
+        "evidence": "guard authorizationStatus == .authorized else { return .blocked }",
+        "file": "Sources/SyntheticLeanReview/PermissionGate.swift",
+        "line": 31,
+        "location": "Sources/SyntheticLeanReview/PermissionGate.swift:31",
+        "proofGuidance": "Attach focused before/after tests for trust-boundary, data-loss, security, permission, or accessibility behavior.",
+        "recommendation": "Less code is not the goal in this file until behavior proof exists.",
+        "ruleId": "do-not-cut-safety-diff-without-proof",
+        "severity": "info"
+      }
+    ],
+    "summary": {
+      "falseDeletionPressureBlocked": 1,
+      "keepSafetyBoundaryFiles": 1,
+      "safetyBoundaryFindings": 1
     }
   },
   "scanScope": {

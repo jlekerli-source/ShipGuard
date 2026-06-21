@@ -27,6 +27,25 @@ TOOL = "shipguard lean review"
 SURFACE = "ShipGuard Lean Review"
 SCHEMA_VERSION = 1
 CODE_SUFFIXES = {".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".py", ".sh", ".swift"}
+SAFETY_CONFIG_SUFFIXES = {".entitlements", ".plist", ".xcprivacy"}
+SAFETY_CONFIG_TEXT_SUFFIXES = {".json", ".toml", ".yml", ".yaml"}
+SAFETY_CONFIG_PATH_TOKENS = (
+    "access-control",
+    "auth",
+    "entitlement",
+    "migration",
+    "payment",
+    "permission",
+    "privacy",
+    "security",
+    "validation",
+)
+NON_PRODUCT_SURFACE_PREFIXES = (
+    "docs/",
+    "examples/",
+    "fixtures/",
+    "tests/",
+)
 NONTRIVIAL_LOGIC_RE = re.compile(
     r"\b(if|for|while|try|except|catch|switch|case)\b|=>\s*\{|\bparse[A-Za-z0-9_]*\s*\(|\.map\(|\.filter\(|\.reduce\(",
     re.IGNORECASE,
@@ -53,6 +72,10 @@ HARDWARE_DIFF_RE = re.compile(
 )
 HOST_ADAPTER_DIFF_RE = re.compile(
     r"\b(adapter|bridge|connector|devspace|entrypoint|host|mcp|plugin|protocol|server|xcodebuildmcp)\b",
+    re.IGNORECASE,
+)
+SAFETY_DIFF_RE = re.compile(
+    r"\b(auth|csrf|data-loss|delete|encrypt|password|permission|security|token|validate|validation|xss|a11y|accessibility)\b",
     re.IGNORECASE,
 )
 HOST_ADAPTER_TOKENS = (
@@ -182,6 +205,20 @@ def has_host_adapter_context(file_name: str, text: str) -> bool:
     haystack = f"{file_name}\n{text}"
     lowered = haystack.lower()
     return bool(HOST_ADAPTER_DIFF_RE.search(haystack)) or any(token in lowered for token in HOST_ADAPTER_TOKENS)
+
+
+def can_emit_safety_boundary_finding(file_name: str, is_code: bool) -> bool:
+    normalized = file_name.replace("\\", "/").lower()
+    if normalized.startswith(NON_PRODUCT_SURFACE_PREFIXES):
+        return False
+    if is_code:
+        return True
+    suffix = Path(file_name).suffix.lower()
+    if suffix in SAFETY_CONFIG_SUFFIXES:
+        return True
+    if suffix in SAFETY_CONFIG_TEXT_SUFFIXES:
+        return any(token in normalized for token in SAFETY_CONFIG_PATH_TOKENS)
+    return False
 
 
 def collect_proof_signals(files: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -485,6 +522,36 @@ def build_hardware_host_boundary_review(findings: list[dict[str, Any]]) -> dict[
     }
 
 
+def build_safety_boundary_review(findings: list[dict[str, Any]]) -> dict[str, Any]:
+    safety_findings = [
+        item
+        for item in findings
+        if isinstance(item, dict) and item.get("ruleId") == "do-not-cut-safety-diff-without-proof"
+    ]
+    return {
+        "policy": (
+            "Lean Review must keep safety, trust, permission, accessibility, validation, data-loss, and security "
+            "boundaries out of automatic deletion. Less-code pressure is only allowed after focused behavior proof."
+        ),
+        "automaticDeletionBoundary": (
+            "A safety-boundary row is a keep-with-proof decision, even when the same file also contains a wrapper, "
+            "placeholder, or non-trivial branch that would normally attract cleanup pressure."
+        ),
+        "safetyBoundaryFindings": [runnable_check_finding_row(item) for item in safety_findings],
+        "summary": {
+            "safetyBoundaryFindings": len(safety_findings),
+            "falseDeletionPressureBlocked": len(safety_findings),
+            "keepSafetyBoundaryFiles": len(
+                {str((item.get("evidence") or {}).get("file") or "") for item in safety_findings}
+            ),
+        },
+        "proofToAttach": [
+            "Attach focused before/after tests for trust-boundary, data-loss, security, permission, or accessibility behavior.",
+            "Do not delete or simplify a safety-boundary row from source-only less-code pressure.",
+        ],
+    }
+
+
 def scan_diff(root: Path, files: list[dict[str, Any]], proof_signals: list[dict[str, Any]]) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
     for file_diff in files:
@@ -497,7 +564,10 @@ def scan_diff(root: Path, files: list[dict[str, Any]], proof_signals: list[dict[
             continue
         context_path = root / file_name
         context_text = read_text(context_path)
-        safe_context = has_safety_context(context_path, context_text + "\n" + added_text)
+        safe_context = can_emit_safety_boundary_finding(file_name, is_code) and has_safety_context(
+            context_path,
+            context_text + "\n" + added_text,
+        )
 
         if is_code and NONTRIVIAL_LOGIC_RE.search(added_text) and not has_added_check(file_name, added_text):
             matching_proof_signals = proof_signals_for_file(file_name, proof_signals)
@@ -665,14 +735,26 @@ def scan_diff(root: Path, files: list[dict[str, Any]], proof_signals: list[dict[
                 )
 
         if safe_context:
+            safety_line = next(
+                (
+                    item
+                    for item in file_diff.get("added", [])
+                    if SAFETY_DIFF_RE.search(str(item.get("text", "")))
+                ),
+                None,
+            )
             findings.append(
                 finding(
                     severity="info",
                     category="safety-boundary",
                     rule_id="do-not-cut-safety-diff-without-proof",
                     file=file_name,
-                    line=None,
-                    evidence="diff touches security/validation/accessibility/data-loss terms",
+                    line=int(safety_line.get("line") or 0) or None if safety_line else None,
+                    evidence=(
+                        str(safety_line.get("text", "")).strip()[:160]
+                        if safety_line
+                        else "diff touches security/validation/accessibility/data-loss terms"
+                    ),
                     recommendation="Less code is not the goal in this file until behavior proof exists.",
                     proof="Attach focused before/after tests for trust-boundary, data-loss, security, permission, or accessibility behavior.",
                 )
@@ -858,6 +940,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     proof_signal_matching = build_proof_signal_matching(files=files, proof_signals=proof_signals)
     runnable_check_review = build_runnable_check_review(proof_signals=proof_signals, findings=findings)
     hardware_host_boundary_review = build_hardware_host_boundary_review(findings)
+    safety_boundary_review = build_safety_boundary_review(findings)
     current_diff_decision_map = build_current_diff_decision_map(
         diff_path=diff_path,
         files=files,
@@ -886,6 +969,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "proofSignalMatching": proof_signal_matching,
         "runnableCheckReview": runnable_check_review,
         "hardwareHostBoundaryReview": hardware_host_boundary_review,
+        "safetyBoundaryReview": safety_boundary_review,
         "precisionReview": precision,
         "findings": findings,
         "metrics": {
@@ -1104,6 +1188,27 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.extend(["", "### Host Adapter Boundaries", ""])
             lines.extend(["| Location | Recommendation | Proof |", "| --- | --- | --- |"])
             for row in host_rows[:8]:
+                lines.append(
+                    f"| {str(row.get('location', '')).replace('|', '\\|')} | "
+                    f"{str(row.get('recommendation', '')).replace('|', '\\|')} | "
+                    f"{str(row.get('proofGuidance', '')).replace('|', '\\|')} |"
+                )
+    safety_boundary = report.get("safetyBoundaryReview", {})
+    if isinstance(safety_boundary, dict):
+        summary = safety_boundary.get("summary") if isinstance(safety_boundary.get("summary"), dict) else {}
+        lines.extend(["", "## Safety Boundary Review", ""])
+        lines.append(f"- Safety-boundary findings: {summary.get('safetyBoundaryFindings', 0)}")
+        lines.append(f"- False deletion pressure blocked: {summary.get('falseDeletionPressureBlocked', 0)}")
+        lines.append(f"- Keep safety-boundary files: {summary.get('keepSafetyBoundaryFiles', 0)}")
+        if safety_boundary.get("policy"):
+            lines.append(f"- Policy: {safety_boundary.get('policy')}")
+        if safety_boundary.get("automaticDeletionBoundary"):
+            lines.append(f"- Automatic deletion boundary: {safety_boundary.get('automaticDeletionBoundary')}")
+        safety_rows = safety_boundary.get("safetyBoundaryFindings")
+        if isinstance(safety_rows, list) and safety_rows:
+            lines.extend(["", "### Keep With Proof Boundaries", ""])
+            lines.extend(["| Location | Recommendation | Proof |", "| --- | --- | --- |"])
+            for row in safety_rows[:8]:
                 lines.append(
                     f"| {str(row.get('location', '')).replace('|', '\\|')} | "
                     f"{str(row.get('recommendation', '')).replace('|', '\\|')} | "

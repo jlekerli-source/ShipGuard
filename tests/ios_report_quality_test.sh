@@ -2061,6 +2061,39 @@ if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_
   exit 1
 fi
 
+lean_review_safety_boundary_fixture="fixtures/ios-report-quality/01-shipguard-lean-review-does-it-keep-safety-boundary-code-df36ee0b"
+./bin/shipguard ios report-quality \
+  --reports "$lean_review_safety_boundary_fixture" \
+  --out "$tmp_dir/lean-review-safety-boundary-public-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/lean-review-safety-boundary-public-quality/ios-report-quality.json"
+grep -q 'Does it keep safety-boundary code out of automatic deletion?' "$tmp_dir/lean-review-safety-boundary-public-quality/ios-report-quality.md"
+grep -q '"tool": "shipguard lean review"' "$lean_review_safety_boundary_fixture/fixture-report.json"
+grep -q '"safetyBoundaryReview":' "$lean_review_safety_boundary_fixture/fixture-report.json"
+grep -q '"safetyBoundaryFindings": 1' "$lean_review_safety_boundary_fixture/fixture-report.json"
+grep -q '"falseDeletionPressureBlocked": 1' "$lean_review_safety_boundary_fixture/fixture-report.json"
+grep -q '"keepSafetyBoundaryFiles": 1' "$lean_review_safety_boundary_fixture/fixture-report.json"
+grep -q '"ruleId": "do-not-cut-safety-diff-without-proof"' "$lean_review_safety_boundary_fixture/fixture-report.json"
+grep -q '"decision": "keep"' "$lean_review_safety_boundary_fixture/fixture-report.json"
+grep -q 'Safety Boundary Review' "$lean_review_safety_boundary_fixture/fixture-report.md"
+grep -q 'Keep With Proof Boundaries' "$lean_review_safety_boundary_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/lean-review-safety-boundary-public-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"Lean Review safety-boundary public fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+top = questions[0] if questions else {}
+if not top or not (top.get("sourceMaterializedFixture") is True or top.get("existingFixture")):
+    raise SystemExit(f"Lean Review safety-boundary fixture should retain materialized or fixture-coverage question evidence: {questions!r}")
+PY
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_review_safety_boundary_fixture"; then
+  echo "Lean Review safety-boundary fixture must not include local paths or private app identifiers" >&2
+  exit 1
+fi
+
 mkdir -p "$tmp_dir/lean-review-hardware-host-wrong-decisions"
 python3 - <<'PY' "$lean_review_hardware_host_fixture/fixture-report.json" "$tmp_dir/lean-review-hardware-host-wrong-decisions/lean-review.json"
 import json
@@ -2084,6 +2117,95 @@ cp "$lean_review_hardware_host_fixture/fixture-report.md" "$tmp_dir/lean-review-
   --shareable >/dev/null
 grep -q '"ruleId": "lean-review-hardware-calibration-decision-map-incomplete"' "$tmp_dir/lean-review-hardware-host-wrong-decisions-quality/ios-report-quality.json"
 grep -q '"ruleId": "lean-review-host-adapter-decision-map-incomplete"' "$tmp_dir/lean-review-hardware-host-wrong-decisions-quality/ios-report-quality.json"
+
+mkdir -p "$tmp_dir/lean-review-safety-boundary-wrong-decision"
+python3 - <<'PY' "$lean_review_safety_boundary_fixture/fixture-report.json" "$tmp_dir/lean-review-safety-boundary-wrong-decision/lean-review.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+for row in data["currentDiffDecisionMap"]["decisions"]:
+    if row.get("file") == "Sources/SyntheticLeanReview/PermissionGate.swift":
+        row["decision"] = "delete"
+        row["ruleIds"] = ["thin-wrapper-diff-review"]
+json.dump(data, open(sys.argv[2], "w", encoding="utf-8"), indent=2, sort_keys=True)
+PY
+cp "$lean_review_safety_boundary_fixture/fixture-report.md" "$tmp_dir/lean-review-safety-boundary-wrong-decision/lean-review.md"
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-review-safety-boundary-wrong-decision" \
+  --out "$tmp_dir/lean-review-safety-boundary-wrong-decision-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-review-safety-boundary-decision-map-incomplete"' "$tmp_dir/lean-review-safety-boundary-wrong-decision-quality/ios-report-quality.json"
+
+mkdir -p "$tmp_dir/lean-review-safety-boundary-malformed-row"
+python3 - <<'PY' "$lean_review_safety_boundary_fixture/fixture-report.json" "$tmp_dir/lean-review-safety-boundary-malformed-row/lean-review.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+data["safetyBoundaryReview"]["safetyBoundaryFindings"] = [{}]
+json.dump(data, open(sys.argv[2], "w", encoding="utf-8"), indent=2, sort_keys=True)
+PY
+cp "$lean_review_safety_boundary_fixture/fixture-report.md" "$tmp_dir/lean-review-safety-boundary-malformed-row/lean-review.md"
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-review-safety-boundary-malformed-row" \
+  --out "$tmp_dir/lean-review-safety-boundary-malformed-row-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-review-safety-boundary-row-fields-incomplete"' "$tmp_dir/lean-review-safety-boundary-malformed-row-quality/ios-report-quality.json"
+
+mkdir -p "$tmp_dir/lean-review-safety-boundary-markdown-row-missing"
+cp "$lean_review_safety_boundary_fixture/fixture-report.json" "$tmp_dir/lean-review-safety-boundary-markdown-row-missing/lean-review.json"
+python3 - <<'PY' "$lean_review_safety_boundary_fixture/fixture-report.md" "$tmp_dir/lean-review-safety-boundary-markdown-row-missing/lean-review.md"
+import sys
+
+markdown = open(sys.argv[1], encoding="utf-8").read()
+markdown = markdown.replace(
+    "| Sources/SyntheticLeanReview/PermissionGate.swift:31 | Less code is not the goal in this file until behavior proof exists. | Attach focused before/after tests for trust-boundary, data-loss, security, permission, or accessibility behavior. |\n",
+    "",
+)
+open(sys.argv[2], "w", encoding="utf-8").write(markdown)
+PY
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-review-safety-boundary-markdown-row-missing" \
+  --out "$tmp_dir/lean-review-safety-boundary-markdown-row-missing-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-review-safety-boundary-markdown-rows-missing"' "$tmp_dir/lean-review-safety-boundary-markdown-row-missing-quality/ios-report-quality.json"
+
+mkdir -p "$tmp_dir/lean-review-missing-safety-boundary"
+python3 - <<'PY' "$lean_review_safety_boundary_fixture/fixture-report.json" "$tmp_dir/lean-review-missing-safety-boundary/lean-review.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+data.pop("safetyBoundaryReview", None)
+json.dump(data, open(sys.argv[2], "w", encoding="utf-8"), indent=2, sort_keys=True)
+PY
+cat > "$tmp_dir/lean-review-missing-safety-boundary/lean-review.md" <<'MD'
+# ShipGuard Lean Review
+
+## Current Diff Decision Map
+
+- Scope: `current-diff-only`
+- Boundary: This report is built only from the supplied unified diff; it does not scan the whole repo.
+
+## Precision Ledger
+
+### Grouped Action Plan
+
+| Rank | Decision | Rule | Affected | First Location | First Experiment | Validation | Stop Condition |
+| ---: | --- | --- | ---: | --- | --- | --- | --- |
+| 1 | keep | `do-not-cut-safety-diff-without-proof` | 1 | Sources/SyntheticLeanReview/PermissionGate.swift:31 | Attach proof. | Run focused permission proof. | Stop without proof. |
+MD
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-review-missing-safety-boundary" \
+  --out "$tmp_dir/lean-review-missing-safety-boundary-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-review-safety-boundary-review-missing"' "$tmp_dir/lean-review-missing-safety-boundary-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-safety-boundary-markdown-missing"' "$tmp_dir/lean-review-missing-safety-boundary-quality/ios-report-quality.json"
 
 ./bin/shipguard lean audit \
   --path . \
@@ -2141,6 +2263,7 @@ grep -q '01-shipguard-lean-review-does-lean-review-give-a-current-d-9a6d6c8a' "$
 grep -q '01-shipguard-lean-review-does-lean-review-require-one-smal-247885c9' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q '01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q '01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q '01-shipguard-lean-review-does-it-keep-safety-boundary-code-df36ee0b' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review give a current-diff delete/simplify list instead of a whole-repo inventory?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review require one smallest runnable check for non-trivial new logic?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does proofSignalCalibration distinguish missing runnable checks from same-diff proof signals?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
@@ -2152,9 +2275,9 @@ import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 question = (data.get("priorityAction") or {}).get("question")
-expected = "Does it keep safety-boundary code out of automatic deletion?"
+expected = "Does Lean Review expose the selected lite/full/ultra mode and bias first actions accordingly?"
 if question != expected:
-    raise SystemExit(f"expected combined Lean QA to advance to safety-boundary question, got {question!r}")
+    raise SystemExit(f"expected combined Lean QA to advance to selected-mode question, got {question!r}")
 PY
 if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$tmp_dir/lean-fresh-combined-candidates"; then
   echo "materialized combined Lean candidate must not include local paths or private app identifiers" >&2

@@ -143,6 +143,19 @@ The v3.148 read-only loop reran `shipguard lean audit`, `shipguard lean review`,
 
 Fresh combined Lean QA now treats the hardware-boundary question as covered and advances to the safety-boundary question.
 
+## Current Lean Review Safety Boundary Fixture QA
+
+The v3.149 read-only loop reran `shipguard lean audit`, `shipguard lean review`, `shipguard lean gain`, `shipguard lean debt`, and `ios report-quality --write-fixture-candidates` against this checkout after the hardware/host boundary fixture landed.
+
+- Finding: fresh combined Lean QA passed, but the next uncovered actionability question was "Does it keep safety-boundary code out of automatic deletion?"
+- Product weakness: Lean Review had generic safety findings, but it did not expose a first-class packet that proves permission, security, validation, accessibility, and data-loss rows are keep-with-proof decisions instead of cleanup targets.
+- Native fix: `shipguard lean review` now emits `safetyBoundaryReview` with safety keep rows, no-automatic-deletion policy, false deletion pressure counts, and Markdown `Safety Boundary Review` / `Keep With Proof Boundaries` tables.
+- Detector fix: safety-boundary findings are now limited to code or explicit safety/privacy configuration surfaces, so public fixture report prose does not create noisy keep rows during ShipGuard self-review.
+- Report-quality fix: `ios report-quality` now flags Lean Review reports that have safety-boundary findings but omit the packet, undercount rows, hide policy, contradict the current-diff decision map, or skip the Markdown boundary review.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-lean-review-does-it-keep-safety-boundary-code-df36ee0b` uses public synthetic evidence for one permission-gate row that stays `keep`.
+
+Fresh combined Lean QA now treats the safety-boundary question as covered and advances to the selected-mode question.
+
 ## Current Verify-PR First-Run QA
 
 The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `shipguard full-audit --plan-only`, docs-check, and the verify-first quickstart tests against this checkout.

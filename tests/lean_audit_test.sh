@@ -525,6 +525,91 @@ if "thin-wrapper-diff-review" in rules:
     raise SystemExit(f"Python host adapter must not be treated as a delete-wrapper finding: {rules!r}")
 PY
 
+cat > "$tmp_dir/safety-boundary.diff" <<'DIFF'
+diff --git a/src/permission_gate.py b/src/permission_gate.py
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/src/permission_gate.py
+@@ -0,0 +1,5 @@
++def can_delete_account(user, request):
++    if not user.has_permission("delete_account"):
++        return "blocked"
++    audit_security_event("delete-account-request", request.id)
++    return "allowed"
+DIFF
+
+./bin/shipguard lean review \
+  --path fixtures/lean-audit-demo \
+  --diff "$tmp_dir/safety-boundary.diff" \
+  --out "$tmp_dir/safety-boundary-review" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+grep -q '"ruleId": "do-not-cut-safety-diff-without-proof"' "$tmp_dir/safety-boundary-review/lean-review.json"
+grep -q '"safetyBoundaryReview":' "$tmp_dir/safety-boundary-review/lean-review.json"
+grep -q '"safetyBoundaryFindings": 1' "$tmp_dir/safety-boundary-review/lean-review.json"
+grep -q 'Safety Boundary Review' "$tmp_dir/safety-boundary-review/lean-review.md"
+grep -q 'Keep With Proof Boundaries' "$tmp_dir/safety-boundary-review/lean-review.md"
+python3 - <<'PY' "$tmp_dir/safety-boundary-review/lean-review.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+decision = data["currentDiffDecisionMap"]["decisions"][0]
+if decision["decision"] != "keep":
+    raise SystemExit(f"safety boundary should be kept before deletion pressure: {decision!r}")
+if "do-not-cut-safety-diff-without-proof" not in decision.get("ruleIds", []):
+    raise SystemExit(f"safety boundary decision should keep the safety rule visible: {decision!r}")
+review = data.get("safetyBoundaryReview") or {}
+summary = review.get("summary") or {}
+if summary.get("falseDeletionPressureBlocked") != 1 or summary.get("keepSafetyBoundaryFiles") != 1:
+    raise SystemExit(f"safety boundary summary should count blocked deletion pressure: {summary!r}")
+rows = review.get("safetyBoundaryFindings") or []
+if not rows or rows[0].get("line") is None or ":" not in rows[0].get("location", ""):
+    raise SystemExit(f"safety boundary row should point at the first matched added line: {rows!r}")
+if not rows[0].get("evidence") or rows[0].get("evidence") == "diff touches security/validation/accessibility/data-loss terms":
+    raise SystemExit(f"safety boundary row should include the matched diff evidence: {rows!r}")
+PY
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/safety-boundary-review" \
+  --out "$tmp_dir/safety-boundary-quality" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+grep -q '"status": "pass"' "$tmp_dir/safety-boundary-quality/ios-report-quality.json"
+if grep -q 'lean-review-safety-boundary' "$tmp_dir/safety-boundary-quality/ios-report-quality.json"; then
+  echo "report-quality should accept complete safety-boundary review packets" >&2
+  exit 1
+fi
+
+cat > "$tmp_dir/safety-fixture-report.diff" <<'DIFF'
+diff --git a/fixtures/ios-report-quality/safety-demo/fixture-report.json b/fixtures/ios-report-quality/safety-demo/fixture-report.json
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/fixtures/ios-report-quality/safety-demo/fixture-report.json
+@@ -0,0 +1,6 @@
++{
++  "question": "Does the report keep permission and delete safety boundaries visible?",
++  "policy": "Do not delete validation or security rows without proof.",
++  "status": "pass"
++}
+DIFF
+
+./bin/shipguard lean review \
+  --path fixtures/lean-audit-demo \
+  --diff "$tmp_dir/safety-fixture-report.diff" \
+  --out "$tmp_dir/safety-fixture-report-review" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+if grep -q '"ruleId": "do-not-cut-safety-diff-without-proof"' "$tmp_dir/safety-fixture-report-review/lean-review.json"; then
+  echo "Lean Review should not treat public fixture report prose as product safety-boundary code" >&2
+  exit 1
+fi
+
 cat > "$tmp_dir/same-diff-proof.diff" <<'DIFF'
 diff --git a/src/proof_target.py b/src/proof_target.py
 new file mode 100644
