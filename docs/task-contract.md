@@ -46,6 +46,7 @@ The JSON includes:
 - `agentClaims`
 - `evidence`
 - `verdict`
+- `quickstartReplay`
 - `nextAction`
 
 `projectSnapshot.scanScope` is bounded. ShipGuard skips generated, cache, package, and proof directories so real app checkouts do not make `prepare` walk `DerivedData`, `.build`, `node_modules`, or release artifacts.
@@ -77,6 +78,8 @@ The notification workflow is implemented as a domain pack in `scripts/task_domai
 Use `--shipguard-eval` when a target app is only being used to evaluate ShipGuard output quality; that boundary says the report is not app-work authorization.
 
 When `--shareable` points at an external target checkout, ShipGuard also redacts target names in authorized scope, skipped directories, Xcode projects, and scheme validation commands. Use the redacted contract for product QA or sharing; run without `--shareable` when you need the machine-verification contract for the private checkout.
+
+`quickstartReplay` is the first-user handoff. In `prepare`, it records the task artifact, Markdown artifact, proof inputs, and copy-ready `shipguard verify` template that turns the contract into the first useful verdict. It also lists the fields the durable object connects: goal, risk, authorized scope, protected boundaries, validation, claims, verdict, and next action.
 
 ## Configuration Baselines
 
@@ -142,6 +145,8 @@ Release evidence: not-applicable
 ```
 
 The same data is exposed in JSON as `proofReport` so PR bots, launch docs, and review comments can show the concise verdict without parsing the full diff analysis.
+
+Every verdict also includes `quickstartReplay`. It records the replay command shape, fast verdict text, review packet files, next action, and boundary. The Markdown renders this as `Quickstart Replay` directly after `Proof Report`, so a maintainer can rerun or attach the proof packet without reading internal ShipYard process docs.
 
 The verdict is:
 

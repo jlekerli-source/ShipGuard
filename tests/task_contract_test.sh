@@ -25,6 +25,8 @@ test -f "$tmp_dir/prepare/shipguard-task.json"
 test -f "$tmp_dir/prepare/shipguard-task.md"
 grep -q '# ShipGuard Task Contract' "$tmp_dir/prepare/shipguard-task.md"
 grep -q 'ShipGuard Product-QA Boundary' "$tmp_dir/prepare/shipguard-task.md"
+grep -q 'Quickstart Replay' "$tmp_dir/prepare/shipguard-task.md"
+grep -q 'shipguard verify --task <task-dir>/shipguard-task.json' "$tmp_dir/prepare/shipguard-task.md"
 local_path_pattern="/""Users/"
 if grep -q "$local_path_pattern" "$tmp_dir/prepare/shipguard-task.md" "$tmp_dir/prepare/shipguard-task.json"; then
   echo "shareable task contract leaked a local path" >&2
@@ -49,6 +51,11 @@ assert data["scopeBoundary"]["targetAppsReadOnly"] is True
 assert data["authorizedFiles"]
 assert ".github/workflows/**" in data["protectedBoundaries"]
 assert data["validationContract"]["required"][0]["command"] == "swift test"
+replay = data["quickstartReplay"]
+assert replay["phase"] == "prepare"
+assert "shipguard verify" in replay["firstUsefulVerdictCommand"]
+assert "<validation-receipt.json>" in replay["proofInputs"]
+assert {"goal", "riskClassification", "authorizedFiles", "protectedBoundaries", "validationContract", "agentClaims", "verdict", "nextAction"} <= set(replay["connects"])
 pack = data["domainRiskPack"]
 assert pack["id"] == "ios-notification-permission-workflow"
 assert pack["status"] == "active"
@@ -207,6 +214,13 @@ assert proof["status"] == "pass"
 assert proof["validation"]["label"] == "1/1 covered"
 assert proof["claims"]["label"] == "1/1 accepted"
 assert proof["mergeAllowed"] is True
+replay = data["quickstartReplay"]
+assert replay["phase"] == "verify"
+assert replay["status"] == "pass"
+assert "shipguard verify" in replay["replayCommand"]
+assert "ShipGuard Proof Report: pass" in replay["fastVerdict"]
+assert "shipguard-verdict.json" in replay["reviewPacket"]
+assert "shipguard-verdict.md" in replay["reviewPacket"]
 assert data["changedFiles"] == ["Sources/DemoShipGuardApp/DemoPermissions.swift"]
 assert data["scopeChecks"]["outOfScope"] == []
 assert data["scopeChecks"]["forbiddenTouched"] == []
@@ -244,6 +258,7 @@ grep -q 'Merge allowed: True' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Behavior Categories' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Validation Coverage' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Claim Decisions' "$tmp_dir/verify-pass/shipguard-verdict.md"
+grep -q 'Quickstart Replay' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'iOS Notification Permission Workflow' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'simulator-permission-reset: proven' "$tmp_dir/verify-pass/shipguard-verdict.md"
 

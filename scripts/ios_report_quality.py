@@ -1033,6 +1033,73 @@ def verify_pr_report_quality_issues(report: dict[str, Any], *, markdown: str, pa
     return issues
 
 
+def task_contract_quickstart_replay_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    tool = str(report.get("tool") or "")
+    if tool not in {"shipguard prepare", "shipguard verify"}:
+        return issues
+
+    replay = report.get("quickstartReplay")
+    if not isinstance(replay, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="task-contract-quickstart-replay-missing",
+            evidence=f"{path_name} has no quickstartReplay object",
+            recommendation="Emit quickstartReplay so a fresh maintainer can reach or replay the first useful prepare/verify verdict without reading internal docs.",
+        )
+        return issues
+
+    if "Quickstart Replay" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="task-contract-quickstart-replay-markdown-missing",
+            evidence=f"{path_name} has quickstartReplay JSON but Markdown does not expose it",
+            recommendation="Render Quickstart Replay in Markdown beside the proof report so the first-user path is visible without opening JSON.",
+        )
+
+    if tool == "shipguard prepare":
+        required_fields = ("phase", "taskArtifact", "firstUsefulVerdictCommand", "proofInputs", "successSignal", "connects", "boundary")
+        missing = [field for field in required_fields if not replay.get(field)]
+        command = str(replay.get("firstUsefulVerdictCommand") or "")
+        connects = replay.get("connects") if isinstance(replay.get("connects"), list) else []
+        expected_connections = {
+            "goal",
+            "riskClassification",
+            "authorizedFiles",
+            "protectedBoundaries",
+            "validationContract",
+            "agentClaims",
+            "verdict",
+            "nextAction",
+        }
+        if missing or "shipguard verify" not in command or not expected_connections <= {str(item) for item in connects}:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="task-contract-prepare-replay-incomplete",
+                evidence=f"{path_name} prepare quickstartReplay is missing fields or does not connect the durable task object to the first verify command",
+                recommendation="For prepare reports, include the verify command template, proof inputs, success signal, boundary, and the goal/risk/scope/proof/claim/verdict connections.",
+            )
+
+    if tool == "shipguard verify":
+        required_fields = ("phase", "status", "replayCommand", "fastVerdict", "reviewPacket", "nextAction", "successSignal", "boundary")
+        missing = [field for field in required_fields if not replay.get(field)]
+        packet = replay.get("reviewPacket") if isinstance(replay.get("reviewPacket"), list) else []
+        packet_text = " ".join(str(item) for item in packet)
+        command = str(replay.get("replayCommand") or "")
+        if missing or "shipguard verify" not in command or "shipguard-verdict.json" not in packet_text or "shipguard-verdict.md" not in packet_text:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="task-contract-verify-replay-incomplete",
+                evidence=f"{path_name} verify quickstartReplay is missing replay command, fast verdict, review packet, or next action",
+                recommendation="For verify reports, include the replay command, copy-ready proof report, review packet files, next action, and boundary.",
+            )
+    return issues
+
+
 def full_audit_slash_handoff_issues(report: dict[str, Any], *, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     if str(report.get("tool") or "") != "shipguard full-audit":
@@ -4857,6 +4924,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     issues.extend(finding_quality_issues(loaded))
     issues.extend(result_ux_quality_issues(loaded, path_name=path.name))
     issues.extend(verify_pr_report_quality_issues(loaded, markdown=markdown, path_name=path.name))
+    issues.extend(task_contract_quickstart_replay_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(full_audit_slash_handoff_issues(loaded, path_name=path.name))
     issues.extend(full_audit_execution_command_issues(loaded, markdown=markdown, path_name=path.name))
     if tool == "shipguard ios performance":
@@ -5689,6 +5757,15 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
                     "the Markdown exposes Rot-Risk Review with the same prioritized rows and top-risk location",
                 ]
             )
+    if tool in {"shipguard prepare", "shipguard verify"}:
+        expected_assertions.extend(
+            [
+                "the fixture exposes quickstartReplay so a fresh maintainer can reach or replay the first useful verdict",
+                "the fixture Markdown exposes Quickstart Replay without requiring JSON inspection",
+                "prepare fixtures connect goal, risk, scope, proof, claims, verdict, and next action through the replay contract",
+                "verify fixtures expose replay command, fast verdict, review packet, and next action",
+            ]
+        )
     return {
         "priority": index,
         "candidateId": candidate_id,
@@ -7442,6 +7519,79 @@ def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
         report.update(synthetic_lean_debt_report_fields())
     if source_tool == "shipguard lean review":
         report.update(synthetic_lean_review_report_fields())
+    if source_tool == "shipguard prepare":
+        report.update(
+            {
+                "surface": "ShipGuard Task Contract",
+                "goal": "Synthetic verify-first task",
+                "riskClassification": {"level": "high"},
+                "authorizedFiles": ["Sources/SyntheticApp/**", "Tests/SyntheticAppTests/**"],
+                "protectedBoundaries": [".github/workflows/release*.yml", "**/*.entitlements"],
+                "validationContract": {
+                    "required": [
+                        {
+                            "requirementId": "synthetic-unit-tests",
+                            "command": "swift test",
+                            "expectedArtifact": "structured validation receipt",
+                        }
+                    ]
+                },
+                "verdict": {"status": "prepared"},
+                "nextAction": {"command": "swift test"},
+                "quickstartReplay": {
+                    "phase": "prepare",
+                    "taskArtifact": "shipguard-task.json",
+                    "markdownArtifact": "shipguard-task.md",
+                    "firstUsefulVerdictCommand": (
+                        "shipguard verify --task <task-dir>/shipguard-task.json --diff <patch.diff> "
+                        "--evidence <validation-receipt.json> --claim <scoped-claim> --out <verdict-dir>"
+                    ),
+                    "proofInputs": ["<patch.diff>", "<validation-receipt.json>", "<scoped-claim>"],
+                    "successSignal": "shipguard-verdict.json returns pass, review, blocked, or incomplete with one nextAction.",
+                    "connects": [
+                        "goal",
+                        "riskClassification",
+                        "authorizedFiles",
+                        "protectedBoundaries",
+                        "validationContract",
+                        "agentClaims",
+                        "verdict",
+                        "nextAction",
+                    ],
+                    "boundary": "Synthetic replay contract only; it does not authorize target-app work.",
+                },
+            }
+        )
+    if source_tool == "shipguard verify":
+        report.update(
+            {
+                "surface": "ShipGuard Task Contract Verdict",
+                "goal": "Synthetic verify-first task",
+                "proofReport": {
+                    "copyReadyText": "ShipGuard Proof Report: pass. Validation 1/1 covered; claims 1/1 accepted; 0 risk file(s): 0 protected, 0 out of scope, 0 deleted test(s); release evidence not-applicable."
+                },
+                "nextAction": {"command": "Attach shipguard-verdict.json and the evidence receipts to the review."},
+                "quickstartReplay": {
+                    "phase": "verify",
+                    "status": "pass",
+                    "replayCommand": (
+                        "shipguard verify --task <shipguard-task.json> --diff <patch.diff> "
+                        "--evidence <validation-receipt.json> --claim <scoped-claim> --out <verdict-dir>"
+                    ),
+                    "fastVerdict": "ShipGuard Proof Report: pass. Validation 1/1 covered; claims 1/1 accepted; 0 risk file(s): 0 protected, 0 out of scope, 0 deleted test(s); release evidence not-applicable.",
+                    "reviewPacket": [
+                        "shipguard-verdict.json",
+                        "shipguard-verdict.md",
+                        "<shipguard-task.json>",
+                        "<patch.diff>",
+                        "<validation-receipt.json>",
+                    ],
+                    "nextAction": "Attach shipguard-verdict.json and the evidence receipts to the review.",
+                    "successSignal": "Reviewer can replay the same verdict shape and inspect the JSON plus Markdown packet before merging.",
+                    "boundary": "Synthetic replay contract only; it does not replace target validation.",
+                },
+            }
+        )
     if source_tool == "shipguard ios design":
         report.update(synthetic_design_report_fields())
     return report
@@ -7543,6 +7693,34 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "- Benchmark route: `shipguard lean gain --path <repo> --out <lean-gain-out> --shipguard-eval --shareable`",
                 "- Benchmark artifact: lean-gain.json and lean-gain.md",
                 "- Boundary: Benchmark direction is separate from this shortcut-ledger evidence and still does not measure this repo without a matched baseline.",
+                "",
+            ]
+        )
+    if source_tool == "shipguard prepare":
+        lines.extend(
+            [
+                "## Quickstart Replay",
+                "",
+                "- Phase: `prepare`",
+                "- First useful verdict: `shipguard verify --task <task-dir>/shipguard-task.json --diff <patch.diff> --evidence <validation-receipt.json> --claim <scoped-claim> --out <verdict-dir>`",
+                "- Proof inputs: `<patch.diff>`, `<validation-receipt.json>`, `<scoped-claim>`",
+                "- Success signal: shipguard-verdict.json returns pass, review, blocked, or incomplete with one nextAction.",
+                "- Connects: goal, riskClassification, authorizedFiles, protectedBoundaries, validationContract, agentClaims, verdict, nextAction",
+                "- Boundary: Synthetic replay contract only; it does not authorize target-app work.",
+                "",
+            ]
+        )
+    if source_tool == "shipguard verify":
+        lines.extend(
+            [
+                "## Quickstart Replay",
+                "",
+                "- Phase: `verify`",
+                "- Replay command: `shipguard verify --task <shipguard-task.json> --diff <patch.diff> --evidence <validation-receipt.json> --claim <scoped-claim> --out <verdict-dir>`",
+                "- Fast verdict: `ShipGuard Proof Report: pass. Validation 1/1 covered; claims 1/1 accepted; 0 risk file(s): 0 protected, 0 out of scope, 0 deleted test(s); release evidence not-applicable.`",
+                "- Review packet: `shipguard-verdict.json`, `shipguard-verdict.md`, `<shipguard-task.json>`, `<patch.diff>`, `<validation-receipt.json>`",
+                "- Next action: Attach shipguard-verdict.json and the evidence receipts to the review.",
+                "- Boundary: Synthetic replay contract only; it does not replace target validation.",
                 "",
             ]
         )

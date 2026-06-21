@@ -6013,14 +6013,24 @@ questions = [
     "Did verify require permission-state and denied-state proof instead of treating a generic test log as enough?",
     "Did the verdict separate simulator denied-state proof from physical-device prompt proof before release claims?",
 ]
+coverage = data.get("fixtureCoverage") or []
+if not any(
+    item.get("question") == questions[0]
+    and item.get("publicFixturePath") == "fixtures/ios-report-quality/01-shipguard-prepare-did-prepare-produce-one-durable-objec-5d1f722f"
+    and item.get("fixtureType") == "shipguard-verify-first-task-contract-fixture"
+    for item in coverage
+):
+    raise SystemExit(f"expected promoted verify-first fixture coverage for first question: {coverage!r}")
 candidates = data.get("fixtureCandidates") or []
-if [item.get("sourceQuestion") for item in candidates] != questions:
+if [item.get("sourceQuestion") for item in candidates] != questions[1:]:
     raise SystemExit(f"verify-first candidates did not match questions: {candidates!r}")
 if {item.get("fixtureType") for item in candidates} != {"shipguard-verify-first-task-contract-fixture"}:
     raise SystemExit(f"unexpected verify-first fixture types: {candidates!r}")
 priority = data.get("priorityAction") or {}
 if priority.get("kind") != "answer-actionability-question":
     raise SystemExit(f"expected actionability priority, got {priority!r}")
+if priority.get("question") != questions[1]:
+    raise SystemExit(f"expected verify-first QA to advance to second question, got {priority!r}")
 if "write-fixture-candidates" not in str(priority.get("nextCommand") or ""):
     raise SystemExit(f"expected materialization next command, got {priority!r}")
 for item in candidates:
@@ -6037,7 +6047,36 @@ for item in candidates:
         raise SystemExit(f"expected synthetic verify-first fixture to keep source tool, got {report.get('tool')!r}")
     if report.get("scopeBoundary", {}).get("shipguardOnly") is not True:
         raise SystemExit(f"missing ShipGuard-only boundary in {directory}")
+    replay = report.get("quickstartReplay") or {}
+    if not replay:
+        raise SystemExit(f"synthetic verify-first fixture missing quickstartReplay in {directory}")
+    markdown = (directory / "fixture-report.md").read_text(encoding="utf-8")
+    if "Quickstart Replay" not in markdown:
+        raise SystemExit(f"synthetic verify-first fixture missing Quickstart Replay Markdown in {directory}")
 PY
+
+cp "$verify_first_reports/task/shipguard-task.json" "$tmp_dir/missing-quickstart-replay.json"
+python3 - <<'PY' "$tmp_dir/missing-quickstart-replay.json"
+import json
+import sys
+
+path = sys.argv[1]
+data = json.load(open(path, encoding="utf-8"))
+data.pop("quickstartReplay", None)
+open(path, "w", encoding="utf-8").write(json.dumps(data, indent=2, sort_keys=True) + "\n")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/missing-quickstart-replay.json" \
+  --out "$tmp_dir/missing-quickstart-replay-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "task-contract-quickstart-replay-missing"' "$tmp_dir/missing-quickstart-replay-quality/ios-report-quality.json"
+
+./bin/shipguard ios report-quality \
+  --reports fixtures/ios-report-quality/01-shipguard-prepare-did-prepare-produce-one-durable-objec-5d1f722f \
+  --out "$tmp_dir/verify-first-promoted-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/verify-first-promoted-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/verify-first-promoted-fixture-quality/ios-report-quality.json"
 
 python3 - <<'PY'
 import json

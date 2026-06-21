@@ -54,6 +54,8 @@ Risk files: 0 risk file(s): 0 protected, 0 out of scope, 0 deleted test(s)
 Release evidence: not-applicable
 ```
 
+The next `Quickstart Replay` section is the shortest path back to the same verdict shape. In `prepare`, it gives the `shipguard verify` template and the proof inputs needed after Codex edits. In `verify`, it gives the replay command, fast verdict text, review packet files, and boundary so a fresh maintainer does not need ShipYard docs to know what to attach or rerun.
+
 ## Why It Matters
 
 ShipGuard does not trust a phrase like "tests passed." It checks:

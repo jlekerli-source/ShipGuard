@@ -25,6 +25,7 @@ cd "$repo_root"
   --out "$tmp_dir/pass" >"$tmp_dir/pass.out"
 
 grep -q '## Proof Report' "$tmp_dir/pass/shipguard-verdict.md"
+grep -q '## Quickstart Replay' "$tmp_dir/pass/shipguard-verdict.md"
 grep -q 'Status: `pass`' "$tmp_dir/pass/shipguard-verdict.md"
 grep -q 'Validation: `1/1 covered`' "$tmp_dir/pass/shipguard-verdict.md"
 grep -q 'Claims checked: `1/1 accepted`' "$tmp_dir/pass/shipguard-verdict.md"
@@ -46,6 +47,13 @@ assert proof["riskFiles"]["outOfScopeCount"] == 0
 assert proof["releaseEvidence"] == "not-applicable"
 assert proof["mergeAllowed"] is True
 assert "ShipGuard Proof Report: pass" in proof["copyReadyText"]
+replay = data["quickstartReplay"]
+assert replay["phase"] == "verify"
+assert replay["status"] == "pass"
+assert "shipguard verify" in replay["replayCommand"]
+assert "ShipGuard Proof Report: pass" in replay["fastVerdict"]
+assert "shipguard-verdict.json" in replay["reviewPacket"]
+assert "shipguard-verdict.md" in replay["reviewPacket"]
 PY
 
 ./bin/shipguard verify \
@@ -56,6 +64,7 @@ PY
   --out "$tmp_dir/review" >"$tmp_dir/review.out"
 
 grep -q 'Status: `review`' "$tmp_dir/review/shipguard-verdict.md"
+grep -q 'Quickstart Replay' "$tmp_dir/review/shipguard-verdict.md"
 grep -q 'Validation: `0/1 covered`' "$tmp_dir/review/shipguard-verdict.md"
 grep -q 'ShipGuard Proof Report: review. Validation 0/1 covered; claims 1/1 accepted;' "$tmp_dir/review.out"
 
@@ -75,6 +84,7 @@ if [[ "$blocked_status" -ne 2 ]]; then
 fi
 
 grep -q 'Status: `blocked`' "$tmp_dir/blocked/shipguard-verdict.md"
+grep -q 'Quickstart Replay' "$tmp_dir/blocked/shipguard-verdict.md"
 grep -q 'Risk files: `1 risk file(s): 1 protected, 1 out of scope, 0 deleted test(s)`' "$tmp_dir/blocked/shipguard-verdict.md"
 grep -q 'ShipGuard Proof Report: blocked. Validation 1/1 covered; claims 0/1 accepted;' "$tmp_dir/blocked.out"
 grep -q 'SHIPGUARD_VALIDATION_COMMAND: replace-with-your-test-command' examples/workflows/verify-pr.yml

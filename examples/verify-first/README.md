@@ -35,7 +35,7 @@ status: pass
 
 Open `/tmp/shipguard-verify-first/verdict/shipguard-verdict.md` for the full review packet.
 
-The top `Proof Report` is the launch-facing summary:
+The top `Proof Report` is the launch-facing summary, followed by `Quickstart Replay` with the replay command and packet files:
 
 ```text
 Status: pass

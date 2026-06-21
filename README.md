@@ -89,7 +89,7 @@ Open:
 /tmp/shipguard-verdict/shipguard-verdict.md
 ```
 
-You should see a verdict like:
+You should see a verdict plus a replay block:
 
 ```text
 ShipGuard Proof Report
@@ -97,6 +97,10 @@ Status: pass
 Validation: covered
 Claims checked: accepted
 Next action: review or merge with the attached proof
+
+Quickstart Replay
+Replay command: shipguard verify --task <shipguard-task.json> ...
+Review packet: shipguard-verdict.json, shipguard-verdict.md, task, diff, receipt
 ```
 
 For more examples, see [Verify-First Quickstart](docs/verify-first-quickstart.md).

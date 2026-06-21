@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import re
+import shlex
 import sys
 from pathlib import Path
 from typing import Any
@@ -583,6 +584,80 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def safe_command_arg(value: str | None, placeholder: str) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return placeholder
+    if Path(text).is_absolute():
+        return placeholder
+    return shlex.quote(text)
+
+
+def build_prepare_quickstart_replay() -> dict[str, Any]:
+    verify_template = (
+        "shipguard verify --task <task-dir>/shipguard-task.json "
+        "--diff <patch.diff> --evidence <validation-receipt.json> "
+        "--claim <scoped-claim> --out <verdict-dir>"
+    )
+    return {
+        "phase": "prepare",
+        "taskArtifact": "shipguard-task.json",
+        "markdownArtifact": "shipguard-task.md",
+        "firstUsefulVerdictCommand": verify_template,
+        "proofInputs": ["<patch.diff>", "<validation-receipt.json>", "<scoped-claim>"],
+        "successSignal": "shipguard-verdict.json returns pass, review, blocked, or incomplete with one nextAction.",
+        "connects": [
+            "goal",
+            "riskClassification",
+            "authorizedFiles",
+            "protectedBoundaries",
+            "validationContract",
+            "agentClaims",
+            "verdict",
+            "nextAction",
+        ],
+        "boundary": "Use this replay contract to reach the first verdict; it is not proof that the target app was changed or fixed.",
+    }
+
+
+def build_verify_quickstart_replay(args: argparse.Namespace, report: dict[str, Any]) -> dict[str, Any]:
+    evidence_parts = [
+        f"--evidence {safe_command_arg(path, '<validation-receipt.json>')}"
+        for path in (args.evidence or ["<validation-receipt.json>"])
+    ]
+    claim_parts = [f"--claim {shlex.quote(str(claim))}" for claim in args.claim or []]
+    replay_command = " ".join(
+        part
+        for part in [
+            "shipguard verify",
+            f"--task {safe_command_arg(args.task, '<shipguard-task.json>')}",
+            f"--diff {safe_command_arg(args.diff, '<patch.diff>')}" if args.diff else "--diff <patch.diff>",
+            *evidence_parts,
+            *claim_parts,
+            "--out <verdict-dir>",
+        ]
+        if part
+    )
+    proof_report = report.get("proofReport") if isinstance(report.get("proofReport"), dict) else {}
+    next_action = report.get("nextAction") if isinstance(report.get("nextAction"), dict) else {}
+    return {
+        "phase": "verify",
+        "status": report.get("status"),
+        "replayCommand": replay_command,
+        "fastVerdict": proof_report.get("copyReadyText"),
+        "reviewPacket": [
+            "shipguard-verdict.json",
+            "shipguard-verdict.md",
+            "<shipguard-task.json>",
+            "<patch.diff>",
+            "<validation-receipt.json>",
+        ],
+        "nextAction": next_action.get("command"),
+        "successSignal": "Reviewer can replay the same verdict shape and inspect the JSON plus Markdown packet before merging.",
+        "boundary": "Replay confirms ShipGuard's verdict logic for the supplied task, diff, receipts, and claims; it does not replace target validation.",
+    }
+
+
 def build_validation_contract(commands: list[str], defaults: list[dict[str, Any]]) -> dict[str, Any]:
     if commands:
         required = [
@@ -660,6 +735,7 @@ def prepare_contract(args: argparse.Namespace) -> dict[str, Any]:
             "status": "prepared",
             "reason": "Task contract prepared; run Codex under this scope, then run shipguard verify with diff and evidence.",
         },
+        "quickstartReplay": build_prepare_quickstart_replay(),
         "nextAction": {
             "owner": "developer",
             "command": "Run Codex under this task contract, then run shipguard verify --task <out>/shipguard-task.json --diff <patch> --evidence <receipt>",
@@ -1649,6 +1725,7 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         "nextAction": next_action,
     }
     report.update(domain_workflows)
+    report["quickstartReplay"] = build_verify_quickstart_replay(args, report)
     return report
 
 
@@ -1870,6 +1947,15 @@ def render_prepare_markdown(contract: dict[str, Any]) -> str:
     if contract.get("scopeBoundary"):
         lines.extend(["", "## ShipGuard Product-QA Boundary", ""])
         lines.append("- This is ShipGuard-only evaluation output. Target app findings are evidence about ShipGuard report quality, not app work authorization.")
+    replay = contract.get("quickstartReplay") or {}
+    if replay:
+        lines.extend(["", "## Quickstart Replay", ""])
+        lines.append(f"- Phase: `{replay.get('phase')}`")
+        lines.append(f"- First useful verdict: `{replay.get('firstUsefulVerdictCommand')}`")
+        inputs = ", ".join(f"`{item}`" for item in replay.get("proofInputs") or [])
+        lines.append(f"- Proof inputs: {inputs}")
+        lines.append(f"- Success signal: {replay.get('successSignal')}")
+        lines.append(f"- Boundary: {replay.get('boundary')}")
     return "\n".join(lines) + "\n"
 
 
@@ -1895,6 +1981,14 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
         f"- Release evidence: `{proof_report.get('releaseEvidence')}`",
         f"- Merge allowed: `{proof_report.get('mergeAllowed')}`",
         f"- Next action: `{(proof_report.get('nextAction') or {}).get('command')}`",
+        "",
+        "## Quickstart Replay",
+        "",
+        f"- Phase: `{(verdict.get('quickstartReplay') or {}).get('phase')}`",
+        f"- Replay command: `{(verdict.get('quickstartReplay') or {}).get('replayCommand')}`",
+        f"- Fast verdict: `{(verdict.get('quickstartReplay') or {}).get('fastVerdict')}`",
+        f"- Review packet: {', '.join(f'`{item}`' for item in ((verdict.get('quickstartReplay') or {}).get('reviewPacket') or []))}",
+        f"- Boundary: {(verdict.get('quickstartReplay') or {}).get('boundary')}",
         "",
         "## Changed Files",
         "",
