@@ -6,6 +6,15 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.162 read-only stable-v4 packet loop continued from the LaunchKey package blocker and tested whether the final publication report preserved the useful evidence instead of forcing a maintainer to inspect nested candidate artifacts.
+
+- Finding: `v4 stable-publication` could receive a LaunchKey report with exact AppleDouble package-hygiene evidence, but the stable-publication packet kept only the broad candidate status and a generic rerun command.
+- Product weakness: the final publication gate is where a maintainer decides whether v4 can be announced; if it hides the LaunchKey blocker, a solo developer loses the exact tarball/member/rule and may chase release notes or adoption evidence before fixing package lineage.
+- Native fix: `shipguard v4 stable-publication` now carries `releaseCandidatePacketProof.launchKeyBlockingProof`, mirrors the exact `release-package hygiene` command into the candidate evidence row and first blocker, and renders a `LaunchKey Candidate Blocker` Markdown section.
+- Fixture fix: `tests/v4_stable_publication_test.sh` now includes a public synthetic LaunchKey report blocked by `upgradePackageProof.packageHygieneEvidence` and proves the stable-publication JSON and Markdown contain `appledouble-sidecar`, the unsafe member, blocked-finding count, and hygiene reproducer.
+
+Fresh stable-v4 QA still does not claim real stable v4. It makes the final publication packet preserve nested LaunchKey evidence while keeping release notes, independent adoption evidence, final security review evidence, and post-release consumer proof as separate gates.
+
 The v3.161 read-only stable-v4 packet loop stayed ShipGuard-only and used the real public release asset path as product QA for LaunchKey, not as private app remediation.
 
 - Finding: LaunchKey correctly blocked same-prefix upgrade proof when the previous package tarball contained generated AppleDouble metadata, but the top blocking proof could collapse into a vague extraction failure.

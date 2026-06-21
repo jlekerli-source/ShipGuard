@@ -135,6 +135,8 @@ The JSON report includes `stablePublicationEvidencePacket` so humans and tools c
 - proof order from LaunchKey candidate proof to published release proof
 - non-claims for marketplace acceptance, fixture-only proof, and GitHub download counts
 
+When the supplied LaunchKey report is blocked by package proof, stable publication preserves the nested blocker in `releaseCandidatePacketProof.launchKeyBlockingProof` and mirrors it into the candidate evidence row. For package hygiene failures this includes the blocked receipt, failure evidence, first hygiene rule, tarball/member, blocked-finding count, and the `shipguard release-package hygiene` reproducer command. Markdown renders the same details under `LaunchKey Candidate Blocker` so a maintainer does not have to open the nested candidate JSON before acting.
+
 `ios report-quality` checks this packet. A stable-publication report that has the gates but hides the packet receives a report-quality issue.
 
 ## Evidence Starter Kit

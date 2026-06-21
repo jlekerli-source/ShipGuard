@@ -41,6 +41,70 @@ cat > "$tmp_dir/candidate-incomplete.json" <<JSON
 }
 JSON
 
+cat > "$tmp_dir/candidate-hygiene-blocked.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard v4 release-candidate",
+  "status": "review",
+  "releaseReadiness": {
+    "releaseClaim": "not-ready",
+    "stableV4Release": false,
+    "freshInstallPackageProof": "pass",
+    "upgradePackageProof": "blocked",
+    "rollbackPackageProof": "pass"
+  },
+  "upgradePackageProof": {
+    "status": "blocked",
+    "provided": true,
+    "requested": true,
+    "requiredForStableV4": true,
+    "summary": "Previous release package tarball could not be safely extracted.",
+    "packageHygieneEvidence": {
+      "status": "blocked",
+      "tool": "shipguard release-package hygiene",
+      "readOnly": true,
+      "blockedFindingCount": 782,
+      "reviewFindingCount": 0,
+      "affectedVersions": ["3.130.0"],
+      "safeTarballs": ["shipguard-v3.131.0.tar.gz"],
+      "tarballsScanned": 2,
+      "nextCommand": "./bin/shipguard release-package hygiene --path . --tarball <previous-package-tarball> --tarball <package-tarball> --out /tmp/shipguard-package-hygiene --shareable",
+      "firstFinding": {
+        "severity": "blocked",
+        "ruleId": "appledouble-sidecar",
+        "tarball": "shipguard-v3.130.0.tar.gz",
+        "version": "3.130.0",
+        "member": "._shipguard-v3.130.0",
+        "evidence": "AppleDouble generated metadata sidecar",
+        "recommendation": "Rebuild the release package with metadata-disabled packaging, then rerun package release proof and this hygiene report.",
+        "proofGuidance": "Run ./scripts/package_release.sh, ./tests/package_release_test.sh, and shipguard release-package hygiene against the rebuilt tarball."
+      }
+    }
+  },
+  "blockingProof": {
+    "receipt": "upgradePackageProof",
+    "status": "blocked",
+    "summary": "Supplied previous/candidate package pair failed same-prefix upgrade validation.",
+    "failure": "Previous release package tarball could not be safely extracted.",
+    "failureEvidence": "appledouble-sidecar in shipguard-v3.130.0.tar.gz: ._shipguard-v3.130.0 (AppleDouble generated metadata sidecar); 782 blocked finding(s)",
+    "nextAction": "Rebuild the package pair, verify package release tests, then rerun LaunchKey with --upgrade-from-tarball against the previous release tarball.",
+    "nextCommand": "./bin/shipguard release-package hygiene --path . --tarball <previous-package-tarball> --tarball <package-tarball> --out /tmp/shipguard-package-hygiene --shareable",
+    "proofSource": "same-prefix package upgrade receipt"
+  },
+  "resultUX": {
+    "status": "review",
+    "nextCommand": "./bin/shipguard release-package hygiene --path . --tarball <previous-package-tarball> --tarball <package-tarball> --out /tmp/shipguard-package-hygiene --shareable",
+    "blockingProof": {
+      "receipt": "upgradePackageProof",
+      "status": "blocked",
+      "summary": "Supplied previous/candidate package pair failed same-prefix upgrade validation.",
+      "failureEvidence": "appledouble-sidecar in shipguard-v3.130.0.tar.gz: ._shipguard-v3.130.0 (AppleDouble generated metadata sidecar); 782 blocked finding(s)",
+      "nextCommand": "./bin/shipguard release-package hygiene --path . --tarball <previous-package-tarball> --tarball <package-tarball> --out /tmp/shipguard-package-hygiene --shareable"
+    }
+  }
+}
+JSON
+
 mkdir -p "$tmp_dir/evidence/stable-adoption" "$tmp_dir/evidence/stable-security"
 cat > "$tmp_dir/evidence/stable-adoption/external-adoption.json" <<'JSON'
 {
@@ -259,6 +323,53 @@ test -f "$tmp_dir/blocked/stable-publication-launch-relay/hacker-news-draft.md"
 grep -q '"publicPostingAllowed": false' "$tmp_dir/blocked/stable-publication-launch-relay/launch-relay-checklist.json"
 grep -q '"computerUseMayPost": false' "$tmp_dir/blocked/stable-publication-launch-relay/launch-relay-checklist.json"
 grep -q 'Stable Publication Launch Relay' "$tmp_dir/blocked/stable-publication-launch-relay/README.md"
+
+if ./bin/shipguard v4 stable-publication \
+  --path . \
+  --out "$tmp_dir/hygiene-blocked" \
+  --github-release-repo jlekerli-source/ShipGuard \
+  --github-api-url "file://$api_root" \
+  --release-version "$version" \
+  --release-candidate-report "$tmp_dir/candidate-hygiene-blocked.json" \
+  --release-assets "$tmp_dir/downloaded" \
+  --release-consume-out "$tmp_dir/hygiene-blocked-consume" \
+  --external-adoption-evidence "$tmp_dir/evidence/stable-adoption" \
+  --security-review-evidence "$tmp_dir/evidence/stable-security" \
+  --shipguard-eval \
+  --shareable >/dev/null 2>&1; then
+  echo "expected LaunchKey hygiene blocker to block stable publication" >&2
+  exit 1
+fi
+python3 - "$tmp_dir/hygiene-blocked/v4-stable-publication.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+assert report["status"] == "review"
+candidate = report["releaseCandidatePacketProof"]
+assert candidate["status"] == "review"
+assert candidate["nextCommand"].startswith("./bin/shipguard release-package hygiene")
+blocker = candidate["launchKeyBlockingProof"]
+assert blocker["receipt"] == "upgradePackageProof"
+assert blocker["status"] == "blocked"
+assert "appledouble-sidecar" in blocker["failureEvidence"]
+assert "release-package hygiene" in blocker["nextCommand"]
+hygiene = blocker["packageHygieneEvidence"]
+assert hygiene["status"] == "blocked"
+assert hygiene["blockedFindingCount"] == 782
+assert hygiene["firstFinding"]["ruleId"] == "appledouble-sidecar"
+packet = report["stablePublicationEvidencePacket"]
+assert packet["firstBlockingGate"]["receipt"] == "releaseCandidatePacketProof"
+assert packet["firstBlockingGate"]["nextCommand"].startswith("./bin/shipguard release-package hygiene")
+assert "appledouble-sidecar" in packet["firstBlockingGate"]["failureEvidence"]
+required_by_id = {item["id"]: item for item in packet["requiredEvidence"]}
+candidate_item = required_by_id["launchkey-candidate-packet"]
+assert candidate_item["blockingProof"]["receipt"] == "upgradePackageProof"
+assert candidate_item["blockingProof"]["packageHygieneEvidence"]["firstFinding"]["member"] == "._shipguard-v3.130.0"
+PY
+grep -q 'LaunchKey Candidate Blocker' "$tmp_dir/hygiene-blocked/v4-stable-publication.md"
+grep -q 'appledouble-sidecar' "$tmp_dir/hygiene-blocked/v4-stable-publication.md"
+grep -q 'release-package hygiene' "$tmp_dir/hygiene-blocked/v4-stable-publication.md"
 
 python3 - "$release_endpoint_file" "$version" "$tmp_dir/downloaded" <<'PY'
 import json

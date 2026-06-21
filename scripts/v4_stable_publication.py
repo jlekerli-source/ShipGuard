@@ -253,6 +253,117 @@ def resolve_release_candidate_report(raw: str | None) -> Path | None:
     return path
 
 
+def compact_package_hygiene_evidence(value: Any) -> dict[str, Any] | None:
+    if not isinstance(value, dict):
+        return None
+    keys = [
+        "status",
+        "tool",
+        "readOnly",
+        "blockedFindingCount",
+        "reviewFindingCount",
+        "affectedVersions",
+        "safeTarballs",
+        "tarballsScanned",
+        "firstFinding",
+        "nextCommand",
+    ]
+    compact = {key: value[key] for key in keys if key in value}
+    return compact or None
+
+
+def extract_launchkey_blocking_proof(report: dict[str, Any]) -> dict[str, Any] | None:
+    raw_blocker = report.get("blockingProof")
+    result_ux = report.get("resultUX") if isinstance(report.get("resultUX"), dict) else {}
+    if not isinstance(raw_blocker, dict):
+        raw_blocker = result_ux.get("blockingProof")
+
+    if isinstance(raw_blocker, dict):
+        blocker = {
+            key: raw_blocker[key]
+            for key in (
+                "receipt",
+                "status",
+                "summary",
+                "failure",
+                "failureEvidence",
+                "nextAction",
+                "nextCommand",
+                "proofSource",
+            )
+            if key in raw_blocker
+        }
+        receipt = str(blocker.get("receipt") or "")
+        receipt_proof = report.get(receipt) if receipt else None
+        hygiene = compact_package_hygiene_evidence(
+            receipt_proof.get("packageHygieneEvidence") if isinstance(receipt_proof, dict) else None
+        )
+        if hygiene:
+            blocker["packageHygieneEvidence"] = hygiene
+            if hygiene.get("nextCommand") and not blocker.get("nextCommand"):
+                blocker["nextCommand"] = hygiene["nextCommand"]
+            first_finding = hygiene.get("firstFinding") if isinstance(hygiene.get("firstFinding"), dict) else {}
+            if first_finding and not blocker.get("failureEvidence"):
+                blocker["failureEvidence"] = (
+                    f"{first_finding.get('ruleId')} in {first_finding.get('tarball')}: "
+                    f"{first_finding.get('member')} ({first_finding.get('evidence')}); "
+                    f"{hygiene.get('blockedFindingCount')} blocked finding(s)"
+                )
+        if result_ux.get("nextCommand") and not blocker.get("nextCommand"):
+            blocker["nextCommand"] = result_ux["nextCommand"]
+        return blocker or None
+
+    release_readiness = report.get("releaseReadiness") if isinstance(report.get("releaseReadiness"), dict) else {}
+    for receipt in (
+        "freshInstallPackageProof",
+        "upgradePackageProof",
+        "rollbackPackageProof",
+        "githubReleaseAssetDownloadProof",
+        "publishedReleaseAssetProof",
+        "externalAdoptionEvidenceProof",
+        "securityReviewEvidenceProof",
+    ):
+        proof = report.get(receipt)
+        if not isinstance(proof, dict):
+            proof = {}
+        status = str(proof.get("status") or release_readiness.get(receipt) or "")
+        if not status or status in {"pass", "not-provided", "not-requested"}:
+            continue
+        blocker = {
+            "receipt": receipt,
+            "status": status,
+            "summary": proof.get("summary") or f"{receipt} did not pass in the LaunchKey report.",
+            "failure": proof.get("error") or proof.get("summary") or "",
+            "failureEvidence": proof.get("extractEvidence") or proof.get("previousExtractEvidence") or proof.get("candidateExtractEvidence") or proof.get("error") or "",
+            "nextCommand": proof.get("nextCommand") or result_ux.get("nextCommand") or "",
+            "proofSource": receipt,
+        }
+        hygiene = compact_package_hygiene_evidence(proof.get("packageHygieneEvidence"))
+        if hygiene:
+            blocker["packageHygieneEvidence"] = hygiene
+            if hygiene.get("nextCommand"):
+                blocker["nextCommand"] = hygiene["nextCommand"]
+            first_finding = hygiene.get("firstFinding") if isinstance(hygiene.get("firstFinding"), dict) else {}
+            if first_finding and not blocker["failureEvidence"]:
+                blocker["failureEvidence"] = (
+                    f"{first_finding.get('ruleId')} in {first_finding.get('tarball')}: "
+                    f"{first_finding.get('member')} ({first_finding.get('evidence')}); "
+                    f"{hygiene.get('blockedFindingCount')} blocked finding(s)"
+                )
+        return {key: value for key, value in blocker.items() if value not in ("", None)}
+    return None
+
+
+def add_launchkey_blocker_to_evidence_item(item: dict[str, Any], proof: dict[str, Any]) -> None:
+    blocker = proof.get("launchKeyBlockingProof")
+    if isinstance(blocker, dict):
+        item["blockingProof"] = blocker
+        if blocker.get("failureEvidence"):
+            item["failureEvidence"] = blocker["failureEvidence"]
+        if blocker.get("nextCommand"):
+            item["nextCommand"] = blocker["nextCommand"]
+
+
 def build_release_candidate_packet_proof(args: argparse.Namespace) -> dict[str, Any]:
     path = resolve_release_candidate_report(args.release_candidate_report)
     if path is None:
@@ -270,6 +381,7 @@ def build_release_candidate_packet_proof(args: argparse.Namespace) -> dict[str, 
             ),
         }
     report = load_json(path)
+    launchkey_blocker = extract_launchkey_blocking_proof(report) if report else None
     release_readiness = report.get("releaseReadiness") if isinstance(report.get("releaseReadiness"), dict) else {}
     required_statuses = {
         "freshInstallPackageProof": release_readiness.get("freshInstallPackageProof"),
@@ -294,6 +406,14 @@ def build_release_candidate_packet_proof(args: argparse.Namespace) -> dict[str, 
         "summary": "LaunchKey package install, upgrade, and rollback proof passed.",
         "nextCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --shipguard-eval --shareable",
     }
+    if launchkey_blocker:
+        proof["launchKeyBlockingProof"] = launchkey_blocker
+        if launchkey_blocker.get("failureEvidence"):
+            proof["failureEvidence"] = launchkey_blocker["failureEvidence"]
+        if launchkey_blocker.get("packageHygieneEvidence"):
+            proof["packageHygieneEvidence"] = launchkey_blocker["packageHygieneEvidence"]
+        if launchkey_blocker.get("nextCommand"):
+            proof["nextCommand"] = launchkey_blocker["nextCommand"]
     if not report:
         proof["status"] = "blocked"
         proof["summary"] = "LaunchKey release-candidate report could not be loaded."
@@ -301,7 +421,14 @@ def build_release_candidate_packet_proof(args: argparse.Namespace) -> dict[str, 
     elif not tool_ok:
         proof["summary"] = "Supplied report is not a LaunchKey release-candidate report."
     elif not status_ok:
-        proof["summary"] = "LaunchKey report has not passed."
+        if launchkey_blocker:
+            proof["summary"] = (
+                f"LaunchKey report has not passed because "
+                f"{launchkey_blocker.get('receipt') or 'a required receipt'} is "
+                f"{launchkey_blocker.get('status') or 'not pass'}."
+            )
+        else:
+            proof["summary"] = "LaunchKey report has not passed."
     elif not claim_ok:
         proof["summary"] = "LaunchKey report does not prove candidate readiness without a stable-v4 claim."
     elif missing:
@@ -754,6 +881,7 @@ def build_stable_publication_evidence_packet(
             "summary": proof.get("summary") or f"{receipt} status is {status}.",
             "nextCommand": command,
         }
+        add_launchkey_blocker_to_evidence_item(item, proof)
         template = templates_by_id.get(evidence_id)
         if template:
             item.update(
@@ -776,6 +904,7 @@ def build_stable_publication_evidence_packet(
             "summary": proof.get("summary") or f"{receipt} has not passed.",
             "nextCommand": command,
         }
+        add_launchkey_blocker_to_evidence_item(first_blocking, proof)
 
     return {
         "schemaVersion": 1,
@@ -1332,6 +1461,36 @@ def render_markdown(report: dict[str, Any]) -> str:
         for item in packet.get("requiredEvidence", []):
             if isinstance(item, dict):
                 lines.append(f"| `{item.get('id')}` | `{item.get('status')}` |")
+    launchkey_blocker = {}
+    release_candidate_proof = report.get("releaseCandidatePacketProof")
+    if isinstance(release_candidate_proof, dict) and isinstance(release_candidate_proof.get("launchKeyBlockingProof"), dict):
+        launchkey_blocker = release_candidate_proof["launchKeyBlockingProof"]
+    if launchkey_blocker:
+        hygiene = launchkey_blocker.get("packageHygieneEvidence") if isinstance(launchkey_blocker.get("packageHygieneEvidence"), dict) else {}
+        first_finding = hygiene.get("firstFinding") if isinstance(hygiene.get("firstFinding"), dict) else {}
+        lines.extend(
+            [
+                "",
+                "## LaunchKey Candidate Blocker",
+                "",
+                f"- Receipt: `{launchkey_blocker.get('receipt')}`",
+                f"- Status: `{launchkey_blocker.get('status')}`",
+                f"- Summary: {launchkey_blocker.get('summary') or launchkey_blocker.get('failure') or 'LaunchKey candidate proof did not pass.'}",
+            ]
+        )
+        if launchkey_blocker.get("failureEvidence"):
+            lines.append(f"- Failure evidence: `{launchkey_blocker.get('failureEvidence')}`")
+        if first_finding:
+            lines.extend(
+                [
+                    f"- Hygiene rule: `{first_finding.get('ruleId')}`",
+                    f"- Hygiene tarball: `{first_finding.get('tarball')}`",
+                    f"- Hygiene member: `{first_finding.get('member')}`",
+                    f"- Blocked hygiene findings: `{hygiene.get('blockedFindingCount')}`",
+                ]
+            )
+        if launchkey_blocker.get("nextCommand"):
+            lines.extend(["", "Next command:", "", "```bash", str(launchkey_blocker.get("nextCommand") or ""), "```"])
     release_notes = report.get("releaseNotesProof") if isinstance(report.get("releaseNotesProof"), dict) else {}
     topic_matrix = release_notes.get("topicMatrix") if isinstance(release_notes.get("topicMatrix"), list) else []
     if topic_matrix:
