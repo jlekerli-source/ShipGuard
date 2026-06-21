@@ -1,0 +1,207 @@
+{
+  "behaviorGates": {
+    "adapterBoundary": {
+      "policy": "Thin plugin, hook, MCP, and agent-host adapters can be the product boundary; keep them unless host registration proof says they are redundant.",
+      "status": "policy"
+    },
+    "gainHonesty": {
+      "policy": "Benchmark impact is not a current-repo savings claim without a matched baseline.",
+      "status": "available-in-lean-gain"
+    },
+    "hardwareCalibration": {
+      "policy": "Hardware, sensors, clocks, timing, and physical devices need calibration or tuning proof before simplification.",
+      "status": "available"
+    },
+    "oneRunnableCheck": {
+      "policy": "Non-trivial new logic should leave one smallest runnable check; trivial one-liners do not need ceremony.",
+      "status": "enforced-in-lean-review"
+    },
+    "requestedExplanation": {
+      "policy": "Explicitly requested reports, walkthroughs, phase notes, and rationale are not clutter.",
+      "status": "policy"
+    },
+    "shortcutDebt": {
+      "policy": "Intentional lean shortcuts need a ceiling and upgrade trigger.",
+      "status": "pass"
+    }
+  },
+  "findings": [
+    {
+      "category": "adapter-boundary",
+      "evidence": {
+        "file": "Sources/PluginHostAdapter.swift",
+        "line": 18,
+        "snippet": "thin adapter registering a host callback"
+      },
+      "proofGuidance": "Keep the adapter unless host registration proof shows it is unused and a fixture proves startup still wires the callback.",
+      "recommendation": "Do not delete thin host adapters from a less-code signal alone.",
+      "ruleId": "keep-host-adapter-boundary",
+      "severity": "info"
+    },
+    {
+      "category": "hardware-calibration",
+      "evidence": {
+        "file": "Sources/SensorTimingCalibration.swift",
+        "line": 41,
+        "snippet": "calibration offset for physical timing drift"
+      },
+      "proofGuidance": "Require before/after device or simulator timing evidence before simplifying calibration constants or timing branches.",
+      "recommendation": "Treat hardware calibration as proof-required product behavior, not clutter.",
+      "ruleId": "keep-hardware-calibration-boundary",
+      "severity": "info"
+    },
+    {
+      "category": "requested-explanation",
+      "evidence": {
+        "file": "Docs/ReleaseWalkthrough.md",
+        "line": 7,
+        "snippet": "explicitly requested maintainer walkthrough"
+      },
+      "proofGuidance": "Keep requested explanation artifacts unless the requester or product docs prove the explanation is obsolete.",
+      "recommendation": "Do not remove explicit reports or walkthroughs just because they are prose.",
+      "ruleId": "keep-requested-explanation",
+      "severity": "info"
+    },
+    {
+      "category": "one-runnable-check",
+      "evidence": {
+        "file": "Tests/HostAdapterRegistrationTests.swift",
+        "line": 11,
+        "snippet": "smallest runnable registration check"
+      },
+      "proofGuidance": "Keep at least one focused runnable check for non-trivial adapter behavior before broader cleanup.",
+      "recommendation": "Do not delete the only cheap proof check for non-trivial behavior.",
+      "ruleId": "keep-one-runnable-check",
+      "severity": "info"
+    }
+  ],
+  "fixtureCandidate": {
+    "candidateId": "01-shipguard-lean-audit-does-lean-deck-protect-host-adapte-6c18ff70",
+    "duplicateCount": 1,
+    "expectedAssertions": [
+      "report-quality preserves the host-adapter protection question in JSON and Markdown",
+      "the fixture exposes behaviorGates in JSON and Behavior Gates in Markdown",
+      "the fixture separates adapter, hardware, requested-explanation, and one-check protection lanes",
+      "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+      "shareable output contains no local absolute paths or private app identifiers"
+    ],
+    "fixtureType": "shipguard-lean-report-quality-fixture",
+    "priority": 1,
+    "privateDataPolicy": "This promoted fixture is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
+    "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-audit-does-lean-deck-protect-host-adapte-6c18ff70",
+    "sourceQuestion": "Does Lean Deck protect host adapters, hardware calibration, requested explanation, and one-check minimums from false less-code pressure?",
+    "sourceReportCount": 1,
+    "sourceReportsRedacted": true,
+    "sourceTool": "shipguard lean audit"
+  },
+  "generatedAt": "2026-06-21T00:35:22Z",
+  "intent": "shipguard-evaluation",
+  "precisionReview": {
+    "actionGroups": [
+      {
+        "decision": "keep",
+        "evidenceCount": 2,
+        "firstExperiment": "Leave the adapter and calibration files untouched, then collect proof that they are wired and behavior-bearing.",
+        "firstLocation": "Sources/PluginHostAdapter.swift:18",
+        "rank": 1,
+        "ruleId": "host-adapter-and-hardware-boundaries",
+        "stopCondition": "Stop if registration, startup, timing, or physical-device proof is missing.",
+        "validationRoute": "Run the focused host-registration check and attach timing or calibration proof before any deletion attempt."
+      },
+      {
+        "decision": "keep",
+        "evidenceCount": 2,
+        "firstExperiment": "Keep requested documentation and the one cheap behavior check until a replacement proof route exists.",
+        "firstLocation": "Docs/ReleaseWalkthrough.md:7",
+        "rank": 2,
+        "ruleId": "requested-explanation-and-one-check-minimum",
+        "stopCondition": "Stop if the report was explicitly requested or the only focused runnable check would disappear.",
+        "validationRoute": "Confirm requester intent and keep one smallest runnable check for non-trivial behavior."
+      }
+    ],
+    "blockedByProof": [
+      {
+        "action": "Do not delete or inline the host adapter without host registration proof.",
+        "location": "Sources/PluginHostAdapter.swift:18",
+        "proofRequired": "Attach startup or host-registration evidence showing the adapter is unused before removing it.",
+        "rank": 1,
+        "ruleId": "keep-host-adapter-boundary",
+        "severity": "info"
+      },
+      {
+        "action": "Do not simplify hardware calibration without timing proof.",
+        "location": "Sources/SensorTimingCalibration.swift:41",
+        "proofRequired": "Attach before/after timing or physical-device evidence.",
+        "rank": 2,
+        "ruleId": "keep-hardware-calibration-boundary",
+        "severity": "info"
+      }
+    ],
+    "deleteList": [],
+    "keepList": [
+      {
+        "location": "Sources/PluginHostAdapter.swift:18",
+        "proofRequired": "Require host-registration evidence before deletion.",
+        "reason": "Thin adapters can be the product integration boundary.",
+        "ruleId": "keep-host-adapter-boundary"
+      },
+      {
+        "location": "Sources/SensorTimingCalibration.swift:41",
+        "proofRequired": "Require timing or device calibration evidence before simplification.",
+        "reason": "Hardware calibration can preserve physical-world behavior.",
+        "ruleId": "keep-hardware-calibration-boundary"
+      },
+      {
+        "location": "Docs/ReleaseWalkthrough.md:7",
+        "proofRequired": "Require requester or doc-ownership evidence before removal.",
+        "reason": "Explicitly requested explanation is product support, not generic clutter.",
+        "ruleId": "keep-requested-explanation"
+      },
+      {
+        "location": "Tests/HostAdapterRegistrationTests.swift:11",
+        "proofRequired": "Keep one cheap runnable check unless equivalent proof exists.",
+        "reason": "The one-check minimum protects non-trivial behavior from proofless cleanup.",
+        "ruleId": "keep-one-runnable-check"
+      }
+    ],
+    "simplifyFirst": [],
+    "summary": {
+      "actionGroups": 2,
+      "deleteCandidates": 0,
+      "keepBoundaries": 4,
+      "proofBlockedCandidates": 2,
+      "simplifyCandidates": 0
+    },
+    "topActions": [
+      {
+        "action": "Keep the host adapter until registration proof exists.",
+        "location": "Sources/PluginHostAdapter.swift:18",
+        "proofRequired": "Attach startup or host-registration evidence.",
+        "rank": 1,
+        "ruleId": "keep-host-adapter-boundary",
+        "severity": "info"
+      }
+    ]
+  },
+  "reportQualityQuestions": [
+    "Does Lean Deck protect host adapters, hardware calibration, requested explanation, and one-check minimums from false less-code pressure?"
+  ],
+  "scanScope": {
+    "note": "Synthetic fixture; no private source tree was scanned.",
+    "skippedDirectories": [],
+    "skippedDirectoryCount": 0
+  },
+  "schemaVersion": 1,
+  "scopeBoundary": {
+    "purpose": "Synthetic public fixture for ShipGuard Lean Deck report-quality behavior.",
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "shareability": {
+    "localAbsolutePathsIncluded": false,
+    "mode": "shareable"
+  },
+  "status": "pass",
+  "surface": "ShipGuard Lean Deck",
+  "tool": "shipguard lean audit"
+}

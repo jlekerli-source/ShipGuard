@@ -39,6 +39,17 @@ The v3.139 read-only loop reran `shipguard lean audit`, `shipguard lean review`,
 
 Fresh QA now treats the safety-boundary separation question as covered and advances to the host-adapter, hardware-calibration, requested-explanation, and one-check protection question.
 
+## Current Lean Deck Host-Adapter Fixture QA
+
+The v3.140 read-only loop reran `shipguard lean audit`, `shipguard lean review`, `shipguard lean gain`, `shipguard lean debt`, `shipguard value-gauntlet`, and `ios report-quality --write-fixture-candidates` against this checkout after the safety-boundary fixture landed.
+
+- Finding: fresh Lean Deck QA passed, but the next uncovered actionability question was "Does Lean Deck protect host adapters, hardware calibration, requested explanation, and one-check minimums from false less-code pressure?"
+- Product weakness: generated fixture starters preserved the question but did not expose the behavior gates that explain why these lanes are protected, so the starter itself scored `review`.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-lean-audit-does-lean-deck-protect-host-adapte-6c18ff70` now uses public synthetic evidence for four protected lanes: host adapter, hardware calibration, requested explanation, and one runnable check.
+- Guardrail: the fixture keeps `behaviorGates` in JSON and `Behavior Gates` in Markdown, plus grouped action plans that tell maintainers what proof is needed before deleting or simplifying those lanes.
+
+Fresh QA now treats the host-adapter protection question as covered and advances to the solo-developer deletion-usefulness question.
+
 ## Current Verify-PR First-Run QA
 
 The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `shipguard full-audit --plan-only`, docs-check, and the verify-first quickstart tests against this checkout.
