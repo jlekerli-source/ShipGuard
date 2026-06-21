@@ -1,8 +1,19 @@
 # ShipGuard Evaluation
 
-Generated: 2026-06-17
+Generated: 2026-06-21
 
 This is the current usefulness and refinement evaluation for ShipGuard after the rename and README repositioning work.
+
+## Current Stable V4 Release Packet QA
+
+The v3.161 read-only stable-v4 packet loop stayed ShipGuard-only and used the real public release asset path as product QA for LaunchKey, not as private app remediation.
+
+- Finding: LaunchKey correctly blocked same-prefix upgrade proof when the previous package tarball contained generated AppleDouble metadata, but the top blocking proof could collapse into a vague extraction failure.
+- Product weakness: a solo maintainer needs to know whether the blocker is a missing tarball, unsafe historical package lineage, or a candidate-package problem before deciding whether to rebuild, replace, or only document the artifact.
+- Native fix: `shipguard v4 release-candidate` now embeds compact `release-package hygiene` evidence on package extraction blockers, including rule, tarball, affected version, first member, blocked-finding count, and a read-only reproducer command.
+- Fixture fix: `tests/v4_release_candidate_test.sh` now creates a public synthetic AppleDouble previous-release package and proves the upgrade blocker names `appledouble-sidecar` instead of hiding behind a generic same-prefix upgrade failure.
+
+Fresh stable-v4 QA still does not claim real stable v4. It makes the release packet more reviewable while keeping independent adoption evidence, final security review evidence, stable release notes, and post-release consumer proof as separate gates.
 
 ## Current Verify-First Simulator/Device Boundary QA
 

@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-21T15:00:22Z
+- Generated: 2026-06-21T15:47:20Z
 - Current toolkit version: 3.131.0
-- Target release: v3.161.0
-- Title: Stable V4 Public Release Packet QA
+- Target release: v3.162.0
+- Title: Stable V4 Publication Evidence Packet QA
 
 ## Slash Plan
 
 ```text
-/plan v3.161.0 Stable V4 Public Release Packet QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Use the fresh value-gauntlet pass to prepare and verify the real stable-v4 public release packet with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof. Keep the loop ShipGuard-only and prefer public/package proof over source-only claims.
+/plan v3.162.0 Stable V4 Publication Evidence Packet QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Use the improved LaunchKey package blocker to continue real stable-v4 publication QA against downloaded GitHub release assets, then refine the first remaining non-faked evidence gap in adoption evidence, final security review evidence, release notes, or post-release consumer proof into a ShipGuard-only report, fixture, docs, or routing improvement. Do not claim stable v4 until every real publication gate passes.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.161.0 Stable V4 Public Release Packet QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Use the fresh value-gauntlet pass to prepare and verify the real stable-v4 public release packet with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof. Keep the loop ShipGuard-only and prefer public/package proof over source-only claims, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.162.0 Stable V4 Publication Evidence Packet QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Use the improved LaunchKey package blocker to continue real stable-v4 publication QA against downloaded GitHub release assets, then refine the first remaining non-faked evidence gap in adoption evidence, final security review evidence, release notes, or post-release consumer proof into a ShipGuard-only report, fixture, docs, or routing improvement. Do not claim stable v4 until every real publication gate passes, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Use the fresh value-gauntlet pass to prepare and verify the real stable-v4 public release packet with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof. Keep the loop ShipGuard-only and prefer public/package proof over source-only claims.
+Use the improved LaunchKey package blocker to continue real stable-v4 publication QA against downloaded GitHub release assets, then refine the first remaining non-faked evidence gap in adoption evidence, final security review evidence, release notes, or post-release consumer proof into a ShipGuard-only report, fixture, docs, or routing improvement. Do not claim stable v4 until every real publication gate passes.
 
 ## Completion Receipt
 
-- Completed scope: v3.160 promoted simulator/device notification proof-boundary fixture coverage. ios report-quality now fails prepare reports that hide simulator denied-state versus physical-device prompt receipt boundaries, fails verify reports that omit simulator/device proof lanes or overclaim physical-device prompt proof without real device/manual receipt evidence, and keeps all five public verify-first quickstart questions covered.
-- Evidence: git diff --check; python3 -m py_compile scripts/ios_report_quality.py; ./tests/ios_report_quality_test.sh; ./tests/task_contract_test.sh; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3160-docs-check-final; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3160-value-gauntlet; ./tests/package_release_test.sh.
+- Completed scope: v3.161 tightened Stable V4 Public Release Packet QA: LaunchKey now embeds compact release-package hygiene evidence when fresh-install, same-prefix upgrade, or rollback package extraction blocks, and the public synthetic test covers an AppleDouble previous-release package so unsafe package lineage no longer collapses into vague upgrade failure.
+- Evidence: git diff --check; python3 -m py_compile scripts/v4_release_candidate.py scripts/release_package_hygiene.py; ./tests/v4_release_candidate_test.sh; live LaunchKey run against dist/shipguard-v3.131.0.tar.gz plus dist/shipguard-v3.130.0.tar.gz showed blockingProof.failureEvidence=appledouble-sidecar with 782 blocked findings; ./tests/v4_stable_publication_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3161-docs-check; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/release_package_hygiene_test.sh; ./bin/shipguard codex status --strict; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3161-value-gauntlet; ./tests/package_release_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.162.0 Stable V4 Release Consumption QA for jlekerli-source/ShipGuard:
+/plan v3.163.0 Stable V4 Publication Proof Closure QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Use the fresh value-gauntlet pass to prepare and verify the real stable-v4 publi
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.162.0 Stable V4 Release Consumption QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.163.0 Stable V4 Publication Proof Closure QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.162.0 --title "Stable V4 Release Consumption QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.163.0 --title "Stable V4 Publication Proof Closure QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.161.0.
+1. Open or update the tracking issue for v3.162.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.161.0` and upload `dist/shipguard-v3.161.0.tar.gz`.
+6. Create release `v3.162.0` and upload `dist/shipguard-v3.162.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

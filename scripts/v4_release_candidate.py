@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -23,6 +24,12 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - direct script fallback
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from shipguard_result import build_result_ux, render_result_markdown
+
+try:
+    from release_package_hygiene import scan_tarball as scan_release_package_tarball
+except ModuleNotFoundError:  # pragma: no cover - direct script fallback
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from release_package_hygiene import scan_tarball as scan_release_package_tarball
 
 
 SURFACE = "ShipGuard V4 Release Candidate Readiness"
@@ -155,6 +162,84 @@ def is_forbidden_archive_member(name: str) -> bool:
         or path.name.endswith(".pyc")
         or path.name in {".git", ".cache", "DerivedData", "__pycache__"}
     )
+
+
+def package_hygiene_command(tarballs: list[Path]) -> str:
+    pieces = ["./bin/shipguard", "release-package", "hygiene", "--path", "."]
+    for tarball in tarballs:
+        pieces.extend(["--tarball", tarball.as_posix()])
+    pieces.extend(["--out", "/tmp/shipguard-package-hygiene", "--shareable"])
+    return " ".join(shlex.quote(piece) for piece in pieces)
+
+
+def compact_hygiene_finding(finding: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "severity": finding.get("severity"),
+        "ruleId": finding.get("ruleId"),
+        "tarball": finding.get("tarball"),
+        "version": finding.get("version"),
+        "member": finding.get("member"),
+        "evidence": finding.get("evidence"),
+        "recommendation": finding.get("recommendation"),
+        "proofGuidance": finding.get("proofGuidance"),
+    }
+
+
+def build_package_hygiene_evidence(tarballs: list[Path], root: Path, shareable: bool) -> dict[str, Any]:
+    scans = [scan_release_package_tarball(tarball, root, shareable) for tarball in tarballs if tarball.is_file()]
+    findings = [finding for scan in scans for finding in scan.get("findings", [])]
+    blocked = [finding for finding in findings if finding.get("severity") == "blocked"]
+    review = [finding for finding in findings if finding.get("severity") == "review"]
+    status = "blocked" if blocked else "review" if review else "pass" if scans else "not-run"
+    first_finding = (blocked or review or [None])[0]
+    return {
+        "status": status,
+        "tool": "shipguard release-package hygiene",
+        "readOnly": True,
+        "tarballsScanned": len(scans),
+        "blockedFindingCount": len(blocked),
+        "reviewFindingCount": len(review),
+        "affectedVersions": sorted({finding["version"] for finding in findings if finding.get("version")}),
+        "safeTarballs": [scan["name"] for scan in scans if scan.get("status") == "pass"],
+        "firstFinding": compact_hygiene_finding(first_finding) if first_finding else None,
+        "tarballSummaries": [
+            {
+                "name": scan.get("name"),
+                "path": scan.get("path"),
+                "version": scan.get("version"),
+                "status": scan.get("status"),
+                "memberCount": scan.get("memberCount"),
+                "blockedFindingCount": len([finding for finding in scan.get("findings", []) if finding.get("severity") == "blocked"]),
+                "reviewFindingCount": len([finding for finding in scan.get("findings", []) if finding.get("severity") == "review"]),
+                "installRiskSummary": scan.get("installRiskSummary"),
+            }
+            for scan in scans
+        ],
+        "nextCommand": package_hygiene_command(tarballs),
+    }
+
+
+def attach_blocking_package_hygiene(proof: dict[str, Any], tarballs: list[Path], args: argparse.Namespace) -> None:
+    hygiene = build_package_hygiene_evidence(tarballs, Path(args.path).expanduser().resolve(), bool(args.shareable))
+    if hygiene.get("status") != "pass":
+        proof["packageHygieneEvidence"] = hygiene
+        if hygiene.get("nextCommand"):
+            proof["nextCommand"] = hygiene["nextCommand"]
+
+
+def package_hygiene_excerpt(evidence: Any) -> str:
+    if not isinstance(evidence, dict):
+        return ""
+    first = evidence.get("firstFinding")
+    if not isinstance(first, dict):
+        return ""
+    rule = first.get("ruleId") or "package-hygiene"
+    tarball = first.get("tarball") or "package tarball"
+    member = first.get("member") or "n/a"
+    detail = first.get("evidence") or "unsafe archive member"
+    blocked_count = evidence.get("blockedFindingCount")
+    count_suffix = f"; {blocked_count} blocked finding(s)" if blocked_count is not None else ""
+    return f"{rule} in {tarball}: {member} ({detail}){count_suffix}"
 
 
 def safe_extract_tarball(tarball: Path, destination: Path) -> tuple[bool, str]:
@@ -316,6 +401,7 @@ def build_fresh_install_package_proof(args: argparse.Namespace, version: str) ->
     proof["extractStatus"] = "pass" if extracted else "blocked"
     proof["extractEvidence"] = extract_evidence
     if not extracted:
+        attach_blocking_package_hygiene(proof, [tarball], args)
         proof["summary"] = "Release package tarball could not be safely extracted."
         return proof
 
@@ -486,12 +572,14 @@ def build_upgrade_package_proof(args: argparse.Namespace, version: str) -> dict[
     proof["previousExtractStatus"] = "pass" if previous_extracted else "blocked"
     proof["previousExtractEvidence"] = previous_extract_evidence
     if not previous_extracted:
+        attach_blocking_package_hygiene(proof, [previous_tarball, candidate_tarball], args)
         proof["summary"] = "Previous release package tarball could not be safely extracted."
         return proof
     candidate_extracted, candidate_extract_evidence = safe_extract_tarball(candidate_tarball, candidate_extract_dir)
     proof["candidateExtractStatus"] = "pass" if candidate_extracted else "blocked"
     proof["candidateExtractEvidence"] = candidate_extract_evidence
     if not candidate_extracted:
+        attach_blocking_package_hygiene(proof, [previous_tarball, candidate_tarball], args)
         proof["summary"] = "Candidate release package tarball could not be safely extracted."
         return proof
 
@@ -640,6 +728,7 @@ def build_rollback_package_proof(args: argparse.Namespace, version: str) -> dict
     proof["extractStatus"] = "pass" if extracted else "blocked"
     proof["extractEvidence"] = extract_evidence
     if not extracted:
+        attach_blocking_package_hygiene(proof, [tarball], args)
         proof["summary"] = "Release package tarball could not be safely extracted for rollback proof."
         return proof
 
@@ -1348,13 +1437,28 @@ def failed_process_excerpt(proof: dict[str, Any]) -> str:
         detail = stderr or stdout
         if detail:
             return detail
+    hygiene = package_hygiene_excerpt(proof.get("packageHygieneEvidence"))
+    if hygiene:
+        return short_output(hygiene, 280)
+    for evidence_key, status_key in (
+        ("extractEvidence", "extractStatus"),
+        ("previousExtractEvidence", "previousExtractStatus"),
+        ("candidateExtractEvidence", "candidateExtractStatus"),
+    ):
+        evidence = proof.get(evidence_key)
+        if evidence and proof.get(status_key) == "blocked":
+            return short_output(str(evidence), 280)
     error = proof.get("error")
     if error:
         return short_output(str(error), 280)
-    evidence = proof.get("extractEvidence")
-    if evidence and proof.get("extractStatus") == "blocked":
-        return short_output(str(evidence), 280)
     return ""
+
+
+def blocking_next_command(proof: dict[str, Any], default: str) -> str:
+    hygiene = proof.get("packageHygieneEvidence")
+    if isinstance(hygiene, dict) and hygiene.get("status") in {"blocked", "review"} and hygiene.get("nextCommand"):
+        return str(hygiene["nextCommand"])
+    return default
 
 
 def build_blocking_proof_detail(
@@ -1435,6 +1539,7 @@ def build_blocking_proof_detail(
             continue
         failure_evidence = failed_process_excerpt(proof)
         failure = proof.get("summary") or headline
+        chosen_next_command = blocking_next_command(proof, next_command)
         return {
             "receipt": receipt,
             "status": proof.get("status"),
@@ -1442,7 +1547,7 @@ def build_blocking_proof_detail(
             "failure": failure,
             "failureEvidence": failure_evidence,
             "nextAction": remedy,
-            "nextCommand": next_command,
+            "nextCommand": chosen_next_command,
             "proofSource": proof_source,
         }
     return None
@@ -2061,6 +2166,26 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     return report
 
 
+def append_package_hygiene_markdown(lines: list[str], proof: dict[str, Any]) -> None:
+    hygiene = proof.get("packageHygieneEvidence")
+    if not isinstance(hygiene, dict):
+        return
+    lines.append(f"- Package hygiene status: `{hygiene.get('status')}`")
+    lines.append(
+        f"- Package hygiene findings: `{hygiene.get('blockedFindingCount', 0)}` blocked, `{hygiene.get('reviewFindingCount', 0)}` review"
+    )
+    affected = ", ".join(hygiene.get("affectedVersions") or [])
+    if affected:
+        lines.append(f"- Package hygiene affected versions: {affected}")
+    first = hygiene.get("firstFinding")
+    if isinstance(first, dict):
+        lines.append(
+            f"- First package hygiene finding: `{first.get('ruleId')}` in `{first.get('tarball')}` at `{first.get('member') or 'n/a'}`: {first.get('evidence')}"
+        )
+    if hygiene.get("nextCommand"):
+        lines.append(f"- Package hygiene command: `{hygiene.get('nextCommand')}`")
+
+
 def render_markdown(report: dict[str, Any]) -> str:
     lines: list[str] = [
         "# ShipGuard V4 Release Candidate Readiness",
@@ -2110,6 +2235,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- Package tarball: `{proof.get('packageTarball')}`")
         if proof.get("installPrefix"):
             lines.append(f"- Install prefix: `{proof.get('installPrefix')}`")
+        append_package_hygiene_markdown(lines, proof)
     else:
         lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## Upgrade", ""])
@@ -2130,6 +2256,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- Candidate package tarball: `{proof.get('candidateTarball')}`")
         if proof.get("upgradePrefix"):
             lines.append(f"- Upgrade prefix: `{proof.get('upgradePrefix')}`")
+        append_package_hygiene_markdown(lines, proof)
     else:
         lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## Uninstall", ""])
@@ -2146,6 +2273,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append(f"- Remaining paths: `{proof.get('remainingPathCount')}`")
         if proof.get("rollbackPrefix"):
             lines.append(f"- Rollback prefix: `{proof.get('rollbackPrefix')}`")
+        append_package_hygiene_markdown(lines, proof)
     else:
         lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## Release Proof Consumption", ""])

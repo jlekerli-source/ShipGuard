@@ -63,6 +63,8 @@ Without `--package-tarball`, the command can still pass release-candidate readin
 
 LaunchKey screens package tarballs before install. Archive members such as AppleDouble `._*`, `.DS_Store`, `__MACOSX`, bytecode, `.git`, `.cache`, `DerivedData`, and `__pycache__` block extraction even if a normal shell `tar -t` listing hides them. This matters for downloaded release assets: the release manifest and attestation can verify while the package is still unsafe to install on a clean machine. In that case, the report includes `blockingProof` and the result UX points to the exact blocked receipt, failure evidence, and package rebuild command.
 
+When a fresh-install, upgrade, or rollback package blocks during safe extraction, LaunchKey attaches a compact `packageHygieneEvidence` snapshot from `shipguard release-package hygiene`. The snapshot names the first rule, tarball, affected version, unsafe member, blocked-finding count, and a read-only hygiene reproducer command. This keeps a stale previous-release package from producing a vague same-prefix upgrade failure.
+
 When `--package-tarball` is supplied, LaunchKey runs:
 
 ```bash
@@ -79,7 +81,7 @@ When package or release-asset inputs are supplied, the top `Readiness Proof` row
 When a supplied package, upgrade, rollback, or downloaded release-asset proof fails, the JSON contains:
 
 - `blockingProof.receipt`: the failing receipt, such as `freshInstallPackageProof`.
-- `blockingProof.failureEvidence`: the shortest useful stderr, extraction error, or consumer-proof failure.
+- `blockingProof.failureEvidence`: the shortest useful stderr, extraction error, package-hygiene finding, or consumer-proof failure.
 - `blockingProof.nextCommand`: the next command to repair or reproduce the failure.
 - `resultUX.blockingProof`: the same detail in the top result block for agent and UI consumers.
 

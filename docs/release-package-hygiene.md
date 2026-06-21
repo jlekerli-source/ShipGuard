@@ -54,3 +54,5 @@ Use it before LaunchKey install or upgrade proof when a package lineage question
 ./tests/package_release_test.sh
 ./bin/shipguard release-package hygiene --path . --out /tmp/shipguard-package-hygiene --shareable
 ```
+
+LaunchKey also embeds a compact hygiene snapshot when safe extraction blocks a fresh-install, same-prefix upgrade, or rollback package. The full `release-package hygiene` report remains the better place to inspect the complete member list; the LaunchKey snapshot is intentionally short so `blockingProof.failureEvidence` stays readable.

@@ -761,6 +761,50 @@ grep -q '"receipt": "freshInstallPackageProof"' "$tmp_dir/appledouble-tarball/v4
 grep -q 'unsafe tarball member is generated metadata/cache' "$tmp_dir/appledouble-tarball/v4-release-candidate.json"
 grep -q 'Rebuild the release package with ./scripts/package_release.sh' "$tmp_dir/appledouble-tarball/v4-release-candidate.json"
 
+mkdir -p "$tmp_dir/appledouble-previous/shipguard-v$old_version/scripts" "$tmp_dir/appledouble-previous/shipguard-v$old_version/bin"
+printf '%s\n' "$old_version" > "$tmp_dir/appledouble-previous/shipguard-v$old_version/VERSION"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$tmp_dir/appledouble-previous/shipguard-v$old_version/scripts/install.sh"
+printf '#!/usr/bin/env bash\nprintf "%s\\n" "0.0.0"\n' > "$tmp_dir/appledouble-previous/shipguard-v$old_version/bin/shipguard"
+printf 'sidecar metadata\n' > "$tmp_dir/appledouble-previous/shipguard-v$old_version/scripts/._install.sh"
+mkdir -p "$tmp_dir/appledouble-previous-package"
+(cd "$tmp_dir/appledouble-previous" && COPYFILE_DISABLE=1 tar -czf "$tmp_dir/appledouble-previous-package/shipguard-v$old_version.tar.gz" "shipguard-v$old_version")
+if ./bin/shipguard v4 release-candidate \
+  --path . \
+  --out "$tmp_dir/appledouble-previous-upgrade" \
+  --package-tarball "$tmp_dir/proof-bundle/shipguard-v$version.tar.gz" \
+  --upgrade-from-tarball "$tmp_dir/appledouble-previous-package/shipguard-v$old_version.tar.gz" \
+  --shipguard-eval \
+  --shareable >/dev/null 2>&1; then
+  echo "expected AppleDouble previous package to fail upgrade proof" >&2
+  exit 1
+fi
+test -f "$tmp_dir/appledouble-previous-upgrade/v4-release-candidate.json"
+test -f "$tmp_dir/appledouble-previous-upgrade/v4-release-candidate.md"
+grep -q '"upgradePackageProof": "blocked"' "$tmp_dir/appledouble-previous-upgrade/v4-release-candidate.json"
+grep -q '"packageHygieneEvidence":' "$tmp_dir/appledouble-previous-upgrade/v4-release-candidate.json"
+grep -q 'appledouble-sidecar' "$tmp_dir/appledouble-previous-upgrade/v4-release-candidate.json"
+grep -q 'shipguard release-package hygiene' "$tmp_dir/appledouble-previous-upgrade/v4-release-candidate.json"
+grep -q 'Package hygiene status' "$tmp_dir/appledouble-previous-upgrade/v4-release-candidate.md"
+python3 - "$tmp_dir/appledouble-previous-upgrade/v4-release-candidate.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+proof = report["upgradePackageProof"]
+hygiene = proof["packageHygieneEvidence"]
+blocking = report["blockingProof"]
+assert proof["status"] == "blocked"
+assert proof["previousExtractStatus"] == "blocked"
+assert hygiene["status"] == "blocked"
+assert hygiene["blockedFindingCount"] >= 1
+assert hygiene["firstFinding"]["ruleId"] == "appledouble-sidecar"
+assert blocking["receipt"] == "upgradePackageProof"
+assert "appledouble-sidecar" in blocking["failureEvidence"]
+assert "release-package hygiene" in blocking["nextCommand"]
+assert "<previous-package-tarball>" in blocking["nextCommand"]
+assert "<package-tarball>" in blocking["nextCommand"]
+PY
+
 if ./bin/shipguard v4 release-candidate \
   --path . \
   --out "$tmp_dir/missing-upgrade-tarball" \
