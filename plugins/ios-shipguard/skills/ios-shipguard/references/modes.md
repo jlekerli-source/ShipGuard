@@ -86,11 +86,11 @@ Ask:
 
 Proof:
 
-- whole repo: `shipguard lean audit --path . --out /tmp/shipguard-lean-audit --shipguard-eval --shareable`
-- current diff: `shipguard lean review --diff <patch.diff> --path . --out /tmp/shipguard-lean-review --shipguard-eval --shareable`
+- whole repo: `shipguard lean audit --path . --out /tmp/shipguard-lean-audit --mode full --shipguard-eval --shareable`
+- current diff: `shipguard lean review --diff <patch.diff> --path . --out /tmp/shipguard-lean-review --mode full --shipguard-eval --shareable`
 - shortcut ledger: `shipguard lean debt --path . --out /tmp/shipguard-lean-debt --shipguard-eval --shareable`
 - benchmark card: `shipguard lean gain --path . --out /tmp/shipguard-lean-gain --shipguard-eval --shareable`
-- inspect `behaviorGates`, `nativeOpportunityCatalog`, `precisionReview`, and `leanDebtLedger` before proposing deletions
+- inspect `leanMode`, `modeBiasReview`, `behaviorGates`, `nativeOpportunityCatalog`, `precisionReview`, and `leanDebtLedger` before proposing deletions
 - do not claim current-repo line, token, cost, or time savings from `lean gain`; it is benchmark direction only unless a matched baseline exists
 - feed Lean reports to `shipguard ios report-quality --reports <lean-output-dir> --out /tmp/shipguard-lean-quality --shareable` when improving ShipGuard itself
 

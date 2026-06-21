@@ -13,6 +13,27 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 - Type: `shipguard-lean-report-quality-fixture`
 - Source question: Does proofSignalCalibration distinguish missing runnable checks from same-diff proof signals?
 
+## Lean Mode
+
+- Mode: `full`
+- Intent: Use the proof ladder before adding or deleting code.
+- First action bias: `proof-ladder`
+- Policy: Use full mode for current-diff review when proof boundaries matter.
+
+## Mode Bias Review
+
+- Selected mode: `full`
+- Selected first action bias: `proof-ladder`
+- Selected priority order: `deleteList -> simplifyFirst -> blockedByProof`
+- Expected first source: `deleteList`
+- Top action matches selected bias: `true`
+
+| Mode | First Action Bias | Priority Order | First Available Source |
+| --- | --- | --- | --- |
+| `lite` | `suggestion-first` | `simplifyFirst -> deleteList -> blockedByProof` | `simplifyFirst` |
+| `full` | `proof-ladder` | `deleteList -> simplifyFirst -> blockedByProof` | `deleteList` |
+| `ultra` | `delete-first` | `deleteList -> blockedByProof -> simplifyFirst` | `deleteList` |
+
 ## Current Diff Decision Map
 
 - Scope: `current-diff-only`

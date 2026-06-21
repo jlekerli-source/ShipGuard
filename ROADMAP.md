@@ -158,7 +158,7 @@ v3.146  Full Audit NEXT_GOAL-backed slash handoff
 v3.147  Full Audit copy-ready execution-command receipts
 v3.148  Tool Value Gauntlet stable-publication priority
 v3.149  Stable-publication final claim gate
-v3.150  Stable-publication report-quality priority and proof boundary
+v3.150  Lean Review selected-mode bias fixture
 v3.151  Stable-publication evidence packet
 v3.152  Stable-publication draft evidence templates
 v3.153  Verify-first launch quickstart

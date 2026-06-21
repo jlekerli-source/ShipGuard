@@ -684,7 +684,7 @@ def build_lean_mode_profile(mode: str) -> dict[str, Any]:
         "lite": {
             "mode": "lite",
             "intent": "Name the smaller alternative without forcing a delete-first cleanup pass.",
-            "firstActionBias": "simplify-first",
+            "firstActionBias": "suggestion-first",
             "policy": "Use lite when the maintainer wants precise guidance while preserving implementation momentum.",
         },
         "full": {

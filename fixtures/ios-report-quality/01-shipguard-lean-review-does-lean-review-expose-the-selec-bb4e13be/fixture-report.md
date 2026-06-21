@@ -11,7 +11,7 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 ## Fixture Intent
 
 - Type: `shipguard-lean-report-quality-fixture`
-- Source question: Does Lean Review require one smallest runnable check for non-trivial new logic?
+- Source question: Does Lean Review expose the selected lite/full/ultra mode and bias first actions accordingly?
 
 ## Lean Mode
 

@@ -404,7 +404,7 @@
       "./tests/ios_report_quality_test.sh"
     ]
   },
-  "generatedAt": "2026-06-21T05:34:22Z",
+  "generatedAt": "2026-06-21T06:12:41Z",
   "hardwareHostBoundaryReview": {
     "hardwareCalibrationFindings": [
       {
@@ -459,6 +459,94 @@
     "infoFindings": 3,
     "opportunityFindings": 2,
     "reviewFindings": 2
+  },
+  "modeBiasReview": {
+    "expectedFirstAction": {
+      "location": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+      "rank": 1,
+      "ruleId": "thin-wrapper-diff-review",
+      "severity": "opportunity",
+      "sourceList": "deleteList"
+    },
+    "expectedFirstSource": "deleteList",
+    "selectedFirstAction": {
+      "location": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+      "rank": 1,
+      "ruleId": "thin-wrapper-diff-review",
+      "severity": "opportunity",
+      "sourceList": "deleteList"
+    },
+    "selectedFirstActionBias": "proof-ladder",
+    "selectedMode": "full",
+    "selectedPolicy": "Use the normal proof ladder before adding or deleting code.",
+    "selectedPriorityOrder": [
+      "deleteList",
+      "simplifyFirst",
+      "blockedByProof"
+    ],
+    "summary": {
+      "cleanState": false,
+      "selectedFirstActionBiasMatchesPrecisionReview": true,
+      "selectedModeMatchesPrecisionReview": true,
+      "selectedTopActionMatchesBias": true,
+      "supportedModeCount": 3
+    },
+    "supportedModes": [
+      {
+        "firstActionBias": "suggestion-first",
+        "firstAvailableAction": {
+          "location": "Sources/SyntheticLeanReview/QueryBuilder.swift:22",
+          "rank": 2,
+          "ruleId": "stdlib-url-params-diff",
+          "severity": "opportunity",
+          "sourceList": "simplifyFirst"
+        },
+        "firstAvailableSource": "simplifyFirst",
+        "mode": "lite",
+        "policy": "Start with the smallest suggestion before delete pressure.",
+        "priorityOrder": [
+          "simplifyFirst",
+          "deleteList",
+          "blockedByProof"
+        ]
+      },
+      {
+        "firstActionBias": "proof-ladder",
+        "firstAvailableAction": {
+          "location": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+          "rank": 1,
+          "ruleId": "thin-wrapper-diff-review",
+          "severity": "opportunity",
+          "sourceList": "deleteList"
+        },
+        "firstAvailableSource": "deleteList",
+        "mode": "full",
+        "policy": "Use the normal proof ladder before adding or deleting code.",
+        "priorityOrder": [
+          "deleteList",
+          "simplifyFirst",
+          "blockedByProof"
+        ]
+      },
+      {
+        "firstActionBias": "delete-first",
+        "firstAvailableAction": {
+          "location": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+          "rank": 1,
+          "ruleId": "thin-wrapper-diff-review",
+          "severity": "opportunity",
+          "sourceList": "deleteList"
+        },
+        "firstAvailableSource": "deleteList",
+        "mode": "ultra",
+        "policy": "Try deletion and existence proof before simplification.",
+        "priorityOrder": [
+          "deleteList",
+          "blockedByProof",
+          "simplifyFirst"
+        ]
+      }
+    ]
   },
   "nextActions": [
     "Start with currentDiffDecisionMap.deleteOrSimplifyList[0] before reading whole-repo inventory.",
@@ -574,44 +662,36 @@
     },
     "topActions": [
       {
-        "decision": "delete",
-        "evidenceCount": 1,
-        "firstExperiment": "Search the changed call sites and delete the wrapper only if it is private and behavior-neutral.",
-        "firstLocation": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+        "action": "Inline or delete this wrapper unless it adds policy.",
+        "location": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+        "proofRequired": "Search call sites and keep one small check if behavior is non-trivial.",
         "rank": 1,
         "ruleId": "thin-wrapper-diff-review",
-        "stopCondition": "Stop if call sites depend on naming, compatibility, logging, typing, or behavior policy.",
-        "validationRoute": "Run the smallest formatter behavior check plus git diff --check."
+        "severity": "opportunity"
       },
       {
-        "decision": "simplify",
-        "evidenceCount": 1,
-        "firstExperiment": "Try URLComponents or URLQueryItem at the changed call site before adding parser code.",
-        "firstLocation": "Sources/SyntheticLeanReview/QueryBuilder.swift:22",
+        "action": "Prefer URLComponents or URLQueryItem when runtime support allows it.",
+        "location": "Sources/SyntheticLeanReview/QueryBuilder.swift:22",
+        "proofRequired": "Add one check for repeated keys, empty values, encoding, and malformed input.",
         "rank": 2,
         "ruleId": "stdlib-url-params-diff",
-        "stopCondition": "Stop if repeated keys, empty values, encoding, or malformed input behavior changes.",
-        "validationRoute": "Run one focused query-string behavior check plus git diff --check."
+        "severity": "opportunity"
       },
       {
-        "decision": "proof-blocked",
-        "evidenceCount": 1,
-        "firstExperiment": "Add or identify one smallest runnable route-selection check before merging the new branch.",
-        "firstLocation": "Sources/SyntheticLeanReview/RuleRouter.swift:18",
+        "action": "Leave one smallest runnable route-selection check.",
+        "location": "Sources/SyntheticLeanReview/RuleRouter.swift:18",
+        "proofRequired": "Add one focused route-selection check or point to the changed test that covers this branch before merge.",
         "rank": 3,
         "ruleId": "one-runnable-check-missing-diff",
-        "stopCondition": "Stop if the diff has no runnable proof signal for the changed non-trivial logic.",
-        "validationRoute": "Run the focused route-selection test plus git diff --check."
+        "severity": "review"
       },
       {
-        "decision": "proof-blocked",
-        "evidenceCount": 1,
-        "firstExperiment": "Attach calibration, timing, or real-device evidence before removing the sensor tuning boundary.",
-        "firstLocation": "Sources/SyntheticLeanReview/SensorSampler.swift:33",
+        "action": "Keep a minimal calibration or tuning boundary for hardware behavior.",
+        "location": "Sources/SyntheticLeanReview/SensorSampler.swift:33",
+        "proofRequired": "Attach real-device, sensor, timing, or calibration evidence before simplifying the physical-world edge case away.",
         "rank": 4,
         "ruleId": "hardware-calibration-missing-diff",
-        "stopCondition": "Stop if the only evidence is source-level less-code pressure without physical-world proof.",
-        "validationRoute": "Run or attach the smallest hardware, simulator, or timing proof that covers the changed sampling behavior."
+        "severity": "review"
       }
     ]
   },

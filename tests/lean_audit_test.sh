@@ -236,6 +236,9 @@ grep -q '"ruleId": "speculative-future-hook-diff"' "$tmp_dir/review/lean-review.
 grep -q '"reviewLines":' "$tmp_dir/review/lean-review.json"
 grep -q '"leanMode":' "$tmp_dir/review/lean-review.json"
 grep -q '"firstActionBias": "proof-ladder"' "$tmp_dir/review/lean-review.json"
+grep -q '"modeBiasReview":' "$tmp_dir/review/lean-review.json"
+grep -q '"selectedMode": "full"' "$tmp_dir/review/lean-review.json"
+grep -q '"selectedTopActionMatchesBias": true' "$tmp_dir/review/lean-review.json"
 grep -q '"behaviorGates":' "$tmp_dir/review/lean-review.json"
 grep -q '"proofSignalCalibration":' "$tmp_dir/review/lean-review.json"
 grep -q '"sameDiffProofStatus": "missing"' "$tmp_dir/review/lean-review.json"
@@ -247,10 +250,18 @@ import json
 import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("modeBiasReview", {}).get("selectedFirstActionBias") != "proof-ladder":
+    raise SystemExit("full Lean Review should record proof-ladder mode bias")
 precision = data.get("precisionReview") or {}
 delete_rules = {item.get("ruleId") for item in precision.get("deleteList") or []}
 if "speculative-future-hook-diff" not in delete_rules:
     raise SystemExit(f"speculative future hooks should be delete candidates: {delete_rules!r}")
+mode_bias = data.get("modeBiasReview") or {}
+if mode_bias.get("expectedFirstSource") != "deleteList":
+    raise SystemExit(f"full mode should start from deleteList: {mode_bias!r}")
+top_actions = precision.get("topActions") or []
+if top_actions and top_actions[0].get("ruleId") != (precision.get("deleteList") or [{}])[0].get("ruleId"):
+    raise SystemExit(f"full mode top action should match deleteList first action: {top_actions[:1]!r}")
 groups = precision.get("actionGroups") or []
 matching = [
     group
@@ -262,6 +273,9 @@ if not matching:
 PY
 grep -q 'ShipGuard Lean Review' "$tmp_dir/review/lean-review.md"
 grep -q '## Lean Mode' "$tmp_dir/review/lean-review.md"
+grep -q '## Mode Bias Review' "$tmp_dir/review/lean-review.md"
+grep -q 'suggestion-first' "$tmp_dir/review/lean-review.md"
+grep -q 'delete-first' "$tmp_dir/review/lean-review.md"
 grep -q 'Diff Review' "$tmp_dir/review/lean-review.md"
 grep -q 'Behavior Gates' "$tmp_dir/review/lean-review.md"
 grep -q 'Proof Signal Calibration' "$tmp_dir/review/lean-review.md"
@@ -288,11 +302,45 @@ import sys
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 if data.get("leanMode", {}).get("mode") != "lite":
     raise SystemExit("lean review should record lite mode")
+if data.get("leanMode", {}).get("firstActionBias") != "suggestion-first":
+    raise SystemExit("lite mode should use suggestion-first bias")
+mode_bias = data.get("modeBiasReview") or {}
+if mode_bias.get("expectedFirstSource") != "simplifyFirst":
+    raise SystemExit(f"lite mode should start from simplifyFirst: {mode_bias!r}")
 precision = data.get("precisionReview") or {}
 simplify = precision.get("simplifyFirst") or []
 top_actions = precision.get("topActions") or []
 if simplify and top_actions and top_actions[0].get("ruleId") != simplify[0].get("ruleId"):
     raise SystemExit(f"lite mode should start with simplify suggestions: {top_actions[:1]!r} vs {simplify[:1]!r}")
+PY
+
+./bin/shipguard lean review \
+  --path fixtures/lean-audit-demo \
+  --diff fixtures/lean-audit-demo/diffs/overbuilt-widget.diff \
+  --out "$tmp_dir/review-ultra" \
+  --mode ultra \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+python3 - <<'PY' "$tmp_dir/review-ultra/lean-review.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("leanMode", {}).get("mode") != "ultra":
+    raise SystemExit("lean review should record ultra mode")
+if data.get("leanMode", {}).get("firstActionBias") != "delete-first":
+    raise SystemExit("ultra mode should use delete-first bias")
+mode_bias = data.get("modeBiasReview") or {}
+if mode_bias.get("expectedFirstSource") != "deleteList":
+    raise SystemExit(f"ultra mode should start from deleteList when deletes exist: {mode_bias!r}")
+precision = data.get("precisionReview") or {}
+delete = precision.get("deleteList") or []
+top_actions = precision.get("topActions") or []
+if delete and top_actions and top_actions[0].get("ruleId") != delete[0].get("ruleId"):
+    raise SystemExit(f"ultra mode should start with delete candidates: {top_actions[:1]!r} vs {delete[:1]!r}")
+if not (mode_bias.get("summary") or {}).get("selectedTopActionMatchesBias"):
+    raise SystemExit(f"ultra mode should prove selected top-action match: {mode_bias!r}")
 PY
 
 ./bin/shipguard ios report-quality \

@@ -156,6 +156,18 @@ The v3.149 read-only loop reran `shipguard lean audit`, `shipguard lean review`,
 
 Fresh combined Lean QA now treats the safety-boundary question as covered and advances to the selected-mode question.
 
+## Current Lean Review Mode Bias Fixture QA
+
+The v3.150 read-only loop reran `shipguard lean audit`, `shipguard lean review`, `shipguard lean gain`, `shipguard lean debt`, and `ios report-quality --write-fixture-candidates` against this checkout after the safety-boundary fixture landed.
+
+- Finding: fresh combined Lean QA passed, but the next uncovered actionability question was "Does Lean Review expose the selected lite/full/ultra mode and bias first actions accordingly?"
+- Product weakness: Lean Review wrote `leanMode`, but report-quality did not yet prove that the selected mode actually changed the first action source or that the supported `lite`, `full`, and `ultra` contracts were visible in JSON and Markdown.
+- Native fix: `shipguard lean review` now emits `modeBiasReview` with selected priority order, expected first source, selected top-action match proof, and a supported-mode matrix for `lite`, `full`, and `ultra`.
+- Report-quality fix: `ios report-quality` now flags Lean Review reports that omit `modeBiasReview`, mismatch `leanMode` and `precisionReview.mode`, use the wrong first-action bias, hide the Markdown mode-bias section, or order `precisionReview.topActions` against the selected mode.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be` uses public synthetic evidence to prove the selected-mode contract without private app code.
+
+Fresh combined Lean QA now treats the selected-mode question as covered and advances to the Lean Debt marker-visibility question.
+
 ## Current Verify-PR First-Run QA
 
 The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `shipguard full-audit --plan-only`, docs-check, and the verify-first quickstart tests against this checkout.

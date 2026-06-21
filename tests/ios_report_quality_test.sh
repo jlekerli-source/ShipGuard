@@ -2094,6 +2094,65 @@ if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_
   exit 1
 fi
 
+lean_review_mode_bias_fixture="fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be"
+./bin/shipguard ios report-quality \
+  --reports "$lean_review_mode_bias_fixture" \
+  --out "$tmp_dir/lean-review-mode-bias-public-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/lean-review-mode-bias-public-quality/ios-report-quality.json"
+grep -q 'Does Lean Review expose the selected lite/full/ultra mode and bias first actions accordingly?' "$tmp_dir/lean-review-mode-bias-public-quality/ios-report-quality.md"
+grep -q '"tool": "shipguard lean review"' "$lean_review_mode_bias_fixture/fixture-report.json"
+grep -q '"leanMode":' "$lean_review_mode_bias_fixture/fixture-report.json"
+grep -q '"modeBiasReview":' "$lean_review_mode_bias_fixture/fixture-report.json"
+grep -q '"selectedMode": "full"' "$lean_review_mode_bias_fixture/fixture-report.json"
+grep -q '"selectedFirstActionBias": "proof-ladder"' "$lean_review_mode_bias_fixture/fixture-report.json"
+grep -q '"selectedTopActionMatchesBias": true' "$lean_review_mode_bias_fixture/fixture-report.json"
+grep -q '"mode": "lite"' "$lean_review_mode_bias_fixture/fixture-report.json"
+grep -q '"firstActionBias": "suggestion-first"' "$lean_review_mode_bias_fixture/fixture-report.json"
+grep -q '"mode": "ultra"' "$lean_review_mode_bias_fixture/fixture-report.json"
+grep -q '"firstActionBias": "delete-first"' "$lean_review_mode_bias_fixture/fixture-report.json"
+grep -q 'Lean Mode' "$lean_review_mode_bias_fixture/fixture-report.md"
+grep -q 'Mode Bias Review' "$lean_review_mode_bias_fixture/fixture-report.md"
+grep -q 'suggestion-first' "$lean_review_mode_bias_fixture/fixture-report.md"
+grep -q 'delete-first' "$lean_review_mode_bias_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/lean-review-mode-bias-public-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"Lean Review mode-bias public fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+top = questions[0] if questions else {}
+if not top or not (top.get("sourceMaterializedFixture") is True or top.get("existingFixture")):
+    raise SystemExit(f"Lean Review mode-bias fixture should retain materialized or fixture-coverage question evidence: {questions!r}")
+PY
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_review_mode_bias_fixture"; then
+  echo "Lean Review mode-bias fixture must not include local paths or private app identifiers" >&2
+  exit 1
+fi
+
+mkdir -p "$tmp_dir/lean-review-mode-bias-broken"
+python3 - <<'PY' "$lean_review_mode_bias_fixture/fixture-report.json" "$tmp_dir/lean-review-mode-bias-broken/lean-review.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+data["leanMode"]["firstActionBias"] = "delete-first"
+data["modeBiasReview"]["summary"]["selectedTopActionMatchesBias"] = False
+data["precisionReview"]["topActions"] = list(reversed(data["precisionReview"]["topActions"]))
+json.dump(data, open(sys.argv[2], "w", encoding="utf-8"), indent=2, sort_keys=True)
+PY
+cp "$lean_review_mode_bias_fixture/fixture-report.md" "$tmp_dir/lean-review-mode-bias-broken/lean-review.md"
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-review-mode-bias-broken" \
+  --out "$tmp_dir/lean-review-mode-bias-broken-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-review-mode-bias-incomplete"' "$tmp_dir/lean-review-mode-bias-broken-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-mode-top-action-mismatch"' "$tmp_dir/lean-review-mode-bias-broken-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-mode-bias-summary-incomplete"' "$tmp_dir/lean-review-mode-bias-broken-quality/ios-report-quality.json"
+
 mkdir -p "$tmp_dir/lean-review-hardware-host-wrong-decisions"
 python3 - <<'PY' "$lean_review_hardware_host_fixture/fixture-report.json" "$tmp_dir/lean-review-hardware-host-wrong-decisions/lean-review.json"
 import json
@@ -2264,20 +2323,22 @@ grep -q '01-shipguard-lean-review-does-lean-review-require-one-smal-247885c9' "$
 grep -q '01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q '01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q '01-shipguard-lean-review-does-it-keep-safety-boundary-code-df36ee0b' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q '01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review give a current-diff delete/simplify list instead of a whole-repo inventory?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review require one smallest runnable check for non-trivial new logic?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does proofSignalCalibration distinguish missing runnable checks from same-diff proof signals?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review protect hardware calibration and host boundaries from false less-code pressure?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does it keep safety-boundary code out of automatic deletion?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q 'Does Lean Review expose the selected lite/full/ultra mode and bias first actions accordingly?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 python3 - <<'PY' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 import json
 import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 question = (data.get("priorityAction") or {}).get("question")
-expected = "Does Lean Review expose the selected lite/full/ultra mode and bias first actions accordingly?"
+expected = "Does Lean Debt make every shortcut marker visible with a ceiling and upgrade trigger?"
 if question != expected:
-    raise SystemExit(f"expected combined Lean QA to advance to selected-mode question, got {question!r}")
+    raise SystemExit(f"expected combined Lean QA to advance to Lean Debt marker visibility, got {question!r}")
 PY
 if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$tmp_dir/lean-fresh-combined-candidates"; then
   echo "materialized combined Lean candidate must not include local paths or private app identifiers" >&2

@@ -914,6 +914,113 @@ def build_current_diff_decision_map(
     }
 
 
+MODE_BIAS_PRIORITY = {
+    "lite": {
+        "firstActionBias": "suggestion-first",
+        "priorityOrder": ["simplifyFirst", "deleteList", "blockedByProof"],
+        "policy": "Start with the smallest suggestion before delete pressure.",
+    },
+    "full": {
+        "firstActionBias": "proof-ladder",
+        "priorityOrder": ["deleteList", "simplifyFirst", "blockedByProof"],
+        "policy": "Use the normal proof ladder before adding or deleting code.",
+    },
+    "ultra": {
+        "firstActionBias": "delete-first",
+        "priorityOrder": ["deleteList", "blockedByProof", "simplifyFirst"],
+        "policy": "Try deletion and existence proof before simplification.",
+    },
+}
+
+
+def action_key(action: object) -> tuple[str, str]:
+    if not isinstance(action, dict):
+        return ("", "")
+    return (str(action.get("ruleId") or ""), str(action.get("location") or action.get("firstLocation") or ""))
+
+
+def summarize_mode_action(action: object, *, source: str) -> dict[str, Any] | None:
+    if not isinstance(action, dict):
+        return None
+    return {
+        "sourceList": source,
+        "rank": action.get("rank"),
+        "ruleId": action.get("ruleId"),
+        "location": action.get("location") or action.get("firstLocation"),
+        "severity": action.get("severity"),
+    }
+
+
+def first_available_action(precision: dict[str, Any], priority_order: list[str]) -> tuple[dict[str, Any] | None, str]:
+    for source in priority_order:
+        rows = precision.get(source)
+        if isinstance(rows, list) and rows and isinstance(rows[0], dict):
+            return rows[0], source
+    return None, "none"
+
+
+def source_for_action(precision: dict[str, Any], action: object) -> str:
+    target = action_key(action)
+    if not any(target):
+        return "none"
+    for source in ("deleteList", "simplifyFirst", "blockedByProof"):
+        rows = precision.get(source)
+        if not isinstance(rows, list):
+            continue
+        for row in rows:
+            if action_key(row) == target:
+                return source
+    return "topActions"
+
+
+def build_mode_bias_review(lean_mode: dict[str, Any], precision: dict[str, Any]) -> dict[str, Any]:
+    selected_mode = str(lean_mode.get("mode") or "full")
+    selected_contract = MODE_BIAS_PRIORITY.get(selected_mode, MODE_BIAS_PRIORITY["full"])
+    supported_modes: list[dict[str, Any]] = []
+    for mode, contract in MODE_BIAS_PRIORITY.items():
+        expected_action, expected_source = first_available_action(precision, contract["priorityOrder"])
+        supported_modes.append(
+            {
+                "mode": mode,
+                "firstActionBias": contract["firstActionBias"],
+                "priorityOrder": contract["priorityOrder"],
+                "policy": contract["policy"],
+                "firstAvailableSource": expected_source,
+                "firstAvailableAction": summarize_mode_action(expected_action, source=expected_source),
+            }
+        )
+
+    top_actions = precision.get("topActions") if isinstance(precision.get("topActions"), list) else []
+    selected_first_action = top_actions[0] if top_actions and isinstance(top_actions[0], dict) else None
+    expected_first_action, expected_source = first_available_action(precision, selected_contract["priorityOrder"])
+    expected_key = action_key(expected_first_action)
+    selected_key = action_key(selected_first_action)
+    clean_state = not any(expected_key) and not selected_first_action
+    top_action_matches = clean_state or (any(expected_key) and expected_key == selected_key)
+    precision_mode = precision.get("mode") if isinstance(precision.get("mode"), dict) else {}
+    first_action_bias = str(lean_mode.get("firstActionBias") or selected_contract["firstActionBias"])
+    return {
+        "selectedMode": selected_mode,
+        "selectedFirstActionBias": first_action_bias,
+        "selectedPriorityOrder": selected_contract["priorityOrder"],
+        "selectedPolicy": selected_contract["policy"],
+        "expectedFirstSource": expected_source,
+        "expectedFirstAction": summarize_mode_action(expected_first_action, source=expected_source),
+        "selectedFirstAction": summarize_mode_action(
+            selected_first_action, source=source_for_action(precision, selected_first_action)
+        ),
+        "supportedModes": supported_modes,
+        "summary": {
+            "supportedModeCount": len(supported_modes),
+            "cleanState": clean_state,
+            "selectedModeMatchesPrecisionReview": str(precision_mode.get("mode") or "") == selected_mode,
+            "selectedFirstActionBiasMatchesPrecisionReview": str(precision_mode.get("firstActionBias") or "")
+            == first_action_bias,
+            "selectedTopActionMatchesBias": top_action_matches,
+        },
+    }
+
+
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
     root = Path(args.path).resolve()
     diff_path = Path(args.diff)
@@ -941,6 +1048,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     runnable_check_review = build_runnable_check_review(proof_signals=proof_signals, findings=findings)
     hardware_host_boundary_review = build_hardware_host_boundary_review(findings)
     safety_boundary_review = build_safety_boundary_review(findings)
+    mode_bias_review = build_mode_bias_review(lean_mode, precision)
     current_diff_decision_map = build_current_diff_decision_map(
         diff_path=diff_path,
         files=files,
@@ -970,6 +1078,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "runnableCheckReview": runnable_check_review,
         "hardwareHostBoundaryReview": hardware_host_boundary_review,
         "safetyBoundaryReview": safety_boundary_review,
+        "modeBiasReview": mode_bias_review,
         "precisionReview": precision,
         "findings": findings,
         "metrics": {
@@ -1015,9 +1124,40 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- First action bias: `{report.get('leanMode', {}).get('firstActionBias', 'proof-ladder')}`",
         f"- Policy: {report.get('leanMode', {}).get('policy', '')}",
         "",
-        "## Diff Review",
-        "",
     ]
+    mode_bias = report.get("modeBiasReview")
+    if isinstance(mode_bias, dict):
+        summary = mode_bias.get("summary") if isinstance(mode_bias.get("summary"), dict) else {}
+        priority_order = mode_bias.get("selectedPriorityOrder")
+        if not isinstance(priority_order, list):
+            priority_order = []
+        lines.extend(
+            [
+                "## Mode Bias Review",
+                "",
+                f"- Selected mode: `{mode_bias.get('selectedMode', '')}`",
+                f"- Selected first action bias: `{mode_bias.get('selectedFirstActionBias', '')}`",
+                f"- Selected priority order: `{' -> '.join(str(item) for item in priority_order if item)}`",
+                f"- Expected first source: `{mode_bias.get('expectedFirstSource', '')}`",
+                f"- Top action matches selected bias: `{str(bool(summary.get('selectedTopActionMatchesBias'))).lower()}`",
+                "",
+                "| Mode | First Action Bias | Priority Order | First Available Source |",
+                "| --- | --- | --- | --- |",
+            ]
+        )
+        supported_modes = mode_bias.get("supportedModes")
+        if isinstance(supported_modes, list):
+            for row in supported_modes:
+                if not isinstance(row, dict):
+                    continue
+                order = row.get("priorityOrder")
+                if not isinstance(order, list):
+                    order = []
+                lines.append(
+                    f"| `{row.get('mode', '')}` | `{row.get('firstActionBias', '')}` | `{' -> '.join(str(item) for item in order if item)}` | `{row.get('firstAvailableSource', '')}` |"
+                )
+        lines.append("")
+    lines.extend(["## Diff Review", ""])
     if report["reviewLines"]:
         for item in report["reviewLines"]:
             lines.append(f"- {item}")

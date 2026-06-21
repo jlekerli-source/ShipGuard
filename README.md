@@ -113,7 +113,7 @@ Most users only need these:
 | `shipguard verify ...` | Check a diff, evidence, and claims after agent work. |
 | `shipguard action verify-pr ...` | Audit the first GitHub Actions PR-proof workflow and consume the downloaded verdict artifact before trusting uploaded proof. |
 | `shipguard lean audit --mode full ...` | Find repo-level code that may not need to exist, with mode-aware delete/simplify/keep/proof-blocked actions, clean-pass next probes, and proof-required safety boundaries. |
-| `shipguard lean review --mode ultra ...` | Review the current diff before merge with a current-diff-only decision map, delete/simplify subset, safety-boundary keep rows, hardware/host proof rows, matched/unmatched proof signals, runnable-check proof rows, and whole-repo non-claim. |
+| `shipguard lean review --mode ultra ...` | Review the current diff before merge with selected-mode first-action proof, a current-diff-only decision map, delete/simplify subset, safety-boundary keep rows, hardware/host proof rows, matched/unmatched proof signals, runnable-check proof rows, and whole-repo non-claim. |
 | `shipguard lean debt ...` | Harvest `ponytail:` and `shipguard-lean:` shortcut markers into a ledger. |
 | `shipguard lean gain ...` | Show benchmark-backed lean-code impact without inventing fake per-repo savings. |
 | `shipguard docs-check ...` | Find broken local Markdown links. |

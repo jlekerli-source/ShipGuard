@@ -492,6 +492,40 @@ def normalized_question_text(value: object) -> str:
     return re.sub(r"\s+", " ", str(value)).strip().lower()
 
 
+LEAN_REVIEW_MODE_BIAS_CONTRACT = {
+    "lite": {
+        "firstActionBias": "suggestion-first",
+        "priorityOrder": ["simplifyFirst", "deleteList", "blockedByProof"],
+    },
+    "full": {
+        "firstActionBias": "proof-ladder",
+        "priorityOrder": ["deleteList", "simplifyFirst", "blockedByProof"],
+    },
+    "ultra": {
+        "firstActionBias": "delete-first",
+        "priorityOrder": ["deleteList", "blockedByProof", "simplifyFirst"],
+    },
+}
+
+
+def mode_action_key(action: object) -> tuple[str, str]:
+    if not isinstance(action, dict):
+        return ("", "")
+    return (str(action.get("ruleId") or ""), str(action.get("location") or action.get("firstLocation") or ""))
+
+
+def first_mode_priority_action(precision: dict[str, Any], priority_order: list[str]) -> tuple[dict[str, Any] | None, str]:
+    for source in priority_order:
+        rows = precision.get(source)
+        if isinstance(rows, list) and rows and isinstance(rows[0], dict):
+            return rows[0], source
+    return None, "none"
+
+
+def list_matches_expected(value: object, expected: list[str]) -> bool:
+    return isinstance(value, list) and [str(item) for item in value] == expected
+
+
 def kebab_case(value: object) -> str:
     spaced = re.sub(r"(?<!^)(?=[A-Z])", "-", str(value or ""))
     return re.sub(r"[^a-z0-9]+", "-", spaced.lower()).strip("-")
@@ -2875,6 +2909,149 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 if isinstance(item, dict) and str(item.get("ruleId") or "") == "do-not-cut-safety-diff-without-proof"
             ]
         )
+        lean_mode = report.get("leanMode")
+        precision_for_mode = report.get("precisionReview") if isinstance(report.get("precisionReview"), dict) else {}
+        if not isinstance(lean_mode, dict):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="lean-review-mode-missing",
+                evidence=f"{path_name} has no leanMode object",
+                recommendation="Emit leanMode.mode and leanMode.firstActionBias so readers know whether Lean Review ran in lite, full, or ultra mode.",
+            )
+            mode = ""
+            expected_contract = None
+        else:
+            mode = str(lean_mode.get("mode") or "")
+            expected_contract = LEAN_REVIEW_MODE_BIAS_CONTRACT.get(mode)
+            if not expected_contract:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-review-mode-invalid",
+                    evidence=f"{path_name} leanMode.mode={mode!r}",
+                    recommendation="Set leanMode.mode to lite, full, or ultra.",
+                )
+            elif str(lean_mode.get("firstActionBias") or "") != expected_contract["firstActionBias"]:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-review-mode-bias-incomplete",
+                    evidence=(
+                        f"{path_name} leanMode.firstActionBias={lean_mode.get('firstActionBias')!r} "
+                        f"for mode {mode!r}"
+                    ),
+                    recommendation=f"Set {mode} mode firstActionBias to {expected_contract['firstActionBias']}.",
+                )
+            precision_mode = precision_for_mode.get("mode") if isinstance(precision_for_mode.get("mode"), dict) else {}
+            if expected_contract and (
+                str(precision_mode.get("mode") or "") != mode
+                or str(precision_mode.get("firstActionBias") or "") != expected_contract["firstActionBias"]
+            ):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-review-mode-precision-mismatch",
+                    evidence=f"{path_name} precisionReview.mode does not mirror leanMode for {mode!r}",
+                    recommendation="Mirror the selected mode and first-action bias inside precisionReview.mode so JSON consumers do not need Markdown parsing.",
+                )
+        mode_bias_review = report.get("modeBiasReview")
+        if not isinstance(mode_bias_review, dict):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="lean-review-mode-bias-review-missing",
+                evidence=f"{path_name} has no modeBiasReview object",
+                recommendation="Emit modeBiasReview with lite/full/ultra priority orders and the selected top-action match result.",
+            )
+        elif expected_contract:
+            supported_modes = mode_bias_review.get("supportedModes")
+            supported_rows = supported_modes if isinstance(supported_modes, list) else []
+            supported_by_mode = {
+                str(row.get("mode") or ""): row
+                for row in supported_rows
+                if isinstance(row, dict)
+            }
+            missing_modes = sorted(set(LEAN_REVIEW_MODE_BIAS_CONTRACT) - set(supported_by_mode))
+            if missing_modes:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-review-mode-bias-matrix-incomplete",
+                    evidence=f"{path_name} modeBiasReview.supportedModes missing: {', '.join(missing_modes)}",
+                    recommendation="List lite, full, and ultra mode bias contracts in modeBiasReview.supportedModes.",
+                )
+            for supported_mode, contract in LEAN_REVIEW_MODE_BIAS_CONTRACT.items():
+                row = supported_by_mode.get(supported_mode)
+                if not isinstance(row, dict):
+                    continue
+                if str(row.get("firstActionBias") or "") != contract["firstActionBias"] or not list_matches_expected(
+                    row.get("priorityOrder"), contract["priorityOrder"]
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-mode-bias-matrix-invalid",
+                        evidence=f"{path_name} modeBiasReview has wrong contract for {supported_mode}",
+                        recommendation="Keep lite suggestion-first, full proof-ladder, and ultra delete-first priority orders stable.",
+                    )
+            if (
+                str(mode_bias_review.get("selectedMode") or "") != mode
+                or str(mode_bias_review.get("selectedFirstActionBias") or "") != expected_contract["firstActionBias"]
+                or not list_matches_expected(mode_bias_review.get("selectedPriorityOrder"), expected_contract["priorityOrder"])
+            ):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-review-mode-bias-selected-incomplete",
+                    evidence=f"{path_name} modeBiasReview selected fields do not match leanMode {mode!r}",
+                    recommendation="Keep selectedMode, selectedFirstActionBias, and selectedPriorityOrder aligned with the selected Lean Review mode.",
+                )
+            expected_action, expected_source = first_mode_priority_action(
+                precision_for_mode, expected_contract["priorityOrder"]
+            )
+            top_actions = (
+                precision_for_mode.get("topActions") if isinstance(precision_for_mode.get("topActions"), list) else []
+            )
+            selected_top_action = top_actions[0] if top_actions and isinstance(top_actions[0], dict) else None
+            clean_state = not any(mode_action_key(expected_action)) and not selected_top_action
+            if not clean_state and mode_action_key(expected_action) != mode_action_key(selected_top_action):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-review-mode-top-action-mismatch",
+                    evidence=(
+                        f"{path_name} top action does not match {mode} priority source {expected_source}: "
+                        f"expected {mode_action_key(expected_action)!r}, got {mode_action_key(selected_top_action)!r}"
+                    ),
+                    recommendation="Order precisionReview.topActions from the selected mode's priority list.",
+                )
+            summary = mode_bias_review.get("summary") if isinstance(mode_bias_review.get("summary"), dict) else {}
+            if (
+                int(summary.get("supportedModeCount") or 0) < 3
+                or summary.get("selectedModeMatchesPrecisionReview") is not True
+                or summary.get("selectedFirstActionBiasMatchesPrecisionReview") is not True
+                or summary.get("selectedTopActionMatchesBias") is not True
+            ):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-review-mode-bias-summary-incomplete",
+                    evidence=f"{path_name} modeBiasReview.summary does not prove selected mode/top-action alignment",
+                    recommendation="Summarize supported-mode count plus selected mode, first-action bias, and top-action match booleans.",
+                )
+        mode_markdown_required = ["Lean Mode", "First action bias", "Mode Bias Review", "lite", "full", "ultra"]
+        if expected_contract:
+            mode_markdown_required.extend([mode, expected_contract["firstActionBias"]])
+        missing_mode_markdown = [token for token in mode_markdown_required if token not in markdown]
+        if missing_mode_markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="lean-review-mode-markdown-missing",
+                evidence=f"{path_name} Markdown missing mode-bias tokens: {', '.join(missing_mode_markdown)}",
+                recommendation="Render Lean Mode and Mode Bias Review so maintainers can see the selected mode and lite/full/ultra first-action behavior without opening JSON.",
+            )
         calibration = report.get("proofSignalCalibration")
         if proof_related:
             if not isinstance(calibration, dict):
@@ -4867,6 +5044,19 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
                     "the Markdown exposes Safety Boundary Review and Keep With Proof Boundaries",
                 ]
             )
+        if (
+            "selected lite full ultra mode" in normalized_question
+            or "bias first actions accordingly" in normalized_question
+            or "first action bias" in normalized_question
+        ):
+            expected_assertions.extend(
+                [
+                    "the fixture exposes leanMode.mode and leanMode.firstActionBias for the selected mode",
+                    "the fixture exposes modeBiasReview.supportedModes for lite, full, and ultra",
+                    "the fixture verifies precisionReview.topActions starts from the selected mode's priority order",
+                    "the Markdown exposes Lean Mode and Mode Bias Review with the selected first-action bias",
+                ]
+            )
     return {
         "priority": index,
         "candidateId": candidate_id,
@@ -5800,6 +5990,131 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
         "checkSignal": True,
     }
     proof_signals = [proof_signal, unrelated_proof_signal]
+    delete_list = [
+        {
+            "rank": 1,
+            "ruleId": "thin-wrapper-diff-review",
+            "location": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+            "severity": "opportunity",
+            "action": "Inline or delete this wrapper unless it adds policy.",
+            "proofRequired": "Search call sites and keep one small check if behavior is non-trivial.",
+        }
+    ]
+    simplify_first = [
+        {
+            "rank": 2,
+            "ruleId": "stdlib-url-params-diff",
+            "location": "Sources/SyntheticLeanReview/QueryBuilder.swift:22",
+            "severity": "opportunity",
+            "action": "Prefer URLComponents or URLQueryItem when runtime support allows it.",
+            "proofRequired": "Add one check for repeated keys, empty values, encoding, and malformed input.",
+        }
+    ]
+    keep_list = [
+        {
+            "ruleId": "do-not-cut-safety-diff-without-proof",
+            "location": "Sources/SyntheticLeanReview/PermissionGate.swift:31",
+            "reason": "Less-code pressure is not enough for permission-state branches.",
+            "proofRequired": "Attach focused permission-state behavior proof.",
+        },
+        {
+            "ruleId": "host-adapter-boundary-diff",
+            "location": "Sources/SyntheticLeanReview/PluginHostAdapter.swift:12",
+            "reason": "Thin host adapters can be the product boundary.",
+            "proofRequired": "Attach call-site, protocol, plugin, MCP, preview, or runtime proof before simplifying the adapter boundary.",
+        },
+    ]
+    blocked_by_proof = [
+        {
+            "rank": 3,
+            "ruleId": "one-runnable-check-missing-diff",
+            "location": "Sources/SyntheticLeanReview/RuleRouter.swift:18",
+            "severity": "review",
+            "action": "Leave one smallest runnable route-selection check.",
+            "proofRequired": "Add one focused route-selection check or point to the changed test that covers this branch before merge.",
+        },
+        {
+            "rank": 4,
+            "ruleId": "hardware-calibration-missing-diff",
+            "location": "Sources/SyntheticLeanReview/SensorSampler.swift:33",
+            "severity": "review",
+            "action": "Keep a minimal calibration or tuning boundary for hardware behavior.",
+            "proofRequired": "Attach real-device, sensor, timing, or calibration evidence before simplifying the physical-world edge case away.",
+        },
+    ]
+    top_actions = [delete_list[0], simplify_first[0], blocked_by_proof[0], blocked_by_proof[1]]
+    mode_bias_review = {
+        "selectedMode": "full",
+        "selectedFirstActionBias": "proof-ladder",
+        "selectedPriorityOrder": ["deleteList", "simplifyFirst", "blockedByProof"],
+        "selectedPolicy": "Use the normal proof ladder before adding or deleting code.",
+        "expectedFirstSource": "deleteList",
+        "expectedFirstAction": {
+            "sourceList": "deleteList",
+            "rank": 1,
+            "ruleId": "thin-wrapper-diff-review",
+            "location": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+            "severity": "opportunity",
+        },
+        "selectedFirstAction": {
+            "sourceList": "deleteList",
+            "rank": 1,
+            "ruleId": "thin-wrapper-diff-review",
+            "location": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+            "severity": "opportunity",
+        },
+        "supportedModes": [
+            {
+                "mode": "lite",
+                "firstActionBias": "suggestion-first",
+                "priorityOrder": ["simplifyFirst", "deleteList", "blockedByProof"],
+                "policy": "Start with the smallest suggestion before delete pressure.",
+                "firstAvailableSource": "simplifyFirst",
+                "firstAvailableAction": {
+                    "sourceList": "simplifyFirst",
+                    "rank": 2,
+                    "ruleId": "stdlib-url-params-diff",
+                    "location": "Sources/SyntheticLeanReview/QueryBuilder.swift:22",
+                    "severity": "opportunity",
+                },
+            },
+            {
+                "mode": "full",
+                "firstActionBias": "proof-ladder",
+                "priorityOrder": ["deleteList", "simplifyFirst", "blockedByProof"],
+                "policy": "Use the normal proof ladder before adding or deleting code.",
+                "firstAvailableSource": "deleteList",
+                "firstAvailableAction": {
+                    "sourceList": "deleteList",
+                    "rank": 1,
+                    "ruleId": "thin-wrapper-diff-review",
+                    "location": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+                    "severity": "opportunity",
+                },
+            },
+            {
+                "mode": "ultra",
+                "firstActionBias": "delete-first",
+                "priorityOrder": ["deleteList", "blockedByProof", "simplifyFirst"],
+                "policy": "Try deletion and existence proof before simplification.",
+                "firstAvailableSource": "deleteList",
+                "firstAvailableAction": {
+                    "sourceList": "deleteList",
+                    "rank": 1,
+                    "ruleId": "thin-wrapper-diff-review",
+                    "location": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+                    "severity": "opportunity",
+                },
+            },
+        ],
+        "summary": {
+            "supportedModeCount": 3,
+            "cleanState": False,
+            "selectedModeMatchesPrecisionReview": True,
+            "selectedFirstActionBiasMatchesPrecisionReview": True,
+            "selectedTopActionMatchesBias": True,
+        },
+    }
     return {
         "surface": "ShipGuard Lean Review",
         "target": {"path": ".", "shareable": True},
@@ -5823,6 +6138,7 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
             "firstActionBias": "proof-ladder",
             "policy": "Use full mode for current-diff review when proof boundaries matter.",
         },
+        "modeBiasReview": mode_bias_review,
         "currentDiffDecisionMap": {
             "scope": "current-diff-only",
             "diffPath": "synthetic-current-change.diff",
@@ -6054,60 +6370,12 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
         "precisionReview": {
             "principle": "The best ShipGuard code is the code that proves it needs to exist.",
             "mode": {"mode": "full", "firstActionBias": "proof-ladder"},
-            "deleteList": [
-                {
-                    "rank": 1,
-                    "ruleId": "thin-wrapper-diff-review",
-                    "location": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
-                    "severity": "opportunity",
-                    "action": "Inline or delete this wrapper unless it adds policy.",
-                    "proofRequired": "Search call sites and keep one small check if behavior is non-trivial.",
-                }
-            ],
-            "simplifyFirst": [
-                {
-                    "rank": 2,
-                    "ruleId": "stdlib-url-params-diff",
-                    "location": "Sources/SyntheticLeanReview/QueryBuilder.swift:22",
-                    "severity": "opportunity",
-                    "action": "Prefer URLComponents or URLQueryItem when runtime support allows it.",
-                    "proofRequired": "Add one check for repeated keys, empty values, encoding, and malformed input.",
-                }
-            ],
-            "keepList": [
-                {
-                    "ruleId": "do-not-cut-safety-diff-without-proof",
-                    "location": "Sources/SyntheticLeanReview/PermissionGate.swift:31",
-                    "reason": "Less-code pressure is not enough for permission-state branches.",
-                    "proofRequired": "Attach focused permission-state behavior proof.",
-                },
-                {
-                    "ruleId": "host-adapter-boundary-diff",
-                    "location": "Sources/SyntheticLeanReview/PluginHostAdapter.swift:12",
-                    "reason": "Thin host adapters can be the product boundary.",
-                    "proofRequired": "Attach call-site, protocol, plugin, MCP, preview, or runtime proof before simplifying the adapter boundary.",
-                }
-            ],
-            "blockedByProof": [
-                {
-                    "rank": 3,
-                    "ruleId": "one-runnable-check-missing-diff",
-                    "location": "Sources/SyntheticLeanReview/RuleRouter.swift:18",
-                    "severity": "review",
-                    "action": "Leave one smallest runnable route-selection check.",
-                    "proofRequired": "Add one focused route-selection check or point to the changed test that covers this branch before merge.",
-                },
-                {
-                    "rank": 4,
-                    "ruleId": "hardware-calibration-missing-diff",
-                    "location": "Sources/SyntheticLeanReview/SensorSampler.swift:33",
-                    "severity": "review",
-                    "action": "Keep a minimal calibration or tuning boundary for hardware behavior.",
-                    "proofRequired": "Attach real-device, sensor, timing, or calibration evidence before simplifying the physical-world edge case away.",
-                }
-            ],
+            "deleteList": delete_list,
+            "simplifyFirst": simplify_first,
+            "keepList": keep_list,
+            "blockedByProof": blocked_by_proof,
             "actionGroups": action_groups,
-            "topActions": [action_groups[0], action_groups[1], action_groups[2], action_groups[3]],
+            "topActions": top_actions,
             "summary": {
                 "deleteCandidates": 1,
                 "simplifyCandidates": 1,
@@ -6424,6 +6692,27 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
     if source_tool == "shipguard lean review":
         lines.extend(
             [
+                "## Lean Mode",
+                "",
+                "- Mode: `full`",
+                "- Intent: Use the proof ladder before adding or deleting code.",
+                "- First action bias: `proof-ladder`",
+                "- Policy: Use full mode for current-diff review when proof boundaries matter.",
+                "",
+                "## Mode Bias Review",
+                "",
+                "- Selected mode: `full`",
+                "- Selected first action bias: `proof-ladder`",
+                "- Selected priority order: `deleteList -> simplifyFirst -> blockedByProof`",
+                "- Expected first source: `deleteList`",
+                "- Top action matches selected bias: `true`",
+                "",
+                "| Mode | First Action Bias | Priority Order | First Available Source |",
+                "| --- | --- | --- | --- |",
+                "| `lite` | `suggestion-first` | `simplifyFirst -> deleteList -> blockedByProof` | `simplifyFirst` |",
+                "| `full` | `proof-ladder` | `deleteList -> simplifyFirst -> blockedByProof` | `deleteList` |",
+                "| `ultra` | `delete-first` | `deleteList -> blockedByProof -> simplifyFirst` | `deleteList` |",
+                "",
                 "## Current Diff Decision Map",
                 "",
                 "- Scope: `current-diff-only`",

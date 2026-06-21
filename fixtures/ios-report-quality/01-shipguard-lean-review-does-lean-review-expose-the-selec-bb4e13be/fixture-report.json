@@ -335,7 +335,7 @@
     }
   ],
   "fixtureCandidate": {
-    "candidateId": "01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422",
+    "candidateId": "01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be",
     "duplicateCount": 1,
     "expectedAssertions": [
       "report-quality preserves the actionability question in JSON and Markdown",
@@ -345,12 +345,10 @@
       "the fixture exposes currentDiffDecisionMap.scope as current-diff-only",
       "the fixture exposes currentDiffDecisionMap decisions and the delete/simplify subset",
       "the Markdown exposes Current Diff Decision Map plus the whole-repo non-claim and lean-audit fallback",
-      "the fixture exposes runnableCheckReview.missingProofFindings for non-trivial logic without proof",
-      "the fixture exposes runnableCheckReview.sameDiffProofFindings for non-trivial logic with a matching same-diff proof signal",
-      "the fixture exposes proofSignalCalibration counts for missing proof and same-diff proof without treating unrelated tests as global proof",
-      "the fixture exposes proofSignalMatching rows plus unmatched proof signals so unrelated tests are not global proof",
-      "the Markdown exposes Runnable Check Review, Missing Runnable Checks, Same-Diff Proof Signals, and the non-ceremony boundary",
-      "the Markdown exposes Proof Signal Matching and Unmatched Proof Signals"
+      "the fixture exposes leanMode.mode and leanMode.firstActionBias for the selected mode",
+      "the fixture exposes modeBiasReview.supportedModes for lite, full, and ultra",
+      "the fixture verifies precisionReview.topActions starts from the selected mode's priority order",
+      "the Markdown exposes Lean Mode and Mode Bias Review with the selected first-action bias"
     ],
     "fixtureType": "shipguard-lean-report-quality-fixture",
     "materialization": {
@@ -366,13 +364,13 @@
     "priority": 1,
     "privateDataPolicy": "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
     "promotion": {
-      "candidateId": "01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422",
+      "candidateId": "01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be",
       "copyCommands": [
-        "mkdir -p fixtures/ios-report-quality/01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422",
-        "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422/README.md",
-        "cp <materialized-candidate-dir>/fixture-candidate.json fixtures/ios-report-quality/01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422/fixture-candidate.json",
-        "cp <materialized-candidate-dir>/fixture-report.json fixtures/ios-report-quality/01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422/fixture-report.json",
-        "cp <materialized-candidate-dir>/fixture-report.md fixtures/ios-report-quality/01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422/fixture-report.md"
+        "mkdir -p fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be",
+        "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be/README.md",
+        "cp <materialized-candidate-dir>/fixture-candidate.json fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be/fixture-candidate.json",
+        "cp <materialized-candidate-dir>/fixture-report.json fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be/fixture-report.json",
+        "cp <materialized-candidate-dir>/fixture-report.md fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be/fixture-report.md"
       ],
       "files": [
         "README.md",
@@ -388,17 +386,17 @@
         "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates.",
         "Register the fixture in validation only after the report-quality check passes."
       ],
-      "sourceDirectory": "<materialized-fixture-output>/01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422",
-      "suggestedFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422",
+      "sourceDirectory": "<materialized-fixture-output>/01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be",
+      "suggestedFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be",
       "validationCommands": [
-        "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422 --out <quality-dir> --shareable",
+        "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be --out <quality-dir> --shareable",
         "./tests/ios_report_quality_test.sh",
         "./bin/shipguard validate"
       ]
     },
-    "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422",
+    "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be",
     "publicFixtureRecipe": "Create a minimal synthetic ShipGuard report pair that reproduces this report-quality question without private app code, local paths, screenshots, customer data, app names, or proprietary source snippets.",
-    "sourceQuestion": "Does proofSignalCalibration distinguish missing runnable checks from same-diff proof signals?",
+    "sourceQuestion": "Does Lean Review expose the selected lite/full/ultra mode and bias first actions accordingly?",
     "sourceReportCount": 1,
     "sourceReportsRedacted": true,
     "sourceTool": "shipguard lean review",
@@ -778,7 +776,7 @@
     ]
   },
   "reportQualityQuestions": [
-    "Does proofSignalCalibration distinguish missing runnable checks from same-diff proof signals?"
+    "Does Lean Review expose the selected lite/full/ultra mode and bias first actions accordingly?"
   ],
   "runnableCheckReview": {
     "missingProofFindings": [
