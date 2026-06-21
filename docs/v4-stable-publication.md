@@ -154,6 +154,15 @@ It includes:
 
 Markdown renders the same table under `Closure Checklist`. A passing stable-publication report has zero checklist items; a blocked report must mirror every non-passing `stablePublicationEvidencePacket.requiredEvidence` row.
 
+When release notes are a closure blocker, the release-notes row also carries a closure kit:
+
+- `missingTopicIds` copied from `releaseNotesProof`
+- `authoringKitPaths` for the generated README, checklist JSON, and draft release notes
+- `publicGitHubReleaseEditBoundary`, which states that ShipGuard does not edit the public GitHub release body and the generated files are draft-only
+- `rerunCommand`, the stable-publication command to run after editing the public release notes
+
+Markdown renders those fields as `Release Notes Closure Kit` so the first blocker can be closed without opening nested JSON.
+
 ## Evidence Starter Kit
 
 Every run also writes `stable-publication-evidence-kit/` inside the report directory.

@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 import urllib.error
@@ -242,6 +243,36 @@ def stable_publication_command(args: argparse.Namespace, *, placeholders: bool =
         "--shareable",
     ]
     return " ".join(command)
+
+
+def stable_publication_rerun_command(args: argparse.Namespace) -> str:
+    command = [
+        "./bin/shipguard",
+        "v4",
+        "stable-publication",
+        "--path",
+        ".",
+        "--out",
+        "/tmp/shipguard-v4-stable-publication",
+        "--github-release-repo",
+        args.github_release_repo or "<owner/repo>",
+        "--release-version",
+        args.release_version or "<version>",
+        "--release-candidate-report",
+        args.release_candidate_report or "<v4-release-candidate-json-or-dir>",
+    ]
+    if args.release_assets:
+        command.extend(["--release-assets", args.release_assets])
+    else:
+        command.append("--download-release-assets")
+    adoption_inputs = list(args.external_adoption_evidence or []) or ["<adoption-evidence-json-or-dir>"]
+    for value in adoption_inputs:
+        command.extend(["--external-adoption-evidence", value])
+    security_inputs = list(args.security_review_evidence or []) or ["<security-review-json-or-dir>"]
+    for value in security_inputs:
+        command.extend(["--security-review-evidence", value])
+    command.extend(["--shipguard-eval", "--shareable"])
+    return " ".join(shlex.quote(str(part)) for part in command)
 
 
 def resolve_release_candidate_report(raw: str | None) -> Path | None:
@@ -949,9 +980,16 @@ def build_stable_publication_closure_checklist(
     evidence_packet: dict[str, Any],
     release_version: str,
     stable_v4_release: bool,
+    release_notes_proof: dict[str, Any] | None = None,
+    release_notes_authoring_kit: dict[str, Any] | None = None,
+    metadata_proof: dict[str, Any] | None = None,
+    release_notes_rerun_command: str = "",
 ) -> dict[str, Any]:
     required = evidence_packet.get("requiredEvidence") if isinstance(evidence_packet.get("requiredEvidence"), list) else []
     first_blocking = evidence_packet.get("firstBlockingGate") if isinstance(evidence_packet.get("firstBlockingGate"), dict) else {}
+    release_notes_proof = release_notes_proof if isinstance(release_notes_proof, dict) else {}
+    release_notes_authoring_kit = release_notes_authoring_kit if isinstance(release_notes_authoring_kit, dict) else {}
+    metadata_proof = metadata_proof if isinstance(metadata_proof, dict) else {}
     items: list[dict[str, Any]] = []
 
     for index, item in enumerate(required, start=1):
@@ -976,6 +1014,34 @@ def build_stable_publication_closure_checklist(
         for optional_key in ("templatePath", "templateCommand", "failureEvidence", "blockingProof"):
             if optional_key in item:
                 closure_item[optional_key] = item[optional_key]
+        if evidence_id == "release-notes":
+            kit_files = release_notes_authoring_kit.get("files") if isinstance(release_notes_authoring_kit.get("files"), list) else []
+            authoring_paths = [str(file_item.get("path")) for file_item in kit_files if isinstance(file_item, dict) and file_item.get("path")]
+            closure_item.update(
+                {
+                    "missingTopicIds": release_notes_proof.get("missingTopicIds") if isinstance(release_notes_proof.get("missingTopicIds"), list) else [],
+                    "authoringKitPaths": authoring_paths,
+                    "releaseNotesAuthoringKit": {
+                        "directory": release_notes_authoring_kit.get("directory"),
+                        "draftOnly": release_notes_authoring_kit.get("draftOnly") is True,
+                        "readmePath": f"{RELEASE_NOTES_KIT_DIRNAME}/README.md",
+                        "checklistPath": f"{RELEASE_NOTES_KIT_DIRNAME}/release-notes-checklist.json",
+                        "draftPath": f"{RELEASE_NOTES_KIT_DIRNAME}/draft-release-notes.md",
+                        "files": kit_files,
+                    },
+                    "publicGitHubReleaseEditBoundary": {
+                        "target": "public GitHub release body",
+                        "releaseUrl": metadata_proof.get("releaseUrl") or "",
+                        "requiresPublicReleaseEdit": True,
+                        "shipguardDoesNotEditRelease": True,
+                        "authoringKitIsDraftOnly": True,
+                        "stableV4ClaimAllowed": False,
+                        "instruction": "Edit the public GitHub release body with the missing stable-publication topics, then rerun stable-publication against public release metadata.",
+                    },
+                    "rerunCommand": release_notes_rerun_command or item.get("nextCommand") or first_blocking.get("nextCommand") or "",
+                }
+            )
+            closure_item["nextCommand"] = closure_item["rerunCommand"]
         items.append(closure_item)
 
     first_item = items[0] if items else None
@@ -1414,6 +1480,10 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         evidence_packet=evidence_packet,
         release_version=release_version,
         stable_v4_release=stable_v4_release,
+        release_notes_proof=release_notes_proof,
+        release_notes_authoring_kit=release_notes_authoring_kit,
+        metadata_proof=metadata_proof,
+        release_notes_rerun_command=stable_publication_rerun_command(args),
     )
     launch_relay_drafts = build_stable_publication_launch_relay_drafts(
         release_version=release_version,
@@ -1581,6 +1651,50 @@ def render_markdown(report: dict[str, Any]) -> str:
                     )
         else:
             lines.append("| `none` | `none` | `pass` | `False` | `not-needed` | Every stable-publication gate passed. |")
+        release_notes_closure = next(
+            (item for item in items if isinstance(item, dict) and item.get("id") == "release-notes"),
+            None,
+        )
+        if isinstance(release_notes_closure, dict):
+            edit_boundary = (
+                release_notes_closure.get("publicGitHubReleaseEditBoundary")
+                if isinstance(release_notes_closure.get("publicGitHubReleaseEditBoundary"), dict)
+                else {}
+            )
+            authoring_paths = (
+                release_notes_closure.get("authoringKitPaths")
+                if isinstance(release_notes_closure.get("authoringKitPaths"), list)
+                else []
+            )
+            lines.extend(
+                [
+                    "",
+                    "### Release Notes Closure Kit",
+                    "",
+                    f"- Missing topics: `{', '.join(release_notes_closure.get('missingTopicIds') or []) or 'none'}`",
+                    f"- Public release edit required: `{edit_boundary.get('requiresPublicReleaseEdit')}`",
+                    f"- ShipGuard edits public release: `{not bool(edit_boundary.get('shipguardDoesNotEditRelease'))}`",
+                    f"- Release URL: `{edit_boundary.get('releaseUrl') or 'not-provided'}`",
+                    "",
+                    "| Authoring file |",
+                    "| --- |",
+                ]
+            )
+            if authoring_paths:
+                for path in authoring_paths:
+                    lines.append(f"| `{path}` |")
+            else:
+                lines.append("| `not-provided` |")
+            lines.extend(
+                [
+                    "",
+                    "Rerun after editing public release notes:",
+                    "",
+                    "```bash",
+                    str(release_notes_closure.get("rerunCommand") or release_notes_closure.get("nextCommand") or ""),
+                    "```",
+                ]
+            )
     launchkey_blocker = {}
     release_candidate_proof = report.get("releaseCandidatePacketProof")
     if isinstance(release_candidate_proof, dict) and isinstance(release_candidate_proof.get("launchKeyBlockingProof"), dict):

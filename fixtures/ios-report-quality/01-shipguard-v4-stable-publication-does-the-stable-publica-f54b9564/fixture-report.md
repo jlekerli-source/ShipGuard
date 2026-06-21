@@ -34,6 +34,25 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 | `5` | `independent-adoption-evidence` | `not-provided` | `False` | `./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --external-adoption-evidence <evidence-json-or-dir> --shipguard-eval --shareable` | Independent public adoption evidence must pass structure, redaction, and independence checks; fixture evidence is not enough. |
 | `6` | `final-security-review-evidence` | `not-provided` | `False` | `./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable` | Final security review evidence must cover CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy with no open critical or high findings. |
 
+### Release Notes Closure Kit
+
+- Missing topics: `stable-v4-claim, downloaded-release-assets, post-release-consumer-proof, final-security-review-evidence`
+- Public release edit required: `True`
+- ShipGuard edits public release: `False`
+- Release URL: `not-provided`
+
+| Authoring file |
+| --- |
+| `stable-publication-release-notes/release-notes-checklist.json` |
+| `stable-publication-release-notes/draft-release-notes.md` |
+| `stable-publication-release-notes/README.md` |
+
+Rerun after editing public release notes:
+
+```bash
+./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable
+```
+
 ## Evidence Templates
 
 - Draft-only templates: `True`

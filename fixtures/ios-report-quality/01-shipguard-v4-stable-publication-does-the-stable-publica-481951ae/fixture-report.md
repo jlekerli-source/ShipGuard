@@ -41,6 +41,25 @@ This is a public synthetic ShipGuard fixture. It is not copied from a private ap
 | `independent-adoption-evidence` | `not-provided` |
 | `final-security-review-evidence` | `not-provided` |
 
+### Release Notes Closure Kit
+
+- Missing topics: `stable-v4-claim, downloaded-release-assets, post-release-consumer-proof, final-security-review-evidence`
+- Public release edit required: `True`
+- ShipGuard edits public release: `False`
+- Release URL: `not-provided`
+
+| Authoring file |
+| --- |
+| `stable-publication-release-notes/release-notes-checklist.json` |
+| `stable-publication-release-notes/draft-release-notes.md` |
+| `stable-publication-release-notes/README.md` |
+
+Rerun after editing public release notes:
+
+```bash
+./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable
+```
+
 ## Release Notes Proof
 
 - Notes digest: `1406862bd17a3ea91efba613932e7d678b5ba4aa4b2f762bbf316c3ef9b00451`

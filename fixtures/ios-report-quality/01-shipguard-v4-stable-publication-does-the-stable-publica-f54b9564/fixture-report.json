@@ -310,7 +310,52 @@
       "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
       "proofBoundary": "The public release body must include stable-v4 claims, proof boundaries, assets, consumer proof, adoption, security review, and non-claim language.",
       "blocksStableV4": true,
-      "isFirstBlockingGate": true
+      "isFirstBlockingGate": true,
+      "missingTopicIds": [
+        "stable-v4-claim",
+        "downloaded-release-assets",
+        "post-release-consumer-proof",
+        "final-security-review-evidence"
+      ],
+      "authoringKitPaths": [
+        "stable-publication-release-notes/release-notes-checklist.json",
+        "stable-publication-release-notes/draft-release-notes.md",
+        "stable-publication-release-notes/README.md"
+      ],
+      "releaseNotesAuthoringKit": {
+        "directory": "stable-publication-release-notes",
+        "draftOnly": true,
+        "readmePath": "stable-publication-release-notes/README.md",
+        "checklistPath": "stable-publication-release-notes/release-notes-checklist.json",
+        "draftPath": "stable-publication-release-notes/draft-release-notes.md",
+        "files": [
+          {
+            "id": "checklist",
+            "path": "stable-publication-release-notes/release-notes-checklist.json",
+            "purpose": "Machine-readable checklist for the stable-publication release-notes topics."
+          },
+          {
+            "id": "draft-release-notes",
+            "path": "stable-publication-release-notes/draft-release-notes.md",
+            "purpose": "Draft-only release notes section that includes every required stable-publication proof topic."
+          },
+          {
+            "id": "copy-brief",
+            "path": "stable-publication-release-notes/README.md",
+            "purpose": "Human instructions for adapting the draft into the public GitHub release body."
+          }
+        ]
+      },
+      "publicGitHubReleaseEditBoundary": {
+        "target": "public GitHub release body",
+        "releaseUrl": "",
+        "requiresPublicReleaseEdit": true,
+        "shipguardDoesNotEditRelease": true,
+        "authoringKitIsDraftOnly": true,
+        "stableV4ClaimAllowed": false,
+        "instruction": "Edit the public GitHub release body with the missing stable-publication topics, then rerun stable-publication against public release metadata."
+      },
+      "rerunCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable"
     },
     "items": [
       {
@@ -323,7 +368,52 @@
         "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
         "proofBoundary": "The public release body must include stable-v4 claims, proof boundaries, assets, consumer proof, adoption, security review, and non-claim language.",
         "blocksStableV4": true,
-        "isFirstBlockingGate": true
+        "isFirstBlockingGate": true,
+        "missingTopicIds": [
+          "stable-v4-claim",
+          "downloaded-release-assets",
+          "post-release-consumer-proof",
+          "final-security-review-evidence"
+        ],
+        "authoringKitPaths": [
+          "stable-publication-release-notes/release-notes-checklist.json",
+          "stable-publication-release-notes/draft-release-notes.md",
+          "stable-publication-release-notes/README.md"
+        ],
+        "releaseNotesAuthoringKit": {
+          "directory": "stable-publication-release-notes",
+          "draftOnly": true,
+          "readmePath": "stable-publication-release-notes/README.md",
+          "checklistPath": "stable-publication-release-notes/release-notes-checklist.json",
+          "draftPath": "stable-publication-release-notes/draft-release-notes.md",
+          "files": [
+            {
+              "id": "checklist",
+              "path": "stable-publication-release-notes/release-notes-checklist.json",
+              "purpose": "Machine-readable checklist for the stable-publication release-notes topics."
+            },
+            {
+              "id": "draft-release-notes",
+              "path": "stable-publication-release-notes/draft-release-notes.md",
+              "purpose": "Draft-only release notes section that includes every required stable-publication proof topic."
+            },
+            {
+              "id": "copy-brief",
+              "path": "stable-publication-release-notes/README.md",
+              "purpose": "Human instructions for adapting the draft into the public GitHub release body."
+            }
+          ]
+        },
+        "publicGitHubReleaseEditBoundary": {
+          "target": "public GitHub release body",
+          "releaseUrl": "",
+          "requiresPublicReleaseEdit": true,
+          "shipguardDoesNotEditRelease": true,
+          "authoringKitIsDraftOnly": true,
+          "stableV4ClaimAllowed": false,
+          "instruction": "Edit the public GitHub release body with the missing stable-publication topics, then rerun stable-publication against public release metadata."
+        },
+        "rerunCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable"
       },
       {
         "rank": 2,

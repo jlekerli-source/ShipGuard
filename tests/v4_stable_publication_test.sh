@@ -470,6 +470,25 @@ assert {
     "final-security-review-evidence",
     "non-claims-boundary",
 } <= missing
+release_notes_item = closure["items"][0]
+assert set(release_notes_item["missingTopicIds"]) == missing
+assert {
+    "stable-publication-release-notes/README.md",
+    "stable-publication-release-notes/release-notes-checklist.json",
+    "stable-publication-release-notes/draft-release-notes.md",
+} <= set(release_notes_item["authoringKitPaths"])
+assert release_notes_item["releaseNotesAuthoringKit"]["draftOnly"] is True
+assert release_notes_item["releaseNotesAuthoringKit"]["directory"] == "stable-publication-release-notes"
+assert release_notes_item["releaseNotesAuthoringKit"]["checklistPath"] == "stable-publication-release-notes/release-notes-checklist.json"
+edit_boundary = release_notes_item["publicGitHubReleaseEditBoundary"]
+assert edit_boundary["requiresPublicReleaseEdit"] is True
+assert edit_boundary["shipguardDoesNotEditRelease"] is True
+assert edit_boundary["authoringKitIsDraftOnly"] is True
+assert edit_boundary["stableV4ClaimAllowed"] is False
+assert "stable-publication" in release_notes_item["rerunCommand"]
+assert "--github-release-repo jlekerli-source/ShipGuard" in release_notes_item["rerunCommand"]
+assert f"--release-version {report['releaseVersion']}" in release_notes_item["rerunCommand"]
+assert release_notes_item["nextCommand"] == release_notes_item["rerunCommand"]
 assert len(report["releaseNotesProof"]["topicMatrix"]) == 7
 notes_kit = report["stablePublicationReleaseNotesAuthoringKit"]
 assert notes_kit["draftOnly"] is True
@@ -488,7 +507,10 @@ assert relay["postingPolicy"]["computerUseMayPost"] is False
 PY
 grep -q 'Release Notes Proof' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'Release Notes Authoring Kit' "$tmp_dir/weak-notes/v4-stable-publication.md"
+grep -q 'Release Notes Closure Kit' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'post-release-consumer-proof' "$tmp_dir/weak-notes/v4-stable-publication.md"
+grep -q 'Public release edit required: `True`' "$tmp_dir/weak-notes/v4-stable-publication.md"
+grep -q 'stable-publication-release-notes/draft-release-notes.md' "$tmp_dir/weak-notes/v4-stable-publication.md"
 test -f "$tmp_dir/weak-notes/stable-publication-release-notes/README.md"
 test -f "$tmp_dir/weak-notes/stable-publication-release-notes/release-notes-checklist.json"
 test -f "$tmp_dir/weak-notes/stable-publication-release-notes/draft-release-notes.md"

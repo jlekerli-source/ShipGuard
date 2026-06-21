@@ -3216,6 +3216,62 @@ def stable_publication_evidence_packet_issues(
                         evidence=f"{path_name} closure item `{item.get('id')}` is the first blocker but is not marked",
                         recommendation="Set isFirstBlockingGate=true on the closure item that matches firstBlockingGate.",
                     )
+                if item.get("id") == "release-notes":
+                    release_notes_proof = report.get("releaseNotesProof") if isinstance(report.get("releaseNotesProof"), dict) else {}
+                    proof_missing_topics = release_notes_proof.get("missingTopicIds")
+                    item_missing_topics = item.get("missingTopicIds")
+                    if isinstance(proof_missing_topics, list) and item_missing_topics != proof_missing_topics:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="stable-publication-release-notes-closure-missing-topics",
+                            evidence=f"{path_name} release-notes closure item does not mirror releaseNotesProof.missingTopicIds",
+                            recommendation="Copy releaseNotesProof.missingTopicIds onto the release-notes closure item so maintainers can close the first blocker without opening nested JSON.",
+                        )
+                    authoring_paths = item.get("authoringKitPaths")
+                    expected_note_paths = {
+                        "stable-publication-release-notes/README.md",
+                        "stable-publication-release-notes/release-notes-checklist.json",
+                        "stable-publication-release-notes/draft-release-notes.md",
+                    }
+                    actual_note_paths = set(str(path) for path in authoring_paths) if isinstance(authoring_paths, list) else set()
+                    if not expected_note_paths <= actual_note_paths:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="stable-publication-release-notes-closure-authoring-paths-missing",
+                            evidence=f"{path_name} release-notes closure item does not list every generated authoring-kit path",
+                            recommendation="Attach README, checklist, and draft release-notes paths to the release-notes closure item.",
+                        )
+                    edit_boundary = (
+                        item.get("publicGitHubReleaseEditBoundary")
+                        if isinstance(item.get("publicGitHubReleaseEditBoundary"), dict)
+                        else {}
+                    )
+                    if edit_boundary.get("requiresPublicReleaseEdit") is not True or edit_boundary.get("shipguardDoesNotEditRelease") is not True:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="stable-publication-release-notes-closure-edit-boundary-missing",
+                            evidence=f"{path_name} release-notes closure item does not expose the public GitHub release edit boundary",
+                            recommendation="State that ShipGuard generated a draft-only kit and the maintainer must edit the public GitHub release body before rerunning stable-publication.",
+                        )
+                    if "stable-publication" not in str(item.get("rerunCommand") or ""):
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="stable-publication-release-notes-closure-rerun-command-missing",
+                            evidence=f"{path_name} release-notes closure item has no exact stable-publication rerun command",
+                            recommendation="Attach the stable-publication rerun command to the release-notes closure item.",
+                        )
+                    if "Release Notes Closure Kit" not in markdown:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="stable-publication-release-notes-closure-markdown-missing",
+                            evidence=f"{path_name} Markdown does not render the release-notes closure kit",
+                            recommendation="Render missing topics, authoring-kit paths, public edit boundary, and rerun command in Markdown.",
+                        )
     if "Closure Checklist" not in markdown:
         add_issue(
             issues,
