@@ -3722,6 +3722,44 @@ def stable_publication_evidence_packet_issues(
                                 evidence=f"{path_name} post-release consumer closure kit omits consumerReportStatus",
                                 recommendation="Mirror consumerReportStatus so maintainers know whether release-consume produced a pass, blocked, missing, or malformed report.",
                             )
+                        digest = (
+                            closure_kit.get("consumerDigestFreshness")
+                            if isinstance(closure_kit.get("consumerDigestFreshness"), dict)
+                            else {}
+                        )
+                        if not digest:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-post-release-consumer-digest-freshness-missing",
+                                evidence=f"{path_name} post-release consumer closure kit hides the asset digest freshness summary",
+                                recommendation="Expose consumerDigestFreshness with required asset rows, missing required assets, missing SHA-256 rows, tarball digest comparison, and problems from asset-digests.json.",
+                            )
+                        else:
+                            if not digest.get("status") or not isinstance(digest.get("requiredAssetNames"), list):
+                                add_issue(
+                                    issues,
+                                    severity="review",
+                                    rule_id="stable-publication-post-release-consumer-digest-freshness-status-missing",
+                                    evidence=f"{path_name} post-release consumer digest freshness lacks status or requiredAssetNames",
+                                    recommendation="Include digest freshness status and requiredAssetNames from asset-digests.json.",
+                                )
+                            if not isinstance(digest.get("missingRequiredAssetNames"), list) or not isinstance(digest.get("missingSha256AssetNames"), list):
+                                add_issue(
+                                    issues,
+                                    severity="review",
+                                    rule_id="stable-publication-post-release-consumer-digest-problems-missing",
+                                    evidence=f"{path_name} post-release consumer digest freshness lacks missing asset/SHA-256 lists",
+                                    recommendation="List missing required asset names and present assets missing SHA-256 values so release-consume problems are actionable.",
+                                )
+                            if "releaseTarballDigestMatchesConsumerArtifact" not in digest:
+                                add_issue(
+                                    issues,
+                                    severity="review",
+                                    rule_id="stable-publication-post-release-consumer-tarball-digest-match-missing",
+                                    evidence=f"{path_name} post-release consumer digest freshness does not compare the release tarball digest with the consumer artifact SHA-256",
+                                    recommendation="Record releaseTarballDigestMatchesConsumerArtifact as true, false, or null when comparison is impossible.",
+                                )
                         crosschecks = (
                             closure_kit.get("publishedCrosschecks")
                             if isinstance(closure_kit.get("publishedCrosschecks"), dict)
@@ -3805,6 +3843,8 @@ def stable_publication_evidence_packet_issues(
                         )
                         if (
                             boundary.get("releaseConsumeRequired") is not True
+                            or boundary.get("assetDigestMatrixMustCoverRequiredAssets") is not True
+                            or boundary.get("releaseTarballDigestMustMatchConsumerArtifact") is not True
                             or boundary.get("sourceOnlyProofCountsAsConsumerProof") is not False
                             or boundary.get("fixtureProofCountsAsStableV4PublicationProof") is not False
                         ):
@@ -3812,8 +3852,8 @@ def stable_publication_evidence_packet_issues(
                                 issues,
                                 severity="review",
                                 rule_id="stable-publication-post-release-consumer-boundary-missing",
-                                evidence=f"{path_name} post-release consumer closure kit does not state the release-consume/source-only/fixture-proof boundary",
-                                recommendation="State that release-consume over downloaded or supplied assets is required, source-only proof cannot satisfy post-release consumer proof, and fixture proof cannot satisfy stable-v4 publication proof.",
+                                evidence=f"{path_name} post-release consumer closure kit does not state the release-consume/digest/source-only/fixture-proof boundary",
+                                recommendation="State that release-consume over downloaded or supplied assets is required, the digest matrix must cover required assets, tarball digest must match the consumer artifact, source-only proof cannot satisfy post-release consumer proof, and fixture proof cannot satisfy stable-v4 publication proof.",
                             )
                         if "Post-Release Consumer Closure Kit" not in markdown:
                             add_issue(
@@ -3822,6 +3862,14 @@ def stable_publication_evidence_packet_issues(
                                 rule_id="stable-publication-post-release-consumer-closure-kit-markdown-missing",
                                 evidence=f"{path_name} Markdown does not render the post-release consumer closure kit",
                                 recommendation="Render release-consume paths, missing artifacts, statuses, repair/pass/fail criteria, rerun commands, and proof boundaries in Markdown.",
+                            )
+                        if "Digest freshness status" not in markdown:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-post-release-consumer-digest-markdown-missing",
+                                evidence=f"{path_name} Markdown does not render digest freshness status",
+                                recommendation="Render digest freshness status, required asset rows, missing required assets, missing SHA-256 rows, and tarball digest comparison in Markdown.",
                             )
                 if item.get("id") == "public-release-freshness":
                     source_freshness = (

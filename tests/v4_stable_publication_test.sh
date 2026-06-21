@@ -575,6 +575,8 @@ diagnostics = consumer_required["postReleaseConsumerDiagnostics"]
 assert diagnostics["status"] == "not-provided"
 assert diagnostics["consumerReportStatus"] == "not-provided"
 assert set(diagnostics["missingProofArtifacts"]) == {"consumer-report.json", "asset-digests.json"}
+assert diagnostics["consumerDigestFreshness"]["status"] == "not-provided"
+assert "asset-digests.json missing" in diagnostics["consumerDigestFreshness"]["problems"]
 freshness_required = required_by_id["public-release-freshness"]
 freshness_diagnostics = freshness_required["releaseFreshnessDiagnostics"]
 assert freshness_diagnostics["status"] == "not-provided"
@@ -611,7 +613,11 @@ assert kit["consumerReportStatus"] == "not-provided"
 assert kit["consumerReportPath"] == ""
 assert kit["assetDigestMatrixPath"] == ""
 assert set(kit["missingProofArtifacts"]) == {"consumer-report.json", "asset-digests.json"}
+assert kit["consumerDigestFreshness"]["status"] == "not-provided"
+assert "asset-digests.json missing" in kit["consumerDigestFreshness"]["problems"]
 assert kit["consumerProofBoundary"]["releaseConsumeRequired"] is True
+assert kit["consumerProofBoundary"]["assetDigestMatrixMustCoverRequiredAssets"] is True
+assert kit["consumerProofBoundary"]["releaseTarballDigestMustMatchConsumerArtifact"] is True
 assert kit["consumerProofBoundary"]["sourceOnlyProofCountsAsConsumerProof"] is False
 assert kit["consumerProofBoundary"]["fixtureProofCountsAsStableV4PublicationProof"] is False
 assert "release-consume verify" in kit["releaseConsumeRerunCommand"]
@@ -634,6 +640,8 @@ grep -q 'GitHub metadata only counts as release-asset proof: `False`' "$tmp_dir/
 grep -q 'Rerun release asset proof' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
 grep -q 'Post-Release Consumer Closure Kit' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
 grep -q 'consumer-report.json, asset-digests.json' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
+grep -q 'Digest freshness status: `not-provided`' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
+grep -q 'Asset digest matrix must cover required assets: `True`' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
 grep -q 'Source-only proof counts as consumer proof: `False`' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
 grep -q 'Rerun release-consume proof' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
 grep -q 'release-consume verify' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
@@ -1005,6 +1013,12 @@ assert report["releaseCandidatePacketProof"]["status"] == "pass"
 assert report["githubReleaseAssetDownloadProof"]["status"] == "pass"
 assert report["publishedReleaseAssetProof"]["status"] == "pass"
 assert report["postReleaseConsumerProof"]["status"] == "pass"
+digest = report["postReleaseConsumerProof"]["consumerDigestFreshness"]
+assert digest["status"] == "pass"
+assert digest["releaseTarballDigestMatchesConsumerArtifact"] is True
+assert digest["missingRequiredAssetNames"] == []
+assert digest["missingSha256AssetNames"] == []
+assert f"shipguard-v{report['releaseVersion'].removeprefix('v')}.tar.gz" in digest["requiredAssetNames"]
 assert report["publicReleaseFreshnessProof"]["status"] == "pass"
 assert report["publicReleaseFreshnessProof"]["comparisons"]["tagTargetMatchesManifestCommit"] is True
 assert report["externalAdoptionEvidenceProof"]["stableV4GateStatus"] == "pass"

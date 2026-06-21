@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.171 read-only stable-v4 packet loop continued from public release freshness and tested whether a passing post-release consumer row could hide weak `asset-digests.json` coverage.
+
+- Finding: `v4 stable-publication` could expose the digest matrix path without summarizing whether required release assets were present, whether present assets had SHA-256 values, or whether the release tarball digest matched the consumer artifact SHA-256.
+- Product weakness: a solo maintainer should not have to open `asset-digests.json` by hand to know whether the consumer proof really covers the required public release assets.
+- Native fix: `postReleaseConsumerProof.consumerDigestFreshness` now summarizes required asset rows, present required assets, missing required assets, missing SHA-256 rows, release tarball digest, consumer artifact SHA-256, tarball-digest comparison, and digest problems.
+- Report-quality fix: `ios report-quality` now flags stable-publication reports whose post-release consumer closure kit hides digest freshness, missing asset/SHA-256 lists, tarball comparison, boundary language, or Markdown `Digest freshness status` rendering.
+- Fixture fix: stable-publication consumer closure fixtures now carry digest freshness fields and Markdown rows so the final publication gate cannot regress to path-only digest proof.
+
+Fresh stable-v4 QA still does not claim real stable v4. Digest freshness is evidence about the downloaded or supplied release assets; it does not replace public release metadata, independent adoption evidence, final security review, or the stable-publication gate.
+
 The v3.170 read-only stable-v4 packet loop continued from the GitHub release metadata closure kit and tested whether a public release can look complete while the public tag and uploaded release manifest describe different commits.
 
 - Finding: `v4 stable-publication` could prove public metadata, downloaded assets, and release-consume shape without separately proving the public GitHub tag target matched `release-manifest.json`.

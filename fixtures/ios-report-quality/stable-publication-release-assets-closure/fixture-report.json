@@ -872,12 +872,33 @@
           "assetsDir": "",
           "attestationStatus": "not-provided",
           "consumeOut": "",
+          "consumerDigestFreshness": {
+            "artifactSha256": "",
+            "assetDigestMatrixPath": "",
+            "missingRequiredAssetNames": [],
+            "missingSha256AssetNames": [],
+            "presentRequiredAssetNames": [],
+            "problems": [
+              "asset-digests.json missing"
+            ],
+            "releaseTarballDigestMatchesConsumerArtifact": null,
+            "releaseTarballName": "",
+            "releaseTarballSha256": "",
+            "releaseTarballStatus": "not-provided",
+            "requiredAssetNames": [],
+            "schemaVersion": "",
+            "status": "not-provided",
+            "totalAssetRows": 0
+          },
+          "consumerDigestFreshnessProblems": [],
           "consumerProofBoundary": {
+            "assetDigestMatrixMustCoverRequiredAssets": true,
             "downloadedOrSuppliedAssetsRequired": true,
             "explanation": "Post-release consumer proof is only satisfied by release-consume verification of downloaded or supplied release assets. Source tests, package fixtures, release-note drafts, and GitHub metadata alone are not consumer proof.",
             "fixtureProofCountsAsStableV4PublicationProof": false,
             "postReleaseConsumerProofDoesNotProveAdoptionOrSecurity": true,
             "releaseConsumeRequired": true,
+            "releaseTarballDigestMustMatchConsumerArtifact": true,
             "sourceOnlyProofCountsAsConsumerProof": false
           },
           "consumerReportPath": "",
@@ -892,6 +913,25 @@
             "commandTemplate": "",
             "consumeCommand": "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>",
             "consumeOut": "",
+            "consumerDigestFreshness": {
+              "artifactSha256": "",
+              "assetDigestMatrixPath": "",
+              "missingRequiredAssetNames": [],
+              "missingSha256AssetNames": [],
+              "presentRequiredAssetNames": [],
+              "problems": [
+                "asset-digests.json missing"
+              ],
+              "releaseTarballDigestMatchesConsumerArtifact": null,
+              "releaseTarballName": "",
+              "releaseTarballSha256": "",
+              "releaseTarballStatus": "not-provided",
+              "requiredAssetNames": [],
+              "schemaVersion": "",
+              "status": "not-provided",
+              "totalAssetRows": 0
+            },
+            "consumerDigestFreshnessProblems": [],
             "consumerReportPath": "",
             "consumerReportStatus": "not-provided",
             "downloadProofStatus": "",

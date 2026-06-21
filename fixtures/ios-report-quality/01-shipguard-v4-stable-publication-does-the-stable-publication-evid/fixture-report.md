@@ -132,7 +132,14 @@ Rerun the full stable-publication gate after release assets pass:
 - Consume output directory: `not-provided`
 - Exit code: `not-provided`
 - Error: `none`
+- Digest freshness status: `not-provided`
+- Required digest assets: `not-provided`
+- Missing required digest assets: `none`
+- Missing SHA-256 digest assets: `none`
+- Release tarball digest matches consumer artifact: `None`
 - Release-consume required: `True`
+- Asset digest matrix must cover required assets: `True`
+- Release tarball digest must match consumer artifact: `True`
 - Source-only proof counts as consumer proof: `False`
 - Fixture proof counts as stable-v4 publication proof: `False`
 

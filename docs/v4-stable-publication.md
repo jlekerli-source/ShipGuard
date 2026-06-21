@@ -42,6 +42,7 @@ Outputs:
 - `v4-stable-publication.md`
 - `downloaded-release-assets/` when `--download-release-assets` is supplied and no custom destination is given
 - `release-consume/consumer-report.json` when downloaded or supplied release assets are verified
+- `release-consume/asset-digests.json` with required release asset rows, SHA-256 values, byte counts, and optional published proof assets
 - `stable-publication-evidence-kit/README.md`
 - `stable-publication-evidence-kit/stable-publication-checklist.json`
 - `stable-publication-evidence-kit/external-adoption-evidence.json`
@@ -72,6 +73,7 @@ The report returns `pass` only when every gate passes:
 - The supplied `v4 release-candidate` report is from LaunchKey, passed, and still claims only `candidate-ready`.
 - Downloaded or supplied release assets pass `shipguard release-consume verify`.
 - Post-release consumer proof is attached from the release assets.
+- The post-release digest matrix covers required release assets, has SHA-256 values for present assets, and the release tarball digest matches the consumer artifact SHA-256.
 - Public release freshness proves the GitHub tag target, `release-manifest.json` commit, release tag/version, release metadata target, and publication timestamp describe the same release.
 - External adoption evidence passes the stable-v4 gate with independent public or redacted external records.
 - Final security-review evidence passes the stable-v4 gate with CLI, plugin, GitHub Actions, release-proof, package-install, and redaction/privacy scope coverage.
@@ -210,12 +212,13 @@ When post-release consumer proof is a closure blocker, the row also carries a co
 
 - release-consume paths and statuses, including the consumer report path, asset digest matrix path, assets directory, consume output directory, version, command, exit code, stdout, stderr, and any error text when available
 - missing proof artifacts such as `consumer-report.json` or `asset-digests.json`
-- digest, replay, attestation, published replay, published attestation, and published badge crosscheck statuses
+- `consumerDigestFreshness`, including required asset names, present required assets, missing required assets, present assets missing SHA-256 values, release tarball digest, consumer artifact SHA-256, and the tarball-digest comparison
+- replay, attestation, published replay, published attestation, and published badge crosscheck statuses
 - repair criteria, pass criteria, and fail criteria for proving the downloaded or supplied release assets from the consumer side
 - a `releaseConsumeRerunCommand` for the direct consumer proof and a full `stablePublicationRerunCommand` for the final publication gate
-- `consumerProofBoundary`, which says release-consume verification is required, downloaded or supplied release assets are required, source-only proof does not count, fixture proof does not count as stable-v4 publication proof, and consumer proof does not prove adoption or security evidence
+- `consumerProofBoundary`, which says release-consume verification is required, downloaded or supplied release assets are required, the digest matrix must cover required assets, the release tarball digest must match the consumer artifact, source-only proof does not count, fixture proof does not count as stable-v4 publication proof, and consumer proof does not prove adoption or security evidence
 
-Markdown renders these fields as `Post-Release Consumer Closure Kit` so maintainers can see exactly why the consumer gate is still blocked and which proof artifact has to exist before any stable-v4 claim can move forward.
+Markdown renders these fields as `Post-Release Consumer Closure Kit`, including `Digest freshness status`, so maintainers can see exactly why the consumer gate is still blocked and which proof artifact has to exist before any stable-v4 claim can move forward.
 
 When public release freshness is a closure blocker, the row also carries a freshness closure kit:
 

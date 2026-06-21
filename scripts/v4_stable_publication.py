@@ -1000,6 +1000,86 @@ def re_normalized(value: str) -> str:
     return " ".join(str(value).lower().split())
 
 
+def build_consumer_digest_freshness(proof: dict[str, Any]) -> dict[str, Any]:
+    path_raw = str(proof.get("assetDigestMatrixPath") or "")
+    artifact_sha = str(proof.get("artifactSha256") or "")
+    summary: dict[str, Any] = {
+        "status": "not-provided",
+        "assetDigestMatrixPath": path_raw,
+        "schemaVersion": "",
+        "totalAssetRows": 0,
+        "requiredAssetNames": [],
+        "presentRequiredAssetNames": [],
+        "missingRequiredAssetNames": [],
+        "missingSha256AssetNames": [],
+        "releaseTarballName": "",
+        "releaseTarballStatus": "not-provided",
+        "releaseTarballSha256": "",
+        "artifactSha256": artifact_sha,
+        "releaseTarballDigestMatchesConsumerArtifact": None,
+        "problems": [],
+    }
+    problems: list[str] = summary["problems"]
+    if not path_raw:
+        problems.append("asset-digests.json missing")
+        return summary
+    matrix = load_json(Path(path_raw))
+    assets = matrix.get("assets") if isinstance(matrix.get("assets"), list) else []
+    summary["schemaVersion"] = matrix.get("schema_version") or matrix.get("schemaVersion") or ""
+    summary["totalAssetRows"] = len(assets)
+    if not assets:
+        summary["status"] = "review"
+        problems.append("asset digest matrix has no assets")
+        return summary
+
+    required_rows = [row for row in assets if isinstance(row, dict) and row.get("required") is True]
+    present_required = [row for row in required_rows if row.get("status") == "present"]
+    missing_required = [str(row.get("name") or "") for row in required_rows if row.get("status") != "present"]
+    missing_sha = [
+        str(row.get("name") or "")
+        for row in assets
+        if isinstance(row, dict) and row.get("status") == "present" and not row.get("sha256")
+    ]
+    tarball_row = next(
+        (
+            row
+            for row in assets
+            if isinstance(row, dict)
+            and (row.get("role") == "release tarball" or str(row.get("name") or "").endswith(".tar.gz"))
+        ),
+        {},
+    )
+    tarball_sha = str(tarball_row.get("sha256") or "") if isinstance(tarball_row, dict) else ""
+    summary.update(
+        {
+            "requiredAssetNames": [str(row.get("name") or "") for row in required_rows],
+            "presentRequiredAssetNames": [str(row.get("name") or "") for row in present_required],
+            "missingRequiredAssetNames": [name for name in missing_required if name],
+            "missingSha256AssetNames": [name for name in missing_sha if name],
+            "releaseTarballName": str(tarball_row.get("name") or "") if isinstance(tarball_row, dict) else "",
+            "releaseTarballStatus": str(tarball_row.get("status") or "not-provided") if isinstance(tarball_row, dict) else "not-provided",
+            "releaseTarballSha256": tarball_sha,
+        }
+    )
+    if not required_rows:
+        problems.append("asset digest matrix has no required asset rows")
+    if summary["missingRequiredAssetNames"]:
+        problems.append("required release assets are missing from the digest matrix")
+    if summary["missingSha256AssetNames"]:
+        problems.append("present release assets are missing SHA-256 values")
+    if not tarball_row:
+        problems.append("release tarball row missing from asset digest matrix")
+    if artifact_sha and tarball_sha:
+        matches = artifact_sha == tarball_sha
+        summary["releaseTarballDigestMatchesConsumerArtifact"] = matches
+        if not matches:
+            problems.append("release tarball digest does not match consumer artifact SHA-256")
+    elif artifact_sha or tarball_sha:
+        problems.append("release tarball digest cannot be compared with consumer artifact SHA-256")
+    summary["status"] = "review" if problems else "pass"
+    return summary
+
+
 def build_post_release_consumer_proof(published_release_asset_proof: dict[str, Any]) -> dict[str, Any]:
     passed = published_release_asset_proof.get("status") == "pass"
     proof = {
@@ -1041,6 +1121,12 @@ def build_post_release_consumer_proof(published_release_asset_proof: dict[str, A
         missing_artifacts.append("asset-digests.json")
     if missing_artifacts:
         proof["missingProofArtifacts"] = missing_artifacts
+    digest_freshness = build_consumer_digest_freshness(proof)
+    proof["consumerDigestFreshness"] = digest_freshness
+    if passed and digest_freshness.get("status") != "pass":
+        proof["status"] = "review"
+        proof["summary"] = "Downloaded release assets passed release-consume, but digest freshness needs review."
+        proof["consumerDigestFreshnessProblems"] = digest_freshness.get("problems") if isinstance(digest_freshness.get("problems"), list) else []
     return proof
 
 
@@ -1619,6 +1705,8 @@ def post_release_consumer_diagnostics_for_closure(proof: dict[str, Any]) -> dict
         "publishedAttestationCrosscheck": proof.get("publishedAttestationCrosscheck") or "not-provided",
         "publishedBadgeCrosscheck": proof.get("publishedBadgeCrosscheck") or "not-provided",
         "assetCount": proof.get("assetCount"),
+        "consumerDigestFreshness": proof.get("consumerDigestFreshness") if isinstance(proof.get("consumerDigestFreshness"), dict) else {},
+        "consumerDigestFreshnessProblems": proof.get("consumerDigestFreshnessProblems") if isinstance(proof.get("consumerDigestFreshnessProblems"), list) else [],
     }
 
 
@@ -1754,6 +1842,8 @@ def build_post_release_consumer_closure_kit(
             "attestationBadge": diagnostics.get("publishedBadgeCrosscheck") or "not-provided",
         },
         "assetCount": diagnostics.get("assetCount"),
+        "consumerDigestFreshness": diagnostics.get("consumerDigestFreshness") if isinstance(diagnostics.get("consumerDigestFreshness"), dict) else {},
+        "consumerDigestFreshnessProblems": diagnostics.get("consumerDigestFreshnessProblems") if isinstance(diagnostics.get("consumerDigestFreshnessProblems"), list) else [],
         "currentConsumerDiagnostics": diagnostics,
         "repairCriteria": POST_RELEASE_CONSUMER_REPAIR_CRITERIA,
         "passCriteria": POST_RELEASE_CONSUMER_PASS_CRITERIA,
@@ -1763,6 +1853,8 @@ def build_post_release_consumer_closure_kit(
         "consumerProofBoundary": {
             "releaseConsumeRequired": True,
             "downloadedOrSuppliedAssetsRequired": True,
+            "assetDigestMatrixMustCoverRequiredAssets": True,
+            "releaseTarballDigestMustMatchConsumerArtifact": True,
             "sourceOnlyProofCountsAsConsumerProof": False,
             "fixtureProofCountsAsStableV4PublicationProof": False,
             "postReleaseConsumerProofDoesNotProveAdoptionOrSecurity": True,
@@ -3270,6 +3362,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             boundary = kit.get("consumerProofBoundary") if isinstance(kit.get("consumerProofBoundary"), dict) else {}
             crosschecks = kit.get("publishedCrosschecks") if isinstance(kit.get("publishedCrosschecks"), dict) else {}
             missing_artifacts = kit.get("missingProofArtifacts") if isinstance(kit.get("missingProofArtifacts"), list) else []
+            digest = kit.get("consumerDigestFreshness") if isinstance(kit.get("consumerDigestFreshness"), dict) else {}
             diagnostics = kit.get("currentConsumerDiagnostics") if isinstance(kit.get("currentConsumerDiagnostics"), dict) else {}
             lines.extend(
                 [
@@ -3288,7 +3381,14 @@ def render_markdown(report: dict[str, Any]) -> str:
                     f"- Consume output directory: `{kit.get('consumeOut') or 'not-provided'}`",
                     f"- Exit code: `{diagnostics.get('exitCode') if diagnostics.get('exitCode') is not None else 'not-provided'}`",
                     f"- Error: `{diagnostics.get('error') or 'none'}`",
+                    f"- Digest freshness status: `{digest.get('status') or 'not-provided'}`",
+                    f"- Required digest assets: `{', '.join(str(value) for value in digest.get('requiredAssetNames', []) if value) or 'not-provided'}`",
+                    f"- Missing required digest assets: `{', '.join(str(value) for value in digest.get('missingRequiredAssetNames', []) if value) or 'none'}`",
+                    f"- Missing SHA-256 digest assets: `{', '.join(str(value) for value in digest.get('missingSha256AssetNames', []) if value) or 'none'}`",
+                    f"- Release tarball digest matches consumer artifact: `{digest.get('releaseTarballDigestMatchesConsumerArtifact')}`",
                     f"- Release-consume required: `{boundary.get('releaseConsumeRequired')}`",
+                    f"- Asset digest matrix must cover required assets: `{boundary.get('assetDigestMatrixMustCoverRequiredAssets')}`",
+                    f"- Release tarball digest must match consumer artifact: `{boundary.get('releaseTarballDigestMustMatchConsumerArtifact')}`",
                     f"- Source-only proof counts as consumer proof: `{boundary.get('sourceOnlyProofCountsAsConsumerProof')}`",
                     f"- Fixture proof counts as stable-v4 publication proof: `{boundary.get('fixtureProofCountsAsStableV4PublicationProof')}`",
                     "",
