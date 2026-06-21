@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-21T03:28:43Z
+- Generated: 2026-06-21T03:58:43Z
 - Current toolkit version: 3.131.0
-- Target release: v3.146.0
-- Title: Lean Review Runnable-Check Fixture QA
+- Target release: v3.147.0
+- Title: Lean Review Proof-Signal Fixture QA
 
 ## Slash Plan
 
 ```text
-/plan v3.146.0 Lean Review Runnable-Check Fixture QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Promote the next Lean Review report-quality actionability question into a public synthetic fixture that proves Lean Review requires one smallest runnable check for non-trivial new logic without adding duplicate ceremony when proof is already present.
+/plan v3.147.0 Lean Review Proof-Signal Fixture QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Promote the next Lean Review report-quality actionability question into a public synthetic fixture that proves proofSignalCalibration distinguishes missing runnable checks from matched same-diff proof signals without treating unrelated tests as global proof.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.146.0 Lean Review Runnable-Check Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next Lean Review report-quality actionability question into a public synthetic fixture that proves Lean Review requires one smallest runnable check for non-trivial new logic without adding duplicate ceremony when proof is already present, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.147.0 Lean Review Proof-Signal Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next Lean Review report-quality actionability question into a public synthetic fixture that proves proofSignalCalibration distinguishes missing runnable checks from matched same-diff proof signals without treating unrelated tests as global proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Promote the next Lean Review report-quality actionability question into a public synthetic fixture that proves Lean Review requires one smallest runnable check for non-trivial new logic without adding duplicate ceremony when proof is already present.
+Promote the next Lean Review report-quality actionability question into a public synthetic fixture that proves proofSignalCalibration distinguishes missing runnable checks from matched same-diff proof signals without treating unrelated tests as global proof.
 
 ## Completion Receipt
 
-- Completed scope: Reran Lean Deck audit/review/gain/debt and report-quality as read-only ShipGuard self-QA; added currentDiffDecisionMap to Lean Review with current-diff-only scope, changed-file decisions, delete/simplify subset, whole-repo non-claim, and lean-audit fallback; tightened report-quality checks for Lean Review current-diff maps, decision rows, delete/simplify visibility, and Markdown; promoted the current-diff usefulness question into a public synthetic fixture; updated docs and regression tests so fresh combined Lean QA advances to the runnable-check question.
-- Evidence: Passed: git diff --check; python3 -m py_compile scripts/lean_review.py scripts/ios_report_quality.py scripts/lean_audit.py scripts/lean_debt.py scripts/lean_gain.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3145-lean-audit --reports /tmp/shipguard-v3145-lean-review-after --reports /tmp/shipguard-v3145-lean-debt --reports /tmp/shipguard-v3145-lean-gain --out /tmp/shipguard-v3145-quality-promoted --shipguard-eval --shareable --write-fixture-candidates /tmp/shipguard-v3145-fixtures-promoted status pass and advanced priorityAction to the Lean Review runnable-check question; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3145-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/tool_value_gauntlet_test.sh; ./tests/next_goal_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3145-value-gauntlet status pass; ./bin/shipguard codex status --strict; bash -x ./tests/package_release_test.sh > /tmp/shipguard-v3145-package-release.stdout 2> /tmp/shipguard-v3145-package-release.trace package release tests passed.
+- Completed scope: Reran Lean Deck audit/review/gain/debt and report-quality as read-only ShipGuard self-QA; fixed Lean Review proof matching so unrelated tests no longer hide missing runnable checks; added runnableCheckReview JSON and Markdown with missing-proof rows, same-diff proof rows, duplicate-ceremony avoidance, and proof-to-review guidance; tightened ios report-quality checks for runnableCheckReview; promoted the runnable-check usefulness question into a public synthetic fixture; updated docs and tests so fresh combined Lean QA advances to the proofSignalCalibration question.
+- Evidence: Passed: git diff --check; python3 -m py_compile scripts/lean_review.py scripts/ios_report_quality.py scripts/lean_audit.py scripts/lean_debt.py scripts/lean_gain.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; public fixture JSON parse and private-term scan; combined Lean QA status pass and priorityAction advanced to Does proofSignalCalibration distinguish missing runnable checks from same-diff proof signals?; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3146-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3146-value-gauntlet status pass; ./bin/shipguard codex status --strict; ./tests/package_release_test.sh package release tests passed.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.147.0 Lean Review Proof-Signal Fixture QA for jlekerli-source/ShipGuard:
+/plan v3.148.0 Lean Review Hardware Boundary Fixture QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Promote the next Lean Review report-quality actionability question into a public
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.147.0 Lean Review Proof-Signal Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.148.0 Lean Review Hardware Boundary Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.147.0 --title "Lean Review Proof-Signal Fixture QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.148.0 --title "Lean Review Hardware Boundary Fixture QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.146.0.
+1. Open or update the tracking issue for v3.147.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.146.0` and upload `dist/shipguard-v3.146.0.tar.gz`.
+6. Create release `v3.147.0` and upload `dist/shipguard-v3.147.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

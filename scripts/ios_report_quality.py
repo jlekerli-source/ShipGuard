@@ -2874,17 +2874,6 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                         evidence=f"{path_name} has same-diff proof findings without a covered count",
                         recommendation="Set codeFindingsCoveredBySameDiffProof so the report shows how many findings were calibrated.",
                     )
-                if status == "present" and any(
-                    str(item.get("ruleId") or "") == "one-runnable-check-missing-diff"
-                    for item in proof_related
-                ):
-                    add_issue(
-                        issues,
-                        severity="review",
-                        rule_id="lean-review-proof-signal-overflagged",
-                        evidence=f"{path_name} still reports missing runnable checks even though same-diff proof is present",
-                        recommendation="Use one-runnable-check-signal-present-diff for calibrated same-diff proof instead of duplicate missing-check warnings.",
-                    )
                 if status == "missing" and missing_count < 1 and any(
                     str(item.get("ruleId") or "") == "one-runnable-check-missing-diff"
                     for item in proof_related
@@ -2903,6 +2892,85 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 rule_id="lean-review-proof-signal-markdown-missing",
                 evidence=f"{path_name} Markdown does not expose proof signal calibration",
                 recommendation="Render proofSignalCalibration in Markdown so maintainers can see whether tests were absent or present elsewhere in the diff.",
+            )
+        if proof_related:
+            missing_rule_count = len(
+                [
+                    item
+                    for item in proof_related
+                    if str(item.get("ruleId") or "") == "one-runnable-check-missing-diff"
+                ]
+            )
+            same_diff_rule_count = len(
+                [
+                    item
+                    for item in proof_related
+                    if str(item.get("ruleId") or "") == "one-runnable-check-signal-present-diff"
+                ]
+            )
+            runnable_review = report.get("runnableCheckReview")
+            if not isinstance(runnable_review, dict):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-review-runnable-check-review-missing",
+                    evidence=f"{path_name} has runnable-check findings but no runnableCheckReview",
+                    recommendation="Emit runnableCheckReview with missing-proof rows, same-diff proof rows, and the non-ceremony boundary.",
+                )
+            else:
+                summary = runnable_review.get("summary") if isinstance(runnable_review.get("summary"), dict) else {}
+                missing_rows = runnable_review.get("missingProofFindings")
+                same_diff_rows = runnable_review.get("sameDiffProofFindings")
+                boundary = normalized_question_text(runnable_review.get("nonCeremonyBoundary") or "")
+                if missing_rule_count and (
+                    int(summary.get("missingRunnableCheckFindings") or 0) < missing_rule_count
+                    or not isinstance(missing_rows, list)
+                    or len(missing_rows) < missing_rule_count
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-runnable-check-missing-proof-rows-incomplete",
+                        evidence=f"{path_name} has {missing_rule_count} missing runnable-check finding(s) but incomplete runnableCheckReview.missingProofFindings",
+                        recommendation="List each changed location that still needs one smallest runnable check.",
+                    )
+                if same_diff_rule_count and (
+                    int(summary.get("sameDiffProofFindings") or 0) < same_diff_rule_count
+                    or not isinstance(same_diff_rows, list)
+                    or len(same_diff_rows) < same_diff_rule_count
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-runnable-check-same-diff-proof-rows-incomplete",
+                        evidence=f"{path_name} has {same_diff_rule_count} same-diff proof finding(s) but incomplete runnableCheckReview.sameDiffProofFindings",
+                        recommendation="List each changed location where same-diff proof should be reviewed instead of requesting duplicate ceremony.",
+                    )
+                if same_diff_rule_count and int(summary.get("duplicateCeremonyAvoided") or 0) < same_diff_rule_count:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-runnable-check-duplicate-ceremony-count-missing",
+                        evidence=f"{path_name} has same-diff proof findings without duplicateCeremonyAvoided coverage",
+                        recommendation="Count same-diff proof rows where Lean Review avoided duplicate test ceremony.",
+                    )
+                if same_diff_rule_count and (
+                    "same-diff" not in boundary or "duplicate" not in boundary or "ceremony" not in boundary
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-runnable-check-non-ceremony-boundary-incomplete",
+                        evidence=f"{path_name} runnableCheckReview.nonCeremonyBoundary does not explain same-diff duplicate ceremony",
+                        recommendation="State that same-diff proof signals still need relevance review but should not trigger duplicate test ceremony.",
+                    )
+        if proof_related and "Runnable Check Review" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="lean-review-runnable-check-markdown-missing",
+                evidence=f"{path_name} Markdown does not expose runnable check review",
+                recommendation="Render runnableCheckReview in Markdown so maintainers see missing checks and same-diff proof signals.",
             )
         decision_map = report.get("currentDiffDecisionMap")
         if not isinstance(decision_map, dict):
@@ -4338,6 +4406,15 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
                 "the Markdown exposes Current Diff Decision Map plus the whole-repo non-claim and lean-audit fallback",
             ]
         )
+        if "runnable check" in normalized_question_text(question) or "proofsignalcalibration" in normalized_question_text(question):
+            expected_assertions.extend(
+                [
+                    "the fixture exposes runnableCheckReview.missingProofFindings for non-trivial logic without proof",
+                    "the fixture exposes runnableCheckReview.sameDiffProofFindings for non-trivial logic with a matching same-diff proof signal",
+                    "the fixture exposes proofSignalCalibration counts for missing proof and same-diff proof without treating unrelated tests as global proof",
+                    "the Markdown exposes Runnable Check Review, Missing Runnable Checks, Same-Diff Proof Signals, and the non-ceremony boundary",
+                ]
+            )
     return {
         "priority": index,
         "candidateId": candidate_id,
@@ -5054,6 +5131,30 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
         "recommendation": "Less code is not the goal in this file until behavior proof exists.",
         "proofGuidance": "Attach focused before/after tests for trust-boundary, data-loss, security, permission, or accessibility behavior.",
     }
+    missing_check_finding = {
+        "severity": "review",
+        "category": "proof-diff-review",
+        "ruleId": "one-runnable-check-missing-diff",
+        "evidence": {
+            "file": "Sources/SyntheticLeanReview/RuleRouter.swift",
+            "line": 18,
+            "snippet": "if route.kind == .generated { return GeneratedRoute(route.payload) }",
+        },
+        "recommendation": "Leave one smallest runnable check for the new routing branch instead of treating tests as optional ceremony.",
+        "proofGuidance": "Add one focused route-selection check or point to the changed test that covers this branch before merge.",
+    }
+    same_diff_proof_finding = {
+        "severity": "info",
+        "category": "proof-signal-diff-review",
+        "ruleId": "one-runnable-check-signal-present-diff",
+        "evidence": {
+            "file": "Sources/SyntheticLeanReview/SelectionPolicy.swift",
+            "line": 27,
+            "snippet": "if option.isPrimary { return .preferred(option.id) }",
+        },
+        "recommendation": "Do not add duplicate test ceremony before checking whether the same-diff proof signal already covers this logic.",
+        "proofGuidance": "Review Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift, then run the focused test before merge.",
+    }
     action_groups = [
         {
             "rank": 1,
@@ -5074,6 +5175,16 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
             "firstExperiment": "Try URLComponents or URLQueryItem at the changed call site before adding parser code.",
             "validationRoute": "Run one focused query-string behavior check plus git diff --check.",
             "stopCondition": "Stop if repeated keys, empty values, encoding, or malformed input behavior changes.",
+        },
+        {
+            "rank": 3,
+            "decision": "proof-blocked",
+            "ruleId": "one-runnable-check-missing-diff",
+            "evidenceCount": 1,
+            "firstLocation": "Sources/SyntheticLeanReview/RuleRouter.swift:18",
+            "firstExperiment": "Add or identify one smallest runnable route-selection check before merging the new branch.",
+            "validationRoute": "Run the focused route-selection test plus git diff --check.",
+            "stopCondition": "Stop if the diff has no runnable proof signal for the changed non-trivial logic.",
         },
     ]
     decisions = [
@@ -5113,18 +5224,62 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
             "validationRoute": "Run focused permission-state behavior proof before changing this branch.",
             "stopCondition": "Stop if the only evidence is less-code pressure without behavior proof.",
         },
+        {
+            "file": "Sources/SyntheticLeanReview/RuleRouter.swift",
+            "source": "unified-diff",
+            "decision": "proof-blocked",
+            "addedLines": 7,
+            "removedLines": 0,
+            "ruleIds": ["one-runnable-check-missing-diff"],
+            "firstLocation": "Sources/SyntheticLeanReview/RuleRouter.swift:18",
+            "firstExperiment": action_groups[2]["firstExperiment"],
+            "validationRoute": action_groups[2]["validationRoute"],
+            "stopCondition": action_groups[2]["stopCondition"],
+        },
+        {
+            "file": "Sources/SyntheticLeanReview/SelectionPolicy.swift",
+            "source": "unified-diff",
+            "decision": "clean",
+            "addedLines": 6,
+            "removedLines": 0,
+            "ruleIds": ["one-runnable-check-signal-present-diff"],
+            "firstLocation": "Sources/SyntheticLeanReview/SelectionPolicy.swift:27",
+            "firstExperiment": "Review the matching same-diff test before adding any duplicate test ceremony.",
+            "validationRoute": "Run Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift or the equivalent focused lane.",
+            "stopCondition": "Stop if the changed same-diff test already proves the new branch and no Lean cleanup remains.",
+        },
+        {
+            "file": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift",
+            "source": "unified-diff",
+            "decision": "clean",
+            "addedLines": 5,
+            "removedLines": 0,
+            "ruleIds": [],
+            "firstLocation": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift:9",
+            "firstExperiment": "Run the changed focused test and confirm it covers the changed selection branch.",
+            "validationRoute": "Run the focused test lane before broader validation.",
+            "stopCondition": "Stop if the test is unrelated to the changed logic.",
+        },
     ]
+    proof_signal = {
+        "file": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift",
+        "line": 9,
+        "kind": "test-file",
+        "addedLines": 5,
+        "snippet": "func testPrimaryOptionWins() { XCTAssertEqual(policy.pick(primary), .preferred(primary.id)) }",
+        "checkSignal": True,
+    }
     return {
         "surface": "ShipGuard Lean Review",
         "target": {"path": ".", "shareable": True},
-        "diff": {"path": "synthetic-current-change.diff", "filesChanged": 3},
+        "diff": {"path": "synthetic-current-change.diff", "filesChanged": 6},
         "metrics": {
-            "filesChanged": 3,
-            "addedLines": 19,
-            "findings": 3,
-            "reviewFindings": 0,
+            "filesChanged": 6,
+            "addedLines": 37,
+            "findings": 5,
+            "reviewFindings": 1,
             "opportunityFindings": 2,
-            "infoFindings": 1,
+            "infoFindings": 2,
         },
         "sourceInfluence": {
             "name": "Ponytail",
@@ -5146,19 +5301,22 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
                 {"file": "Sources/SyntheticLeanReview/FormatterShim.swift", "addedLines": 6, "removedLines": 0},
                 {"file": "Sources/SyntheticLeanReview/QueryBuilder.swift", "addedLines": 8, "removedLines": 1},
                 {"file": "Sources/SyntheticLeanReview/PermissionGate.swift", "addedLines": 5, "removedLines": 0},
+                {"file": "Sources/SyntheticLeanReview/RuleRouter.swift", "addedLines": 7, "removedLines": 0},
+                {"file": "Sources/SyntheticLeanReview/SelectionPolicy.swift", "addedLines": 6, "removedLines": 0},
+                {"file": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift", "addedLines": 5, "removedLines": 0},
             ],
             "decisions": decisions,
             "deleteOrSimplifyList": [decisions[0], decisions[1]],
             "summary": {
-                "filesChanged": 3,
-                "addedLinesInspected": 19,
+                "filesChanged": 6,
+                "addedLinesInspected": 37,
                 "removedLinesSeen": 1,
-                "decisionRows": 3,
+                "decisionRows": 6,
                 "deleteCandidates": 1,
                 "simplifyCandidates": 1,
                 "keepBoundaries": 1,
-                "proofBlockedCandidates": 0,
-                "cleanFiles": 0,
+                "proofBlockedCandidates": 1,
+                "cleanFiles": 2,
             },
             "nonClaims": [
                 "Does not prove whole-repo inventory coverage.",
@@ -5189,12 +5347,51 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
             },
         },
         "proofSignalCalibration": {
-            "sameDiffProofStatus": "missing",
-            "proofSignals": [],
-            "sameDiffProofSignalCount": 0,
-            "codeFindingsCoveredBySameDiffProof": 0,
-            "missingRunnableCheckFindings": 0,
-            "policy": "Synthetic fixture has no non-trivial logic proof finding; current-diff scope is the focus.",
+            "sameDiffProofStatus": "present",
+            "proofSignals": [proof_signal],
+            "sameDiffProofSignalCount": 1,
+            "codeFindingsCoveredBySameDiffProof": 1,
+            "missingRunnableCheckFindings": 1,
+            "policy": "Lean Review should distinguish no proof signal from same-diff proof signal. Same-diff tests still need human relevance review, but they should not produce duplicate missing-check ceremony.",
+        },
+        "runnableCheckReview": {
+            "policy": "Non-trivial branch, loop, parser, and collection logic should leave one smallest runnable check.",
+            "nonCeremonyBoundary": "If the same diff already changes a focused test, XCTest, assertion, or explicit check signal, Lean Review records that same-diff proof signal instead of asking for duplicate test ceremony. The maintainer still needs to review relevance and run the focused check.",
+            "missingProofFindings": [
+                {
+                    "file": "Sources/SyntheticLeanReview/RuleRouter.swift",
+                    "line": 18,
+                    "location": "Sources/SyntheticLeanReview/RuleRouter.swift:18",
+                    "ruleId": "one-runnable-check-missing-diff",
+                    "severity": "review",
+                    "evidence": "if route.kind == .generated { return GeneratedRoute(route.payload) }",
+                    "recommendation": missing_check_finding["recommendation"],
+                    "proofGuidance": missing_check_finding["proofGuidance"],
+                }
+            ],
+            "sameDiffProofFindings": [
+                {
+                    "file": "Sources/SyntheticLeanReview/SelectionPolicy.swift",
+                    "line": 27,
+                    "location": "Sources/SyntheticLeanReview/SelectionPolicy.swift:27",
+                    "ruleId": "one-runnable-check-signal-present-diff",
+                    "severity": "info",
+                    "evidence": "if option.isPrimary { return .preferred(option.id) }",
+                    "recommendation": same_diff_proof_finding["recommendation"],
+                    "proofGuidance": same_diff_proof_finding["proofGuidance"],
+                }
+            ],
+            "sameDiffProofSignals": [proof_signal],
+            "summary": {
+                "missingRunnableCheckFindings": 1,
+                "sameDiffProofFindings": 1,
+                "sameDiffProofSignalCount": 1,
+                "duplicateCeremonyAvoided": 1,
+            },
+            "proofToReview": [
+                "For missing-proof rows, add or identify the smallest runnable check that covers the changed behavior.",
+                "For same-diff proof rows, run the changed check and confirm it exercises the changed non-trivial logic.",
+            ],
         },
         "precisionReview": {
             "principle": "The best ShipGuard code is the code that proves it needs to exist.",
@@ -5227,18 +5424,27 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
                     "proofRequired": "Attach focused permission-state behavior proof.",
                 }
             ],
-            "blockedByProof": [],
+            "blockedByProof": [
+                {
+                    "rank": 3,
+                    "ruleId": "one-runnable-check-missing-diff",
+                    "location": "Sources/SyntheticLeanReview/RuleRouter.swift:18",
+                    "severity": "review",
+                    "action": "Leave one smallest runnable route-selection check.",
+                    "proofRequired": "Add one focused route-selection check or point to the changed test that covers this branch before merge.",
+                }
+            ],
             "actionGroups": action_groups,
-            "topActions": [action_groups[0], action_groups[1]],
+            "topActions": [action_groups[0], action_groups[1], action_groups[2]],
             "summary": {
                 "deleteCandidates": 1,
                 "simplifyCandidates": 1,
                 "keepBoundaries": 1,
-                "proofBlockedCandidates": 0,
-                "actionGroups": 2,
+                "proofBlockedCandidates": 1,
+                "actionGroups": 3,
             },
         },
-        "findings": [delete_finding, simplify_finding, keep_finding],
+        "findings": [delete_finding, simplify_finding, keep_finding, missing_check_finding, same_diff_proof_finding],
         "nextActions": [
             "Start with currentDiffDecisionMap.deleteOrSimplifyList[0] before reading whole-repo inventory.",
             "Use shipguard lean audit only when a whole-repo Lean inventory is actually needed.",
@@ -5544,13 +5750,16 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "- Diff: `synthetic-current-change.diff`",
                 "- Boundary: This report is built only from the supplied unified diff; it does not scan the whole repo or claim a whole-repo inventory.",
                 "- Whole-repo fallback: `shipguard lean audit --path <repo> --out <lean-audit-out> --mode full --shipguard-eval --shareable`",
-                "- Decision rows: 3; delete: 1; simplify: 1; keep: 1; proof-blocked: 0; clean files: 0",
+                "- Decision rows: 6; delete: 1; simplify: 1; keep: 1; proof-blocked: 1; clean files: 2",
                 "",
                 "| File | Decision | Added | Removed | Rules | First Experiment | Validation | Stop Condition |",
                 "| --- | --- | ---: | ---: | --- | --- | --- | --- |",
                 "| Sources/SyntheticLeanReview/FormatterShim.swift | `delete` | 6 | 0 | thin-wrapper-diff-review | Search the changed call sites and delete the wrapper only if it is private and behavior-neutral. | Run the smallest formatter behavior check plus git diff --check. | Stop if call sites depend on naming, compatibility, logging, typing, or behavior policy. |",
                 "| Sources/SyntheticLeanReview/QueryBuilder.swift | `simplify` | 8 | 1 | stdlib-url-params-diff | Try URLComponents or URLQueryItem at the changed call site before adding parser code. | Run one focused query-string behavior check plus git diff --check. | Stop if repeated keys, empty values, encoding, or malformed input behavior changes. |",
                 "| Sources/SyntheticLeanReview/PermissionGate.swift | `keep` | 5 | 0 | do-not-cut-safety-diff-without-proof | Treat this as a keep-with-proof boundary before any deletion or simplification. | Run focused permission-state behavior proof before changing this branch. | Stop if the only evidence is less-code pressure without behavior proof. |",
+                "| Sources/SyntheticLeanReview/RuleRouter.swift | `proof-blocked` | 7 | 0 | one-runnable-check-missing-diff | Add or identify one smallest runnable route-selection check before merging the new branch. | Run the focused route-selection test plus git diff --check. | Stop if the diff has no runnable proof signal for the changed non-trivial logic. |",
+                "| Sources/SyntheticLeanReview/SelectionPolicy.swift | `clean` | 6 | 0 | one-runnable-check-signal-present-diff | Review the matching same-diff test before adding any duplicate test ceremony. | Run Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift or the equivalent focused lane. | Stop if the changed same-diff test already proves the new branch and no Lean cleanup remains. |",
+                "| Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift | `clean` | 5 | 0 | - | Run the changed focused test and confirm it covers the changed selection branch. | Run the focused test lane before broader validation. | Stop if the test is unrelated to the changed logic. |",
                 "",
                 "Non-claims:",
                 "- Does not prove whole-repo inventory coverage.",
@@ -5565,9 +5774,42 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "- `adapterBoundary`: available - Thin host adapters can be the product surface.",
                 "- `gainHonesty`: available-in-lean-gain - Benchmark impact is separate from current-repo evidence.",
                 "",
+                "## Proof Signal Calibration",
+                "",
+                "- Same-diff proof status: `present`",
+                "- Proof signals: 1",
+                "- Code findings covered by same-diff proof: 1",
+                "- Missing runnable-check findings: 1",
+                "- Policy: Lean Review should distinguish no proof signal from same-diff proof signal. Same-diff tests still need human relevance review, but they should not produce duplicate missing-check ceremony.",
+                "",
+                "| Kind | Location | Added Lines | Signal |",
+                "| --- | --- | ---: | --- |",
+                "| test-file | Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift:9 | 5 | func testPrimaryOptionWins() { XCTAssertEqual(policy.pick(primary), .preferred(primary.id)) } |",
+                "",
+                "## Runnable Check Review",
+                "",
+                "- Missing proof findings: 1",
+                "- Same-diff proof findings: 1",
+                "- Same-diff proof signals: 1",
+                "- Duplicate ceremony avoided: 1",
+                "- Policy: Non-trivial branch, loop, parser, and collection logic should leave one smallest runnable check.",
+                "- Non-ceremony boundary: If the same diff already changes a focused test, XCTest, assertion, or explicit check signal, Lean Review records that same-diff proof signal instead of asking for duplicate test ceremony. The maintainer still needs to review relevance and run the focused check.",
+                "",
+                "### Missing Runnable Checks",
+                "",
+                "| Location | Recommendation | Proof |",
+                "| --- | --- | --- |",
+                "| Sources/SyntheticLeanReview/RuleRouter.swift:18 | Leave one smallest runnable check for the new routing branch instead of treating tests as optional ceremony. | Add one focused route-selection check or point to the changed test that covers this branch before merge. |",
+                "",
+                "### Same-Diff Proof Signals",
+                "",
+                "| Location | Recommendation | Proof Review |",
+                "| --- | --- | --- |",
+                "| Sources/SyntheticLeanReview/SelectionPolicy.swift:27 | Do not add duplicate test ceremony before checking whether the same-diff proof signal already covers this logic. | Review Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift, then run the focused test before merge. |",
+                "",
                 "## Precision Ledger",
                 "",
-                "- Delete candidates: 1; simplify candidates: 1; keep boundaries: 1; proof-blocked candidates: 0; action groups: 2",
+                "- Delete candidates: 1; simplify candidates: 1; keep boundaries: 1; proof-blocked candidates: 1; action groups: 3",
                 "",
                 "### Grouped Action Plan",
                 "",
@@ -5575,6 +5817,7 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "| ---: | --- | --- | ---: | --- | --- | --- | --- |",
                 "| 1 | delete | `thin-wrapper-diff-review` | 1 | Sources/SyntheticLeanReview/FormatterShim.swift:14 | Search the changed call sites and delete the wrapper only if it is private and behavior-neutral. | Run the smallest formatter behavior check plus git diff --check. | Stop if call sites depend on naming, compatibility, logging, typing, or behavior policy. |",
                 "| 2 | simplify | `stdlib-url-params-diff` | 1 | Sources/SyntheticLeanReview/QueryBuilder.swift:22 | Try URLComponents or URLQueryItem at the changed call site before adding parser code. | Run one focused query-string behavior check plus git diff --check. | Stop if repeated keys, empty values, encoding, or malformed input behavior changes. |",
+                "| 3 | proof-blocked | `one-runnable-check-missing-diff` | 1 | Sources/SyntheticLeanReview/RuleRouter.swift:18 | Add or identify one smallest runnable route-selection check before merging the new branch. | Run the focused route-selection test plus git diff --check. | Stop if the diff has no runnable proof signal for the changed non-trivial logic. |",
                 "",
             ]
         )

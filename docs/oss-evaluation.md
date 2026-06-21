@@ -107,6 +107,18 @@ The v3.145 read-only loop reran `shipguard lean audit`, `shipguard lean review`,
 
 Fresh combined Lean QA now treats the current-diff usefulness question as covered and advances to the Lean Review runnable-check question.
 
+## Current Lean Review Runnable-Check Fixture QA
+
+The v3.146 read-only loop reran `shipguard lean audit`, `shipguard lean review`, `shipguard lean gain`, `shipguard lean debt`, and `ios report-quality --write-fixture-candidates` against this checkout after the current-diff fixture landed.
+
+- Finding: fresh combined Lean QA passed, but the next uncovered actionability question was "Does Lean Review require one smallest runnable check for non-trivial new logic?"
+- Product weakness: Lean Review had proof-signal calibration, but same-diff proof was too coarse if any test file appeared in the diff, and the public fixture generator still produced a current-diff fixture rather than a runnable-check fixture.
+- Native fix: `shipguard lean review` now matches same-diff proof signals to the changed file, emits `runnableCheckReview` with missing-proof rows, same-diff proof rows, duplicate-ceremony avoidance, and Markdown tables, and keeps unrelated tests from hiding missing proof on another changed file.
+- Report-quality fix: `ios report-quality` now flags Lean Review reports that omit `runnableCheckReview`, hide missing-proof rows, hide same-diff proof rows, omit duplicate-ceremony counts, or skip the Markdown `Runnable Check Review`.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-require-one-smal-247885c9` uses public synthetic evidence for both cases: one non-trivial route branch that still needs one smallest runnable check and one selection branch with a matching same-diff test signal.
+
+Fresh combined Lean QA now treats the runnable-check question as covered and advances to the proof-signal calibration question.
+
 ## Current Verify-PR First-Run QA
 
 The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `shipguard full-audit --plan-only`, docs-check, and the verify-first quickstart tests against this checkout.

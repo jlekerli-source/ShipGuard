@@ -35,6 +35,10 @@ CHECK_SIGNAL_RE = re.compile(
     r"\b(assert|console\.assert|unittest|pytest|describe\s*\(|it\s*\(|test\s*\(|XCTest|__main__|demo\s*\()\b",
     re.IGNORECASE,
 )
+STRONG_CHECK_SIGNAL_RE = re.compile(
+    r"\b(assert|console\.assert|XCTAssert[A-Za-z0-9_]*|expect\s*\(|describe\s*\(|it\s*\(|test\s*\(|func\s+test[A-Za-z0-9_]*)\b",
+    re.IGNORECASE,
+)
 SPECULATIVE_MARKER_TOKENS = (
     "to" + "do",
     "fix" + "me",
@@ -162,13 +166,16 @@ def collect_proof_signals(files: list[dict[str, Any]]) -> list[dict[str, Any]]:
             continue
         added_text = "\n".join(str(item.get("text", "")) for item in added_items)
         check_line = next(
-            (
-                item
-                for item in added_items
-                if CHECK_SIGNAL_RE.search(str(item.get("text", ""))) or is_test_file(file_name)
-            ),
+            (item for item in added_items if STRONG_CHECK_SIGNAL_RE.search(str(item.get("text", "")))),
             None,
         )
+        if check_line is None:
+            check_line = next(
+                (item for item in added_items if CHECK_SIGNAL_RE.search(str(item.get("text", "")))),
+                None,
+            )
+        if check_line is None and is_test_file(file_name):
+            check_line = added_items[0]
         if not check_line:
             continue
         kind = "test-file" if is_test_file(file_name) else "inline-check-signal"
@@ -183,6 +190,34 @@ def collect_proof_signals(files: list[dict[str, Any]]) -> list[dict[str, Any]]:
             }
         )
     return signals[:20]
+
+
+def normalized_path_tokens(file_name: str) -> set[str]:
+    stem = Path(file_name).stem.lower()
+    stem = re.sub(r"(tests?|specs?)$", "", stem)
+    parts = re.split(r"[^a-z0-9]+|(?<=[a-z])(?=[A-Z])", stem)
+    return {part.lower() for part in parts if len(part) >= 4}
+
+
+def proof_signals_for_file(file_name: str, proof_signals: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    lowered_file = file_name.lower()
+    file_stem = Path(file_name).stem.lower()
+    file_tokens = normalized_path_tokens(file_name)
+    matched: list[dict[str, Any]] = []
+    for signal in proof_signals:
+        signal_file = str(signal.get("file") or "")
+        lowered_signal = signal_file.lower()
+        if lowered_signal == lowered_file:
+            matched.append(signal)
+            continue
+        signal_stem = Path(signal_file).stem.lower()
+        if file_stem and file_stem in signal_stem:
+            matched.append(signal)
+            continue
+        signal_tokens = normalized_path_tokens(signal_file)
+        if file_tokens and file_tokens & signal_tokens:
+            matched.append(signal)
+    return matched[:8]
 
 
 def proof_signal_summary(proof_signals: list[dict[str, Any]]) -> str:
@@ -221,6 +256,64 @@ def build_proof_signal_calibration(
     }
 
 
+def finding_location(item: dict[str, Any]) -> str:
+    evidence = item.get("evidence", {})
+    file_name = str(evidence.get("file") or "")
+    line = evidence.get("line")
+    return f"{file_name}:{line}" if file_name and line else file_name
+
+
+def runnable_check_finding_row(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "file": str((item.get("evidence") or {}).get("file") or ""),
+        "line": (item.get("evidence") or {}).get("line"),
+        "location": finding_location(item),
+        "ruleId": str(item.get("ruleId") or ""),
+        "severity": str(item.get("severity") or ""),
+        "evidence": str((item.get("evidence") or {}).get("snippet") or item.get("evidence") or "")[:200],
+        "recommendation": str(item.get("recommendation") or ""),
+        "proofGuidance": str(item.get("proofGuidance") or ""),
+    }
+
+
+def build_runnable_check_review(
+    *,
+    proof_signals: list[dict[str, Any]],
+    findings: list[dict[str, Any]],
+) -> dict[str, Any]:
+    missing_findings = [
+        item
+        for item in findings
+        if isinstance(item, dict) and item.get("ruleId") == "one-runnable-check-missing-diff"
+    ]
+    covered_findings = [
+        item
+        for item in findings
+        if isinstance(item, dict) and item.get("ruleId") == "one-runnable-check-signal-present-diff"
+    ]
+    return {
+        "policy": "Non-trivial branch, loop, parser, and collection logic should leave one smallest runnable check.",
+        "nonCeremonyBoundary": (
+            "If same-diff proof already changes a focused test, XCTest, assertion, or explicit check signal, Lean Review "
+            "records that proof signal instead of asking for duplicate test ceremony. The maintainer still needs to "
+            "review relevance and run the focused check."
+        ),
+        "missingProofFindings": [runnable_check_finding_row(item) for item in missing_findings],
+        "sameDiffProofFindings": [runnable_check_finding_row(item) for item in covered_findings],
+        "sameDiffProofSignals": proof_signals,
+        "summary": {
+            "missingRunnableCheckFindings": len(missing_findings),
+            "sameDiffProofFindings": len(covered_findings),
+            "sameDiffProofSignalCount": len(proof_signals),
+            "duplicateCeremonyAvoided": len(covered_findings) if proof_signals else 0,
+        },
+        "proofToReview": [
+            "For missing-proof rows, add or identify the smallest runnable check that covers the changed behavior.",
+            "For same-diff proof rows, run the changed check and confirm it exercises the changed non-trivial logic.",
+        ],
+    }
+
+
 def scan_diff(root: Path, files: list[dict[str, Any]], proof_signals: list[dict[str, Any]]) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
     for file_diff in files:
@@ -236,7 +329,8 @@ def scan_diff(root: Path, files: list[dict[str, Any]], proof_signals: list[dict[
         safe_context = has_safety_context(context_path, context_text + "\n" + added_text)
 
         if is_code and NONTRIVIAL_LOGIC_RE.search(added_text) and not has_added_check(file_name, added_text):
-            if proof_signals:
+            matching_proof_signals = proof_signals_for_file(file_name, proof_signals)
+            if matching_proof_signals:
                 findings.append(
                     finding(
                         severity="info",
@@ -246,7 +340,7 @@ def scan_diff(root: Path, files: list[dict[str, Any]], proof_signals: list[dict[
                         line=first_added_line(file_diff, NONTRIVIAL_LOGIC_RE.pattern),
                         evidence=(
                             "non-trivial branch, loop, parser, or collection logic added; "
-                            f"{proof_signal_summary(proof_signals)}"
+                            f"{proof_signal_summary(matching_proof_signals)}"
                         ),
                         recommendation=(
                             "Do not add duplicate test ceremony before checking whether the same-diff proof signal "
@@ -565,6 +659,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "policy"
         ] = "Same-diff runnable-check signals are visible; verify relevance before adding duplicate proof ceremony."
     proof_calibration = build_proof_signal_calibration(proof_signals=proof_signals, findings=findings)
+    runnable_check_review = build_runnable_check_review(proof_signals=proof_signals, findings=findings)
     current_diff_decision_map = build_current_diff_decision_map(
         diff_path=diff_path,
         files=files,
@@ -590,6 +685,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "currentDiffDecisionMap": current_diff_decision_map,
         "behaviorGates": behavior_gates,
         "proofSignalCalibration": proof_calibration,
+        "runnableCheckReview": runnable_check_review,
         "precisionReview": precision,
         "findings": findings,
         "metrics": {
@@ -716,6 +812,38 @@ def render_markdown(report: dict[str, Any]) -> str:
                 lines.append(
                     f"| {signal.get('kind', '')} | {location} | {signal.get('addedLines', 0)} | "
                     f"{str(signal.get('snippet', '')).replace('|', '\\|')} |"
+                )
+    runnable_review = report.get("runnableCheckReview", {})
+    if isinstance(runnable_review, dict):
+        summary = runnable_review.get("summary") if isinstance(runnable_review.get("summary"), dict) else {}
+        lines.extend(["", "## Runnable Check Review", ""])
+        lines.append(f"- Missing proof findings: {summary.get('missingRunnableCheckFindings', 0)}")
+        lines.append(f"- Same-diff proof findings: {summary.get('sameDiffProofFindings', 0)}")
+        lines.append(f"- Same-diff proof signals: {summary.get('sameDiffProofSignalCount', 0)}")
+        lines.append(f"- Duplicate ceremony avoided: {summary.get('duplicateCeremonyAvoided', 0)}")
+        if runnable_review.get("policy"):
+            lines.append(f"- Policy: {runnable_review.get('policy')}")
+        if runnable_review.get("nonCeremonyBoundary"):
+            lines.append(f"- Non-ceremony boundary: {runnable_review.get('nonCeremonyBoundary')}")
+        missing_rows = runnable_review.get("missingProofFindings")
+        if isinstance(missing_rows, list) and missing_rows:
+            lines.extend(["", "### Missing Runnable Checks", ""])
+            lines.extend(["| Location | Recommendation | Proof |", "| --- | --- | --- |"])
+            for row in missing_rows[:8]:
+                lines.append(
+                    f"| {str(row.get('location', '')).replace('|', '\\|')} | "
+                    f"{str(row.get('recommendation', '')).replace('|', '\\|')} | "
+                    f"{str(row.get('proofGuidance', '')).replace('|', '\\|')} |"
+                )
+        covered_rows = runnable_review.get("sameDiffProofFindings")
+        if isinstance(covered_rows, list) and covered_rows:
+            lines.extend(["", "### Same-Diff Proof Signals", ""])
+            lines.extend(["| Location | Recommendation | Proof Review |", "| --- | --- | --- |"])
+            for row in covered_rows[:8]:
+                lines.append(
+                    f"| {str(row.get('location', '')).replace('|', '\\|')} | "
+                    f"{str(row.get('recommendation', '')).replace('|', '\\|')} | "
+                    f"{str(row.get('proofGuidance', '')).replace('|', '\\|')} |"
                 )
     summary = precision.get("summary", {})
     lines.extend(["", "## Precision Ledger", ""])

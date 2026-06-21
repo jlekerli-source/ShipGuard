@@ -427,8 +427,11 @@ grep -q '"ruleId": "one-runnable-check-signal-present-diff"' "$tmp_dir/same-diff
 grep -q '"sameDiffProofStatus": "present"' "$tmp_dir/same-diff-proof-review/lean-review.json"
 grep -q '"codeFindingsCoveredBySameDiffProof": 1' "$tmp_dir/same-diff-proof-review/lean-review.json"
 grep -q '"sameDiffProofSignalCount": 1' "$tmp_dir/same-diff-proof-review/lean-review.json"
+grep -q '"runnableCheckReview":' "$tmp_dir/same-diff-proof-review/lean-review.json"
+grep -q '"duplicateCeremonyAvoided": 1' "$tmp_dir/same-diff-proof-review/lean-review.json"
 grep -q 'Proof Signal Calibration' "$tmp_dir/same-diff-proof-review/lean-review.md"
-grep -q 'tests/test_proof_target.py:1' "$tmp_dir/same-diff-proof-review/lean-review.md"
+grep -q 'Runnable Check Review' "$tmp_dir/same-diff-proof-review/lean-review.md"
+grep -q 'tests/test_proof_target.py:4' "$tmp_dir/same-diff-proof-review/lean-review.md"
 if grep -q '"ruleId": "one-runnable-check-missing-diff"' "$tmp_dir/same-diff-proof-review/lean-review.json"; then
   echo "Lean Review should calibrate same-diff test evidence instead of reporting a missing runnable check" >&2
   exit 1

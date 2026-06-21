@@ -1951,6 +1951,44 @@ if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_
   exit 1
 fi
 
+lean_review_runnable_fixture="fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-require-one-smal-247885c9"
+./bin/shipguard ios report-quality \
+  --reports "$lean_review_runnable_fixture" \
+  --out "$tmp_dir/lean-review-runnable-public-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/lean-review-runnable-public-quality/ios-report-quality.json"
+grep -q 'Does Lean Review require one smallest runnable check for non-trivial new logic?' "$tmp_dir/lean-review-runnable-public-quality/ios-report-quality.md"
+grep -q '"tool": "shipguard lean review"' "$lean_review_runnable_fixture/fixture-report.json"
+grep -q '"runnableCheckReview":' "$lean_review_runnable_fixture/fixture-report.json"
+grep -q '"missingProofFindings":' "$lean_review_runnable_fixture/fixture-report.json"
+grep -q '"sameDiffProofFindings":' "$lean_review_runnable_fixture/fixture-report.json"
+grep -q '"duplicateCeremonyAvoided": 1' "$lean_review_runnable_fixture/fixture-report.json"
+grep -q '"sameDiffProofStatus": "present"' "$lean_review_runnable_fixture/fixture-report.json"
+grep -q '"missingRunnableCheckFindings": 1' "$lean_review_runnable_fixture/fixture-report.json"
+grep -q '"codeFindingsCoveredBySameDiffProof": 1' "$lean_review_runnable_fixture/fixture-report.json"
+grep -q '"ruleId": "one-runnable-check-missing-diff"' "$lean_review_runnable_fixture/fixture-report.json"
+grep -q '"ruleId": "one-runnable-check-signal-present-diff"' "$lean_review_runnable_fixture/fixture-report.json"
+grep -q 'Runnable Check Review' "$lean_review_runnable_fixture/fixture-report.md"
+grep -q 'Missing Runnable Checks' "$lean_review_runnable_fixture/fixture-report.md"
+grep -q 'Same-Diff Proof Signals' "$lean_review_runnable_fixture/fixture-report.md"
+grep -q 'duplicate test ceremony' "$lean_review_runnable_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/lean-review-runnable-public-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"Lean Review runnable-check public fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+top = questions[0] if questions else {}
+if not top or not (top.get("sourceMaterializedFixture") is True or top.get("existingFixture")):
+    raise SystemExit(f"Lean Review runnable-check fixture should retain materialized or fixture-coverage question evidence: {questions!r}")
+PY
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_review_runnable_fixture"; then
+  echo "Lean Review runnable-check fixture must not include local paths or private app identifiers" >&2
+  exit 1
+fi
+
 ./bin/shipguard lean audit \
   --path . \
   --out "$tmp_dir/lean-fresh-priority" \
@@ -2004,8 +2042,10 @@ empty_lean_diff="$tmp_dir/empty-lean.diff"
   --write-fixture-candidates "$tmp_dir/lean-fresh-combined-candidates" >/dev/null
 grep -q '01-shipguard-lean-gain-does-it-route-current-repo-evidence-9bae8f6f' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q '01-shipguard-lean-review-does-lean-review-give-a-current-d-9a6d6c8a' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q '01-shipguard-lean-review-does-lean-review-require-one-smal-247885c9' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review give a current-diff delete/simplify list instead of a whole-repo inventory?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review require one smallest runnable check for non-trivial new logic?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q 'Does proofSignalCalibration distinguish missing runnable checks from same-diff proof signals?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$tmp_dir/lean-fresh-combined-candidates"; then
   echo "materialized combined Lean candidate must not include local paths or private app identifiers" >&2
   exit 1
@@ -2778,6 +2818,183 @@ MD
   --shareable >/dev/null
 grep -q '"ruleId": "lean-review-proof-signal-calibration-missing"' "$tmp_dir/lean-review-missing-proof-calibration-quality/ios-report-quality.json"
 grep -q '"ruleId": "lean-review-proof-signal-markdown-missing"' "$tmp_dir/lean-review-missing-proof-calibration-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-runnable-check-review-missing"' "$tmp_dir/lean-review-missing-proof-calibration-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-runnable-check-markdown-missing"' "$tmp_dir/lean-review-missing-proof-calibration-quality/ios-report-quality.json"
+
+mkdir -p "$tmp_dir/lean-review-runnable-check-incomplete"
+cat > "$tmp_dir/lean-review-runnable-check-incomplete/lean-review.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard lean review",
+  "generatedAt": "2026-06-21T00:00:00Z",
+  "status": "review",
+  "metrics": {
+    "filesChanged": 2,
+    "addedLines": 12,
+    "findings": 2
+  },
+  "currentDiffDecisionMap": {
+    "scope": "current-diff-only",
+    "diffPath": "synthetic.diff",
+    "inventoryBoundary": "This report is built only from the supplied unified diff; it does not scan the whole repo or claim a whole-repo inventory.",
+    "wholeRepoFallbackCommand": "shipguard lean audit --path <repo> --out <lean-audit-out> --mode full --shipguard-eval --shareable",
+    "changedFiles": [
+      {"file": "Sources/SyntheticLeanReview/RuleRouter.swift", "addedLines": 7, "removedLines": 0},
+      {"file": "Sources/SyntheticLeanReview/SelectionPolicy.swift", "addedLines": 5, "removedLines": 0}
+    ],
+    "decisions": [
+      {
+        "file": "Sources/SyntheticLeanReview/RuleRouter.swift",
+        "source": "unified-diff",
+        "decision": "proof-blocked",
+        "addedLines": 7,
+        "removedLines": 0,
+        "ruleIds": ["one-runnable-check-missing-diff"],
+        "firstExperiment": "Add one smallest runnable check.",
+        "validationRoute": "Run the focused test.",
+        "stopCondition": "Stop if proof is absent."
+      },
+      {
+        "file": "Sources/SyntheticLeanReview/SelectionPolicy.swift",
+        "source": "unified-diff",
+        "decision": "clean",
+        "addedLines": 5,
+        "removedLines": 0,
+        "ruleIds": ["one-runnable-check-signal-present-diff"],
+        "firstExperiment": "Review matching same-diff test.",
+        "validationRoute": "Run the focused test.",
+        "stopCondition": "Stop if proof is unrelated."
+      }
+    ],
+    "deleteOrSimplifyList": [],
+    "summary": {
+      "filesChanged": 2,
+      "addedLinesInspected": 12,
+      "removedLinesSeen": 0,
+      "decisionRows": 2,
+      "deleteCandidates": 0,
+      "simplifyCandidates": 0,
+      "keepBoundaries": 0,
+      "proofBlockedCandidates": 1,
+      "cleanFiles": 1
+    }
+  },
+  "behaviorGates": {
+    "oneRunnableCheck": {"status": "same-diff-proof-signal-present"},
+    "hardwareCalibration": {"status": "available"},
+    "requestedExplanation": {"status": "policy"},
+    "adapterBoundary": {"status": "available"},
+    "gainHonesty": {"status": "available-in-lean-gain"}
+  },
+  "proofSignalCalibration": {
+    "sameDiffProofStatus": "present",
+    "proofSignals": [
+      {
+        "file": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift",
+        "line": 9,
+        "kind": "test-file",
+        "addedLines": 5,
+        "snippet": "func testPrimaryOptionWins()",
+        "checkSignal": true
+      }
+    ],
+    "sameDiffProofSignalCount": 1,
+    "codeFindingsCoveredBySameDiffProof": 1,
+    "missingRunnableCheckFindings": 1
+  },
+  "runnableCheckReview": {
+    "summary": {
+      "missingRunnableCheckFindings": 0,
+      "sameDiffProofFindings": 0,
+      "sameDiffProofSignalCount": 1,
+      "duplicateCeremonyAvoided": 0
+    },
+    "missingProofFindings": [],
+    "sameDiffProofFindings": [],
+    "nonCeremonyBoundary": "Same diff proof exists."
+  },
+  "precisionReview": {
+    "summary": {
+      "deleteCandidates": 0,
+      "simplifyCandidates": 0,
+      "keepBoundaries": 0,
+      "proofBlockedCandidates": 1,
+      "actionGroups": 1
+    },
+    "actionGroups": [
+      {
+        "rank": 1,
+        "decision": "proof-blocked",
+        "ruleId": "one-runnable-check-missing-diff",
+        "evidenceCount": 1,
+        "firstLocation": "Sources/SyntheticLeanReview/RuleRouter.swift:18",
+        "firstExperiment": "Add one smallest runnable check.",
+        "validationRoute": "Run the focused test.",
+        "stopCondition": "Stop if proof is absent."
+      }
+    ]
+  },
+  "findings": [
+    {
+      "severity": "review",
+      "category": "proof-diff-review",
+      "ruleId": "one-runnable-check-missing-diff",
+      "evidence": {"file": "Sources/SyntheticLeanReview/RuleRouter.swift", "line": 18, "snippet": "if route.kind == .generated"},
+      "recommendation": "Leave one smallest runnable check.",
+      "proofGuidance": "Add a focused test."
+    },
+    {
+      "severity": "info",
+      "category": "proof-signal-diff-review",
+      "ruleId": "one-runnable-check-signal-present-diff",
+      "evidence": {"file": "Sources/SyntheticLeanReview/SelectionPolicy.swift", "line": 27, "snippet": "if option.isPrimary"},
+      "recommendation": "Do not add duplicate test ceremony.",
+      "proofGuidance": "Run the changed same-diff test."
+    }
+  ],
+  "reportQualityQuestions": [
+    "Does Lean Review require one smallest runnable check for non-trivial new logic?"
+  ]
+}
+JSON
+cat > "$tmp_dir/lean-review-runnable-check-incomplete/lean-review.md" <<'MD'
+# ShipGuard Lean Review
+
+## Current Diff Decision Map
+
+- Scope: `current-diff-only`
+- Boundary: This report is built only from the supplied unified diff; it does not scan the whole repo or claim a whole-repo inventory.
+- Whole-repo fallback: `shipguard lean audit --path <repo> --out <lean-audit-out>`
+
+## Behavior Gates
+
+- `oneRunnableCheck`: same-diff-proof-signal-present
+
+## Proof Signal Calibration
+
+- Same-diff proof status: `present`
+- Proof signals: 1
+- Code findings covered by same-diff proof: 1
+- Missing runnable-check findings: 1
+
+## Precision Ledger
+
+### Grouped Action Plan
+
+| Rank | Decision | Rule | Affected | First Location | First Experiment | Validation | Stop Condition |
+| ---: | --- | --- | ---: | --- | --- | --- | --- |
+| 1 | proof-blocked | `one-runnable-check-missing-diff` | 1 | Sources/SyntheticLeanReview/RuleRouter.swift:18 | Add one smallest runnable check. | Run the focused test. | Stop if proof is absent. |
+MD
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-review-runnable-check-incomplete" \
+  --out "$tmp_dir/lean-review-runnable-check-incomplete-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-review-runnable-check-missing-proof-rows-incomplete"' "$tmp_dir/lean-review-runnable-check-incomplete-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-runnable-check-same-diff-proof-rows-incomplete"' "$tmp_dir/lean-review-runnable-check-incomplete-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-runnable-check-duplicate-ceremony-count-missing"' "$tmp_dir/lean-review-runnable-check-incomplete-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-runnable-check-non-ceremony-boundary-incomplete"' "$tmp_dir/lean-review-runnable-check-incomplete-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-runnable-check-markdown-missing"' "$tmp_dir/lean-review-runnable-check-incomplete-quality/ios-report-quality.json"
 
 performance_boundary_fixture="fixtures/ios-report-quality/performance-runtime-boundary"
 ./bin/shipguard ios report-quality \
