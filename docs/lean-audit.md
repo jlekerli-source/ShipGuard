@@ -82,6 +82,13 @@ ceilings, rows with upgrade triggers, rows needing upgrade triggers, and rows
 with explicit upgrade status. The Markdown renders this review before the raw
 ledger table so a maintainer can see which shortcut will rot without opening
 JSON or re-scanning source.
+Standalone `lean debt` also emits `rotRiskReview`, which turns those visible
+rows into a prioritized maintenance queue. Missing ceilings rank highest,
+missing upgrade triggers rank next, and tracked rows become trigger-watch rows.
+Each row carries a rot reason, exact next action, and proof guidance, so the
+first visible cleanup bet is available without another source inspection pass.
+If rows are omitted by the ledger cap, the review marks omitted risk as unknown
+instead of pretending visible rows are exhaustive.
 It also renders a `Benchmark Savings Boundary`: Lean Debt sets
 `currentRepoBoundary.perRepoSavingsClaim` to `not-computed`, treats marker counts
 as `shortcut-ledger-only` evidence, and routes benchmark direction to

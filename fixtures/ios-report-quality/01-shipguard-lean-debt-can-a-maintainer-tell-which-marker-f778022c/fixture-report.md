@@ -11,7 +11,7 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 ## Fixture Intent
 
 - Type: `shipguard-lean-report-quality-fixture`
-- Source question: Does it avoid pretending benchmark savings are measurable in this repo?
+- Source question: Can a maintainer tell which marker will rot without another source inspection pass?
 
 ## Marker Visibility Review
 

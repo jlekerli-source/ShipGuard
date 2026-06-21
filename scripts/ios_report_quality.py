@@ -4149,6 +4149,7 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                     "totalMarkers",
                     "visibleMarkerRows",
                     "omittedByLimit",
+                    "omittedStateUnknown",
                     "rowsWithCeiling",
                     "rowsMissingCeiling",
                     "rowsWithUpgradeTrigger",
@@ -4193,9 +4194,11 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                     count_mismatches.append("visibleMarkerRows")
                 if int(review_summary.get("omittedByLimit") or 0) != int(ledger_summary.get("omittedByLimit") or 0):
                     count_mismatches.append("omittedByLimit")
-                if int(review_summary.get("rowsNeedingUpgradeTrigger") or 0) != int(
-                    ledger_summary.get("missingUpgradeTrigger") or 0
-                ):
+                if int(ledger_summary.get("omittedByLimit") or 0) > 0 and review_summary.get("omittedStateUnknown") is not True:
+                    count_mismatches.append("omittedStateUnknown")
+                if int(ledger_summary.get("omittedByLimit") or 0) == 0 and review_summary.get("omittedStateUnknown") is not False:
+                    count_mismatches.append("omittedStateUnknown")
+                if int(review_summary.get("rowsNeedingUpgradeTrigger") or 0) != max(0, len(row_objects) - rows_with_upgrade):
                     count_mismatches.append("rowsNeedingUpgradeTrigger")
                 if int(review_summary.get("rowsWithCeiling") or 0) != rows_with_ceiling:
                     count_mismatches.append("rowsWithCeiling")
@@ -4309,6 +4312,223 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                             rule_id="lean-debt-marker-visibility-markdown-rows-missing",
                             evidence=f"{path_name} Marker Visibility Review Markdown missing rows: {', '.join(missing_rows[:5])}",
                             recommendation="Render each marker visibility row in Markdown so the ledger can be reviewed without opening JSON.",
+                        )
+            rot_review = report.get("rotRiskReview")
+            if not isinstance(rot_review, dict):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-debt-rot-risk-review-missing",
+                    evidence=f"{path_name} has no rotRiskReview object",
+                    recommendation="Emit rotRiskReview so standalone Lean Debt tells maintainers which shortcut marker will rot first and why.",
+                )
+            else:
+                rot_summary = rot_review.get("summary") if isinstance(rot_review.get("summary"), dict) else {}
+                rot_rows = rot_review.get("prioritizedRows")
+                required_rot_summary = {
+                    "totalMarkers",
+                    "rotRiskRows",
+                    "highRiskRows",
+                    "reviewRiskRows",
+                    "trackedRows",
+                    "missingCeilingRows",
+                    "missingUpgradeTriggerRows",
+                    "omittedByLimit",
+                    "omittedRiskUnknown",
+                    "topRiskLocation",
+                    "topRiskReason",
+                }
+                missing_rot_summary = sorted(key for key in required_rot_summary if key not in rot_summary)
+                if missing_rot_summary:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-debt-rot-risk-summary-missing",
+                        evidence=f"{path_name} rotRiskReview.summary missing: {', '.join(missing_rot_summary)}",
+                        recommendation="Summarize total, risk-level, missing-ceiling, missing-trigger, omitted, and top-risk marker counts.",
+                    )
+                if not isinstance(rot_rows, list):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-debt-rot-risk-rows-invalid",
+                        evidence=f"{path_name} rotRiskReview.prioritizedRows is not a list",
+                        recommendation="Emit prioritized rot-risk rows sorted by missing ceiling, missing trigger, then tracked trigger watch.",
+                    )
+                    rot_rows = []
+                rot_row_objects = [row for row in rot_rows if isinstance(row, dict)]
+                high_rows = sum(1 for row in rot_row_objects if row.get("riskLevel") == "high")
+                review_rows = sum(1 for row in rot_row_objects if row.get("riskLevel") == "review")
+                tracked_rows = sum(1 for row in rot_row_objects if row.get("riskLevel") == "tracked")
+                missing_ceiling_rows = sum(1 for row in rot_row_objects if row.get("hasCeiling") is False)
+                missing_upgrade_rows = sum(1 for row in rot_row_objects if row.get("hasUpgradeTrigger") is False)
+                top_row = rot_row_objects[0] if rot_row_objects else {}
+                rot_mismatches = []
+                if int(rot_summary.get("totalMarkers") or 0) != int(ledger_summary.get("markers") or 0):
+                    rot_mismatches.append("totalMarkers")
+                if int(rot_summary.get("rotRiskRows") or 0) != len(rot_row_objects):
+                    rot_mismatches.append("rotRiskRows")
+                if int(rot_summary.get("omittedByLimit") or 0) != int(ledger_summary.get("omittedByLimit") or 0):
+                    rot_mismatches.append("omittedByLimit")
+                if int(rot_summary.get("highRiskRows") or 0) != high_rows:
+                    rot_mismatches.append("highRiskRows")
+                if int(rot_summary.get("reviewRiskRows") or 0) != review_rows:
+                    rot_mismatches.append("reviewRiskRows")
+                if int(rot_summary.get("trackedRows") or 0) != tracked_rows:
+                    rot_mismatches.append("trackedRows")
+                if int(rot_summary.get("missingCeilingRows") or 0) != missing_ceiling_rows:
+                    rot_mismatches.append("missingCeilingRows")
+                if int(rot_summary.get("missingUpgradeTriggerRows") or 0) != review_rows:
+                    rot_mismatches.append("missingUpgradeTriggerRows")
+                omitted_count = int(ledger_summary.get("omittedByLimit") or 0)
+                if omitted_count > 0 and rot_summary.get("omittedRiskUnknown") is not True:
+                    rot_mismatches.append("omittedRiskUnknown")
+                if omitted_count == 0 and rot_summary.get("omittedRiskUnknown") is not False:
+                    rot_mismatches.append("omittedRiskUnknown")
+                if isinstance(rot_rows, list) and len(rot_rows) != len(ledger_markers):
+                    rot_mismatches.append("prioritizedRows")
+                if marker_count and str(rot_summary.get("topRiskLocation") or "") != str(top_row.get("location") or ""):
+                    rot_mismatches.append("topRiskLocation")
+                if marker_count and str(rot_summary.get("topRiskReason") or "") != str(top_row.get("rotReason") or ""):
+                    rot_mismatches.append("topRiskReason")
+                if rot_mismatches:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-debt-rot-risk-counts-mismatch",
+                        evidence=f"{path_name} rotRiskReview count mismatch: {', '.join(sorted(set(rot_mismatches)))}",
+                        recommendation="Keep rotRiskReview counts and top-risk fields aligned with the shortcut ledger.",
+                    )
+                if marker_count and (
+                    rot_review.get("allVisibleRowsHaveRotRisk") is not True
+                    or rot_review.get("topRiskActionable") is not True
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-debt-rot-risk-flag-incomplete",
+                        evidence=f"{path_name} rotRiskReview does not confirm visible-row risk coverage and actionable top risk",
+                        recommendation="Set rot-risk flags from prioritized row coverage so the first cleanup bet is machine-checkable.",
+                    )
+                malformed_rot_rows = []
+                rot_required_text = {
+                    "file",
+                    "line",
+                    "location",
+                    "marker",
+                    "status",
+                    "riskLevel",
+                    "rotReason",
+                    "nextAction",
+                    "proofGuidance",
+                }
+                rot_required_keys = rot_required_text | {
+                    "rank",
+                    "ceiling",
+                    "upgradeTrigger",
+                    "hasCeiling",
+                    "hasUpgradeTrigger",
+                }
+                risk_order = {"high": 0, "review": 1, "tracked": 2}
+                previous_order = -1
+                expected_rank = 1
+                for index, row in enumerate(rot_row_objects[:20], start=1):
+                    missing_keys = sorted(key for key in rot_required_keys if key not in row)
+                    missing_text = sorted(key for key in rot_required_text if str(row.get(key) or "").strip() == "")
+                    missing_bool = sorted(
+                        key
+                        for key in ("hasCeiling", "hasUpgradeTrigger")
+                        if not isinstance(row.get(key), bool)
+                    )
+                    risk_level = str(row.get("riskLevel") or "")
+                    risk_index = risk_order.get(risk_level)
+                    if not isinstance(row.get("rank"), int) or row.get("rank") != expected_rank:
+                        malformed_rot_rows.append(f"row {index} rank should be {expected_rank}")
+                    expected_rank += 1
+                    if risk_index is None:
+                        malformed_rot_rows.append(f"row {index} unknown riskLevel {risk_level or 'blank'}")
+                    else:
+                        if risk_index < previous_order:
+                            malformed_rot_rows.append(f"row {index} is not sorted by risk")
+                        previous_order = risk_index
+                    if missing_keys or missing_text or missing_bool:
+                        parts = []
+                        if missing_keys:
+                            parts.append(f"missing keys {', '.join(missing_keys)}")
+                        if missing_text:
+                            parts.append(f"blank fields {', '.join(missing_text)}")
+                        if missing_bool:
+                            parts.append(f"non-boolean {', '.join(missing_bool)}")
+                        malformed_rot_rows.append(f"row {index} {'; '.join(parts)}")
+                    if row.get("hasCeiling") is False and risk_level != "high":
+                        malformed_rot_rows.append(f"row {index} missing ceiling should be high risk")
+                    if row.get("hasCeiling") is True and row.get("hasUpgradeTrigger") is False and risk_level != "review":
+                        malformed_rot_rows.append(f"row {index} missing trigger should be review risk")
+                    next_action_text = normalized_question_text(row.get("nextAction") or "")
+                    proof_text = normalized_question_text(row.get("proofGuidance") or "")
+                    if "source inspection" in next_action_text:
+                        malformed_rot_rows.append(f"row {index} next action still requires another source inspection pass")
+                    if len(next_action_text) < 20 or len(proof_text) < 20:
+                        malformed_rot_rows.append(f"row {index} action/proof text is too weak")
+                    if risk_level == "high" and "ceiling" not in next_action_text:
+                        malformed_rot_rows.append(f"row {index} high risk should ask for a ceiling")
+                    if risk_level == "review" and "upgrade trigger" not in next_action_text:
+                        malformed_rot_rows.append(f"row {index} review risk should ask for an upgrade trigger")
+                    if risk_level == "tracked" and "trigger" not in next_action_text:
+                        malformed_rot_rows.append(f"row {index} tracked risk should name the trigger to watch")
+                    if not any(token in proof_text for token in ("call site", "call-site", "validation", "release", "dependency", "migration", "milestone", "owner", "scope", "lifetime", "trigger")):
+                        malformed_rot_rows.append(f"row {index} proof guidance lacks a concrete proof signal")
+                if malformed_rot_rows:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-debt-rot-risk-row-fields-incomplete",
+                        evidence=f"{path_name} rotRiskReview rows incomplete: {'; '.join(malformed_rot_rows[:5])}",
+                        recommendation="Each rot-risk row should expose rank, risk, location, rot reason, next action, proof guidance, and trigger-state fields.",
+                    )
+                required_rot_markdown = [
+                    "Rot-Risk Review",
+                    "Top risk location",
+                    "Top risk reason",
+                    "High-risk rows",
+                    "Review-risk rows",
+                    "Missing upgrade-trigger rows",
+                    "Rot Reason",
+                    "Next Action",
+                    "Proof Guidance",
+                ]
+                missing_rot_markdown = [token for token in required_rot_markdown if token not in markdown]
+                if missing_rot_markdown:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-debt-rot-risk-markdown-missing",
+                        evidence=f"{path_name} Markdown missing rot-risk tokens: {', '.join(missing_rot_markdown)}",
+                        recommendation="Render rotRiskReview in Markdown so maintainers can pick the first shortcut cleanup bet without opening JSON.",
+                    )
+                elif isinstance(rot_rows, list):
+                    rot_section = markdown.split("Rot-Risk Review", 1)[1]
+                    rot_section = rot_section.split("\n## ", 1)[0]
+                    missing_rot_rows = []
+                    for row in rot_rows[:20]:
+                        if not isinstance(row, dict):
+                            continue
+                        location = str(row.get("location") or "").strip()
+                        row_tokens = [
+                            location,
+                            str(row.get("rotReason") or "").strip(),
+                            str(row.get("nextAction") or "").strip(),
+                            str(row.get("proofGuidance") or "").strip(),
+                        ]
+                        if any(token and token not in rot_section for token in row_tokens):
+                            missing_rot_rows.append(location)
+                    if missing_rot_rows:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="lean-debt-rot-risk-markdown-rows-missing",
+                            evidence=f"{path_name} Rot-Risk Review Markdown missing rows: {', '.join(missing_rot_rows[:5])}",
+                            recommendation="Render each prioritized rot-risk row in Markdown so the first action stays visible.",
                         )
             boundary = report.get("currentRepoBoundary")
             if not isinstance(boundary, dict) or boundary.get("perRepoSavingsClaim") != "not-computed":
@@ -5217,6 +5437,10 @@ def should_create_fixture_candidate(question: str) -> bool:
             "lean debt",
             "shortcut marker",
             "shortcut markers",
+            "which marker will rot",
+            "rot-risk",
+            "rot risk",
+            "without another source inspection",
             "upgrade trigger",
             "benchmark savings",
             "measurable in this repo",
@@ -5320,6 +5544,21 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
                     "the fixture states shortcut markers are shortcut-ledger evidence only and do not prove current-repo line, token, cost, or time savings",
                     "the fixture routes benchmark direction to shipguard lean gain instead of treating Lean Debt marker counts as savings",
                     "the Markdown exposes Benchmark Savings Boundary with the not-computed claim and lean gain route",
+                ]
+            )
+        if (
+            "which marker will rot" in normalized_question
+            or "without another source inspection" in normalized_question
+            or "rot risk" in normalized_question
+            or "trigger rot" in normalized_question
+            or ("exact next action" in normalized_question and "proof" in normalized_question)
+        ):
+            expected_assertions.extend(
+                [
+                    "the fixture exposes rotRiskReview.summary with total, high-risk, review-risk, tracked, missing-ceiling, missing-trigger, omitted, and top-risk fields",
+                    "the fixture exposes rotRiskReview.prioritizedRows sorted by missing ceiling, missing upgrade trigger, then tracked trigger watch rows",
+                    "each rot-risk row includes the marker location, rot reason, next action, and proof guidance so no source inspection is needed to pick the first cleanup bet",
+                    "the Markdown exposes Rot-Risk Review with the same prioritized rows and top-risk location",
                 ]
             )
     return {
@@ -6042,6 +6281,40 @@ def synthetic_lean_debt_report_fields() -> dict[str, Any]:
         }
         for item in markers
     ]
+    rot_rows = [
+        {
+            "rank": 1,
+            "file": "Sources/SyntheticLeanDebt/LegacyPanel.swift",
+            "line": 27,
+            "location": "Sources/SyntheticLeanDebt/LegacyPanel.swift:27",
+            "marker": "ponytail",
+            "status": "needs-trigger",
+            "riskLevel": "review",
+            "rotReason": "Missing upgrade trigger means this shortcut can survive beyond its intended window.",
+            "nextAction": "Add an upgrade trigger that tells the maintainer exactly when to replace or delete it.",
+            "proofGuidance": "Name the release, dependency, migration state, or repeated call-site signal that should trigger cleanup.",
+            "ceiling": "one release migration window",
+            "upgradeTrigger": "",
+            "hasCeiling": True,
+            "hasUpgradeTrigger": False,
+        },
+        {
+            "rank": 2,
+            "file": "Sources/SyntheticLeanDebt/QueryBridge.swift",
+            "line": 12,
+            "location": "Sources/SyntheticLeanDebt/QueryBridge.swift:12",
+            "marker": "shipguard-lean",
+            "status": "tracked",
+            "riskLevel": "tracked",
+            "rotReason": "Tracked shortcut should be reviewed when its upgrade trigger becomes true.",
+            "nextAction": "Watch the upgrade trigger: replace when repeated-key support is required",
+            "proofGuidance": "When the trigger is true, run call-site search plus the smallest focused validation before deleting or replacing it.",
+            "ceiling": "one query shape",
+            "upgradeTrigger": "replace when repeated-key support is required",
+            "hasCeiling": True,
+            "hasUpgradeTrigger": True,
+        },
+    ]
     return {
         "surface": "ShipGuard Lean Debt",
         "target": {"path": ".", "shareable": True},
@@ -6069,6 +6342,7 @@ def synthetic_lean_debt_report_fields() -> dict[str, Any]:
                 "totalMarkers": 2,
                 "visibleMarkerRows": 2,
                 "omittedByLimit": 0,
+                "omittedStateUnknown": False,
                 "rowsWithCeiling": 2,
                 "rowsMissingCeiling": 0,
                 "rowsWithUpgradeTrigger": 1,
@@ -6079,6 +6353,32 @@ def synthetic_lean_debt_report_fields() -> dict[str, Any]:
             "allVisibleRowsHaveCeiling": True,
             "allVisibleRowsExposeUpgradeStatus": True,
             "visibilityRows": visibility_rows,
+        },
+        "rotRiskReview": {
+            "policy": (
+                "Start with the highest-risk shortcut marker before opening source again: missing ceiling first, "
+                "missing upgrade trigger second, tracked trigger watch third."
+            ),
+            "summary": {
+                "totalMarkers": 2,
+                "rotRiskRows": 2,
+                "highRiskRows": 0,
+                "reviewRiskRows": 1,
+                "trackedRows": 1,
+                "missingCeilingRows": 0,
+                "missingUpgradeTriggerRows": 1,
+                "omittedByLimit": 0,
+                "omittedRiskUnknown": False,
+                "topRiskLocation": "Sources/SyntheticLeanDebt/LegacyPanel.swift:27",
+                "topRiskReason": "Missing upgrade trigger means this shortcut can survive beyond its intended window.",
+            },
+            "coverageBoundary": (
+                "Rot-risk ranking is based on visible shortcut rows. When omittedByLimit is greater than zero, "
+                "omitted markers may contain higher risk and must be surfaced by rerunning with a narrower scope or extending the ledger limit."
+            ),
+            "allVisibleRowsHaveRotRisk": True,
+            "topRiskActionable": True,
+            "prioritizedRows": rot_rows,
         },
         "currentRepoBoundary": {
             "perRepoSavingsClaim": "not-computed",
@@ -7030,12 +7330,32 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "- Rows with upgrade trigger: 1",
                 "- Rows needing upgrade trigger: 1",
                 "- Rows with upgrade status: 2",
+                "- Omitted state unknown: `false`",
                 "- Policy: Every intentional shortcut marker should be rendered as a row with location, summary, ceiling, upgrade-trigger status, and explicit missing-trigger state when the upgrade is not yet written.",
                 "",
                 "| Status | Marker | Location | Ceiling | Upgrade Trigger |",
                 "| --- | --- | --- | --- | --- |",
                 "| tracked | `shipguard-lean` | Sources/SyntheticLeanDebt/QueryBridge.swift:12 | one query shape | replace when repeated-key support is required |",
                 "| needs-trigger | `ponytail` | Sources/SyntheticLeanDebt/LegacyPanel.swift:27 | one release migration window | - |",
+                "",
+                "## Rot-Risk Review",
+                "",
+                "- Top risk location: Sources/SyntheticLeanDebt/LegacyPanel.swift:27",
+                "- Top risk reason: Missing upgrade trigger means this shortcut can survive beyond its intended window.",
+                "- High-risk rows: 0",
+                "- Review-risk rows: 1",
+                "- Tracked rows: 1",
+                "- Missing ceiling rows: 0",
+                "- Missing upgrade-trigger rows: 1",
+                "- Omitted by limit: 0",
+                "- Omitted risk unknown: `false`",
+                "- Coverage boundary: Rot-risk ranking is based on visible shortcut rows. When omittedByLimit is greater than zero, omitted markers may contain higher risk and must be surfaced by rerunning with a narrower scope or extending the ledger limit.",
+                "- Policy: Start with the highest-risk shortcut marker before opening source again: missing ceiling first, missing upgrade trigger second, tracked trigger watch third.",
+                "",
+                "| Rank | Risk | Status | Marker | Location | Rot Reason | Next Action | Proof Guidance |",
+                "| ---: | --- | --- | --- | --- | --- | --- | --- |",
+                "| 1 | review | needs-trigger | `ponytail` | Sources/SyntheticLeanDebt/LegacyPanel.swift:27 | Missing upgrade trigger means this shortcut can survive beyond its intended window. | Add an upgrade trigger that tells the maintainer exactly when to replace or delete it. | Name the release, dependency, migration state, or repeated call-site signal that should trigger cleanup. |",
+                "| 2 | tracked | tracked | `shipguard-lean` | Sources/SyntheticLeanDebt/QueryBridge.swift:12 | Tracked shortcut should be reviewed when its upgrade trigger becomes true. | Watch the upgrade trigger: replace when repeated-key support is required | When the trigger is true, run call-site search plus the smallest focused validation before deleting or replacing it. |",
                 "",
                 "## Shortcut Ledger",
                 "",

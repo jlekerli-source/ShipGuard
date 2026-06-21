@@ -22,12 +22,32 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 - Rows with upgrade trigger: 1
 - Rows needing upgrade trigger: 1
 - Rows with upgrade status: 2
+- Omitted state unknown: `false`
 - Policy: Every intentional shortcut marker should be rendered as a row with location, summary, ceiling, upgrade-trigger status, and explicit missing-trigger state when the upgrade is not yet written.
 
 | Status | Marker | Location | Ceiling | Upgrade Trigger |
 | --- | --- | --- | --- | --- |
 | tracked | `shipguard-lean` | Sources/SyntheticLeanDebt/QueryBridge.swift:12 | one query shape | replace when repeated-key support is required |
 | needs-trigger | `ponytail` | Sources/SyntheticLeanDebt/LegacyPanel.swift:27 | one release migration window | - |
+
+## Rot-Risk Review
+
+- Top risk location: Sources/SyntheticLeanDebt/LegacyPanel.swift:27
+- Top risk reason: Missing upgrade trigger means this shortcut can survive beyond its intended window.
+- High-risk rows: 0
+- Review-risk rows: 1
+- Tracked rows: 1
+- Missing ceiling rows: 0
+- Missing upgrade-trigger rows: 1
+- Omitted by limit: 0
+- Omitted risk unknown: `false`
+- Coverage boundary: Rot-risk ranking is based on visible shortcut rows. When omittedByLimit is greater than zero, omitted markers may contain higher risk and must be surfaced by rerunning with a narrower scope or extending the ledger limit.
+- Policy: Start with the highest-risk shortcut marker before opening source again: missing ceiling first, missing upgrade trigger second, tracked trigger watch third.
+
+| Rank | Risk | Status | Marker | Location | Rot Reason | Next Action | Proof Guidance |
+| ---: | --- | --- | --- | --- | --- | --- | --- |
+| 1 | review | needs-trigger | `ponytail` | Sources/SyntheticLeanDebt/LegacyPanel.swift:27 | Missing upgrade trigger means this shortcut can survive beyond its intended window. | Add an upgrade trigger that tells the maintainer exactly when to replace or delete it. | Name the release, dependency, migration state, or repeated call-site signal that should trigger cleanup. |
+| 2 | tracked | tracked | `shipguard-lean` | Sources/SyntheticLeanDebt/QueryBridge.swift:12 | Tracked shortcut should be reviewed when its upgrade trigger becomes true. | Watch the upgrade trigger: replace when repeated-key support is required | When the trigger is true, run call-site search plus the smallest focused validation before deleting or replacing it. |
 
 ## Shortcut Ledger
 

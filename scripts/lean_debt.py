@@ -70,7 +70,7 @@ def build_marker_visibility_review(ledger: dict[str, Any]) -> dict[str, Any]:
     rows_with_upgrade = sum(1 for row in rows if row["hasUpgradeTrigger"])
     rows_with_upgrade_status = sum(1 for row in rows if row["exposesUpgradeStatus"])
     rows_missing_ceiling = max(0, len(rows) - rows_with_ceiling)
-    rows_needing_trigger = int(summary.get("missingUpgradeTrigger") or max(0, len(rows) - rows_with_upgrade))
+    rows_needing_trigger = max(0, len(rows) - rows_with_upgrade)
     return {
         "policy": (
             "Every intentional shortcut marker should be rendered as a row with location, summary, ceiling, "
@@ -80,8 +80,9 @@ def build_marker_visibility_review(ledger: dict[str, Any]) -> dict[str, Any]:
             "totalMarkers": total_markers,
             "visibleMarkerRows": len(rows),
             "omittedByLimit": omitted,
+            "omittedStateUnknown": omitted > 0,
             "rowsWithCeiling": rows_with_ceiling,
-            "rowsMissingCeiling": int(summary.get("missingCeiling") or rows_missing_ceiling),
+            "rowsMissingCeiling": rows_missing_ceiling,
             "rowsWithUpgradeTrigger": rows_with_upgrade,
             "rowsNeedingUpgradeTrigger": rows_needing_trigger,
             "rowsWithUpgradeStatus": rows_with_upgrade_status,
@@ -93,6 +94,88 @@ def build_marker_visibility_review(ledger: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def build_rot_risk_review(marker_visibility: dict[str, Any]) -> dict[str, Any]:
+    summary = marker_visibility.get("summary") if isinstance(marker_visibility.get("summary"), dict) else {}
+    visibility_rows = (
+        marker_visibility.get("visibilityRows") if isinstance(marker_visibility.get("visibilityRows"), list) else []
+    )
+    risk_rank = {"high": 0, "review": 1, "tracked": 2}
+    rows: list[dict[str, Any]] = []
+    for item in visibility_rows:
+        if not isinstance(item, dict):
+            continue
+        has_ceiling = item.get("hasCeiling") is True
+        has_upgrade = item.get("hasUpgradeTrigger") is True
+        ceiling = str(item.get("ceiling") or "")
+        upgrade = str(item.get("upgradeTrigger") or "")
+        if not has_ceiling:
+            risk_level = "high"
+            rot_reason = "Missing ceiling means this shortcut has no bounded stop condition."
+            next_action = "Add a ceiling that states the maximum scope or lifetime for this shortcut."
+            proof_guidance = "Point to the smallest owner, milestone, release, or call-site condition that limits the shortcut."
+        elif not has_upgrade:
+            risk_level = "review"
+            rot_reason = "Missing upgrade trigger means this shortcut can survive beyond its intended window."
+            next_action = "Add an upgrade trigger that tells the maintainer exactly when to replace or delete it."
+            proof_guidance = "Name the release, dependency, migration state, or repeated call-site signal that should trigger cleanup."
+        else:
+            risk_level = "tracked"
+            rot_reason = "Tracked shortcut should be reviewed when its upgrade trigger becomes true."
+            next_action = f"Watch the upgrade trigger: {upgrade}"
+            proof_guidance = "When the trigger is true, run call-site search plus the smallest focused validation before deleting or replacing it."
+        rows.append(
+            {
+                "rank": 0,
+                "file": str(item.get("file") or ""),
+                "line": item.get("line") or "",
+                "location": str(item.get("location") or ""),
+                "marker": str(item.get("marker") or ""),
+                "status": str(item.get("status") or ""),
+                "riskLevel": risk_level,
+                "rotReason": rot_reason,
+                "nextAction": next_action,
+                "proofGuidance": proof_guidance,
+                "ceiling": ceiling,
+                "upgradeTrigger": upgrade,
+                "hasCeiling": has_ceiling,
+                "hasUpgradeTrigger": has_upgrade,
+            }
+        )
+    rows.sort(key=lambda row: (risk_rank.get(str(row["riskLevel"]), 99), str(row["location"])))
+    for index, row in enumerate(rows, start=1):
+        row["rank"] = index
+    top = rows[0] if rows else {}
+    high_rows = sum(1 for row in rows if row["riskLevel"] == "high")
+    review_rows = sum(1 for row in rows if row["riskLevel"] == "review")
+    tracked_rows = sum(1 for row in rows if row["riskLevel"] == "tracked")
+    return {
+        "policy": (
+            "Start with the highest-risk shortcut marker before opening source again: missing ceiling first, "
+            "missing upgrade trigger second, tracked trigger watch third."
+        ),
+        "summary": {
+            "totalMarkers": int(summary.get("totalMarkers") or len(rows)),
+            "rotRiskRows": len(rows),
+            "highRiskRows": high_rows,
+            "reviewRiskRows": review_rows,
+            "trackedRows": tracked_rows,
+            "missingCeilingRows": high_rows,
+            "missingUpgradeTriggerRows": review_rows,
+            "omittedByLimit": int(summary.get("omittedByLimit") or 0),
+            "omittedRiskUnknown": int(summary.get("omittedByLimit") or 0) > 0,
+            "topRiskLocation": str(top.get("location") or ""),
+            "topRiskReason": str(top.get("rotReason") or ""),
+        },
+        "coverageBoundary": (
+            "Rot-risk ranking is based on visible shortcut rows. When omittedByLimit is greater than zero, "
+            "omitted markers may contain higher risk and must be surfaced by rerunning with a narrower scope or extending the ledger limit."
+        ),
+        "allVisibleRowsHaveRotRisk": len(rows) == int(summary.get("visibleMarkerRows") or len(rows)),
+        "topRiskActionable": bool(top.get("location") and top.get("nextAction")),
+        "prioritizedRows": rows,
+    }
+
+
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
     root = Path(args.path).resolve()
     if not root.exists():
@@ -100,6 +183,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     files, scan_scope = iter_files(root)
     ledger = scan_lean_debt(root, files)
     marker_visibility = build_marker_visibility_review(ledger)
+    rot_risk = build_rot_risk_review(marker_visibility)
     visibility_summary = marker_visibility["summary"]
     missing = int(visibility_summary.get("rowsNeedingUpgradeTrigger", 0))
     missing_ceiling = int(visibility_summary.get("rowsMissingCeiling", 0))
@@ -118,6 +202,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         },
         "leanDebtLedger": ledger,
         "markerVisibilityReview": marker_visibility,
+        "rotRiskReview": rot_risk,
         "currentRepoBoundary": {
             "perRepoSavingsClaim": "not-computed",
             "evidenceType": "shortcut-ledger-only",
@@ -135,6 +220,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         },
         "scanScope": scan_scope,
         "nextActions": [
+            "Start with the Rot-Risk Review top row before opening source for another inspection pass.",
             "Add an upgrade trigger to every needs-trigger marker.",
             "Remove markers whose ceiling no longer applies.",
             "Use shipguard lean review on active diffs so new shortcuts are tracked before merge.",
@@ -148,6 +234,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does Lean Debt make every shortcut marker visible with a ceiling and upgrade trigger?",
             "Does it avoid pretending benchmark savings are measurable in this repo?",
             "Can a maintainer tell which marker will rot without another source inspection pass?",
+            "Does each rot-risk row give the exact next action and proof to prevent trigger rot?",
         ]
     return report
 
@@ -158,6 +245,9 @@ def render_markdown(report: dict[str, Any]) -> str:
     marker_review = report.get("markerVisibilityReview", {})
     marker_summary = marker_review.get("summary", {}) if isinstance(marker_review, dict) else {}
     visibility_rows = marker_review.get("visibilityRows", []) if isinstance(marker_review, dict) else []
+    rot_review = report.get("rotRiskReview", {})
+    rot_summary = rot_review.get("summary", {}) if isinstance(rot_review, dict) else {}
+    rot_rows = rot_review.get("prioritizedRows", []) if isinstance(rot_review, dict) else []
     lines = [
         "# ShipGuard Lean Debt",
         "",
@@ -177,6 +267,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Rows with upgrade trigger: {marker_summary.get('rowsWithUpgradeTrigger', 0)}",
         f"- Rows needing upgrade trigger: {marker_summary.get('rowsNeedingUpgradeTrigger', 0)}",
         f"- Rows with upgrade status: {marker_summary.get('rowsWithUpgradeStatus', 0)}",
+        f"- Omitted state unknown: `{str(marker_summary.get('omittedStateUnknown', False)).lower()}`",
         f"- Policy: {marker_review.get('policy', '')}",
         "",
         "| Status | Marker | Location | Ceiling | Upgrade Trigger |",
@@ -190,6 +281,37 @@ def render_markdown(report: dict[str, Any]) -> str:
         )
     if not visibility_rows:
         lines.append("| pass | - | - | - | - |")
+    lines.extend(
+        [
+            "",
+            "## Rot-Risk Review",
+            "",
+            f"- Top risk location: {rot_summary.get('topRiskLocation') or '-'}",
+            f"- Top risk reason: {rot_summary.get('topRiskReason') or '-'}",
+            f"- High-risk rows: {rot_summary.get('highRiskRows', 0)}",
+            f"- Review-risk rows: {rot_summary.get('reviewRiskRows', 0)}",
+            f"- Tracked rows: {rot_summary.get('trackedRows', 0)}",
+            f"- Missing ceiling rows: {rot_summary.get('missingCeilingRows', 0)}",
+            f"- Missing upgrade-trigger rows: {rot_summary.get('missingUpgradeTriggerRows', 0)}",
+            f"- Omitted by limit: {rot_summary.get('omittedByLimit', 0)}",
+            f"- Omitted risk unknown: `{str(rot_summary.get('omittedRiskUnknown', False)).lower()}`",
+            f"- Coverage boundary: {rot_review.get('coverageBoundary', '')}",
+            f"- Policy: {rot_review.get('policy', '')}",
+            "",
+            "| Rank | Risk | Status | Marker | Location | Rot Reason | Next Action | Proof Guidance |",
+            "| ---: | --- | --- | --- | --- | --- | --- | --- |",
+        ]
+    )
+    for item in rot_rows:
+        lines.append(
+            f"| {item.get('rank', '')} | {item.get('riskLevel', '')} | {item.get('status', '')} | "
+            f"`{item.get('marker', '')}` | {item.get('location', '')} | "
+            f"{str(item.get('rotReason', '')).replace('|', '\\|')} | "
+            f"{str(item.get('nextAction', '')).replace('|', '\\|')} | "
+            f"{str(item.get('proofGuidance', '')).replace('|', '\\|')} |"
+        )
+    if not rot_rows:
+        lines.append("| 0 | tracked | pass | - | - | No shortcut markers found. | Keep Lean Review on active diffs. | No marker proof needed. |")
     lines.extend(
         [
             "",

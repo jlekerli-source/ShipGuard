@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-21T07:33:12Z
+- Generated: 2026-06-21T08:16:08Z
 - Current toolkit version: 3.131.0
-- Target release: v3.153.0
-- Title: Lean Debt Rot-Risk Visibility Fixture QA
+- Target release: v3.154.0
+- Title: Lean Debt Trigger-Rot Next Action Fixture QA
 
 ## Slash Plan
 
 ```text
-/plan v3.153.0 Lean Debt Rot-Risk Visibility Fixture QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Promote the next combined Lean QA actionability question into public synthetic fixture coverage that proves Lean Debt tells maintainers which shortcut marker will rot without another source inspection pass.
+/plan v3.154.0 Lean Debt Trigger-Rot Next Action Fixture QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Promote the next Lean Debt trigger-rot actionability question into public synthetic fixture coverage that proves each rot-risk row gives an exact next action and proof guidance to prevent shortcut trigger rot.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.153.0 Lean Debt Rot-Risk Visibility Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next combined Lean QA actionability question into public synthetic fixture coverage that proves Lean Debt tells maintainers which shortcut marker will rot without another source inspection pass, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.154.0 Lean Debt Trigger-Rot Next Action Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next Lean Debt trigger-rot actionability question into public synthetic fixture coverage that proves each rot-risk row gives an exact next action and proof guidance to prevent shortcut trigger rot, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Promote the next combined Lean QA actionability question into public synthetic fixture coverage that proves Lean Debt tells maintainers which shortcut marker will rot without another source inspection pass.
+Promote the next Lean Debt trigger-rot actionability question into public synthetic fixture coverage that proves each rot-risk row gives an exact next action and proof guidance to prevent shortcut trigger rot.
 
 ## Completion Receipt
 
-- Completed scope: Promoted the Lean Debt benchmark-savings honesty question into public fixture coverage: shipguard lean debt now emits currentRepoBoundary.perRepoSavingsClaim=not-computed with shortcut-ledger-only evidence, no-claim text, and a lean gain benchmark route; ios report-quality now fails standalone Lean Debt reports that hide, weaken, or under-render that boundary; fixtures/ios-report-quality/01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc proves marker counts remain ledger evidence and do not become fake line, token, cost, or time savings so fresh combined Lean QA advances to the Lean Debt rot-risk visibility question.
-- Evidence: Validated with git diff --check; python3 -m py_compile scripts/lean_debt.py scripts/lean_audit.py scripts/ios_report_quality.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; private-term scans for both standalone Lean Debt fixtures; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3152-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3152-value-gauntlet.
+- Completed scope: Promoted the Lean Debt rot-risk visibility question into public fixture coverage: shipguard lean debt now emits rotRiskReview with visible-row risk ranking, top-risk location, risk-level counts, rot reasons, exact next actions, proof guidance, and omitted-risk honesty boundaries; ios report-quality now fails standalone Lean Debt reports that hide, miscount, under-render, or weaken rot-risk rows; fixtures/ios-report-quality/01-shipguard-lean-debt-can-a-maintainer-tell-which-marker-f778022c proves the public synthetic case and fresh combined Lean QA advances to the trigger-rot next-action question.
+- Evidence: Validated with git diff --check; python3 -m py_compile scripts/lean_debt.py scripts/lean_audit.py scripts/ios_report_quality.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; private-term scan for Lean Debt fixtures; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3153-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3153-value-gauntlet.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.154.0 Lean Debt Trigger-Rot Next Action Fixture QA for jlekerli-source/ShipGuard:
+/plan v3.155.0 Verify-first Launch Quickstart QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Promote the next combined Lean QA actionability question into public synthetic f
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.154.0 Lean Debt Trigger-Rot Next Action Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.155.0 Verify-first Launch Quickstart QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.154.0 --title "Lean Debt Trigger-Rot Next Action Fixture QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.155.0 --title "Verify-first Launch Quickstart QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.153.0.
+1. Open or update the tracking issue for v3.154.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.153.0` and upload `dist/shipguard-v3.153.0.tar.gz`.
+6. Create release `v3.154.0` and upload `dist/shipguard-v3.154.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

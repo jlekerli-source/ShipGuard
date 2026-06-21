@@ -797,16 +797,24 @@ test -f "$tmp_dir/debt/lean-debt.md"
 grep -q '"tool": "shipguard lean debt"' "$tmp_dir/debt/lean-debt.json"
 grep -q '"surface": "ShipGuard Lean Debt"' "$tmp_dir/debt/lean-debt.json"
 grep -q '"markerVisibilityReview":' "$tmp_dir/debt/lean-debt.json"
+grep -q '"rotRiskReview":' "$tmp_dir/debt/lean-debt.json"
 grep -q '"currentRepoBoundary":' "$tmp_dir/debt/lean-debt.json"
 grep -q '"perRepoSavingsClaim": "not-computed"' "$tmp_dir/debt/lean-debt.json"
 grep -q '"evidenceType": "shortcut-ledger-only"' "$tmp_dir/debt/lean-debt.json"
 grep -q '"allMarkersVisible": true' "$tmp_dir/debt/lean-debt.json"
+grep -q '"allVisibleRowsHaveRotRisk": true' "$tmp_dir/debt/lean-debt.json"
+grep -q '"topRiskActionable": true' "$tmp_dir/debt/lean-debt.json"
+grep -q '"topRiskLocation": "src/ThinWrapper.ts:1"' "$tmp_dir/debt/lean-debt.json"
+grep -q '"riskLevel": "tracked"' "$tmp_dir/debt/lean-debt.json"
 grep -q '"rowsWithCeiling": 1' "$tmp_dir/debt/lean-debt.json"
 grep -q '"rowsWithUpgradeStatus": 1' "$tmp_dir/debt/lean-debt.json"
 grep -q '"marker": "shipguard-lean"' "$tmp_dir/debt/lean-debt.json"
 grep -q '"status": "tracked"' "$tmp_dir/debt/lean-debt.json"
 grep -q 'ShipGuard Lean Debt' "$tmp_dir/debt/lean-debt.md"
 grep -q 'Marker Visibility Review' "$tmp_dir/debt/lean-debt.md"
+grep -q 'Rot-Risk Review' "$tmp_dir/debt/lean-debt.md"
+grep -q 'Top risk location: src/ThinWrapper.ts:1' "$tmp_dir/debt/lean-debt.md"
+grep -q 'Tracked shortcut should be reviewed when its upgrade trigger becomes true' "$tmp_dir/debt/lean-debt.md"
 grep -q 'Benchmark Savings Boundary' "$tmp_dir/debt/lean-debt.md"
 grep -q 'Do not claim current-repo line, token, cost, or time savings' "$tmp_dir/debt/lean-debt.md"
 grep -q 'shipguard lean gain' "$tmp_dir/debt/lean-debt.md"
@@ -815,6 +823,49 @@ if grep -q '/Users/' "$tmp_dir/debt/lean-debt.json"; then
   echo "shareable lean debt leaked an absolute user path" >&2
   exit 1
 fi
+
+omitted_debt_repo="$tmp_dir/omitted-debt-repo"
+mkdir -p "$omitted_debt_repo/Sources"
+for index in $(seq 1 80); do
+  printf '// shipguard-lean: visible shortcut %s. ceiling: one generated visible row. upgrade: replace when visible trigger %s lands.\n' "$index" "$index" >> "$omitted_debt_repo/Sources/ManyShortcuts.swift"
+done
+printf '// shipguard-lean: omitted missing-ceiling shortcut. upgrade: replace when omitted risk matters.\n' >> "$omitted_debt_repo/Sources/ManyShortcuts.swift"
+
+./bin/shipguard lean debt \
+  --path "$omitted_debt_repo" \
+  --out "$tmp_dir/omitted-debt" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+python3 - <<'PY' "$tmp_dir/omitted-debt/lean-debt.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+ledger_summary = data["leanDebtLedger"]["summary"]
+visibility_summary = data["markerVisibilityReview"]["summary"]
+rot_summary = data["rotRiskReview"]["summary"]
+if ledger_summary.get("markers") != 81 or ledger_summary.get("omittedByLimit") != 1:
+    raise SystemExit(f"expected one omitted marker from 81-marker fixture: {ledger_summary!r}")
+if visibility_summary.get("visibleMarkerRows") != 80 or visibility_summary.get("omittedStateUnknown") is not True:
+    raise SystemExit(f"marker visibility should be visible-row based with omitted-state boundary: {visibility_summary!r}")
+if visibility_summary.get("rowsMissingCeiling") != 0:
+    raise SystemExit(f"visible marker rows should not inherit omitted missing-ceiling count: {visibility_summary!r}")
+if rot_summary.get("rotRiskRows") != 80 or rot_summary.get("omittedRiskUnknown") is not True:
+    raise SystemExit(f"rot risk should be visible-row based with omitted-risk boundary: {rot_summary!r}")
+if rot_summary.get("missingCeilingRows") != 0:
+    raise SystemExit(f"visible rot-risk rows should not inherit omitted missing-ceiling count: {rot_summary!r}")
+if not data["rotRiskReview"].get("coverageBoundary"):
+    raise SystemExit("rotRiskReview should explain omitted-row coverage boundary")
+PY
+grep -q 'Omitted risk unknown: `true`' "$tmp_dir/omitted-debt/lean-debt.md"
+grep -q 'Coverage boundary: Rot-risk ranking is based on visible shortcut rows' "$tmp_dir/omitted-debt/lean-debt.md"
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/omitted-debt" \
+  --out "$tmp_dir/omitted-debt-quality" \
+  --shipguard-eval \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/omitted-debt-quality/ios-report-quality.json"
 
 ./bin/shipguard lean gain \
   --path fixtures/lean-audit-demo \

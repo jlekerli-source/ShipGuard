@@ -192,6 +192,18 @@ The v3.152 read-only loop reran `shipguard lean audit`, `shipguard lean review`,
 
 Fresh combined Lean QA now treats the benchmark-savings honesty question as covered and advances to the Lean Debt rot-risk visibility question.
 
+## Current Lean Debt Rot-Risk Visibility Fixture QA
+
+The v3.153 read-only loop reran `shipguard lean audit`, `shipguard lean review`, `shipguard lean gain`, `shipguard lean debt`, and `ios report-quality --write-fixture-candidates` against this checkout after the benchmark-savings fixture landed.
+
+- Finding: fresh combined Lean QA passed, but the next uncovered actionability question was "Can a maintainer tell which marker will rot without another source inspection pass?"
+- Product weakness: standalone Lean Debt could show every shortcut marker and its savings boundary, but it still did not rank which marker would rot first or explain the next proof-backed action.
+- Native fix: `shipguard lean debt` now emits `rotRiskReview` with top-risk location, risk-level counts, prioritized rows, rot reasons, exact next actions, and proof guidance.
+- Report-quality fix: `ios report-quality` now flags standalone Lean Debt reports that omit, miscount, under-render, or weaken the rot-risk review.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-lean-debt-can-a-maintainer-tell-which-marker-f778022c` uses public synthetic evidence to prove a `needs-trigger` marker is prioritized before a tracked trigger-watch marker.
+
+Fresh combined Lean QA now treats the rot-risk visibility question as covered and advances to the Lean Debt trigger-rot next-action question.
+
 ## Current Verify-PR First-Run QA
 
 The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `shipguard full-audit --plan-only`, docs-check, and the verify-first quickstart tests against this checkout.

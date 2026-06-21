@@ -161,14 +161,16 @@ v3.149  Stable-publication final claim gate
 v3.150  Lean Review selected-mode bias fixture
 v3.151  Lean Debt marker-visibility fixture
 v3.152  Lean Debt benchmark-savings honesty fixture
-v3.153  Verify-first launch quickstart
-v3.154  Guarded launch relay drafts
-v3.155  One-command installer proof path
-v3.156  GitHub Action first-run proof path
-v3.157  Demo project and docs-site quickstart polish
+v3.153  Lean Debt rot-risk visibility fixture
+v3.154  Lean Debt trigger-rot next-action fixture
+v3.155  Verify-first launch quickstart
+v3.156  Guarded launch relay drafts
+v3.157  One-command installer proof path
+v3.158  GitHub Action first-run proof path
+v3.159  Demo project and docs-site quickstart polish
 ```
 
-Current state: latest published release `v3.131.0` adds `shipguard v4 release-candidate` and V4 Release Candidate Readiness receipts that make fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, release-readiness commands, and blocked stable-release claims explicit. Active local ShipYard handoffs may target later v3 stabilization slices, but those are not stable-v4 release claims. Current `main` has moved through LaunchKey published release-asset proof, package fresh-install proof, report-quality proof-directory exclusion, same-prefix upgrade receipts, rollback cleanup receipts, generated archive-member blocking, blocking-proof result UX, native GitHub release-asset download, external adoption evidence gating, final security-review evidence gating, Full Audit release-packet plan honesty, NEXT_GOAL-backed Full Audit slash handoff proof, stable-publication evidence packets, draft-only stable-publication evidence templates, Verify-PR runtime artifact consumption, and Lean Deck behavior-gate/gain-honesty hardening. The next local handoff should keep launch automation orbiting the verify proof report while using Lean Deck to cut implementation clutter without deleting proof boundaries. The active architectural priority remains v4 product release stabilization: external adoption evidence, final security review, package proof, rollback proof, report-quality precision, result-UX command discipline, and release proof consumption on published assets before any stable v4 claim.
+Current state: latest published release `v3.131.0` adds `shipguard v4 release-candidate` and V4 Release Candidate Readiness receipts that make fresh install, upgrade, uninstall, release-proof consumption, external adoption packet, final schema docs, plugin refresh proof, release-readiness commands, and blocked stable-release claims explicit. Active local ShipYard handoffs may target later v3 stabilization slices, but those are not stable-v4 release claims. Current `main` has moved through LaunchKey published release-asset proof, package fresh-install proof, report-quality proof-directory exclusion, same-prefix upgrade receipts, rollback cleanup receipts, generated archive-member blocking, blocking-proof result UX, native GitHub release-asset download, external adoption evidence gating, final security-review evidence gating, Full Audit release-packet plan honesty, NEXT_GOAL-backed Full Audit slash handoff proof, stable-publication evidence packets, draft-only stable-publication evidence templates, Verify-PR runtime artifact consumption, and Lean Deck behavior-gate/gain-honesty hardening. The current Lean Debt loop is turning shortcut markers into visible, benchmark-honest, rot-risk-prioritized maintenance queues before returning to launch-facing verify and install work. The active architectural priority remains v4 product release stabilization: external adoption evidence, final security review, package proof, rollback proof, report-quality precision, result-UX command discipline, and release proof consumption on published assets before any stable v4 claim.
 
 Every release proposal must answer:
 

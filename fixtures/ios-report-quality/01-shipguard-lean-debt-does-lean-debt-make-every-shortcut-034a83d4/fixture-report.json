@@ -110,6 +110,7 @@
     "policy": "Every intentional shortcut marker should be rendered as a row with location, summary, ceiling, upgrade-trigger status, and explicit missing-trigger state when the upgrade is not yet written.",
     "summary": {
       "omittedByLimit": 0,
+      "omittedStateUnknown": false,
       "rowsMissingCeiling": 0,
       "rowsNeedingUpgradeTrigger": 1,
       "rowsWithCeiling": 2,
@@ -146,6 +147,59 @@
         "upgradeTrigger": ""
       }
     ]
+  },
+  "rotRiskReview": {
+    "allVisibleRowsHaveRotRisk": true,
+    "policy": "Start with the highest-risk shortcut marker before opening source again: missing ceiling first, missing upgrade trigger second, tracked trigger watch third.",
+    "prioritizedRows": [
+      {
+        "ceiling": "one release migration window",
+        "file": "Sources/SyntheticLeanDebt/LegacyPanel.swift",
+        "hasCeiling": true,
+        "hasUpgradeTrigger": false,
+        "line": 27,
+        "location": "Sources/SyntheticLeanDebt/LegacyPanel.swift:27",
+        "marker": "ponytail",
+        "nextAction": "Add an upgrade trigger that tells the maintainer exactly when to replace or delete it.",
+        "proofGuidance": "Name the release, dependency, migration state, or repeated call-site signal that should trigger cleanup.",
+        "rank": 1,
+        "riskLevel": "review",
+        "rotReason": "Missing upgrade trigger means this shortcut can survive beyond its intended window.",
+        "status": "needs-trigger",
+        "upgradeTrigger": ""
+      },
+      {
+        "ceiling": "one query shape",
+        "file": "Sources/SyntheticLeanDebt/QueryBridge.swift",
+        "hasCeiling": true,
+        "hasUpgradeTrigger": true,
+        "line": 12,
+        "location": "Sources/SyntheticLeanDebt/QueryBridge.swift:12",
+        "marker": "shipguard-lean",
+        "nextAction": "Watch the upgrade trigger: replace when repeated-key support is required",
+        "proofGuidance": "When the trigger is true, run call-site search plus the smallest focused validation before deleting or replacing it.",
+        "rank": 2,
+        "riskLevel": "tracked",
+        "rotReason": "Tracked shortcut should be reviewed when its upgrade trigger becomes true.",
+        "status": "tracked",
+        "upgradeTrigger": "replace when repeated-key support is required"
+      }
+    ],
+    "summary": {
+      "highRiskRows": 0,
+      "missingCeilingRows": 0,
+      "missingUpgradeTriggerRows": 1,
+      "omittedByLimit": 0,
+      "omittedRiskUnknown": false,
+      "reviewRiskRows": 1,
+      "rotRiskRows": 2,
+      "topRiskLocation": "Sources/SyntheticLeanDebt/LegacyPanel.swift:27",
+      "topRiskReason": "Missing upgrade trigger means this shortcut can survive beyond its intended window.",
+      "totalMarkers": 2,
+      "trackedRows": 1
+    },
+    "coverageBoundary": "Rot-risk ranking is based on visible shortcut rows. When omittedByLimit is greater than zero, omitted markers may contain higher risk and must be surfaced by rerunning with a narrower scope or extending the ledger limit.",
+    "topRiskActionable": true
   },
   "currentRepoBoundary": {
     "benchmarkRoute": {
