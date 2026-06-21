@@ -12,6 +12,7 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 
 - Type: `shipguard-release-proof-quality-fixture`
 - Source tool: `shipguard v4 stable-publication`
+- Source question: Does the LaunchKey candidate closure row expose the supplied candidate path, nested receipt, required proof areas, package-hygiene diagnostics, repair/pass criteria, nested rerun, full stable-publication rerun, and fixture-proof boundary?
 
 # ShipGuard V4 Stable Publication Proof
 
@@ -304,7 +305,7 @@ Next command template:
 
 ## Report Quality Questions
 
-- Does the stable-publication report provide draft-only evidence templates for independent adoption and final security review without manufacturing proof?
+- Does the stable-publication evidence packet list every required real-evidence input, first blocker, next command, and non-claim before a stable-v4 announcement?
 
 ## Scope Boundary
 

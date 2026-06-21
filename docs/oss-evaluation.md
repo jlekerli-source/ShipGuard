@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.166 read-only stable-v4 packet loop continued from the adoption/security closure kits and tested whether the LaunchKey candidate blocker is directly actionable from the stable-publication report.
+
+- Finding: `v4 stable-publication` could mirror a LaunchKey blocker and package-hygiene evidence, but the closure row still did not carry the supplied candidate report path, synthesized nested receipt when the report was missing/incomplete, required LaunchKey proof areas, repair/pass criteria, or both rerun commands.
+- Product weakness: a solo maintainer should be able to repair candidate package lineage first, then rerun the full stable-publication gate without losing visibility into later release notes, asset, adoption, and security blockers.
+- Native fix: `launchkey-candidate-packet` closure items now carry `launchKeyCandidateClosureKit` with candidate path, nested blocking receipt/status, proof areas, package-hygiene diagnostics, repair/pass/fail criteria, nested rerun command, full stable-publication rerun command, and fixture-proof boundary.
+- Report-quality fix: `ios report-quality` now flags stable-publication reports whose LaunchKey candidate closure item hides the kit, supplied candidate path, nested receipt, proof areas, hygiene diagnostics, repair/pass/fail criteria, nested/full rerun commands, fixture boundary, or Markdown `LaunchKey Candidate Closure Kit` rendering.
+- Fixture fix: public stable-publication fixtures with LaunchKey blockers now include the new candidate closure kit in JSON and Markdown.
+
+Fresh stable-v4 QA still does not claim real stable v4. It makes candidate closure explicit while keeping release notes, downloaded assets, post-release consumer proof, independent adoption evidence, and final security review evidence as separate gates.
+
 The v3.165 read-only stable-v4 packet loop continued from the release-notes closure kit and tested whether adoption/security blockers are directly actionable without opening nested proof JSON or source templates.
 
 - Finding: `v4 stable-publication` could show `independent-adoption-evidence` and `final-security-review-evidence` as remaining blockers, but those rows did not themselves include the exact record contract, starter path, privacy boundary, pass/fail criteria, current diagnostics, or stable-publication rerun command.

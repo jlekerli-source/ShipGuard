@@ -217,6 +217,92 @@ STABLE_PUBLICATION_TEMPLATE_SPECS = [
     },
 ]
 
+LAUNCHKEY_REQUIRED_PROOF_AREAS = [
+    {
+        "id": "fresh-install-package-proof",
+        "receipt": "freshInstallPackageProof",
+        "title": "Fresh package install",
+        "requiredForCandidateClosure": True,
+        "stablePublicationGate": "launchkey-candidate-packet",
+        "requirement": "A release tarball installs into a clean prefix, reports the expected version through both CLI aliases, runs validation, and leaves no generated/cache/VCS/package sidecar files in the installed tree.",
+    },
+    {
+        "id": "same-prefix-upgrade-proof",
+        "receipt": "upgradePackageProof",
+        "title": "Same-prefix upgrade",
+        "requiredForCandidateClosure": True,
+        "stablePublicationGate": "launchkey-candidate-packet",
+        "requirement": "A previous release package installs first, the candidate package upgrades the same prefix, both aliases report the candidate version, validation passes, and the upgraded tree is clean.",
+    },
+    {
+        "id": "rollback-cleanup-proof",
+        "receipt": "rollbackPackageProof",
+        "title": "Rollback cleanup",
+        "requiredForCandidateClosure": True,
+        "stablePublicationGate": "launchkey-candidate-packet",
+        "requirement": "A temporary candidate install can be removed without leaving ShipGuard package state behind.",
+    },
+    {
+        "id": "github-release-asset-download-proof",
+        "receipt": "githubReleaseAssetDownloadProof",
+        "title": "GitHub release asset download",
+        "requiredForCandidateClosure": False,
+        "stablePublicationGate": "downloaded-release-assets",
+        "requirement": "LaunchKey may download public GitHub release assets for candidate readiness, but stable-publication verifies downloaded or supplied release assets again.",
+    },
+    {
+        "id": "post-release-consumer-proof",
+        "receipt": "publishedReleaseAssetProof",
+        "title": "Release-consume proof",
+        "requiredForCandidateClosure": False,
+        "stablePublicationGate": "post-release-consumer-proof",
+        "requirement": "Downloaded or supplied release assets can be consumed by release-consume verification; stable-publication still owns the final consumer gate.",
+    },
+    {
+        "id": "external-adoption-evidence-proof",
+        "receipt": "externalAdoptionEvidenceStableGate",
+        "title": "Independent adoption evidence",
+        "requiredForCandidateClosure": False,
+        "stablePublicationGate": "independent-adoption-evidence",
+        "requirement": "LaunchKey can validate adoption-evidence structure, but real independent adoption for stable v4 is proven by the stable-publication adoption gate.",
+    },
+    {
+        "id": "security-review-evidence-proof",
+        "receipt": "securityReviewEvidenceStableGate",
+        "title": "Final security review evidence",
+        "requiredForCandidateClosure": False,
+        "stablePublicationGate": "final-security-review-evidence",
+        "requirement": "LaunchKey can validate security-evidence structure and scope, but final stable-v4 security proof is proven by the stable-publication security gate.",
+    },
+]
+
+LAUNCHKEY_CANDIDATE_REPAIR_CRITERIA = [
+    "Use the supplied candidate report path to inspect the LaunchKey JSON, but fix the failing LaunchKey input or package lineage instead of editing the stable-publication report.",
+    "If package hygiene diagnostics are present, rebuild the affected tarball without AppleDouble, cache, VCS, bytecode, or unsafe archive members, then rerun `shipguard release-package hygiene`.",
+    "Rerun `shipguard v4 release-candidate` with the rebuilt candidate package, previous release package for same-prefix upgrade proof, rollback proof, release assets when needed, and redacted evidence inputs.",
+    "After the LaunchKey candidate report passes, rerun `shipguard v4 stable-publication` with the same publication inputs so later release notes, release assets, adoption, and security gates remain visible.",
+]
+
+LAUNCHKEY_CANDIDATE_PASS_CRITERIA = [
+    "The supplied report is from `shipguard v4 release-candidate`.",
+    "The supplied report status is `pass`.",
+    "releaseReadiness.releaseClaim is `candidate-ready`.",
+    "releaseReadiness.stableV4Release is `false`.",
+    "freshInstallPackageProof, upgradePackageProof, and rollbackPackageProof all pass.",
+    "No nested blockingProof remains.",
+    "No package-hygiene blocker remains for the candidate or previous release tarball.",
+]
+
+LAUNCHKEY_CANDIDATE_FAIL_CRITERIA = [
+    "The LaunchKey report is missing, unreadable, or from the wrong tool.",
+    "The LaunchKey report status is not `pass`.",
+    "The LaunchKey report claims stable v4 instead of candidate readiness.",
+    "Fresh install, same-prefix upgrade, or rollback cleanup proof is missing or not passing.",
+    "A nested blocking receipt still points at package, release-asset, adoption, security, or consumer proof failure.",
+    "Package hygiene diagnostics report unsafe archive members such as AppleDouble sidecars, `.DS_Store`, `__MACOSX`, bytecode, cache, VCS data, unsafe links/devices, or path traversal.",
+    "Fixture candidate proof is used as stable-v4 publication proof.",
+]
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -495,6 +581,10 @@ def build_release_candidate_packet_proof(args: argparse.Namespace) -> dict[str, 
     report = load_json(path)
     launchkey_blocker = extract_launchkey_blocking_proof(report) if report else None
     release_readiness = report.get("releaseReadiness") if isinstance(report.get("releaseReadiness"), dict) else {}
+    candidate_readiness_statuses = {
+        str(area["receipt"]): release_readiness.get(str(area["receipt"]), "not-reported")
+        for area in LAUNCHKEY_REQUIRED_PROOF_AREAS
+    }
     required_statuses = {
         "freshInstallPackageProof": release_readiness.get("freshInstallPackageProof"),
         "upgradePackageProof": release_readiness.get("upgradePackageProof"),
@@ -514,6 +604,7 @@ def build_release_candidate_packet_proof(args: argparse.Namespace) -> dict[str, 
         "releaseClaim": release_readiness.get("releaseClaim"),
         "stableV4ReleaseClaimed": release_readiness.get("stableV4Release"),
         "requiredStatuses": required_statuses,
+        "candidateReadinessStatuses": candidate_readiness_statuses,
         "missingPackageProof": missing,
         "summary": "LaunchKey package install, upgrade, and rollback proof passed.",
         "nextCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --shipguard-eval --shareable",
@@ -755,6 +846,131 @@ def evidence_diagnostics_for_closure(proof: dict[str, Any]) -> dict[str, Any]:
             "stableV4Reason": first.get("stableV4Reason") or "",
         }
     return diagnostics
+
+
+def launchkey_candidate_proof_areas_for_closure(proof: dict[str, Any]) -> list[dict[str, Any]]:
+    statuses = proof.get("candidateReadinessStatuses")
+    if not isinstance(statuses, dict):
+        statuses = proof.get("requiredStatuses") if isinstance(proof.get("requiredStatuses"), dict) else {}
+    areas: list[dict[str, Any]] = []
+    for spec in LAUNCHKEY_REQUIRED_PROOF_AREAS:
+        receipt = str(spec["receipt"])
+        status = str(statuses.get(receipt) or "not-reported")
+        areas.append(
+            {
+                **spec,
+                "status": status,
+                "passed": status == "pass",
+                "missingOrBlocking": status not in {"pass", "not-requested"},
+            }
+        )
+    return areas
+
+
+def package_hygiene_diagnostics_for_closure(proof: dict[str, Any]) -> dict[str, Any]:
+    hygiene = proof.get("packageHygieneEvidence")
+    if not isinstance(hygiene, dict):
+        blocker = proof.get("launchKeyBlockingProof") if isinstance(proof.get("launchKeyBlockingProof"), dict) else {}
+        hygiene = blocker.get("packageHygieneEvidence")
+    if not isinstance(hygiene, dict):
+        return {}
+    first_finding = hygiene.get("firstFinding") if isinstance(hygiene.get("firstFinding"), dict) else {}
+    return {
+        "status": hygiene.get("status"),
+        "tool": hygiene.get("tool"),
+        "readOnly": hygiene.get("readOnly") is True,
+        "blockedFindingCount": hygiene.get("blockedFindingCount"),
+        "reviewFindingCount": hygiene.get("reviewFindingCount"),
+        "affectedVersions": hygiene.get("affectedVersions") if isinstance(hygiene.get("affectedVersions"), list) else [],
+        "safeTarballs": hygiene.get("safeTarballs") if isinstance(hygiene.get("safeTarballs"), list) else [],
+        "tarballsScanned": hygiene.get("tarballsScanned"),
+        "firstFinding": first_finding,
+        "nextCommand": hygiene.get("nextCommand") or "",
+    }
+
+
+def launchkey_candidate_diagnostics_for_closure(proof: dict[str, Any]) -> dict[str, Any]:
+    blocker = proof.get("launchKeyBlockingProof") if isinstance(proof.get("launchKeyBlockingProof"), dict) else {}
+    required_statuses = proof.get("requiredStatuses") if isinstance(proof.get("requiredStatuses"), dict) else {}
+    missing_package = proof.get("missingPackageProof") if isinstance(proof.get("missingPackageProof"), list) else []
+    nested_receipt = str(blocker.get("receipt") or (missing_package[0] if missing_package else ""))
+    if not nested_receipt and proof.get("status") != "pass":
+        nested_receipt = "releaseCandidatePacketProof"
+    nested_status = str(blocker.get("status") or required_statuses.get(nested_receipt) or proof.get("status") or "")
+    nested_summary = str(
+        blocker.get("summary")
+        or blocker.get("failure")
+        or proof.get("summary")
+        or (f"{nested_receipt} is {nested_status}." if nested_receipt else "")
+    )
+    package_hygiene = package_hygiene_diagnostics_for_closure(proof)
+    nested_blocking_proof = dict(blocker) if blocker else {}
+    if nested_receipt and not nested_blocking_proof:
+        nested_blocking_proof = {
+            "receipt": nested_receipt,
+            "status": nested_status,
+            "summary": nested_summary,
+            "proofSource": "releaseReadiness",
+        }
+    return {
+        "status": proof.get("status"),
+        "provided": proof.get("provided") is True,
+        "reportPath": proof.get("reportPath") or "",
+        "tool": proof.get("tool") or "",
+        "reportStatus": proof.get("reportStatus") or "",
+        "releaseClaim": proof.get("releaseClaim") or "",
+        "stableV4ReleaseClaimed": proof.get("stableV4ReleaseClaimed"),
+        "requiredStatuses": required_statuses,
+        "candidateReadinessStatuses": proof.get("candidateReadinessStatuses") if isinstance(proof.get("candidateReadinessStatuses"), dict) else {},
+        "missingPackageProof": missing_package,
+        "summary": proof.get("summary") or "",
+        "error": proof.get("error") or "",
+        "nestedBlockingReceipt": nested_receipt,
+        "nestedBlockingStatus": nested_status,
+        "nestedBlockingSummary": nested_summary,
+        "nestedBlockingProof": nested_blocking_proof,
+        "requiredLaunchKeyProofAreas": launchkey_candidate_proof_areas_for_closure(proof),
+        "packageHygieneDiagnostics": package_hygiene,
+        "nestedRerunCommand": str(blocker.get("nextCommand") or package_hygiene.get("nextCommand") or proof.get("nextCommand") or ""),
+    }
+
+
+def build_launchkey_candidate_closure_kit(
+    *,
+    item: dict[str, Any],
+    rerun_command: str,
+) -> dict[str, Any]:
+    diagnostics = (
+        item.get("launchKeyCandidateDiagnostics")
+        if isinstance(item.get("launchKeyCandidateDiagnostics"), dict)
+        else {}
+    )
+    nested_rerun = str(diagnostics.get("nestedRerunCommand") or item.get("nextCommand") or "")
+    return {
+        "schemaVersion": 1,
+        "title": "LaunchKey candidate packet closure kit",
+        "candidateReportPath": diagnostics.get("reportPath") or "",
+        "suppliedCandidateReportPath": diagnostics.get("reportPath") or "",
+        "nestedBlockingReceipt": diagnostics.get("nestedBlockingReceipt") or "",
+        "nestedBlockingStatus": diagnostics.get("nestedBlockingStatus") or "",
+        "nestedBlockingSummary": diagnostics.get("nestedBlockingSummary") or "",
+        "nestedBlockingProof": diagnostics.get("nestedBlockingProof") if isinstance(diagnostics.get("nestedBlockingProof"), dict) else {},
+        "requiredLaunchKeyProofAreas": diagnostics.get("requiredLaunchKeyProofAreas") if isinstance(diagnostics.get("requiredLaunchKeyProofAreas"), list) else [],
+        "packageHygieneDiagnostics": diagnostics.get("packageHygieneDiagnostics") if isinstance(diagnostics.get("packageHygieneDiagnostics"), dict) else {},
+        "currentCandidateDiagnostics": diagnostics,
+        "repairCriteria": LAUNCHKEY_CANDIDATE_REPAIR_CRITERIA,
+        "passCriteria": LAUNCHKEY_CANDIDATE_PASS_CRITERIA,
+        "failCriteria": LAUNCHKEY_CANDIDATE_FAIL_CRITERIA,
+        "nestedRerunCommand": nested_rerun,
+        "stablePublicationRerunCommand": rerun_command,
+        "fixtureCandidateBoundary": {
+            "fixtureCandidateProofAllowedForToolingTests": True,
+            "fixtureCandidateProofCountsAsStableV4PublicationProof": False,
+            "stablePublicationRequiresRealPublishedReleaseProof": True,
+            "doNotPromoteFixtureLaunchKeyProofToStableV4": True,
+            "explanation": "LaunchKey fixture reports can test ShipGuard routing. Stable-v4 publication still requires the public release metadata, release notes, downloaded release assets, post-release consumer proof, independent adoption evidence, and final security-review evidence to pass in stable-publication.",
+        },
+    }
 
 
 def build_stable_publication_evidence_templates(root: Path) -> dict[str, Any]:
@@ -1047,6 +1263,8 @@ def build_stable_publication_evidence_packet(
                     "templateCommand": template.get("copyCommand"),
                 }
             )
+        if evidence_id == "launchkey-candidate-packet":
+            item["launchKeyCandidateDiagnostics"] = launchkey_candidate_diagnostics_for_closure(proof)
         if evidence_id in {"independent-adoption-evidence", "final-security-review-evidence"}:
             item["evidenceDiagnostics"] = evidence_diagnostics_for_closure(proof)
         required_evidence.append(item)
@@ -1170,6 +1388,37 @@ def build_stable_publication_closure_checklist(
                 }
             )
             closure_item["nextCommand"] = closure_item["rerunCommand"]
+        if evidence_id == "launchkey-candidate-packet":
+            candidate_kit = build_launchkey_candidate_closure_kit(
+                item=item,
+                rerun_command=rerun_command
+                or (
+                    "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> "
+                    "--github-release-repo <owner/repo> --release-version <version> "
+                    "--release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets "
+                    "--external-adoption-evidence <adoption-evidence-json-or-dir> "
+                    "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
+                ),
+            )
+            closure_item.update(
+                {
+                    "candidateReportPath": candidate_kit.get("candidateReportPath") or "",
+                    "suppliedCandidateReportPath": candidate_kit.get("suppliedCandidateReportPath") or "",
+                    "nestedBlockingReceipt": candidate_kit.get("nestedBlockingReceipt") or "",
+                    "nestedBlockingStatus": candidate_kit.get("nestedBlockingStatus") or "",
+                    "nestedBlockingSummary": candidate_kit.get("nestedBlockingSummary") or "",
+                    "requiredLaunchKeyProofAreas": candidate_kit.get("requiredLaunchKeyProofAreas") if isinstance(candidate_kit.get("requiredLaunchKeyProofAreas"), list) else [],
+                    "packageHygieneDiagnostics": candidate_kit.get("packageHygieneDiagnostics") if isinstance(candidate_kit.get("packageHygieneDiagnostics"), dict) else {},
+                    "repairCriteria": candidate_kit.get("repairCriteria") if isinstance(candidate_kit.get("repairCriteria"), list) else [],
+                    "passCriteria": candidate_kit.get("passCriteria") if isinstance(candidate_kit.get("passCriteria"), list) else [],
+                    "failCriteria": candidate_kit.get("failCriteria") if isinstance(candidate_kit.get("failCriteria"), list) else [],
+                    "nestedRerunCommand": candidate_kit.get("nestedRerunCommand") or item.get("nextCommand") or "",
+                    "stablePublicationRerunCommand": candidate_kit.get("stablePublicationRerunCommand") or rerun_command,
+                    "fixtureCandidateBoundary": candidate_kit.get("fixtureCandidateBoundary") if isinstance(candidate_kit.get("fixtureCandidateBoundary"), dict) else {},
+                    "launchKeyCandidateClosureKit": candidate_kit,
+                }
+            )
+            closure_item["nextCommand"] = closure_item["nestedRerunCommand"] or closure_item["stablePublicationRerunCommand"]
         if evidence_id in {"independent-adoption-evidence", "final-security-review-evidence"}:
             template = templates_by_id.get(evidence_id, {})
             starter_file = starter_files_by_id.get(evidence_id, {})
@@ -1743,6 +1992,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the stable-publication closure checklist list every remaining blocker in dependency order with exact next commands instead of hiding lower-order blockers behind only the first failing gate?",
             "Does the stable-publication report provide draft-only evidence templates for independent adoption and final security review without manufacturing proof?",
             "Does the stable-publication report write a draft-only evidence starter kit so maintainers can collect the packet without reverse-engineering JSON shapes?",
+            "Does the LaunchKey candidate closure row expose the supplied candidate path, nested receipt, required proof areas, package-hygiene diagnostics, repair/pass criteria, nested rerun, full stable-publication rerun, and fixture-proof boundary?",
             "Do independent adoption and final security-review closure rows expose starter paths, required fields, redaction/privacy boundaries, pass/fail criteria, current diagnostics, and exact stable-publication rerun commands?",
             "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?",
         ],
@@ -1866,6 +2116,84 @@ def render_markdown(report: dict[str, Any]) -> str:
                     "",
                     "```bash",
                     str(release_notes_closure.get("rerunCommand") or release_notes_closure.get("nextCommand") or ""),
+                    "```",
+                ]
+            )
+        launchkey_closure = next(
+            (item for item in items if isinstance(item, dict) and item.get("id") == "launchkey-candidate-packet"),
+            None,
+        )
+        if isinstance(launchkey_closure, dict) and isinstance(launchkey_closure.get("launchKeyCandidateClosureKit"), dict):
+            kit = launchkey_closure["launchKeyCandidateClosureKit"]
+            required_areas = kit.get("requiredLaunchKeyProofAreas") if isinstance(kit.get("requiredLaunchKeyProofAreas"), list) else []
+            hygiene = kit.get("packageHygieneDiagnostics") if isinstance(kit.get("packageHygieneDiagnostics"), dict) else {}
+            first_finding = hygiene.get("firstFinding") if isinstance(hygiene.get("firstFinding"), dict) else {}
+            fixture_boundary = kit.get("fixtureCandidateBoundary") if isinstance(kit.get("fixtureCandidateBoundary"), dict) else {}
+            lines.extend(
+                [
+                    "",
+                    "### LaunchKey Candidate Closure Kit",
+                    "",
+                    f"- Candidate report path: `{kit.get('candidateReportPath') or 'not-provided'}`",
+                    f"- Nested blocking receipt: `{kit.get('nestedBlockingReceipt') or 'not-provided'}`",
+                    f"- Nested blocking status: `{kit.get('nestedBlockingStatus') or 'not-provided'}`",
+                    f"- Nested blocking summary: {kit.get('nestedBlockingSummary') or 'not-provided'}",
+                    f"- Fixture candidate proof counts as stable-v4 publication proof: `{fixture_boundary.get('fixtureCandidateProofCountsAsStableV4PublicationProof')}`",
+                    "",
+                    "| LaunchKey proof area | Receipt | Status | Stable-publication gate |",
+                    "| --- | --- | --- | --- |",
+                ]
+            )
+            if required_areas:
+                for area in required_areas:
+                    if isinstance(area, dict):
+                        lines.append(
+                            f"| {area.get('title') or area.get('id')} | `{area.get('receipt')}` | "
+                            f"`{area.get('status')}` | `{area.get('stablePublicationGate')}` |"
+                        )
+            else:
+                lines.append("| not-provided | not-provided | not-provided | not-provided |")
+            if hygiene:
+                lines.extend(
+                    [
+                        "",
+                        "Package hygiene diagnostics:",
+                        "",
+                        f"- Status: `{hygiene.get('status') or 'not-provided'}`",
+                        f"- Blocked findings: `{hygiene.get('blockedFindingCount')}`",
+                        f"- Tarballs scanned: `{hygiene.get('tarballsScanned')}`",
+                    ]
+                )
+                if first_finding:
+                    lines.extend(
+                        [
+                            f"- First hygiene rule: `{first_finding.get('ruleId')}`",
+                            f"- First hygiene tarball: `{first_finding.get('tarball')}`",
+                            f"- First hygiene member: `{first_finding.get('member')}`",
+                        ]
+                    )
+            lines.extend(["", "Repair criteria:", ""])
+            for criterion in kit.get("repairCriteria", []):
+                lines.append(f"- {criterion}")
+            lines.extend(["", "Pass criteria:", ""])
+            for criterion in kit.get("passCriteria", []):
+                lines.append(f"- {criterion}")
+            lines.extend(["", "Fail criteria:", ""])
+            for criterion in kit.get("failCriteria", []):
+                lines.append(f"- {criterion}")
+            lines.extend(
+                [
+                    "",
+                    "Rerun the nested LaunchKey blocker:",
+                    "",
+                    "```bash",
+                    str(kit.get("nestedRerunCommand") or launchkey_closure.get("nextCommand") or ""),
+                    "```",
+                    "",
+                    "Rerun the full stable-publication gate after LaunchKey passes:",
+                    "",
+                    "```bash",
+                    str(kit.get("stablePublicationRerunCommand") or ""),
                     "```",
                 ]
             )

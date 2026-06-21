@@ -309,15 +309,365 @@
       },
       {
         "blocksStableV4": true,
+        "candidateReportPath": "",
         "dependencyOrder": 3,
+        "failCriteria": [
+          "The LaunchKey report is missing, unreadable, or from the wrong tool.",
+          "The LaunchKey report status is not `pass`.",
+          "The LaunchKey report claims stable v4 instead of candidate readiness.",
+          "Fresh install, same-prefix upgrade, or rollback cleanup proof is missing or not passing.",
+          "A nested blocking receipt still points at package, release-asset, adoption, security, or consumer proof failure.",
+          "Package hygiene diagnostics report unsafe archive members such as AppleDouble sidecars, `.DS_Store`, `__MACOSX`, bytecode, cache, VCS data, unsafe links/devices, or path traversal.",
+          "Fixture candidate proof is used as stable-v4 publication proof."
+        ],
+        "fixtureCandidateBoundary": {
+          "doNotPromoteFixtureLaunchKeyProofToStableV4": true,
+          "explanation": "LaunchKey fixture reports can test ShipGuard routing. Stable-v4 publication still requires the public release metadata, release notes, downloaded release assets, post-release consumer proof, independent adoption evidence, and final security-review evidence to pass in stable-publication.",
+          "fixtureCandidateProofAllowedForToolingTests": true,
+          "fixtureCandidateProofCountsAsStableV4PublicationProof": false,
+          "stablePublicationRequiresRealPublishedReleaseProof": true
+        },
         "id": "launchkey-candidate-packet",
         "isFirstBlockingGate": false,
+        "launchKeyCandidateClosureKit": {
+          "candidateReportPath": "",
+          "currentCandidateDiagnostics": {
+            "candidateReadinessStatuses": {},
+            "error": "",
+            "missingPackageProof": [],
+            "nestedBlockingProof": {
+              "proofSource": "releaseReadiness",
+              "receipt": "releaseCandidatePacketProof",
+              "status": "not-provided",
+              "summary": "No LaunchKey release-candidate report was supplied; stable publication needs prior package install, upgrade, and rollback proof."
+            },
+            "nestedBlockingReceipt": "releaseCandidatePacketProof",
+            "nestedBlockingStatus": "not-provided",
+            "nestedBlockingSummary": "No LaunchKey release-candidate report was supplied; stable publication needs prior package install, upgrade, and rollback proof.",
+            "nestedRerunCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --download-release-assets --github-release-repo <owner/repo> --release-version <version> --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+            "packageHygieneDiagnostics": {},
+            "provided": false,
+            "releaseClaim": "",
+            "reportPath": "",
+            "reportStatus": "",
+            "requiredLaunchKeyProofAreas": [
+              {
+                "id": "fresh-install-package-proof",
+                "missingOrBlocking": true,
+                "passed": false,
+                "receipt": "freshInstallPackageProof",
+                "requiredForCandidateClosure": true,
+                "requirement": "A release tarball installs into a clean prefix, reports the expected version through both CLI aliases, runs validation, and leaves no generated/cache/VCS/package sidecar files in the installed tree.",
+                "stablePublicationGate": "launchkey-candidate-packet",
+                "status": "not-reported",
+                "title": "Fresh package install"
+              },
+              {
+                "id": "same-prefix-upgrade-proof",
+                "missingOrBlocking": true,
+                "passed": false,
+                "receipt": "upgradePackageProof",
+                "requiredForCandidateClosure": true,
+                "requirement": "A previous release package installs first, the candidate package upgrades the same prefix, both aliases report the candidate version, validation passes, and the upgraded tree is clean.",
+                "stablePublicationGate": "launchkey-candidate-packet",
+                "status": "not-reported",
+                "title": "Same-prefix upgrade"
+              },
+              {
+                "id": "rollback-cleanup-proof",
+                "missingOrBlocking": true,
+                "passed": false,
+                "receipt": "rollbackPackageProof",
+                "requiredForCandidateClosure": true,
+                "requirement": "A temporary candidate install can be removed without leaving ShipGuard package state behind.",
+                "stablePublicationGate": "launchkey-candidate-packet",
+                "status": "not-reported",
+                "title": "Rollback cleanup"
+              },
+              {
+                "id": "github-release-asset-download-proof",
+                "missingOrBlocking": true,
+                "passed": false,
+                "receipt": "githubReleaseAssetDownloadProof",
+                "requiredForCandidateClosure": false,
+                "requirement": "LaunchKey may download public GitHub release assets for candidate readiness, but stable-publication verifies downloaded or supplied release assets again.",
+                "stablePublicationGate": "downloaded-release-assets",
+                "status": "not-reported",
+                "title": "GitHub release asset download"
+              },
+              {
+                "id": "post-release-consumer-proof",
+                "missingOrBlocking": true,
+                "passed": false,
+                "receipt": "publishedReleaseAssetProof",
+                "requiredForCandidateClosure": false,
+                "requirement": "Downloaded or supplied release assets can be consumed by release-consume verification; stable-publication still owns the final consumer gate.",
+                "stablePublicationGate": "post-release-consumer-proof",
+                "status": "not-reported",
+                "title": "Release-consume proof"
+              },
+              {
+                "id": "external-adoption-evidence-proof",
+                "missingOrBlocking": true,
+                "passed": false,
+                "receipt": "externalAdoptionEvidenceStableGate",
+                "requiredForCandidateClosure": false,
+                "requirement": "LaunchKey can validate adoption-evidence structure, but real independent adoption for stable v4 is proven by the stable-publication adoption gate.",
+                "stablePublicationGate": "independent-adoption-evidence",
+                "status": "not-reported",
+                "title": "Independent adoption evidence"
+              },
+              {
+                "id": "security-review-evidence-proof",
+                "missingOrBlocking": true,
+                "passed": false,
+                "receipt": "securityReviewEvidenceStableGate",
+                "requiredForCandidateClosure": false,
+                "requirement": "LaunchKey can validate security-evidence structure and scope, but final stable-v4 security proof is proven by the stable-publication security gate.",
+                "stablePublicationGate": "final-security-review-evidence",
+                "status": "not-reported",
+                "title": "Final security review evidence"
+              }
+            ],
+            "requiredStatuses": {},
+            "stableV4ReleaseClaimed": null,
+            "status": "not-provided",
+            "summary": "No LaunchKey release-candidate report was supplied; stable publication needs prior package install, upgrade, and rollback proof.",
+            "tool": ""
+          },
+          "failCriteria": [
+            "The LaunchKey report is missing, unreadable, or from the wrong tool.",
+            "The LaunchKey report status is not `pass`.",
+            "The LaunchKey report claims stable v4 instead of candidate readiness.",
+            "Fresh install, same-prefix upgrade, or rollback cleanup proof is missing or not passing.",
+            "A nested blocking receipt still points at package, release-asset, adoption, security, or consumer proof failure.",
+            "Package hygiene diagnostics report unsafe archive members such as AppleDouble sidecars, `.DS_Store`, `__MACOSX`, bytecode, cache, VCS data, unsafe links/devices, or path traversal.",
+            "Fixture candidate proof is used as stable-v4 publication proof."
+          ],
+          "fixtureCandidateBoundary": {
+            "doNotPromoteFixtureLaunchKeyProofToStableV4": true,
+            "explanation": "LaunchKey fixture reports can test ShipGuard routing. Stable-v4 publication still requires the public release metadata, release notes, downloaded release assets, post-release consumer proof, independent adoption evidence, and final security-review evidence to pass in stable-publication.",
+            "fixtureCandidateProofAllowedForToolingTests": true,
+            "fixtureCandidateProofCountsAsStableV4PublicationProof": false,
+            "stablePublicationRequiresRealPublishedReleaseProof": true
+          },
+          "nestedBlockingProof": {
+            "proofSource": "releaseReadiness",
+            "receipt": "releaseCandidatePacketProof",
+            "status": "not-provided",
+            "summary": "No LaunchKey release-candidate report was supplied; stable publication needs prior package install, upgrade, and rollback proof."
+          },
+          "nestedBlockingReceipt": "releaseCandidatePacketProof",
+          "nestedBlockingStatus": "not-provided",
+          "nestedBlockingSummary": "No LaunchKey release-candidate report was supplied; stable publication needs prior package install, upgrade, and rollback proof.",
+          "nestedRerunCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --download-release-assets --github-release-repo <owner/repo> --release-version <version> --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+          "packageHygieneDiagnostics": {},
+          "passCriteria": [
+            "The supplied report is from `shipguard v4 release-candidate`.",
+            "The supplied report status is `pass`.",
+            "releaseReadiness.releaseClaim is `candidate-ready`.",
+            "releaseReadiness.stableV4Release is `false`.",
+            "freshInstallPackageProof, upgradePackageProof, and rollbackPackageProof all pass.",
+            "No nested blockingProof remains.",
+            "No package-hygiene blocker remains for the candidate or previous release tarball."
+          ],
+          "repairCriteria": [
+            "Use the supplied candidate report path to inspect the LaunchKey JSON, but fix the failing LaunchKey input or package lineage instead of editing the stable-publication report.",
+            "If package hygiene diagnostics are present, rebuild the affected tarball without AppleDouble, cache, VCS, bytecode, or unsafe archive members, then rerun `shipguard release-package hygiene`.",
+            "Rerun `shipguard v4 release-candidate` with the rebuilt candidate package, previous release package for same-prefix upgrade proof, rollback proof, release assets when needed, and redacted evidence inputs.",
+            "After the LaunchKey candidate report passes, rerun `shipguard v4 stable-publication` with the same publication inputs so later release notes, release assets, adoption, and security gates remain visible."
+          ],
+          "requiredLaunchKeyProofAreas": [
+            {
+              "id": "fresh-install-package-proof",
+              "missingOrBlocking": true,
+              "passed": false,
+              "receipt": "freshInstallPackageProof",
+              "requiredForCandidateClosure": true,
+              "requirement": "A release tarball installs into a clean prefix, reports the expected version through both CLI aliases, runs validation, and leaves no generated/cache/VCS/package sidecar files in the installed tree.",
+              "stablePublicationGate": "launchkey-candidate-packet",
+              "status": "not-reported",
+              "title": "Fresh package install"
+            },
+            {
+              "id": "same-prefix-upgrade-proof",
+              "missingOrBlocking": true,
+              "passed": false,
+              "receipt": "upgradePackageProof",
+              "requiredForCandidateClosure": true,
+              "requirement": "A previous release package installs first, the candidate package upgrades the same prefix, both aliases report the candidate version, validation passes, and the upgraded tree is clean.",
+              "stablePublicationGate": "launchkey-candidate-packet",
+              "status": "not-reported",
+              "title": "Same-prefix upgrade"
+            },
+            {
+              "id": "rollback-cleanup-proof",
+              "missingOrBlocking": true,
+              "passed": false,
+              "receipt": "rollbackPackageProof",
+              "requiredForCandidateClosure": true,
+              "requirement": "A temporary candidate install can be removed without leaving ShipGuard package state behind.",
+              "stablePublicationGate": "launchkey-candidate-packet",
+              "status": "not-reported",
+              "title": "Rollback cleanup"
+            },
+            {
+              "id": "github-release-asset-download-proof",
+              "missingOrBlocking": true,
+              "passed": false,
+              "receipt": "githubReleaseAssetDownloadProof",
+              "requiredForCandidateClosure": false,
+              "requirement": "LaunchKey may download public GitHub release assets for candidate readiness, but stable-publication verifies downloaded or supplied release assets again.",
+              "stablePublicationGate": "downloaded-release-assets",
+              "status": "not-reported",
+              "title": "GitHub release asset download"
+            },
+            {
+              "id": "post-release-consumer-proof",
+              "missingOrBlocking": true,
+              "passed": false,
+              "receipt": "publishedReleaseAssetProof",
+              "requiredForCandidateClosure": false,
+              "requirement": "Downloaded or supplied release assets can be consumed by release-consume verification; stable-publication still owns the final consumer gate.",
+              "stablePublicationGate": "post-release-consumer-proof",
+              "status": "not-reported",
+              "title": "Release-consume proof"
+            },
+            {
+              "id": "external-adoption-evidence-proof",
+              "missingOrBlocking": true,
+              "passed": false,
+              "receipt": "externalAdoptionEvidenceStableGate",
+              "requiredForCandidateClosure": false,
+              "requirement": "LaunchKey can validate adoption-evidence structure, but real independent adoption for stable v4 is proven by the stable-publication adoption gate.",
+              "stablePublicationGate": "independent-adoption-evidence",
+              "status": "not-reported",
+              "title": "Independent adoption evidence"
+            },
+            {
+              "id": "security-review-evidence-proof",
+              "missingOrBlocking": true,
+              "passed": false,
+              "receipt": "securityReviewEvidenceStableGate",
+              "requiredForCandidateClosure": false,
+              "requirement": "LaunchKey can validate security-evidence structure and scope, but final stable-v4 security proof is proven by the stable-publication security gate.",
+              "stablePublicationGate": "final-security-review-evidence",
+              "status": "not-reported",
+              "title": "Final security review evidence"
+            }
+          ],
+          "schemaVersion": 1,
+          "stablePublicationRerunCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+          "suppliedCandidateReportPath": "",
+          "title": "LaunchKey candidate packet closure kit"
+        },
+        "nestedBlockingReceipt": "releaseCandidatePacketProof",
+        "nestedBlockingStatus": "not-provided",
+        "nestedBlockingSummary": "No LaunchKey release-candidate report was supplied; stable publication needs prior package install, upgrade, and rollback proof.",
+        "nestedRerunCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --download-release-assets --github-release-repo <owner/repo> --release-version <version> --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
         "nextCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --download-release-assets --github-release-repo <owner/repo> --release-version <version> --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+        "packageHygieneDiagnostics": {},
+        "passCriteria": [
+          "The supplied report is from `shipguard v4 release-candidate`.",
+          "The supplied report status is `pass`.",
+          "releaseReadiness.releaseClaim is `candidate-ready`.",
+          "releaseReadiness.stableV4Release is `false`.",
+          "freshInstallPackageProof, upgradePackageProof, and rollbackPackageProof all pass.",
+          "No nested blockingProof remains.",
+          "No package-hygiene blocker remains for the candidate or previous release tarball."
+        ],
         "proofBoundary": "A prior LaunchKey release-candidate report must pass every required install, upgrade, rollback, asset, adoption, security, plugin, and package-hygiene proof gate.",
         "rank": 2,
         "receipt": "releaseCandidatePacketProof",
+        "repairCriteria": [
+          "Use the supplied candidate report path to inspect the LaunchKey JSON, but fix the failing LaunchKey input or package lineage instead of editing the stable-publication report.",
+          "If package hygiene diagnostics are present, rebuild the affected tarball without AppleDouble, cache, VCS, bytecode, or unsafe archive members, then rerun `shipguard release-package hygiene`.",
+          "Rerun `shipguard v4 release-candidate` with the rebuilt candidate package, previous release package for same-prefix upgrade proof, rollback proof, release assets when needed, and redacted evidence inputs.",
+          "After the LaunchKey candidate report passes, rerun `shipguard v4 stable-publication` with the same publication inputs so later release notes, release assets, adoption, and security gates remain visible."
+        ],
+        "requiredLaunchKeyProofAreas": [
+          {
+            "id": "fresh-install-package-proof",
+            "missingOrBlocking": true,
+            "passed": false,
+            "receipt": "freshInstallPackageProof",
+            "requiredForCandidateClosure": true,
+            "requirement": "A release tarball installs into a clean prefix, reports the expected version through both CLI aliases, runs validation, and leaves no generated/cache/VCS/package sidecar files in the installed tree.",
+            "stablePublicationGate": "launchkey-candidate-packet",
+            "status": "not-reported",
+            "title": "Fresh package install"
+          },
+          {
+            "id": "same-prefix-upgrade-proof",
+            "missingOrBlocking": true,
+            "passed": false,
+            "receipt": "upgradePackageProof",
+            "requiredForCandidateClosure": true,
+            "requirement": "A previous release package installs first, the candidate package upgrades the same prefix, both aliases report the candidate version, validation passes, and the upgraded tree is clean.",
+            "stablePublicationGate": "launchkey-candidate-packet",
+            "status": "not-reported",
+            "title": "Same-prefix upgrade"
+          },
+          {
+            "id": "rollback-cleanup-proof",
+            "missingOrBlocking": true,
+            "passed": false,
+            "receipt": "rollbackPackageProof",
+            "requiredForCandidateClosure": true,
+            "requirement": "A temporary candidate install can be removed without leaving ShipGuard package state behind.",
+            "stablePublicationGate": "launchkey-candidate-packet",
+            "status": "not-reported",
+            "title": "Rollback cleanup"
+          },
+          {
+            "id": "github-release-asset-download-proof",
+            "missingOrBlocking": true,
+            "passed": false,
+            "receipt": "githubReleaseAssetDownloadProof",
+            "requiredForCandidateClosure": false,
+            "requirement": "LaunchKey may download public GitHub release assets for candidate readiness, but stable-publication verifies downloaded or supplied release assets again.",
+            "stablePublicationGate": "downloaded-release-assets",
+            "status": "not-reported",
+            "title": "GitHub release asset download"
+          },
+          {
+            "id": "post-release-consumer-proof",
+            "missingOrBlocking": true,
+            "passed": false,
+            "receipt": "publishedReleaseAssetProof",
+            "requiredForCandidateClosure": false,
+            "requirement": "Downloaded or supplied release assets can be consumed by release-consume verification; stable-publication still owns the final consumer gate.",
+            "stablePublicationGate": "post-release-consumer-proof",
+            "status": "not-reported",
+            "title": "Release-consume proof"
+          },
+          {
+            "id": "external-adoption-evidence-proof",
+            "missingOrBlocking": true,
+            "passed": false,
+            "receipt": "externalAdoptionEvidenceStableGate",
+            "requiredForCandidateClosure": false,
+            "requirement": "LaunchKey can validate adoption-evidence structure, but real independent adoption for stable v4 is proven by the stable-publication adoption gate.",
+            "stablePublicationGate": "independent-adoption-evidence",
+            "status": "not-reported",
+            "title": "Independent adoption evidence"
+          },
+          {
+            "id": "security-review-evidence-proof",
+            "missingOrBlocking": true,
+            "passed": false,
+            "receipt": "securityReviewEvidenceStableGate",
+            "requiredForCandidateClosure": false,
+            "requirement": "LaunchKey can validate security-evidence structure and scope, but final stable-v4 security proof is proven by the stable-publication security gate.",
+            "stablePublicationGate": "final-security-review-evidence",
+            "status": "not-reported",
+            "title": "Final security review evidence"
+          }
+        ],
+        "stablePublicationRerunCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
         "status": "not-provided",
-        "summary": "No LaunchKey release-candidate report was supplied; stable publication needs prior package install, upgrade, and rollback proof."
+        "summary": "No LaunchKey release-candidate report was supplied; stable publication needs prior package install, upgrade, and rollback proof.",
+        "suppliedCandidateReportPath": ""
       },
       {
         "blocksStableV4": true,
@@ -751,6 +1101,110 @@
       },
       {
         "id": "launchkey-candidate-packet",
+        "launchKeyCandidateDiagnostics": {
+          "candidateReadinessStatuses": {},
+          "error": "",
+          "missingPackageProof": [],
+          "nestedBlockingProof": {
+            "proofSource": "releaseReadiness",
+            "receipt": "releaseCandidatePacketProof",
+            "status": "not-provided",
+            "summary": "No LaunchKey release-candidate report was supplied; stable publication needs prior package install, upgrade, and rollback proof."
+          },
+          "nestedBlockingReceipt": "releaseCandidatePacketProof",
+          "nestedBlockingStatus": "not-provided",
+          "nestedBlockingSummary": "No LaunchKey release-candidate report was supplied; stable publication needs prior package install, upgrade, and rollback proof.",
+          "nestedRerunCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --download-release-assets --github-release-repo <owner/repo> --release-version <version> --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+          "packageHygieneDiagnostics": {},
+          "provided": false,
+          "releaseClaim": "",
+          "reportPath": "",
+          "reportStatus": "",
+          "requiredLaunchKeyProofAreas": [
+            {
+              "id": "fresh-install-package-proof",
+              "missingOrBlocking": true,
+              "passed": false,
+              "receipt": "freshInstallPackageProof",
+              "requiredForCandidateClosure": true,
+              "requirement": "A release tarball installs into a clean prefix, reports the expected version through both CLI aliases, runs validation, and leaves no generated/cache/VCS/package sidecar files in the installed tree.",
+              "stablePublicationGate": "launchkey-candidate-packet",
+              "status": "not-reported",
+              "title": "Fresh package install"
+            },
+            {
+              "id": "same-prefix-upgrade-proof",
+              "missingOrBlocking": true,
+              "passed": false,
+              "receipt": "upgradePackageProof",
+              "requiredForCandidateClosure": true,
+              "requirement": "A previous release package installs first, the candidate package upgrades the same prefix, both aliases report the candidate version, validation passes, and the upgraded tree is clean.",
+              "stablePublicationGate": "launchkey-candidate-packet",
+              "status": "not-reported",
+              "title": "Same-prefix upgrade"
+            },
+            {
+              "id": "rollback-cleanup-proof",
+              "missingOrBlocking": true,
+              "passed": false,
+              "receipt": "rollbackPackageProof",
+              "requiredForCandidateClosure": true,
+              "requirement": "A temporary candidate install can be removed without leaving ShipGuard package state behind.",
+              "stablePublicationGate": "launchkey-candidate-packet",
+              "status": "not-reported",
+              "title": "Rollback cleanup"
+            },
+            {
+              "id": "github-release-asset-download-proof",
+              "missingOrBlocking": true,
+              "passed": false,
+              "receipt": "githubReleaseAssetDownloadProof",
+              "requiredForCandidateClosure": false,
+              "requirement": "LaunchKey may download public GitHub release assets for candidate readiness, but stable-publication verifies downloaded or supplied release assets again.",
+              "stablePublicationGate": "downloaded-release-assets",
+              "status": "not-reported",
+              "title": "GitHub release asset download"
+            },
+            {
+              "id": "post-release-consumer-proof",
+              "missingOrBlocking": true,
+              "passed": false,
+              "receipt": "publishedReleaseAssetProof",
+              "requiredForCandidateClosure": false,
+              "requirement": "Downloaded or supplied release assets can be consumed by release-consume verification; stable-publication still owns the final consumer gate.",
+              "stablePublicationGate": "post-release-consumer-proof",
+              "status": "not-reported",
+              "title": "Release-consume proof"
+            },
+            {
+              "id": "external-adoption-evidence-proof",
+              "missingOrBlocking": true,
+              "passed": false,
+              "receipt": "externalAdoptionEvidenceStableGate",
+              "requiredForCandidateClosure": false,
+              "requirement": "LaunchKey can validate adoption-evidence structure, but real independent adoption for stable v4 is proven by the stable-publication adoption gate.",
+              "stablePublicationGate": "independent-adoption-evidence",
+              "status": "not-reported",
+              "title": "Independent adoption evidence"
+            },
+            {
+              "id": "security-review-evidence-proof",
+              "missingOrBlocking": true,
+              "passed": false,
+              "receipt": "securityReviewEvidenceStableGate",
+              "requiredForCandidateClosure": false,
+              "requirement": "LaunchKey can validate security-evidence structure and scope, but final stable-v4 security proof is proven by the stable-publication security gate.",
+              "stablePublicationGate": "final-security-review-evidence",
+              "status": "not-reported",
+              "title": "Final security review evidence"
+            }
+          ],
+          "requiredStatuses": {},
+          "stableV4ReleaseClaimed": null,
+          "status": "not-provided",
+          "summary": "No LaunchKey release-candidate report was supplied; stable publication needs prior package install, upgrade, and rollback proof.",
+          "tool": ""
+        },
         "nextCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --download-release-assets --github-release-repo <owner/repo> --release-version <version> --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
         "provided": false,
         "realEvidenceRequired": true,

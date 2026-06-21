@@ -3216,6 +3216,150 @@ def stable_publication_evidence_packet_issues(
                         evidence=f"{path_name} closure item `{item.get('id')}` is the first blocker but is not marked",
                         recommendation="Set isFirstBlockingGate=true on the closure item that matches firstBlockingGate.",
                     )
+                if item.get("id") == "launchkey-candidate-packet":
+                    source_candidate = (
+                        report.get("releaseCandidatePacketProof")
+                        if isinstance(report.get("releaseCandidatePacketProof"), dict)
+                        else {}
+                    )
+                    closure_kit = (
+                        item.get("launchKeyCandidateClosureKit")
+                        if isinstance(item.get("launchKeyCandidateClosureKit"), dict)
+                        else {}
+                    )
+                    if not closure_kit:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="stable-publication-launchkey-candidate-closure-kit-missing",
+                            evidence=f"{path_name} launchkey-candidate-packet closure item has no launchKeyCandidateClosureKit",
+                            recommendation="Attach a candidate closure kit with the supplied candidate report path, nested blocking receipt, required LaunchKey proof areas, package-hygiene diagnostics, repair/pass criteria, nested rerun command, full stable-publication rerun command, and fixture-proof boundary.",
+                        )
+                    else:
+                        candidate_was_supplied = (
+                            source_candidate.get("provided") is True
+                            or bool(source_candidate.get("reportPath"))
+                            or bool(closure_kit.get("suppliedCandidateReportPath"))
+                        )
+                        if candidate_was_supplied and not closure_kit.get("candidateReportPath"):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-launchkey-candidate-report-path-missing",
+                                evidence=f"{path_name} LaunchKey candidate closure kit omits the supplied candidate report path",
+                                recommendation="Expose the supplied candidate report path directly on the closure kit so maintainers know which LaunchKey JSON produced the blocker.",
+                            )
+                        if not closure_kit.get("nestedBlockingReceipt"):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-launchkey-nested-receipt-missing",
+                                evidence=f"{path_name} LaunchKey candidate closure kit omits the nested blocking receipt",
+                                recommendation="Name the failing LaunchKey receipt, or synthesize it from the first missing package proof when LaunchKey did not emit blockingProof.",
+                            )
+                        required_areas = (
+                            closure_kit.get("requiredLaunchKeyProofAreas")
+                            if isinstance(closure_kit.get("requiredLaunchKeyProofAreas"), list)
+                            else []
+                        )
+                        required_receipts = {str(area.get("receipt") or "") for area in required_areas if isinstance(area, dict)}
+                        expected_receipts = {
+                            "freshInstallPackageProof",
+                            "upgradePackageProof",
+                            "rollbackPackageProof",
+                        }
+                        if len(required_areas) < 3 or not expected_receipts <= required_receipts:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-launchkey-required-proof-areas-missing",
+                                evidence=f"{path_name} LaunchKey candidate closure kit does not list the package proof areas needed for candidate closure",
+                                recommendation="List fresh install, same-prefix upgrade, and rollback cleanup proof areas, plus the adjacent release-asset/adoption/security areas when present.",
+                            )
+                        source_hygiene = {}
+                        source_blocker = (
+                            source_candidate.get("launchKeyBlockingProof")
+                            if isinstance(source_candidate.get("launchKeyBlockingProof"), dict)
+                            else {}
+                        )
+                        if isinstance(source_blocker.get("packageHygieneEvidence"), dict):
+                            source_hygiene = source_blocker["packageHygieneEvidence"]
+                        elif isinstance(source_candidate.get("packageHygieneEvidence"), dict):
+                            source_hygiene = source_candidate["packageHygieneEvidence"]
+                        kit_hygiene = (
+                            closure_kit.get("packageHygieneDiagnostics")
+                            if isinstance(closure_kit.get("packageHygieneDiagnostics"), dict)
+                            else {}
+                        )
+                        if source_hygiene and not kit_hygiene:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-launchkey-package-hygiene-diagnostics-missing",
+                                evidence=f"{path_name} LaunchKey candidate closure kit hides package hygiene diagnostics from the nested blocker",
+                                recommendation="Mirror package hygiene status, first finding, blocked count, affected versions, and hygiene rerun command into the candidate closure kit.",
+                            )
+                        if not isinstance(closure_kit.get("repairCriteria"), list) or len(closure_kit.get("repairCriteria") or []) < 2:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-launchkey-repair-criteria-missing",
+                                evidence=f"{path_name} LaunchKey candidate closure kit does not list repair criteria",
+                                recommendation="Tell maintainers how to repair package lineage, rerun LaunchKey, and then rerun stable-publication without editing proof reports.",
+                            )
+                        if not isinstance(closure_kit.get("passCriteria"), list) or len(closure_kit.get("passCriteria") or []) < 3:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-launchkey-pass-criteria-missing",
+                                evidence=f"{path_name} LaunchKey candidate closure kit does not list pass criteria",
+                                recommendation="List the concrete LaunchKey statuses that must pass before the candidate blocker is closed.",
+                            )
+                        if not isinstance(closure_kit.get("failCriteria"), list) or len(closure_kit.get("failCriteria") or []) < 3:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-launchkey-fail-criteria-missing",
+                                evidence=f"{path_name} LaunchKey candidate closure kit does not list fail criteria",
+                                recommendation="List common fail cases such as wrong tool, non-passing status, missing package proof, nested blockers, package-hygiene failures, and fixture proof misuse.",
+                            )
+                        if "release-candidate" not in str(closure_kit.get("nestedRerunCommand") or item.get("nestedRerunCommand") or item.get("nextCommand") or "") and "release-package hygiene" not in str(closure_kit.get("nestedRerunCommand") or item.get("nestedRerunCommand") or item.get("nextCommand") or ""):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-launchkey-nested-rerun-command-missing",
+                                evidence=f"{path_name} LaunchKey candidate closure kit lacks the nested LaunchKey or package-hygiene rerun command",
+                                recommendation="Attach the exact nested rerun command that clears the LaunchKey blocker before stable-publication is rerun.",
+                            )
+                        if "stable-publication" not in str(closure_kit.get("stablePublicationRerunCommand") or item.get("stablePublicationRerunCommand") or ""):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-launchkey-full-rerun-command-missing",
+                                evidence=f"{path_name} LaunchKey candidate closure kit lacks the full stable-publication rerun command",
+                                recommendation="Attach the full stable-publication command to run after LaunchKey candidate proof passes, preserving later release notes, asset, adoption, and security gates.",
+                            )
+                        fixture_boundary = (
+                            closure_kit.get("fixtureCandidateBoundary")
+                            if isinstance(closure_kit.get("fixtureCandidateBoundary"), dict)
+                            else {}
+                        )
+                        if fixture_boundary.get("fixtureCandidateProofCountsAsStableV4PublicationProof") is not False:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-launchkey-fixture-boundary-missing",
+                                evidence=f"{path_name} LaunchKey candidate closure kit does not state that fixture candidate proof is not stable-v4 publication proof",
+                                recommendation="Keep fixture LaunchKey reports as tooling tests only; stable-v4 publication must still pass real release metadata, assets, adoption, and security gates.",
+                            )
+                        if "LaunchKey Candidate Closure Kit" not in markdown:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-launchkey-closure-kit-markdown-missing",
+                                evidence=f"{path_name} Markdown does not render the LaunchKey candidate closure kit",
+                                recommendation="Render candidate report path, nested receipt, required proof areas, hygiene diagnostics, repair/pass criteria, nested rerun, full stable-publication rerun, and fixture-proof boundary in Markdown.",
+                            )
                 if item.get("id") == "release-notes":
                     release_notes_proof = report.get("releaseNotesProof") if isinstance(report.get("releaseNotesProof"), dict) else {}
                     proof_missing_topics = release_notes_proof.get("missingTopicIds")

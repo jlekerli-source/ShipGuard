@@ -279,6 +279,28 @@ assert [item["id"] for item in closure["items"]] == packet["missingEvidenceIds"]
 assert closure["items"][0]["isFirstBlockingGate"] is True
 assert all(item["nextCommand"] for item in closure["items"])
 assert all(item["proofBoundary"] for item in closure["items"])
+launchkey_item = closure["items"][0]
+assert launchkey_item["id"] == "launchkey-candidate-packet"
+launchkey_kit = launchkey_item["launchKeyCandidateClosureKit"]
+assert "candidate-incomplete.json" in launchkey_kit["candidateReportPath"]
+assert launchkey_kit["nestedBlockingReceipt"] == "freshInstallPackageProof"
+assert launchkey_kit["nestedBlockingStatus"] == "not-provided"
+assert "release-candidate" in launchkey_kit["nestedRerunCommand"]
+assert "stable-publication" in launchkey_kit["stablePublicationRerunCommand"]
+assert launchkey_kit["fixtureCandidateBoundary"]["fixtureCandidateProofCountsAsStableV4PublicationProof"] is False
+required_receipts = {area["receipt"] for area in launchkey_kit["requiredLaunchKeyProofAreas"]}
+assert {
+    "freshInstallPackageProof",
+    "upgradePackageProof",
+    "rollbackPackageProof",
+    "githubReleaseAssetDownloadProof",
+    "publishedReleaseAssetProof",
+    "externalAdoptionEvidenceStableGate",
+    "securityReviewEvidenceStableGate",
+} <= required_receipts
+assert len(launchkey_kit["repairCriteria"]) >= 3
+assert len(launchkey_kit["passCriteria"]) >= 5
+assert len(launchkey_kit["failCriteria"]) >= 5
 templates = report["stablePublicationEvidenceTemplates"]
 assert templates["draftOnly"] is True
 assert templates["templateDirectory"] == "templates/stable-publication"
@@ -326,6 +348,9 @@ grep -q '"draftOnly": true' "$tmp_dir/blocked/stable-publication-evidence-kit/st
 grep -q 'Stable Publication Evidence Kit' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q '"closureChecklist":' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q 'Closure Checklist' "$tmp_dir/blocked/v4-stable-publication.md"
+grep -q 'LaunchKey Candidate Closure Kit' "$tmp_dir/blocked/v4-stable-publication.md"
+grep -q 'candidate-incomplete.json' "$tmp_dir/blocked/v4-stable-publication.md"
+grep -q 'Fixture candidate proof counts as stable-v4 publication proof: `False`' "$tmp_dir/blocked/v4-stable-publication.md"
 grep -q 'final-security-review-evidence' "$tmp_dir/blocked/v4-stable-publication.md"
 test -f "$tmp_dir/blocked/stable-publication-launch-relay/README.md"
 test -f "$tmp_dir/blocked/stable-publication-launch-relay/launch-relay-checklist.json"
@@ -463,15 +488,27 @@ assert closure["items"][0]["receipt"] == "releaseCandidatePacketProof"
 assert closure["items"][0]["blockingProof"]["receipt"] == "upgradePackageProof"
 assert "appledouble-sidecar" in closure["items"][0]["failureEvidence"]
 assert "release-package hygiene" in closure["items"][0]["nextCommand"]
+launchkey_kit = closure["items"][0]["launchKeyCandidateClosureKit"]
+assert "candidate-hygiene-blocked.json" in launchkey_kit["candidateReportPath"]
+assert launchkey_kit["nestedBlockingReceipt"] == "upgradePackageProof"
+assert launchkey_kit["nestedBlockingProof"]["receipt"] == "upgradePackageProof"
+assert "release-package hygiene" in launchkey_kit["nestedRerunCommand"]
+assert "stable-publication" in launchkey_kit["stablePublicationRerunCommand"]
+assert launchkey_kit["packageHygieneDiagnostics"]["blockedFindingCount"] == 782
+assert launchkey_kit["packageHygieneDiagnostics"]["firstFinding"]["member"] == "._shipguard-v3.130.0"
+assert launchkey_kit["fixtureCandidateBoundary"]["fixtureCandidateProofCountsAsStableV4PublicationProof"] is False
 required_by_id = {item["id"]: item for item in packet["requiredEvidence"]}
 candidate_item = required_by_id["launchkey-candidate-packet"]
 assert candidate_item["blockingProof"]["receipt"] == "upgradePackageProof"
 assert candidate_item["blockingProof"]["packageHygieneEvidence"]["firstFinding"]["member"] == "._shipguard-v3.130.0"
+assert candidate_item["launchKeyCandidateDiagnostics"]["nestedBlockingReceipt"] == "upgradePackageProof"
 PY
 grep -q 'LaunchKey Candidate Blocker' "$tmp_dir/hygiene-blocked/v4-stable-publication.md"
+grep -q 'LaunchKey Candidate Closure Kit' "$tmp_dir/hygiene-blocked/v4-stable-publication.md"
 grep -q 'Closure Checklist' "$tmp_dir/hygiene-blocked/v4-stable-publication.md"
 grep -q 'appledouble-sidecar' "$tmp_dir/hygiene-blocked/v4-stable-publication.md"
 grep -q 'release-package hygiene' "$tmp_dir/hygiene-blocked/v4-stable-publication.md"
+grep -q 'Rerun the full stable-publication gate after LaunchKey passes' "$tmp_dir/hygiene-blocked/v4-stable-publication.md"
 
 python3 - "$release_endpoint_file" "$version" "$tmp_dir/downloaded" <<'PY'
 import json

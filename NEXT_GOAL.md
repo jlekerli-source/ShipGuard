@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-21T17:29:34Z
+- Generated: 2026-06-21T18:16:50Z
 - Current toolkit version: 3.131.0
-- Target release: v3.166.0
-- Title: Stable V4 LaunchKey Candidate Closure Kit QA
+- Target release: v3.167.0
+- Title: Stable V4 Post-Release Consumer Closure Kit QA
 
 ## Slash Plan
 
 ```text
-/plan v3.166.0 Stable V4 LaunchKey Candidate Closure Kit QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Use the v3.165 stable-publication closure-kit report to refine the LaunchKey candidate closure item. When launchkey-candidate-packet blocks stable publication, the closure item should carry the supplied candidate report path, nested blocking receipt, required LaunchKey proof areas, package-hygiene diagnostics when present, repair/pass criteria, rerun commands for both the nested blocker and the full stable-publication gate, and clear boundaries that fixture candidate proof is not stable-v4 publication proof. Do not fake package, adoption, security, or stable-v4 evidence.
+/plan v3.167.0 Stable V4 Post-Release Consumer Closure Kit QA for jlekerli-source/ShipGuard:
+1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,19 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.166.0 Stable V4 LaunchKey Candidate Closure Kit QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Use the v3.165 stable-publication closure-kit report to refine the LaunchKey candidate closure item. When launchkey-candidate-packet blocks stable publication, the closure item should carry the supplied candidate report path, nested blocking receipt, required LaunchKey proof areas, package-hygiene diagnostics when present, repair/pass criteria, rerun commands for both the nested blocker and the full stable-publication gate, and clear boundaries that fixture candidate proof is not stable-v4 publication proof. Do not fake package, adoption, security, or stable-v4 evidence, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.167.0 Stable V4 Post-Release Consumer Closure Kit QA for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
-## Bounded Scope
-
-Use the v3.165 stable-publication closure-kit report to refine the LaunchKey candidate closure item. When launchkey-candidate-packet blocks stable publication, the closure item should carry the supplied candidate report path, nested blocking receipt, required LaunchKey proof areas, package-hygiene diagnostics when present, repair/pass criteria, rerun commands for both the nested blocker and the full stable-publication gate, and clear boundaries that fixture candidate proof is not stable-v4 publication proof. Do not fake package, adoption, security, or stable-v4 evidence.
-
 ## Completion Receipt
 
-- Completed scope: v3.165 added adoption/security stable-publication evidence closure kits: independent-adoption-evidence and final-security-review-evidence closure rows now carry starter paths, template paths, accepted evidence classes, required fields, required security scope, redaction/privacy boundaries, pass/fail criteria, current diagnostics, exact stable-publication rerun commands, Markdown Evidence Closure Kit sections, report-quality enforcement, refreshed public fixtures, and live stable-publication proof.
-- Evidence: git diff --check; python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3165-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3165-value-gauntlet; ./bin/shipguard codex status --strict; live ./bin/shipguard v4 release-candidate --out /tmp/shipguard-v3165-launchkey produced expected blocked packet; live ./bin/shipguard v4 stable-publication --out /tmp/shipguard-v3165-stable-publication exposed adoption/security Evidence Closure Kit fields; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3165-stable-publication --out /tmp/shipguard-v3165-report-quality passed.
+- Completed scope: v3.166 added LaunchKey candidate closure-kit details to stable-publication reports: launchkey-candidate-packet blockers now expose the supplied candidate report path, nested blocking receipt/status/summary, required LaunchKey proof areas, package-hygiene diagnostics when present, repair/pass/fail criteria, nested and full rerun commands, and a fixture-proof boundary; report-quality now enforces those fields and a public fixture proves the closure row.
+- Evidence: git diff --check; python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3166-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3166-value-gauntlet; ./bin/shipguard codex status --strict.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.167.0 Stable V4 Post-Release Consumer Closure Kit QA for jlekerli-source/ShipGuard:
+/plan v3.168.0 Stable V4 Release Asset Consumer Closure Kit QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +40,13 @@ Use the v3.165 stable-publication closure-kit report to refine the LaunchKey can
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.167.0 Stable V4 Post-Release Consumer Closure Kit QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.168.0 Stable V4 Release Asset Consumer Closure Kit QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.167.0 --title "Stable V4 Post-Release Consumer Closure Kit QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.168.0 --title "Stable V4 Release Asset Consumer Closure Kit QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +146,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.166.0.
+1. Open or update the tracking issue for v3.167.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.166.0` and upload `dist/shipguard-v3.166.0.tar.gz`.
+6. Create release `v3.167.0` and upload `dist/shipguard-v3.167.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

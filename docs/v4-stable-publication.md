@@ -163,6 +163,19 @@ When release notes are a closure blocker, the release-notes row also carries a c
 
 Markdown renders those fields as `Release Notes Closure Kit` so the first blocker can be closed without opening nested JSON.
 
+When the LaunchKey candidate packet is a closure blocker, the candidate row also carries a LaunchKey candidate closure kit:
+
+- the supplied candidate report path, when a report was supplied
+- the nested blocking receipt and status, synthesized from the first missing package proof when LaunchKey did not emit `blockingProof`
+- required LaunchKey proof areas for fresh install, same-prefix upgrade, rollback cleanup, release asset download, release-consume, adoption evidence, and security review evidence
+- compact package-hygiene diagnostics when present, including first rule/member/tarball and blocked-finding counts
+- repair criteria, pass criteria, and fail criteria for closing the candidate blocker without editing proof reports
+- a nested rerun command for the LaunchKey or package-hygiene blocker
+- a full `stable-publication` rerun command to use after LaunchKey passes
+- a fixture boundary that says LaunchKey fixture reports test ShipGuard routing but do not count as stable-v4 publication proof
+
+Markdown renders those fields as `LaunchKey Candidate Closure Kit` so maintainers can fix candidate package lineage first, then rerun the full final publication gate without hiding later release notes, asset, adoption, or security blockers.
+
 When independent adoption or final security-review evidence is a closure blocker, the row also carries an evidence closure kit:
 
 - the generated starter file path and source template path

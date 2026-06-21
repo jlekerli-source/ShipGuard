@@ -5523,6 +5523,127 @@ grep -q '"ruleId": "stable-publication-evidence-templates-markdown-missing"' "$t
 grep -q '"ruleId": "stable-publication-evidence-starter-kit-missing"' "$tmp_dir/stable-publication-templates-quality/ios-report-quality.json"
 grep -q '"ruleId": "stable-publication-evidence-starter-kit-markdown-missing"' "$tmp_dir/stable-publication-templates-quality/ios-report-quality.json"
 
+stable_publication_launchkey_closure_dir="$tmp_dir/stable-publication-launchkey-closure"
+mkdir -p "$stable_publication_launchkey_closure_dir"
+cat > "$stable_publication_launchkey_closure_dir/v4-stable-publication.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-20T00:00:00Z",
+  "tool": "shipguard v4 stable-publication",
+  "surface": "ShipGuard V4 Stable Publication Proof",
+  "status": "review",
+  "stableV4Release": false,
+  "releaseCandidatePacketProof": {
+    "status": "review",
+    "provided": true,
+    "reportPath": "<candidate-dir>/v4-release-candidate.json",
+    "tool": "shipguard v4 release-candidate",
+    "reportStatus": "review",
+    "releaseClaim": "not-ready",
+    "stableV4ReleaseClaimed": false,
+    "requiredStatuses": {
+      "freshInstallPackageProof": "pass",
+      "upgradePackageProof": "blocked",
+      "rollbackPackageProof": "pass"
+    },
+    "missingPackageProof": [
+      "upgradePackageProof"
+    ],
+    "launchKeyBlockingProof": {
+      "receipt": "upgradePackageProof",
+      "status": "blocked",
+      "summary": "Same-prefix upgrade failed.",
+      "nextCommand": "./bin/shipguard release-package hygiene --path . --tarball <previous-package-tarball> --tarball <package-tarball> --out /tmp/shipguard-package-hygiene --shareable",
+      "packageHygieneEvidence": {
+        "status": "blocked",
+        "blockedFindingCount": 1,
+        "firstFinding": {
+          "ruleId": "appledouble-sidecar",
+          "tarball": "shipguard-v0.0.0.tar.gz",
+          "member": "._shipguard-v0.0.0"
+        }
+      }
+    }
+  },
+  "stablePublicationEvidencePacket": {
+    "schemaVersion": 1,
+    "status": "review",
+    "stableV4Release": false,
+    "requiredEvidenceCount": 7,
+    "passedEvidenceCount": 6,
+    "missingEvidenceIds": [
+      "launchkey-candidate-packet"
+    ],
+    "firstBlockingGate": {
+      "id": "launchkey-candidate-packet",
+      "receipt": "releaseCandidatePacketProof",
+      "status": "review",
+      "summary": "LaunchKey candidate proof is blocked.",
+      "nextCommand": "./bin/shipguard release-package hygiene --path . --tarball <previous-package-tarball> --tarball <package-tarball> --out /tmp/shipguard-package-hygiene --shareable"
+    },
+    "requiredEvidence": [
+      {"id": "github-release-metadata", "receipt": "githubReleaseMetadataProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "release-notes", "receipt": "releaseNotesProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "launchkey-candidate-packet", "receipt": "releaseCandidatePacketProof", "status": "review", "requiredForStableV4": true, "realEvidenceRequired": true, "nextCommand": "./bin/shipguard release-package hygiene --path . --tarball <previous-package-tarball> --tarball <package-tarball> --out /tmp/shipguard-package-hygiene --shareable"},
+      {"id": "downloaded-release-assets", "receipt": "publishedReleaseAssetProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "post-release-consumer-proof", "receipt": "postReleaseConsumerProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "independent-adoption-evidence", "receipt": "externalAdoptionEvidenceStableGate", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "final-security-review-evidence", "receipt": "securityReviewEvidenceStableGate", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true}
+    ],
+    "nonClaims": [
+      "Fixture candidate reports do not prove stable-v4 publication."
+    ]
+  },
+  "stablePublicationClosureChecklist": {
+    "schemaVersion": 1,
+    "status": "review",
+    "stableV4Release": false,
+    "blockerCount": 1,
+    "blockedEvidenceIds": [
+      "launchkey-candidate-packet"
+    ],
+    "noHiddenLowerOrderBlockers": true,
+    "items": [
+      {
+        "rank": 1,
+        "dependencyOrder": 3,
+        "id": "launchkey-candidate-packet",
+        "receipt": "releaseCandidatePacketProof",
+        "status": "review",
+        "summary": "LaunchKey candidate proof is blocked.",
+        "nextCommand": "./bin/shipguard release-package hygiene --path . --tarball <previous-package-tarball> --tarball <package-tarball> --out /tmp/shipguard-package-hygiene --shareable",
+        "proofBoundary": "LaunchKey candidate proof must pass before stable publication.",
+        "isFirstBlockingGate": true
+      }
+    ]
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  }
+}
+JSON
+cat > "$stable_publication_launchkey_closure_dir/v4-stable-publication.md" <<'MD'
+# ShipGuard V4 Stable Publication Proof
+
+## Evidence Packet
+
+| Evidence | Status |
+| --- | --- |
+| `launchkey-candidate-packet` | `review` |
+
+## Closure Checklist
+
+| Rank | Evidence | Status | First | Next command | Proof boundary |
+| --- | --- | --- | --- | --- | --- |
+| `1` | `launchkey-candidate-packet` | `review` | `True` | `./bin/shipguard release-package hygiene --path . --tarball <previous-package-tarball> --tarball <package-tarball> --out /tmp/shipguard-package-hygiene --shareable` | LaunchKey candidate proof must pass before stable publication. |
+MD
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_launchkey_closure_dir" \
+  --out "$tmp_dir/stable-publication-launchkey-closure-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "stable-publication-launchkey-candidate-closure-kit-missing"' "$tmp_dir/stable-publication-launchkey-closure-quality/ios-report-quality.json"
+
 launchkey_skip_dir="$tmp_dir/launchkey-proof-dir-skip"
 mkdir -p \
   "$launchkey_skip_dir/fresh-install-prefix/lib/shipguard/examples/demo-reports/arena" \
@@ -5728,6 +5849,35 @@ assert "evidence packet list every required real-evidence input" in item.get("qu
 priority = data.get("priorityAction") or {}
 assert priority.get("kind") == "review-existing-fixture", priority
 assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publication-evid", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
+
+stable_publication_launchkey_closure_fixture="fixtures/ios-report-quality/stable-publication-launchkey-candidate-closure"
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_launchkey_closure_fixture" \
+  --out "$tmp_dir/stable-publication-launchkey-closure-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/stable-publication-launchkey-closure-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/stable-publication-launchkey-closure-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/stable-publication-launchkey-candidate-closure"' "$tmp_dir/stable-publication-launchkey-closure-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/stable-publication-launchkey-closure-fixture-quality/ios-report-quality.json"
+grep -q '"launchKeyCandidateClosureKit":' "$stable_publication_launchkey_closure_fixture/fixture-report.json"
+grep -q 'LaunchKey Candidate Closure Kit' "$stable_publication_launchkey_closure_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/stable-publication-launchkey-closure-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard v4 stable-publication", item
+assert item.get("fixtureType") == "shipguard-release-proof-quality-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/stable-publication-launchkey-candidate-closure", item
+assert "LaunchKey candidate closure row" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/stable-publication-launchkey-candidate-closure", priority
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 
