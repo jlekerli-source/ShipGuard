@@ -3043,13 +3043,16 @@ def stable_publication_evidence_packet_issues(
 
     required = packet.get("requiredEvidence")
     required_rows = required if isinstance(required, list) else []
-    if not isinstance(required, list) or len(required) < 7:
+    synthetic_fixture_report = isinstance(report.get("fixtureCandidate"), dict) or path_name == "fixture-report.json"
+    freshness_expected = isinstance(report.get("publicReleaseFreshnessProof"), dict) or not synthetic_fixture_report
+    minimum_required_count = 8 if freshness_expected else 7
+    if not isinstance(required, list) or len(required) < minimum_required_count:
         add_issue(
             issues,
             severity="review",
             rule_id="stable-publication-required-evidence-incomplete",
-            evidence=f"{path_name} evidence packet does not list all seven stable-publication evidence gates",
-            recommendation="List release metadata, release notes, LaunchKey candidate proof, downloaded assets, consumer proof, adoption evidence, and security review evidence.",
+            evidence=f"{path_name} evidence packet does not list all required stable-publication evidence gates",
+            recommendation="List release metadata, release notes, LaunchKey candidate proof, downloaded assets, consumer proof, public release freshness, adoption evidence, and security review evidence.",
         )
     else:
         required_ids = {str(item.get("id") or "") for item in required_rows if isinstance(item, dict)}
@@ -3062,6 +3065,8 @@ def stable_publication_evidence_packet_issues(
             "independent-adoption-evidence",
             "final-security-review-evidence",
         }
+        if freshness_expected:
+            expected.add("public-release-freshness")
         missing_ids = sorted(expected - required_ids)
         if missing_ids:
             add_issue(
@@ -3817,6 +3822,144 @@ def stable_publication_evidence_packet_issues(
                                 rule_id="stable-publication-post-release-consumer-closure-kit-markdown-missing",
                                 evidence=f"{path_name} Markdown does not render the post-release consumer closure kit",
                                 recommendation="Render release-consume paths, missing artifacts, statuses, repair/pass/fail criteria, rerun commands, and proof boundaries in Markdown.",
+                            )
+                if item.get("id") == "public-release-freshness":
+                    source_freshness = (
+                        report.get("publicReleaseFreshnessProof")
+                        if isinstance(report.get("publicReleaseFreshnessProof"), dict)
+                        else {}
+                    )
+                    closure_kit = (
+                        item.get("releaseFreshnessClosureKit")
+                        if isinstance(item.get("releaseFreshnessClosureKit"), dict)
+                        else {}
+                    )
+                    if not closure_kit:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="stable-publication-release-freshness-closure-kit-missing",
+                            evidence=f"{path_name} public-release-freshness closure item has no releaseFreshnessClosureKit",
+                            recommendation="Attach a freshness closure kit with public tag target, release manifest commit, release target, timestamp comparisons, repair/pass/fail criteria, rerun command, and source/fixture boundaries.",
+                        )
+                    else:
+                        if not closure_kit.get("releaseTag") or not closure_kit.get("tagTargetSha"):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-freshness-tag-target-missing",
+                                evidence=f"{path_name} freshness closure kit omits release tag or public tag target SHA",
+                                recommendation="Expose the selected release tag and resolved GitHub tag target SHA so stale tags are visible.",
+                            )
+                        if not closure_kit.get("releaseManifestPath") or not closure_kit.get("manifestCommit"):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-freshness-manifest-missing",
+                                evidence=f"{path_name} freshness closure kit omits release manifest path or manifest commit",
+                                recommendation="Expose release-manifest.json and its commit so public metadata can be compared to the published asset packet.",
+                            )
+                        comparisons = (
+                            closure_kit.get("comparisons")
+                            if isinstance(closure_kit.get("comparisons"), dict)
+                            else {}
+                        )
+                        for comparison_key in (
+                            "manifestVersionMatchesRequested",
+                            "manifestTagMatchesMetadataTag",
+                            "tagTargetMatchesManifestCommit",
+                            "manifestGeneratedNoLaterThanPublishedAt",
+                        ):
+                            if comparison_key not in comparisons:
+                                add_issue(
+                                    issues,
+                                    severity="review",
+                                    rule_id="stable-publication-release-freshness-comparison-missing",
+                                    evidence=f"{path_name} freshness closure kit omits comparison `{comparison_key}`",
+                                    recommendation="Render the freshness comparison matrix so maintainers can see whether version, tag, commit, and timestamps agree.",
+                                )
+                                break
+                        diagnostics = (
+                            closure_kit.get("currentFreshnessDiagnostics")
+                            if isinstance(closure_kit.get("currentFreshnessDiagnostics"), dict)
+                            else {}
+                        )
+                        if not diagnostics:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-freshness-diagnostics-missing",
+                                evidence=f"{path_name} freshness closure kit has no currentFreshnessDiagnostics",
+                                recommendation="Mirror public tag target, release manifest, metadata target, timestamp comparisons, and freshness problems into currentFreshnessDiagnostics.",
+                            )
+                        else:
+                            source_status = str(source_freshness.get("status") or "")
+                            if source_status and str(diagnostics.get("status") or "") != source_status:
+                                add_issue(
+                                    issues,
+                                    severity="review",
+                                    rule_id="stable-publication-release-freshness-diagnostics-status-drift",
+                                    evidence=f"{path_name} freshness diagnostics status does not mirror publicReleaseFreshnessProof.status",
+                                    recommendation="Keep currentFreshnessDiagnostics.status aligned with publicReleaseFreshnessProof.status.",
+                                )
+                        if not isinstance(closure_kit.get("repairCriteria"), list) or len(closure_kit.get("repairCriteria") or []) < 3:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-freshness-repair-criteria-missing",
+                                evidence=f"{path_name} freshness closure kit does not list repair criteria",
+                                recommendation="Tell maintainers how to repair stale tags, stale release assets, manifest commits, and rerun stable-publication.",
+                            )
+                        if not isinstance(closure_kit.get("passCriteria"), list) or len(closure_kit.get("passCriteria") or []) < 5:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-freshness-pass-criteria-missing",
+                                evidence=f"{path_name} freshness closure kit does not list pass criteria",
+                                recommendation="List concrete pass criteria for tag target, release manifest, metadata target, version/tag match, and timestamp freshness.",
+                            )
+                        if not isinstance(closure_kit.get("failCriteria"), list) or len(closure_kit.get("failCriteria") or []) < 5:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-freshness-fail-criteria-missing",
+                                evidence=f"{path_name} freshness closure kit does not list fail criteria",
+                                recommendation="List fail cases such as unresolved tag target, missing manifest, commit mismatch, timestamp inversion, and source-only/fixture proof misuse.",
+                            )
+                        if "stable-publication" not in str(closure_kit.get("freshnessRerunCommand") or item.get("freshnessRerunCommand") or item.get("nextCommand") or ""):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-freshness-rerun-command-missing",
+                                evidence=f"{path_name} freshness closure kit lacks the stable-publication rerun command",
+                                recommendation="Attach the full stable-publication command to rerun after public release metadata, tag target, or assets are repaired.",
+                            )
+                        boundary = (
+                            closure_kit.get("freshnessProofBoundary")
+                            if isinstance(closure_kit.get("freshnessProofBoundary"), dict)
+                            else {}
+                        )
+                        if (
+                            boundary.get("publicGitHubTagTargetRequired") is not True
+                            or boundary.get("releaseManifestRequired") is not True
+                            or boundary.get("releaseManifestCommitMustMatchPublicTagTarget") is not True
+                            or boundary.get("sourceOnlyProofCountsAsFreshnessProof") is not False
+                            or boundary.get("fixtureApiProofCountsAsStableV4PublicationProof") is not False
+                        ):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-freshness-boundary-missing",
+                                evidence=f"{path_name} freshness closure kit does not state the public tag, manifest, source-only, and fixture-proof boundaries",
+                                recommendation="State that public tag target plus release manifest proof is required and source-only or fixture API proof cannot satisfy stable-v4 freshness.",
+                            )
+                        if "Public Release Freshness Closure Kit" not in markdown:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-freshness-closure-kit-markdown-missing",
+                                evidence=f"{path_name} Markdown does not render the public release freshness closure kit",
+                                recommendation="Render release tag, tag target, manifest commit, freshness comparisons, problems, criteria, rerun command, and proof boundaries in Markdown.",
                             )
                 if item.get("id") == "release-notes":
                     release_notes_proof = report.get("releaseNotesProof") if isinstance(report.get("releaseNotesProof"), dict) else {}
@@ -9349,6 +9492,7 @@ def synthetic_stable_publication_report_fields() -> dict[str, Any]:
         ("launchkey-candidate-packet", "releaseCandidatePacketProof"),
         ("downloaded-release-assets", "publishedReleaseAssetProof"),
         ("post-release-consumer-proof", "postReleaseConsumerProof"),
+        ("public-release-freshness", "publicReleaseFreshnessProof"),
         ("independent-adoption-evidence", "externalAdoptionEvidenceStableGate"),
         ("final-security-review-evidence", "securityReviewEvidenceStableGate"),
     ]
@@ -9503,6 +9647,27 @@ def synthetic_stable_publication_report_fields() -> dict[str, Any]:
             ],
         },
         "releaseNotesProof": {"missingTopicIds": []},
+        "publicReleaseFreshnessProof": {
+            "status": "pass",
+            "provided": True,
+            "requiredForStableV4": True,
+            "releaseVersion": "0.0.0",
+            "releaseTag": "v0.0.0",
+            "releaseTargetCommitish": "0123456789abcdef0123456789abcdef01234567",
+            "tagTargetSha": "0123456789abcdef0123456789abcdef01234567",
+            "releaseManifestPath": "<downloaded-assets>/release-manifest.json",
+            "manifestVersion": "0.0.0",
+            "manifestTag": "v0.0.0",
+            "manifestCommit": "0123456789abcdef0123456789abcdef01234567",
+            "manifestGeneratedAt": "2026-06-20T00:00:00Z",
+            "comparisons": {
+                "manifestVersionMatchesRequested": True,
+                "manifestTagMatchesMetadataTag": True,
+                "tagTargetMatchesManifestCommit": True,
+                "manifestGeneratedNoLaterThanPublishedAt": True,
+            },
+            "problems": [],
+        },
         "scopeBoundary": {
             "shipguardOnly": True,
             "targetAppsReadOnly": True,
@@ -9927,7 +10092,7 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "## Evidence Packet",
                 "",
                 "- Packet status: `pass`",
-                "- Required evidence passed: `7/7`",
+                "- Required evidence passed: `8/8`",
                 "- First blocking gate: `none`",
                 "",
                 "| Evidence | Status |",
@@ -9937,6 +10102,7 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "| `launchkey-candidate-packet` | `pass` |",
                 "| `downloaded-release-assets` | `pass` |",
                 "| `post-release-consumer-proof` | `pass` |",
+                "| `public-release-freshness` | `pass` |",
                 "| `independent-adoption-evidence` | `pass` |",
                 "| `final-security-review-evidence` | `pass` |",
                 "",

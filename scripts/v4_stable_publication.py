@@ -327,6 +327,33 @@ GITHUB_RELEASE_METADATA_FAIL_CRITERIA = [
     "A source checkout, local package build, fixture API, or generated report is treated as public release metadata proof.",
 ]
 
+PUBLIC_RELEASE_FRESHNESS_REPAIR_CRITERIA = [
+    "Publish the release from the exact commit recorded in `release-manifest.json`, then ensure the GitHub tag points at that same commit.",
+    "If release assets were rebuilt, rebuild and re-upload the full release proof packet so `release-manifest.json`, the tarball, replay, attestation, and badge all describe the same commit and tag.",
+    "If `target_commitish` is a branch name, make sure ShipGuard can resolve the public GitHub tag ref so the branch name is not treated as commit proof.",
+    "Rerun `shipguard v4 stable-publication` with downloaded or supplied release assets after repairing the tag, release metadata, manifest, or uploaded assets.",
+]
+
+PUBLIC_RELEASE_FRESHNESS_PASS_CRITERIA = [
+    "GitHub release metadata loads for the selected owner/repo and tag.",
+    "The public GitHub tag target resolves to a commit SHA.",
+    "`release-manifest.json` exists in the downloaded or supplied release assets.",
+    "The release manifest version and tag match the requested release.",
+    "The release manifest commit matches the public GitHub tag target.",
+    "If GitHub release `target_commitish` is a SHA, it also matches the release manifest commit.",
+    "The release manifest was generated no later than the public release publication timestamp.",
+]
+
+PUBLIC_RELEASE_FRESHNESS_FAIL_CRITERIA = [
+    "The public GitHub tag target cannot be resolved.",
+    "`release-manifest.json` is missing from the downloaded or supplied release assets.",
+    "The release manifest tag, version, or commit disagrees with the public GitHub release metadata.",
+    "The public GitHub tag points at a different commit than the release manifest.",
+    "The release metadata `target_commitish` is a SHA and disagrees with the release manifest commit.",
+    "The release manifest appears newer than the public release publication timestamp, which means the public metadata/assets may be stale or replaced.",
+    "Source checkout state, fixture API responses, local package builds, or draft release notes are treated as freshness proof.",
+]
+
 RELEASE_ASSET_REPAIR_CRITERIA = [
     "Use `shipguard v4 stable-publication --download-release-assets` to download the public GitHub release assets, or pass the already downloaded asset directory with `--release-assets`.",
     "Confirm the downloaded or supplied directory contains every required release asset listed by the GitHub release metadata, including the versioned ShipGuard tarball.",
@@ -395,6 +422,50 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def normalize_version(version: str) -> str:
     return version.removeprefix("v")
+
+
+def is_sha_like(value: object) -> bool:
+    return bool(re.fullmatch(r"[0-9a-fA-F]{7,40}", str(value or "").strip()))
+
+
+def sha_matches(left: object, right: object) -> bool:
+    left_value = str(left or "").strip().lower()
+    right_value = str(right or "").strip().lower()
+    if not left_value or not right_value or not is_sha_like(left_value) or not is_sha_like(right_value):
+        return False
+    if len(left_value) == len(right_value):
+        return left_value == right_value
+    shorter, longer = sorted((left_value, right_value), key=len)
+    return longer.startswith(shorter)
+
+
+def parse_utc_datetime(value: object) -> datetime | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    if text.endswith("Z"):
+        text = f"{text[:-1]}+00:00"
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def git_rev_parse(root: Path, revision: str) -> str:
+    try:
+        completed = subprocess.run(
+            ["git", "-C", root.as_posix(), "rev-parse", "--verify", revision],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return completed.stdout.strip() if completed.returncode == 0 else ""
 
 
 def github_repo_from_remote_url(remote_url: str) -> str:
@@ -709,6 +780,93 @@ def build_release_candidate_packet_proof(args: argparse.Namespace) -> dict[str, 
     return proof
 
 
+def build_github_tag_target_proof(args: argparse.Namespace, release_tag: str) -> dict[str, Any]:
+    proof: dict[str, Any] = {
+        "status": "not-provided",
+        "repo": args.github_release_repo or "",
+        "tag": release_tag,
+        "tagRefEndpoint": "",
+        "tagObjectSha": "",
+        "tagObjectType": "",
+        "tagTargetSha": "",
+        "tagTargetType": "",
+        "summary": "GitHub tag target proof was not requested because no repository was selected.",
+    }
+    if not args.github_release_repo or "/" not in args.github_release_repo:
+        return proof
+
+    token = os.environ.get(args.github_token_env or "")
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "shipguard-stable-publication",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    ref_endpoint = launchkey.join_api_url(args.github_api_url, f"/repos/{args.github_release_repo}/git/ref/tags/{release_tag}")
+    proof["tagRefEndpoint"] = ref_endpoint
+    try:
+        ref_payload = launchkey.request_json(ref_endpoint, headers)
+    except (RuntimeError, OSError, urllib.error.URLError, urllib.error.HTTPError) as exc:
+        proof.update(
+            {
+                "status": "blocked",
+                "summary": "GitHub tag target could not be loaded.",
+                "error": launchkey.short_output(str(exc), 500),
+            }
+        )
+        return proof
+
+    ref_object = ref_payload.get("object") if isinstance(ref_payload.get("object"), dict) else {}
+    object_sha = str(ref_object.get("sha") or "")
+    object_type = str(ref_object.get("type") or "")
+    proof.update(
+        {
+            "status": "blocked",
+            "tagObjectSha": object_sha,
+            "tagObjectType": object_type,
+            "tagTargetSha": object_sha if object_type == "commit" else "",
+            "tagTargetType": object_type if object_type == "commit" else "",
+            "summary": "GitHub tag ref loaded but did not resolve to a commit target.",
+        }
+    )
+    if object_type == "commit" and object_sha:
+        proof["status"] = "pass"
+        proof["summary"] = "GitHub tag target resolves to a commit."
+        return proof
+
+    if object_type != "tag" or not object_sha:
+        return proof
+
+    tag_endpoint = launchkey.join_api_url(args.github_api_url, f"/repos/{args.github_release_repo}/git/tags/{object_sha}")
+    proof["annotatedTagEndpoint"] = tag_endpoint
+    try:
+        tag_payload = launchkey.request_json(tag_endpoint, headers)
+    except (RuntimeError, OSError, urllib.error.URLError, urllib.error.HTTPError) as exc:
+        proof.update(
+            {
+                "status": "blocked",
+                "summary": "Annotated GitHub tag object could not be loaded.",
+                "error": launchkey.short_output(str(exc), 500),
+            }
+        )
+        return proof
+
+    tag_object = tag_payload.get("object") if isinstance(tag_payload.get("object"), dict) else {}
+    target_sha = str(tag_object.get("sha") or "")
+    target_type = str(tag_object.get("type") or "")
+    proof.update(
+        {
+            "tagTargetSha": target_sha,
+            "tagTargetType": target_type,
+        }
+    )
+    if target_type == "commit" and target_sha:
+        proof["status"] = "pass"
+        proof["summary"] = "Annotated GitHub tag resolves to a commit."
+    return proof
+
+
 def build_github_release_metadata_proof(args: argparse.Namespace, version: str) -> dict[str, Any]:
     release_version = args.release_version or version
     release_tag = launchkey.normalize_release_tag(release_version)
@@ -749,6 +907,7 @@ def build_github_release_metadata_proof(args: argparse.Namespace, version: str) 
         proof["error"] = launchkey.short_output(str(exc), 500)
         return proof
 
+    tag_target_proof = build_github_tag_target_proof(args, release_tag)
     assets = release.get("assets") if isinstance(release.get("assets"), list) else []
     asset_names = sorted(str(asset.get("name") or "") for asset in assets if isinstance(asset, dict))
     required_assets = set(proof["requiredAssets"])
@@ -774,6 +933,12 @@ def build_github_release_metadata_proof(args: argparse.Namespace, version: str) 
             "releaseNotesMissingTopicIds": release_notes_analysis["missingTopicIds"],
             "isDraft": bool(release.get("draft") or release.get("isDraft")),
             "isPrerelease": bool(release.get("prerelease") or release.get("isPrerelease")),
+            "githubTagTargetProof": tag_target_proof,
+            "tagRefEndpoint": tag_target_proof.get("tagRefEndpoint") or "",
+            "tagObjectSha": tag_target_proof.get("tagObjectSha") or "",
+            "tagObjectType": tag_target_proof.get("tagObjectType") or "",
+            "tagTargetSha": tag_target_proof.get("tagTargetSha") or "",
+            "tagTargetType": tag_target_proof.get("tagTargetType") or "",
         }
     )
     if missing_assets:
@@ -879,6 +1044,137 @@ def build_post_release_consumer_proof(published_release_asset_proof: dict[str, A
     return proof
 
 
+def build_public_release_freshness_proof(
+    *,
+    root: Path,
+    release_version: str,
+    metadata_proof: dict[str, Any],
+    published_asset_proof: dict[str, Any],
+) -> dict[str, Any]:
+    release_tag = str(metadata_proof.get("tag") or launchkey.normalize_release_tag(release_version))
+    assets_dir_raw = str(published_asset_proof.get("assetsDir") or "")
+    manifest_path = Path(assets_dir_raw).expanduser().resolve() / "release-manifest.json" if assets_dir_raw else None
+    tag_target_proof = metadata_proof.get("githubTagTargetProof") if isinstance(metadata_proof.get("githubTagTargetProof"), dict) else {}
+    target_commitish = str(metadata_proof.get("targetCommitish") or "")
+    local_head = git_rev_parse(root, "HEAD")
+    local_tag_commit = git_rev_parse(root, f"{release_tag}^{{commit}}") if release_tag else ""
+    proof: dict[str, Any] = {
+        "status": "not-provided",
+        "provided": False,
+        "requiredForStableV4": True,
+        "summary": "Public release freshness needs GitHub metadata plus downloaded or supplied release assets.",
+        "releaseVersion": release_version,
+        "releaseTag": release_tag,
+        "metadataStatus": metadata_proof.get("status"),
+        "publishedReleaseAssetStatus": published_asset_proof.get("status"),
+        "releaseUrl": metadata_proof.get("releaseUrl") or "",
+        "publishedAt": metadata_proof.get("publishedAt") or "",
+        "releaseTargetCommitish": target_commitish,
+        "tagRefEndpoint": tag_target_proof.get("tagRefEndpoint") or metadata_proof.get("tagRefEndpoint") or "",
+        "tagObjectSha": tag_target_proof.get("tagObjectSha") or metadata_proof.get("tagObjectSha") or "",
+        "tagObjectType": tag_target_proof.get("tagObjectType") or metadata_proof.get("tagObjectType") or "",
+        "tagTargetSha": tag_target_proof.get("tagTargetSha") or metadata_proof.get("tagTargetSha") or "",
+        "tagTargetType": tag_target_proof.get("tagTargetType") or metadata_proof.get("tagTargetType") or "",
+        "tagTargetProofStatus": tag_target_proof.get("status") or "not-provided",
+        "assetsDir": assets_dir_raw,
+        "releaseManifestPath": manifest_path.as_posix() if manifest_path else "",
+        "manifestVersion": "",
+        "manifestTag": "",
+        "manifestCommit": "",
+        "manifestGeneratedAt": "",
+        "artifactName": "",
+        "artifactSha256": "",
+        "localHeadCommit": local_head,
+        "localTagCommit": local_tag_commit,
+        "comparisons": {},
+        "problems": [],
+        "nextCommand": stable_publication_command(
+            argparse.Namespace(
+                github_release_repo=metadata_proof.get("repo") or "<owner/repo>",
+                release_version=release_version,
+                release_candidate_report="<v4-release-candidate-json-or-dir>",
+                release_assets=None,
+                external_adoption_evidence=[],
+                security_review_evidence=[],
+            ),
+            placeholders=True,
+        ),
+    }
+
+    problems: list[str] = []
+    if metadata_proof.get("status") != "pass":
+        problems.append("GitHub release metadata must pass before freshness can pass.")
+    if published_asset_proof.get("status") != "pass":
+        problems.append("Downloaded or supplied release assets must pass release-consume before freshness can pass.")
+    if not manifest_path or not manifest_path.is_file():
+        problems.append("Downloaded or supplied release assets are missing release-manifest.json.")
+        proof["problems"] = problems
+        proof["summary"] = "Public release freshness could not find release-manifest.json in the release assets."
+        return proof
+
+    manifest = load_json(manifest_path)
+    artifact = manifest.get("artifact") if isinstance(manifest.get("artifact"), dict) else {}
+    manifest_version = str(manifest.get("version") or "")
+    manifest_tag = str(manifest.get("tag") or "")
+    manifest_commit = str(manifest.get("commit") or "")
+    manifest_generated_at = str(manifest.get("generated_at") or manifest.get("generatedAt") or "")
+    proof.update(
+        {
+            "provided": True,
+            "manifestVersion": manifest_version,
+            "manifestTag": manifest_tag,
+            "manifestCommit": manifest_commit,
+            "manifestGeneratedAt": manifest_generated_at,
+            "artifactName": artifact.get("name") or "",
+            "artifactSha256": artifact.get("sha256") or "",
+        }
+    )
+
+    tag_target_sha = str(proof.get("tagTargetSha") or "")
+    target_commitish_is_sha = is_sha_like(target_commitish)
+    comparisons = {
+        "manifestVersionMatchesRequested": normalize_version(manifest_version) == normalize_version(release_version),
+        "manifestTagMatchesMetadataTag": manifest_tag == release_tag,
+        "tagTargetMatchesManifestCommit": sha_matches(tag_target_sha, manifest_commit),
+        "releaseTargetCommitishIsSha": target_commitish_is_sha,
+        "releaseTargetCommitishMatchesManifestCommit": (
+            sha_matches(target_commitish, manifest_commit) if target_commitish_is_sha else None
+        ),
+        "localHeadMatchesManifestCommit": sha_matches(local_head, manifest_commit) if local_head else None,
+        "localTagMatchesManifestCommit": sha_matches(local_tag_commit, manifest_commit) if local_tag_commit else None,
+        "manifestGeneratedNoLaterThanPublishedAt": None,
+    }
+    published_at = parse_utc_datetime(proof.get("publishedAt"))
+    manifest_generated = parse_utc_datetime(manifest_generated_at)
+    if published_at and manifest_generated:
+        comparisons["manifestGeneratedNoLaterThanPublishedAt"] = manifest_generated <= published_at
+
+    if not comparisons["manifestVersionMatchesRequested"]:
+        problems.append("release-manifest.json version does not match the requested release version.")
+    if not comparisons["manifestTagMatchesMetadataTag"]:
+        problems.append("release-manifest.json tag does not match the public GitHub release tag.")
+    if tag_target_proof.get("status") != "pass":
+        problems.append("Public GitHub tag target did not resolve to a commit.")
+    if not comparisons["tagTargetMatchesManifestCommit"]:
+        problems.append("Public GitHub tag target does not match release-manifest.json commit.")
+    if target_commitish_is_sha and not comparisons["releaseTargetCommitishMatchesManifestCommit"]:
+        problems.append("GitHub release target_commitish SHA does not match release-manifest.json commit.")
+    if comparisons["manifestGeneratedNoLaterThanPublishedAt"] is False:
+        problems.append("release-manifest.json was generated after the public release publication timestamp.")
+    if not manifest_commit or manifest_commit == "unknown":
+        problems.append("release-manifest.json does not record a concrete commit SHA.")
+
+    proof["comparisons"] = comparisons
+    proof["problems"] = problems
+    proof["status"] = "pass" if not problems else "review"
+    proof["summary"] = (
+        "Public release metadata, tag target, release manifest, and asset proof are fresh and consistent."
+        if not problems
+        else "Public release freshness has mismatched or incomplete tag, manifest, metadata, or asset proof."
+    )
+    return proof
+
+
 def first_blocking_gate(gates: list[tuple[str, dict[str, Any], str]]) -> tuple[str, dict[str, Any], str] | None:
     for receipt, proof, command in gates:
         if proof.get("status") == "pass":
@@ -894,6 +1190,7 @@ def evidence_id_for_receipt(receipt: str) -> str:
         "releaseCandidatePacketProof": "launchkey-candidate-packet",
         "publishedReleaseAssetProof": "downloaded-release-assets",
         "postReleaseConsumerProof": "post-release-consumer-proof",
+        "publicReleaseFreshnessProof": "public-release-freshness",
         "externalAdoptionEvidenceStableGate": "independent-adoption-evidence",
         "securityReviewEvidenceStableGate": "final-security-review-evidence",
     }
@@ -907,6 +1204,7 @@ def proof_boundary_for_evidence_id(evidence_id: str) -> str:
         "launchkey-candidate-packet": "LaunchKey candidate proof must pass before stable publication; package install, upgrade, rollback, release-asset, adoption, and security receipts cannot be inferred.",
         "downloaded-release-assets": "Release assets must be downloaded or supplied and verified from the publication packet, not assumed from source state.",
         "post-release-consumer-proof": "Post-release consumer proof must come from release-consume verification of the downloaded or supplied assets.",
+        "public-release-freshness": "Public release freshness must prove the GitHub tag target, release manifest commit, release metadata, and downloaded/supplied assets all describe the same release.",
         "independent-adoption-evidence": "Independent adoption evidence must be real public or private-redacted evidence; GitHub download counts and maintainer-only runs do not count.",
         "final-security-review-evidence": "Final security review evidence must cover CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy with no open critical or high findings.",
     }
@@ -1046,6 +1344,12 @@ def github_release_metadata_diagnostics_for_closure(proof: dict[str, Any]) -> di
         "releaseUrl": proof.get("releaseUrl") or "",
         "publishedAt": proof.get("publishedAt") or "",
         "targetCommitish": proof.get("targetCommitish") or "",
+        "githubTagTargetProof": proof.get("githubTagTargetProof") if isinstance(proof.get("githubTagTargetProof"), dict) else {},
+        "tagRefEndpoint": proof.get("tagRefEndpoint") or "",
+        "tagObjectSha": proof.get("tagObjectSha") or "",
+        "tagObjectType": proof.get("tagObjectType") or "",
+        "tagTargetSha": proof.get("tagTargetSha") or "",
+        "tagTargetType": proof.get("tagTargetType") or "",
         "assetCount": proof.get("assetCount"),
         "assetNames": proof.get("assetNames") if isinstance(proof.get("assetNames"), list) else [],
         "missingAssets": proof.get("missingAssets") if isinstance(proof.get("missingAssets"), list) else [],
@@ -1099,6 +1403,11 @@ def build_github_release_metadata_closure_kit(
         "releaseUrl": diagnostics.get("releaseUrl") or "",
         "publishedAt": diagnostics.get("publishedAt") or "",
         "targetCommitish": diagnostics.get("targetCommitish") or "",
+        "tagRefEndpoint": diagnostics.get("tagRefEndpoint") or "",
+        "tagObjectSha": diagnostics.get("tagObjectSha") or "",
+        "tagObjectType": diagnostics.get("tagObjectType") or "",
+        "tagTargetSha": diagnostics.get("tagTargetSha") or "",
+        "tagTargetType": diagnostics.get("tagTargetType") or "",
         "requiredAssets": diagnostics.get("requiredAssets") if isinstance(diagnostics.get("requiredAssets"), list) else [],
         "metadataAssetNames": diagnostics.get("assetNames") if isinstance(diagnostics.get("assetNames"), list) else [],
         "metadataMissingAssets": diagnostics.get("missingAssets") if isinstance(diagnostics.get("missingAssets"), list) else [],
@@ -1313,6 +1622,101 @@ def post_release_consumer_diagnostics_for_closure(proof: dict[str, Any]) -> dict
     }
 
 
+def release_freshness_diagnostics_for_closure(proof: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "status": proof.get("status"),
+        "provided": proof.get("provided") is True,
+        "summary": proof.get("summary") or "",
+        "releaseVersion": proof.get("releaseVersion") or "",
+        "releaseTag": proof.get("releaseTag") or "",
+        "releaseUrl": proof.get("releaseUrl") or "",
+        "publishedAt": proof.get("publishedAt") or "",
+        "releaseTargetCommitish": proof.get("releaseTargetCommitish") or "",
+        "tagRefEndpoint": proof.get("tagRefEndpoint") or "",
+        "tagObjectSha": proof.get("tagObjectSha") or "",
+        "tagObjectType": proof.get("tagObjectType") or "",
+        "tagTargetSha": proof.get("tagTargetSha") or "",
+        "tagTargetType": proof.get("tagTargetType") or "",
+        "tagTargetProofStatus": proof.get("tagTargetProofStatus") or "not-provided",
+        "assetsDir": proof.get("assetsDir") or "",
+        "releaseManifestPath": proof.get("releaseManifestPath") or "",
+        "manifestVersion": proof.get("manifestVersion") or "",
+        "manifestTag": proof.get("manifestTag") or "",
+        "manifestCommit": proof.get("manifestCommit") or "",
+        "manifestGeneratedAt": proof.get("manifestGeneratedAt") or "",
+        "artifactName": proof.get("artifactName") or "",
+        "artifactSha256": proof.get("artifactSha256") or "",
+        "localHeadCommit": proof.get("localHeadCommit") or "",
+        "localTagCommit": proof.get("localTagCommit") or "",
+        "comparisons": proof.get("comparisons") if isinstance(proof.get("comparisons"), dict) else {},
+        "problems": proof.get("problems") if isinstance(proof.get("problems"), list) else [],
+        "nextCommand": proof.get("nextCommand") or "",
+    }
+
+
+def build_public_release_freshness_closure_kit(
+    *,
+    item: dict[str, Any],
+    rerun_command: str,
+) -> dict[str, Any]:
+    diagnostics = (
+        item.get("releaseFreshnessDiagnostics")
+        if isinstance(item.get("releaseFreshnessDiagnostics"), dict)
+        else {}
+    )
+    freshness_rerun = rerun_command or diagnostics.get("nextCommand") or item.get("nextCommand") or (
+        "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> "
+        "--github-release-repo <owner/repo> --release-version <version> "
+        "--release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets "
+        "--external-adoption-evidence <adoption-evidence-json-or-dir> "
+        "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
+    )
+    return {
+        "schemaVersion": 1,
+        "title": "Public release freshness closure kit",
+        "status": diagnostics.get("status") or item.get("status") or "not-provided",
+        "summary": diagnostics.get("summary") or item.get("summary") or "",
+        "releaseVersion": diagnostics.get("releaseVersion") or "",
+        "releaseTag": diagnostics.get("releaseTag") or "",
+        "releaseUrl": diagnostics.get("releaseUrl") or "",
+        "publishedAt": diagnostics.get("publishedAt") or "",
+        "releaseTargetCommitish": diagnostics.get("releaseTargetCommitish") or "",
+        "tagRefEndpoint": diagnostics.get("tagRefEndpoint") or "",
+        "tagObjectSha": diagnostics.get("tagObjectSha") or "",
+        "tagObjectType": diagnostics.get("tagObjectType") or "",
+        "tagTargetSha": diagnostics.get("tagTargetSha") or "",
+        "tagTargetType": diagnostics.get("tagTargetType") or "",
+        "tagTargetProofStatus": diagnostics.get("tagTargetProofStatus") or "not-provided",
+        "assetsDir": diagnostics.get("assetsDir") or "",
+        "releaseManifestPath": diagnostics.get("releaseManifestPath") or "",
+        "manifestVersion": diagnostics.get("manifestVersion") or "",
+        "manifestTag": diagnostics.get("manifestTag") or "",
+        "manifestCommit": diagnostics.get("manifestCommit") or "",
+        "manifestGeneratedAt": diagnostics.get("manifestGeneratedAt") or "",
+        "artifactName": diagnostics.get("artifactName") or "",
+        "artifactSha256": diagnostics.get("artifactSha256") or "",
+        "localHeadCommit": diagnostics.get("localHeadCommit") or "",
+        "localTagCommit": diagnostics.get("localTagCommit") or "",
+        "comparisons": diagnostics.get("comparisons") if isinstance(diagnostics.get("comparisons"), dict) else {},
+        "problems": diagnostics.get("problems") if isinstance(diagnostics.get("problems"), list) else [],
+        "currentFreshnessDiagnostics": diagnostics,
+        "repairCriteria": PUBLIC_RELEASE_FRESHNESS_REPAIR_CRITERIA,
+        "passCriteria": PUBLIC_RELEASE_FRESHNESS_PASS_CRITERIA,
+        "failCriteria": PUBLIC_RELEASE_FRESHNESS_FAIL_CRITERIA,
+        "freshnessRerunCommand": freshness_rerun,
+        "freshnessProofBoundary": {
+            "publicGitHubTagTargetRequired": True,
+            "releaseManifestRequired": True,
+            "releaseManifestCommitMustMatchPublicTagTarget": True,
+            "targetCommitishBranchNameRequiresTagTargetProof": True,
+            "sourceOnlyProofCountsAsFreshnessProof": False,
+            "fixtureApiProofCountsAsStableV4PublicationProof": False,
+            "localHeadMayBeAheadOfPublishedRelease": True,
+            "explanation": "Freshness is satisfied by coherence between the public GitHub release/tag metadata and the downloaded or supplied release manifest. Local source state is context only; source checkout tests, fixture APIs, and local package builds do not prove a published release is fresh.",
+        },
+    }
+
+
 def build_post_release_consumer_closure_kit(
     *,
     item: dict[str, Any],
@@ -1416,7 +1820,7 @@ def build_stable_publication_evidence_starter_kit_manifest() -> dict[str, Any]:
             {
                 "id": "stable-publication-checklist",
                 "path": f"{STARTER_KIT_DIRNAME}/stable-publication-checklist.json",
-                "purpose": "Machine-readable draft checklist with the seven required stable-publication gates.",
+                "purpose": "Machine-readable draft checklist with the eight required stable-publication gates.",
             },
             {
                 "id": "independent-adoption-evidence",
@@ -1665,6 +2069,8 @@ def build_stable_publication_evidence_packet(
             item["releaseAssetDiagnostics"] = release_asset_diagnostics_for_closure(proof)
         if evidence_id == "post-release-consumer-proof":
             item["postReleaseConsumerDiagnostics"] = post_release_consumer_diagnostics_for_closure(proof)
+        if evidence_id == "public-release-freshness":
+            item["releaseFreshnessDiagnostics"] = release_freshness_diagnostics_for_closure(proof)
         if evidence_id in {"independent-adoption-evidence", "final-security-review-evidence"}:
             item["evidenceDiagnostics"] = evidence_diagnostics_for_closure(proof)
         required_evidence.append(item)
@@ -1780,6 +2186,8 @@ def build_stable_publication_closure_checklist(
                     "releaseEndpoint": metadata_kit.get("releaseEndpoint") or "",
                     "releaseUrl": metadata_kit.get("releaseUrl") or "",
                     "targetCommitish": metadata_kit.get("targetCommitish") or "",
+                    "tagRefEndpoint": metadata_kit.get("tagRefEndpoint") or "",
+                    "tagTargetSha": metadata_kit.get("tagTargetSha") or "",
                     "requiredAssets": metadata_kit.get("requiredAssets") if isinstance(metadata_kit.get("requiredAssets"), list) else [],
                     "metadataAssetNames": metadata_kit.get("metadataAssetNames") if isinstance(metadata_kit.get("metadataAssetNames"), list) else [],
                     "metadataMissingAssets": metadata_kit.get("metadataMissingAssets") if isinstance(metadata_kit.get("metadataMissingAssets"), list) else [],
@@ -1912,6 +2320,37 @@ def build_stable_publication_closure_checklist(
                 }
             )
             closure_item["nextCommand"] = closure_item["releaseConsumeRerunCommand"] or closure_item["stablePublicationRerunCommand"]
+        if evidence_id == "public-release-freshness":
+            freshness_kit = build_public_release_freshness_closure_kit(
+                item=item,
+                rerun_command=rerun_command
+                or (
+                    "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> "
+                    "--github-release-repo <owner/repo> --release-version <version> "
+                    "--release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets "
+                    "--external-adoption-evidence <adoption-evidence-json-or-dir> "
+                    "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
+                ),
+            )
+            closure_item.update(
+                {
+                    "releaseTag": freshness_kit.get("releaseTag") or "",
+                    "tagTargetSha": freshness_kit.get("tagTargetSha") or "",
+                    "releaseTargetCommitish": freshness_kit.get("releaseTargetCommitish") or "",
+                    "releaseManifestPath": freshness_kit.get("releaseManifestPath") or "",
+                    "manifestCommit": freshness_kit.get("manifestCommit") or "",
+                    "manifestGeneratedAt": freshness_kit.get("manifestGeneratedAt") or "",
+                    "comparisons": freshness_kit.get("comparisons") if isinstance(freshness_kit.get("comparisons"), dict) else {},
+                    "problems": freshness_kit.get("problems") if isinstance(freshness_kit.get("problems"), list) else [],
+                    "freshnessRerunCommand": freshness_kit.get("freshnessRerunCommand") or item.get("nextCommand") or "",
+                    "repairCriteria": freshness_kit.get("repairCriteria") if isinstance(freshness_kit.get("repairCriteria"), list) else [],
+                    "passCriteria": freshness_kit.get("passCriteria") if isinstance(freshness_kit.get("passCriteria"), list) else [],
+                    "failCriteria": freshness_kit.get("failCriteria") if isinstance(freshness_kit.get("failCriteria"), list) else [],
+                    "freshnessProofBoundary": freshness_kit.get("freshnessProofBoundary") if isinstance(freshness_kit.get("freshnessProofBoundary"), dict) else {},
+                    "releaseFreshnessClosureKit": freshness_kit,
+                }
+            )
+            closure_item["nextCommand"] = closure_item["freshnessRerunCommand"]
         if evidence_id in {"independent-adoption-evidence", "final-security-review-evidence"}:
             template = templates_by_id.get(evidence_id, {})
             starter_file = starter_files_by_id.get(evidence_id, {})
@@ -2037,7 +2476,7 @@ def write_stable_publication_evidence_starter_kit(
         "",
         "## Files",
         "",
-        "- `stable-publication-checklist.json`: the current seven-gate checklist, closure checklist, and first blocker.",
+        "- `stable-publication-checklist.json`: the current eight-gate checklist, closure checklist, and first blocker.",
         "- `external-adoption-evidence.json`: starter record for independent adoption evidence.",
         "- `security-review-evidence.json`: starter record for final security-review evidence.",
         "",
@@ -2353,6 +2792,12 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     github_download_proof = launchkey.build_github_release_asset_download_proof(args, version)
     published_asset_proof = launchkey.build_published_release_asset_proof(consumer_args, root, version, github_download_proof)
     post_release_consumer_proof = build_post_release_consumer_proof(published_asset_proof)
+    public_release_freshness_proof = build_public_release_freshness_proof(
+        root=root,
+        release_version=release_version,
+        metadata_proof=metadata_proof,
+        published_asset_proof=published_asset_proof,
+    )
     adoption_proof = launchkey.build_external_adoption_evidence_proof(args)
     security_proof = launchkey.build_security_review_evidence_proof(args)
     adoption_gate_proof = {
@@ -2370,6 +2815,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ("releaseCandidatePacketProof", release_candidate_packet_proof, release_candidate_packet_proof.get("nextCommand", "")),
         ("publishedReleaseAssetProof", published_asset_proof, stable_publication_rerun_command(args)),
         ("postReleaseConsumerProof", post_release_consumer_proof, published_asset_proof.get("consumeCommand", "")),
+        ("publicReleaseFreshnessProof", public_release_freshness_proof, stable_publication_rerun_command(args)),
         ("externalAdoptionEvidenceStableGate", adoption_gate_proof, adoption_proof.get("nextCommand", "")),
         ("securityReviewEvidenceStableGate", security_gate_proof, security_proof.get("nextCommand", "")),
     ]
@@ -2456,6 +2902,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "githubReleaseAssetDownloadProof": github_download_proof,
         "publishedReleaseAssetProof": published_asset_proof,
         "postReleaseConsumerProof": post_release_consumer_proof,
+        "publicReleaseFreshnessProof": public_release_freshness_proof,
         "externalAdoptionEvidenceProof": adoption_proof,
         "securityReviewEvidenceProof": security_proof,
         "stablePublicationGates": [
@@ -2488,6 +2935,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the LaunchKey candidate closure row expose the supplied candidate path, nested receipt, required proof areas, package-hygiene diagnostics, repair/pass criteria, nested rerun, full stable-publication rerun, and fixture-proof boundary?",
             "Does the downloaded release-assets closure row expose required assets, metadata/local missing assets, download source/status, asset directory, repair/pass/fail criteria, download rerun, full stable-publication rerun, and metadata-only/source-only/fixture-proof boundaries?",
             "Does the post-release consumer closure row expose release-consume paths, missing proof artifacts, digest/replay/attestation statuses, repair/pass criteria, release-consume rerun, full stable-publication rerun, and source-only/fixture-proof boundaries?",
+            "Does the public release freshness row prove the GitHub tag target, release manifest commit, release metadata target, and publication timestamp describe the same release?",
             "Do independent adoption and final security-review closure rows expose starter paths, required fields, redaction/privacy boundaries, pass/fail criteria, current diagnostics, and exact stable-publication rerun commands?",
             "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?",
         ],
@@ -2596,6 +3044,8 @@ def render_markdown(report: dict[str, Any]) -> str:
                     f"- Release endpoint: `{kit.get('releaseEndpoint') or 'not-provided'}`",
                     f"- Release URL: `{kit.get('releaseUrl') or 'not-provided'}`",
                     f"- Target commitish: `{kit.get('targetCommitish') or 'not-provided'}`",
+                    f"- Tag ref endpoint: `{kit.get('tagRefEndpoint') or 'not-provided'}`",
+                    f"- Tag target SHA: `{kit.get('tagTargetSha') or 'not-provided'}`",
                     f"- Draft release: `{release_state.get('isDraft')}`",
                     f"- Prerelease: `{release_state.get('isPrerelease')}`",
                     f"- Required assets: `{', '.join(str(value) for value in required_assets) or 'not-provided'}`",
@@ -2876,6 +3326,73 @@ def render_markdown(report: dict[str, Any]) -> str:
                     "```",
                 ]
             )
+        freshness_closure = next(
+            (item for item in items if isinstance(item, dict) and item.get("id") == "public-release-freshness"),
+            None,
+        )
+        if isinstance(freshness_closure, dict) and isinstance(freshness_closure.get("releaseFreshnessClosureKit"), dict):
+            kit = freshness_closure["releaseFreshnessClosureKit"]
+            boundary = kit.get("freshnessProofBoundary") if isinstance(kit.get("freshnessProofBoundary"), dict) else {}
+            comparisons = kit.get("comparisons") if isinstance(kit.get("comparisons"), dict) else {}
+            problems = kit.get("problems") if isinstance(kit.get("problems"), list) else []
+            lines.extend(
+                [
+                    "",
+                    "### Public Release Freshness Closure Kit",
+                    "",
+                    f"- Status: `{kit.get('status') or freshness_closure.get('status') or 'not-provided'}`",
+                    f"- Release tag: `{kit.get('releaseTag') or 'not-provided'}`",
+                    f"- Release URL: `{kit.get('releaseUrl') or 'not-provided'}`",
+                    f"- Published at: `{kit.get('publishedAt') or 'not-provided'}`",
+                    f"- Release target commitish: `{kit.get('releaseTargetCommitish') or 'not-provided'}`",
+                    f"- Tag target SHA: `{kit.get('tagTargetSha') or 'not-provided'}`",
+                    f"- Tag target proof status: `{kit.get('tagTargetProofStatus') or 'not-provided'}`",
+                    f"- Release manifest path: `{kit.get('releaseManifestPath') or 'not-provided'}`",
+                    f"- Manifest version: `{kit.get('manifestVersion') or 'not-provided'}`",
+                    f"- Manifest tag: `{kit.get('manifestTag') or 'not-provided'}`",
+                    f"- Manifest commit: `{kit.get('manifestCommit') or 'not-provided'}`",
+                    f"- Manifest generated at: `{kit.get('manifestGeneratedAt') or 'not-provided'}`",
+                    f"- Artifact: `{kit.get('artifactName') or 'not-provided'}`",
+                    f"- Artifact SHA-256: `{kit.get('artifactSha256') or 'not-provided'}`",
+                    f"- Public tag target required: `{boundary.get('publicGitHubTagTargetRequired')}`",
+                    f"- Release manifest required: `{boundary.get('releaseManifestRequired')}`",
+                    f"- Source-only proof counts as freshness proof: `{boundary.get('sourceOnlyProofCountsAsFreshnessProof')}`",
+                    f"- Fixture API proof counts as stable-v4 publication proof: `{boundary.get('fixtureApiProofCountsAsStableV4PublicationProof')}`",
+                    "",
+                    "| Freshness comparison | Status |",
+                    "| --- | --- |",
+                ]
+            )
+            if comparisons:
+                for key, value in comparisons.items():
+                    lines.append(f"| `{key}` | `{value}` |")
+            else:
+                lines.append("| `not-provided` | `not-provided` |")
+            lines.extend(["", "Freshness problems:", ""])
+            if problems:
+                for problem in problems:
+                    lines.append(f"- {problem}")
+            else:
+                lines.append("- none")
+            lines.extend(["", "Repair criteria:", ""])
+            for criterion in kit.get("repairCriteria", []):
+                lines.append(f"- {criterion}")
+            lines.extend(["", "Pass criteria:", ""])
+            for criterion in kit.get("passCriteria", []):
+                lines.append(f"- {criterion}")
+            lines.extend(["", "Fail criteria:", ""])
+            for criterion in kit.get("failCriteria", []):
+                lines.append(f"- {criterion}")
+            lines.extend(
+                [
+                    "",
+                    "Rerun public release freshness proof:",
+                    "",
+                    "```bash",
+                    str(kit.get("freshnessRerunCommand") or freshness_closure.get("nextCommand") or ""),
+                    "```",
+                ]
+            )
         evidence_closure_items = [
             item
             for item in items
@@ -3086,6 +3603,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"- LaunchKey package packet: `{report.get('releaseCandidatePacketProof', {}).get('status')}`",
             f"- Release assets: `{report.get('publishedReleaseAssetProof', {}).get('status')}`",
             f"- Post-release consumer proof: `{report.get('postReleaseConsumerProof', {}).get('status')}`",
+            f"- Public release freshness: `{report.get('publicReleaseFreshnessProof', {}).get('status')}`",
             f"- External adoption stable gate: `{report.get('externalAdoptionEvidenceProof', {}).get('stableV4GateStatus')}`",
             f"- Security review stable gate: `{report.get('securityReviewEvidenceProof', {}).get('stableV4GateStatus')}`",
             f"- Stable v4 release claim allowed: `{report.get('stableV4Release')}`",

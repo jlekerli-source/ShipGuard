@@ -174,7 +174,7 @@ Start here:
 - [Release proof bundle](docs/release-proof.md)
 - [Stable publication proof](docs/v4-stable-publication.md)
 
-Stable publication requires public GitHub release metadata, downloaded or supplied public release assets, and post-release `release-consume` proof from those assets. Source checkout proof, generated starter kits, fixture API responses, and synthetic fixtures only prove ShipGuard report quality.
+Stable publication requires public GitHub release metadata, downloaded or supplied public release assets, tag/manifest freshness, and post-release `release-consume` proof from those assets. Source checkout proof, generated starter kits, fixture API responses, and synthetic fixtures only prove ShipGuard report quality.
 
 For major ShipGuard milestones, `shipguard v4 stable-publication` can also write draft-only launch relay copy for Product Hunt, r/ShipGuard, X, and Hacker News. It does not post or submit anything; public actions require explicit approval for that exact launch run.
 

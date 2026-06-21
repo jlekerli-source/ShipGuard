@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.170 read-only stable-v4 packet loop continued from the GitHub release metadata closure kit and tested whether a public release can look complete while the public tag and uploaded release manifest describe different commits.
+
+- Finding: `v4 stable-publication` could prove public metadata, downloaded assets, and release-consume shape without separately proving the public GitHub tag target matched `release-manifest.json`.
+- Product weakness: a solo maintainer should not announce v4 when the tag, release target, manifest commit, or manifest timestamp suggests stale or rebuilt public release proof.
+- Native fix: `publicReleaseFreshnessProof` now resolves the public GitHub tag target, reads release manifest fields from downloaded or supplied assets, compares version/tag/commit/timestamp signals, and blocks stale freshness before stable-v4 can pass.
+- Report-quality fix: `ios report-quality` now flags stable-publication reports whose `public-release-freshness` closure row hides the freshness kit, tag target, manifest commit, comparisons, diagnostics, criteria, rerun command, or source-only/fixture-proof boundaries.
+- Fixture fix: `tests/v4_stable_publication_test.sh` now mutates the public tag ref to a stale commit and proves the report blocks with `Public Release Freshness Closure Kit` instead of passing from local or fixture state.
+
+Fresh stable-v4 QA still does not claim real stable v4. Freshness proof is repair guidance and report-quality proof until the actual public release metadata, downloaded release assets, release-consume output, independent adoption evidence, and final security review all pass together.
+
 The v3.169 read-only stable-v4 packet loop continued from the downloaded release-assets closure kit and tested whether the earlier public GitHub release metadata blocker is directly actionable from the stable-publication report.
 
 - Finding: `v4 stable-publication` could say GitHub release metadata failed, but the blocker row did not itself expose the selected repo, inference source, release tag, API endpoint, release state, required assets, release-note digest, repair/pass/fail criteria, or proof boundaries.

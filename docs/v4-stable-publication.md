@@ -2,7 +2,7 @@
 
 `shipguard v4 stable-publication` is the final local proof gate before anyone says ShipGuard v4 is stable.
 
-It does not publish a GitHub release, change repository rules, edit target apps, or claim marketplace acceptance. It reads public release metadata, release notes, a prior LaunchKey release-candidate report, release assets, adoption evidence, and security-review evidence, then blocks stable-v4 claims until the full packet passes.
+It does not publish a GitHub release, change repository rules, edit target apps, or claim marketplace acceptance. It reads public release metadata, release notes, a prior LaunchKey release-candidate report, release assets, release freshness, adoption evidence, and security-review evidence, then blocks stable-v4 claims until the full packet passes.
 
 ## Command
 
@@ -57,6 +57,7 @@ Outputs:
 - `stable-publication-launch-relay/hacker-news-draft.md`
 - `stablePublicationEvidencePacket` in JSON, rendered as `Evidence Packet` in Markdown
 - `stablePublicationClosureChecklist` in JSON, rendered as `Closure Checklist` in Markdown
+- `publicReleaseFreshnessProof` in JSON, rendered in the proof summary and as `Public Release Freshness Closure Kit` when it blocks
 - `stablePublicationEvidenceTemplates` in JSON, rendered as `Evidence Templates` in Markdown
 - `stablePublicationEvidenceStarterKit` in JSON, rendered as `Evidence Starter Kit` in Markdown
 - `stablePublicationReleaseNotesAuthoringKit` in JSON, rendered as `Release Notes Authoring Kit` in Markdown
@@ -71,6 +72,7 @@ The report returns `pass` only when every gate passes:
 - The supplied `v4 release-candidate` report is from LaunchKey, passed, and still claims only `candidate-ready`.
 - Downloaded or supplied release assets pass `shipguard release-consume verify`.
 - Post-release consumer proof is attached from the release assets.
+- Public release freshness proves the GitHub tag target, `release-manifest.json` commit, release tag/version, release metadata target, and publication timestamp describe the same release.
 - External adoption evidence passes the stable-v4 gate with independent public or redacted external records.
 - Final security-review evidence passes the stable-v4 gate with CLI, plugin, GitHub Actions, release-proof, package-install, and redaction/privacy scope coverage.
 
@@ -145,7 +147,7 @@ Public posting, publishing, submission, scheduling, browser-field staging with a
 
 The JSON report includes `stablePublicationEvidencePacket` so humans and tools can inspect the real publication packet without piecing it together from scattered sections. It lists:
 
-- all seven required evidence inputs with stable IDs and statuses
+- all eight required evidence inputs with stable IDs and statuses
 - whether each input is required for stable v4 and must be real evidence
 - `missingEvidenceIds`
 - `firstBlockingGate` with the exact next command
@@ -215,6 +217,15 @@ When post-release consumer proof is a closure blocker, the row also carries a co
 
 Markdown renders these fields as `Post-Release Consumer Closure Kit` so maintainers can see exactly why the consumer gate is still blocked and which proof artifact has to exist before any stable-v4 claim can move forward.
 
+When public release freshness is a closure blocker, the row also carries a freshness closure kit:
+
+- the public release tag, resolved GitHub tag target SHA, release `target_commitish`, release manifest path, manifest commit, and manifest generation timestamp
+- comparison rows for requested version, metadata tag, tag-target commit, release target commit when it is a SHA, and manifest timestamp freshness
+- current freshness diagnostics, problems, repair criteria, pass criteria, fail criteria, and the full stable-publication rerun command
+- `freshnessProofBoundary`, which says public tag target plus release manifest proof is required, the manifest commit must match the public tag target, and source-only or fixture API proof cannot satisfy stable-v4 freshness
+
+Markdown renders these fields as `Public Release Freshness Closure Kit` so stale tags, rebuilt assets, or mismatched release manifests are visible before adoption/security evidence is chased.
+
 When independent adoption or final security-review evidence is a closure blocker, the row also carries an evidence closure kit:
 
 - the generated starter file path and source template path
@@ -234,7 +245,7 @@ Every run also writes `stable-publication-evidence-kit/` inside the report direc
 This directory is a convenience artifact, not proof. It contains:
 
 - `README.md` with the collection rules and next command template
-- `stable-publication-checklist.json` with the current seven-gate packet, closure checklist, first blocker, missing evidence IDs, and non-claims
+- `stable-publication-checklist.json` with the current eight-gate packet, closure checklist, first blocker, missing evidence IDs, and non-claims
 - `external-adoption-evidence.json` copied from the draft-only adoption template
 - `security-review-evidence.json` copied from the draft-only security-review template
 
@@ -265,7 +276,7 @@ cp templates/stable-publication/security-review-evidence.template.json /tmp/ship
 
 `stable-publication` intentionally sits after `v4 release-candidate`.
 
-`v4 release-candidate` proves the package and release packet are candidate-ready. It can use public fixtures to prove the workflow works. `v4 stable-publication` proves the actual published release by reading public release metadata, real release notes, downloaded release assets, independent adoption evidence, and final security-review evidence. Synthetic fixture adoption or security records can prove the tool path, but they do not prove stable-v4 publication. Source-only and fixture proof do not count as post-release `release-consume` consumer proof.
+`v4 release-candidate` proves the package and release packet are candidate-ready. It can use public fixtures to prove the workflow works. `v4 stable-publication` proves the actual published release by reading public release metadata, real release notes, downloaded release assets, public tag/manifest freshness, independent adoption evidence, and final security-review evidence. Synthetic fixture adoption or security records can prove the tool path, but they do not prove stable-v4 publication. Source-only and fixture proof do not count as release freshness or post-release `release-consume` consumer proof.
 
 Use `--shareable` before moving this report into GitHub, ChatGPT planning, public docs, or release evidence. Shareable output redacts local paths while preserving proof status, gate names, and next commands.
 
@@ -276,6 +287,7 @@ Use this lane when changing the stable-publication surface:
 ```bash
 git diff --check
 python3 -m py_compile scripts/v4_stable_publication.py scripts/v4_release_candidate.py
+python3 -m py_compile scripts/ios_report_quality.py
 ./tests/v4_stable_publication_test.sh
 ./tests/ios_report_quality_test.sh
 ./tests/tool_value_gauntlet_test.sh
@@ -295,6 +307,7 @@ Passing earlier v4 reports does not mean:
 
 - ShipGuard v4 is stable.
 - The GitHub release assets were downloaded and consumed by a fresh user.
+- The public GitHub tag target matches the uploaded release manifest commit.
 - Independent adoption happened.
 - Final security review happened.
 - OpenAI accepted ShipGuard into a public marketplace.

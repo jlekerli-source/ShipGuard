@@ -8,6 +8,7 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 version="$(sed -n '1p' VERSION)"
+release_commit="$(git rev-parse HEAD)"
 
 ./bin/shipguard v4 stable-publication --help >/dev/null
 
@@ -181,7 +182,7 @@ SHIPGUARD_GENERATED_AT="2026-06-20T00:00:00Z" \
     --out "$tmp_dir/proof-bundle" \
     --version "$version" \
     --tag "v$version" \
-    --commit "0123456789abcdef0123456789abcdef01234567" \
+    --commit "$release_commit" \
     --ci-run-url "https://github.com/jlekerli-source/ShipGuard/actions/runs/123" \
     --release-url "https://github.com/jlekerli-source/ShipGuard/releases/tag/v$version" \
     --notes "stable v4 publication release proof test" >/dev/null
@@ -197,15 +198,18 @@ cp "$tmp_dir/proof-bundle/attestation/attestation-badge.json" "$tmp_dir/download
 
 api_root="$tmp_dir/github-api"
 release_endpoint_file="$api_root/repos/jlekerli-source/ShipGuard/releases/tags/v$version"
-mkdir -p "$(dirname "$release_endpoint_file")"
-python3 - "$release_endpoint_file" "$version" "$tmp_dir/downloaded" <<'PY'
+tag_ref_file="$api_root/repos/jlekerli-source/ShipGuard/git/ref/tags/v$version"
+mkdir -p "$(dirname "$release_endpoint_file")" "$(dirname "$tag_ref_file")"
+python3 - "$release_endpoint_file" "$tag_ref_file" "$version" "$tmp_dir/downloaded" "$release_commit" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 target = Path(sys.argv[1])
-version = sys.argv[2]
-downloaded = Path(sys.argv[3])
+tag_ref = Path(sys.argv[2])
+version = sys.argv[3]
+downloaded = Path(sys.argv[4])
+release_commit = sys.argv[5]
 asset_names = [
     f"shipguard-v{version}.tar.gz",
     "release-manifest.json",
@@ -221,7 +225,7 @@ target.write_text(
             "tag_name": f"v{version}",
             "html_url": f"https://github.com/jlekerli-source/ShipGuard/releases/tag/v{version}",
             "published_at": "2026-06-20T00:00:00Z",
-            "target_commitish": "0123456789abcdef0123456789abcdef01234567",
+            "target_commitish": release_commit,
             "body": "ShipGuard stable v4 publication proof. Includes stable-v4 publication boundaries, release proof, downloaded release asset verification, post-release consumer proof, independent adoption evidence, final security review evidence, and blocked claims/non-claims for marketplace acceptance and private app validation.",
             "assets": [
                 {
@@ -230,6 +234,18 @@ target.write_text(
                 }
                 for name in asset_names
             ]
+        }
+    ),
+    encoding="utf-8",
+)
+tag_ref.write_text(
+    json.dumps(
+        {
+            "ref": f"refs/tags/v{version}",
+            "object": {
+                "type": "commit",
+                "sha": release_commit,
+            },
         }
     ),
     encoding="utf-8",
@@ -345,8 +361,8 @@ report = json.load(open(sys.argv[1], encoding="utf-8"))
 packet = report["stablePublicationEvidencePacket"]
 assert packet["status"] == "review"
 assert packet["stableV4Release"] is False
-assert packet["requiredEvidenceCount"] == 7
-assert packet["passedEvidenceCount"] < 7
+assert packet["requiredEvidenceCount"] == 8
+assert packet["passedEvidenceCount"] < 8
 assert "launchkey-candidate-packet" in packet["missingEvidenceIds"]
 assert packet["firstBlockingGate"]["receipt"] == "releaseCandidatePacketProof"
 assert packet["firstBlockingGate"]["nextCommand"].startswith("./bin/shipguard v4 release-candidate")
@@ -545,6 +561,7 @@ packet = report["stablePublicationEvidencePacket"]
 assert packet["missingEvidenceIds"] == [
     "downloaded-release-assets",
     "post-release-consumer-proof",
+    "public-release-freshness",
 ]
 assert packet["firstBlockingGate"]["receipt"] == "publishedReleaseAssetProof"
 required_by_id = {item["id"]: item for item in packet["requiredEvidence"]}
@@ -558,6 +575,10 @@ diagnostics = consumer_required["postReleaseConsumerDiagnostics"]
 assert diagnostics["status"] == "not-provided"
 assert diagnostics["consumerReportStatus"] == "not-provided"
 assert set(diagnostics["missingProofArtifacts"]) == {"consumer-report.json", "asset-digests.json"}
+freshness_required = required_by_id["public-release-freshness"]
+freshness_diagnostics = freshness_required["releaseFreshnessDiagnostics"]
+assert freshness_diagnostics["status"] == "not-provided"
+assert any("release-manifest.json" in problem for problem in freshness_diagnostics["problems"])
 closure = report["stablePublicationClosureChecklist"]
 assert [item["id"] for item in closure["items"]] == packet["missingEvidenceIds"]
 asset_item = closure["items"][0]
@@ -600,6 +621,13 @@ assert len(kit["passCriteria"]) >= 4
 assert len(kit["failCriteria"]) >= 4
 assert kit["currentConsumerDiagnostics"]["status"] == "not-provided"
 assert consumer_item["nextCommand"] == consumer_item["releaseConsumeRerunCommand"] == kit["releaseConsumeRerunCommand"]
+freshness_item = closure["items"][2]
+assert freshness_item["id"] == "public-release-freshness"
+freshness_kit = freshness_item["releaseFreshnessClosureKit"]
+assert freshness_kit["status"] == "not-provided"
+assert freshness_kit["freshnessProofBoundary"]["releaseManifestRequired"] is True
+assert freshness_kit["freshnessProofBoundary"]["sourceOnlyProofCountsAsFreshnessProof"] is False
+assert "stable-publication" in freshness_kit["freshnessRerunCommand"]
 PY
 grep -q 'Release Asset Closure Kit' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
 grep -q 'GitHub metadata only counts as release-asset proof: `False`' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
@@ -609,6 +637,7 @@ grep -q 'consumer-report.json, asset-digests.json' "$tmp_dir/consumer-blocked/v4
 grep -q 'Source-only proof counts as consumer proof: `False`' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
 grep -q 'Rerun release-consume proof' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
 grep -q 'release-consume verify' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
+grep -q 'Public Release Freshness Closure Kit' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
 
 if ./bin/shipguard v4 stable-publication \
   --path . \
@@ -680,7 +709,7 @@ grep -q 'appledouble-sidecar' "$tmp_dir/hygiene-blocked/v4-stable-publication.md
 grep -q 'release-package hygiene' "$tmp_dir/hygiene-blocked/v4-stable-publication.md"
 grep -q 'Rerun the full stable-publication gate after LaunchKey passes' "$tmp_dir/hygiene-blocked/v4-stable-publication.md"
 
-python3 - "$release_endpoint_file" "$version" "$tmp_dir/downloaded" <<'PY'
+python3 - "$release_endpoint_file" "$version" "$tmp_dir/downloaded" "$release_commit" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -688,6 +717,7 @@ from pathlib import Path
 target = Path(sys.argv[1])
 version = sys.argv[2]
 downloaded = Path(sys.argv[3])
+release_commit = sys.argv[4]
 asset_names = [
     f"shipguard-v{version}.tar.gz",
     "release-manifest.json",
@@ -703,7 +733,7 @@ target.write_text(
             "tag_name": f"v{version}",
             "html_url": f"https://github.com/jlekerli-source/ShipGuard/releases/tag/v{version}",
             "published_at": "2026-06-20T00:00:00Z",
-            "target_commitish": "0123456789abcdef0123456789abcdef01234567",
+            "target_commitish": release_commit,
             "body": "ShipGuard stable v4 release proof is ready.",
             "assets": [
                 {
@@ -802,7 +832,7 @@ test -f "$tmp_dir/weak-notes/stable-publication-release-notes/draft-release-note
 grep -q 'Post-release consumer proof' "$tmp_dir/weak-notes/stable-publication-release-notes/draft-release-notes.md"
 grep -q '"draftOnly": true' "$tmp_dir/weak-notes/stable-publication-release-notes/release-notes-checklist.json"
 
-python3 - "$release_endpoint_file" "$version" "$tmp_dir/downloaded" <<'PY'
+python3 - "$release_endpoint_file" "$version" "$tmp_dir/downloaded" "$release_commit" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -810,6 +840,7 @@ from pathlib import Path
 target = Path(sys.argv[1])
 version = sys.argv[2]
 downloaded = Path(sys.argv[3])
+release_commit = sys.argv[4]
 asset_names = [
     f"shipguard-v{version}.tar.gz",
     "release-manifest.json",
@@ -825,7 +856,7 @@ target.write_text(
             "tag_name": f"v{version}",
             "html_url": f"https://github.com/jlekerli-source/ShipGuard/releases/tag/v{version}",
             "published_at": "2026-06-20T00:00:00Z",
-            "target_commitish": "0123456789abcdef0123456789abcdef01234567",
+            "target_commitish": release_commit,
             "body": "ShipGuard stable v4 publication proof. Includes stable-v4 publication boundaries, release proof, downloaded release asset verification, post-release consumer proof, independent adoption evidence, final security review evidence, and blocked claims/non-claims for marketplace acceptance and private app validation.",
             "assets": [
                 {
@@ -834,6 +865,99 @@ target.write_text(
                 }
                 for name in asset_names
             ]
+        }
+    ),
+    encoding="utf-8",
+)
+PY
+
+python3 - "$tag_ref_file" "$version" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+version = sys.argv[2]
+Path(sys.argv[1]).write_text(
+    json.dumps(
+        {
+            "ref": f"refs/tags/v{version}",
+            "object": {
+                "type": "commit",
+                "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            },
+        }
+    ),
+    encoding="utf-8",
+)
+PY
+
+if ./bin/shipguard v4 stable-publication \
+  --path . \
+  --out "$tmp_dir/stale-freshness" \
+  --github-release-repo jlekerli-source/ShipGuard \
+  --github-api-url "file://$api_root" \
+  --release-version "$version" \
+  --release-candidate-report "$tmp_dir/candidate-pass.json" \
+  --release-assets "$tmp_dir/downloaded" \
+  --release-consume-out "$tmp_dir/stale-freshness-consume" \
+  --external-adoption-evidence "$tmp_dir/evidence/stable-adoption" \
+  --security-review-evidence "$tmp_dir/evidence/stable-security" \
+  --shipguard-eval \
+  --shareable >/dev/null 2>&1; then
+  echo "expected stale public tag target to block stable publication freshness" >&2
+  exit 1
+fi
+python3 - "$tmp_dir/stale-freshness/v4-stable-publication.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+assert report["status"] == "review"
+assert report["stableV4Release"] is False
+freshness = report["publicReleaseFreshnessProof"]
+assert freshness["status"] == "review"
+assert freshness["tagTargetSha"] == "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+assert freshness["comparisons"]["tagTargetMatchesManifestCommit"] is False
+assert "public-release-freshness" in report["stablePublicationEvidencePacket"]["missingEvidenceIds"]
+assert report["stablePublicationEvidencePacket"]["firstBlockingGate"]["receipt"] == "publicReleaseFreshnessProof"
+closure = report["stablePublicationClosureChecklist"]
+assert closure["items"][0]["id"] == "public-release-freshness"
+kit = closure["items"][0]["releaseFreshnessClosureKit"]
+assert kit["tagTargetSha"] == "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+assert kit["manifestCommit"]
+assert kit["comparisons"]["tagTargetMatchesManifestCommit"] is False
+assert kit["freshnessProofBoundary"]["releaseManifestCommitMustMatchPublicTagTarget"] is True
+assert kit["freshnessProofBoundary"]["sourceOnlyProofCountsAsFreshnessProof"] is False
+assert "stable-publication" in kit["freshnessRerunCommand"]
+assert len(kit["repairCriteria"]) >= 3
+assert len(kit["passCriteria"]) >= 5
+assert len(kit["failCriteria"]) >= 5
+PY
+grep -q 'Public Release Freshness Closure Kit' "$tmp_dir/stale-freshness/v4-stable-publication.md"
+grep -q 'tagTargetMatchesManifestCommit' "$tmp_dir/stale-freshness/v4-stable-publication.md"
+grep -q 'Source-only proof counts as freshness proof: `False`' "$tmp_dir/stale-freshness/v4-stable-publication.md"
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/stale-freshness" \
+  --out "$tmp_dir/stale-freshness-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/stale-freshness-quality/ios-report-quality.json"
+
+python3 - "$tag_ref_file" "$version" "$release_commit" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+tag_ref = Path(sys.argv[1])
+version = sys.argv[2]
+release_commit = sys.argv[3]
+tag_ref.write_text(
+    json.dumps(
+        {
+            "ref": f"refs/tags/v{version}",
+            "object": {
+                "type": "commit",
+                "sha": release_commit,
+            },
         }
     ),
     encoding="utf-8",
@@ -881,6 +1005,8 @@ assert report["releaseCandidatePacketProof"]["status"] == "pass"
 assert report["githubReleaseAssetDownloadProof"]["status"] == "pass"
 assert report["publishedReleaseAssetProof"]["status"] == "pass"
 assert report["postReleaseConsumerProof"]["status"] == "pass"
+assert report["publicReleaseFreshnessProof"]["status"] == "pass"
+assert report["publicReleaseFreshnessProof"]["comparisons"]["tagTargetMatchesManifestCommit"] is True
 assert report["externalAdoptionEvidenceProof"]["stableV4GateStatus"] == "pass"
 assert report["securityReviewEvidenceProof"]["stableV4GateStatus"] == "pass"
 assert report["scopeBoundary"]["shipguardOnly"] is True
@@ -889,8 +1015,8 @@ assert "value-gauntlet" in report["resultUX"]["nextCommand"]
 packet = report["stablePublicationEvidencePacket"]
 assert packet["status"] == "pass"
 assert packet["stableV4Release"] is True
-assert packet["requiredEvidenceCount"] == 7
-assert packet["passedEvidenceCount"] == 7
+assert packet["requiredEvidenceCount"] == 8
+assert packet["passedEvidenceCount"] == 8
 assert packet["missingEvidenceIds"] == []
 assert packet["firstBlockingGate"] is None
 closure = report["stablePublicationClosureChecklist"]
@@ -906,6 +1032,7 @@ assert {
     "launchkey-candidate-packet",
     "downloaded-release-assets",
     "post-release-consumer-proof",
+    "public-release-freshness",
     "independent-adoption-evidence",
     "final-security-review-evidence",
 } <= ids
