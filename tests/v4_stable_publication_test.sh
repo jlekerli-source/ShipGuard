@@ -236,6 +236,87 @@ target.write_text(
 )
 PY
 
+metadata_blocked_api_root="$tmp_dir/metadata-blocked-github-api"
+mkdir -p "$metadata_blocked_api_root"
+if ./bin/shipguard v4 stable-publication \
+  --path . \
+  --out "$tmp_dir/metadata-blocked" \
+  --github-release-repo jlekerli-source/ShipGuard \
+  --github-api-url "file://$metadata_blocked_api_root" \
+  --release-version "$version" \
+  --release-candidate-report "$tmp_dir/candidate-pass.json" \
+  --release-assets "$tmp_dir/downloaded" \
+  --release-consume-out "$tmp_dir/metadata-blocked-consume" \
+  --external-adoption-evidence "$tmp_dir/evidence/stable-adoption" \
+  --security-review-evidence "$tmp_dir/evidence/stable-security" \
+  --shipguard-eval \
+  --shareable >/dev/null 2>&1; then
+  echo "expected missing GitHub release metadata to block stable publication" >&2
+  exit 1
+fi
+test -f "$tmp_dir/metadata-blocked/v4-stable-publication.json"
+test -f "$tmp_dir/metadata-blocked/v4-stable-publication.md"
+python3 - "$tmp_dir/metadata-blocked/v4-stable-publication.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+assert report["status"] == "review"
+assert report["stableV4Release"] is False
+metadata = report["githubReleaseMetadataProof"]
+assert metadata["status"] == "blocked"
+assert metadata["repo"] == "jlekerli-source/ShipGuard"
+assert metadata["repoInference"]["source"] == "explicit-argument"
+assert metadata["tag"].startswith("v")
+assert metadata["releaseEndpoint"].endswith(f"/repos/jlekerli-source/ShipGuard/releases/tags/{metadata['tag']}")
+assert metadata["requiredAssets"]
+assert metadata["summary"] == "GitHub release metadata could not be loaded."
+packet = report["stablePublicationEvidencePacket"]
+assert packet["status"] == "review"
+assert packet["firstBlockingGate"]["id"] == "github-release-metadata"
+assert packet["firstBlockingGate"]["receipt"] == "githubReleaseMetadataProof"
+assert packet["firstBlockingGate"]["status"] == "blocked"
+assert "github-release-metadata" in packet["missingEvidenceIds"]
+closure = report["stablePublicationClosureChecklist"]
+assert closure["status"] == "review"
+assert closure["firstBlocker"]["id"] == "github-release-metadata"
+assert closure["items"][0]["id"] == "github-release-metadata"
+assert closure["items"][0]["isFirstBlockingGate"] is True
+item = closure["items"][0]
+kit = item["releaseMetadataClosureKit"]
+assert kit["status"] == "blocked"
+assert kit["repo"] == "jlekerli-source/ShipGuard"
+assert kit["tag"] == metadata["tag"]
+assert kit["releaseEndpoint"] == metadata["releaseEndpoint"]
+assert kit["requiredAssets"] == metadata["requiredAssets"]
+assert isinstance(kit["metadataAssetNames"], list)
+assert isinstance(kit["metadataMissingAssets"], list)
+assert kit["releaseState"]["isDraft"] is False
+assert kit["releaseState"]["isPrerelease"] is False
+assert "sha256" in kit["releaseNotesSummary"]
+assert "missingTopicIds" in kit["releaseNotesSummary"]
+assert kit["currentMetadataDiagnostics"]["status"] == metadata["status"]
+assert kit["currentMetadataDiagnostics"]["error"]
+assert len(kit["repairCriteria"]) >= 4
+assert len(kit["passCriteria"]) >= 5
+assert len(kit["failCriteria"]) >= 6
+assert "stable-publication" in kit["metadataRerunCommand"]
+boundary = kit["metadataProofBoundary"]
+assert boundary["publicGitHubReleaseMetadataRequired"] is True
+assert boundary["ownerRepoSyntaxRequired"] is True
+assert boundary["draftOrPrereleaseCountsAsStablePublicationProof"] is False
+assert boundary["sourceOnlyProofCountsAsReleaseMetadataProof"] is False
+assert boundary["fixtureApiProofCountsAsStableV4PublicationProof"] is False
+assert boundary["releaseAssetsStillRequireDownloadedOrSuppliedProof"] is True
+assert item["nextCommand"] == item["metadataRerunCommand"] == kit["metadataRerunCommand"]
+PY
+grep -q 'GitHub Release Metadata Closure Kit' "$tmp_dir/metadata-blocked/v4-stable-publication.md"
+grep -q 'Public GitHub release metadata required: `True`' "$tmp_dir/metadata-blocked/v4-stable-publication.md"
+grep -q 'Draft or prerelease counts as stable-publication proof: `False`' "$tmp_dir/metadata-blocked/v4-stable-publication.md"
+grep -q 'Source-only proof counts as release metadata proof: `False`' "$tmp_dir/metadata-blocked/v4-stable-publication.md"
+grep -q 'Fixture API proof counts as stable-v4 publication proof: `False`' "$tmp_dir/metadata-blocked/v4-stable-publication.md"
+grep -q 'Rerun release metadata proof' "$tmp_dir/metadata-blocked/v4-stable-publication.md"
+
 if ./bin/shipguard v4 stable-publication \
   --path . \
   --out "$tmp_dir/blocked" \

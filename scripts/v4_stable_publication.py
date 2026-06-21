@@ -303,6 +303,30 @@ LAUNCHKEY_CANDIDATE_FAIL_CRITERIA = [
     "Fixture candidate proof is used as stable-v4 publication proof.",
 ]
 
+GITHUB_RELEASE_METADATA_REPAIR_CRITERIA = [
+    "Pass `--github-release-repo <owner/repo>` explicitly when the origin remote is missing, private, mirrored, or not the publication repository.",
+    "Confirm `--release-version <version>` resolves to the exact public GitHub release tag ShipGuard should validate.",
+    "Publish or update the GitHub release so it is not draft-only or prerelease-only and includes every required stable-publication asset.",
+    "After repairing the repository, tag, release state, or asset list, rerun `shipguard v4 stable-publication` so release notes, downloaded assets, consumer proof, adoption, and security gates remain visible.",
+]
+
+GITHUB_RELEASE_METADATA_PASS_CRITERIA = [
+    "The GitHub release repository is explicit or successfully inferred from `origin`.",
+    "The release tag exists in the selected repository.",
+    "The release is not draft-only and not prerelease-only.",
+    "Every required stable-publication asset is present in GitHub release metadata.",
+    "The release URL, target commitish, asset names, and release-note digest are recorded for downstream proof.",
+]
+
+GITHUB_RELEASE_METADATA_FAIL_CRITERIA = [
+    "No GitHub release repository is supplied or inferred.",
+    "`--github-release-repo` is not in `owner/repo` form.",
+    "The selected API endpoint cannot load the requested release tag.",
+    "The release is draft or prerelease when stable-v4 publication proof is requested.",
+    "GitHub metadata is missing one or more required release assets.",
+    "A source checkout, local package build, fixture API, or generated report is treated as public release metadata proof.",
+]
+
 RELEASE_ASSET_REPAIR_CRITERIA = [
     "Use `shipguard v4 stable-publication --download-release-assets` to download the public GitHub release assets, or pass the already downloaded asset directory with `--release-assets`.",
     "Confirm the downloaded or supplied directory contains every required release asset listed by the GitHub release metadata, including the versioned ShipGuard tarball.",
@@ -1007,6 +1031,104 @@ def launchkey_candidate_diagnostics_for_closure(proof: dict[str, Any]) -> dict[s
     }
 
 
+def github_release_metadata_diagnostics_for_closure(proof: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "status": proof.get("status"),
+        "provided": proof.get("provided") is True,
+        "summary": proof.get("summary") or "",
+        "error": proof.get("error") or "",
+        "repo": proof.get("repo") or "",
+        "repoInference": proof.get("repoInference") if isinstance(proof.get("repoInference"), dict) else {},
+        "version": proof.get("version") or "",
+        "tag": proof.get("tag") or "",
+        "apiUrl": proof.get("apiUrl") or "",
+        "releaseEndpoint": proof.get("releaseEndpoint") or "",
+        "releaseUrl": proof.get("releaseUrl") or "",
+        "publishedAt": proof.get("publishedAt") or "",
+        "targetCommitish": proof.get("targetCommitish") or "",
+        "assetCount": proof.get("assetCount"),
+        "assetNames": proof.get("assetNames") if isinstance(proof.get("assetNames"), list) else [],
+        "missingAssets": proof.get("missingAssets") if isinstance(proof.get("missingAssets"), list) else [],
+        "requiredAssets": proof.get("requiredAssets") if isinstance(proof.get("requiredAssets"), list) else [],
+        "releaseNotesLength": proof.get("releaseNotesLength", 0),
+        "releaseNotesLineCount": proof.get("releaseNotesLineCount", 0),
+        "releaseNotesSha256": proof.get("releaseNotesSha256") or "",
+        "releaseNotesMissingTopicIds": proof.get("releaseNotesMissingTopicIds") if isinstance(proof.get("releaseNotesMissingTopicIds"), list) else [],
+        "isDraft": proof.get("isDraft") is True,
+        "isPrerelease": proof.get("isPrerelease") is True,
+        "nextCommand": proof.get("nextCommand") or "",
+    }
+
+
+def build_github_release_metadata_closure_kit(
+    *,
+    item: dict[str, Any],
+    rerun_command: str,
+) -> dict[str, Any]:
+    diagnostics = (
+        item.get("githubReleaseMetadataDiagnostics")
+        if isinstance(item.get("githubReleaseMetadataDiagnostics"), dict)
+        else {}
+    )
+    metadata_rerun = rerun_command or diagnostics.get("nextCommand") or item.get("nextCommand") or (
+        "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> "
+        "--github-release-repo <owner/repo> --release-version <version> "
+        "--release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets "
+        "--external-adoption-evidence <adoption-evidence-json-or-dir> "
+        "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
+    )
+    if "stable-publication" not in metadata_rerun:
+        metadata_rerun = (
+            "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> "
+            "--github-release-repo <owner/repo> --release-version <version> "
+            "--release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets "
+            "--external-adoption-evidence <adoption-evidence-json-or-dir> "
+            "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
+        )
+    return {
+        "schemaVersion": 1,
+        "title": "GitHub release metadata closure kit",
+        "status": diagnostics.get("status") or item.get("status") or "not-provided",
+        "summary": diagnostics.get("summary") or item.get("summary") or "",
+        "repo": diagnostics.get("repo") or "",
+        "repoInference": diagnostics.get("repoInference") if isinstance(diagnostics.get("repoInference"), dict) else {},
+        "version": diagnostics.get("version") or "",
+        "tag": diagnostics.get("tag") or "",
+        "apiUrl": diagnostics.get("apiUrl") or "",
+        "releaseEndpoint": diagnostics.get("releaseEndpoint") or "",
+        "releaseUrl": diagnostics.get("releaseUrl") or "",
+        "publishedAt": diagnostics.get("publishedAt") or "",
+        "targetCommitish": diagnostics.get("targetCommitish") or "",
+        "requiredAssets": diagnostics.get("requiredAssets") if isinstance(diagnostics.get("requiredAssets"), list) else [],
+        "metadataAssetNames": diagnostics.get("assetNames") if isinstance(diagnostics.get("assetNames"), list) else [],
+        "metadataMissingAssets": diagnostics.get("missingAssets") if isinstance(diagnostics.get("missingAssets"), list) else [],
+        "releaseState": {
+            "isDraft": diagnostics.get("isDraft") is True,
+            "isPrerelease": diagnostics.get("isPrerelease") is True,
+        },
+        "releaseNotesSummary": {
+            "length": diagnostics.get("releaseNotesLength", 0),
+            "lineCount": diagnostics.get("releaseNotesLineCount", 0),
+            "sha256": diagnostics.get("releaseNotesSha256") or "",
+            "missingTopicIds": diagnostics.get("releaseNotesMissingTopicIds") if isinstance(diagnostics.get("releaseNotesMissingTopicIds"), list) else [],
+        },
+        "currentMetadataDiagnostics": diagnostics,
+        "repairCriteria": GITHUB_RELEASE_METADATA_REPAIR_CRITERIA,
+        "passCriteria": GITHUB_RELEASE_METADATA_PASS_CRITERIA,
+        "failCriteria": GITHUB_RELEASE_METADATA_FAIL_CRITERIA,
+        "metadataRerunCommand": metadata_rerun,
+        "metadataProofBoundary": {
+            "publicGitHubReleaseMetadataRequired": True,
+            "ownerRepoSyntaxRequired": True,
+            "draftOrPrereleaseCountsAsStablePublicationProof": False,
+            "sourceOnlyProofCountsAsReleaseMetadataProof": False,
+            "fixtureApiProofCountsAsStableV4PublicationProof": False,
+            "releaseAssetsStillRequireDownloadedOrSuppliedProof": True,
+            "explanation": "The github-release-metadata gate is satisfied only by public release metadata for the selected owner/repo and tag. Source checkout state, local packages, fixture APIs, and generated reports can test ShipGuard routing but do not prove stable-v4 publication.",
+        },
+    }
+
+
 def asset_names_from_dir(raw_path: object) -> list[str]:
     if not raw_path:
         return []
@@ -1535,6 +1657,8 @@ def build_stable_publication_evidence_packet(
                     "templateCommand": template.get("copyCommand"),
                 }
             )
+        if evidence_id == "github-release-metadata":
+            item["githubReleaseMetadataDiagnostics"] = github_release_metadata_diagnostics_for_closure(proof)
         if evidence_id == "launchkey-candidate-packet":
             item["launchKeyCandidateDiagnostics"] = launchkey_candidate_diagnostics_for_closure(proof)
         if evidence_id == "downloaded-release-assets":
@@ -1636,6 +1760,40 @@ def build_stable_publication_closure_checklist(
         for optional_key in ("templatePath", "templateCommand", "failureEvidence", "blockingProof"):
             if optional_key in item:
                 closure_item[optional_key] = item[optional_key]
+        if evidence_id == "github-release-metadata":
+            metadata_kit = build_github_release_metadata_closure_kit(
+                item=item,
+                rerun_command=rerun_command
+                or (
+                    "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> "
+                    "--github-release-repo <owner/repo> --release-version <version> "
+                    "--release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets "
+                    "--external-adoption-evidence <adoption-evidence-json-or-dir> "
+                    "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
+                ),
+            )
+            closure_item.update(
+                {
+                    "githubReleaseRepo": metadata_kit.get("repo") or "",
+                    "githubReleaseRepoInference": metadata_kit.get("repoInference") if isinstance(metadata_kit.get("repoInference"), dict) else {},
+                    "releaseTag": metadata_kit.get("tag") or "",
+                    "releaseEndpoint": metadata_kit.get("releaseEndpoint") or "",
+                    "releaseUrl": metadata_kit.get("releaseUrl") or "",
+                    "targetCommitish": metadata_kit.get("targetCommitish") or "",
+                    "requiredAssets": metadata_kit.get("requiredAssets") if isinstance(metadata_kit.get("requiredAssets"), list) else [],
+                    "metadataAssetNames": metadata_kit.get("metadataAssetNames") if isinstance(metadata_kit.get("metadataAssetNames"), list) else [],
+                    "metadataMissingAssets": metadata_kit.get("metadataMissingAssets") if isinstance(metadata_kit.get("metadataMissingAssets"), list) else [],
+                    "releaseState": metadata_kit.get("releaseState") if isinstance(metadata_kit.get("releaseState"), dict) else {},
+                    "releaseNotesSummary": metadata_kit.get("releaseNotesSummary") if isinstance(metadata_kit.get("releaseNotesSummary"), dict) else {},
+                    "metadataRerunCommand": metadata_kit.get("metadataRerunCommand") or item.get("nextCommand") or "",
+                    "repairCriteria": metadata_kit.get("repairCriteria") if isinstance(metadata_kit.get("repairCriteria"), list) else [],
+                    "passCriteria": metadata_kit.get("passCriteria") if isinstance(metadata_kit.get("passCriteria"), list) else [],
+                    "failCriteria": metadata_kit.get("failCriteria") if isinstance(metadata_kit.get("failCriteria"), list) else [],
+                    "metadataProofBoundary": metadata_kit.get("metadataProofBoundary") if isinstance(metadata_kit.get("metadataProofBoundary"), dict) else {},
+                    "releaseMetadataClosureKit": metadata_kit,
+                }
+            )
+            closure_item["nextCommand"] = closure_item["metadataRerunCommand"]
         if evidence_id == "release-notes":
             kit_files = release_notes_authoring_kit.get("files") if isinstance(release_notes_authoring_kit.get("files"), list) else []
             authoring_paths = [str(file_item.get("path")) for file_item in kit_files if isinstance(file_item, dict) and file_item.get("path")]
@@ -2412,6 +2570,64 @@ def render_markdown(report: dict[str, Any]) -> str:
                     )
         else:
             lines.append("| `none` | `none` | `pass` | `False` | `not-needed` | Every stable-publication gate passed. |")
+        metadata_closure = next(
+            (item for item in items if isinstance(item, dict) and item.get("id") == "github-release-metadata"),
+            None,
+        )
+        if isinstance(metadata_closure, dict) and isinstance(metadata_closure.get("releaseMetadataClosureKit"), dict):
+            kit = metadata_closure["releaseMetadataClosureKit"]
+            boundary = kit.get("metadataProofBoundary") if isinstance(kit.get("metadataProofBoundary"), dict) else {}
+            release_state = kit.get("releaseState") if isinstance(kit.get("releaseState"), dict) else {}
+            notes_summary = kit.get("releaseNotesSummary") if isinstance(kit.get("releaseNotesSummary"), dict) else {}
+            repo_inference = kit.get("repoInference") if isinstance(kit.get("repoInference"), dict) else {}
+            required_assets = kit.get("requiredAssets") if isinstance(kit.get("requiredAssets"), list) else []
+            metadata_assets = kit.get("metadataAssetNames") if isinstance(kit.get("metadataAssetNames"), list) else []
+            metadata_missing = kit.get("metadataMissingAssets") if isinstance(kit.get("metadataMissingAssets"), list) else []
+            lines.extend(
+                [
+                    "",
+                    "### GitHub Release Metadata Closure Kit",
+                    "",
+                    f"- Status: `{kit.get('status') or metadata_closure.get('status') or 'not-provided'}`",
+                    f"- Repository: `{kit.get('repo') or 'not-provided'}`",
+                    f"- Repository inference: `{repo_inference.get('status') or 'not-provided'}` from `{repo_inference.get('source') or 'not-provided'}`",
+                    f"- Release tag: `{kit.get('tag') or 'not-provided'}`",
+                    f"- API URL: `{kit.get('apiUrl') or 'not-provided'}`",
+                    f"- Release endpoint: `{kit.get('releaseEndpoint') or 'not-provided'}`",
+                    f"- Release URL: `{kit.get('releaseUrl') or 'not-provided'}`",
+                    f"- Target commitish: `{kit.get('targetCommitish') or 'not-provided'}`",
+                    f"- Draft release: `{release_state.get('isDraft')}`",
+                    f"- Prerelease: `{release_state.get('isPrerelease')}`",
+                    f"- Required assets: `{', '.join(str(value) for value in required_assets) or 'not-provided'}`",
+                    f"- Metadata assets: `{', '.join(str(value) for value in metadata_assets) or 'none'}`",
+                    f"- Metadata missing assets: `{', '.join(str(value) for value in metadata_missing) or 'none'}`",
+                    f"- Release notes SHA-256: `{notes_summary.get('sha256') or 'not-provided'}`",
+                    f"- Release notes missing topics: `{', '.join(str(value) for value in notes_summary.get('missingTopicIds', []) if value) or 'none'}`",
+                    f"- Public GitHub release metadata required: `{boundary.get('publicGitHubReleaseMetadataRequired')}`",
+                    f"- Draft or prerelease counts as stable-publication proof: `{boundary.get('draftOrPrereleaseCountsAsStablePublicationProof')}`",
+                    f"- Source-only proof counts as release metadata proof: `{boundary.get('sourceOnlyProofCountsAsReleaseMetadataProof')}`",
+                    f"- Fixture API proof counts as stable-v4 publication proof: `{boundary.get('fixtureApiProofCountsAsStableV4PublicationProof')}`",
+                ]
+            )
+            lines.extend(["", "Repair criteria:", ""])
+            for criterion in kit.get("repairCriteria", []):
+                lines.append(f"- {criterion}")
+            lines.extend(["", "Pass criteria:", ""])
+            for criterion in kit.get("passCriteria", []):
+                lines.append(f"- {criterion}")
+            lines.extend(["", "Fail criteria:", ""])
+            for criterion in kit.get("failCriteria", []):
+                lines.append(f"- {criterion}")
+            lines.extend(
+                [
+                    "",
+                    "Rerun release metadata proof:",
+                    "",
+                    "```bash",
+                    str(kit.get("metadataRerunCommand") or metadata_closure.get("nextCommand") or ""),
+                    "```",
+                ]
+            )
         release_notes_closure = next(
             (item for item in items if isinstance(item, dict) and item.get("id") == "release-notes"),
             None,

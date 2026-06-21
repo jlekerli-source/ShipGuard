@@ -3216,6 +3216,173 @@ def stable_publication_evidence_packet_issues(
                         evidence=f"{path_name} closure item `{item.get('id')}` is the first blocker but is not marked",
                         recommendation="Set isFirstBlockingGate=true on the closure item that matches firstBlockingGate.",
                     )
+                if item.get("id") == "github-release-metadata":
+                    source_metadata = (
+                        report.get("githubReleaseMetadataProof")
+                        if isinstance(report.get("githubReleaseMetadataProof"), dict)
+                        else {}
+                    )
+                    closure_kit = (
+                        item.get("releaseMetadataClosureKit")
+                        if isinstance(item.get("releaseMetadataClosureKit"), dict)
+                        else {}
+                    )
+                    if not closure_kit:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="stable-publication-release-metadata-closure-kit-missing",
+                            evidence=f"{path_name} github-release-metadata closure item has no releaseMetadataClosureKit",
+                            recommendation="Attach a release metadata closure kit with repo inference, release tag, API endpoint, release state, asset inventory, release-note digest, repair/pass/fail criteria, rerun command, and metadata-proof boundaries.",
+                        )
+                    else:
+                        if not closure_kit.get("repo") and not isinstance(closure_kit.get("repoInference"), dict):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-metadata-repo-missing",
+                                evidence=f"{path_name} release metadata closure kit hides the selected repository and inference result",
+                                recommendation="Expose the explicit or inferred owner/repo plus repoInference so maintainers know which public release ShipGuard queried.",
+                            )
+                        if not closure_kit.get("tag"):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-metadata-tag-missing",
+                                evidence=f"{path_name} release metadata closure kit omits the release tag",
+                                recommendation="Expose the normalized release tag so wrong-version publication checks are easy to diagnose.",
+                            )
+                        if not closure_kit.get("releaseEndpoint") and source_metadata.get("provided") is True:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-metadata-endpoint-missing",
+                                evidence=f"{path_name} release metadata closure kit omits the GitHub release API endpoint",
+                                recommendation="Expose the endpoint used for release metadata lookup when a repository was provided or inferred.",
+                            )
+                        if not isinstance(closure_kit.get("requiredAssets"), list) or not closure_kit.get("requiredAssets"):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-metadata-required-assets-missing",
+                                evidence=f"{path_name} release metadata closure kit omits requiredAssets",
+                                recommendation="List the stable-publication assets that GitHub release metadata must expose.",
+                            )
+                        if not isinstance(closure_kit.get("metadataMissingAssets"), list):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-metadata-missing-assets-missing",
+                                evidence=f"{path_name} release metadata closure kit omits metadataMissingAssets",
+                                recommendation="Expose missing release metadata assets even when the list is empty.",
+                            )
+                        release_state = (
+                            closure_kit.get("releaseState")
+                            if isinstance(closure_kit.get("releaseState"), dict)
+                            else {}
+                        )
+                        if "isDraft" not in release_state or "isPrerelease" not in release_state:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-metadata-state-missing",
+                                evidence=f"{path_name} release metadata closure kit omits draft/prerelease state",
+                                recommendation="State whether the GitHub release is draft-only or prerelease-only, because neither can satisfy stable-publication proof.",
+                            )
+                        notes_summary = (
+                            closure_kit.get("releaseNotesSummary")
+                            if isinstance(closure_kit.get("releaseNotesSummary"), dict)
+                            else {}
+                        )
+                        if "sha256" not in notes_summary or "missingTopicIds" not in notes_summary:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-metadata-notes-summary-missing",
+                                evidence=f"{path_name} release metadata closure kit omits release-note digest or missing-topic summary",
+                                recommendation="Expose the release-note SHA-256 and missing topic ids from GitHub metadata so notes and metadata can be repaired together.",
+                            )
+                        diagnostics = (
+                            closure_kit.get("currentMetadataDiagnostics")
+                            if isinstance(closure_kit.get("currentMetadataDiagnostics"), dict)
+                            else {}
+                        )
+                        if not diagnostics:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-metadata-diagnostics-missing",
+                                evidence=f"{path_name} release metadata closure kit has no currentMetadataDiagnostics",
+                                recommendation="Mirror repository, tag, endpoint, release state, asset inventory, release notes digest, and error text into currentMetadataDiagnostics.",
+                            )
+                        else:
+                            source_status = str(source_metadata.get("status") or "")
+                            if source_status and str(diagnostics.get("status") or "") != source_status:
+                                add_issue(
+                                    issues,
+                                    severity="review",
+                                    rule_id="stable-publication-release-metadata-diagnostics-status-drift",
+                                    evidence=f"{path_name} release metadata diagnostics status does not mirror githubReleaseMetadataProof.status",
+                                    recommendation="Keep currentMetadataDiagnostics.status aligned with githubReleaseMetadataProof.status.",
+                                )
+                        if not isinstance(closure_kit.get("repairCriteria"), list) or len(closure_kit.get("repairCriteria") or []) < 3:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-metadata-repair-criteria-missing",
+                                evidence=f"{path_name} release metadata closure kit does not list repair criteria",
+                                recommendation="Tell maintainers how to repair repo selection, tag selection, draft/prerelease state, required assets, and rerun stable-publication.",
+                            )
+                        if not isinstance(closure_kit.get("passCriteria"), list) or len(closure_kit.get("passCriteria") or []) < 4:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-metadata-pass-criteria-missing",
+                                evidence=f"{path_name} release metadata closure kit does not list pass criteria",
+                                recommendation="List concrete pass criteria for public repo/tag metadata, release state, required assets, release URL, and target commitish proof.",
+                            )
+                        if not isinstance(closure_kit.get("failCriteria"), list) or len(closure_kit.get("failCriteria") or []) < 4:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-metadata-fail-criteria-missing",
+                                evidence=f"{path_name} release metadata closure kit does not list fail criteria",
+                                recommendation="List fail cases such as missing repo inference, invalid owner/repo syntax, missing tag, draft/prerelease release, missing assets, and fixture/source proof misuse.",
+                            )
+                        if "stable-publication" not in str(closure_kit.get("metadataRerunCommand") or item.get("metadataRerunCommand") or item.get("nextCommand") or ""):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-metadata-rerun-command-missing",
+                                evidence=f"{path_name} release metadata closure kit lacks the stable-publication metadata rerun command",
+                                recommendation="Attach the stable-publication command to rerun after the public GitHub release repository, tag, state, or assets are repaired.",
+                            )
+                        boundary = (
+                            closure_kit.get("metadataProofBoundary")
+                            if isinstance(closure_kit.get("metadataProofBoundary"), dict)
+                            else {}
+                        )
+                        if (
+                            boundary.get("publicGitHubReleaseMetadataRequired") is not True
+                            or boundary.get("draftOrPrereleaseCountsAsStablePublicationProof") is not False
+                            or boundary.get("sourceOnlyProofCountsAsReleaseMetadataProof") is not False
+                            or boundary.get("fixtureApiProofCountsAsStableV4PublicationProof") is not False
+                        ):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-metadata-boundary-missing",
+                                evidence=f"{path_name} release metadata closure kit does not state the public metadata, draft/prerelease, source-only, and fixture-API proof boundaries",
+                                recommendation="State that stable-publication requires public GitHub release metadata and that draft/prerelease, source-only, and fixture API proof do not satisfy stable-v4 publication.",
+                            )
+                        if "GitHub Release Metadata Closure Kit" not in markdown:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-metadata-closure-kit-markdown-missing",
+                                evidence=f"{path_name} Markdown does not render the release metadata closure kit",
+                                recommendation="Render repo inference, tag, endpoint, release state, asset inventory, release notes digest, criteria, rerun command, and proof boundaries in Markdown.",
+                            )
                 if item.get("id") == "launchkey-candidate-packet":
                     source_candidate = (
                         report.get("releaseCandidatePacketProof")

@@ -5759,6 +5759,148 @@ MD
 grep -q '"ruleId": "stable-publication-release-assets-closure-kit-missing"' "$tmp_dir/stable-publication-consumer-closure-quality/ios-report-quality.json"
 grep -q '"ruleId": "stable-publication-post-release-consumer-closure-kit-missing"' "$tmp_dir/stable-publication-consumer-closure-quality/ios-report-quality.json"
 
+stable_publication_metadata_closure_dir="$tmp_dir/stable-publication-metadata-closure"
+mkdir -p "$stable_publication_metadata_closure_dir"
+cat > "$stable_publication_metadata_closure_dir/v4-stable-publication.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-20T00:00:00Z",
+  "tool": "shipguard v4 stable-publication",
+  "surface": "ShipGuard V4 Stable Publication Proof",
+  "status": "review",
+  "stableV4Release": false,
+  "githubReleaseMetadataProof": {
+    "status": "blocked",
+    "provided": true,
+    "repo": "jlekerli-source/ShipGuard",
+    "repoInference": {
+      "status": "not-needed",
+      "source": "explicit-argument",
+      "repo": "jlekerli-source/ShipGuard",
+      "used": false
+    },
+    "version": "3.131.0",
+    "tag": "v3.131.0",
+    "apiUrl": "https://api.github.com",
+    "releaseEndpoint": "https://api.github.com/repos/jlekerli-source/ShipGuard/releases/tags/v3.131.0",
+    "requiredAssets": [
+      "shipguard-v3.131.0.tar.gz",
+      "release-manifest.json"
+    ],
+    "summary": "GitHub release metadata could not be loaded.",
+    "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable"
+  },
+  "stablePublicationEvidencePacket": {
+    "schemaVersion": 1,
+    "status": "review",
+    "stableV4Release": false,
+    "requiredEvidenceCount": 7,
+    "passedEvidenceCount": 6,
+    "missingEvidenceIds": [
+      "github-release-metadata"
+    ],
+    "firstBlockingGate": {
+      "id": "github-release-metadata",
+      "receipt": "githubReleaseMetadataProof",
+      "status": "blocked",
+      "summary": "GitHub release metadata could not be loaded.",
+      "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable"
+    },
+    "requiredEvidence": [
+      {"id": "github-release-metadata", "receipt": "githubReleaseMetadataProof", "status": "blocked", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "release-notes", "receipt": "releaseNotesProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "launchkey-candidate-packet", "receipt": "releaseCandidatePacketProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "downloaded-release-assets", "receipt": "publishedReleaseAssetProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "post-release-consumer-proof", "receipt": "postReleaseConsumerProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "independent-adoption-evidence", "receipt": "externalAdoptionEvidenceStableGate", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "final-security-review-evidence", "receipt": "securityReviewEvidenceStableGate", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true}
+    ],
+    "nonClaims": [
+      "Fixture API proof does not prove stable-v4 publication."
+    ]
+  },
+  "stablePublicationClosureChecklist": {
+    "schemaVersion": 1,
+    "status": "review",
+    "stableV4Release": false,
+    "blockerCount": 1,
+    "blockedEvidenceIds": [
+      "github-release-metadata"
+    ],
+    "noHiddenLowerOrderBlockers": true,
+    "items": [
+      {
+        "rank": 1,
+        "dependencyOrder": 1,
+        "id": "github-release-metadata",
+        "receipt": "githubReleaseMetadataProof",
+        "status": "blocked",
+        "summary": "GitHub release metadata could not be loaded.",
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+        "proofBoundary": "Public GitHub release metadata must exist for the requested tag.",
+        "isFirstBlockingGate": true
+      }
+    ]
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  }
+}
+JSON
+cat > "$stable_publication_metadata_closure_dir/v4-stable-publication.md" <<'MD'
+# ShipGuard V4 Stable Publication Proof
+
+## Evidence Packet
+
+| Evidence | Status |
+| --- | --- |
+| `github-release-metadata` | `blocked` |
+
+## Closure Checklist
+
+| Rank | Evidence | Status | First | Next command | Proof boundary |
+| --- | --- | --- | --- | --- | --- |
+| `1` | `github-release-metadata` | `blocked` | `True` | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable` | Public GitHub release metadata must exist for the requested tag. |
+MD
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_metadata_closure_dir" \
+  --out "$tmp_dir/stable-publication-metadata-closure-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "stable-publication-release-metadata-closure-kit-missing"' "$tmp_dir/stable-publication-metadata-closure-quality/ios-report-quality.json"
+
+stable_publication_metadata_boundary_dir="$tmp_dir/stable-publication-metadata-boundary"
+mkdir -p "$stable_publication_metadata_boundary_dir"
+python3 - <<'PY' \
+  "fixtures/ios-report-quality/stable-publication-release-metadata-closure/fixture-report.json" \
+  "fixtures/ios-report-quality/stable-publication-release-metadata-closure/fixture-report.md" \
+  "$stable_publication_metadata_boundary_dir"
+import json
+import sys
+from pathlib import Path
+
+source_json = Path(sys.argv[1])
+source_md = Path(sys.argv[2])
+target = Path(sys.argv[3])
+report = json.loads(source_json.read_text(encoding="utf-8"))
+report.pop("fixtureCandidate", None)
+for item in report["stablePublicationClosureChecklist"]["items"]:
+    if item.get("id") == "github-release-metadata":
+        boundary = item["releaseMetadataClosureKit"]["metadataProofBoundary"]
+        boundary["sourceOnlyProofCountsAsReleaseMetadataProof"] = True
+        item["metadataProofBoundary"]["sourceOnlyProofCountsAsReleaseMetadataProof"] = True
+report["reportQualityQuestions"] = [
+    "Does the GitHub release metadata closure row expose repo inference, release tag, API endpoint, release state, required/missing assets, release-note digest, repair/pass/fail criteria, rerun command, and public-metadata/source-only/fixture-API boundaries?"
+]
+(target / "v4-stable-publication.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+(target / "v4-stable-publication.md").write_text(source_md.read_text(encoding="utf-8"), encoding="utf-8")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_metadata_boundary_dir" \
+  --out "$tmp_dir/stable-publication-metadata-boundary-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "stable-publication-release-metadata-boundary-missing"' "$tmp_dir/stable-publication-metadata-boundary-quality/ios-report-quality.json"
+
 stable_publication_release_asset_boundary_dir="$tmp_dir/stable-publication-release-asset-boundary"
 mkdir -p "$stable_publication_release_asset_boundary_dir"
 python3 - <<'PY' \
@@ -5822,6 +5964,37 @@ PY
   --out "$tmp_dir/stable-publication-consumer-boundary-quality" \
   --shareable >/dev/null
 grep -q '"ruleId": "stable-publication-post-release-consumer-boundary-missing"' "$tmp_dir/stable-publication-consumer-boundary-quality/ios-report-quality.json"
+
+stable_publication_metadata_closure_fixture="fixtures/ios-report-quality/stable-publication-release-metadata-closure"
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_metadata_closure_fixture" \
+  --out "$tmp_dir/stable-publication-metadata-closure-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/stable-publication-metadata-closure-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/stable-publication-metadata-closure-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/stable-publication-release-metadata-closure"' "$tmp_dir/stable-publication-metadata-closure-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/stable-publication-metadata-closure-fixture-quality/ios-report-quality.json"
+grep -q '"releaseMetadataClosureKit":' "$stable_publication_metadata_closure_fixture/fixture-report.json"
+grep -q 'GitHub Release Metadata Closure Kit' "$stable_publication_metadata_closure_fixture/fixture-report.md"
+grep -q 'Public GitHub release metadata required: `True`' "$stable_publication_metadata_closure_fixture/fixture-report.md"
+grep -q 'Fixture API proof counts as stable-v4 publication proof: `False`' "$stable_publication_metadata_closure_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/stable-publication-metadata-closure-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard v4 stable-publication", item
+assert item.get("fixtureType") == "shipguard-release-proof-quality-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/stable-publication-release-metadata-closure", item
+assert "GitHub release metadata closure row" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/stable-publication-release-metadata-closure", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
 
 launchkey_skip_dir="$tmp_dir/launchkey-proof-dir-skip"
 mkdir -p \

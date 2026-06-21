@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.169 read-only stable-v4 packet loop continued from the downloaded release-assets closure kit and tested whether the earlier public GitHub release metadata blocker is directly actionable from the stable-publication report.
+
+- Finding: `v4 stable-publication` could say GitHub release metadata failed, but the blocker row did not itself expose the selected repo, inference source, release tag, API endpoint, release state, required assets, release-note digest, repair/pass/fail criteria, or proof boundaries.
+- Product weakness: a solo maintainer should know whether the wrong repo, wrong tag, missing release, draft/prerelease state, missing assets, or fixture/source proof misuse is blocking stable publication before chasing release notes, assets, adoption, or security evidence.
+- Native fix: `github-release-metadata` closure items now carry `releaseMetadataClosureKit` with repo inference, tag, endpoint, release URL/target commitish when available, draft/prerelease state, required and missing assets, release-note digest, current diagnostics, repair/pass/fail criteria, rerun command, and public-metadata/source-only/fixture-API boundaries.
+- Report-quality fix: `ios report-quality` now flags stable-publication reports whose metadata closure item hides the kit, repo/tag/endpoint, release state, required/missing assets, notes digest, diagnostics, criteria, rerun command, proof boundaries, or Markdown `GitHub Release Metadata Closure Kit` rendering.
+- Fixture fix: `fixtures/ios-report-quality/stable-publication-release-metadata-closure` promotes the release-metadata closure row into public synthetic coverage, with a mutation case proving source-only metadata proof cannot satisfy the stable-v4 gate.
+
+Fresh stable-v4 QA still does not claim real stable v4. The metadata closure kit is repair guidance and report-quality proof only; source checkout state, generated reports, fixture API responses, and local package builds do not count as public GitHub release metadata.
+
 The v3.168 read-only stable-v4 packet loop continued from the post-release consumer closure kit and tested whether the earlier downloaded release-assets blocker is directly actionable from the stable-publication report.
 
 - Finding: `v4 stable-publication` could say downloaded release assets were missing, but the blocker row did not itself expose required assets, GitHub metadata asset names, metadata-missing assets, local downloaded/supplied asset names, local missing assets, download source/status, or the two rerun commands.

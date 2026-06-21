@@ -76,6 +76,22 @@ The report returns `pass` only when every gate passes:
 
 If any gate fails, the report returns `review`, sets `stableV4Release` to `false`, and puts the next command in `resultUX.nextCommand`.
 
+## GitHub Release Metadata Closure Kit
+
+When public GitHub release metadata is the first blocker, the `github-release-metadata` closure row carries `releaseMetadataClosureKit`.
+
+The kit exposes:
+
+- the selected `owner/repo`, repo inference source, release version, tag, API URL, release endpoint, release URL, published timestamp, and target commitish when available
+- required stable-publication assets, metadata asset names, and metadata-missing assets
+- draft and prerelease state, because neither state can satisfy stable-v4 publication proof
+- release-note length, line count, SHA-256 digest, and missing topic IDs from the loaded metadata when available
+- current metadata diagnostics, including the exact error when the endpoint cannot be loaded
+- repair criteria, pass criteria, fail criteria, and the stable-publication rerun command
+- `metadataProofBoundary`, which states that public GitHub release metadata is required and that source-only proof, draft/prerelease proof, and fixture API proof do not prove stable-v4 publication
+
+Markdown renders these fields as `GitHub Release Metadata Closure Kit`, before lower-order blockers such as release notes, release assets, consumer proof, adoption evidence, or security evidence. This is repair guidance only; it does not publish or edit the GitHub release.
+
 ## Release Notes Proof
 
 `releaseNotesProof` is a structured gate, not a keyword vibe check. The report analyzes the full GitHub release body, records a SHA-256 digest, counts lines, and emits `topicMatrix` plus `missingTopicIds`.
