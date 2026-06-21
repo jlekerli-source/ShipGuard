@@ -1,0 +1,126 @@
+{
+  "behaviorGates": {
+    "adapterBoundary": {
+      "policy": "Thin host adapters can be the product surface; keep them unless host registration proof says they are redundant.",
+      "status": "policy"
+    },
+    "gainHonesty": {
+      "policy": "Benchmark impact is not a current-repo savings claim without a matched baseline.",
+      "status": "available-in-lean-gain"
+    },
+    "hardwareCalibration": {
+      "policy": "Hardware, sensors, clocks, and physical devices need calibration or tuning proof before simplification.",
+      "status": "available"
+    },
+    "oneRunnableCheck": {
+      "policy": "Non-trivial new logic should leave one smallest runnable check; trivial one-liners do not need ceremony.",
+      "status": "enforced-in-lean-review"
+    },
+    "requestedExplanation": {
+      "policy": "Explicitly requested reports, walkthroughs, or phase notes are not clutter.",
+      "status": "policy"
+    },
+    "shortcutDebt": {
+      "policy": "Intentional lean shortcuts need a ceiling and upgrade trigger.",
+      "status": "pass"
+    }
+  },
+  "findings": [],
+  "fixtureCandidate": {
+    "candidateId": "01-shipguard-lean-audit-does-precisionreview-identify-dele-286dc4bb",
+    "fixtureType": "shipguard-lean-report-quality-fixture",
+    "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-audit-does-precisionreview-identify-dele-286dc4bb",
+    "sourceQuestion": "Does precisionReview identify delete, simplify, keep, and proof-blocked decisions instead of dumping findings?",
+    "sourceTool": "shipguard lean audit"
+  },
+  "generatedAt": "2026-06-20T23:40:00Z",
+  "intent": "shipguard-evaluation",
+  "precisionReview": {
+    "actionGroups": [
+      {
+        "decision": "proof-blocked",
+        "evidenceCount": 2,
+        "firstExperiment": "Open the first marker line and prove one branch before splitting.",
+        "firstLocation": "scripts/example.py:12",
+        "rank": 1,
+        "ruleId": "large-legacy-file-review",
+        "stopCondition": "Stop if search or focused tests show the code is still active product behavior.",
+        "validationRoute": "Run call-site search plus the focused behavior test before editing."
+      }
+    ],
+    "blockedByProof": [
+      {
+        "action": "Do not split the whole file first; start at the first marker line and prove one removable branch.",
+        "location": "scripts/example.py:12",
+        "proofRequired": "Attach call-site evidence and a focused test.",
+        "rank": 1,
+        "ruleId": "large-legacy-file-review",
+        "severity": "review"
+      }
+    ],
+    "deleteList": [
+      {
+        "action": "Inline or delete the wrapper if search proves it adds no policy, naming, compatibility, or test value.",
+        "location": "scripts/example.py:4",
+        "proofRequired": "Use search results to confirm no public contract depends on it.",
+        "rank": 1,
+        "ruleId": "thin-wrapper-review",
+        "severity": "opportunity"
+      }
+    ],
+    "keepList": [
+      {
+        "location": "scripts/security_boundary.py",
+        "proofRequired": "Require before/after tests for trust-boundary behavior.",
+        "reason": "Treat this as a safety boundary.",
+        "ruleId": "do-not-cut-safety-logic-without-proof"
+      }
+    ],
+    "simplifyFirst": [
+      {
+        "action": "Try URLSearchParams after an encoding equivalence test.",
+        "location": "scripts/query.py:8",
+        "proofRequired": "Add tests for repeated keys, empty values, and encoding.",
+        "rank": 1,
+        "ruleId": "manual-url-params",
+        "severity": "opportunity"
+      }
+    ],
+    "summary": {
+      "actionGroups": 1,
+      "deleteCandidates": 1,
+      "keepBoundaries": 1,
+      "proofBlockedCandidates": 1,
+      "simplifyCandidates": 1
+    },
+    "topActions": [
+      {
+        "action": "Inline or delete the wrapper if search proves it adds no policy, naming, compatibility, or test value.",
+        "location": "scripts/example.py:4",
+        "proofRequired": "Use search results to confirm no public contract depends on it.",
+        "rank": 1,
+        "ruleId": "thin-wrapper-review",
+        "severity": "opportunity"
+      }
+    ]
+  },
+  "reportQualityQuestions": [
+    "Does precisionReview identify delete, simplify, keep, and proof-blocked decisions instead of dumping findings?"
+  ],
+  "scanScope": {
+    "note": "Synthetic fixture; no private source tree was scanned."
+  },
+  "schemaVersion": 1,
+  "scopeBoundary": {
+    "purpose": "Synthetic public fixture for ShipGuard report-quality behavior.",
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "shareability": {
+    "localAbsolutePathsIncluded": false,
+    "mode": "shareable"
+  },
+  "status": "pass",
+  "surface": "ShipGuard Lean Deck",
+  "tool": "shipguard lean audit"
+}

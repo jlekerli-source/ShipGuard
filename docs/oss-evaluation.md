@@ -6,6 +6,28 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current Ponytail SourceScout Surface-Proof QA
+
+The latest read-only Ponytail QA pass refreshed the installed Codex Ponytail marketplace, inspected the public Ponytail checkout, then ran `shipguard ios external-audit`, `shipguard lean audit`, `shipguard lean review`, and `ios report-quality --write-fixture-candidates` against this checkout.
+
+- Finding: SourceScout recognized Ponytail and produced the right native replacement ledger, but every Ponytail capability had `surfacePresent: false` because the detector only compared hidden script paths against prose such as `lean audit`, `lean review`, and `codex status`.
+- Product weakness: ShipGuard could claim a capability had a native action while the machine-readable proof bit said the surface was missing, making the adoption ledger harder to trust.
+- Native fix: `ios external-audit` now maps capability prose to stable ShipGuard command aliases and renders whether the native surface is present in Markdown.
+- Guardrail: adopted external capabilities now produce an `external-adoption-surface-unproven` finding when no detected ShipGuard surface backs the claim.
+
+Fresh Ponytail SourceScout QA now reports all five Ponytail capabilities as native-surface present while keeping Ponytail as a named MIT influence rather than vendoring its hooks, commands, or skills.
+
+## Current Lean Deck Priority Question Fixture QA
+
+The v3.138 read-only loop reran `shipguard lean audit`, `shipguard lean review`, `shipguard value-gauntlet`, and `ios report-quality --write-fixture-candidates` against this checkout.
+
+- Finding: fresh Lean Deck reports scored cleanly, but the top ranked actionability question, "Does precisionReview identify delete, simplify, keep, and proof-blocked decisions instead of dumping findings?", did not materialize as a public fixture candidate.
+- Product weakness: the report told maintainers to convert the top question into a fixture, but `--write-fixture-candidates` produced zero candidates, forcing manual interpretation or a broader spec-workflow detour.
+- Native fix: `ios report-quality` now treats Lean Deck priority wording such as `precisionReview`, proof-blocked decisions, safety-boundary separation, host adapters, hardware calibration, same-diff proof signals, runnable checks, and benchmark-honesty prompts as Lean report-quality fixture candidates.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-lean-audit-does-precisionreview-identify-dele-286dc4bb` promotes the top Lean question into public synthetic coverage, so fresh Lean QA can advance to the next uncovered Lean question and materialize it as `shipguard-lean-report-quality-fixture`.
+
+Fresh QA now proves Lean Deck questions can move from ranked report-quality output into public fixtures without depending on private app scans or manual fixture taxonomy decisions.
+
 ## Current Verify-PR First-Run QA
 
 The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `shipguard full-audit --plan-only`, docs-check, and the verify-first quickstart tests against this checkout.

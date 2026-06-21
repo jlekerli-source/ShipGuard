@@ -514,27 +514,97 @@ def default_source_records() -> list[dict[str, Any]]:
 
 def current_surface(root: Path) -> dict[str, Any]:
     files = {
-        "iosSpecWorkflow": "scripts/ios_spec_workflow.py",
-        "iosReportQuality": "scripts/ios_report_quality.py",
-        "iosDevspaceCheck": "scripts/ios_devspace_check.py",
-        "iosDevspaceServer": "scripts/shipguard_devspace_mcp.py",
-        "iosPreview": "scripts/ios_preview.py",
-        "iosDesign": "scripts/ios_design.py",
-        "leanAudit": "scripts/lean_audit.py",
-        "leanReview": "scripts/lean_review.py",
-        "leanDebt": "scripts/lean_debt.py",
-        "leanGain": "scripts/lean_gain.py",
-        "pluginSource": "plugins/ios-shipguard/.codex-plugin/plugin.json",
-        "packageProof": "tests/package_release_test.sh",
-        "ossEvaluation": "docs/oss-evaluation.md",
+        "iosSpecWorkflow": {
+            "path": "scripts/ios_spec_workflow.py",
+            "aliases": ["ios spec-workflow", "spec-workflow", "requirements-checklist", "consistency-analysis", "tasks.md"],
+        },
+        "iosReportQuality": {
+            "path": "scripts/ios_report_quality.py",
+            "aliases": ["ios report-quality", "report-quality", "report quality"],
+        },
+        "iosDevspaceCheck": {
+            "path": "scripts/ios_devspace_check.py",
+            "aliases": ["ios devspace-check", "devspace-check", "token checks", "public url"],
+        },
+        "iosDevspaceServer": {
+            "path": "scripts/shipguard_devspace_mcp.py",
+            "aliases": ["ios devspace", "devspace", "mcp widget", "codex_prepare_handoff", "devspace widget"],
+        },
+        "iosPreview": {
+            "path": "scripts/ios_preview.py",
+            "aliases": ["ios preview", "preview widget", "preview receipts"],
+        },
+        "iosTargetMatch": {
+            "path": "scripts/ios_target_match.py",
+            "aliases": ["ios target-match", "target-match", "semantic target matching"],
+        },
+        "iosCodexHandoff": {
+            "path": "scripts/ios_codex_handoff.py",
+            "aliases": ["ios codex-handoff", "codex-handoff"],
+        },
+        "iosRedaction": {
+            "path": "scripts/ios_redaction.py",
+            "aliases": ["ios redact", "redact", "redaction"],
+        },
+        "iosDesign": {
+            "path": "scripts/ios_design.py",
+            "aliases": ["ios design", "motionblueprint", "motionqualitygates", "design findings"],
+        },
+        "iosPerformance": {
+            "path": "scripts/ios_performance.py",
+            "aliases": ["ios performance", "performance scanner", "profiler", "continuous-animation"],
+        },
+        "leanAudit": {
+            "path": "scripts/lean_audit.py",
+            "aliases": ["lean audit", "shipguard lean audit", "precisionreview", "nativeopportunitycatalog", "behaviorgates", "lean deck"],
+        },
+        "leanReview": {
+            "path": "scripts/lean_review.py",
+            "aliases": ["lean review", "shipguard lean review", "reviewlines", "precisionreview.topactions"],
+        },
+        "leanDebt": {
+            "path": "scripts/lean_debt.py",
+            "aliases": ["lean debt", "shipguard lean debt", "leandebtledger", "shipguard-lean"],
+        },
+        "leanGain": {
+            "path": "scripts/lean_gain.py",
+            "aliases": ["lean gain", "shipguard lean gain", "benchmarkscoreboard", "currentrepoboundary"],
+        },
+        "pluginSource": {
+            "path": "plugins/ios-shipguard/.codex-plugin/plugin.json",
+            "aliases": ["plugin source", "plugin skill", "codex plugin skill", "codex plugin", "skills", "codex status"],
+        },
+        "packageProof": {
+            "path": "tests/package_release_test.sh",
+            "aliases": ["package proof", "package release proof", "package release tests", "release proof"],
+        },
+        "ossEvaluation": {
+            "path": "docs/oss-evaluation.md",
+            "aliases": ["oss evaluation", "docs", "documentation", "command matrix", "fixtures", "github actions examples"],
+        },
     }
     return {
         key: {
-            "path": rel,
-            "present": (root / rel).is_file(),
+            "path": data["path"],
+            "aliases": data["aliases"],
+            "present": (root / data["path"]).is_file(),
         }
-        for key, rel in files.items()
+        for key, data in files.items()
     }
+
+
+def surface_present_for_capability(row: dict[str, Any], surface: dict[str, Any]) -> bool:
+    haystack = str(row.get("currentShipGuardSurface") or "").lower()
+    for item in surface.values():
+        if not item.get("present"):
+            continue
+        path = str(item.get("path") or "").lower()
+        if path and path in haystack:
+            return True
+        for alias in item.get("aliases") or []:
+            if str(alias).lower() in haystack:
+                return True
+    return False
 
 
 def capability_matrix(source_records: list[dict[str, Any]], surface: dict[str, Any]) -> list[dict[str, Any]]:
@@ -553,7 +623,7 @@ def capability_matrix(source_records: list[dict[str, Any]], surface: dict[str, A
             row = dict(capability)
             row["source"] = profile["displayName"]
             row["sourceKey"] = key
-            row["surfacePresent"] = any(item["present"] for item in surface.values() if item["path"] in row["currentShipGuardSurface"])
+            row["surfacePresent"] = surface_present_for_capability(row, surface)
             matrix.append(row)
     return matrix
 
@@ -622,6 +692,22 @@ def findings(source_records: list[dict[str, Any]], matrix: list[dict[str, Any]])
                 "evidence": f"{len(deferred)} external capabilities are useful but not safe to adopt without a ShipGuard-native contract.",
                 "recommendation": "Convert one deferred capability into a public fixture and report-quality gate before implementation.",
                 "proofGuidance": "Use ios spec-workflow --from-report on this audit, then validate with ios report-quality.",
+            }
+        )
+    adopted_missing_surface = [
+        row
+        for row in matrix
+        if row["decision"] != "defer-with-native-plan" and not row.get("surfacePresent")
+    ]
+    if adopted_missing_surface:
+        out.append(
+            {
+                "severity": "review",
+                "ruleId": "external-adoption-surface-unproven",
+                "category": "native-integration",
+                "evidence": f"{len(adopted_missing_surface)} adopted external capabilities do not map to a detected ShipGuard surface.",
+                "recommendation": "Either add a ShipGuard-native command/docs/tests surface or mark the capability as deferred before claiming adoption.",
+                "proofGuidance": "Run ios external-audit with --shareable and verify capabilityMatrix[].surfacePresent is true for adopted capabilities.",
             }
         )
     return out
@@ -744,6 +830,7 @@ def render_markdown(report: dict[str, Any]) -> str:
                 f"- Decision: `{row['decision']}`",
                 f"- External signal: {row['externalSignal']}",
                 f"- Current ShipGuard surface: {row['currentShipGuardSurface']}",
+                f"- Native surface present: `{'yes' if row.get('surfacePresent') else 'no'}`",
                 f"- Replace or keep: {row['replacement']}",
                 f"- Native action: {row['nativeAction']}",
                 f"- Validation: `{row['validation']}`",

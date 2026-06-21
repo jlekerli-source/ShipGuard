@@ -127,6 +127,24 @@ grep -q '"capabilityId": "ponytail-shortcut-ledger"' "$tmp_dir/audit/ios-externa
 grep -q '"capabilityId": "ponytail-benchmark-honesty"' "$tmp_dir/audit/ios-external-audit.json"
 grep -q '"capabilityId": "ponytail-always-on-host-mode"' "$tmp_dir/audit/ios-external-audit.json"
 grep -q 'Keep Lean Deck as the native precise-code engine' "$tmp_dir/audit/ios-external-audit.json"
+python3 - <<'PY' "$tmp_dir/audit/ios-external-audit.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+ponytail_rows = [
+    row
+    for row in data.get("capabilityMatrix", [])
+    if row.get("sourceKey") == "ponytail"
+]
+if len(ponytail_rows) != 5:
+    raise SystemExit(f"expected five Ponytail capability rows, got {len(ponytail_rows)}")
+missing = [row.get("id") for row in ponytail_rows if row.get("surfacePresent") is not True]
+if missing:
+    raise SystemExit(f"Ponytail native surfaces should be detected as present: {missing!r}")
+if any(item.get("ruleId") == "external-adoption-surface-unproven" for item in data.get("findings", [])):
+    raise SystemExit("recognized Ponytail capabilities should not produce unproven adoption surface findings")
+PY
 grep -q '"decision": "replace-weaker-guidance"' "$tmp_dir/audit/ios-external-audit.json"
 grep -q '"decision": "extend-native"' "$tmp_dir/audit/ios-external-audit.json"
 grep -q '"decision": "integrate-by-routing"' "$tmp_dir/audit/ios-external-audit.json"
