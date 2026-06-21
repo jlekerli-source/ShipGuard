@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.172 read-only stable-v4 packet loop continued from consumer digest freshness and tested whether otherwise valid adoption/security evidence could be reused for a newer release packet without being visibly stale.
+
+- Finding: `v4 stable-publication` could validate external adoption and final security-review record structure without comparing record `generatedAt` values to the release manifest timestamp.
+- Product weakness: a solo maintainer should not be able to attach old external evidence to a newer release packet and get a stable-v4 claim that looks fresh.
+- Native fix: `externalAdoptionEvidenceProof.evidencePacketFreshness` and `securityReviewEvidenceProof.evidencePacketFreshness` now summarize reference timestamp, fresh/stale stable record counts, per-record freshness rows, and proof boundaries.
+- Report-quality fix: `ios report-quality` now flags stable-publication reports that claim `stableV4Release=true` while hiding or failing adoption/security freshness, and it requires Markdown `External Evidence Freshness` rendering when freshness data is present.
+- Fixture fix: focused stable-publication tests include stale adoption/security evidence records, and the guarded launch-relay fixture now carries synthetic freshness rows so stable-v4 fixture claims do not bypass the new rule.
+
+Fresh stable-v4 QA still does not claim real stable v4. External evidence freshness only proves the supplied adoption/security records are no older than the release packet; it does not replace independent adoption, final security review, release assets, or post-release consumer proof.
+
 The v3.171 read-only stable-v4 packet loop continued from public release freshness and tested whether a passing post-release consumer row could hide weak `asset-digests.json` coverage.
 
 - Finding: `v4 stable-publication` could expose the digest matrix path without summarizing whether required release assets were present, whether present assets had SHA-256 values, or whether the release tarball digest matched the consumer artifact SHA-256.

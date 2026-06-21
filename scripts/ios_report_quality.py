@@ -4173,6 +4173,51 @@ def stable_publication_evidence_packet_issues(
             recommendation="Render the closure checklist in Markdown so maintainers can see every remaining blocker without opening JSON.",
         )
 
+    freshness_proofs = [
+        ("independent-adoption-evidence", report.get("externalAdoptionEvidenceProof")),
+        ("final-security-review-evidence", report.get("securityReviewEvidenceProof")),
+    ]
+    freshness_present = False
+    for evidence_id, proof in freshness_proofs:
+        proof = proof if isinstance(proof, dict) else {}
+        freshness = proof.get("evidencePacketFreshness") if isinstance(proof.get("evidencePacketFreshness"), dict) else {}
+        if freshness:
+            freshness_present = True
+        if report.get("stableV4Release") is True and not freshness:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id=f"stable-publication-{evidence_id}-freshness-missing",
+                evidence=f"{path_name} claims stableV4Release=true but `{evidence_id}` has no evidencePacketFreshness",
+                recommendation="Compare adoption/security record generatedAt timestamps against the release manifest timestamp before allowing a stable-v4 claim.",
+            )
+            continue
+        if freshness and report.get("stableV4Release") is True and freshness.get("status") != "pass":
+            add_issue(
+                issues,
+                severity="review",
+                rule_id=f"stable-publication-{evidence_id}-freshness-not-pass",
+                evidence=f"{path_name} claims stableV4Release=true but `{evidence_id}` freshness is {freshness.get('status')}",
+                recommendation="Block stable-v4 claims until external evidence records are generated for the release being published.",
+            )
+        boundary = freshness.get("freshnessBoundary") if isinstance(freshness.get("freshnessBoundary"), dict) else {}
+        if freshness and boundary.get("generatedAtMustBeNoEarlierThanReleaseManifest") is not True:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id=f"stable-publication-{evidence_id}-freshness-boundary-missing",
+                evidence=f"{path_name} `{evidence_id}` freshness does not expose the generatedAt release-manifest boundary",
+                recommendation="State that external evidence generatedAt must be no earlier than the release manifest timestamp and cannot be refreshed by source-only, fixture, or local package proof.",
+            )
+    if freshness_present and "External Evidence Freshness" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-external-evidence-freshness-markdown-missing",
+            evidence=f"{path_name} has external evidence freshness data but Markdown does not render it",
+            recommendation="Render external adoption and security-review freshness status in Markdown so stale evidence cannot hide in JSON.",
+        )
+
     non_claims = packet.get("nonClaims")
     if not isinstance(non_claims, list) or not non_claims:
         add_issue(

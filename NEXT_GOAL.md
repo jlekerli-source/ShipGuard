@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-21T22:23:50Z
+- Generated: 2026-06-21T23:02:56Z
 - Current toolkit version: 3.131.0
-- Target release: v3.172.0
-- Title: Stable V4 External Evidence Packet Freshness QA
+- Target release: v3.173.0
+- Title: Stable V4 Release Publication Version Coherence QA
 
 ## Slash Plan
 
 ```text
-/plan v3.172.0 Stable V4 External Evidence Packet Freshness QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add the next bounded stable-publication report-quality improvement after consumer digest freshness: make external adoption and final security evidence packets harder to misread, without claiming stable v4 from source-only, fixture, stale, or local package proof.
+/plan v3.173.0 Stable V4 Release Publication Version Coherence QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add the next bounded stable-publication report-quality improvement after external evidence freshness: make release version metadata harder to misread, without claiming stable v4 from mismatched VERSION, tag, package, manifest, or GitHub release metadata.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.172.0 Stable V4 External Evidence Packet Freshness QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add the next bounded stable-publication report-quality improvement after consumer digest freshness: make external adoption and final security evidence packets harder to misread, without claiming stable v4 from source-only, fixture, stale, or local package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.173.0 Stable V4 Release Publication Version Coherence QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add the next bounded stable-publication report-quality improvement after external evidence freshness: make release version metadata harder to misread, without claiming stable v4 from mismatched VERSION, tag, package, manifest, or GitHub release metadata, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add the next bounded stable-publication report-quality improvement after consumer digest freshness: make external adoption and final security evidence packets harder to misread, without claiming stable v4 from source-only, fixture, stale, or local package proof.
+Add the next bounded stable-publication report-quality improvement after external evidence freshness: make release version metadata harder to misread, without claiming stable v4 from mismatched VERSION, tag, package, manifest, or GitHub release metadata.
 
 ## Completion Receipt
 
-- Completed scope: v3.171 added post-release consumer digest freshness proof to stable-publication reports: asset-digests.json is parsed into consumerDigestFreshness, required asset rows and missing SHA-256 rows are summarized, release tarball digest is compared with the consumer artifact SHA-256, Markdown renders Digest freshness status, ios report-quality enforces the digest summary and boundary, and public fixtures cover the new contract.
-- Evidence: python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; git diff --check; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3171-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3171-value-gauntlet; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict
+- Completed scope: v3.172 added external evidence packet freshness proof to stable-publication reports: adoption and security-review evidence records now carry evidencePacketFreshness, stale generatedAt timestamps downgrade stable-v4 gates, Markdown renders External Evidence Freshness, ios report-quality enforces freshness for stable-v4 claims, and public fixtures cover the new contract.
+- Evidence: python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; git diff --check; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3172-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3172-value-gauntlet; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict
 
 ## Following Slash Plan
 
 ```text
-/plan v3.173.0 Stable V4 Release Publication Version Coherence QA for jlekerli-source/ShipGuard:
+/plan v3.174.0 Stable V4 Publication Release Asset Version Coherence QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add the next bounded stable-publication report-quality improvement after consume
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.173.0 Stable V4 Release Publication Version Coherence QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.174.0 Stable V4 Publication Release Asset Version Coherence QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.173.0 --title "Stable V4 Release Publication Version Coherence QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.174.0 --title "Stable V4 Publication Release Asset Version Coherence QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.172.0.
+1. Open or update the tracking issue for v3.173.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.172.0` and upload `dist/shipguard-v3.172.0.tar.gz`.
+6. Create release `v3.173.0` and upload `dist/shipguard-v3.173.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

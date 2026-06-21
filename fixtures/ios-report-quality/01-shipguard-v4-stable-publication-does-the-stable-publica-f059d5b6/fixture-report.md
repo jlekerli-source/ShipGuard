@@ -29,6 +29,20 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 | `independent-adoption-evidence` | `pass` |
 | `final-security-review-evidence` | `pass` |
 
+## External Evidence Freshness
+
+| Evidence | Status | Reference timestamp | Fresh stable records | Stale stable records |
+| --- | --- | --- | ---: | ---: |
+| `independent-adoption-evidence` | `pass` | `2026-06-20T00:00:00Z` | `1` | `0` |
+| `final-security-review-evidence` | `pass` | `2026-06-20T00:00:00Z` | `1` | `0` |
+
+Freshness boundary:
+
+- `independent-adoption-evidence` generatedAt no earlier than release manifest: `True`
+- `independent-adoption-evidence` first problem: none
+- `final-security-review-evidence` generatedAt no earlier than release manifest: `True`
+- `final-security-review-evidence` first problem: none
+
 ## Closure Checklist
 
 - Checklist status: `pass`

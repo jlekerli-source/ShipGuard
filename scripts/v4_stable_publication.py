@@ -1311,6 +1311,8 @@ def evidence_diagnostics_for_closure(proof: dict[str, Any]) -> dict[str, Any]:
         "invalidRecordCount": proof.get("invalidRecordCount"),
         "stableV4EligibleEvidenceCount": proof.get("stableV4EligibleEvidenceCount"),
     }
+    if isinstance(proof.get("evidencePacketFreshness"), dict):
+        diagnostics["evidencePacketFreshness"] = proof.get("evidencePacketFreshness")
     if isinstance(proof.get("requiredScope"), list):
         diagnostics["requiredScope"] = proof.get("requiredScope")
     records = proof.get("records") if isinstance(proof.get("records"), list) else []
@@ -1326,6 +1328,99 @@ def evidence_diagnostics_for_closure(proof: dict[str, Any]) -> dict[str, Any]:
             "stableV4Reason": first.get("stableV4Reason") or "",
         }
     return diagnostics
+
+
+def build_external_evidence_freshness(
+    proof: dict[str, Any],
+    *,
+    evidence_id: str,
+    metadata_proof: dict[str, Any],
+    release_freshness_proof: dict[str, Any],
+) -> dict[str, Any]:
+    reference = (
+        release_freshness_proof.get("manifestGeneratedAt")
+        or metadata_proof.get("publishedAt")
+        or ""
+    )
+    reference_at = parse_utc_datetime(reference)
+    records = proof.get("records") if isinstance(proof.get("records"), list) else []
+    stable_records = [record for record in records if isinstance(record, dict) and record.get("stableV4Eligible")]
+    rows: list[dict[str, Any]] = []
+    problems: list[str] = []
+
+    for record in stable_records:
+        generated = str(record.get("generatedAt") or "")
+        generated_at = parse_utc_datetime(generated)
+        fresh = bool(reference_at and generated_at and generated_at >= reference_at)
+        rows.append(
+            {
+                "path": record.get("path") or "",
+                "generatedAt": generated,
+                "generatedAtValid": generated_at is not None,
+                "noEarlierThanReleaseManifest": fresh,
+            }
+        )
+        if generated_at is None:
+            problems.append(f"{evidence_id} record has an invalid generatedAt timestamp.")
+        elif reference_at and generated_at < reference_at:
+            problems.append(f"{evidence_id} record predates the release manifest timestamp.")
+
+    if not records:
+        status = "not-provided"
+        problems.append(f"{evidence_id} has no evidence records.")
+    elif (proof.get("stableV4GateStatus") or proof.get("status")) != "pass":
+        status = str(proof.get("stableV4GateStatus") or proof.get("status") or "review")
+        problems.append(f"{evidence_id} stable-v4 gate must pass before freshness can pass.")
+    elif not reference_at:
+        status = "review"
+        problems.append("release manifest or public release timestamp is missing or invalid.")
+    elif not stable_records:
+        status = "review"
+        problems.append(f"{evidence_id} has no stable-v4 eligible records to freshness-check.")
+    else:
+        status = "pass" if not problems else "review"
+
+    return {
+        "schemaVersion": 1,
+        "evidenceId": evidence_id,
+        "status": status,
+        "referenceTimestamp": reference,
+        "referenceSource": "release-manifest.generatedAt" if release_freshness_proof.get("manifestGeneratedAt") else "github-release.publishedAt",
+        "stableRecordCount": len(stable_records),
+        "freshStableRecordCount": sum(1 for row in rows if row.get("noEarlierThanReleaseManifest") is True),
+        "staleStableRecordCount": sum(1 for row in rows if row.get("noEarlierThanReleaseManifest") is False),
+        "records": rows,
+        "problems": problems,
+        "freshnessBoundary": {
+            "generatedAtMustBeNoEarlierThanReleaseManifest": True,
+            "sourceOnlyProofRefreshesExternalEvidence": False,
+            "fixtureProofRefreshesExternalEvidence": False,
+            "localPackageProofRefreshesExternalEvidence": False,
+        },
+    }
+
+
+def attach_external_evidence_freshness(
+    proof: dict[str, Any],
+    *,
+    evidence_id: str,
+    metadata_proof: dict[str, Any],
+    release_freshness_proof: dict[str, Any],
+) -> dict[str, Any]:
+    updated = dict(proof)
+    freshness = build_external_evidence_freshness(
+        proof,
+        evidence_id=evidence_id,
+        metadata_proof=metadata_proof,
+        release_freshness_proof=release_freshness_proof,
+    )
+    updated["evidencePacketFreshness"] = freshness
+    if proof.get("stableV4GateStatus") == "pass" and freshness.get("status") != "pass":
+        updated["stableV4GateStatus"] = "review"
+        updated["summary"] = f"{proof.get('summary', '').rstrip()} Evidence freshness must pass for this release."
+        if freshness.get("problems"):
+            updated["freshnessError"] = freshness["problems"][0]
+    return updated
 
 
 def launchkey_candidate_proof_areas_for_closure(proof: dict[str, Any]) -> list[dict[str, Any]]:
@@ -2890,8 +2985,18 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         metadata_proof=metadata_proof,
         published_asset_proof=published_asset_proof,
     )
-    adoption_proof = launchkey.build_external_adoption_evidence_proof(args)
-    security_proof = launchkey.build_security_review_evidence_proof(args)
+    adoption_proof = attach_external_evidence_freshness(
+        launchkey.build_external_adoption_evidence_proof(args),
+        evidence_id="independent-adoption-evidence",
+        metadata_proof=metadata_proof,
+        release_freshness_proof=public_release_freshness_proof,
+    )
+    security_proof = attach_external_evidence_freshness(
+        launchkey.build_security_review_evidence_proof(args),
+        evidence_id="final-security-review-evidence",
+        metadata_proof=metadata_proof,
+        release_freshness_proof=public_release_freshness_proof,
+    )
     adoption_gate_proof = {
         **adoption_proof,
         "status": adoption_proof.get("stableV4GateStatus") or adoption_proof.get("status"),
@@ -3028,6 +3133,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the downloaded release-assets closure row expose required assets, metadata/local missing assets, download source/status, asset directory, repair/pass/fail criteria, download rerun, full stable-publication rerun, and metadata-only/source-only/fixture-proof boundaries?",
             "Does the post-release consumer closure row expose release-consume paths, missing proof artifacts, digest/replay/attestation statuses, repair/pass criteria, release-consume rerun, full stable-publication rerun, and source-only/fixture-proof boundaries?",
             "Does the public release freshness row prove the GitHub tag target, release manifest commit, release metadata target, and publication timestamp describe the same release?",
+            "Do independent adoption and final security-review evidence records prove generatedAt freshness against the release manifest instead of reusing stale packet evidence?",
             "Do independent adoption and final security-review closure rows expose starter paths, required fields, redaction/privacy boundaries, pass/fail criteria, current diagnostics, and exact stable-publication rerun commands?",
             "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?",
         ],
@@ -3080,6 +3186,39 @@ def render_markdown(report: dict[str, Any]) -> str:
         for item in packet.get("requiredEvidence", []):
             if isinstance(item, dict):
                 lines.append(f"| `{item.get('id')}` | `{item.get('status')}` |")
+    evidence_freshness_rows = []
+    for label, proof_key in (
+        ("independent-adoption-evidence", "externalAdoptionEvidenceProof"),
+        ("final-security-review-evidence", "securityReviewEvidenceProof"),
+    ):
+        proof = report.get(proof_key) if isinstance(report.get(proof_key), dict) else {}
+        freshness = proof.get("evidencePacketFreshness") if isinstance(proof.get("evidencePacketFreshness"), dict) else {}
+        if freshness:
+            evidence_freshness_rows.append((label, freshness))
+    if evidence_freshness_rows:
+        lines.extend(
+            [
+                "",
+                "## External Evidence Freshness",
+                "",
+                "| Evidence | Status | Reference timestamp | Fresh stable records | Stale stable records |",
+                "| --- | --- | --- | ---: | ---: |",
+            ]
+        )
+        for label, freshness in evidence_freshness_rows:
+            lines.append(
+                f"| `{label}` | `{freshness.get('status')}` | `{freshness.get('referenceTimestamp') or 'not-provided'}` | "
+                f"`{freshness.get('freshStableRecordCount')}` | `{freshness.get('staleStableRecordCount')}` |"
+            )
+        lines.extend(["", "Freshness boundary:", ""])
+        for label, freshness in evidence_freshness_rows:
+            boundary = freshness.get("freshnessBoundary") if isinstance(freshness.get("freshnessBoundary"), dict) else {}
+            problems = freshness.get("problems") if isinstance(freshness.get("problems"), list) else []
+            lines.append(f"- `{label}` generatedAt no earlier than release manifest: `{boundary.get('generatedAtMustBeNoEarlierThanReleaseManifest')}`")
+            if problems:
+                lines.append(f"- `{label}` first problem: {problems[0]}")
+            else:
+                lines.append(f"- `{label}` first problem: none")
     closure_checklist = (
         report.get("stablePublicationClosureChecklist")
         if isinstance(report.get("stablePublicationClosureChecklist"), dict)
@@ -3705,7 +3844,9 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"- Post-release consumer proof: `{report.get('postReleaseConsumerProof', {}).get('status')}`",
             f"- Public release freshness: `{report.get('publicReleaseFreshnessProof', {}).get('status')}`",
             f"- External adoption stable gate: `{report.get('externalAdoptionEvidenceProof', {}).get('stableV4GateStatus')}`",
+            f"- External adoption freshness: `{(report.get('externalAdoptionEvidenceProof', {}).get('evidencePacketFreshness') or {}).get('status')}`",
             f"- Security review stable gate: `{report.get('securityReviewEvidenceProof', {}).get('stableV4GateStatus')}`",
+            f"- Security review freshness: `{(report.get('securityReviewEvidenceProof', {}).get('evidencePacketFreshness') or {}).get('status')}`",
             f"- Stable v4 release claim allowed: `{report.get('stableV4Release')}`",
             "",
             "## Blocked Claims",

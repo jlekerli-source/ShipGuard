@@ -177,6 +177,21 @@ cat > "$tmp_dir/evidence/stable-security/security-review.json" <<'JSON'
 }
 JSON
 
+mkdir -p "$tmp_dir/evidence/stale-adoption" "$tmp_dir/evidence/stale-security"
+cp "$tmp_dir/evidence/stable-adoption/external-adoption.json" "$tmp_dir/evidence/stale-adoption/external-adoption.json"
+cp "$tmp_dir/evidence/stable-security/security-review.json" "$tmp_dir/evidence/stale-security/security-review.json"
+python3 - "$tmp_dir/evidence/stale-adoption/external-adoption.json" "$tmp_dir/evidence/stale-security/security-review.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+for raw in sys.argv[1:]:
+    path = Path(raw)
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data["generatedAt"] = "2026-06-19T00:00:00Z"
+    path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+PY
+
 SHIPGUARD_GENERATED_AT="2026-06-20T00:00:00Z" \
   ./bin/shipguard release-proof build \
     --out "$tmp_dir/proof-bundle" \
@@ -972,6 +987,52 @@ tag_ref.write_text(
 )
 PY
 
+if SHIPGUARD_GENERATED_AT="2026-06-20T00:00:00Z" \
+  ./bin/shipguard v4 stable-publication \
+    --path . \
+    --out "$tmp_dir/stale-external-evidence" \
+    --github-api-url "file://$api_root" \
+    --release-version "v$version" \
+    --release-candidate-report "$tmp_dir/candidate-pass.json" \
+    --download-release-assets \
+    --download-release-assets-dir "$tmp_dir/stale-external-downloaded" \
+    --release-consume-out "$tmp_dir/stale-external-consume" \
+    --external-adoption-evidence "$tmp_dir/evidence/stale-adoption" \
+    --security-review-evidence "$tmp_dir/evidence/stale-security" \
+    --shipguard-eval \
+    --shareable >/dev/null 2>&1; then
+  echo "expected stale adoption/security evidence to block stable publication" >&2
+  exit 1
+fi
+python3 - "$tmp_dir/stale-external-evidence/v4-stable-publication.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+assert report["status"] == "review"
+assert report["stableV4Release"] is False
+adoption = report["externalAdoptionEvidenceProof"]
+security = report["securityReviewEvidenceProof"]
+assert adoption["stableV4GateStatus"] == "review"
+assert security["stableV4GateStatus"] == "review"
+assert adoption["evidencePacketFreshness"]["status"] == "review"
+assert security["evidencePacketFreshness"]["status"] == "review"
+assert adoption["evidencePacketFreshness"]["staleStableRecordCount"] == 1
+assert security["evidencePacketFreshness"]["staleStableRecordCount"] == 1
+assert report["stablePublicationEvidencePacket"]["firstBlockingGate"]["id"] == "independent-adoption-evidence"
+closure = report["stablePublicationClosureChecklist"]
+assert "independent-adoption-evidence" in closure["blockedEvidenceIds"]
+assert "final-security-review-evidence" in closure["blockedEvidenceIds"]
+PY
+grep -q 'External Evidence Freshness' "$tmp_dir/stale-external-evidence/v4-stable-publication.md"
+grep -q 'External adoption freshness: `review`' "$tmp_dir/stale-external-evidence/v4-stable-publication.md"
+grep -q 'Security review freshness: `review`' "$tmp_dir/stale-external-evidence/v4-stable-publication.md"
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/stale-external-evidence" \
+  --out "$tmp_dir/stale-external-evidence-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/stale-external-evidence-quality/ios-report-quality.json"
+
 SHIPGUARD_GENERATED_AT="2026-06-20T00:00:00Z" \
   ./bin/shipguard v4 stable-publication \
     --path . \
@@ -1023,6 +1084,18 @@ assert report["publicReleaseFreshnessProof"]["status"] == "pass"
 assert report["publicReleaseFreshnessProof"]["comparisons"]["tagTargetMatchesManifestCommit"] is True
 assert report["externalAdoptionEvidenceProof"]["stableV4GateStatus"] == "pass"
 assert report["securityReviewEvidenceProof"]["stableV4GateStatus"] == "pass"
+adoption_freshness = report["externalAdoptionEvidenceProof"]["evidencePacketFreshness"]
+security_freshness = report["securityReviewEvidenceProof"]["evidencePacketFreshness"]
+assert adoption_freshness["status"] == "pass"
+assert security_freshness["status"] == "pass"
+assert adoption_freshness["referenceTimestamp"] == "2026-06-20T00:00:00Z"
+assert security_freshness["referenceTimestamp"] == "2026-06-20T00:00:00Z"
+assert adoption_freshness["freshStableRecordCount"] == 1
+assert security_freshness["freshStableRecordCount"] == 1
+assert adoption_freshness["staleStableRecordCount"] == 0
+assert security_freshness["staleStableRecordCount"] == 0
+assert adoption_freshness["freshnessBoundary"]["generatedAtMustBeNoEarlierThanReleaseManifest"] is True
+assert adoption_freshness["freshnessBoundary"]["sourceOnlyProofRefreshesExternalEvidence"] is False
 assert report["scopeBoundary"]["shipguardOnly"] is True
 assert report["shipguardEval"]["mode"] == "ShipGuard product QA"
 assert "value-gauntlet" in report["resultUX"]["nextCommand"]
@@ -1081,6 +1154,9 @@ grep -q 'Release Notes Proof' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release Notes Authoring Kit' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Launch Relay Drafts' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Public posting allowed: `False`' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'External Evidence Freshness' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'External adoption freshness: `pass`' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Security review freshness: `pass`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'independent-adoption-evidence' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Templates' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Starter Kit' "$tmp_dir/pass/v4-stable-publication.md"

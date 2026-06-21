@@ -2,6 +2,35 @@
   "blockedClaims": [
     "Do not publish, submit, post, schedule, or perform account-visible external launch actions without explicit human approval for that exact launch run."
   ],
+  "externalAdoptionEvidenceProof": {
+    "evidencePacketFreshness": {
+      "evidenceId": "independent-adoption-evidence",
+      "freshStableRecordCount": 1,
+      "freshnessBoundary": {
+        "fixtureProofRefreshesExternalEvidence": false,
+        "generatedAtMustBeNoEarlierThanReleaseManifest": true,
+        "localPackageProofRefreshesExternalEvidence": false,
+        "sourceOnlyProofRefreshesExternalEvidence": false
+      },
+      "problems": [],
+      "records": [
+        {
+          "generatedAt": "2026-06-20T00:00:00Z",
+          "generatedAtValid": true,
+          "noEarlierThanReleaseManifest": true,
+          "path": "<stable-adoption>/external-adoption.json"
+        }
+      ],
+      "referenceSource": "release-manifest.generatedAt",
+      "referenceTimestamp": "2026-06-20T00:00:00Z",
+      "schemaVersion": 1,
+      "stableRecordCount": 1,
+      "staleStableRecordCount": 0,
+      "status": "pass"
+    },
+    "stableV4GateStatus": "pass",
+    "status": "pass"
+  },
   "findings": [],
   "fixtureCandidate": {
     "candidateId": "01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6",
@@ -86,6 +115,35 @@
     "doesNotPublishRelease": true,
     "shipguardOnly": true,
     "targetAppsReadOnly": true
+  },
+  "securityReviewEvidenceProof": {
+    "evidencePacketFreshness": {
+      "evidenceId": "final-security-review-evidence",
+      "freshStableRecordCount": 1,
+      "freshnessBoundary": {
+        "fixtureProofRefreshesExternalEvidence": false,
+        "generatedAtMustBeNoEarlierThanReleaseManifest": true,
+        "localPackageProofRefreshesExternalEvidence": false,
+        "sourceOnlyProofRefreshesExternalEvidence": false
+      },
+      "problems": [],
+      "records": [
+        {
+          "generatedAt": "2026-06-20T00:00:00Z",
+          "generatedAtValid": true,
+          "noEarlierThanReleaseManifest": true,
+          "path": "<stable-security>/security-review.json"
+        }
+      ],
+      "referenceSource": "release-manifest.generatedAt",
+      "referenceTimestamp": "2026-06-20T00:00:00Z",
+      "schemaVersion": 1,
+      "stableRecordCount": 1,
+      "staleStableRecordCount": 0,
+      "status": "pass"
+    },
+    "stableV4GateStatus": "pass",
+    "status": "pass"
   },
   "shareability": {
     "localAbsolutePathsIncluded": false,

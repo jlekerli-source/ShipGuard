@@ -75,8 +75,8 @@ The report returns `pass` only when every gate passes:
 - Post-release consumer proof is attached from the release assets.
 - The post-release digest matrix covers required release assets, has SHA-256 values for present assets, and the release tarball digest matches the consumer artifact SHA-256.
 - Public release freshness proves the GitHub tag target, `release-manifest.json` commit, release tag/version, release metadata target, and publication timestamp describe the same release.
-- External adoption evidence passes the stable-v4 gate with independent public or redacted external records.
-- Final security-review evidence passes the stable-v4 gate with CLI, plugin, GitHub Actions, release-proof, package-install, and redaction/privacy scope coverage.
+- External adoption evidence passes the stable-v4 gate with independent public or redacted external records, and the record `generatedAt` timestamp is no earlier than the release manifest timestamp.
+- Final security-review evidence passes the stable-v4 gate with CLI, plugin, GitHub Actions, release-proof, package-install, and redaction/privacy scope coverage, and the record `generatedAt` timestamp is no earlier than the release manifest timestamp.
 
 If any gate fails, the report returns `review`, sets `stableV4Release` to `false`, and puts the next command in `resultUX.nextCommand`.
 
@@ -229,6 +229,14 @@ When public release freshness is a closure blocker, the row also carries a fresh
 
 Markdown renders these fields as `Public Release Freshness Closure Kit` so stale tags, rebuilt assets, or mismatched release manifests are visible before adoption/security evidence is chased.
 
+## External Evidence Freshness
+
+Stable publication also emits `evidencePacketFreshness` inside both `externalAdoptionEvidenceProof` and `securityReviewEvidenceProof`.
+
+The freshness check compares stable-v4 eligible evidence record `generatedAt` values with the release manifest timestamp from the downloaded or supplied release assets. If otherwise valid adoption or security evidence predates that release packet, the corresponding stable-v4 gate is downgraded to `review`.
+
+Markdown renders these rows as `External Evidence Freshness`, including the reference timestamp, fresh/stale stable record counts, and the boundary that source-only, fixture, or local package proof cannot refresh external evidence.
+
 When independent adoption or final security-review evidence is a closure blocker, the row also carries an evidence closure kit:
 
 - the generated starter file path and source template path
@@ -236,7 +244,7 @@ When independent adoption or final security-review evidence is a closure blocker
 - required security scope for final security review evidence
 - redaction and privacy boundaries, including private path, app identifier, screenshot, token, and account-data exclusions
 - pass criteria and common fail criteria, including unchanged templates, missing redaction, fixture evidence, missing security scope, and open critical/high findings
-- current diagnostics from the supplied evidence proof, such as record counts, first error, missing fields, and missing security scope
+- current diagnostics from the supplied evidence proof, such as record counts, first error, missing fields, missing security scope, and evidence packet freshness
 - `rerunCommand`, the stable-publication command to run after attaching real adoption/security evidence
 
 Markdown renders these fields as `Evidence Closure Kit: <evidence-id>` so maintainers can close the adoption/security blockers without reverse-engineering template JSON or nested proof records.
