@@ -51,6 +51,27 @@ HARDWARE_DIFF_RE = re.compile(
     r"(adc|avcapturedevice|barometer|bluetooth|corebluetooth|gps|gyroscope|mcp3008|pca9685|sensor|thermistor)|clock drift",
     re.IGNORECASE,
 )
+HOST_ADAPTER_DIFF_RE = re.compile(
+    r"\b(adapter|bridge|connector|devspace|entrypoint|host|mcp|plugin|protocol|server|xcodebuildmcp)\b",
+    re.IGNORECASE,
+)
+HOST_ADAPTER_TOKENS = (
+    "adapter",
+    "bridge",
+    "connector",
+    "devspace",
+    "entrypoint",
+    "hostadapter",
+    "host_adapter",
+    "mcp",
+    "plugin",
+    "pluginhost",
+    "plugin_host",
+    "previewhost",
+    "preview_host",
+    "protocol",
+    "xcodebuildmcp",
+)
 
 
 def utc_now() -> str:
@@ -155,6 +176,12 @@ def has_calibration_token(text: str) -> bool:
 
 def has_hardware_diff_context(text: str) -> bool:
     return bool(HARDWARE_DIFF_RE.search(text))
+
+
+def has_host_adapter_context(file_name: str, text: str) -> bool:
+    haystack = f"{file_name}\n{text}"
+    lowered = haystack.lower()
+    return bool(HOST_ADAPTER_DIFF_RE.search(haystack)) or any(token in lowered for token in HOST_ADAPTER_TOKENS)
 
 
 def collect_proof_signals(files: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -413,6 +440,51 @@ def build_runnable_check_review(
     }
 
 
+def build_hardware_host_boundary_review(findings: list[dict[str, Any]]) -> dict[str, Any]:
+    hardware_findings = [
+        item
+        for item in findings
+        if isinstance(item, dict) and item.get("ruleId") == "hardware-calibration-missing-diff"
+    ]
+    host_adapter_findings = [
+        item
+        for item in findings
+        if isinstance(item, dict) and item.get("ruleId") == "host-adapter-boundary-diff"
+    ]
+    return {
+        "policy": (
+            "Lean Review should block false less-code pressure around physical-world behavior and product-surface "
+            "host adapters. Hardware needs calibration proof; host adapters need call-site or protocol proof before "
+            "they are treated as removable wrappers."
+        ),
+        "hardwareCalibrationPolicy": (
+            "Hardware, sensors, clocks, and physical devices need calibration, timing, or real-device evidence before "
+            "simplification removes tuning boundaries."
+        ),
+        "hostAdapterPolicy": (
+            "Thin plugin, MCP, preview, simulator, and platform host adapters can be the product boundary. Keep them "
+            "until call-site, protocol, or runtime proof shows the adapter is redundant."
+        ),
+        "hardwareCalibrationFindings": [runnable_check_finding_row(item) for item in hardware_findings],
+        "hostAdapterBoundaryFindings": [runnable_check_finding_row(item) for item in host_adapter_findings],
+        "summary": {
+            "hardwareCalibrationFindings": len(hardware_findings),
+            "hostAdapterBoundaryFindings": len(host_adapter_findings),
+            "falseLessCodePressureBlocked": len(hardware_findings) + len(host_adapter_findings),
+            "proofBlockedHardwareFiles": len(
+                {str((item.get("evidence") or {}).get("file") or "") for item in hardware_findings}
+            ),
+            "keepHostAdapterFiles": len(
+                {str((item.get("evidence") or {}).get("file") or "") for item in host_adapter_findings}
+            ),
+        },
+        "proofToAttach": [
+            "For hardware rows, attach calibration, tuning, timing, sensor, or physical-device proof before simplifying.",
+            "For host-adapter rows, attach call-site, protocol, plugin, MCP, preview, or runtime proof before deleting a thin adapter.",
+        ],
+    }
+
+
 def scan_diff(root: Path, files: list[dict[str, Any]], proof_signals: list[dict[str, Any]]) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
     for file_diff in files:
@@ -555,22 +627,42 @@ def scan_diff(root: Path, files: list[dict[str, Any]], proof_signals: list[dict[
             )
 
         wrapper_match = re.search(
-            r"(?:export\s+)?(?:function|const)\s+([A-Za-z0-9_]+)\s*(?:=\s*)?(?:\([^)]*\)|[^=]*)\s*(?:=>|\{)\s*(?:return\s+)?([A-Za-z0-9_.]+)\([^;\n{}]*\)",
+            r"(?:export\s+)?(?:function|func|def|const)\s+([A-Za-z0-9_]+)\s*(?:=\s*)?(?:\([^)]*\)|[^=]*)\s*(?:=>|\{|:)\s*(?:return\s+)?([A-Za-z0-9_.]+)\([^;\n{}]*\)",
             added_text,
         )
         if wrapper_match and not safe_context:
-            findings.append(
-                finding(
-                    severity="opportunity",
-                    category="yagni-diff-review",
-                    rule_id="thin-wrapper-diff-review",
-                    file=file_name,
-                    line=first_added_line(file_diff, re.escape(wrapper_match.group(1))),
-                    evidence=f"{wrapper_match.group(1)} delegates to {wrapper_match.group(2)}",
-                    recommendation="Inline or delete this wrapper unless it adds policy, naming, compatibility, logging, typing, or test value.",
-                    proof="Search call sites and keep one small check if behavior is non-trivial.",
+            if has_host_adapter_context(file_name, added_text):
+                findings.append(
+                    finding(
+                        severity="info",
+                        category="host-adapter-boundary",
+                        rule_id="host-adapter-boundary-diff",
+                        file=file_name,
+                        line=first_added_line(file_diff, re.escape(wrapper_match.group(1))),
+                        evidence=f"{wrapper_match.group(1)} delegates to {wrapper_match.group(2)} across a host/adapter boundary",
+                        recommendation=(
+                            "Keep this host, plugin, MCP, preview, simulator, or platform adapter until call-site "
+                            "or protocol proof shows it is redundant."
+                        ),
+                        proof=(
+                            "Attach call-site, protocol, plugin, MCP, preview, or runtime proof before simplifying "
+                            "the adapter boundary."
+                        ),
+                    )
                 )
-            )
+            else:
+                findings.append(
+                    finding(
+                        severity="opportunity",
+                        category="yagni-diff-review",
+                        rule_id="thin-wrapper-diff-review",
+                        file=file_name,
+                        line=first_added_line(file_diff, re.escape(wrapper_match.group(1))),
+                        evidence=f"{wrapper_match.group(1)} delegates to {wrapper_match.group(2)}",
+                        recommendation="Inline or delete this wrapper unless it adds policy, naming, compatibility, logging, typing, or test value.",
+                        proof="Search call sites and keep one small check if behavior is non-trivial.",
+                    )
+                )
 
         if safe_context:
             findings.append(
@@ -622,9 +714,12 @@ def decision_for_findings(items: list[dict[str, Any]]) -> str:
     categories = {str(item.get("category") or "") for item in items}
     if not items:
         return "clean"
-    if rule_ids & {"thin-wrapper-diff-review", "speculative-future-hook-diff"}:
-        return "delete"
-    if "do-not-cut-safety-diff-without-proof" in rule_ids or "safety-boundary" in categories:
+    if (
+        "do-not-cut-safety-diff-without-proof" in rule_ids
+        or "host-adapter-boundary-diff" in rule_ids
+        or "safety-boundary" in categories
+        or "host-adapter-boundary" in categories
+    ):
         return "keep"
     if rule_ids & {
         "one-runnable-check-missing-diff",
@@ -632,6 +727,8 @@ def decision_for_findings(items: list[dict[str, Any]]) -> str:
         "deferred-shortcut-without-trigger",
     }:
         return "proof-blocked"
+    if rule_ids & {"thin-wrapper-diff-review", "speculative-future-hook-diff"}:
+        return "delete"
     return "simplify"
 
 
@@ -760,6 +857,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     proof_calibration = build_proof_signal_calibration(proof_signals=proof_signals, findings=findings)
     proof_signal_matching = build_proof_signal_matching(files=files, proof_signals=proof_signals)
     runnable_check_review = build_runnable_check_review(proof_signals=proof_signals, findings=findings)
+    hardware_host_boundary_review = build_hardware_host_boundary_review(findings)
     current_diff_decision_map = build_current_diff_decision_map(
         diff_path=diff_path,
         files=files,
@@ -787,6 +885,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "proofSignalCalibration": proof_calibration,
         "proofSignalMatching": proof_signal_matching,
         "runnableCheckReview": runnable_check_review,
+        "hardwareHostBoundaryReview": hardware_host_boundary_review,
         "precisionReview": precision,
         "findings": findings,
         "metrics": {
@@ -976,6 +1075,39 @@ def render_markdown(report: dict[str, Any]) -> str:
                     f"| {str(signal.get('location', '')).replace('|', '\\|')} | "
                     f"{str(signal.get('kind', '')).replace('|', '\\|')} | "
                     f"{str(signal.get('snippet', '')).replace('|', '\\|')} |"
+                )
+    hardware_host = report.get("hardwareHostBoundaryReview", {})
+    if isinstance(hardware_host, dict):
+        summary = hardware_host.get("summary") if isinstance(hardware_host.get("summary"), dict) else {}
+        lines.extend(["", "## Hardware And Host Boundary Review", ""])
+        lines.append(f"- Hardware calibration findings: {summary.get('hardwareCalibrationFindings', 0)}")
+        lines.append(f"- Host adapter boundary findings: {summary.get('hostAdapterBoundaryFindings', 0)}")
+        lines.append(f"- False less-code pressure blocked: {summary.get('falseLessCodePressureBlocked', 0)}")
+        if hardware_host.get("policy"):
+            lines.append(f"- Policy: {hardware_host.get('policy')}")
+        if hardware_host.get("hardwareCalibrationPolicy"):
+            lines.append(f"- Hardware calibration policy: {hardware_host.get('hardwareCalibrationPolicy')}")
+        if hardware_host.get("hostAdapterPolicy"):
+            lines.append(f"- Host adapter policy: {hardware_host.get('hostAdapterPolicy')}")
+        hardware_rows = hardware_host.get("hardwareCalibrationFindings")
+        if isinstance(hardware_rows, list) and hardware_rows:
+            lines.extend(["", "### Hardware Calibration Proof", ""])
+            lines.extend(["| Location | Recommendation | Proof |", "| --- | --- | --- |"])
+            for row in hardware_rows[:8]:
+                lines.append(
+                    f"| {str(row.get('location', '')).replace('|', '\\|')} | "
+                    f"{str(row.get('recommendation', '')).replace('|', '\\|')} | "
+                    f"{str(row.get('proofGuidance', '')).replace('|', '\\|')} |"
+                )
+        host_rows = hardware_host.get("hostAdapterBoundaryFindings")
+        if isinstance(host_rows, list) and host_rows:
+            lines.extend(["", "### Host Adapter Boundaries", ""])
+            lines.extend(["| Location | Recommendation | Proof |", "| --- | --- | --- |"])
+            for row in host_rows[:8]:
+                lines.append(
+                    f"| {str(row.get('location', '')).replace('|', '\\|')} | "
+                    f"{str(row.get('recommendation', '')).replace('|', '\\|')} | "
+                    f"{str(row.get('proofGuidance', '')).replace('|', '\\|')} |"
                 )
     summary = precision.get("summary", {})
     lines.extend(["", "## Precision Ledger", ""])

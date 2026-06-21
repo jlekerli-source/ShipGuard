@@ -393,6 +393,138 @@ if grep -q '"ruleId": "hardware-calibration-missing-diff"' "$tmp_dir/prose-token
   exit 1
 fi
 
+cat > "$tmp_dir/hardware-host-boundary.diff" <<'DIFF'
+diff --git a/src/plugin_host_adapter.js b/src/plugin_host_adapter.js
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/src/plugin_host_adapter.js
+@@ -0,0 +1,3 @@
++export function handlePluginRequest(request) {
++  return pluginHost.handle(request)
++}
+diff --git a/src/sensor_sampler.py b/src/sensor_sampler.py
+new file mode 100644
+index 0000000..2222222
+--- /dev/null
++++ b/src/sensor_sampler.py
+@@ -0,0 +1,3 @@
++def sample_sensor(adc):
++    raw = adc.read(0)
++    return raw
+DIFF
+
+./bin/shipguard lean review \
+  --path fixtures/lean-audit-demo \
+  --diff "$tmp_dir/hardware-host-boundary.diff" \
+  --out "$tmp_dir/hardware-host-boundary-review" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+grep -q '"ruleId": "host-adapter-boundary-diff"' "$tmp_dir/hardware-host-boundary-review/lean-review.json"
+grep -q '"ruleId": "hardware-calibration-missing-diff"' "$tmp_dir/hardware-host-boundary-review/lean-review.json"
+grep -q '"hardwareHostBoundaryReview":' "$tmp_dir/hardware-host-boundary-review/lean-review.json"
+grep -q '"hostAdapterBoundaryFindings": 1' "$tmp_dir/hardware-host-boundary-review/lean-review.json"
+grep -q '"hardwareCalibrationFindings": 1' "$tmp_dir/hardware-host-boundary-review/lean-review.json"
+grep -q '"falseLessCodePressureBlocked": 2' "$tmp_dir/hardware-host-boundary-review/lean-review.json"
+grep -q 'Hardware And Host Boundary Review' "$tmp_dir/hardware-host-boundary-review/lean-review.md"
+grep -q 'Hardware Calibration Proof' "$tmp_dir/hardware-host-boundary-review/lean-review.md"
+grep -q 'Host Adapter Boundaries' "$tmp_dir/hardware-host-boundary-review/lean-review.md"
+python3 - <<'PY' "$tmp_dir/hardware-host-boundary-review/lean-review.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+decisions = {row["file"]: row for row in data["currentDiffDecisionMap"]["decisions"]}
+host = decisions["src/plugin_host_adapter.js"]
+sensor = decisions["src/sensor_sampler.py"]
+if host["decision"] != "keep" or host["ruleIds"] != ["host-adapter-boundary-diff"]:
+    raise SystemExit(f"host adapter should be a keep boundary: {host!r}")
+if sensor["decision"] != "proof-blocked" or sensor["ruleIds"] != ["hardware-calibration-missing-diff"]:
+    raise SystemExit(f"sensor code should be proof-blocked: {sensor!r}")
+rules = {item["ruleId"] for item in data["findings"]}
+if "thin-wrapper-diff-review" in rules:
+    raise SystemExit(f"host adapter must not be treated as a delete-wrapper finding: {rules!r}")
+PY
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/hardware-host-boundary-review" \
+  --out "$tmp_dir/hardware-host-boundary-quality" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+grep -q '"status": "pass"' "$tmp_dir/hardware-host-boundary-quality/ios-report-quality.json"
+if grep -q 'lean-review-hardware-host-boundary' "$tmp_dir/hardware-host-boundary-quality/ios-report-quality.json"; then
+  echo "report-quality should accept complete hardware/host boundary review packets" >&2
+  exit 1
+fi
+
+cat > "$tmp_dir/hardware-wrapper.diff" <<'DIFF'
+diff --git a/src/sensor_wrapper.js b/src/sensor_wrapper.js
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/src/sensor_wrapper.js
+@@ -0,0 +1,3 @@
++export function sampleSensor(adc) {
++  return adc.read(channel)
++}
+DIFF
+
+./bin/shipguard lean review \
+  --path fixtures/lean-audit-demo \
+  --diff "$tmp_dir/hardware-wrapper.diff" \
+  --out "$tmp_dir/hardware-wrapper-review" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+grep -q '"ruleId": "hardware-calibration-missing-diff"' "$tmp_dir/hardware-wrapper-review/lean-review.json"
+grep -q '"ruleId": "thin-wrapper-diff-review"' "$tmp_dir/hardware-wrapper-review/lean-review.json"
+python3 - <<'PY' "$tmp_dir/hardware-wrapper-review/lean-review.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+decision = data["currentDiffDecisionMap"]["decisions"][0]
+if decision["decision"] != "proof-blocked":
+    raise SystemExit(f"hardware wrapper should be proof-blocked before delete pressure: {decision!r}")
+for expected in ("hardware-calibration-missing-diff", "thin-wrapper-diff-review"):
+    if expected not in decision["ruleIds"]:
+        raise SystemExit(f"hardware wrapper decision should preserve {expected}: {decision!r}")
+PY
+
+cat > "$tmp_dir/python-host-adapter.diff" <<'DIFF'
+diff --git a/src/plugin_host_adapter.py b/src/plugin_host_adapter.py
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/src/plugin_host_adapter.py
+@@ -0,0 +1,2 @@
++def handle_plugin_request(request):
++    return plugin_host.handle(request)
+DIFF
+
+./bin/shipguard lean review \
+  --path fixtures/lean-audit-demo \
+  --diff "$tmp_dir/python-host-adapter.diff" \
+  --out "$tmp_dir/python-host-adapter-review" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+grep -q '"ruleId": "host-adapter-boundary-diff"' "$tmp_dir/python-host-adapter-review/lean-review.json"
+python3 - <<'PY' "$tmp_dir/python-host-adapter-review/lean-review.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+decision = data["currentDiffDecisionMap"]["decisions"][0]
+if decision["decision"] != "keep" or decision["ruleIds"] != ["host-adapter-boundary-diff"]:
+    raise SystemExit(f"Python host adapter should be a keep boundary: {decision!r}")
+rules = {item["ruleId"] for item in data["findings"]}
+if "thin-wrapper-diff-review" in rules:
+    raise SystemExit(f"Python host adapter must not be treated as a delete-wrapper finding: {rules!r}")
+PY
+
 cat > "$tmp_dir/same-diff-proof.diff" <<'DIFF'
 diff --git a/src/proof_target.py b/src/proof_target.py
 new file mode 100644

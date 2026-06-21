@@ -131,6 +131,18 @@ The v3.147 read-only loop reran the Lean Deck self-QA set after the runnable-che
 
 Fresh combined Lean QA now treats the proof-signal calibration question as covered and advances to the hardware-boundary question.
 
+## Current Lean Review Hardware Boundary Fixture QA
+
+The v3.148 read-only loop reran `shipguard lean audit`, `shipguard lean review`, `shipguard lean gain`, `shipguard lean debt`, and `ios report-quality --write-fixture-candidates` against this checkout after the proof-signal fixture landed.
+
+- Finding: fresh combined Lean QA passed, but the next uncovered actionability question was "Does Lean Review protect hardware calibration and host boundaries from false less-code pressure?"
+- Product weakness: Lean Review had behavior gates and generic hardware findings, but it did not expose a first-class packet that says which hardware rows are proof-blocked and which host/plugin/MCP/preview adapter rows should be kept until protocol or runtime proof exists.
+- Native fix: `shipguard lean review` now emits `hardwareHostBoundaryReview` with hardware calibration rows, host-adapter keep rows, false less-code pressure counts, and Markdown tables for `Hardware Calibration Proof` and `Host Adapter Boundaries`.
+- Report-quality fix: `ios report-quality` now flags Lean Review reports that have hardware or host-adapter findings but omit the packet, undercount rows, hide calibration or adapter policy, or skip the Markdown boundary review.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68` uses public synthetic evidence for two protected lanes: one sensor calibration row that stays proof-blocked and one plugin host adapter row that stays keep-with-proof.
+
+Fresh combined Lean QA now treats the hardware-boundary question as covered and advances to the safety-boundary question.
+
 ## Current Verify-PR First-Run QA
 
 The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `shipguard full-audit --plan-only`, docs-check, and the verify-first quickstart tests against this checkout.

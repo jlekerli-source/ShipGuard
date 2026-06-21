@@ -2854,6 +2854,20 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 if str(item.get("ruleId") or "") == "one-runnable-check-signal-present-diff"
             ]
         )
+        hardware_rule_count = len(
+            [
+                item
+                for item in findings
+                if isinstance(item, dict) and str(item.get("ruleId") or "") == "hardware-calibration-missing-diff"
+            ]
+        )
+        host_adapter_rule_count = len(
+            [
+                item
+                for item in findings
+                if isinstance(item, dict) and str(item.get("ruleId") or "") == "host-adapter-boundary-diff"
+            ]
+        )
         calibration = report.get("proofSignalCalibration")
         if proof_related:
             if not isinstance(calibration, dict):
@@ -3082,6 +3096,162 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 evidence=f"{path_name} Markdown does not expose proof signal matching",
                 recommendation="Render proofSignalMatching in Markdown so maintainers see matched and unmatched proof signals.",
             )
+        if hardware_rule_count or host_adapter_rule_count:
+            boundary_review = report.get("hardwareHostBoundaryReview")
+            if not isinstance(boundary_review, dict):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-review-hardware-host-boundary-review-missing",
+                    evidence=f"{path_name} has hardware or host-adapter findings but no hardwareHostBoundaryReview",
+                    recommendation="Emit hardwareHostBoundaryReview so Lean Review blocks false less-code pressure on hardware calibration and host adapters.",
+                )
+            else:
+                summary = boundary_review.get("summary") if isinstance(boundary_review.get("summary"), dict) else {}
+                hardware_rows = boundary_review.get("hardwareCalibrationFindings")
+                host_rows = boundary_review.get("hostAdapterBoundaryFindings")
+                policy_text = normalized_question_text(
+                    " ".join(
+                        str(boundary_review.get(key) or "")
+                        for key in ("policy", "hardwareCalibrationPolicy", "hostAdapterPolicy")
+                    )
+                )
+                required_summary = {
+                    "hardwareCalibrationFindings",
+                    "hostAdapterBoundaryFindings",
+                    "falseLessCodePressureBlocked",
+                    "proofBlockedHardwareFiles",
+                    "keepHostAdapterFiles",
+                }
+                missing_summary = sorted(key for key in required_summary if key not in summary)
+                if missing_summary:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-hardware-host-boundary-summary-incomplete",
+                        evidence=f"{path_name} hardwareHostBoundaryReview.summary missing: {', '.join(missing_summary)}",
+                        recommendation="Expose hardware, host-adapter, false-pressure, proof-blocked, and keep-boundary counts.",
+                    )
+                if hardware_rule_count and (
+                    int(summary.get("hardwareCalibrationFindings") or 0) < hardware_rule_count
+                    or not isinstance(hardware_rows, list)
+                    or len(hardware_rows) < hardware_rule_count
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-hardware-calibration-rows-incomplete",
+                        evidence=f"{path_name} has {hardware_rule_count} hardware calibration finding(s) but incomplete hardware rows",
+                        recommendation="List every hardware calibration finding with location, recommendation, and proof guidance.",
+                    )
+                if host_adapter_rule_count and (
+                    int(summary.get("hostAdapterBoundaryFindings") or 0) < host_adapter_rule_count
+                    or not isinstance(host_rows, list)
+                    or len(host_rows) < host_adapter_rule_count
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-host-adapter-boundary-rows-incomplete",
+                        evidence=f"{path_name} has {host_adapter_rule_count} host adapter finding(s) but incomplete host-adapter rows",
+                        recommendation="List every host-adapter boundary finding with location, recommendation, and proof guidance.",
+                    )
+                if hardware_rule_count and (
+                    "hardware" not in policy_text
+                    or "calibration" not in policy_text
+                    or ("device" not in policy_text and "timing" not in policy_text and "sensor" not in policy_text)
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-hardware-calibration-policy-incomplete",
+                        evidence=f"{path_name} hardwareHostBoundaryReview policy does not explain calibration or physical-device proof",
+                        recommendation="State the hardware calibration proof boundary so source-only less-code pressure cannot remove physical-world tuning.",
+                    )
+                if host_adapter_rule_count and (
+                    "adapter" not in policy_text
+                    or "host" not in policy_text
+                    or ("protocol" not in policy_text and "plugin" not in policy_text and "runtime" not in policy_text)
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-host-adapter-boundary-policy-incomplete",
+                        evidence=f"{path_name} hardwareHostBoundaryReview policy does not explain host adapter proof",
+                        recommendation="State that host/plugin/MCP/preview adapters can be the product boundary until protocol or runtime proof says otherwise.",
+                    )
+                decision_map_for_boundary = report.get("currentDiffDecisionMap")
+                if isinstance(decision_map_for_boundary, dict):
+                    decisions = decision_map_for_boundary.get("decisions")
+                    decision_by_file = {}
+                    if isinstance(decisions, list):
+                        decision_by_file = {
+                            str(row.get("file") or ""): row for row in decisions if isinstance(row, dict)
+                        }
+                    hardware_files = {
+                        str((item.get("evidence") or {}).get("file") or "")
+                        for item in findings
+                        if isinstance(item, dict)
+                        and str(item.get("ruleId") or "") == "hardware-calibration-missing-diff"
+                    }
+                    bad_hardware = []
+                    for file_name in sorted(file for file in hardware_files if file):
+                        row = decision_by_file.get(file_name)
+                        rule_ids = row.get("ruleIds") if isinstance(row, dict) else []
+                        if (
+                            not isinstance(row, dict)
+                            or row.get("decision") != "proof-blocked"
+                            or not isinstance(rule_ids, list)
+                            or "hardware-calibration-missing-diff" not in rule_ids
+                        ):
+                            bad_hardware.append(file_name)
+                    if bad_hardware:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="lean-review-hardware-calibration-decision-map-incomplete",
+                            evidence=f"{path_name} currentDiffDecisionMap does not proof-block hardware files: {', '.join(bad_hardware[:5])}",
+                            recommendation="Mark hardware calibration files as proof-blocked with hardware-calibration-missing-diff in the current diff decision map.",
+                        )
+                    host_files = {
+                        str((item.get("evidence") or {}).get("file") or "")
+                        for item in findings
+                        if isinstance(item, dict)
+                        and str(item.get("ruleId") or "") == "host-adapter-boundary-diff"
+                    }
+                    bad_hosts = []
+                    for file_name in sorted(file for file in host_files if file):
+                        row = decision_by_file.get(file_name)
+                        rule_ids = row.get("ruleIds") if isinstance(row, dict) else []
+                        if (
+                            not isinstance(row, dict)
+                            or row.get("decision") != "keep"
+                            or not isinstance(rule_ids, list)
+                            or "host-adapter-boundary-diff" not in rule_ids
+                        ):
+                            bad_hosts.append(file_name)
+                    if bad_hosts:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="lean-review-host-adapter-decision-map-incomplete",
+                            evidence=f"{path_name} currentDiffDecisionMap does not keep host-adapter files: {', '.join(bad_hosts[:5])}",
+                            recommendation="Mark host-adapter files as keep with host-adapter-boundary-diff in the current diff decision map.",
+                        )
+            required_boundary_markdown = ["Hardware And Host Boundary Review"]
+            if hardware_rule_count:
+                required_boundary_markdown.append("Hardware Calibration Proof")
+            if host_adapter_rule_count:
+                required_boundary_markdown.append("Host Adapter Boundaries")
+            missing_boundary_markdown = [token for token in required_boundary_markdown if token not in markdown]
+            if missing_boundary_markdown:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-review-hardware-host-boundary-markdown-missing",
+                    evidence=f"{path_name} Markdown missing boundary review tokens: {', '.join(missing_boundary_markdown)}",
+                    recommendation="Render hardwareHostBoundaryReview in Markdown so maintainers see calibration and host-adapter keep/proof guidance.",
+                )
         decision_map = report.get("currentDiffDecisionMap")
         if not isinstance(decision_map, dict):
             add_issue(
@@ -4495,6 +4665,7 @@ def should_create_fixture_candidate(question: str) -> bool:
 
 def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str, Any]:
     question = str(row.get("question") or "")
+    normalized_question = normalized_question_text(question)
     tool = str(row.get("tool") or "unknown")
     fixture_type = fixture_type_for_question(question, tool)
     candidate_id = f"{index:02d}-{slugify(f'{tool} {question}', limit=64)}"
@@ -4516,7 +4687,7 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
                 "the Markdown exposes Current Diff Decision Map plus the whole-repo non-claim and lean-audit fallback",
             ]
         )
-        if "runnable check" in normalized_question_text(question) or "proofsignalcalibration" in normalized_question_text(question):
+        if "runnable check" in normalized_question or "proofsignalcalibration" in normalized_question:
             expected_assertions.extend(
                 [
                     "the fixture exposes runnableCheckReview.missingProofFindings for non-trivial logic without proof",
@@ -4525,6 +4696,15 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
                     "the fixture exposes proofSignalMatching rows plus unmatched proof signals so unrelated tests are not global proof",
                     "the Markdown exposes Runnable Check Review, Missing Runnable Checks, Same-Diff Proof Signals, and the non-ceremony boundary",
                     "the Markdown exposes Proof Signal Matching and Unmatched Proof Signals",
+                ]
+            )
+        if "hardware calibration" in normalized_question and "host boundaries" in normalized_question:
+            expected_assertions.extend(
+                [
+                    "the fixture exposes hardwareHostBoundaryReview.hardwareCalibrationFindings for physical-device proof-blocked rows",
+                    "the fixture exposes hardwareHostBoundaryReview.hostAdapterBoundaryFindings for host/plugin adapter keep rows",
+                    "the fixture currentDiffDecisionMap proof-blocks hardware calibration and keeps host adapters",
+                    "the Markdown exposes Hardware And Host Boundary Review, Hardware Calibration Proof, and Host Adapter Boundaries",
                 ]
             )
     return {
@@ -5267,6 +5447,30 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
         "recommendation": "Do not add duplicate test ceremony before checking whether the same-diff proof signal already covers this logic.",
         "proofGuidance": "Review Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift, then run the focused test before merge.",
     }
+    hardware_finding = {
+        "severity": "review",
+        "category": "hardware-diff-review",
+        "ruleId": "hardware-calibration-missing-diff",
+        "evidence": {
+            "file": "Sources/SyntheticLeanReview/SensorSampler.swift",
+            "line": 33,
+            "snippet": "let rawSample = adc.read(channel: channel)",
+        },
+        "recommendation": "Keep a minimal calibration or tuning boundary when code touches real hardware or physical-device behavior.",
+        "proofGuidance": "Attach real-device, sensor, timing, or calibration evidence before simplifying the physical-world edge case away.",
+    }
+    host_adapter_finding = {
+        "severity": "info",
+        "category": "host-adapter-boundary",
+        "ruleId": "host-adapter-boundary-diff",
+        "evidence": {
+            "file": "Sources/SyntheticLeanReview/PluginHostAdapter.swift",
+            "line": 12,
+            "snippet": "func handle(_ request: PluginRequest) -> PluginResponse { adapter.handle(request) }",
+        },
+        "recommendation": "Keep this host, plugin, MCP, preview, simulator, or platform adapter until call-site or protocol proof shows it is redundant.",
+        "proofGuidance": "Attach call-site, protocol, plugin, MCP, preview, or runtime proof before simplifying the adapter boundary.",
+    }
     action_groups = [
         {
             "rank": 1,
@@ -5297,6 +5501,16 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
             "firstExperiment": "Add or identify one smallest runnable route-selection check before merging the new branch.",
             "validationRoute": "Run the focused route-selection test plus git diff --check.",
             "stopCondition": "Stop if the diff has no runnable proof signal for the changed non-trivial logic.",
+        },
+        {
+            "rank": 4,
+            "decision": "proof-blocked",
+            "ruleId": "hardware-calibration-missing-diff",
+            "evidenceCount": 1,
+            "firstLocation": "Sources/SyntheticLeanReview/SensorSampler.swift:33",
+            "firstExperiment": "Attach calibration, timing, or real-device evidence before removing the sensor tuning boundary.",
+            "validationRoute": "Run or attach the smallest hardware, simulator, or timing proof that covers the changed sampling behavior.",
+            "stopCondition": "Stop if the only evidence is source-level less-code pressure without physical-world proof.",
         },
     ]
     decisions = [
@@ -5337,6 +5551,18 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
             "stopCondition": "Stop if the only evidence is less-code pressure without behavior proof.",
         },
         {
+            "file": "Sources/SyntheticLeanReview/PluginHostAdapter.swift",
+            "source": "unified-diff",
+            "decision": "keep",
+            "addedLines": 5,
+            "removedLines": 0,
+            "ruleIds": ["host-adapter-boundary-diff"],
+            "firstLocation": "Sources/SyntheticLeanReview/PluginHostAdapter.swift:12",
+            "firstExperiment": "Treat this as a host-adapter keep boundary until protocol or runtime proof shows it is redundant.",
+            "validationRoute": "Run or attach the smallest plugin, MCP, preview, or runtime proof that covers the adapter boundary.",
+            "stopCondition": "Stop if the only evidence is less-code pressure against a product-surface adapter.",
+        },
+        {
             "file": "Sources/SyntheticLeanReview/RuleRouter.swift",
             "source": "unified-diff",
             "decision": "proof-blocked",
@@ -5347,6 +5573,18 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
             "firstExperiment": action_groups[2]["firstExperiment"],
             "validationRoute": action_groups[2]["validationRoute"],
             "stopCondition": action_groups[2]["stopCondition"],
+        },
+        {
+            "file": "Sources/SyntheticLeanReview/SensorSampler.swift",
+            "source": "unified-diff",
+            "decision": "proof-blocked",
+            "addedLines": 6,
+            "removedLines": 0,
+            "ruleIds": ["hardware-calibration-missing-diff"],
+            "firstLocation": "Sources/SyntheticLeanReview/SensorSampler.swift:33",
+            "firstExperiment": action_groups[3]["firstExperiment"],
+            "validationRoute": action_groups[3]["validationRoute"],
+            "stopCondition": action_groups[3]["stopCondition"],
         },
         {
             "file": "Sources/SyntheticLeanReview/SelectionPolicy.swift",
@@ -5405,14 +5643,14 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
     return {
         "surface": "ShipGuard Lean Review",
         "target": {"path": ".", "shareable": True},
-        "diff": {"path": "synthetic-current-change.diff", "filesChanged": 7},
+        "diff": {"path": "synthetic-current-change.diff", "filesChanged": 9},
         "metrics": {
-            "filesChanged": 7,
-            "addedLines": 41,
-            "findings": 5,
-            "reviewFindings": 1,
+            "filesChanged": 9,
+            "addedLines": 52,
+            "findings": 7,
+            "reviewFindings": 2,
             "opportunityFindings": 2,
-            "infoFindings": 2,
+            "infoFindings": 3,
         },
         "sourceInfluence": {
             "name": "Ponytail",
@@ -5434,7 +5672,9 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
                 {"file": "Sources/SyntheticLeanReview/FormatterShim.swift", "addedLines": 6, "removedLines": 0},
                 {"file": "Sources/SyntheticLeanReview/QueryBuilder.swift", "addedLines": 8, "removedLines": 1},
                 {"file": "Sources/SyntheticLeanReview/PermissionGate.swift", "addedLines": 5, "removedLines": 0},
+                {"file": "Sources/SyntheticLeanReview/PluginHostAdapter.swift", "addedLines": 5, "removedLines": 0},
                 {"file": "Sources/SyntheticLeanReview/RuleRouter.swift", "addedLines": 7, "removedLines": 0},
+                {"file": "Sources/SyntheticLeanReview/SensorSampler.swift", "addedLines": 6, "removedLines": 0},
                 {"file": "Sources/SyntheticLeanReview/SelectionPolicy.swift", "addedLines": 6, "removedLines": 0},
                 {"file": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift", "addedLines": 5, "removedLines": 0},
                 {"file": "Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift", "addedLines": 4, "removedLines": 0},
@@ -5442,14 +5682,14 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
             "decisions": decisions,
             "deleteOrSimplifyList": [decisions[0], decisions[1]],
             "summary": {
-                "filesChanged": 7,
-                "addedLinesInspected": 41,
+                "filesChanged": 9,
+                "addedLinesInspected": 52,
                 "removedLinesSeen": 1,
-                "decisionRows": 7,
+                "decisionRows": 9,
                 "deleteCandidates": 1,
                 "simplifyCandidates": 1,
-                "keepBoundaries": 1,
-                "proofBlockedCandidates": 1,
+                "keepBoundaries": 2,
+                "proofBlockedCandidates": 2,
                 "cleanFiles": 3,
             },
             "nonClaims": [
@@ -5523,7 +5763,7 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
                 }
             ],
             "summary": {
-                "changedCodeFiles": 5,
+                "changedCodeFiles": 7,
                 "nonTrivialLogicFiles": 2,
                 "matchedSameDiffProofFiles": 1,
                 "missingProofFiles": 1,
@@ -5571,6 +5811,56 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
                 "For same-diff proof rows, run the changed check and confirm it exercises the changed non-trivial logic.",
             ],
         },
+        "hardwareHostBoundaryReview": {
+            "policy": (
+                "Lean Review should block false less-code pressure around physical-world behavior and product-surface "
+                "host adapters. Hardware needs calibration proof; host adapters need call-site or protocol proof before "
+                "they are treated as removable wrappers."
+            ),
+            "hardwareCalibrationPolicy": (
+                "Hardware, sensors, clocks, and physical devices need calibration, timing, or real-device evidence before "
+                "simplification removes tuning boundaries."
+            ),
+            "hostAdapterPolicy": (
+                "Thin plugin, MCP, preview, simulator, and platform host adapters can be the product boundary. Keep them "
+                "until call-site, protocol, or runtime proof shows the adapter is redundant."
+            ),
+            "hardwareCalibrationFindings": [
+                {
+                    "file": "Sources/SyntheticLeanReview/SensorSampler.swift",
+                    "line": 33,
+                    "location": "Sources/SyntheticLeanReview/SensorSampler.swift:33",
+                    "ruleId": "hardware-calibration-missing-diff",
+                    "severity": "review",
+                    "evidence": "let rawSample = adc.read(channel: channel)",
+                    "recommendation": hardware_finding["recommendation"],
+                    "proofGuidance": hardware_finding["proofGuidance"],
+                }
+            ],
+            "hostAdapterBoundaryFindings": [
+                {
+                    "file": "Sources/SyntheticLeanReview/PluginHostAdapter.swift",
+                    "line": 12,
+                    "location": "Sources/SyntheticLeanReview/PluginHostAdapter.swift:12",
+                    "ruleId": "host-adapter-boundary-diff",
+                    "severity": "info",
+                    "evidence": "func handle(_ request: PluginRequest) -> PluginResponse { adapter.handle(request) }",
+                    "recommendation": host_adapter_finding["recommendation"],
+                    "proofGuidance": host_adapter_finding["proofGuidance"],
+                }
+            ],
+            "summary": {
+                "hardwareCalibrationFindings": 1,
+                "hostAdapterBoundaryFindings": 1,
+                "falseLessCodePressureBlocked": 2,
+                "proofBlockedHardwareFiles": 1,
+                "keepHostAdapterFiles": 1,
+            },
+            "proofToAttach": [
+                "For hardware rows, attach calibration, tuning, timing, sensor, or physical-device proof before simplifying.",
+                "For host-adapter rows, attach call-site, protocol, plugin, MCP, preview, or runtime proof before deleting a thin adapter.",
+            ],
+        },
         "precisionReview": {
             "principle": "The best ShipGuard code is the code that proves it needs to exist.",
             "mode": {"mode": "full", "firstActionBias": "proof-ladder"},
@@ -5600,6 +5890,12 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
                     "location": "Sources/SyntheticLeanReview/PermissionGate.swift:31",
                     "reason": "Less-code pressure is not enough for permission-state branches.",
                     "proofRequired": "Attach focused permission-state behavior proof.",
+                },
+                {
+                    "ruleId": "host-adapter-boundary-diff",
+                    "location": "Sources/SyntheticLeanReview/PluginHostAdapter.swift:12",
+                    "reason": "Thin host adapters can be the product boundary.",
+                    "proofRequired": "Attach call-site, protocol, plugin, MCP, preview, or runtime proof before simplifying the adapter boundary.",
                 }
             ],
             "blockedByProof": [
@@ -5610,19 +5906,35 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
                     "severity": "review",
                     "action": "Leave one smallest runnable route-selection check.",
                     "proofRequired": "Add one focused route-selection check or point to the changed test that covers this branch before merge.",
+                },
+                {
+                    "rank": 4,
+                    "ruleId": "hardware-calibration-missing-diff",
+                    "location": "Sources/SyntheticLeanReview/SensorSampler.swift:33",
+                    "severity": "review",
+                    "action": "Keep a minimal calibration or tuning boundary for hardware behavior.",
+                    "proofRequired": "Attach real-device, sensor, timing, or calibration evidence before simplifying the physical-world edge case away.",
                 }
             ],
             "actionGroups": action_groups,
-            "topActions": [action_groups[0], action_groups[1], action_groups[2]],
+            "topActions": [action_groups[0], action_groups[1], action_groups[2], action_groups[3]],
             "summary": {
                 "deleteCandidates": 1,
                 "simplifyCandidates": 1,
-                "keepBoundaries": 1,
-                "proofBlockedCandidates": 1,
-                "actionGroups": 3,
+                "keepBoundaries": 2,
+                "proofBlockedCandidates": 2,
+                "actionGroups": 4,
             },
         },
-        "findings": [delete_finding, simplify_finding, keep_finding, missing_check_finding, same_diff_proof_finding],
+        "findings": [
+            delete_finding,
+            simplify_finding,
+            keep_finding,
+            host_adapter_finding,
+            missing_check_finding,
+            hardware_finding,
+            same_diff_proof_finding,
+        ],
         "nextActions": [
             "Start with currentDiffDecisionMap.deleteOrSimplifyList[0] before reading whole-repo inventory.",
             "Use shipguard lean audit only when a whole-repo Lean inventory is actually needed.",
@@ -5928,14 +6240,16 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "- Diff: `synthetic-current-change.diff`",
                 "- Boundary: This report is built only from the supplied unified diff; it does not scan the whole repo or claim a whole-repo inventory.",
                 "- Whole-repo fallback: `shipguard lean audit --path <repo> --out <lean-audit-out> --mode full --shipguard-eval --shareable`",
-                "- Decision rows: 7; delete: 1; simplify: 1; keep: 1; proof-blocked: 1; clean files: 3",
+                "- Decision rows: 9; delete: 1; simplify: 1; keep: 2; proof-blocked: 2; clean files: 3",
                 "",
                 "| File | Decision | Added | Removed | Rules | First Experiment | Validation | Stop Condition |",
                 "| --- | --- | ---: | ---: | --- | --- | --- | --- |",
                 "| Sources/SyntheticLeanReview/FormatterShim.swift | `delete` | 6 | 0 | thin-wrapper-diff-review | Search the changed call sites and delete the wrapper only if it is private and behavior-neutral. | Run the smallest formatter behavior check plus git diff --check. | Stop if call sites depend on naming, compatibility, logging, typing, or behavior policy. |",
                 "| Sources/SyntheticLeanReview/QueryBuilder.swift | `simplify` | 8 | 1 | stdlib-url-params-diff | Try URLComponents or URLQueryItem at the changed call site before adding parser code. | Run one focused query-string behavior check plus git diff --check. | Stop if repeated keys, empty values, encoding, or malformed input behavior changes. |",
                 "| Sources/SyntheticLeanReview/PermissionGate.swift | `keep` | 5 | 0 | do-not-cut-safety-diff-without-proof | Treat this as a keep-with-proof boundary before any deletion or simplification. | Run focused permission-state behavior proof before changing this branch. | Stop if the only evidence is less-code pressure without behavior proof. |",
+                "| Sources/SyntheticLeanReview/PluginHostAdapter.swift | `keep` | 5 | 0 | host-adapter-boundary-diff | Treat this as a host-adapter keep boundary until protocol or runtime proof shows it is redundant. | Run or attach the smallest plugin, MCP, preview, or runtime proof that covers the adapter boundary. | Stop if the only evidence is less-code pressure against a product-surface adapter. |",
                 "| Sources/SyntheticLeanReview/RuleRouter.swift | `proof-blocked` | 7 | 0 | one-runnable-check-missing-diff | Add or identify one smallest runnable route-selection check before merging the new branch. | Run the focused route-selection test plus git diff --check. | Stop if the diff has no runnable proof signal for the changed non-trivial logic. |",
+                "| Sources/SyntheticLeanReview/SensorSampler.swift | `proof-blocked` | 6 | 0 | hardware-calibration-missing-diff | Attach calibration, timing, or real-device evidence before removing the sensor tuning boundary. | Run or attach the smallest hardware, simulator, or timing proof that covers the changed sampling behavior. | Stop if the only evidence is source-level less-code pressure without physical-world proof. |",
                 "| Sources/SyntheticLeanReview/SelectionPolicy.swift | `clean` | 6 | 0 | one-runnable-check-signal-present-diff | Review the matching same-diff test before adding any duplicate test ceremony. | Run Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift or the equivalent focused lane. | Stop if the changed same-diff test already proves the new branch and no Lean cleanup remains. |",
                 "| Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift | `clean` | 5 | 0 | - | Run the changed focused test and confirm it covers the changed selection branch. | Run the focused test lane before broader validation. | Stop if the test is unrelated to the changed logic. |",
                 "| Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift | `clean` | 4 | 0 | - | Keep this unrelated smoke test visible as evidence that proof signals are not global. | Run only if this separate smoke path matters to the task. | Stop if a maintainer tries to count this unrelated test as proof for a different changed file. |",
@@ -5989,7 +6303,7 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "",
                 "## Proof Signal Matching",
                 "",
-                "- Changed code files: 5",
+                "- Changed code files: 7",
                 "- Non-trivial logic files: 2",
                 "- Matched same-diff proof files: 1",
                 "- Missing proof files: 1",
@@ -6008,9 +6322,30 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "| --- | --- | --- |",
                 "| Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift:7 | test-file | func testUnrelatedSmokePath() { XCTAssertTrue(smokePath.isEnabled) } |",
                 "",
+                "## Hardware And Host Boundary Review",
+                "",
+                "- Hardware calibration findings: 1",
+                "- Host adapter boundary findings: 1",
+                "- False less-code pressure blocked: 2",
+                "- Policy: Lean Review should block false less-code pressure around physical-world behavior and product-surface host adapters. Hardware needs calibration proof; host adapters need call-site or protocol proof before they are treated as removable wrappers.",
+                "- Hardware calibration policy: Hardware, sensors, clocks, and physical devices need calibration, timing, or real-device evidence before simplification removes tuning boundaries.",
+                "- Host adapter policy: Thin plugin, MCP, preview, simulator, and platform host adapters can be the product boundary. Keep them until call-site, protocol, or runtime proof shows the adapter is redundant.",
+                "",
+                "### Hardware Calibration Proof",
+                "",
+                "| Location | Recommendation | Proof |",
+                "| --- | --- | --- |",
+                "| Sources/SyntheticLeanReview/SensorSampler.swift:33 | Keep a minimal calibration or tuning boundary when code touches real hardware or physical-device behavior. | Attach real-device, sensor, timing, or calibration evidence before simplifying the physical-world edge case away. |",
+                "",
+                "### Host Adapter Boundaries",
+                "",
+                "| Location | Recommendation | Proof |",
+                "| --- | --- | --- |",
+                "| Sources/SyntheticLeanReview/PluginHostAdapter.swift:12 | Keep this host, plugin, MCP, preview, simulator, or platform adapter until call-site or protocol proof shows it is redundant. | Attach call-site, protocol, plugin, MCP, preview, or runtime proof before simplifying the adapter boundary. |",
+                "",
                 "## Precision Ledger",
                 "",
-                "- Delete candidates: 1; simplify candidates: 1; keep boundaries: 1; proof-blocked candidates: 1; action groups: 3",
+                "- Delete candidates: 1; simplify candidates: 1; keep boundaries: 2; proof-blocked candidates: 2; action groups: 4",
                 "",
                 "### Grouped Action Plan",
                 "",
@@ -6019,6 +6354,7 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "| 1 | delete | `thin-wrapper-diff-review` | 1 | Sources/SyntheticLeanReview/FormatterShim.swift:14 | Search the changed call sites and delete the wrapper only if it is private and behavior-neutral. | Run the smallest formatter behavior check plus git diff --check. | Stop if call sites depend on naming, compatibility, logging, typing, or behavior policy. |",
                 "| 2 | simplify | `stdlib-url-params-diff` | 1 | Sources/SyntheticLeanReview/QueryBuilder.swift:22 | Try URLComponents or URLQueryItem at the changed call site before adding parser code. | Run one focused query-string behavior check plus git diff --check. | Stop if repeated keys, empty values, encoding, or malformed input behavior changes. |",
                 "| 3 | proof-blocked | `one-runnable-check-missing-diff` | 1 | Sources/SyntheticLeanReview/RuleRouter.swift:18 | Add or identify one smallest runnable route-selection check before merging the new branch. | Run the focused route-selection test plus git diff --check. | Stop if the diff has no runnable proof signal for the changed non-trivial logic. |",
+                "| 4 | proof-blocked | `hardware-calibration-missing-diff` | 1 | Sources/SyntheticLeanReview/SensorSampler.swift:33 | Attach calibration, timing, or real-device evidence before removing the sensor tuning boundary. | Run or attach the smallest hardware, simulator, or timing proof that covers the changed sampling behavior. | Stop if the only evidence is source-level less-code pressure without physical-world proof. |",
                 "",
             ]
         )

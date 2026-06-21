@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-21T04:34:37Z
+- Generated: 2026-06-21T05:15:02Z
 - Current toolkit version: 3.131.0
-- Target release: v3.148.0
-- Title: Lean Review Hardware Boundary Fixture QA
+- Target release: v3.149.0
+- Title: Lean Review Safety Boundary Fixture QA
 
 ## Slash Plan
 
 ```text
-/plan v3.148.0 Lean Review Hardware Boundary Fixture QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Promote the next Lean Review report-quality actionability question into a public synthetic fixture that proves hardware calibration and host/adapter boundaries are protected from false less-code pressure.
+/plan v3.149.0 Lean Review Safety Boundary Fixture QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Promote the next Lean Review report-quality actionability question into a public synthetic fixture that proves safety-boundary code stays out of automatic deletion pressure.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.148.0 Lean Review Hardware Boundary Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next Lean Review report-quality actionability question into a public synthetic fixture that proves hardware calibration and host/adapter boundaries are protected from false less-code pressure, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.149.0 Lean Review Safety Boundary Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next Lean Review report-quality actionability question into a public synthetic fixture that proves safety-boundary code stays out of automatic deletion pressure, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Promote the next Lean Review report-quality actionability question into a public synthetic fixture that proves hardware calibration and host/adapter boundaries are protected from false less-code pressure.
+Promote the next Lean Review report-quality actionability question into a public synthetic fixture that proves safety-boundary code stays out of automatic deletion pressure.
 
 ## Completion Receipt
 
-- Completed scope: Promoted the Lean Review proof-signal calibration question into public fixture coverage: shipguard lean review now emits proofSignalMatching with file-scoped matched proof rows, unmatched proof signals, matched/missing counts, and a non-global proof boundary; ios report-quality now fails Lean Review reports that hide, miscount, or under-render matched versus unrelated proof signals; refreshed the runnable-check fixture and added fixtures/ios-report-quality/01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422 so fresh combined Lean QA advances to the hardware-boundary question.
-- Evidence: Passed: git diff --check; python3 -m py_compile scripts/lean_review.py scripts/ios_report_quality.py scripts/lean_audit.py scripts/lean_debt.py scripts/lean_gain.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; public fixture JSON parse and private-term scan; combined Lean QA status pass and priorityAction advanced to Does Lean Review protect hardware calibration and host boundaries from false less-code pressure?; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3147-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3147-value-gauntlet status pass; ./bin/shipguard codex status --strict; bash -x ./tests/package_release_test.sh > /tmp/shipguard-v3147-package-release.stdout 2> /tmp/shipguard-v3147-package-release.trace.
+- Completed scope: Promoted the Lean Review hardware/host boundary question into public fixture coverage: shipguard lean review now emits hardwareHostBoundaryReview with hardware calibration proof rows, host-adapter keep rows, false less-code pressure counts, and Markdown Hardware Calibration Proof / Host Adapter Boundaries sections; hardware proof-blocking now wins over thin-wrapper delete pressure; Python host adapters are detected as keep boundaries; ios report-quality now fails Lean Review reports that hide, undercount, under-render, or contradict hardware/host decision-map rows; fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68 proves the public synthetic case so fresh combined Lean QA advances to the safety-boundary question.
+- Evidence: Passed: git diff --check; python3 -m py_compile scripts/lean_audit.py scripts/lean_review.py scripts/ios_report_quality.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; public fixture JSON parse and private-term scan; review-agent regression probes fixed for hardware-wrapper precedence, Python host adapters, and decision-map enforcement; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3148-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3148-value-gauntlet status pass; ./bin/shipguard codex status --strict; ./tests/next_goal_test.sh; bash -x ./tests/package_release_test.sh > /tmp/shipguard-v3148-package-release.stdout 2> /tmp/shipguard-v3148-package-release.trace.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.149.0 Lean Review Safety Boundary Fixture QA for jlekerli-source/ShipGuard:
+/plan v3.150.0 Lean Review First Action Fixture QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Promote the next Lean Review report-quality actionability question into a public
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.149.0 Lean Review Safety Boundary Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.150.0 Lean Review First Action Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.149.0 --title "Lean Review Safety Boundary Fixture QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.150.0 --title "Lean Review First Action Fixture QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.148.0.
+1. Open or update the tracking issue for v3.149.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.148.0` and upload `dist/shipguard-v3.148.0.tar.gz`.
+6. Create release `v3.149.0` and upload `dist/shipguard-v3.149.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

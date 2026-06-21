@@ -2025,6 +2025,66 @@ if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_
   exit 1
 fi
 
+lean_review_hardware_host_fixture="fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68"
+./bin/shipguard ios report-quality \
+  --reports "$lean_review_hardware_host_fixture" \
+  --out "$tmp_dir/lean-review-hardware-host-public-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/lean-review-hardware-host-public-quality/ios-report-quality.json"
+grep -q 'Does Lean Review protect hardware calibration and host boundaries from false less-code pressure?' "$tmp_dir/lean-review-hardware-host-public-quality/ios-report-quality.md"
+grep -q '"tool": "shipguard lean review"' "$lean_review_hardware_host_fixture/fixture-report.json"
+grep -q '"hardwareHostBoundaryReview":' "$lean_review_hardware_host_fixture/fixture-report.json"
+grep -q '"hardwareCalibrationFindings": 1' "$lean_review_hardware_host_fixture/fixture-report.json"
+grep -q '"hostAdapterBoundaryFindings": 1' "$lean_review_hardware_host_fixture/fixture-report.json"
+grep -q '"falseLessCodePressureBlocked": 2' "$lean_review_hardware_host_fixture/fixture-report.json"
+grep -q '"ruleId": "hardware-calibration-missing-diff"' "$lean_review_hardware_host_fixture/fixture-report.json"
+grep -q '"ruleId": "host-adapter-boundary-diff"' "$lean_review_hardware_host_fixture/fixture-report.json"
+grep -q '"decision": "proof-blocked"' "$lean_review_hardware_host_fixture/fixture-report.json"
+grep -q '"decision": "keep"' "$lean_review_hardware_host_fixture/fixture-report.json"
+grep -q 'Hardware And Host Boundary Review' "$lean_review_hardware_host_fixture/fixture-report.md"
+grep -q 'Hardware Calibration Proof' "$lean_review_hardware_host_fixture/fixture-report.md"
+grep -q 'Host Adapter Boundaries' "$lean_review_hardware_host_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/lean-review-hardware-host-public-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"Lean Review hardware/host public fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+top = questions[0] if questions else {}
+if not top or not (top.get("sourceMaterializedFixture") is True or top.get("existingFixture")):
+    raise SystemExit(f"Lean Review hardware/host fixture should retain materialized or fixture-coverage question evidence: {questions!r}")
+PY
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_review_hardware_host_fixture"; then
+  echo "Lean Review hardware/host fixture must not include local paths or private app identifiers" >&2
+  exit 1
+fi
+
+mkdir -p "$tmp_dir/lean-review-hardware-host-wrong-decisions"
+python3 - <<'PY' "$lean_review_hardware_host_fixture/fixture-report.json" "$tmp_dir/lean-review-hardware-host-wrong-decisions/lean-review.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+for row in data["currentDiffDecisionMap"]["decisions"]:
+    if row.get("file") == "Sources/SyntheticLeanReview/SensorSampler.swift":
+        row["decision"] = "clean"
+        row["ruleIds"] = []
+    if row.get("file") == "Sources/SyntheticLeanReview/PluginHostAdapter.swift":
+        row["decision"] = "delete"
+        row["ruleIds"] = ["thin-wrapper-diff-review"]
+json.dump(data, open(sys.argv[2], "w", encoding="utf-8"), indent=2, sort_keys=True)
+PY
+cp "$lean_review_hardware_host_fixture/fixture-report.md" "$tmp_dir/lean-review-hardware-host-wrong-decisions/lean-review.md"
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-review-hardware-host-wrong-decisions" \
+  --out "$tmp_dir/lean-review-hardware-host-wrong-decisions-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-review-hardware-calibration-decision-map-incomplete"' "$tmp_dir/lean-review-hardware-host-wrong-decisions-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-host-adapter-decision-map-incomplete"' "$tmp_dir/lean-review-hardware-host-wrong-decisions-quality/ios-report-quality.json"
+
 ./bin/shipguard lean audit \
   --path . \
   --out "$tmp_dir/lean-fresh-priority" \
@@ -2080,24 +2140,70 @@ grep -q '01-shipguard-lean-gain-does-it-route-current-repo-evidence-9bae8f6f' "$
 grep -q '01-shipguard-lean-review-does-lean-review-give-a-current-d-9a6d6c8a' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q '01-shipguard-lean-review-does-lean-review-require-one-smal-247885c9' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q '01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q '01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review give a current-diff delete/simplify list instead of a whole-repo inventory?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review require one smallest runnable check for non-trivial new logic?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does proofSignalCalibration distinguish missing runnable checks from same-diff proof signals?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review protect hardware calibration and host boundaries from false less-code pressure?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q 'Does it keep safety-boundary code out of automatic deletion?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 python3 - <<'PY' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 import json
 import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 question = (data.get("priorityAction") or {}).get("question")
-expected = "Does Lean Review protect hardware calibration and host boundaries from false less-code pressure?"
+expected = "Does it keep safety-boundary code out of automatic deletion?"
 if question != expected:
-    raise SystemExit(f"expected combined Lean QA to advance to hardware boundary question, got {question!r}")
+    raise SystemExit(f"expected combined Lean QA to advance to safety-boundary question, got {question!r}")
 PY
 if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$tmp_dir/lean-fresh-combined-candidates"; then
   echo "materialized combined Lean candidate must not include local paths or private app identifiers" >&2
   exit 1
 fi
+
+mkdir -p "$tmp_dir/lean-review-missing-hardware-host-boundary"
+python3 - <<'PY' "$lean_review_hardware_host_fixture/fixture-report.json" "$tmp_dir/lean-review-missing-hardware-host-boundary/lean-review.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+data.pop("hardwareHostBoundaryReview", None)
+json.dump(data, open(sys.argv[2], "w", encoding="utf-8"), indent=2, sort_keys=True)
+PY
+cat > "$tmp_dir/lean-review-missing-hardware-host-boundary/lean-review.md" <<'MD'
+# ShipGuard Lean Review
+
+## Current Diff Decision Map
+
+- Scope: `current-diff-only`
+- Boundary: This report is built only from the supplied unified diff; it does not scan the whole repo.
+- Whole-repo fallback: `shipguard lean audit --path <repo> --out <lean-audit-out>`
+
+## Behavior Gates
+
+- `oneRunnableCheck`: enforced-in-lean-review
+- `hardwareCalibration`: available
+- `requestedExplanation`: policy
+- `adapterBoundary`: available
+- `gainHonesty`: available-in-lean-gain
+
+## Precision Ledger
+
+- Delete candidates: 1; simplify candidates: 1; keep boundaries: 2; proof-blocked candidates: 2; action groups: 4
+
+### Grouped Action Plan
+
+| Rank | Decision | Rule | Affected | First Location | First Experiment | Validation | Stop Condition |
+| ---: | --- | --- | ---: | --- | --- | --- | --- |
+| 4 | proof-blocked | `hardware-calibration-missing-diff` | 1 | Sources/SyntheticLeanReview/SensorSampler.swift:33 | Attach calibration proof. | Run physical-device proof. | Stop without proof. |
+MD
+
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-review-missing-hardware-host-boundary" \
+  --out "$tmp_dir/lean-review-missing-hardware-host-boundary-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-review-hardware-host-boundary-review-missing"' "$tmp_dir/lean-review-missing-hardware-host-boundary-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-hardware-host-boundary-markdown-missing"' "$tmp_dir/lean-review-missing-hardware-host-boundary-quality/ios-report-quality.json"
 
 mkdir -p "$tmp_dir/lean-review-current-diff-missing"
 cat > "$tmp_dir/lean-review-current-diff-missing/lean-review.json" <<'JSON'

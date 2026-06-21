@@ -1,0 +1,784 @@
+{
+  "behaviorGates": {
+    "adapterBoundary": {
+      "policy": "Thin host adapters can be the product surface; flag them as keep-with-proof instead of deletion candidates.",
+      "status": "available"
+    },
+    "gainHonesty": {
+      "policy": "ShipGuard reports benchmark impact separately and does not invent per-repo line, token, cost, or time savings.",
+      "status": "available-in-lean-gain"
+    },
+    "hardwareCalibration": {
+      "policy": "Hardware, sensors, clocks, and physical devices need calibration/tuning proof before simplification.",
+      "status": "available"
+    },
+    "oneRunnableCheck": {
+      "policy": "Non-trivial new logic should leave one smallest runnable check; trivial one-liners do not need ceremony.",
+      "status": "enforced-in-lean-review"
+    },
+    "requestedExplanation": {
+      "policy": "Explicitly requested reports, walkthroughs, or phase notes are not clutter.",
+      "status": "policy"
+    }
+  },
+  "currentDiffDecisionMap": {
+    "changedFiles": [
+      {
+        "addedLines": 6,
+        "file": "Sources/SyntheticLeanReview/FormatterShim.swift",
+        "removedLines": 0
+      },
+      {
+        "addedLines": 8,
+        "file": "Sources/SyntheticLeanReview/QueryBuilder.swift",
+        "removedLines": 1
+      },
+      {
+        "addedLines": 5,
+        "file": "Sources/SyntheticLeanReview/PermissionGate.swift",
+        "removedLines": 0
+      },
+      {
+        "addedLines": 5,
+        "file": "Sources/SyntheticLeanReview/PluginHostAdapter.swift",
+        "removedLines": 0
+      },
+      {
+        "addedLines": 7,
+        "file": "Sources/SyntheticLeanReview/RuleRouter.swift",
+        "removedLines": 0
+      },
+      {
+        "addedLines": 6,
+        "file": "Sources/SyntheticLeanReview/SensorSampler.swift",
+        "removedLines": 0
+      },
+      {
+        "addedLines": 6,
+        "file": "Sources/SyntheticLeanReview/SelectionPolicy.swift",
+        "removedLines": 0
+      },
+      {
+        "addedLines": 5,
+        "file": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift",
+        "removedLines": 0
+      },
+      {
+        "addedLines": 4,
+        "file": "Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift",
+        "removedLines": 0
+      }
+    ],
+    "decisions": [
+      {
+        "addedLines": 6,
+        "decision": "delete",
+        "file": "Sources/SyntheticLeanReview/FormatterShim.swift",
+        "firstExperiment": "Search the changed call sites and delete the wrapper only if it is private and behavior-neutral.",
+        "firstLocation": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+        "removedLines": 0,
+        "ruleIds": [
+          "thin-wrapper-diff-review"
+        ],
+        "source": "unified-diff",
+        "stopCondition": "Stop if call sites depend on naming, compatibility, logging, typing, or behavior policy.",
+        "validationRoute": "Run the smallest formatter behavior check plus git diff --check."
+      },
+      {
+        "addedLines": 8,
+        "decision": "simplify",
+        "file": "Sources/SyntheticLeanReview/QueryBuilder.swift",
+        "firstExperiment": "Try URLComponents or URLQueryItem at the changed call site before adding parser code.",
+        "firstLocation": "Sources/SyntheticLeanReview/QueryBuilder.swift:22",
+        "removedLines": 1,
+        "ruleIds": [
+          "stdlib-url-params-diff"
+        ],
+        "source": "unified-diff",
+        "stopCondition": "Stop if repeated keys, empty values, encoding, or malformed input behavior changes.",
+        "validationRoute": "Run one focused query-string behavior check plus git diff --check."
+      },
+      {
+        "addedLines": 5,
+        "decision": "keep",
+        "file": "Sources/SyntheticLeanReview/PermissionGate.swift",
+        "firstExperiment": "Treat this as a keep-with-proof boundary before any deletion or simplification.",
+        "firstLocation": "Sources/SyntheticLeanReview/PermissionGate.swift:31",
+        "removedLines": 0,
+        "ruleIds": [
+          "do-not-cut-safety-diff-without-proof"
+        ],
+        "source": "unified-diff",
+        "stopCondition": "Stop if the only evidence is less-code pressure without behavior proof.",
+        "validationRoute": "Run focused permission-state behavior proof before changing this branch."
+      },
+      {
+        "addedLines": 5,
+        "decision": "keep",
+        "file": "Sources/SyntheticLeanReview/PluginHostAdapter.swift",
+        "firstExperiment": "Treat this as a host-adapter keep boundary until protocol or runtime proof shows it is redundant.",
+        "firstLocation": "Sources/SyntheticLeanReview/PluginHostAdapter.swift:12",
+        "removedLines": 0,
+        "ruleIds": [
+          "host-adapter-boundary-diff"
+        ],
+        "source": "unified-diff",
+        "stopCondition": "Stop if the only evidence is less-code pressure against a product-surface adapter.",
+        "validationRoute": "Run or attach the smallest plugin, MCP, preview, or runtime proof that covers the adapter boundary."
+      },
+      {
+        "addedLines": 7,
+        "decision": "proof-blocked",
+        "file": "Sources/SyntheticLeanReview/RuleRouter.swift",
+        "firstExperiment": "Add or identify one smallest runnable route-selection check before merging the new branch.",
+        "firstLocation": "Sources/SyntheticLeanReview/RuleRouter.swift:18",
+        "removedLines": 0,
+        "ruleIds": [
+          "one-runnable-check-missing-diff"
+        ],
+        "source": "unified-diff",
+        "stopCondition": "Stop if the diff has no runnable proof signal for the changed non-trivial logic.",
+        "validationRoute": "Run the focused route-selection test plus git diff --check."
+      },
+      {
+        "addedLines": 6,
+        "decision": "proof-blocked",
+        "file": "Sources/SyntheticLeanReview/SensorSampler.swift",
+        "firstExperiment": "Attach calibration, timing, or real-device evidence before removing the sensor tuning boundary.",
+        "firstLocation": "Sources/SyntheticLeanReview/SensorSampler.swift:33",
+        "removedLines": 0,
+        "ruleIds": [
+          "hardware-calibration-missing-diff"
+        ],
+        "source": "unified-diff",
+        "stopCondition": "Stop if the only evidence is source-level less-code pressure without physical-world proof.",
+        "validationRoute": "Run or attach the smallest hardware, simulator, or timing proof that covers the changed sampling behavior."
+      },
+      {
+        "addedLines": 6,
+        "decision": "clean",
+        "file": "Sources/SyntheticLeanReview/SelectionPolicy.swift",
+        "firstExperiment": "Review the matching same-diff test before adding any duplicate test ceremony.",
+        "firstLocation": "Sources/SyntheticLeanReview/SelectionPolicy.swift:27",
+        "removedLines": 0,
+        "ruleIds": [
+          "one-runnable-check-signal-present-diff"
+        ],
+        "source": "unified-diff",
+        "stopCondition": "Stop if the changed same-diff test already proves the new branch and no Lean cleanup remains.",
+        "validationRoute": "Run Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift or the equivalent focused lane."
+      },
+      {
+        "addedLines": 5,
+        "decision": "clean",
+        "file": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift",
+        "firstExperiment": "Run the changed focused test and confirm it covers the changed selection branch.",
+        "firstLocation": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift:9",
+        "removedLines": 0,
+        "ruleIds": [],
+        "source": "unified-diff",
+        "stopCondition": "Stop if the test is unrelated to the changed logic.",
+        "validationRoute": "Run the focused test lane before broader validation."
+      },
+      {
+        "addedLines": 4,
+        "decision": "clean",
+        "file": "Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift",
+        "firstExperiment": "Keep this unrelated smoke test visible as evidence that proof signals are not global.",
+        "firstLocation": "Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift:7",
+        "removedLines": 0,
+        "ruleIds": [],
+        "source": "unified-diff",
+        "stopCondition": "Stop if a maintainer tries to count this unrelated test as proof for a different changed file.",
+        "validationRoute": "Run only if this separate smoke path matters to the task."
+      }
+    ],
+    "deleteOrSimplifyList": [
+      {
+        "addedLines": 6,
+        "decision": "delete",
+        "file": "Sources/SyntheticLeanReview/FormatterShim.swift",
+        "firstExperiment": "Search the changed call sites and delete the wrapper only if it is private and behavior-neutral.",
+        "firstLocation": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+        "removedLines": 0,
+        "ruleIds": [
+          "thin-wrapper-diff-review"
+        ],
+        "source": "unified-diff",
+        "stopCondition": "Stop if call sites depend on naming, compatibility, logging, typing, or behavior policy.",
+        "validationRoute": "Run the smallest formatter behavior check plus git diff --check."
+      },
+      {
+        "addedLines": 8,
+        "decision": "simplify",
+        "file": "Sources/SyntheticLeanReview/QueryBuilder.swift",
+        "firstExperiment": "Try URLComponents or URLQueryItem at the changed call site before adding parser code.",
+        "firstLocation": "Sources/SyntheticLeanReview/QueryBuilder.swift:22",
+        "removedLines": 1,
+        "ruleIds": [
+          "stdlib-url-params-diff"
+        ],
+        "source": "unified-diff",
+        "stopCondition": "Stop if repeated keys, empty values, encoding, or malformed input behavior changes.",
+        "validationRoute": "Run one focused query-string behavior check plus git diff --check."
+      }
+    ],
+    "diffPath": "synthetic-current-change.diff",
+    "inventoryBoundary": "This report is built only from the supplied unified diff; it does not scan the whole repo or claim a whole-repo inventory.",
+    "nonClaims": [
+      "Does not prove whole-repo inventory coverage.",
+      "Does not prove benchmark savings, token savings, cost savings, or time savings.",
+      "Does not authorize private target-app edits from ShipGuard product-QA runs."
+    ],
+    "scope": "current-diff-only",
+    "summary": {
+      "addedLinesInspected": 52,
+      "cleanFiles": 3,
+      "decisionRows": 9,
+      "deleteCandidates": 1,
+      "filesChanged": 9,
+      "keepBoundaries": 2,
+      "proofBlockedCandidates": 2,
+      "removedLinesSeen": 1,
+      "simplifyCandidates": 1
+    },
+    "wholeRepoFallbackCommand": "shipguard lean audit --path <repo> --out <lean-audit-out> --mode full --shipguard-eval --shareable"
+  },
+  "diff": {
+    "filesChanged": 9,
+    "path": "synthetic-current-change.diff"
+  },
+  "findings": [
+    {
+      "category": "yagni-diff-review",
+      "evidence": {
+        "file": "Sources/SyntheticLeanReview/FormatterShim.swift",
+        "line": 14,
+        "snippet": "func formatTitle(_ value: String) -> String { value.trimmingCharacters(in: .whitespacesAndNewlines) }"
+      },
+      "proofGuidance": "Search call sites and keep one small check if behavior is non-trivial.",
+      "recommendation": "Inline or delete this wrapper unless it adds policy, naming, compatibility, logging, typing, or test value.",
+      "ruleId": "thin-wrapper-diff-review",
+      "severity": "opportunity"
+    },
+    {
+      "category": "stdlib-diff-review",
+      "evidence": {
+        "file": "Sources/SyntheticLeanReview/QueryBuilder.swift",
+        "line": 22,
+        "snippet": "query.split(separator: \"&\").map { $0.split(separator: \"=\") }"
+      },
+      "proofGuidance": "Add one check for repeated keys, empty values, encoding, and malformed input before replacing behavior.",
+      "recommendation": "Prefer URLComponents or URLQueryItem when runtime support allows it.",
+      "ruleId": "stdlib-url-params-diff",
+      "severity": "opportunity"
+    },
+    {
+      "category": "safety-boundary",
+      "evidence": {
+        "file": "Sources/SyntheticLeanReview/PermissionGate.swift",
+        "line": 31,
+        "snippet": "guard authorizationStatus == .authorized else { return .blocked }"
+      },
+      "proofGuidance": "Attach focused before/after tests for trust-boundary, data-loss, security, permission, or accessibility behavior.",
+      "recommendation": "Less code is not the goal in this file until behavior proof exists.",
+      "ruleId": "do-not-cut-safety-diff-without-proof",
+      "severity": "info"
+    },
+    {
+      "category": "host-adapter-boundary",
+      "evidence": {
+        "file": "Sources/SyntheticLeanReview/PluginHostAdapter.swift",
+        "line": 12,
+        "snippet": "func handle(_ request: PluginRequest) -> PluginResponse { adapter.handle(request) }"
+      },
+      "proofGuidance": "Attach call-site, protocol, plugin, MCP, preview, or runtime proof before simplifying the adapter boundary.",
+      "recommendation": "Keep this host, plugin, MCP, preview, simulator, or platform adapter until call-site or protocol proof shows it is redundant.",
+      "ruleId": "host-adapter-boundary-diff",
+      "severity": "info"
+    },
+    {
+      "category": "proof-diff-review",
+      "evidence": {
+        "file": "Sources/SyntheticLeanReview/RuleRouter.swift",
+        "line": 18,
+        "snippet": "if route.kind == .generated { return GeneratedRoute(route.payload) }"
+      },
+      "proofGuidance": "Add one focused route-selection check or point to the changed test that covers this branch before merge.",
+      "recommendation": "Leave one smallest runnable check for the new routing branch instead of treating tests as optional ceremony.",
+      "ruleId": "one-runnable-check-missing-diff",
+      "severity": "review"
+    },
+    {
+      "category": "hardware-diff-review",
+      "evidence": {
+        "file": "Sources/SyntheticLeanReview/SensorSampler.swift",
+        "line": 33,
+        "snippet": "let rawSample = adc.read(channel: channel)"
+      },
+      "proofGuidance": "Attach real-device, sensor, timing, or calibration evidence before simplifying the physical-world edge case away.",
+      "recommendation": "Keep a minimal calibration or tuning boundary when code touches real hardware or physical-device behavior.",
+      "ruleId": "hardware-calibration-missing-diff",
+      "severity": "review"
+    },
+    {
+      "category": "proof-signal-diff-review",
+      "evidence": {
+        "file": "Sources/SyntheticLeanReview/SelectionPolicy.swift",
+        "line": 27,
+        "snippet": "if option.isPrimary { return .preferred(option.id) }"
+      },
+      "proofGuidance": "Review Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift, then run the focused test before merge.",
+      "recommendation": "Do not add duplicate test ceremony before checking whether the same-diff proof signal already covers this logic.",
+      "ruleId": "one-runnable-check-signal-present-diff",
+      "severity": "info"
+    }
+  ],
+  "fixtureCandidate": {
+    "candidateId": "01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68",
+    "duplicateCount": 1,
+    "expectedAssertions": [
+      "report-quality preserves the actionability question in JSON and Markdown",
+      "report-quality emits a fixtureCandidates entry for the public synthetic case",
+      "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+      "shareable output contains no local absolute paths or private app identifiers",
+      "the fixture exposes currentDiffDecisionMap.scope as current-diff-only",
+      "the fixture exposes currentDiffDecisionMap decisions and the delete/simplify subset",
+      "the Markdown exposes Current Diff Decision Map plus the whole-repo non-claim and lean-audit fallback",
+      "the fixture exposes hardwareHostBoundaryReview.hardwareCalibrationFindings for physical-device proof-blocked rows",
+      "the fixture exposes hardwareHostBoundaryReview.hostAdapterBoundaryFindings for host/plugin adapter keep rows",
+      "the fixture currentDiffDecisionMap proof-blocks hardware calibration and keeps host adapters",
+      "the Markdown exposes Hardware And Host Boundary Review, Hardware Calibration Proof, and Host Adapter Boundaries"
+    ],
+    "fixtureType": "shipguard-lean-report-quality-fixture",
+    "materialization": {
+      "files": [
+        "README.md",
+        "fixture-candidate.json",
+        "fixture-report.json",
+        "fixture-report.md"
+      ],
+      "safeSyntheticOnly": true,
+      "writeCommand": "./bin/shipguard ios report-quality --reports <report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>"
+    },
+    "priority": 1,
+    "privateDataPolicy": "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
+    "promotion": {
+      "candidateId": "01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68",
+      "copyCommands": [
+        "mkdir -p fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68",
+        "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68/README.md",
+        "cp <materialized-candidate-dir>/fixture-candidate.json fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68/fixture-candidate.json",
+        "cp <materialized-candidate-dir>/fixture-report.json fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68/fixture-report.json",
+        "cp <materialized-candidate-dir>/fixture-report.md fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68/fixture-report.md"
+      ],
+      "files": [
+        "README.md",
+        "fixture-candidate.json",
+        "fixture-report.json",
+        "fixture-report.md"
+      ],
+      "promotionPolicy": "Promotion is explicit maintainer work. ShipGuard writes starter files only to the requested output directory and does not auto-copy them into the repository.",
+      "reviewChecklist": [
+        "Confirm the fixture is synthetic and public-safe.",
+        "Confirm no private app code, screenshots, local paths, tokens, app identifiers, or proprietary text were copied.",
+        "Confirm scopeBoundary.shipguardOnly and targetAppsReadOnly remain explicit.",
+        "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates.",
+        "Register the fixture in validation only after the report-quality check passes."
+      ],
+      "sourceDirectory": "<materialized-fixture-output>/01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68",
+      "suggestedFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68",
+      "validationCommands": [
+        "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68 --out <quality-dir> --shareable",
+        "./tests/ios_report_quality_test.sh",
+        "./bin/shipguard validate"
+      ]
+    },
+    "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-protect-hardware-c8a9af68",
+    "publicFixtureRecipe": "Create a minimal synthetic ShipGuard report pair that reproduces this report-quality question without private app code, local paths, screenshots, customer data, app names, or proprietary source snippets.",
+    "sourceQuestion": "Does Lean Review protect hardware calibration and host boundaries from false less-code pressure?",
+    "sourceReportCount": 1,
+    "sourceReportsRedacted": true,
+    "sourceTool": "shipguard lean review",
+    "validationCommands": [
+      "./bin/shipguard ios report-quality --reports <fixture-dir> --out <quality-dir> --shareable",
+      "./tests/ios_report_quality_test.sh"
+    ]
+  },
+  "generatedAt": "2026-06-21T04:52:08Z",
+  "hardwareHostBoundaryReview": {
+    "hardwareCalibrationFindings": [
+      {
+        "evidence": "let rawSample = adc.read(channel: channel)",
+        "file": "Sources/SyntheticLeanReview/SensorSampler.swift",
+        "line": 33,
+        "location": "Sources/SyntheticLeanReview/SensorSampler.swift:33",
+        "proofGuidance": "Attach real-device, sensor, timing, or calibration evidence before simplifying the physical-world edge case away.",
+        "recommendation": "Keep a minimal calibration or tuning boundary when code touches real hardware or physical-device behavior.",
+        "ruleId": "hardware-calibration-missing-diff",
+        "severity": "review"
+      }
+    ],
+    "hardwareCalibrationPolicy": "Hardware, sensors, clocks, and physical devices need calibration, timing, or real-device evidence before simplification removes tuning boundaries.",
+    "hostAdapterBoundaryFindings": [
+      {
+        "evidence": "func handle(_ request: PluginRequest) -> PluginResponse { adapter.handle(request) }",
+        "file": "Sources/SyntheticLeanReview/PluginHostAdapter.swift",
+        "line": 12,
+        "location": "Sources/SyntheticLeanReview/PluginHostAdapter.swift:12",
+        "proofGuidance": "Attach call-site, protocol, plugin, MCP, preview, or runtime proof before simplifying the adapter boundary.",
+        "recommendation": "Keep this host, plugin, MCP, preview, simulator, or platform adapter until call-site or protocol proof shows it is redundant.",
+        "ruleId": "host-adapter-boundary-diff",
+        "severity": "info"
+      }
+    ],
+    "hostAdapterPolicy": "Thin plugin, MCP, preview, simulator, and platform host adapters can be the product boundary. Keep them until call-site, protocol, or runtime proof shows the adapter is redundant.",
+    "policy": "Lean Review should block false less-code pressure around physical-world behavior and product-surface host adapters. Hardware needs calibration proof; host adapters need call-site or protocol proof before they are treated as removable wrappers.",
+    "proofToAttach": [
+      "For hardware rows, attach calibration, tuning, timing, sensor, or physical-device proof before simplifying.",
+      "For host-adapter rows, attach call-site, protocol, plugin, MCP, preview, or runtime proof before deleting a thin adapter."
+    ],
+    "summary": {
+      "falseLessCodePressureBlocked": 2,
+      "hardwareCalibrationFindings": 1,
+      "hostAdapterBoundaryFindings": 1,
+      "keepHostAdapterFiles": 1,
+      "proofBlockedHardwareFiles": 1
+    }
+  },
+  "intent": "shipguard-evaluation",
+  "leanMode": {
+    "firstActionBias": "proof-ladder",
+    "intent": "Use the proof ladder before adding or deleting code.",
+    "mode": "full",
+    "policy": "Use full mode for current-diff review when proof boundaries matter."
+  },
+  "metrics": {
+    "addedLines": 52,
+    "filesChanged": 9,
+    "findings": 7,
+    "infoFindings": 3,
+    "opportunityFindings": 2,
+    "reviewFindings": 2
+  },
+  "nextActions": [
+    "Start with currentDiffDecisionMap.deleteOrSimplifyList[0] before reading whole-repo inventory.",
+    "Use shipguard lean audit only when a whole-repo Lean inventory is actually needed.",
+    "Do not convert this ShipGuard product-QA fixture into target-app implementation work."
+  ],
+  "precisionReview": {
+    "actionGroups": [
+      {
+        "decision": "delete",
+        "evidenceCount": 1,
+        "firstExperiment": "Search the changed call sites and delete the wrapper only if it is private and behavior-neutral.",
+        "firstLocation": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+        "rank": 1,
+        "ruleId": "thin-wrapper-diff-review",
+        "stopCondition": "Stop if call sites depend on naming, compatibility, logging, typing, or behavior policy.",
+        "validationRoute": "Run the smallest formatter behavior check plus git diff --check."
+      },
+      {
+        "decision": "simplify",
+        "evidenceCount": 1,
+        "firstExperiment": "Try URLComponents or URLQueryItem at the changed call site before adding parser code.",
+        "firstLocation": "Sources/SyntheticLeanReview/QueryBuilder.swift:22",
+        "rank": 2,
+        "ruleId": "stdlib-url-params-diff",
+        "stopCondition": "Stop if repeated keys, empty values, encoding, or malformed input behavior changes.",
+        "validationRoute": "Run one focused query-string behavior check plus git diff --check."
+      },
+      {
+        "decision": "proof-blocked",
+        "evidenceCount": 1,
+        "firstExperiment": "Add or identify one smallest runnable route-selection check before merging the new branch.",
+        "firstLocation": "Sources/SyntheticLeanReview/RuleRouter.swift:18",
+        "rank": 3,
+        "ruleId": "one-runnable-check-missing-diff",
+        "stopCondition": "Stop if the diff has no runnable proof signal for the changed non-trivial logic.",
+        "validationRoute": "Run the focused route-selection test plus git diff --check."
+      },
+      {
+        "decision": "proof-blocked",
+        "evidenceCount": 1,
+        "firstExperiment": "Attach calibration, timing, or real-device evidence before removing the sensor tuning boundary.",
+        "firstLocation": "Sources/SyntheticLeanReview/SensorSampler.swift:33",
+        "rank": 4,
+        "ruleId": "hardware-calibration-missing-diff",
+        "stopCondition": "Stop if the only evidence is source-level less-code pressure without physical-world proof.",
+        "validationRoute": "Run or attach the smallest hardware, simulator, or timing proof that covers the changed sampling behavior."
+      }
+    ],
+    "blockedByProof": [
+      {
+        "action": "Leave one smallest runnable route-selection check.",
+        "location": "Sources/SyntheticLeanReview/RuleRouter.swift:18",
+        "proofRequired": "Add one focused route-selection check or point to the changed test that covers this branch before merge.",
+        "rank": 3,
+        "ruleId": "one-runnable-check-missing-diff",
+        "severity": "review"
+      },
+      {
+        "action": "Keep a minimal calibration or tuning boundary for hardware behavior.",
+        "location": "Sources/SyntheticLeanReview/SensorSampler.swift:33",
+        "proofRequired": "Attach real-device, sensor, timing, or calibration evidence before simplifying the physical-world edge case away.",
+        "rank": 4,
+        "ruleId": "hardware-calibration-missing-diff",
+        "severity": "review"
+      }
+    ],
+    "deleteList": [
+      {
+        "action": "Inline or delete this wrapper unless it adds policy.",
+        "location": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+        "proofRequired": "Search call sites and keep one small check if behavior is non-trivial.",
+        "rank": 1,
+        "ruleId": "thin-wrapper-diff-review",
+        "severity": "opportunity"
+      }
+    ],
+    "keepList": [
+      {
+        "location": "Sources/SyntheticLeanReview/PermissionGate.swift:31",
+        "proofRequired": "Attach focused permission-state behavior proof.",
+        "reason": "Less-code pressure is not enough for permission-state branches.",
+        "ruleId": "do-not-cut-safety-diff-without-proof"
+      },
+      {
+        "location": "Sources/SyntheticLeanReview/PluginHostAdapter.swift:12",
+        "proofRequired": "Attach call-site, protocol, plugin, MCP, preview, or runtime proof before simplifying the adapter boundary.",
+        "reason": "Thin host adapters can be the product boundary.",
+        "ruleId": "host-adapter-boundary-diff"
+      }
+    ],
+    "mode": {
+      "firstActionBias": "proof-ladder",
+      "mode": "full"
+    },
+    "principle": "The best ShipGuard code is the code that proves it needs to exist.",
+    "simplifyFirst": [
+      {
+        "action": "Prefer URLComponents or URLQueryItem when runtime support allows it.",
+        "location": "Sources/SyntheticLeanReview/QueryBuilder.swift:22",
+        "proofRequired": "Add one check for repeated keys, empty values, encoding, and malformed input.",
+        "rank": 2,
+        "ruleId": "stdlib-url-params-diff",
+        "severity": "opportunity"
+      }
+    ],
+    "summary": {
+      "actionGroups": 4,
+      "deleteCandidates": 1,
+      "keepBoundaries": 2,
+      "proofBlockedCandidates": 2,
+      "simplifyCandidates": 1
+    },
+    "topActions": [
+      {
+        "decision": "delete",
+        "evidenceCount": 1,
+        "firstExperiment": "Search the changed call sites and delete the wrapper only if it is private and behavior-neutral.",
+        "firstLocation": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+        "rank": 1,
+        "ruleId": "thin-wrapper-diff-review",
+        "stopCondition": "Stop if call sites depend on naming, compatibility, logging, typing, or behavior policy.",
+        "validationRoute": "Run the smallest formatter behavior check plus git diff --check."
+      },
+      {
+        "decision": "simplify",
+        "evidenceCount": 1,
+        "firstExperiment": "Try URLComponents or URLQueryItem at the changed call site before adding parser code.",
+        "firstLocation": "Sources/SyntheticLeanReview/QueryBuilder.swift:22",
+        "rank": 2,
+        "ruleId": "stdlib-url-params-diff",
+        "stopCondition": "Stop if repeated keys, empty values, encoding, or malformed input behavior changes.",
+        "validationRoute": "Run one focused query-string behavior check plus git diff --check."
+      },
+      {
+        "decision": "proof-blocked",
+        "evidenceCount": 1,
+        "firstExperiment": "Add or identify one smallest runnable route-selection check before merging the new branch.",
+        "firstLocation": "Sources/SyntheticLeanReview/RuleRouter.swift:18",
+        "rank": 3,
+        "ruleId": "one-runnable-check-missing-diff",
+        "stopCondition": "Stop if the diff has no runnable proof signal for the changed non-trivial logic.",
+        "validationRoute": "Run the focused route-selection test plus git diff --check."
+      },
+      {
+        "decision": "proof-blocked",
+        "evidenceCount": 1,
+        "firstExperiment": "Attach calibration, timing, or real-device evidence before removing the sensor tuning boundary.",
+        "firstLocation": "Sources/SyntheticLeanReview/SensorSampler.swift:33",
+        "rank": 4,
+        "ruleId": "hardware-calibration-missing-diff",
+        "stopCondition": "Stop if the only evidence is source-level less-code pressure without physical-world proof.",
+        "validationRoute": "Run or attach the smallest hardware, simulator, or timing proof that covers the changed sampling behavior."
+      }
+    ]
+  },
+  "proofSignalCalibration": {
+    "codeFindingsCoveredBySameDiffProof": 1,
+    "missingRunnableCheckFindings": 1,
+    "policy": "Lean Review should distinguish no proof signal from same-diff proof signal. Same-diff tests still need human relevance review, but they should not produce duplicate missing-check ceremony.",
+    "proofSignals": [
+      {
+        "addedLines": 5,
+        "checkSignal": true,
+        "file": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift",
+        "kind": "test-file",
+        "line": 9,
+        "snippet": "func testPrimaryOptionWins() { XCTAssertEqual(policy.pick(primary), .preferred(primary.id)) }"
+      },
+      {
+        "addedLines": 4,
+        "checkSignal": true,
+        "file": "Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift",
+        "kind": "test-file",
+        "line": 7,
+        "snippet": "func testUnrelatedSmokePath() { XCTAssertTrue(smokePath.isEnabled) }"
+      }
+    ],
+    "sameDiffProofSignalCount": 2,
+    "sameDiffProofStatus": "present"
+  },
+  "proofSignalMatching": {
+    "nonGlobalProofBoundary": "Unrelated or unmatched proof signals are listed separately and do not satisfy missing proof for other changed files; same-diff proof is not treated as global proof.",
+    "policy": "Same-diff proof is file-scoped. A changed test or assertion satisfies a changed code file only when ShipGuard can match it by same file, path stem, or meaningful path tokens.",
+    "rows": [
+      {
+        "addedCheckInFile": false,
+        "file": "Sources/SyntheticLeanReview/RuleRouter.swift",
+        "line": 18,
+        "matchedProofSignalCount": 0,
+        "matchedProofSignals": [],
+        "matchingDecision": "missing-proof",
+        "nonTrivialLogic": true
+      },
+      {
+        "addedCheckInFile": false,
+        "file": "Sources/SyntheticLeanReview/SelectionPolicy.swift",
+        "line": 27,
+        "matchedProofSignalCount": 1,
+        "matchedProofSignals": [
+          {
+            "addedLines": 5,
+            "checkSignal": true,
+            "file": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift",
+            "kind": "test-file",
+            "line": 9,
+            "location": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift:9",
+            "snippet": "func testPrimaryOptionWins() { XCTAssertEqual(policy.pick(primary), .preferred(primary.id)) }"
+          }
+        ],
+        "matchingDecision": "matched-same-diff-proof",
+        "nonTrivialLogic": true
+      }
+    ],
+    "summary": {
+      "changedCodeFiles": 7,
+      "inlineCheckFiles": 0,
+      "matchedProofSignalCount": 1,
+      "matchedSameDiffProofFiles": 1,
+      "missingProofFiles": 1,
+      "nonTrivialLogicFiles": 2,
+      "unmatchedProofSignalCount": 1
+    },
+    "unmatchedProofSignals": [
+      {
+        "addedLines": 4,
+        "checkSignal": true,
+        "file": "Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift",
+        "kind": "test-file",
+        "line": 7,
+        "location": "Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift:7",
+        "snippet": "func testUnrelatedSmokePath() { XCTAssertTrue(smokePath.isEnabled) }"
+      }
+    ]
+  },
+  "reportQualityQuestions": [
+    "Does Lean Review protect hardware calibration and host boundaries from false less-code pressure?"
+  ],
+  "runnableCheckReview": {
+    "missingProofFindings": [
+      {
+        "evidence": "if route.kind == .generated { return GeneratedRoute(route.payload) }",
+        "file": "Sources/SyntheticLeanReview/RuleRouter.swift",
+        "line": 18,
+        "location": "Sources/SyntheticLeanReview/RuleRouter.swift:18",
+        "proofGuidance": "Add one focused route-selection check or point to the changed test that covers this branch before merge.",
+        "recommendation": "Leave one smallest runnable check for the new routing branch instead of treating tests as optional ceremony.",
+        "ruleId": "one-runnable-check-missing-diff",
+        "severity": "review"
+      }
+    ],
+    "nonCeremonyBoundary": "If the same diff already changes a focused test, XCTest, assertion, or explicit check signal, Lean Review records that same-diff proof signal instead of asking for duplicate test ceremony. The maintainer still needs to review relevance and run the focused check.",
+    "policy": "Non-trivial branch, loop, parser, and collection logic should leave one smallest runnable check.",
+    "proofToReview": [
+      "For missing-proof rows, add or identify the smallest runnable check that covers the changed behavior.",
+      "For same-diff proof rows, run the changed check and confirm it exercises the changed non-trivial logic."
+    ],
+    "sameDiffProofFindings": [
+      {
+        "evidence": "if option.isPrimary { return .preferred(option.id) }",
+        "file": "Sources/SyntheticLeanReview/SelectionPolicy.swift",
+        "line": 27,
+        "location": "Sources/SyntheticLeanReview/SelectionPolicy.swift:27",
+        "proofGuidance": "Review Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift, then run the focused test before merge.",
+        "recommendation": "Do not add duplicate test ceremony before checking whether the same-diff proof signal already covers this logic.",
+        "ruleId": "one-runnable-check-signal-present-diff",
+        "severity": "info"
+      }
+    ],
+    "sameDiffProofSignals": [
+      {
+        "addedLines": 5,
+        "checkSignal": true,
+        "file": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift",
+        "kind": "test-file",
+        "line": 9,
+        "snippet": "func testPrimaryOptionWins() { XCTAssertEqual(policy.pick(primary), .preferred(primary.id)) }"
+      },
+      {
+        "addedLines": 4,
+        "checkSignal": true,
+        "file": "Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift",
+        "kind": "test-file",
+        "line": 7,
+        "snippet": "func testUnrelatedSmokePath() { XCTAssertTrue(smokePath.isEnabled) }"
+      }
+    ],
+    "summary": {
+      "duplicateCeremonyAvoided": 1,
+      "missingRunnableCheckFindings": 1,
+      "sameDiffProofFindings": 1,
+      "sameDiffProofSignalCount": 2
+    }
+  },
+  "scanScope": {
+    "note": "Synthetic fixture; no private source tree was scanned.",
+    "skippedDirectories": [],
+    "skippedDirectoryCount": 0
+  },
+  "schemaVersion": 1,
+  "scopeBoundary": {
+    "purpose": "Synthetic public fixture for ShipGuard report-quality behavior.",
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "shareability": {
+    "localAbsolutePathsIncluded": false,
+    "mode": "shareable"
+  },
+  "sourceInfluence": {
+    "boundary": "ShipGuard implements a native diff review for unnecessary code. It does not vendor Ponytail code.",
+    "name": "Ponytail",
+    "url": "https://github.com/DietrichGebert/ponytail"
+  },
+  "status": "pass",
+  "surface": "ShipGuard Lean Review",
+  "target": {
+    "path": ".",
+    "shareable": true
+  },
+  "tool": "shipguard lean review"
+}

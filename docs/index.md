@@ -14,7 +14,7 @@ Use this page as a map. Start with the smallest path that matches what you are t
 | Add ShipGuard to your own project | [Use in your repo](use-in-your-repo.md) |
 | Choose the right command | [Command Matrix](command-matrix.md) |
 | Look up every CLI option | [CLI reference](cli.md) |
-| Find code that may not need to exist | [ShipGuard Lean Deck](lean-audit.md), including diff review, debt ledger, behavior gates, and benchmark-honest gain report |
+| Find code that may not need to exist | [ShipGuard Lean Deck](lean-audit.md), including diff review, hardware/host proof boundaries, debt ledger, behavior gates, and benchmark-honest gain report |
 
 ## First Useful Run
 

@@ -816,7 +816,7 @@ def build_precision_review(findings: list[dict[str, Any]], mode: str = "full") -
                     "deleteWhen": "The speculative note has no accepted task, owner, trigger, or validation path.",
                 }
             )
-        elif rule_id in {"large-legacy-file-review"}:
+        elif rule_id in {"large-legacy-file-review", "hardware-calibration-missing-diff"}:
             blocked_by_proof.append(entry)
         else:
             simplify_first.append(entry)
@@ -825,7 +825,13 @@ def build_precision_review(findings: list[dict[str, Any]], mode: str = "full") -
     boundary_items = safety_items + [
         item
         for item in findings
-        if item.get("ruleId") in {"thin-adapter-boundary", "hardware-calibration-proof-boundary"}
+        if item.get("ruleId")
+        in {
+            "thin-adapter-boundary",
+            "hardware-calibration-proof-boundary",
+            "do-not-cut-safety-diff-without-proof",
+            "host-adapter-boundary-diff",
+        }
     ]
     for item in boundary_items[:20]:
         evidence = item.get("evidence", {})
