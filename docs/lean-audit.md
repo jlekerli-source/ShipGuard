@@ -89,6 +89,11 @@ Each row carries a rot reason, exact next action, and proof guidance, so the
 first visible cleanup bet is available without another source inspection pass.
 If rows are omitted by the ledger cap, the review marks omitted risk as unknown
 instead of pretending visible rows are exhaustive.
+Each rot-risk row also carries a `triggerWatchContract` with a trigger state,
+trigger condition, exact next action, check route, proof artifact, and stop
+condition. The Markdown renders those contracts in `Trigger-Watch Contracts`, so
+tracked shortcuts explain exactly how to decide whether their upgrade trigger is
+true before deleting or replacing code.
 It also renders a `Benchmark Savings Boundary`: Lean Debt sets
 `currentRepoBoundary.perRepoSavingsClaim` to `not-computed`, treats marker counts
 as `shortcut-ledger-only` evidence, and routes benchmark direction to

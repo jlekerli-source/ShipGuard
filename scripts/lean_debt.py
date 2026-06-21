@@ -14,7 +14,7 @@ from lean_audit import iter_files, scan_lean_debt
 
 TOOL = "shipguard lean debt"
 SURFACE = "ShipGuard Lean Debt"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 def utc_now() -> str:
@@ -94,6 +94,41 @@ def build_marker_visibility_review(ledger: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def build_trigger_watch_contract(
+    *,
+    has_ceiling: bool,
+    has_upgrade: bool,
+    upgrade: str,
+    next_action: str,
+) -> dict[str, str]:
+    if not has_ceiling:
+        return {
+            "triggerState": "blocked-missing-ceiling",
+            "triggerCondition": "missing ceiling; define the bounded scope or lifetime before relying on trigger cleanup",
+            "exactNextAction": next_action,
+            "checkRoute": "Add the ceiling to the marker, rerun shipguard lean debt, and confirm the row is no longer high risk.",
+            "proofArtifact": "lean-debt.json markerVisibilityReview.visibilityRows row with hasCeiling=true and a non-empty ceiling.",
+            "stopCondition": "Stop if no owner, milestone, release, scope, or lifetime can bound the shortcut.",
+        }
+    if not has_upgrade:
+        return {
+            "triggerState": "needs-trigger-definition",
+            "triggerCondition": "missing upgrade trigger; define a release, dependency, migration, or repeated call-site signal",
+            "exactNextAction": next_action,
+            "checkRoute": "Add the upgrade trigger to the marker, rerun shipguard lean debt, and confirm rowsNeedingUpgradeTrigger decreases.",
+            "proofArtifact": "lean-debt.json markerVisibilityReview.visibilityRows row with hasUpgradeTrigger=true and a non-empty upgradeTrigger.",
+            "stopCondition": "Stop if the trigger cannot be checked later from a release, dependency, migration, or call-site signal.",
+        }
+    return {
+        "triggerState": "watch-trigger",
+        "triggerCondition": upgrade,
+        "exactNextAction": f"Check whether this trigger is true: {upgrade}",
+        "checkRoute": "Run call-site search for the shortcut location, then run the smallest focused validation covering the replacement or deletion.",
+        "proofArtifact": "call-site search notes plus focused validation output attached beside lean-debt.json.",
+        "stopCondition": "Stop if search or validation shows the shortcut is still active product behavior.",
+    }
+
+
 def build_rot_risk_review(marker_visibility: dict[str, Any]) -> dict[str, Any]:
     summary = marker_visibility.get("summary") if isinstance(marker_visibility.get("summary"), dict) else {}
     visibility_rows = (
@@ -123,6 +158,12 @@ def build_rot_risk_review(marker_visibility: dict[str, Any]) -> dict[str, Any]:
             rot_reason = "Tracked shortcut should be reviewed when its upgrade trigger becomes true."
             next_action = f"Watch the upgrade trigger: {upgrade}"
             proof_guidance = "When the trigger is true, run call-site search plus the smallest focused validation before deleting or replacing it."
+        trigger_watch_contract = build_trigger_watch_contract(
+            has_ceiling=has_ceiling,
+            has_upgrade=has_upgrade,
+            upgrade=upgrade,
+            next_action=next_action,
+        )
         rows.append(
             {
                 "rank": 0,
@@ -139,6 +180,7 @@ def build_rot_risk_review(marker_visibility: dict[str, Any]) -> dict[str, Any]:
                 "upgradeTrigger": upgrade,
                 "hasCeiling": has_ceiling,
                 "hasUpgradeTrigger": has_upgrade,
+                "triggerWatchContract": trigger_watch_contract,
             }
         )
     rows.sort(key=lambda row: (risk_rank.get(str(row["riskLevel"]), 99), str(row["location"])))
@@ -148,6 +190,8 @@ def build_rot_risk_review(marker_visibility: dict[str, Any]) -> dict[str, Any]:
     high_rows = sum(1 for row in rows if row["riskLevel"] == "high")
     review_rows = sum(1 for row in rows if row["riskLevel"] == "review")
     tracked_rows = sum(1 for row in rows if row["riskLevel"] == "tracked")
+    trigger_contract_rows = sum(1 for row in rows if isinstance(row.get("triggerWatchContract"), dict))
+    top_trigger_contract = top.get("triggerWatchContract") if isinstance(top.get("triggerWatchContract"), dict) else {}
     return {
         "policy": (
             "Start with the highest-risk shortcut marker before opening source again: missing ceiling first, "
@@ -161,10 +205,15 @@ def build_rot_risk_review(marker_visibility: dict[str, Any]) -> dict[str, Any]:
             "trackedRows": tracked_rows,
             "missingCeilingRows": high_rows,
             "missingUpgradeTriggerRows": review_rows,
+            "triggerWatchContractRows": trigger_contract_rows,
+            "missingTriggerWatchContractRows": max(0, len(rows) - trigger_contract_rows),
+            "trackedTriggerWatchRows": tracked_rows,
+            "missingTriggerDefinitionRows": review_rows,
             "omittedByLimit": int(summary.get("omittedByLimit") or 0),
             "omittedRiskUnknown": int(summary.get("omittedByLimit") or 0) > 0,
             "topRiskLocation": str(top.get("location") or ""),
             "topRiskReason": str(top.get("rotReason") or ""),
+            "topTriggerWatchAction": str(top_trigger_contract.get("exactNextAction") or ""),
         },
         "coverageBoundary": (
             "Rot-risk ranking is based on visible shortcut rows. When omittedByLimit is greater than zero, "
@@ -293,8 +342,13 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"- Tracked rows: {rot_summary.get('trackedRows', 0)}",
             f"- Missing ceiling rows: {rot_summary.get('missingCeilingRows', 0)}",
             f"- Missing upgrade-trigger rows: {rot_summary.get('missingUpgradeTriggerRows', 0)}",
+            f"- Trigger-watch contract rows: {rot_summary.get('triggerWatchContractRows', 0)}",
+            f"- Missing trigger-watch contracts: {rot_summary.get('missingTriggerWatchContractRows', 0)}",
+            f"- Tracked trigger-watch rows: {rot_summary.get('trackedTriggerWatchRows', 0)}",
+            f"- Missing trigger definitions: {rot_summary.get('missingTriggerDefinitionRows', 0)}",
             f"- Omitted by limit: {rot_summary.get('omittedByLimit', 0)}",
             f"- Omitted risk unknown: `{str(rot_summary.get('omittedRiskUnknown', False)).lower()}`",
+            f"- Top trigger-watch action: {rot_summary.get('topTriggerWatchAction') or '-'}",
             f"- Coverage boundary: {rot_review.get('coverageBoundary', '')}",
             f"- Policy: {rot_review.get('policy', '')}",
             "",
@@ -312,6 +366,27 @@ def render_markdown(report: dict[str, Any]) -> str:
         )
     if not rot_rows:
         lines.append("| 0 | tracked | pass | - | - | No shortcut markers found. | Keep Lean Review on active diffs. | No marker proof needed. |")
+    lines.extend(
+        [
+            "",
+            "## Trigger-Watch Contracts",
+            "",
+            "| Rank | Trigger State | Location | Trigger Condition | Exact Next Action | Check Route | Proof Artifact | Stop Condition |",
+            "| ---: | --- | --- | --- | --- | --- | --- | --- |",
+        ]
+    )
+    for item in rot_rows:
+        contract = item.get("triggerWatchContract") if isinstance(item.get("triggerWatchContract"), dict) else {}
+        lines.append(
+            f"| {item.get('rank', '')} | {contract.get('triggerState', '')} | {item.get('location', '')} | "
+            f"{str(contract.get('triggerCondition', '')).replace('|', '\\|')} | "
+            f"{str(contract.get('exactNextAction', '')).replace('|', '\\|')} | "
+            f"{str(contract.get('checkRoute', '')).replace('|', '\\|')} | "
+            f"{str(contract.get('proofArtifact', '')).replace('|', '\\|')} | "
+            f"{str(contract.get('stopCondition', '')).replace('|', '\\|')} |"
+        )
+    if not rot_rows:
+        lines.append("| 0 | watch-trigger | - | No marker trigger to watch. | Keep Lean Review on active diffs. | No check route needed. | No marker proof needed. | No shortcut cleanup is open. |")
     lines.extend(
         [
             "",

@@ -13,7 +13,9 @@
     "the fixture exposes rotRiskReview.summary with total, high-risk, review-risk, tracked, missing-ceiling, missing-trigger, omitted, and top-risk fields",
     "the fixture exposes rotRiskReview.prioritizedRows sorted by missing ceiling, missing upgrade trigger, then tracked trigger watch rows",
     "each rot-risk row includes the marker location, rot reason, next action, and proof guidance so no source inspection is needed to pick the first cleanup bet",
-    "the Markdown exposes Rot-Risk Review with the same prioritized rows and top-risk location"
+    "the Markdown exposes Rot-Risk Review with the same prioritized rows and top-risk location",
+    "each rot-risk row includes triggerWatchContract with trigger condition, exact next action, check route, proof artifact, and stop condition",
+    "the Markdown exposes Trigger-Watch Contracts beside the Rot-Risk Review rows"
   ],
   "fixtureType": "shipguard-lean-report-quality-fixture",
   "materialization": {

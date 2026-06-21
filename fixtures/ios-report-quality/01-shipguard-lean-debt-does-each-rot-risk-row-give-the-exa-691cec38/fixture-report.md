@@ -11,7 +11,7 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 ## Fixture Intent
 
 - Type: `shipguard-lean-report-quality-fixture`
-- Source question: Does it avoid pretending benchmark savings are measurable in this repo?
+- Source question: Does each rot-risk row give the exact next action and proof to prevent trigger rot?
 
 ## Marker Visibility Review
 

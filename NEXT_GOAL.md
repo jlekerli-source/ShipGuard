@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-21T08:16:08Z
+- Generated: 2026-06-21T08:59:31Z
 - Current toolkit version: 3.131.0
-- Target release: v3.154.0
-- Title: Lean Debt Trigger-Rot Next Action Fixture QA
+- Target release: v3.155.0
+- Title: Verify-first Launch Quickstart QA
 
 ## Slash Plan
 
 ```text
-/plan v3.154.0 Lean Debt Trigger-Rot Next Action Fixture QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Promote the next Lean Debt trigger-rot actionability question into public synthetic fixture coverage that proves each rot-risk row gives an exact next action and proof guidance to prevent shortcut trigger rot.
+/plan v3.155.0 Verify-first Launch Quickstart QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Review the verify-first launch quickstart, public demo, and report-quality evidence; promote one bounded fixture-backed improvement that makes a new developer reach a useful prepare/verify verdict faster without adding internal ShipYard ceremony.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.154.0 Lean Debt Trigger-Rot Next Action Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next Lean Debt trigger-rot actionability question into public synthetic fixture coverage that proves each rot-risk row gives an exact next action and proof guidance to prevent shortcut trigger rot, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.155.0 Verify-first Launch Quickstart QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Review the verify-first launch quickstart, public demo, and report-quality evidence; promote one bounded fixture-backed improvement that makes a new developer reach a useful prepare/verify verdict faster without adding internal ShipYard ceremony, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Promote the next Lean Debt trigger-rot actionability question into public synthetic fixture coverage that proves each rot-risk row gives an exact next action and proof guidance to prevent shortcut trigger rot.
+Review the verify-first launch quickstart, public demo, and report-quality evidence; promote one bounded fixture-backed improvement that makes a new developer reach a useful prepare/verify verdict faster without adding internal ShipYard ceremony.
 
 ## Completion Receipt
 
-- Completed scope: Promoted the Lean Debt rot-risk visibility question into public fixture coverage: shipguard lean debt now emits rotRiskReview with visible-row risk ranking, top-risk location, risk-level counts, rot reasons, exact next actions, proof guidance, and omitted-risk honesty boundaries; ios report-quality now fails standalone Lean Debt reports that hide, miscount, under-render, or weaken rot-risk rows; fixtures/ios-report-quality/01-shipguard-lean-debt-can-a-maintainer-tell-which-marker-f778022c proves the public synthetic case and fresh combined Lean QA advances to the trigger-rot next-action question.
-- Evidence: Validated with git diff --check; python3 -m py_compile scripts/lean_debt.py scripts/lean_audit.py scripts/ios_report_quality.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; private-term scan for Lean Debt fixtures; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3153-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3153-value-gauntlet.
+- Completed scope: Promoted the Lean Debt trigger-rot next-action question into public fixture coverage: shipguard lean debt now emits schemaVersion 2 with row-level triggerWatchContract fields, Markdown Trigger-Watch Contracts, escaped-pipe-safe report-quality checks, and a schema-outdated finding for older v1 Lean Debt reports; ios report-quality now fails v2 Lean Debt reports that hide or weaken trigger-watch contracts; fixtures/ios-report-quality/01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38 proves the public synthetic case and fresh combined Lean QA treats the question as covered instead of re-materializing it.
+- Evidence: Validated with git diff --check; python3 -m py_compile scripts/lean_debt.py scripts/ios_report_quality.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3154-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3154-value-gauntlet; ./tests/next_goal_test.sh; ./tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.155.0 Verify-first Launch Quickstart QA for jlekerli-source/ShipGuard:
+/plan v3.156.0 Guarded Launch Relay Drafts QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Promote the next Lean Debt trigger-rot actionability question into public synthe
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.155.0 Verify-first Launch Quickstart QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.156.0 Guarded Launch Relay Drafts QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.155.0 --title "Verify-first Launch Quickstart QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.156.0 --title "Guarded Launch Relay Drafts QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.154.0.
+1. Open or update the tracking issue for v3.155.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.154.0` and upload `dist/shipguard-v3.154.0.tar.gz`.
+6. Create release `v3.155.0` and upload `dist/shipguard-v3.155.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

@@ -1929,7 +1929,10 @@ grep -q '"topRiskLocation": "Sources/SyntheticLeanDebt/LegacyPanel.swift:27"' "$
 grep -q '"riskLevel": "review"' "$lean_debt_rot_fixture/fixture-report.json"
 grep -q '"riskLevel": "tracked"' "$lean_debt_rot_fixture/fixture-report.json"
 grep -q '"nextAction": "Add an upgrade trigger that tells the maintainer exactly when to replace or delete it."' "$lean_debt_rot_fixture/fixture-report.json"
+grep -q '"triggerWatchContract":' "$lean_debt_rot_fixture/fixture-report.json"
+grep -q '"triggerWatchContractRows": 2' "$lean_debt_rot_fixture/fixture-report.json"
 grep -q 'Rot-Risk Review' "$lean_debt_rot_fixture/fixture-report.md"
+grep -q 'Trigger-Watch Contracts' "$lean_debt_rot_fixture/fixture-report.md"
 grep -q 'Top risk location: Sources/SyntheticLeanDebt/LegacyPanel.swift:27' "$lean_debt_rot_fixture/fixture-report.md"
 grep -q 'Add an upgrade trigger that tells the maintainer exactly when to replace or delete it.' "$lean_debt_rot_fixture/fixture-report.md"
 python3 - <<'PY' "$tmp_dir/lean-debt-rot-public-quality/ios-report-quality.json"
@@ -1946,6 +1949,38 @@ if not top or not (top.get("sourceMaterializedFixture") is True or top.get("exis
 PY
 if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_debt_rot_fixture"; then
   echo "Lean Debt rot-risk fixture must not include local paths or private app identifiers" >&2
+  exit 1
+fi
+
+lean_debt_trigger_fixture="fixtures/ios-report-quality/01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38"
+./bin/shipguard ios report-quality \
+  --reports "$lean_debt_trigger_fixture" \
+  --out "$tmp_dir/lean-debt-trigger-public-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/lean-debt-trigger-public-quality/ios-report-quality.json"
+grep -q 'Does each rot-risk row give the exact next action and proof to prevent trigger rot?' "$tmp_dir/lean-debt-trigger-public-quality/ios-report-quality.md"
+grep -q '"tool": "shipguard lean debt"' "$lean_debt_trigger_fixture/fixture-report.json"
+grep -q '"triggerWatchContract":' "$lean_debt_trigger_fixture/fixture-report.json"
+grep -q '"triggerWatchContractRows": 2' "$lean_debt_trigger_fixture/fixture-report.json"
+grep -q '"topTriggerWatchAction": "Add an upgrade trigger that tells the maintainer exactly when to replace or delete it."' "$lean_debt_trigger_fixture/fixture-report.json"
+grep -q '"triggerState": "watch-trigger"' "$lean_debt_trigger_fixture/fixture-report.json"
+grep -q '"exactNextAction": "Check whether this trigger is true: replace when repeated-key support is required"' "$lean_debt_trigger_fixture/fixture-report.json"
+grep -q 'Trigger-Watch Contracts' "$lean_debt_trigger_fixture/fixture-report.md"
+grep -q 'Check whether this trigger is true: replace when repeated-key support is required' "$lean_debt_trigger_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/lean-debt-trigger-public-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"Lean Debt trigger-watch public fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+top = questions[0] if questions else {}
+if not top or not (top.get("sourceMaterializedFixture") is True or top.get("existingFixture")):
+    raise SystemExit(f"Lean Debt trigger-watch fixture should retain materialized or fixture-coverage question evidence: {questions!r}")
+PY
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_debt_trigger_fixture"; then
+  echo "Lean Debt trigger-watch fixture must not include local paths or private app identifiers" >&2
   exit 1
 fi
 
@@ -2109,6 +2144,108 @@ cp "$lean_debt_rot_fixture/fixture-report.md" "$tmp_dir/lean-debt-incomplete-rot
   --out "$tmp_dir/lean-debt-incomplete-rot-risk-row-quality" \
   --shareable >/dev/null
 grep -q '"ruleId": "lean-debt-rot-risk-row-fields-incomplete"' "$tmp_dir/lean-debt-incomplete-rot-risk-row-quality/ios-report-quality.json"
+
+mkdir -p "$tmp_dir/lean-debt-missing-trigger-watch-contract"
+python3 - <<'PY' "$lean_debt_trigger_fixture/fixture-report.json" "$tmp_dir/lean-debt-missing-trigger-watch-contract/lean-debt.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+data["rotRiskReview"]["summary"]["triggerWatchContractRows"] = 1
+data["rotRiskReview"]["summary"]["missingTriggerWatchContractRows"] = 1
+data["rotRiskReview"]["prioritizedRows"][1].pop("triggerWatchContract", None)
+json.dump(data, open(sys.argv[2], "w", encoding="utf-8"), indent=2, sort_keys=True)
+PY
+cp "$lean_debt_trigger_fixture/fixture-report.md" "$tmp_dir/lean-debt-missing-trigger-watch-contract/lean-debt.md"
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-debt-missing-trigger-watch-contract" \
+  --out "$tmp_dir/lean-debt-missing-trigger-watch-contract-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-debt-rot-risk-row-fields-incomplete"' "$tmp_dir/lean-debt-missing-trigger-watch-contract-quality/ios-report-quality.json"
+
+mkdir -p "$tmp_dir/lean-debt-old-schema-trigger-watch"
+python3 - <<'PY' "$lean_debt_trigger_fixture/fixture-report.json" "$tmp_dir/lean-debt-old-schema-trigger-watch/lean-debt.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+data["schemaVersion"] = 1
+summary = data["rotRiskReview"]["summary"]
+for key in (
+    "triggerWatchContractRows",
+    "missingTriggerWatchContractRows",
+    "trackedTriggerWatchRows",
+    "missingTriggerDefinitionRows",
+    "topTriggerWatchAction",
+):
+    summary.pop(key, None)
+for row in data["rotRiskReview"]["prioritizedRows"]:
+    row.pop("triggerWatchContract", None)
+json.dump(data, open(sys.argv[2], "w", encoding="utf-8"), indent=2, sort_keys=True)
+PY
+python3 - <<'PY' "$lean_debt_trigger_fixture/fixture-report.md" "$tmp_dir/lean-debt-old-schema-trigger-watch/lean-debt.md"
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+lines = open(source, encoding="utf-8").read().splitlines()
+out = []
+skip = False
+for line in lines:
+    if line in {
+        "- Trigger-watch contract rows: 2",
+        "- Missing trigger-watch contracts: 0",
+        "- Tracked trigger-watch rows: 1",
+        "- Missing trigger definitions: 1",
+        "- Top trigger-watch action: Add an upgrade trigger that tells the maintainer exactly when to replace or delete it.",
+    }:
+        continue
+    if line == "## Trigger-Watch Contracts":
+        skip = True
+        continue
+    if skip and line.startswith("## "):
+        skip = False
+    if not skip:
+        out.append(line)
+open(target, "w", encoding="utf-8").write("\n".join(out) + "\n")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-debt-old-schema-trigger-watch" \
+  --out "$tmp_dir/lean-debt-old-schema-trigger-watch-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-debt-trigger-watch-schema-outdated"' "$tmp_dir/lean-debt-old-schema-trigger-watch-quality/ios-report-quality.json"
+if grep -q '"ruleId": "lean-debt-rot-risk-summary-missing"' "$tmp_dir/lean-debt-old-schema-trigger-watch-quality/ios-report-quality.json"; then
+  echo "old schema Lean Debt reports should get one outdated trigger-watch schema finding, not noisy v2 missing-summary failures" >&2
+  exit 1
+fi
+
+mkdir -p "$tmp_dir/lean-debt-missing-trigger-watch-markdown"
+cp "$lean_debt_trigger_fixture/fixture-report.json" "$tmp_dir/lean-debt-missing-trigger-watch-markdown/lean-debt.json"
+python3 - <<'PY' "$lean_debt_trigger_fixture/fixture-report.md" "$tmp_dir/lean-debt-missing-trigger-watch-markdown/lean-debt.md"
+import sys
+
+source, target = sys.argv[1], sys.argv[2]
+lines = open(source, encoding="utf-8").read().splitlines()
+out = []
+skip = False
+removed = False
+for line in lines:
+    if line == "## Trigger-Watch Contracts":
+        skip = True
+        removed = True
+        continue
+    if skip and line.startswith("## "):
+        skip = False
+    if not skip:
+        out.append(line)
+if not removed:
+    raise SystemExit("did not remove trigger-watch contracts")
+open(target, "w", encoding="utf-8").write("\n".join(out) + "\n")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-debt-missing-trigger-watch-markdown" \
+  --out "$tmp_dir/lean-debt-missing-trigger-watch-markdown-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-debt-rot-risk-markdown-missing"' "$tmp_dir/lean-debt-missing-trigger-watch-markdown-quality/ios-report-quality.json"
 
 mkdir -p "$tmp_dir/lean-debt-missing-rot-risk-markdown"
 cp "$lean_debt_rot_fixture/fixture-report.json" "$tmp_dir/lean-debt-missing-rot-risk-markdown/lean-debt.json"
@@ -2643,6 +2780,7 @@ grep -q '01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be' "$
 grep -q '01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q '01-shipguard-lean-debt-does-it-avoid-pretending-benchmark-e86ef9dc' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q '01-shipguard-lean-debt-can-a-maintainer-tell-which-marker-f778022c' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q '01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review give a current-diff delete/simplify list instead of a whole-repo inventory?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review require one smallest runnable check for non-trivial new logic?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does proofSignalCalibration distinguish missing runnable checks from same-diff proof signals?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
@@ -2652,22 +2790,28 @@ grep -q 'Does Lean Review expose the selected lite/full/ultra mode and bias firs
 grep -q 'Does Lean Debt make every shortcut marker visible with a ceiling and upgrade trigger?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does it avoid pretending benchmark savings are measurable in this repo?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Can a maintainer tell which marker will rot without another source inspection pass?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q 'Does each rot-risk row give the exact next action and proof to prevent trigger rot?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 python3 - <<'PY' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 import json
 import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
-question = (data.get("priorityAction") or {}).get("question")
-expected = "Does each rot-risk row give the exact next action and proof to prevent trigger rot?"
-if question != expected:
-    raise SystemExit(f"expected combined Lean QA to advance to Lean Debt trigger-rot next action, got {question!r}")
+coverage = data.get("fixtureCoverage") or []
+expected_question = "Does each rot-risk row give the exact next action and proof to prevent trigger rot?"
+expected_path = "fixtures/ios-report-quality/01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38"
+if not any(item.get("question") == expected_question and item.get("publicFixturePath") == expected_path for item in coverage):
+    raise SystemExit(f"expected combined Lean QA fixture coverage for trigger-rot next action: {coverage!r}")
+if any((candidate.get("sourceQuestion") == expected_question) for candidate in (data.get("fixtureCandidates") or [])):
+    raise SystemExit(f"combined Lean QA should not emit duplicate trigger-rot fixture candidate: {data.get('fixtureCandidates')!r}")
 PY
 if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$tmp_dir/lean-fresh-combined-candidates"; then
   echo "materialized combined Lean candidate must not include local paths or private app identifiers" >&2
   exit 1
 fi
-grep -R -q 'rotRiskReview.summary' "$tmp_dir/lean-fresh-combined-candidates"
-grep -R -q 'exact next action' "$tmp_dir/lean-fresh-combined-candidates"
+if grep -R -q 'Does each rot-risk row give the exact next action and proof to prevent trigger rot?' "$tmp_dir/lean-fresh-combined-candidates"; then
+  echo "combined Lean QA should not materialize duplicate trigger-rot next-action candidate" >&2
+  exit 1
+fi
 
 mkdir -p "$tmp_dir/lean-review-missing-hardware-host-boundary"
 python3 - <<'PY' "$lean_review_hardware_host_fixture/fixture-report.json" "$tmp_dir/lean-review-missing-hardware-host-boundary/lean-review.json"

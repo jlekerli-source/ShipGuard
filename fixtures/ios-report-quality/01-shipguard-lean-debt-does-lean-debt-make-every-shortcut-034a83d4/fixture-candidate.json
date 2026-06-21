@@ -9,7 +9,9 @@
     "the fixture exposes markerVisibilityReview.summary counts for total, visible, ceiling, missing-ceiling, upgrade-trigger, missing-trigger, upgrade-status, and omitted marker rows",
     "the fixture exposes markerVisibilityReview.visibilityRows for tracked and needs-trigger shortcuts",
     "the fixture keeps every shortcut marker location, ceiling, and upgrade-trigger status visible without claiming benchmark savings",
-    "the Markdown exposes Marker Visibility Review with the same shortcut rows before the raw ledger table"
+    "the Markdown exposes Marker Visibility Review with the same shortcut rows before the raw ledger table",
+    "each rot-risk row includes triggerWatchContract with trigger condition, exact next action, check route, proof artifact, and stop condition",
+    "the Markdown exposes Trigger-Watch Contracts beside the Rot-Risk Review rows"
   ],
   "fixtureType": "shipguard-lean-report-quality-fixture",
   "materialization": {

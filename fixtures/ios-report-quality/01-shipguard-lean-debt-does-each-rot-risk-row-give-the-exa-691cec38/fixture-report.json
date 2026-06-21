@@ -16,7 +16,7 @@
   },
   "findings": [],
   "fixtureCandidate": {
-    "candidateId": "01-shipguard-lean-debt-can-a-maintainer-tell-which-marker-f778022c",
+    "candidateId": "01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38",
     "duplicateCount": 1,
     "expectedAssertions": [
       "report-quality preserves the actionability question in JSON and Markdown",
@@ -30,6 +30,8 @@
       "the fixture exposes rotRiskReview.summary with total, high-risk, review-risk, tracked, missing-ceiling, missing-trigger, omitted, and top-risk fields",
       "the fixture exposes rotRiskReview.prioritizedRows sorted by missing ceiling, missing upgrade trigger, then tracked trigger watch rows",
       "each rot-risk row includes the marker location, rot reason, next action, and proof guidance so no source inspection is needed to pick the first cleanup bet",
+      "each rot-risk row includes triggerWatchContract with trigger condition, exact next action, check route, proof artifact, and stop condition",
+      "the Markdown exposes Trigger-Watch Contracts beside the Rot-Risk Review rows",
       "the Markdown exposes Rot-Risk Review with the same prioritized rows and top-risk location"
     ],
     "fixtureType": "shipguard-lean-report-quality-fixture",
@@ -46,13 +48,13 @@
     "priority": 1,
     "privateDataPolicy": "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
     "promotion": {
-      "candidateId": "01-shipguard-lean-debt-can-a-maintainer-tell-which-marker-f778022c",
+      "candidateId": "01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38",
       "copyCommands": [
-        "mkdir -p fixtures/ios-report-quality/01-shipguard-lean-debt-can-a-maintainer-tell-which-marker-f778022c",
-        "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/01-shipguard-lean-debt-can-a-maintainer-tell-which-marker-f778022c/README.md",
-        "cp <materialized-candidate-dir>/fixture-candidate.json fixtures/ios-report-quality/01-shipguard-lean-debt-can-a-maintainer-tell-which-marker-f778022c/fixture-candidate.json",
-        "cp <materialized-candidate-dir>/fixture-report.json fixtures/ios-report-quality/01-shipguard-lean-debt-can-a-maintainer-tell-which-marker-f778022c/fixture-report.json",
-        "cp <materialized-candidate-dir>/fixture-report.md fixtures/ios-report-quality/01-shipguard-lean-debt-can-a-maintainer-tell-which-marker-f778022c/fixture-report.md"
+        "mkdir -p fixtures/ios-report-quality/01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38",
+        "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38/README.md",
+        "cp <materialized-candidate-dir>/fixture-candidate.json fixtures/ios-report-quality/01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38/fixture-candidate.json",
+        "cp <materialized-candidate-dir>/fixture-report.json fixtures/ios-report-quality/01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38/fixture-report.json",
+        "cp <materialized-candidate-dir>/fixture-report.md fixtures/ios-report-quality/01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38/fixture-report.md"
       ],
       "files": [
         "README.md",
@@ -68,17 +70,17 @@
         "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates.",
         "Register the fixture in validation only after the report-quality check passes."
       ],
-      "sourceDirectory": "<materialized-fixture-output>/01-shipguard-lean-debt-can-a-maintainer-tell-which-marker-f778022c",
-      "suggestedFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-debt-can-a-maintainer-tell-which-marker-f778022c",
+      "sourceDirectory": "<materialized-fixture-output>/01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38",
+      "suggestedFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38",
       "validationCommands": [
-        "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-debt-can-a-maintainer-tell-which-marker-f778022c --out <quality-dir> --shareable",
+        "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38 --out <quality-dir> --shareable",
         "./tests/ios_report_quality_test.sh",
         "./bin/shipguard validate"
       ]
     },
-    "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-debt-can-a-maintainer-tell-which-marker-f778022c",
+    "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38",
     "publicFixtureRecipe": "Create a minimal synthetic ShipGuard report pair that reproduces this report-quality question without private app code, local paths, screenshots, customer data, app names, or proprietary source snippets.",
-    "sourceQuestion": "Can a maintainer tell which marker will rot without another source inspection pass?",
+    "sourceQuestion": "Does each rot-risk row give the exact next action and proof to prevent trigger rot?",
     "sourceReportCount": 1,
     "sourceReportsRedacted": true,
     "sourceTool": "shipguard lean debt",
@@ -87,7 +89,7 @@
       "./tests/ios_report_quality_test.sh"
     ]
   },
-  "generatedAt": "2026-06-21T07:52:58Z",
+  "generatedAt": "2026-06-21T08:32:21Z",
   "intent": "shipguard-evaluation",
   "leanDebtLedger": {
     "description": "Synthetic shortcut markers for standalone Lean Debt marker-visibility coverage.",
@@ -173,7 +175,7 @@
     "Use shipguard lean review on active diffs so new shortcuts are tracked before merge."
   ],
   "reportQualityQuestions": [
-    "Can a maintainer tell which marker will rot without another source inspection pass?"
+    "Does each rot-risk row give the exact next action and proof to prevent trigger rot?"
   ],
   "rotRiskReview": {
     "allVisibleRowsHaveRotRisk": true,

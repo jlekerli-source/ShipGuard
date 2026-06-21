@@ -1,4 +1,19 @@
 {
+  "currentRepoBoundary": {
+    "benchmarkRoute": {
+      "answers": "What benchmark-backed lean-code direction can be shown without claiming current-repo savings?",
+      "command": "shipguard lean gain --path <repo> --out <lean-gain-out> --shipguard-eval --shareable",
+      "expectedArtifact": "lean-gain.json and lean-gain.md",
+      "proofBoundary": "Benchmark direction is separate from this shortcut-ledger evidence and still does not measure this repo without a matched baseline."
+    },
+    "evidenceType": "shortcut-ledger-only",
+    "nonClaims": [
+      "Do not claim current-repo line, token, cost, or time savings from shortcut marker counts.",
+      "Do not treat shortcut marker counts as benchmark savings."
+    ],
+    "perRepoSavingsClaim": "not-computed",
+    "reason": "Lean Debt counts intentional shortcut markers and missing triggers; it has no untreated baseline for current-repo line, token, cost, or time savings."
+  },
   "findings": [],
   "fixtureCandidate": {
     "candidateId": "01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4",
@@ -148,8 +163,17 @@
       }
     ]
   },
+  "nextActions": [
+    "Add an upgrade trigger to every needs-trigger marker.",
+    "Remove markers whose ceiling no longer applies.",
+    "Use shipguard lean review on active diffs so new shortcuts are tracked before merge."
+  ],
+  "reportQualityQuestions": [
+    "Does Lean Debt make every shortcut marker visible with a ceiling and upgrade trigger?"
+  ],
   "rotRiskReview": {
     "allVisibleRowsHaveRotRisk": true,
+    "coverageBoundary": "Rot-risk ranking is based on visible shortcut rows. When omittedByLimit is greater than zero, omitted markers may contain higher risk and must be surfaced by rerunning with a narrower scope or extending the ledger limit.",
     "policy": "Start with the highest-risk shortcut marker before opening source again: missing ceiling first, missing upgrade trigger second, tracked trigger watch third.",
     "prioritizedRows": [
       {
@@ -166,6 +190,14 @@
         "riskLevel": "review",
         "rotReason": "Missing upgrade trigger means this shortcut can survive beyond its intended window.",
         "status": "needs-trigger",
+        "triggerWatchContract": {
+          "checkRoute": "Add the upgrade trigger to the marker, rerun shipguard lean debt, and confirm rowsNeedingUpgradeTrigger decreases.",
+          "exactNextAction": "Add an upgrade trigger that tells the maintainer exactly when to replace or delete it.",
+          "proofArtifact": "lean-debt.json markerVisibilityReview.visibilityRows row with hasUpgradeTrigger=true and a non-empty upgradeTrigger.",
+          "stopCondition": "Stop if the trigger cannot be checked later from a release, dependency, migration, or call-site signal.",
+          "triggerCondition": "missing upgrade trigger; define a release, dependency, migration, or repeated call-site signal",
+          "triggerState": "needs-trigger-definition"
+        },
         "upgradeTrigger": ""
       },
       {
@@ -182,12 +214,22 @@
         "riskLevel": "tracked",
         "rotReason": "Tracked shortcut should be reviewed when its upgrade trigger becomes true.",
         "status": "tracked",
+        "triggerWatchContract": {
+          "checkRoute": "Run call-site search for the shortcut location, then run the smallest focused validation covering the replacement or deletion.",
+          "exactNextAction": "Check whether this trigger is true: replace when repeated-key support is required",
+          "proofArtifact": "call-site search notes plus focused validation output attached beside lean-debt.json.",
+          "stopCondition": "Stop if search or validation shows the shortcut is still active product behavior.",
+          "triggerCondition": "replace when repeated-key support is required",
+          "triggerState": "watch-trigger"
+        },
         "upgradeTrigger": "replace when repeated-key support is required"
       }
     ],
     "summary": {
       "highRiskRows": 0,
       "missingCeilingRows": 0,
+      "missingTriggerDefinitionRows": 1,
+      "missingTriggerWatchContractRows": 0,
       "missingUpgradeTriggerRows": 1,
       "omittedByLimit": 0,
       "omittedRiskUnknown": false,
@@ -195,41 +237,20 @@
       "rotRiskRows": 2,
       "topRiskLocation": "Sources/SyntheticLeanDebt/LegacyPanel.swift:27",
       "topRiskReason": "Missing upgrade trigger means this shortcut can survive beyond its intended window.",
+      "topTriggerWatchAction": "Add an upgrade trigger that tells the maintainer exactly when to replace or delete it.",
       "totalMarkers": 2,
-      "trackedRows": 1
+      "trackedRows": 1,
+      "trackedTriggerWatchRows": 1,
+      "triggerWatchContractRows": 2
     },
-    "coverageBoundary": "Rot-risk ranking is based on visible shortcut rows. When omittedByLimit is greater than zero, omitted markers may contain higher risk and must be surfaced by rerunning with a narrower scope or extending the ledger limit.",
     "topRiskActionable": true
   },
-  "currentRepoBoundary": {
-    "benchmarkRoute": {
-      "answers": "What benchmark-backed lean-code direction can be shown without claiming current-repo savings?",
-      "command": "shipguard lean gain --path <repo> --out <lean-gain-out> --shipguard-eval --shareable",
-      "expectedArtifact": "lean-gain.json and lean-gain.md",
-      "proofBoundary": "Benchmark direction is separate from this shortcut-ledger evidence and still does not measure this repo without a matched baseline."
-    },
-    "evidenceType": "shortcut-ledger-only",
-    "nonClaims": [
-      "Do not claim current-repo line, token, cost, or time savings from shortcut marker counts.",
-      "Do not treat shortcut marker counts as benchmark savings."
-    ],
-    "perRepoSavingsClaim": "not-computed",
-    "reason": "Lean Debt counts intentional shortcut markers and missing triggers; it has no untreated baseline for current-repo line, token, cost, or time savings."
-  },
-  "nextActions": [
-    "Add an upgrade trigger to every needs-trigger marker.",
-    "Remove markers whose ceiling no longer applies.",
-    "Use shipguard lean review on active diffs so new shortcuts are tracked before merge."
-  ],
-  "reportQualityQuestions": [
-    "Does Lean Debt make every shortcut marker visible with a ceiling and upgrade trigger?"
-  ],
   "scanScope": {
     "note": "Synthetic fixture; no private source tree was scanned.",
     "skippedDirectories": [],
     "skippedDirectoryCount": 0
   },
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "scopeBoundary": {
     "purpose": "Synthetic public fixture for ShipGuard report-quality behavior.",
     "shipguardOnly": true,

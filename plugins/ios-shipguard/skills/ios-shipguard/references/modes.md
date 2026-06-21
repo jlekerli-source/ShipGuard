@@ -91,7 +91,7 @@ Proof:
 - shortcut ledger: `shipguard lean debt --path . --out /tmp/shipguard-lean-debt --shipguard-eval --shareable`
 - benchmark card: `shipguard lean gain --path . --out /tmp/shipguard-lean-gain --shipguard-eval --shareable`
 - inspect `leanMode`, `modeBiasReview`, `behaviorGates`, `nativeOpportunityCatalog`, `precisionReview`, `leanDebtLedger`, and standalone Lean Debt `markerVisibilityReview`, `rotRiskReview`, plus `currentRepoBoundary` before proposing deletions or shortcut cleanup
-- for `lean debt`, start from `rotRiskReview.prioritizedRows[0]` when choosing the first shortcut cleanup bet; it must name the rot reason, next action, and proof guidance without requiring another source inspection pass
+- for `lean debt`, start from `rotRiskReview.prioritizedRows[0]` when choosing the first shortcut cleanup bet; it must name the rot reason, next action, proof guidance, and `triggerWatchContract` with trigger condition, check route, proof artifact, and stop condition without requiring another source inspection pass
 - do not claim current-repo line, token, cost, or time savings from `lean gain` or `lean debt`; benchmark direction belongs in `lean gain`, and current-repo savings still need a matched baseline
 - feed Lean reports to `shipguard ios report-quality --reports <lean-output-dir> --out /tmp/shipguard-lean-quality --shareable` when improving ShipGuard itself
 

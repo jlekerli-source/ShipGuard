@@ -204,6 +204,18 @@ The v3.153 read-only loop reran `shipguard lean audit`, `shipguard lean review`,
 
 Fresh combined Lean QA now treats the rot-risk visibility question as covered and advances to the Lean Debt trigger-rot next-action question.
 
+## Current Lean Debt Trigger-Rot Next-Action Fixture QA
+
+The v3.154 read-only loop reran `shipguard lean debt` and `ios report-quality --write-fixture-candidates` against public synthetic shortcut markers after the rot-risk fixture landed.
+
+- Finding: fresh Lean Debt reports now ranked the first marker, but tracked rows still needed a machine-readable trigger-watch contract so tooling could prove the exact condition, check route, proof artifact, and stop condition.
+- Product weakness: prose such as "watch the trigger" was useful to a human but too weak for report-quality, fixture promotion, and future agent routing.
+- Native fix: `shipguard lean debt` now emits `triggerWatchContract` on each `rotRiskReview.prioritizedRows[]` item with trigger state, trigger condition, exact next action, check route, proof artifact, and stop condition.
+- Report-quality fix: `ios report-quality` now flags standalone Lean Debt reports that omit or under-render the trigger-watch contract in JSON or Markdown.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-lean-debt-does-each-rot-risk-row-give-the-exa-691cec38` uses public synthetic evidence to prove the trigger-rot next-action question without private app source.
+
+Fresh combined Lean QA now treats the trigger-rot next-action question as covered instead of materializing a duplicate candidate.
+
 ## Current Verify-PR First-Run QA
 
 The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `shipguard full-audit --plan-only`, docs-check, and the verify-first quickstart tests against this checkout.

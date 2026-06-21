@@ -492,6 +492,13 @@ def normalized_question_text(value: object) -> str:
     return re.sub(r"\s+", " ", str(value)).strip().lower()
 
 
+def markdown_contains_token(markdown: str, token: object) -> bool:
+    text = str(token or "").strip()
+    if not text:
+        return True
+    return text in markdown or text.replace("|", "\\|") in markdown
+
+
 LEAN_REVIEW_MODE_BIAS_CONTRACT = {
     "lite": {
         "firstActionBias": "suggestion-first",
@@ -4323,6 +4330,19 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                     recommendation="Emit rotRiskReview so standalone Lean Debt tells maintainers which shortcut marker will rot first and why.",
                 )
             else:
+                try:
+                    lean_debt_schema_version = int(report.get("schemaVersion") or 1)
+                except (TypeError, ValueError):
+                    lean_debt_schema_version = 1
+                trigger_watch_required = lean_debt_schema_version >= 2
+                if not trigger_watch_required:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-debt-trigger-watch-schema-outdated",
+                        evidence=f"{path_name} schemaVersion {lean_debt_schema_version} predates Lean Debt triggerWatchContract rows",
+                        recommendation="Regenerate the source report with the current shipguard lean debt so trigger-watch contracts are available for report-quality scoring.",
+                    )
                 rot_summary = rot_review.get("summary") if isinstance(rot_review.get("summary"), dict) else {}
                 rot_rows = rot_review.get("prioritizedRows")
                 required_rot_summary = {
@@ -4338,6 +4358,16 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                     "topRiskLocation",
                     "topRiskReason",
                 }
+                if trigger_watch_required:
+                    required_rot_summary.update(
+                        {
+                            "triggerWatchContractRows",
+                            "missingTriggerWatchContractRows",
+                            "trackedTriggerWatchRows",
+                            "missingTriggerDefinitionRows",
+                            "topTriggerWatchAction",
+                        }
+                    )
                 missing_rot_summary = sorted(key for key in required_rot_summary if key not in rot_summary)
                 if missing_rot_summary:
                     add_issue(
@@ -4362,7 +4392,13 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 tracked_rows = sum(1 for row in rot_row_objects if row.get("riskLevel") == "tracked")
                 missing_ceiling_rows = sum(1 for row in rot_row_objects if row.get("hasCeiling") is False)
                 missing_upgrade_rows = sum(1 for row in rot_row_objects if row.get("hasUpgradeTrigger") is False)
+                trigger_contract_rows = sum(
+                    1 for row in rot_row_objects if isinstance(row.get("triggerWatchContract"), dict)
+                )
                 top_row = rot_row_objects[0] if rot_row_objects else {}
+                top_contract = (
+                    top_row.get("triggerWatchContract") if isinstance(top_row.get("triggerWatchContract"), dict) else {}
+                )
                 rot_mismatches = []
                 if int(rot_summary.get("totalMarkers") or 0) != int(ledger_summary.get("markers") or 0):
                     rot_mismatches.append("totalMarkers")
@@ -4380,6 +4416,15 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                     rot_mismatches.append("missingCeilingRows")
                 if int(rot_summary.get("missingUpgradeTriggerRows") or 0) != review_rows:
                     rot_mismatches.append("missingUpgradeTriggerRows")
+                if trigger_watch_required:
+                    if int(rot_summary.get("triggerWatchContractRows") or 0) != trigger_contract_rows:
+                        rot_mismatches.append("triggerWatchContractRows")
+                    if int(rot_summary.get("missingTriggerWatchContractRows") or 0) != max(0, len(rot_row_objects) - trigger_contract_rows):
+                        rot_mismatches.append("missingTriggerWatchContractRows")
+                    if int(rot_summary.get("trackedTriggerWatchRows") or 0) != tracked_rows:
+                        rot_mismatches.append("trackedTriggerWatchRows")
+                    if int(rot_summary.get("missingTriggerDefinitionRows") or 0) != review_rows:
+                        rot_mismatches.append("missingTriggerDefinitionRows")
                 omitted_count = int(ledger_summary.get("omittedByLimit") or 0)
                 if omitted_count > 0 and rot_summary.get("omittedRiskUnknown") is not True:
                     rot_mismatches.append("omittedRiskUnknown")
@@ -4391,6 +4436,8 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                     rot_mismatches.append("topRiskLocation")
                 if marker_count and str(rot_summary.get("topRiskReason") or "") != str(top_row.get("rotReason") or ""):
                     rot_mismatches.append("topRiskReason")
+                if trigger_watch_required and marker_count and str(rot_summary.get("topTriggerWatchAction") or "") != str(top_contract.get("exactNextAction") or ""):
+                    rot_mismatches.append("topTriggerWatchAction")
                 if rot_mismatches:
                     add_issue(
                         issues,
@@ -4428,6 +4475,16 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                     "upgradeTrigger",
                     "hasCeiling",
                     "hasUpgradeTrigger",
+                }
+                if trigger_watch_required:
+                    rot_required_keys.add("triggerWatchContract")
+                required_contract_text = {
+                    "triggerState",
+                    "triggerCondition",
+                    "exactNextAction",
+                    "checkRoute",
+                    "proofArtifact",
+                    "stopCondition",
                 }
                 risk_order = {"high": 0, "review": 1, "tracked": 2}
                 previous_order = -1
@@ -4478,6 +4535,44 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                         malformed_rot_rows.append(f"row {index} tracked risk should name the trigger to watch")
                     if not any(token in proof_text for token in ("call site", "call-site", "validation", "release", "dependency", "migration", "milestone", "owner", "scope", "lifetime", "trigger")):
                         malformed_rot_rows.append(f"row {index} proof guidance lacks a concrete proof signal")
+                    contract = row.get("triggerWatchContract")
+                    if trigger_watch_required:
+                        if not isinstance(contract, dict):
+                            malformed_rot_rows.append(f"row {index} missing triggerWatchContract")
+                            continue
+                        missing_contract_fields = sorted(
+                            key for key in required_contract_text if str(contract.get(key) or "").strip() == ""
+                        )
+                        if missing_contract_fields:
+                            malformed_rot_rows.append(
+                                f"row {index} triggerWatchContract blank fields {', '.join(missing_contract_fields)}"
+                            )
+                        contract_text = normalized_question_text(json.dumps(contract, sort_keys=True))
+                        trigger_state = normalized_question_text(contract.get("triggerState") or "")
+                        exact_action = normalized_question_text(contract.get("exactNextAction") or "")
+                        check_route = normalized_question_text(contract.get("checkRoute") or "")
+                        proof_artifact = normalized_question_text(contract.get("proofArtifact") or "")
+                        stop_condition = normalized_question_text(contract.get("stopCondition") or "")
+                        if "source inspection" in exact_action or "source inspection" in check_route:
+                            malformed_rot_rows.append(f"row {index} triggerWatchContract still depends on source inspection")
+                        if risk_level == "high" and "missing-ceiling" not in trigger_state and "missing ceiling" not in trigger_state:
+                            malformed_rot_rows.append(f"row {index} high risk triggerWatchContract should be blocked by missing ceiling")
+                        if risk_level == "review" and "needs-trigger" not in trigger_state and "needs trigger" not in trigger_state:
+                            malformed_rot_rows.append(f"row {index} review risk triggerWatchContract should require trigger definition")
+                        if risk_level == "tracked":
+                            upgrade_trigger_text = normalized_question_text(row.get("upgradeTrigger") or "")
+                            if "watch-trigger" not in trigger_state and "watch trigger" not in trigger_state:
+                                malformed_rot_rows.append(f"row {index} tracked triggerWatchContract should be watch-trigger")
+                            if upgrade_trigger_text and upgrade_trigger_text not in contract_text:
+                                malformed_rot_rows.append(f"row {index} tracked triggerWatchContract should repeat the exact upgrade trigger")
+                            if "call site" not in check_route and "call-site" not in check_route:
+                                malformed_rot_rows.append(f"row {index} tracked triggerWatchContract should name call-site search")
+                            if "validation" not in check_route:
+                                malformed_rot_rows.append(f"row {index} tracked triggerWatchContract should name focused validation")
+                        if "lean-debt" not in proof_artifact and "validation" not in proof_artifact and "call-site" not in proof_artifact and "call site" not in proof_artifact:
+                            malformed_rot_rows.append(f"row {index} triggerWatchContract proofArtifact is not concrete")
+                        if "stop" not in stop_condition:
+                            malformed_rot_rows.append(f"row {index} triggerWatchContract stopCondition is not explicit")
                 if malformed_rot_rows:
                     add_issue(
                         issues,
@@ -4497,6 +4592,21 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                     "Next Action",
                     "Proof Guidance",
                 ]
+                if trigger_watch_required:
+                    required_rot_markdown.extend(
+                        [
+                            "Trigger-watch contract rows",
+                            "Missing trigger-watch contracts",
+                            "Top trigger-watch action",
+                            "Trigger-Watch Contracts",
+                            "Trigger State",
+                            "Trigger Condition",
+                            "Exact Next Action",
+                            "Check Route",
+                            "Proof Artifact",
+                            "Stop Condition",
+                        ]
+                    )
                 missing_rot_markdown = [token for token in required_rot_markdown if token not in markdown]
                 if missing_rot_markdown:
                     add_issue(
@@ -4508,7 +4618,10 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                     )
                 elif isinstance(rot_rows, list):
                     rot_section = markdown.split("Rot-Risk Review", 1)[1]
-                    rot_section = rot_section.split("\n## ", 1)[0]
+                    if "\n## Shortcut Ledger" in rot_section:
+                        rot_section = rot_section.split("\n## Shortcut Ledger", 1)[0]
+                    else:
+                        rot_section = rot_section.split("\n## ", 1)[0]
                     missing_rot_rows = []
                     for row in rot_rows[:20]:
                         if not isinstance(row, dict):
@@ -4520,7 +4633,20 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                             str(row.get("nextAction") or "").strip(),
                             str(row.get("proofGuidance") or "").strip(),
                         ]
-                        if any(token and token not in rot_section for token in row_tokens):
+                        if trigger_watch_required:
+                            contract = row.get("triggerWatchContract") if isinstance(row.get("triggerWatchContract"), dict) else {}
+                            row_tokens.extend(
+                                str(contract.get(key) or "").strip()
+                                for key in (
+                                    "triggerState",
+                                    "triggerCondition",
+                                    "exactNextAction",
+                                    "checkRoute",
+                                    "proofArtifact",
+                                    "stopCondition",
+                                )
+                            )
+                        if any(not markdown_contains_token(rot_section, token) for token in row_tokens):
                             missing_rot_rows.append(location)
                     if missing_rot_rows:
                         add_issue(
@@ -5558,6 +5684,8 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
                     "the fixture exposes rotRiskReview.summary with total, high-risk, review-risk, tracked, missing-ceiling, missing-trigger, omitted, and top-risk fields",
                     "the fixture exposes rotRiskReview.prioritizedRows sorted by missing ceiling, missing upgrade trigger, then tracked trigger watch rows",
                     "each rot-risk row includes the marker location, rot reason, next action, and proof guidance so no source inspection is needed to pick the first cleanup bet",
+                    "each rot-risk row includes triggerWatchContract with trigger condition, exact next action, check route, proof artifact, and stop condition",
+                    "the Markdown exposes Trigger-Watch Contracts beside the Rot-Risk Review rows",
                     "the Markdown exposes Rot-Risk Review with the same prioritized rows and top-risk location",
                 ]
             )
@@ -6297,6 +6425,14 @@ def synthetic_lean_debt_report_fields() -> dict[str, Any]:
             "upgradeTrigger": "",
             "hasCeiling": True,
             "hasUpgradeTrigger": False,
+            "triggerWatchContract": {
+                "triggerState": "needs-trigger-definition",
+                "triggerCondition": "missing upgrade trigger; define a release, dependency, migration, or repeated call-site signal",
+                "exactNextAction": "Add an upgrade trigger that tells the maintainer exactly when to replace or delete it.",
+                "checkRoute": "Add the upgrade trigger to the marker, rerun shipguard lean debt, and confirm rowsNeedingUpgradeTrigger decreases.",
+                "proofArtifact": "lean-debt.json markerVisibilityReview.visibilityRows row with hasUpgradeTrigger=true and a non-empty upgradeTrigger.",
+                "stopCondition": "Stop if the trigger cannot be checked later from a release, dependency, migration, or call-site signal.",
+            },
         },
         {
             "rank": 2,
@@ -6313,9 +6449,18 @@ def synthetic_lean_debt_report_fields() -> dict[str, Any]:
             "upgradeTrigger": "replace when repeated-key support is required",
             "hasCeiling": True,
             "hasUpgradeTrigger": True,
+            "triggerWatchContract": {
+                "triggerState": "watch-trigger",
+                "triggerCondition": "replace when repeated-key support is required",
+                "exactNextAction": "Check whether this trigger is true: replace when repeated-key support is required",
+                "checkRoute": "Run call-site search for the shortcut location, then run the smallest focused validation covering the replacement or deletion.",
+                "proofArtifact": "call-site search notes plus focused validation output attached beside lean-debt.json.",
+                "stopCondition": "Stop if search or validation shows the shortcut is still active product behavior.",
+            },
         },
     ]
     return {
+        "schemaVersion": 2,
         "surface": "ShipGuard Lean Debt",
         "target": {"path": ".", "shareable": True},
         "sourceInfluence": {
@@ -6367,10 +6512,15 @@ def synthetic_lean_debt_report_fields() -> dict[str, Any]:
                 "trackedRows": 1,
                 "missingCeilingRows": 0,
                 "missingUpgradeTriggerRows": 1,
+                "triggerWatchContractRows": 2,
+                "missingTriggerWatchContractRows": 0,
+                "trackedTriggerWatchRows": 1,
+                "missingTriggerDefinitionRows": 1,
                 "omittedByLimit": 0,
                 "omittedRiskUnknown": False,
                 "topRiskLocation": "Sources/SyntheticLeanDebt/LegacyPanel.swift:27",
                 "topRiskReason": "Missing upgrade trigger means this shortcut can survive beyond its intended window.",
+                "topTriggerWatchAction": "Add an upgrade trigger that tells the maintainer exactly when to replace or delete it.",
             },
             "coverageBoundary": (
                 "Rot-risk ranking is based on visible shortcut rows. When omittedByLimit is greater than zero, "
@@ -7347,8 +7497,13 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "- Tracked rows: 1",
                 "- Missing ceiling rows: 0",
                 "- Missing upgrade-trigger rows: 1",
+                "- Trigger-watch contract rows: 2",
+                "- Missing trigger-watch contracts: 0",
+                "- Tracked trigger-watch rows: 1",
+                "- Missing trigger definitions: 1",
                 "- Omitted by limit: 0",
                 "- Omitted risk unknown: `false`",
+                "- Top trigger-watch action: Add an upgrade trigger that tells the maintainer exactly when to replace or delete it.",
                 "- Coverage boundary: Rot-risk ranking is based on visible shortcut rows. When omittedByLimit is greater than zero, omitted markers may contain higher risk and must be surfaced by rerunning with a narrower scope or extending the ledger limit.",
                 "- Policy: Start with the highest-risk shortcut marker before opening source again: missing ceiling first, missing upgrade trigger second, tracked trigger watch third.",
                 "",
@@ -7356,6 +7511,13 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "| ---: | --- | --- | --- | --- | --- | --- | --- |",
                 "| 1 | review | needs-trigger | `ponytail` | Sources/SyntheticLeanDebt/LegacyPanel.swift:27 | Missing upgrade trigger means this shortcut can survive beyond its intended window. | Add an upgrade trigger that tells the maintainer exactly when to replace or delete it. | Name the release, dependency, migration state, or repeated call-site signal that should trigger cleanup. |",
                 "| 2 | tracked | tracked | `shipguard-lean` | Sources/SyntheticLeanDebt/QueryBridge.swift:12 | Tracked shortcut should be reviewed when its upgrade trigger becomes true. | Watch the upgrade trigger: replace when repeated-key support is required | When the trigger is true, run call-site search plus the smallest focused validation before deleting or replacing it. |",
+                "",
+                "## Trigger-Watch Contracts",
+                "",
+                "| Rank | Trigger State | Location | Trigger Condition | Exact Next Action | Check Route | Proof Artifact | Stop Condition |",
+                "| ---: | --- | --- | --- | --- | --- | --- | --- |",
+                "| 1 | needs-trigger-definition | Sources/SyntheticLeanDebt/LegacyPanel.swift:27 | missing upgrade trigger; define a release, dependency, migration, or repeated call-site signal | Add an upgrade trigger that tells the maintainer exactly when to replace or delete it. | Add the upgrade trigger to the marker, rerun shipguard lean debt, and confirm rowsNeedingUpgradeTrigger decreases. | lean-debt.json markerVisibilityReview.visibilityRows row with hasUpgradeTrigger=true and a non-empty upgradeTrigger. | Stop if the trigger cannot be checked later from a release, dependency, migration, or call-site signal. |",
+                "| 2 | watch-trigger | Sources/SyntheticLeanDebt/QueryBridge.swift:12 | replace when repeated-key support is required | Check whether this trigger is true: replace when repeated-key support is required | Run call-site search for the shortcut location, then run the smallest focused validation covering the replacement or deletion. | call-site search notes plus focused validation output attached beside lean-debt.json. | Stop if search or validation shows the shortcut is still active product behavior. |",
                 "",
                 "## Shortcut Ledger",
                 "",

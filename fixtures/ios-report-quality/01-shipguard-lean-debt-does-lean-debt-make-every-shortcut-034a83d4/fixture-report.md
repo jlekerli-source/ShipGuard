@@ -39,8 +39,13 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 - Tracked rows: 1
 - Missing ceiling rows: 0
 - Missing upgrade-trigger rows: 1
+- Trigger-watch contract rows: 2
+- Missing trigger-watch contracts: 0
+- Tracked trigger-watch rows: 1
+- Missing trigger definitions: 1
 - Omitted by limit: 0
 - Omitted risk unknown: `false`
+- Top trigger-watch action: Add an upgrade trigger that tells the maintainer exactly when to replace or delete it.
 - Coverage boundary: Rot-risk ranking is based on visible shortcut rows. When omittedByLimit is greater than zero, omitted markers may contain higher risk and must be surfaced by rerunning with a narrower scope or extending the ledger limit.
 - Policy: Start with the highest-risk shortcut marker before opening source again: missing ceiling first, missing upgrade trigger second, tracked trigger watch third.
 
@@ -48,6 +53,13 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 | ---: | --- | --- | --- | --- | --- | --- | --- |
 | 1 | review | needs-trigger | `ponytail` | Sources/SyntheticLeanDebt/LegacyPanel.swift:27 | Missing upgrade trigger means this shortcut can survive beyond its intended window. | Add an upgrade trigger that tells the maintainer exactly when to replace or delete it. | Name the release, dependency, migration state, or repeated call-site signal that should trigger cleanup. |
 | 2 | tracked | tracked | `shipguard-lean` | Sources/SyntheticLeanDebt/QueryBridge.swift:12 | Tracked shortcut should be reviewed when its upgrade trigger becomes true. | Watch the upgrade trigger: replace when repeated-key support is required | When the trigger is true, run call-site search plus the smallest focused validation before deleting or replacing it. |
+
+## Trigger-Watch Contracts
+
+| Rank | Trigger State | Location | Trigger Condition | Exact Next Action | Check Route | Proof Artifact | Stop Condition |
+| ---: | --- | --- | --- | --- | --- | --- | --- |
+| 1 | needs-trigger-definition | Sources/SyntheticLeanDebt/LegacyPanel.swift:27 | missing upgrade trigger; define a release, dependency, migration, or repeated call-site signal | Add an upgrade trigger that tells the maintainer exactly when to replace or delete it. | Add the upgrade trigger to the marker, rerun shipguard lean debt, and confirm rowsNeedingUpgradeTrigger decreases. | lean-debt.json markerVisibilityReview.visibilityRows row with hasUpgradeTrigger=true and a non-empty upgradeTrigger. | Stop if the trigger cannot be checked later from a release, dependency, migration, or call-site signal. |
+| 2 | watch-trigger | Sources/SyntheticLeanDebt/QueryBridge.swift:12 | replace when repeated-key support is required | Check whether this trigger is true: replace when repeated-key support is required | Run call-site search for the shortcut location, then run the smallest focused validation covering the replacement or deletion. | call-site search notes plus focused validation output attached beside lean-debt.json. | Stop if search or validation shows the shortcut is still active product behavior. |
 
 ## Shortcut Ledger
 
