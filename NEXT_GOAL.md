@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-21T13:41:25Z
+- Generated: 2026-06-21T15:00:22Z
 - Current toolkit version: 3.131.0
-- Target release: v3.160.0
-- Title: Simulator Device Boundary Fixture QA
+- Target release: v3.161.0
+- Title: Stable V4 Public Release Packet QA
 
 ## Slash Plan
 
 ```text
-/plan v3.160.0 Simulator Device Boundary Fixture QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Run fresh verify-first report-quality on the public quickstart reports, start from the now-uncovered simulator denied-state versus physical-device prompt proof boundary question, and improve ShipGuard only by turning the gap into public fixtures, report-quality rules, docs, and tests. Keep private app targets read-only.
+/plan v3.161.0 Stable V4 Public Release Packet QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Use the fresh value-gauntlet pass to prepare and verify the real stable-v4 public release packet with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof. Keep the loop ShipGuard-only and prefer public/package proof over source-only claims.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.160.0 Simulator Device Boundary Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Run fresh verify-first report-quality on the public quickstart reports, start from the now-uncovered simulator denied-state versus physical-device prompt proof boundary question, and improve ShipGuard only by turning the gap into public fixtures, report-quality rules, docs, and tests. Keep private app targets read-only, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.161.0 Stable V4 Public Release Packet QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Use the fresh value-gauntlet pass to prepare and verify the real stable-v4 public release packet with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof. Keep the loop ShipGuard-only and prefer public/package proof over source-only claims, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Run fresh verify-first report-quality on the public quickstart reports, start from the now-uncovered simulator denied-state versus physical-device prompt proof boundary question, and improve ShipGuard only by turning the gap into public fixtures, report-quality rules, docs, and tests. Keep private app targets read-only.
+Use the fresh value-gauntlet pass to prepare and verify the real stable-v4 public release packet with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof. Keep the loop ShipGuard-only and prefer public/package proof over source-only claims.
 
 ## Completion Receipt
 
-- Completed scope: v3.159 promoted structured receipt proof-lane specificity fixture coverage. shipguard prepare Markdown now renders notification permission receipt success and failure meanings; ios report-quality now fails prepare/verify reports that hide structured permission-state and denied-state receipt requirements, generic-log boundaries, verify proof-lane status, or matching Markdown; the promoted public fixture keeps that question covered so fresh verify-first QA advances to simulator denied-state versus physical-device prompt proof.
-- Evidence: git diff --check; python3 -m py_compile scripts/ios_report_quality.py scripts/task_contract.py; ./tests/ios_report_quality_test.sh; ./tests/task_contract_test.sh; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3159-docs-check; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3159-value-gauntlet; codex plugin marketplace add . && codex plugin add ios-shipguard@shipguard && ./bin/shipguard codex status --strict.
+- Completed scope: v3.160 promoted simulator/device notification proof-boundary fixture coverage. ios report-quality now fails prepare reports that hide simulator denied-state versus physical-device prompt receipt boundaries, fails verify reports that omit simulator/device proof lanes or overclaim physical-device prompt proof without real device/manual receipt evidence, and keeps all five public verify-first quickstart questions covered.
+- Evidence: git diff --check; python3 -m py_compile scripts/ios_report_quality.py; ./tests/ios_report_quality_test.sh; ./tests/task_contract_test.sh; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3160-docs-check-final; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3160-value-gauntlet; ./tests/package_release_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.161.0 Physical Device Prompt Proof Fixture QA for jlekerli-source/ShipGuard:
+/plan v3.162.0 Stable V4 Release Consumption QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Run fresh verify-first report-quality on the public quickstart reports, start fr
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.161.0 Physical Device Prompt Proof Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.162.0 Stable V4 Release Consumption QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.161.0 --title "Physical Device Prompt Proof Fixture QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.162.0 --title "Stable V4 Release Consumption QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.160.0.
+1. Open or update the tracking issue for v3.161.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.160.0` and upload `dist/shipguard-v3.160.0.tar.gz`.
+6. Create release `v3.161.0` and upload `dist/shipguard-v3.161.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

@@ -4,7 +4,16 @@ Generated: 2026-06-17
 
 This is the current usefulness and refinement evaluation for ShipGuard after the rename and README repositioning work.
 
-## Current Full Audit Fixture Promotion
+## Current Verify-First Simulator/Device Boundary QA
+
+The v3.160 read-only verify-first loop stayed ShipGuard-only and used public quickstart reports to test whether ShipGuard separates simulator permission proof from physical-device prompt proof.
+
+- Finding: fresh report-quality generated a candidate for "Does the verdict separate simulator denied-state proof from physical-device prompt proof?" but the gap was still too easy to flatten into generic notification guidance.
+- Product weakness: simulator denied-state reset proof could look like physical-device prompt or release proof unless reports make the physical-device prompt lane explicit and keep it manual-required until real device evidence exists.
+- Native fix: `ios report-quality` now fails prepare reports that hide simulator reset proof, physical-device prompt receipt requirements, or Markdown release boundaries, and fails verify reports that omit simulator/device proof lanes or overclaim physical-device prompt proof.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-prepare-did-the-verdict-separate-simulator-de-62c1ca4a` promotes the simulator/device boundary question into public synthetic coverage without depending on private app code.
+
+Fresh verify-first QA now covers all five public quickstart questions and moves the loop back to fresh read-only ShipGuard QA from `value-gauntlet` and report-quality output.
 
 ## Current Verify-First Structured Receipt Proof-Lane QA
 
@@ -15,7 +24,7 @@ The v3.159 read-only verify-first loop stayed ShipGuard-only and used the public
 - Native fix: `shipguard prepare` Markdown now renders receipt success and failure meanings, and `ios report-quality` fails prepare/verify reports that hide structured receipt requirements, generic-log boundaries, proof-lane status, or the matching Markdown.
 - Fixture fix: `fixtures/ios-report-quality/01-shipguard-prepare-did-verify-require-permission-state-a-aa77287a` promotes the proof-lane question into public synthetic coverage without copying private app code.
 
-Fresh verify-first QA now treats durable-object replay, unsupported-claim replay, notification scope, and structured receipt proof-lane specificity as covered, so the next useful question is the simulator denied-state versus physical-device prompt boundary.
+Fresh verify-first QA treated durable-object replay, unsupported-claim replay, notification scope, and structured receipt proof-lane specificity as covered; this led into the now-covered simulator denied-state versus physical-device prompt boundary fixture.
 
 ## Current Stable Publication Launch Relay QA
 

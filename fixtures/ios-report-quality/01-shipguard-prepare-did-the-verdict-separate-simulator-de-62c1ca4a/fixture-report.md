@@ -11,7 +11,7 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 ## Fixture Intent
 
 - Type: `shipguard-verify-first-task-contract-fixture`
-- Source question: Did verify require permission-state and denied-state proof instead of treating a generic test log as enough?
+- Source question: Did the verdict separate simulator denied-state proof from physical-device prompt proof before release claims?
 
 ## Quickstart Replay
 

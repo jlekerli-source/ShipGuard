@@ -715,6 +715,45 @@ def is_notification_proof_lane_question(question: object) -> bool:
     return bool(
         proof_lane_tokens
         or "permission-state scope labels instead of accepting generic test receipts" in text
+        or is_notification_simulator_device_boundary_question(question)
+    )
+
+
+def is_notification_simulator_device_boundary_question(question: object) -> bool:
+    text = normalized_question_text(question)
+    if not text:
+        return False
+    device_prompt = any(
+        token in text
+        for token in (
+            "physical-device",
+            "physical device",
+            "real-device",
+            "real device",
+            "manual/device",
+            "manual device",
+            "device prompt",
+            "device receipt",
+        )
+    )
+    prompt_or_release = any(
+        token in text
+        for token in (
+            "prompt proof",
+            "permission prompt",
+            "prompt receipt",
+            "release claim",
+            "release proof",
+            "release-ready",
+            "fully verified",
+        )
+    )
+    return bool(
+        (("simulator" in text or "simulator reset" in text or "simctl" in text) and device_prompt and prompt_or_release)
+        or (
+            "simulator denied-state proof" in text
+            and "physical-device prompt proof" in text
+        )
     )
 
 
@@ -887,6 +926,13 @@ def synthetic_notification_scope_markdown_lines() -> list[str]:
         "- localAutomation: Structured validation receipts can prove state handling and regression coverage.",
         "- simulator: Simulator proof can show reset/denied-state recovery, but not final physical-device prompt truth.",
         "- physicalDevice: Physical-device prompt timing, OS-level permission UI, and release claims need manual/device proof.",
+        "",
+        "### Next action",
+        "",
+        "- Command: `swift test`",
+        "- Expected artifact: structured receipt with scope labels: permission-state, denied-state, not-determined-state, simulator-permission-reset",
+        "- Success: ShipGuard verify can distinguish local permission workflow proof from manual device proof.",
+        "- Failure meaning: Notification permission work remains generic validation rather than a permission workflow contract.",
         "",
     ]
 
@@ -1583,6 +1629,34 @@ def task_contract_notification_proof_lane_issues(
         except TypeError:
             return normalized_question_text(value)
 
+    def physical_device_prompt_receipt_present() -> bool:
+        evidence_sources: list[object] = []
+        for field in ("evidenceReceipts", "evidence"):
+            value = report.get(field)
+            if isinstance(value, list):
+                evidence_sources.extend(value)
+        analysis = report.get("diffFirstAnalysis") if isinstance(report.get("diffFirstAnalysis"), dict) else {}
+        value = analysis.get("evidenceReceipts")
+        if isinstance(value, list):
+            evidence_sources.extend(value)
+        schema = report.get("evidenceReceiptSchema") if isinstance(report.get("evidenceReceiptSchema"), dict) else {}
+        for field in ("normalizedReceipts", "receipts", "presentReceipts"):
+            value = schema.get(field)
+            if isinstance(value, list):
+                evidence_sources.extend(value)
+        evidence_text = json_text(evidence_sources)
+        return any(
+            token in evidence_text
+            for token in (
+                "physical-device-prompt",
+                "device-permission-prompt",
+                "ios-permission-prompt-physical-device",
+            )
+        ) or (
+            ("physical-device" in evidence_text or "real-device" in evidence_text)
+            and ("prompt" in evidence_text or "permission" in evidence_text)
+        )
+
     report_questions = report.get("reportQualityQuestions") if isinstance(report.get("reportQualityQuestions"), list) else []
     workflow = report.get("notificationPermissionWorkflow")
     if not isinstance(workflow, dict):
@@ -1594,6 +1668,7 @@ def task_contract_notification_proof_lane_issues(
     pack_questions = pack.get("reportQualityQuestions") if isinstance(pack.get("reportQualityQuestions"), list) else []
     workflow_questions = workflow.get("reportQualityQuestions") if isinstance(workflow, dict) and isinstance(workflow.get("reportQualityQuestions"), list) else []
     question_text = normalized_question_text(" ".join(str(item) for item in [*report_questions, *pack_questions, *workflow_questions]))
+    simulator_device_boundary_question = is_notification_simulator_device_boundary_question(question_text)
     workflow_active = (
         isinstance(pack, dict)
         and pack.get("id") == "ios-notification-permission-workflow"
@@ -1656,6 +1731,26 @@ def task_contract_notification_proof_lane_issues(
                 evidence=f"{path_name} nextAction does not ask for structured permission-state and denied-state receipt proof",
                 recommendation="Make the next action name the structured receipt artifact and required permission-state/denied-state labels.",
             )
+        if simulator_device_boundary_question:
+            boundary_bundle = f"{requirements_text} {boundary_text} {next_action_text}"
+            if (
+                "simulator" not in boundary_bundle
+                or "physical-device" not in boundary_bundle
+                or "physical-device prompt" not in boundary_bundle
+                or ("manual" not in boundary_bundle and "release" not in boundary_bundle)
+                or "simulator-permission-reset" not in boundary_bundle
+                or (
+                    "physical-device-prompt-boundary" not in requirements_text
+                    and "ios-permission-prompt-physical-device" not in requirements_text
+                )
+            ):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="task-contract-notification-simulator-device-boundary-missing",
+                    evidence=f"{path_name} notification domainRiskPack does not separate simulator reset proof from physical-device prompt proof",
+                    recommendation="Expose simulator denied-state/reset proof separately from physical-device prompt proof, and state that release claims still need manual/device evidence.",
+                )
         markdown_text = normalized_question_text(markdown)
         if (
             "ios notification permission workflow" not in markdown_text
@@ -1670,6 +1765,20 @@ def task_contract_notification_proof_lane_issues(
                 rule_id="task-contract-notification-proof-lanes-markdown-missing",
                 evidence=f"{path_name} Markdown does not render the generic-log proof-lane boundary",
                 recommendation="Render receipt requirements and failure meanings so a maintainer sees that generic logs are not enough.",
+            )
+        if simulator_device_boundary_question and (
+            "simulator-denied-state-recovery" not in markdown_text
+            or "simulator-permission-reset" not in markdown_text
+            or "physical-device-prompt-boundary" not in markdown_text
+            or "physical-device prompt" not in markdown_text
+            or "release claims" not in markdown_text
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="task-contract-notification-simulator-device-markdown-missing",
+                evidence=f"{path_name} Markdown hides the simulator reset versus physical-device prompt boundary",
+                recommendation="Render simulator denied-state/reset and physical-device prompt receipt requirements in Markdown, including the release-claim boundary.",
             )
         return issues
 
@@ -1696,6 +1805,29 @@ def task_contract_notification_proof_lane_issues(
         ),
         None,
     )
+    simulator_lane = next(
+        (
+            item
+            for item in proof_lanes
+            if isinstance(item, dict)
+            and item.get("id") == "simulator-permission-reset"
+            and (
+                "simulator" in json_text(item.get("proofBoundary"))
+                or "simulator-permission-reset" in json_text(item.get("requiredReceiptScope"))
+            )
+        ),
+        None,
+    )
+    physical_prompt_lane = next(
+        (
+            item
+            for item in proof_lanes
+            if isinstance(item, dict)
+            and item.get("id") == "physical-device-prompt"
+            and "physical-device" in json_text(item)
+        ),
+        None,
+    )
     if not permission_lane or not denied_lane:
         add_issue(
             issues,
@@ -1703,6 +1835,27 @@ def task_contract_notification_proof_lane_issues(
             rule_id="task-contract-notification-proof-lanes-missing",
             evidence=f"{path_name} verify report does not expose permission-state and denied-state proof lanes",
             recommendation="Emit notificationPermissionWorkflow.proofLanes for permission-state-validation and denied-state-recovery.",
+        )
+    boundary_active = simulator_device_boundary_question or "physical-device-prompt" in lane_text or "simulator-permission-reset" in lane_text
+    if boundary_active and (not simulator_lane or not physical_prompt_lane):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="task-contract-notification-simulator-device-proof-lanes-missing",
+            evidence=f"{path_name} verify report does not expose separate simulator reset and physical-device prompt proof lanes",
+            recommendation="Emit simulator-permission-reset and physical-device-prompt proof lanes so local simulator proof cannot be confused with release/device proof.",
+        )
+    if (
+        physical_prompt_lane
+        and str(physical_prompt_lane.get("status") or "").lower() in {"pass", "passed", "covered", "proven"}
+        and not physical_device_prompt_receipt_present()
+    ):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="task-contract-notification-physical-device-prompt-overclaimed",
+            evidence=f"{path_name} marks physical-device prompt proof as locally proven",
+            recommendation="Keep physical-device-prompt at manual-required until a real device/manual prompt receipt is attached.",
         )
     schema = report.get("evidenceReceiptSchema") if isinstance(report.get("evidenceReceiptSchema"), dict) else {}
     next_action_text = json_text(workflow.get("nextAction") if isinstance(workflow, dict) else report.get("nextAction"))
@@ -1728,6 +1881,28 @@ def task_contract_notification_proof_lane_issues(
                 evidence=f"{path_name} generic-log review does not point to structured permission-state and denied-state receipts",
                 recommendation="For artifact-only evidence, nextAction should request structured scope labels instead of another generic log.",
             )
+    local_lanes_proven = bool(
+        permission_lane
+        and denied_lane
+        and simulator_lane
+        and str(permission_lane.get("status") or "").lower() == "proven"
+        and str(denied_lane.get("status") or "").lower() == "proven"
+        and str(simulator_lane.get("status") or "").lower() == "proven"
+    )
+    physical_prompt_receipt_present = physical_device_prompt_receipt_present()
+    if boundary_active and physical_prompt_lane and local_lanes_proven and not physical_prompt_receipt_present:
+        if (
+            "physical-device" not in next_action_text
+            or "prompt" not in next_action_text
+            or ("release" not in next_action_text and "manual" not in next_action_text)
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="task-contract-notification-simulator-device-next-action-missing",
+                evidence=f"{path_name} local simulator proof is complete but nextAction does not name the remaining physical-device prompt proof",
+                recommendation="After local permission/simulator lanes are proven, make nextAction point to the physical-device prompt receipt before release claims.",
+            )
     if "generic" not in lane_text or "not proven" not in lane_text:
         add_issue(
             issues,
@@ -1751,6 +1926,24 @@ def task_contract_notification_proof_lane_issues(
             rule_id="task-contract-notification-proof-lanes-verify-markdown-missing",
             evidence=f"{path_name} Markdown does not expose permission-state/denied-state proof-lane status and generic receipt boundary",
             recommendation="Render proof lanes, required receipt scopes, and generic-receipt failure meanings in the verify Markdown report.",
+        )
+    physical_prompt_needs_manual = not (
+        physical_prompt_lane
+        and str(physical_prompt_lane.get("status") or "").lower() in {"pass", "passed", "covered", "proven"}
+        and physical_prompt_receipt_present
+    )
+    if boundary_active and (
+        "simulator-permission-reset" not in markdown_text
+        or "physical-device-prompt" not in markdown_text
+        or (physical_prompt_needs_manual and "manual-required" not in markdown_text)
+        or (physical_prompt_needs_manual and "release claims" not in markdown_text)
+    ):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="task-contract-notification-simulator-device-verify-markdown-missing",
+            evidence=f"{path_name} Markdown does not expose simulator reset proof separately from physical-device prompt proof",
+            recommendation="Render simulator-permission-reset and physical-device-prompt lanes with manual-required status and release-claim failure meaning.",
         )
     return issues
 
@@ -6564,6 +6757,15 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
                 "the fixture Markdown renders receipt requirements, failure meanings, permission-state, denied-state, and the generic-test boundary",
             ]
         )
+        if is_notification_simulator_device_boundary_question(question):
+            expected_assertions.extend(
+                [
+                    "the fixture exposes simulator-denied-state-recovery and physical-device-prompt-boundary receipt requirements separately",
+                    "the fixture exposes proofBoundaries explaining simulator proof is not physical-device prompt proof",
+                    "the fixture nextAction distinguishes local simulator permission reset proof from remaining manual/device release proof",
+                    "the fixture Markdown renders simulator-denied-state-recovery, simulator-permission-reset, physical-device-prompt-boundary, and the release-claim boundary",
+                ]
+            )
     if tool == "shipguard verify" and "unsupported completion claim" in normalized_question_text(question):
         expected_assertions.extend(
             [
@@ -6581,6 +6783,15 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
                 "the fixture Markdown renders proof lanes, required receipt scopes, and the generic receipt boundary",
             ]
         )
+        if is_notification_simulator_device_boundary_question(question):
+            expected_assertions.extend(
+                [
+                    "the fixture exposes simulator-permission-reset and physical-device-prompt as separate proof lanes",
+                    "the physical-device-prompt lane stays manual-required until a real device/manual receipt is attached",
+                    "local simulator proof does not become a release or fully verified claim",
+                    "the fixture Markdown renders simulator-permission-reset, physical-device-prompt, manual-required, and release claims",
+                ]
+            )
     return {
         "priority": index,
         "candidateId": candidate_id,

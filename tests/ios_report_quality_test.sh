@@ -6104,38 +6104,23 @@ if not any(
     for item in coverage
 ):
     raise SystemExit(f"expected promoted proof-lane fixture coverage for fourth question: {coverage!r}")
+if not any(
+    item.get("question") == questions[4]
+    and item.get("publicFixturePath") == "fixtures/ios-report-quality/01-shipguard-prepare-did-the-verdict-separate-simulator-de-62c1ca4a"
+    and item.get("fixtureType") == "shipguard-verify-first-task-contract-fixture"
+    for item in coverage
+):
+    raise SystemExit(f"expected promoted simulator/device fixture coverage for fifth question: {coverage!r}")
 candidates = data.get("fixtureCandidates") or []
-if [item.get("sourceQuestion") for item in candidates] != questions[4:]:
-    raise SystemExit(f"verify-first candidates did not match questions: {candidates!r}")
-if {item.get("fixtureType") for item in candidates} != {"shipguard-verify-first-task-contract-fixture"}:
-    raise SystemExit(f"unexpected verify-first fixture types: {candidates!r}")
+if candidates:
+    raise SystemExit(f"expected no duplicate verify-first fixture candidates after coverage, got {candidates!r}")
 priority = data.get("priorityAction") or {}
-if priority.get("kind") != "answer-actionability-question":
-    raise SystemExit(f"expected actionability priority, got {priority!r}")
-if priority.get("question") != questions[4]:
-    raise SystemExit(f"expected verify-first QA to advance to fifth question, got {priority!r}")
-if "write-fixture-candidates" not in str(priority.get("nextCommand") or ""):
-    raise SystemExit(f"expected materialization next command, got {priority!r}")
-for item in candidates:
-    candidate_id = item.get("candidateId")
-    if not candidate_id:
-        raise SystemExit(f"missing candidate id: {item!r}")
-    directory = candidate_root / candidate_id
-    expected = {"README.md", "fixture-candidate.json", "fixture-report.json", "fixture-report.md"}
-    actual = {path.name for path in directory.iterdir()} if directory.is_dir() else set()
-    if not expected <= actual:
-        raise SystemExit(f"materialized files missing for {candidate_id}: {actual!r}")
-    report = json.load(open(directory / "fixture-report.json", encoding="utf-8"))
-    if report.get("tool") != "shipguard prepare":
-        raise SystemExit(f"expected synthetic verify-first fixture to keep source tool, got {report.get('tool')!r}")
-    if report.get("scopeBoundary", {}).get("shipguardOnly") is not True:
-        raise SystemExit(f"missing ShipGuard-only boundary in {directory}")
-    replay = report.get("quickstartReplay") or {}
-    if not replay:
-        raise SystemExit(f"synthetic verify-first fixture missing quickstartReplay in {directory}")
-    markdown = (directory / "fixture-report.md").read_text(encoding="utf-8")
-    if "Quickstart Replay" not in markdown:
-        raise SystemExit(f"synthetic verify-first fixture missing Quickstart Replay Markdown in {directory}")
+if priority.get("kind") != "all-actionability-covered":
+    raise SystemExit(f"expected verify-first QA to report all questions covered, got {priority!r}")
+if priority.get("coveredQuestionCount") != 5:
+    raise SystemExit(f"expected five covered verify-first questions, got {priority!r}")
+if not candidate_root.is_dir():
+    raise SystemExit(f"expected fixture candidate output directory to exist even when no duplicates are written: {candidate_root}")
 PY
 
 cp "$verify_first_reports/task/shipguard-task.json" "$tmp_dir/missing-quickstart-replay.json"
@@ -6223,6 +6208,52 @@ PY
 grep -q 'Failure meaning: Permission-state behavior remains a generic test claim' fixtures/ios-report-quality/01-shipguard-prepare-did-verify-require-permission-state-a-aa77287a/fixture-report.md
 grep -q 'permission-state-validation' fixtures/ios-report-quality/01-shipguard-prepare-did-verify-require-permission-state-a-aa77287a/fixture-report.md
 grep -q 'denied-state' fixtures/ios-report-quality/01-shipguard-prepare-did-verify-require-permission-state-a-aa77287a/fixture-report.md
+
+./bin/shipguard ios report-quality \
+  --reports fixtures/ios-report-quality/01-shipguard-prepare-did-the-verdict-separate-simulator-de-62c1ca4a \
+  --out "$tmp_dir/notification-simulator-device-promoted-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/notification-simulator-device-promoted-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/notification-simulator-device-promoted-fixture-quality/ios-report-quality.json"
+python3 - <<'PY' fixtures/ios-report-quality/01-shipguard-prepare-did-the-verdict-separate-simulator-de-62c1ca4a/fixture-report.json
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+pack = data.get("domainRiskPack") or {}
+requirements = pack.get("validationReceiptRequirements") or []
+text = json.dumps(requirements).lower()
+assert "simulator-denied-state-recovery" in text and "ios-permission-simulator-reset" in text, requirements
+assert "physical-device-prompt-boundary" in text and "ios-permission-prompt-physical-device" in text, requirements
+assert "releaseonly" in text.replace("_", "").replace("-", ""), requirements
+boundaries = json.dumps(pack.get("proofBoundaries") or {}).lower()
+assert "simulator proof" in boundaries and "physical-device prompt" in boundaries, boundaries
+next_action = json.dumps(pack.get("nextAction") or {}).lower()
+assert "simulator-permission-reset" in next_action and "manual device" in next_action.replace("/", " "), next_action
+PY
+grep -q 'simulator-denied-state-recovery' fixtures/ios-report-quality/01-shipguard-prepare-did-the-verdict-separate-simulator-de-62c1ca4a/fixture-report.md
+grep -q 'physical-device-prompt-boundary' fixtures/ios-report-quality/01-shipguard-prepare-did-the-verdict-separate-simulator-de-62c1ca4a/fixture-report.md
+grep -q 'simulator-permission-reset' fixtures/ios-report-quality/01-shipguard-prepare-did-the-verdict-separate-simulator-de-62c1ca4a/fixture-report.md
+grep -q 'release claims need manual/device proof' fixtures/ios-report-quality/01-shipguard-prepare-did-the-verdict-separate-simulator-de-62c1ca4a/fixture-report.md
+python3 - <<'PY'
+import importlib.util
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path("scripts").resolve()))
+spec = importlib.util.spec_from_file_location("ios_report_quality", Path("scripts/ios_report_quality.py"))
+module = importlib.util.module_from_spec(spec)
+assert spec.loader is not None
+spec.loader.exec_module(module)
+
+questions = [
+    "Did verify keep simulator permission reset separate from real-device prompt receipt before release proof?",
+    "Did the verdict prevent simctl denied-state evidence from becoming manual/device permission prompt proof?",
+    "Did local simulator reset proof avoid fully verified release-ready claims without a device receipt?",
+]
+for question in questions:
+    assert module.is_notification_simulator_device_boundary_question(question), question
+PY
 
 missing_notification_scope="$tmp_dir/missing-notification-scope"
 mkdir -p "$missing_notification_scope"
@@ -6318,6 +6349,149 @@ PY
   --out "$tmp_dir/missing-verify-proof-lanes-quality" \
   --shareable >/dev/null
 grep -q '"ruleId": "task-contract-notification-proof-lanes-missing"' "$tmp_dir/missing-verify-proof-lanes-quality/ios-report-quality.json"
+
+missing_simulator_device_boundary="$tmp_dir/missing-simulator-device-boundary"
+mkdir -p "$missing_simulator_device_boundary"
+cp "$verify_first_reports/task/shipguard-task.json" "$missing_simulator_device_boundary/shipguard-task.json"
+cp "$verify_first_reports/task/shipguard-task.md" "$missing_simulator_device_boundary/shipguard-task.md"
+python3 - <<'PY' "$missing_simulator_device_boundary/shipguard-task.json"
+import json
+import sys
+
+path = sys.argv[1]
+data = json.load(open(path, encoding="utf-8"))
+pack = data.get("domainRiskPack") or {}
+pack["validationReceiptRequirements"] = [
+    item
+    for item in pack.get("validationReceiptRequirements", [])
+    if item.get("id") != "physical-device-prompt-boundary"
+]
+boundaries = pack.get("proofBoundaries") or {}
+boundaries.pop("physicalDevice", None)
+open(path, "w", encoding="utf-8").write(json.dumps(data, indent=2, sort_keys=True) + "\n")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$missing_simulator_device_boundary" \
+  --out "$tmp_dir/missing-simulator-device-boundary-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "task-contract-notification-simulator-device-boundary-missing"' "$tmp_dir/missing-simulator-device-boundary-quality/ios-report-quality.json"
+
+weak_simulator_device_markdown="$tmp_dir/weak-simulator-device-markdown"
+mkdir -p "$weak_simulator_device_markdown"
+cp "$verify_first_reports/task/shipguard-task.json" "$weak_simulator_device_markdown/shipguard-task.json"
+python3 - <<'PY' "$verify_first_reports/task/shipguard-task.md" "$weak_simulator_device_markdown/shipguard-task.md"
+import sys
+
+source, target = sys.argv[1:3]
+text = open(source, encoding="utf-8").read()
+text = text.replace("- physical-device-prompt-boundary: ios-permission-prompt-physical-device\n", "")
+text = text.replace("  Expected: physical-device prompt receipt or manually reviewed screenshot reference\n", "")
+text = text.replace("  Success: Real-device prompt timing and wording are observed before release claims.\n", "")
+text = text.replace("  Failure meaning: ShipGuard must not treat simulator/source evidence as physical-device prompt proof.\n", "")
+text = text.replace("- physicalDevice: Physical-device prompt timing, OS-level permission UI, and release claims need manual/device proof.\n", "")
+open(target, "w", encoding="utf-8").write(text)
+PY
+./bin/shipguard ios report-quality \
+  --reports "$weak_simulator_device_markdown" \
+  --out "$tmp_dir/weak-simulator-device-markdown-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "task-contract-notification-simulator-device-markdown-missing"' "$tmp_dir/weak-simulator-device-markdown-quality/ios-report-quality.json"
+
+overclaimed_physical_device_prompt="$tmp_dir/overclaimed-physical-device-prompt"
+mkdir -p "$overclaimed_physical_device_prompt"
+cp "$verify_first_reports/pass/shipguard-verdict.json" "$overclaimed_physical_device_prompt/shipguard-verdict.json"
+cp "$verify_first_reports/pass/shipguard-verdict.md" "$overclaimed_physical_device_prompt/shipguard-verdict.md"
+python3 - <<'PY' "$overclaimed_physical_device_prompt/shipguard-verdict.json"
+import json
+import sys
+
+path = sys.argv[1]
+data = json.load(open(path, encoding="utf-8"))
+workflow = data.get("notificationPermissionWorkflow") or {}
+for lane in workflow.get("proofLanes") or []:
+    if lane.get("id") == "physical-device-prompt":
+        lane["status"] = "proven"
+open(path, "w", encoding="utf-8").write(json.dumps(data, indent=2, sort_keys=True) + "\n")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$overclaimed_physical_device_prompt" \
+  --out "$tmp_dir/overclaimed-physical-device-prompt-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "task-contract-notification-physical-device-prompt-overclaimed"' "$tmp_dir/overclaimed-physical-device-prompt-quality/ios-report-quality.json"
+
+valid_physical_device_prompt="$tmp_dir/valid-physical-device-prompt"
+mkdir -p "$valid_physical_device_prompt"
+cp "$verify_first_reports/pass/shipguard-verdict.json" "$valid_physical_device_prompt/shipguard-verdict.json"
+python3 - <<'PY' "$verify_first_reports/pass/shipguard-verdict.md" "$valid_physical_device_prompt/shipguard-verdict.md" "$valid_physical_device_prompt/shipguard-verdict.json"
+import json
+import sys
+
+source_md, target_md, json_path = sys.argv[1:4]
+data = json.load(open(json_path, encoding="utf-8"))
+workflow = data.get("notificationPermissionWorkflow") or {}
+workflow["status"] = "pass"
+workflow["nextAction"] = {
+    "owner": "developer",
+    "command": "Attach the permission workflow verdict and receipts to review.",
+    "expectedArtifact": "review-ready permission proof packet",
+    "successCondition": "Reviewer can inspect local and device proof from one packet.",
+    "failureMeaning": "The permission proof packet is incomplete.",
+    "resolves": ["permission-workflow-proof"],
+    "priority": 7,
+}
+for lane in workflow.get("proofLanes") or []:
+    if lane.get("id") == "physical-device-prompt":
+        lane["status"] = "proven"
+receipt = {
+    "receiptId": "synthetic-physical-device-prompt",
+    "kind": "structured-validation",
+    "validationId": "ios-permission-prompt-physical-device",
+    "environment": "physical-device",
+    "proofType": "ios-permission-prompt-physical-device",
+    "scope": ["physical-device-prompt", "real-device", "permission-prompt"],
+    "artifact": {"path": "proof/physical-device-prompt-receipt.json"},
+}
+data["evidenceReceipts"] = [receipt]
+analysis = data.get("diffFirstAnalysis") or {}
+analysis["evidenceReceipts"] = [receipt]
+data["diffFirstAnalysis"] = analysis
+open(json_path, "w", encoding="utf-8").write(json.dumps(data, indent=2, sort_keys=True) + "\n")
+markdown = open(source_md, encoding="utf-8").read()
+markdown = markdown.replace("  - physical-device-prompt: manual-required (physical-device)\n", "  - physical-device-prompt: proven (physical-device)\n")
+markdown = markdown.replace(
+    "    Failure meaning: Real OS prompt timing and wording need physical-device proof before release claims.\n",
+    "    Failure meaning: Physical-device prompt receipt is attached for release proof review.\n",
+)
+open(target_md, "w", encoding="utf-8").write(markdown)
+PY
+./bin/shipguard ios report-quality \
+  --reports "$valid_physical_device_prompt" \
+  --out "$tmp_dir/valid-physical-device-prompt-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/valid-physical-device-prompt-quality/ios-report-quality.json"
+if grep -q '"ruleId": "task-contract-notification-physical-device-prompt-overclaimed"' "$tmp_dir/valid-physical-device-prompt-quality/ios-report-quality.json"; then
+  echo "valid physical-device prompt receipt was incorrectly flagged as an overclaim" >&2
+  exit 1
+fi
+
+weak_verify_simulator_device_markdown="$tmp_dir/weak-verify-simulator-device-markdown"
+mkdir -p "$weak_verify_simulator_device_markdown"
+cp "$verify_first_reports/pass/shipguard-verdict.json" "$weak_verify_simulator_device_markdown/shipguard-verdict.json"
+python3 - <<'PY' "$verify_first_reports/pass/shipguard-verdict.md" "$weak_verify_simulator_device_markdown/shipguard-verdict.md"
+import sys
+
+source, target = sys.argv[1:3]
+text = open(source, encoding="utf-8").read()
+text = text.replace("  - physical-device-prompt: manual-required (physical-device)\n", "")
+text = text.replace("    Required receipt scope: physical-device-prompt\n", "")
+text = text.replace("    Failure meaning: Real OS prompt timing and wording need physical-device proof before release claims.\n", "")
+open(target, "w", encoding="utf-8").write(text)
+PY
+./bin/shipguard ios report-quality \
+  --reports "$weak_verify_simulator_device_markdown" \
+  --out "$tmp_dir/weak-verify-simulator-device-markdown-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "task-contract-notification-simulator-device-verify-markdown-missing"' "$tmp_dir/weak-verify-simulator-device-markdown-quality/ios-report-quality.json"
 
 weak_unsupported_markdown="$tmp_dir/weak-unsupported-claim-markdown"
 mkdir -p "$weak_unsupported_markdown"
