@@ -225,6 +225,21 @@ assert {
     "stable-publication-evidence-kit/security-review-evidence.json",
 } <= {item["path"] for item in starter["files"]}
 assert "stable-publication-evidence-kit/external-adoption-evidence.json" in starter["nextCommandTemplate"]
+relay = report["stablePublicationLaunchRelayDrafts"]
+assert relay["draftOnly"] is True
+assert relay["directory"] == "stable-publication-launch-relay"
+assert relay["approvalRequired"] is True
+assert relay["publicPostingAllowed"] is False
+assert relay["postingPolicy"]["requiresExplicitApproval"] is True
+assert relay["postingPolicy"]["computerUseMayPost"] is False
+assert {
+    "stable-publication-launch-relay/README.md",
+    "stable-publication-launch-relay/launch-relay-checklist.json",
+    "stable-publication-launch-relay/product-hunt-draft.md",
+    "stable-publication-launch-relay/reddit-r-shipguard-draft.md",
+    "stable-publication-launch-relay/x-thread-draft.md",
+    "stable-publication-launch-relay/hacker-news-draft.md",
+} <= {item["path"] for item in relay["files"]}
 required_by_id = {item["id"]: item for item in packet["requiredEvidence"]}
 assert required_by_id["independent-adoption-evidence"]["templatePath"] == "templates/stable-publication/external-adoption-evidence.template.json"
 assert required_by_id["final-security-review-evidence"]["templatePath"] == "templates/stable-publication/security-review-evidence.template.json"
@@ -235,6 +250,15 @@ test -f "$tmp_dir/blocked/stable-publication-evidence-kit/external-adoption-evid
 test -f "$tmp_dir/blocked/stable-publication-evidence-kit/security-review-evidence.json"
 grep -q '"draftOnly": true' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q 'Stable Publication Evidence Kit' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
+test -f "$tmp_dir/blocked/stable-publication-launch-relay/README.md"
+test -f "$tmp_dir/blocked/stable-publication-launch-relay/launch-relay-checklist.json"
+test -f "$tmp_dir/blocked/stable-publication-launch-relay/product-hunt-draft.md"
+test -f "$tmp_dir/blocked/stable-publication-launch-relay/reddit-r-shipguard-draft.md"
+test -f "$tmp_dir/blocked/stable-publication-launch-relay/x-thread-draft.md"
+test -f "$tmp_dir/blocked/stable-publication-launch-relay/hacker-news-draft.md"
+grep -q '"publicPostingAllowed": false' "$tmp_dir/blocked/stable-publication-launch-relay/launch-relay-checklist.json"
+grep -q '"computerUseMayPost": false' "$tmp_dir/blocked/stable-publication-launch-relay/launch-relay-checklist.json"
+grep -q 'Stable Publication Launch Relay' "$tmp_dir/blocked/stable-publication-launch-relay/README.md"
 
 python3 - "$release_endpoint_file" "$version" "$tmp_dir/downloaded" <<'PY'
 import json
@@ -317,6 +341,11 @@ assert {
     "stable-publication-release-notes/release-notes-checklist.json",
     "stable-publication-release-notes/draft-release-notes.md",
 } <= {item["path"] for item in notes_kit["files"]}
+relay = report["stablePublicationLaunchRelayDrafts"]
+assert relay["draftOnly"] is True
+assert relay["approvalRequired"] is True
+assert relay["publicPostingAllowed"] is False
+assert relay["postingPolicy"]["computerUseMayPost"] is False
 PY
 grep -q 'Release Notes Proof' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'Release Notes Authoring Kit' "$tmp_dir/weak-notes/v4-stable-publication.md"
@@ -436,6 +465,15 @@ starter = report["stablePublicationEvidenceStarterKit"]
 assert starter["draftOnly"] is True
 assert starter["directory"] == "stable-publication-evidence-kit"
 assert "stable-publication-evidence-kit/security-review-evidence.json" in starter["nextCommandTemplate"]
+relay = report["stablePublicationLaunchRelayDrafts"]
+assert relay["draftOnly"] is True
+assert relay["directory"] == "stable-publication-launch-relay"
+assert relay["status"] == "ready-to-stage"
+assert relay["approvalRequired"] is True
+assert relay["publicPostingAllowed"] is False
+assert relay["postingPolicy"]["requiresExplicitApproval"] is True
+assert relay["postingPolicy"]["computerUseMayPost"] is False
+assert {item["id"] for item in relay["channels"]} == {"product-hunt", "reddit-r-shipguard", "x-thread", "hacker-news"}
 required_by_id = {item["id"]: item for item in packet["requiredEvidence"]}
 assert "templateCommand" in required_by_id["independent-adoption-evidence"]
 assert "templateCommand" in required_by_id["final-security-review-evidence"]
@@ -446,6 +484,8 @@ grep -q 'Stable Publication Gates' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Packet' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release Notes Proof' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release Notes Authoring Kit' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Launch Relay Drafts' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Public posting allowed: `False`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'independent-adoption-evidence' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Templates' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Starter Kit' "$tmp_dir/pass/v4-stable-publication.md"
@@ -457,6 +497,14 @@ test -f "$tmp_dir/pass/stable-publication-evidence-kit/security-review-evidence.
 test -f "$tmp_dir/pass/stable-publication-release-notes/README.md"
 test -f "$tmp_dir/pass/stable-publication-release-notes/release-notes-checklist.json"
 test -f "$tmp_dir/pass/stable-publication-release-notes/draft-release-notes.md"
+test -f "$tmp_dir/pass/stable-publication-launch-relay/README.md"
+test -f "$tmp_dir/pass/stable-publication-launch-relay/launch-relay-checklist.json"
+test -f "$tmp_dir/pass/stable-publication-launch-relay/product-hunt-draft.md"
+test -f "$tmp_dir/pass/stable-publication-launch-relay/reddit-r-shipguard-draft.md"
+test -f "$tmp_dir/pass/stable-publication-launch-relay/x-thread-draft.md"
+test -f "$tmp_dir/pass/stable-publication-launch-relay/hacker-news-draft.md"
+grep -q '"publicPostingAllowed": false' "$tmp_dir/pass/stable-publication-launch-relay/launch-relay-checklist.json"
+grep -q 'Draft only until explicit approval' "$tmp_dir/pass/stable-publication-launch-relay/x-thread-draft.md"
 
 ./bin/shipguard ios report-quality \
   --reports "$tmp_dir/pass" \

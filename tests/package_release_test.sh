@@ -781,11 +781,14 @@ grep -q '"stableV4Release": false' "$tmp_dir/package-v4-stable-publication/v4-st
 grep -q '"stablePublicationEvidenceTemplates":' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
 grep -q '"stablePublicationEvidenceStarterKit":' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
 grep -q '"stablePublicationReleaseNotesAuthoringKit":' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
+grep -q '"stablePublicationLaunchRelayDrafts":' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
+grep -q '"publicPostingAllowed": false' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
 grep -q '"path": "templates/stable-publication/external-adoption-evidence.template.json"' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.json"
 grep -q 'ShipGuard V4 Stable Publication Proof' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.md"
 grep -q 'Evidence Templates' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.md"
 grep -q 'Evidence Starter Kit' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.md"
 grep -q 'Release Notes Authoring Kit' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.md"
+grep -q 'Launch Relay Drafts' "$tmp_dir/package-v4-stable-publication/v4-stable-publication.md"
 test -f "$tmp_dir/package-v4-stable-publication/stable-publication-evidence-kit/README.md"
 test -f "$tmp_dir/package-v4-stable-publication/stable-publication-evidence-kit/stable-publication-checklist.json"
 test -f "$tmp_dir/package-v4-stable-publication/stable-publication-evidence-kit/external-adoption-evidence.json"
@@ -793,6 +796,12 @@ test -f "$tmp_dir/package-v4-stable-publication/stable-publication-evidence-kit/
 test -f "$tmp_dir/package-v4-stable-publication/stable-publication-release-notes/README.md"
 test -f "$tmp_dir/package-v4-stable-publication/stable-publication-release-notes/release-notes-checklist.json"
 test -f "$tmp_dir/package-v4-stable-publication/stable-publication-release-notes/draft-release-notes.md"
+test -f "$tmp_dir/package-v4-stable-publication/stable-publication-launch-relay/README.md"
+test -f "$tmp_dir/package-v4-stable-publication/stable-publication-launch-relay/launch-relay-checklist.json"
+test -f "$tmp_dir/package-v4-stable-publication/stable-publication-launch-relay/product-hunt-draft.md"
+test -f "$tmp_dir/package-v4-stable-publication/stable-publication-launch-relay/reddit-r-shipguard-draft.md"
+test -f "$tmp_dir/package-v4-stable-publication/stable-publication-launch-relay/x-thread-draft.md"
+test -f "$tmp_dir/package-v4-stable-publication/stable-publication-launch-relay/hacker-news-draft.md"
 "$package_root/bin/shipguard" inspect \
   --path "$package_root" \
   --out "$tmp_dir/package-inspect" \

@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-21T09:32:41Z
+- Generated: 2026-06-21T10:18:17Z
 - Current toolkit version: 3.131.0
-- Target release: v3.156.0
-- Title: Guarded Launch Relay Drafts QA
+- Target release: v3.157.0
+- Title: Unsupported Claim Replay Fixture QA
 
 ## Slash Plan
 
 ```text
-/plan v3.156.0 Guarded Launch Relay Drafts QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence; choose one bounded report-quality improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
+/plan v3.157.0 Unsupported Claim Replay Fixture QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Review ROADMAP.md, docs/oss-evaluation.md, and current ShipGuard product-QA proof; choose one bounded report-quality improvement that makes unsupported or overbroad ShipGuard claims easier to replay, verify, and turn into a public fixture without editing private target apps.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.156.0 Guarded Launch Relay Drafts QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence; choose one bounded report-quality improvement that makes ShipGuard reports more useful without turning private-app findings into app work, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.157.0 Unsupported Claim Replay Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Review ROADMAP.md, docs/oss-evaluation.md, and current ShipGuard product-QA proof; choose one bounded report-quality improvement that makes unsupported or overbroad ShipGuard claims easier to replay, verify, and turn into a public fixture without editing private target apps, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence; choose one bounded report-quality improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
+Review ROADMAP.md, docs/oss-evaluation.md, and current ShipGuard product-QA proof; choose one bounded report-quality improvement that makes unsupported or overbroad ShipGuard claims easier to replay, verify, and turn into a public fixture without editing private target apps.
 
 ## Completion Receipt
 
-- Completed scope: Promoted the verify-first quickstart replay contract: shipguard prepare and shipguard verify now emit quickstartReplay in JSON, render Quickstart Replay in Markdown, and expose the first verdict or replay path directly in the report; ios report-quality blocks prepare/verify reports that hide that replay contract; fixtures/ios-report-quality/01-shipguard-prepare-did-prepare-produce-one-durable-objec-5d1f722f proves the durable-object quickstart question so fresh verify-first QA advances to unsupported-claim coverage.
-- Evidence: Validated with git diff --check; python3 -m py_compile scripts/task_contract.py scripts/ios_report_quality.py; ./tests/task_contract_test.sh; ./tests/verify_first_quickstart_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3155-docs-check; ./tests/task_contract_receipts_test.sh; ./tests/install_doctor_test.sh; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3155-value-gauntlet; ./tests/package_release_test.sh; live verify-first report-quality now covers the durable-object question and advances priority to unsupported completion claims.
+- Completed scope: Added guarded stable-publication launch relay drafts: shipguard v4 stable-publication now emits stablePublicationLaunchRelayDrafts and a stable-publication-launch-relay directory with draft-only Product Hunt, r/ShipGuard, X, and Hacker News copy; report-quality validates approvalRequired=true, publicPostingAllowed=false, computerUseMayPost=false, expected channels/files, Markdown visibility, next proof commands, non-claims, and Product Hunt/public-posting synonym questions that omit the relay packet; plugin guidance and docs now route launch prep through explicit approval instead of autoposting; promoted fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6 so live stable-publication QA no longer regenerates the launch-relay actionability candidate.
+- Evidence: Validated with git diff --check; python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh including Product Hunt/public-posting missing-relay regression; ./tests/package_release_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3156-docs-check; ./tests/self_audit_test.sh; ./tests/tool_value_gauntlet_test.sh; live stable-publication report-quality replay showed all-actionability-covered with no fixture candidates and coverage for the promoted launch-relay fixture; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3156-value-gauntlet returned pass; codex plugin marketplace add . && codex plugin add ios-shipguard@shipguard && ./bin/shipguard codex status --strict returned pass; review agent found the synonym false-negative and it was patched before final package proof.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.157.0 Unsupported Claim Replay Fixture QA for jlekerli-source/ShipGuard:
+/plan v3.158.0 One-command Installer Proof Path for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard pr
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.157.0 Unsupported Claim Replay Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.158.0 One-command Installer Proof Path for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.157.0 --title "Unsupported Claim Replay Fixture QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.158.0 --title "One-command Installer Proof Path" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.156.0.
+1. Open or update the tracking issue for v3.157.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.156.0` and upload `dist/shipguard-v3.156.0.tar.gz`.
+6. Create release `v3.157.0` and upload `dist/shipguard-v3.157.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

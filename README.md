@@ -170,6 +170,9 @@ Start here:
 - [GitHub Action guide](docs/github-action.md)
 - [PR review bot mode](docs/pr-review-bot.md)
 - [Release proof bundle](docs/release-proof.md)
+- [Stable publication proof](docs/v4-stable-publication.md)
+
+For major ShipGuard milestones, `shipguard v4 stable-publication` can also write draft-only launch relay copy for Product Hunt, r/ShipGuard, X, and Hacker News. It does not post or submit anything; public actions require explicit approval for that exact launch run.
 
 ## Repo Map
 

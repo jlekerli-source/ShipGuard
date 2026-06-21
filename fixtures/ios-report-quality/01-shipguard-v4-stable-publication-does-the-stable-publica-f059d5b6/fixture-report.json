@@ -1,0 +1,360 @@
+{
+  "blockedClaims": [
+    "Do not publish, submit, post, schedule, or perform account-visible external launch actions without explicit human approval for that exact launch run."
+  ],
+  "findings": [],
+  "fixtureCandidate": {
+    "candidateId": "01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6",
+    "duplicateCount": 1,
+    "expectedAssertions": [
+      "report-quality preserves the actionability question in JSON and Markdown",
+      "report-quality emits a fixtureCandidates entry for the public synthetic case",
+      "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+      "shareable output contains no local absolute paths or private app identifiers"
+    ],
+    "fixtureType": "shipguard-release-proof-quality-fixture",
+    "materialization": {
+      "files": [
+        "README.md",
+        "fixture-candidate.json",
+        "fixture-report.json",
+        "fixture-report.md"
+      ],
+      "safeSyntheticOnly": true,
+      "writeCommand": "./bin/shipguard ios report-quality --reports <report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>"
+    },
+    "priority": 1,
+    "privateDataPolicy": "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
+    "promotion": {
+      "candidateId": "01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6",
+      "copyCommands": [
+        "mkdir -p fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6",
+        "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6/README.md",
+        "cp <materialized-candidate-dir>/fixture-candidate.json fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6/fixture-candidate.json",
+        "cp <materialized-candidate-dir>/fixture-report.json fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6/fixture-report.json",
+        "cp <materialized-candidate-dir>/fixture-report.md fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6/fixture-report.md"
+      ],
+      "files": [
+        "README.md",
+        "fixture-candidate.json",
+        "fixture-report.json",
+        "fixture-report.md"
+      ],
+      "promotionPolicy": "Promotion is explicit maintainer work. ShipGuard writes starter files only to the requested output directory and does not auto-copy them into the repository.",
+      "reviewChecklist": [
+        "Confirm the fixture is synthetic and public-safe.",
+        "Confirm no private app code, screenshots, local paths, tokens, app identifiers, or proprietary text were copied.",
+        "Confirm scopeBoundary.shipguardOnly and targetAppsReadOnly remain explicit.",
+        "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates.",
+        "Register the fixture in validation only after the report-quality check passes."
+      ],
+      "sourceDirectory": "<materialized-fixture-output>/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6",
+      "suggestedFixturePath": "fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6",
+      "validationCommands": [
+        "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6 --out <quality-dir> --shareable",
+        "./tests/ios_report_quality_test.sh",
+        "./bin/shipguard validate"
+      ]
+    },
+    "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6",
+    "publicFixtureRecipe": "Create a minimal synthetic ShipGuard report pair that reproduces this report-quality question without private app code, local paths, screenshots, customer data, app names, or proprietary source snippets.",
+    "sourceQuestion": "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?",
+    "sourceReportCount": 1,
+    "sourceReportsRedacted": true,
+    "sourceTool": "shipguard v4 stable-publication",
+    "validationCommands": [
+      "./bin/shipguard ios report-quality --reports <fixture-dir> --out <quality-dir> --shareable",
+      "./tests/ios_report_quality_test.sh"
+    ]
+  },
+  "generatedAt": "2026-06-21T09:51:46Z",
+  "intent": "shipguard-evaluation",
+  "releaseNotesProof": {
+    "missingTopicIds": []
+  },
+  "reportQualityQuestions": [
+    "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?"
+  ],
+  "scanScope": {
+    "note": "Synthetic fixture; no private source tree was scanned.",
+    "skippedDirectories": [],
+    "skippedDirectoryCount": 0
+  },
+  "schemaVersion": 1,
+  "scopeBoundary": {
+    "doesNotPostExternally": true,
+    "doesNotPublishRelease": true,
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "shareability": {
+    "localAbsolutePathsIncluded": false,
+    "mode": "shareable"
+  },
+  "stablePublicationEvidencePacket": {
+    "firstBlockingGate": null,
+    "missingEvidenceIds": [],
+    "nonClaims": [
+      "This synthetic fixture does not publish a GitHub release.",
+      "This synthetic fixture does not prove OpenAI marketplace acceptance.",
+      "Fixture adoption or security records prove tooling only."
+    ],
+    "passedEvidenceCount": 7,
+    "releaseVersion": "0.0.0",
+    "requiredEvidence": [
+      {
+        "id": "github-release-metadata",
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+        "provided": true,
+        "realEvidenceRequired": true,
+        "receipt": "githubReleaseMetadataProof",
+        "requiredForStableV4": true,
+        "status": "pass",
+        "summary": "Synthetic public fixture evidence row."
+      },
+      {
+        "id": "release-notes",
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+        "provided": true,
+        "realEvidenceRequired": true,
+        "receipt": "releaseNotesProof",
+        "requiredForStableV4": true,
+        "status": "pass",
+        "summary": "Synthetic public fixture evidence row."
+      },
+      {
+        "id": "launchkey-candidate-packet",
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+        "provided": true,
+        "realEvidenceRequired": true,
+        "receipt": "releaseCandidatePacketProof",
+        "requiredForStableV4": true,
+        "status": "pass",
+        "summary": "Synthetic public fixture evidence row."
+      },
+      {
+        "id": "downloaded-release-assets",
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+        "provided": true,
+        "realEvidenceRequired": true,
+        "receipt": "publishedReleaseAssetProof",
+        "requiredForStableV4": true,
+        "status": "pass",
+        "summary": "Synthetic public fixture evidence row."
+      },
+      {
+        "id": "post-release-consumer-proof",
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+        "provided": true,
+        "realEvidenceRequired": true,
+        "receipt": "postReleaseConsumerProof",
+        "requiredForStableV4": true,
+        "status": "pass",
+        "summary": "Synthetic public fixture evidence row."
+      },
+      {
+        "id": "independent-adoption-evidence",
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+        "provided": true,
+        "realEvidenceRequired": true,
+        "receipt": "externalAdoptionEvidenceStableGate",
+        "requiredForStableV4": true,
+        "status": "pass",
+        "summary": "Synthetic public fixture evidence row.",
+        "templateCommand": "cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json",
+        "templatePath": "templates/stable-publication/external-adoption-evidence.template.json"
+      },
+      {
+        "id": "final-security-review-evidence",
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+        "provided": true,
+        "realEvidenceRequired": true,
+        "receipt": "securityReviewEvidenceStableGate",
+        "requiredForStableV4": true,
+        "status": "pass",
+        "summary": "Synthetic public fixture evidence row.",
+        "templateCommand": "cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json",
+        "templatePath": "templates/stable-publication/security-review-evidence.template.json"
+      }
+    ],
+    "requiredEvidenceCount": 7,
+    "schemaVersion": 1,
+    "stableV4Release": true,
+    "status": "pass"
+  },
+  "stablePublicationEvidenceStarterKit": {
+    "directory": "stable-publication-evidence-kit",
+    "draftOnly": true,
+    "files": [
+      {
+        "path": "stable-publication-evidence-kit/README.md",
+        "purpose": "Synthetic starter-kit README."
+      },
+      {
+        "path": "stable-publication-evidence-kit/stable-publication-checklist.json",
+        "purpose": "Synthetic checklist."
+      },
+      {
+        "path": "stable-publication-evidence-kit/external-adoption-evidence.json",
+        "purpose": "Synthetic adoption starter."
+      },
+      {
+        "path": "stable-publication-evidence-kit/security-review-evidence.json",
+        "purpose": "Synthetic security starter."
+      }
+    ],
+    "nextCommandTemplate": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --external-adoption-evidence stable-publication-evidence-kit/external-adoption-evidence.json --security-review-evidence stable-publication-evidence-kit/security-review-evidence.json --shipguard-eval --shareable",
+    "schemaVersion": 1
+  },
+  "stablePublicationEvidenceTemplates": {
+    "draftOnly": true,
+    "schemaVersion": 1,
+    "templateDirectory": "templates/stable-publication",
+    "templateIds": [
+      "independent-adoption-evidence",
+      "final-security-review-evidence"
+    ],
+    "templates": [
+      {
+        "copyCommand": "cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json",
+        "exists": true,
+        "id": "independent-adoption-evidence",
+        "path": "templates/stable-publication/external-adoption-evidence.template.json"
+      },
+      {
+        "copyCommand": "cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json",
+        "exists": true,
+        "id": "final-security-review-evidence",
+        "path": "templates/stable-publication/security-review-evidence.template.json"
+      }
+    ]
+  },
+  "stablePublicationGates": [
+    {
+      "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+      "receipt": "githubReleaseMetadataProof",
+      "status": "pass"
+    },
+    {
+      "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+      "receipt": "releaseNotesProof",
+      "status": "pass"
+    },
+    {
+      "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+      "receipt": "releaseCandidatePacketProof",
+      "status": "pass"
+    },
+    {
+      "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+      "receipt": "publishedReleaseAssetProof",
+      "status": "pass"
+    },
+    {
+      "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+      "receipt": "postReleaseConsumerProof",
+      "status": "pass"
+    },
+    {
+      "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+      "receipt": "externalAdoptionEvidenceStableGate",
+      "status": "pass"
+    },
+    {
+      "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+      "receipt": "securityReviewEvidenceStableGate",
+      "status": "pass"
+    }
+  ],
+  "stablePublicationLaunchRelayDrafts": {
+    "approvalRequired": true,
+    "channels": [
+      {
+        "draftPath": "stable-publication-launch-relay/product-hunt-draft.md",
+        "id": "product-hunt"
+      },
+      {
+        "draftPath": "stable-publication-launch-relay/reddit-r-shipguard-draft.md",
+        "id": "reddit-r-shipguard"
+      },
+      {
+        "draftPath": "stable-publication-launch-relay/x-thread-draft.md",
+        "id": "x-thread"
+      },
+      {
+        "draftPath": "stable-publication-launch-relay/hacker-news-draft.md",
+        "id": "hacker-news"
+      }
+    ],
+    "directory": "stable-publication-launch-relay",
+    "draftOnly": true,
+    "files": [
+      {
+        "path": "stable-publication-launch-relay/README.md",
+        "purpose": "Synthetic approval boundary."
+      },
+      {
+        "path": "stable-publication-launch-relay/launch-relay-checklist.json",
+        "purpose": "Synthetic checklist."
+      },
+      {
+        "path": "stable-publication-launch-relay/product-hunt-draft.md",
+        "purpose": "Synthetic Product Hunt draft."
+      },
+      {
+        "path": "stable-publication-launch-relay/reddit-r-shipguard-draft.md",
+        "purpose": "Synthetic Reddit draft."
+      },
+      {
+        "path": "stable-publication-launch-relay/x-thread-draft.md",
+        "purpose": "Synthetic X draft."
+      },
+      {
+        "path": "stable-publication-launch-relay/hacker-news-draft.md",
+        "purpose": "Synthetic HN draft."
+      }
+    ],
+    "nextCommandTemplate": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+    "nonClaims": [
+      "This packet does not publish, submit, post, or schedule anything.",
+      "This packet does not authorize computer-use to perform account-visible actions."
+    ],
+    "postingPolicy": {
+      "approvalText": "Public posting, publishing, submission, or account-visible external actions require explicit human approval for that exact launch run.",
+      "computerUseMayPost": false,
+      "computerUseMayStageDrafts": true,
+      "publicPostingAllowed": false,
+      "requiresExplicitApproval": true
+    },
+    "publicPostingAllowed": false,
+    "releaseVersion": "0.0.0",
+    "schemaVersion": 1,
+    "stableV4Release": true,
+    "status": "ready-to-stage"
+  },
+  "stablePublicationReleaseNotesAuthoringKit": {
+    "directory": "stable-publication-release-notes",
+    "draftOnly": true,
+    "files": [
+      {
+        "path": "stable-publication-release-notes/README.md",
+        "purpose": "Synthetic release-notes README."
+      },
+      {
+        "path": "stable-publication-release-notes/release-notes-checklist.json",
+        "purpose": "Synthetic checklist."
+      },
+      {
+        "path": "stable-publication-release-notes/draft-release-notes.md",
+        "purpose": "Synthetic draft release notes."
+      }
+    ],
+    "missingTopicIds": [],
+    "nextCommandTemplate": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+    "schemaVersion": 1
+  },
+  "stableV4Release": true,
+  "status": "pass",
+  "surface": "ShipGuard V4 Stable Publication Proof",
+  "tool": "shipguard v4 stable-publication"
+}

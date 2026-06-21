@@ -49,10 +49,17 @@ Outputs:
 - `stable-publication-release-notes/README.md`
 - `stable-publication-release-notes/release-notes-checklist.json`
 - `stable-publication-release-notes/draft-release-notes.md`
+- `stable-publication-launch-relay/README.md`
+- `stable-publication-launch-relay/launch-relay-checklist.json`
+- `stable-publication-launch-relay/product-hunt-draft.md`
+- `stable-publication-launch-relay/reddit-r-shipguard-draft.md`
+- `stable-publication-launch-relay/x-thread-draft.md`
+- `stable-publication-launch-relay/hacker-news-draft.md`
 - `stablePublicationEvidencePacket` in JSON, rendered as `Evidence Packet` in Markdown
 - `stablePublicationEvidenceTemplates` in JSON, rendered as `Evidence Templates` in Markdown
 - `stablePublicationEvidenceStarterKit` in JSON, rendered as `Evidence Starter Kit` in Markdown
 - `stablePublicationReleaseNotesAuthoringKit` in JSON, rendered as `Release Notes Authoring Kit` in Markdown
+- `stablePublicationLaunchRelayDrafts` in JSON, rendered as `Launch Relay Drafts` in Markdown
 
 ## Stable Gates
 
@@ -97,6 +104,25 @@ This directory is a draft-only authoring aid, not proof that the public GitHub r
 The report exposes the same artifact as `stablePublicationReleaseNotesAuthoringKit`, and Markdown renders it under `Release Notes Authoring Kit`. `ios report-quality` flags stable-publication reports that expose release-note gaps but do not give maintainers a draft/checklist path to fix the public release body.
 
 The generated release-notes directory is an authoring attachment, not a separate source report. `ios report-quality` grades the root `v4-stable-publication.json` report and skips the generated checklist during recursive report discovery.
+
+## Launch Relay Drafts
+
+Every run also writes `stable-publication-launch-relay/` inside the report directory.
+
+This directory is a draft-only launch packet for Product Hunt, r/ShipGuard, X, and Hacker News style announcements. It does not publish, submit, post, schedule, or perform account-visible external actions.
+
+The packet contains:
+
+- `README.md` with launch guardrails and the approval boundary
+- `launch-relay-checklist.json` with `approvalRequired: true`, `publicPostingAllowed: false`, and `computerUseMayPost: false`
+- `product-hunt-draft.md`
+- `reddit-r-shipguard-draft.md`
+- `x-thread-draft.md`
+- `hacker-news-draft.md`
+
+Public posting, publishing, submission, scheduling, browser-field staging with account side effects, or any other account-visible external action requires explicit human approval for that exact launch run. Computer-use may help prepare drafts or stage fields only after that approval; it must not post by default.
+
+`ios report-quality` flags stable-publication reports that declare launch-relay actionability but hide the draft-only packet, omit the approval gate, allow public posting by default, or fail to render the approval boundary in Markdown.
 
 ## Evidence Packet
 

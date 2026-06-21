@@ -6,6 +6,18 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Full Audit Fixture Promotion
 
+## Current Stable Publication Launch Relay QA
+
+The v3.156 read-only ShipGuard self-QA loop moved from verify-first quickstart into the launch boundary described in the roadmap: major milestones need launch drafts, but public posting must remain approval-gated.
+
+- Finding: `v4 stable-publication` could produce release proof packets and draft release notes, but it did not give maintainers a guarded Product Hunt, r/ShipGuard, X, or Hacker News launch relay packet.
+- Product weakness: without a machine-readable launch boundary, a future computer-use or promotion workflow could blur "prepare draft copy" into "post publicly" even though public account-visible actions require explicit approval for the exact launch run.
+- Native fix: `shipguard v4 stable-publication` now writes `stable-publication-launch-relay/` with draft-only channel copy, `approvalRequired: true`, `publicPostingAllowed: false`, and `computerUseMayPost: false`.
+- Report-quality fix: `ios report-quality` now flags stable-publication reports that declare launch-relay actionability but omit the launch packet, weaken the explicit approval gate, allow public posting, or hide the boundary in Markdown.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6` promotes the guarded launch relay question into public synthetic coverage.
+
+Fresh stable-publication QA can now keep launch copy useful without turning ShipGuard into an autoposting tool or bypassing user approval.
+
 ## Current Ponytail SourceScout Surface-Proof QA
 
 The latest read-only Ponytail QA pass refreshed the installed Codex Ponytail marketplace, inspected the public Ponytail checkout, then ran `shipguard ios external-audit`, `shipguard lean audit`, `shipguard lean review`, and `ios report-quality --write-fixture-candidates` against this checkout.

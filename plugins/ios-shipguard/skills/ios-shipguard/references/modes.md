@@ -114,6 +114,25 @@ Proof:
 - device/TestFlight/App Store evidence when required
 - blocked-manual note when credentials or device access are missing
 
+## stable-publication
+
+Use when the user asks to prove a stable ShipGuard milestone, prepare launch copy, or make launch work visible after a v4/v5/v6 gate.
+
+Ask:
+
+- Which public release version and GitHub release should be proven?
+- Which LaunchKey candidate report, downloaded assets, adoption evidence, and security-review evidence are the source receipts?
+- Is this only draft preparation, or has the user explicitly approved account-visible posting for this exact launch run?
+
+Proof:
+
+- `shipguard v4 stable-publication --path . --out <dir> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable`
+- inspect `stablePublicationEvidencePacket` first for missing evidence, first blocker, next command, proof order, and stable-v4 non-claims
+- inspect `stablePublicationEvidenceTemplates`, `stablePublicationEvidenceStarterKit`, and `stablePublicationReleaseNotesAuthoringKit` before asking for new prose evidence
+- inspect `stablePublicationLaunchRelayDrafts` for draft-only Product Hunt, r/ShipGuard, X, and Hacker News copy; it must keep `approvalRequired=true`, `publicPostingAllowed=false`, and `computerUseMayPost=false`
+- computer-use may prepare assets or stage fields only after explicit approval for the exact launch run; it must not publish, submit, post, schedule, or change account-visible external settings without that approval
+- run `shipguard ios report-quality --reports <stable-publication-dir> --out <quality-dir> --shareable` when improving ShipGuard report quality; generated `stable-publication-evidence-kit`, `stable-publication-release-notes`, and `stable-publication-launch-relay` directories are internal attachments under the root report output
+
 ## storekit-commerce
 
 Use for paid access, subscriptions, restore, product IDs, introductory offers, entitlement caching, receipt state, and premium copy.

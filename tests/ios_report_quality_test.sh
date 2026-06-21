@@ -5533,6 +5533,7 @@ mkdir -p \
   "$launchkey_skip_dir/rollback-work/extracted/shipguard-v0.0.0" \
   "$launchkey_skip_dir/downloaded-release-assets" \
   "$launchkey_skip_dir/release-consume" \
+  "$launchkey_skip_dir/stable-publication-launch-relay" \
   "$launchkey_skip_dir/stable-publication-release-notes" \
   "$launchkey_skip_dir/fresh-install-prefix/lib/shipguard/fixtures/promotions" \
   "$launchkey_skip_dir/upgrade-prefix/lib/shipguard/fixtures/promotions" \
@@ -5621,6 +5622,13 @@ cat > "$launchkey_skip_dir/stable-publication-release-notes/release-notes-checkl
   "topicMatrix": []
 }
 JSON
+cat > "$launchkey_skip_dir/stable-publication-launch-relay/launch-relay-checklist.json" <<'JSON'
+{
+  "draftOnly": true,
+  "publicPostingAllowed": false,
+  "status": "blocked-until-stable-publication-pass"
+}
+JSON
 cat > "$launchkey_skip_dir/fresh-install-prefix/lib/shipguard/fixtures/promotions/fixture-promotion-manifest.json" <<'JSON'
 {
   "candidateCount": "bad"
@@ -5643,7 +5651,7 @@ JSON
 grep -q '"status": "pass"' "$tmp_dir/launchkey-proof-dir-skip-quality/ios-report-quality.json"
 grep -q '"reportCount": 1' "$tmp_dir/launchkey-proof-dir-skip-quality/ios-report-quality.json"
 grep -q '"path": "<report-input-1>/v4-release-candidate.json"' "$tmp_dir/launchkey-proof-dir-skip-quality/ios-report-quality.json"
-if grep -q 'fresh-install-prefix\|fresh-install-work\|upgrade-prefix\|upgrade-work\|rollback-prefix\|rollback-work\|downloaded-release-assets\|release-consume\|stable-publication-release-notes\|fixture-promotion-manifest' "$tmp_dir/launchkey-proof-dir-skip-quality/ios-report-quality.json"; then
+if grep -q 'fresh-install-prefix\|fresh-install-work\|upgrade-prefix\|upgrade-work\|rollback-prefix\|rollback-work\|downloaded-release-assets\|release-consume\|stable-publication-launch-relay\|stable-publication-release-notes\|fixture-promotion-manifest' "$tmp_dir/launchkey-proof-dir-skip-quality/ios-report-quality.json"; then
   echo "report-quality must skip generated LaunchKey proof directories under report outputs" >&2
   exit 1
 fi
@@ -5778,6 +5786,60 @@ assert priority.get("kind") == "review-existing-fixture", priority
 assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-481951ae", priority
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
+
+stable_publication_launch_relay_fixture="fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6"
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_launch_relay_fixture" \
+  --out "$tmp_dir/stable-publication-launch-relay-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/stable-publication-launch-relay-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/stable-publication-launch-relay-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6"' "$tmp_dir/stable-publication-launch-relay-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/stable-publication-launch-relay-fixture-quality/ios-report-quality.json"
+grep -q '"stablePublicationLaunchRelayDrafts":' "$stable_publication_launch_relay_fixture/fixture-report.json"
+grep -q 'Launch Relay Drafts' "$stable_publication_launch_relay_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/stable-publication-launch-relay-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard v4 stable-publication", item
+assert item.get("fixtureType") == "shipguard-release-proof-quality-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6", item
+assert "launch relay drafts" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
+
+stable_publication_product_hunt_missing_relay="$tmp_dir/stable-publication-product-hunt-missing-relay"
+mkdir -p "$stable_publication_product_hunt_missing_relay"
+python3 - <<'PY' "$stable_publication_launch_relay_fixture/fixture-report.json" "$stable_publication_launch_relay_fixture/fixture-report.md" "$stable_publication_product_hunt_missing_relay"
+import json
+import pathlib
+import sys
+
+source_json = pathlib.Path(sys.argv[1])
+source_md = pathlib.Path(sys.argv[2])
+target = pathlib.Path(sys.argv[3])
+report = json.loads(source_json.read_text(encoding="utf-8"))
+report.pop("stablePublicationLaunchRelayDrafts", None)
+report["reportQualityQuestions"] = [
+    "Does the stable-publication report prepare Product Hunt and public posting drafts without bypassing explicit human approval?",
+]
+(target / "v4-stable-publication.json").write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+(target / "v4-stable-publication.md").write_text(source_md.read_text(encoding="utf-8"), encoding="utf-8")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_product_hunt_missing_relay" \
+  --out "$tmp_dir/stable-publication-product-hunt-missing-relay-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "stable-publication-launch-relay-drafts-missing"' "$tmp_dir/stable-publication-product-hunt-missing-relay-quality/ios-report-quality.json"
+grep -q 'Product Hunt and public posting drafts' "$tmp_dir/stable-publication-product-hunt-missing-relay-quality/ios-report-quality.json"
 
 stable_publication_value_fixture="fixtures/ios-report-quality/stable-publication-value-gauntlet-question"
 ./bin/shipguard ios report-quality \

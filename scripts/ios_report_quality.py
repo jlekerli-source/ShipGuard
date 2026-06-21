@@ -241,6 +241,7 @@ SOURCE_REPORT_SKIP_DIR_NAMES = {
     "release-consume",
     "stage-receipts",
     "stable-publication-evidence-kit",
+    "stable-publication-launch-relay",
     "stable-publication-release-notes",
 }
 
@@ -490,6 +491,26 @@ def add_issue(
 
 def normalized_question_text(value: object) -> str:
     return re.sub(r"\s+", " ", str(value)).strip().lower()
+
+
+def stable_publication_launch_relay_question(value: object) -> bool:
+    text = normalized_question_text(value)
+    return any(
+        token in text
+        for token in (
+            "launch relay",
+            "launch copy",
+            "launch draft",
+            "launch drafts",
+            "product hunt",
+            "r/shipguard",
+            "hacker news",
+            "public posting",
+            "public post",
+            "external launch",
+            "computer-use",
+        )
+    )
 
 
 def markdown_contains_token(markdown: str, token: object) -> bool:
@@ -2495,6 +2516,115 @@ def stable_publication_evidence_packet_issues(
             rule_id="stable-publication-release-notes-authoring-kit-markdown-missing",
             evidence=f"{path_name} Markdown does not render the stable-publication release-notes authoring kit",
             recommendation="Render the generated release-notes authoring kit so maintainers can find the checklist and draft without opening JSON.",
+        )
+    questions_text = " ".join(str(item) for item in report.get("reportQualityQuestions") or [])
+    relay_required = stable_publication_launch_relay_question(questions_text) or isinstance(
+        report.get("stablePublicationLaunchRelayDrafts"), dict
+    )
+    if not relay_required:
+        return issues
+
+    relay = report.get("stablePublicationLaunchRelayDrafts")
+    if not isinstance(relay, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-launch-relay-drafts-missing",
+            evidence=f"{path_name} declares launch relay actionability but has no stablePublicationLaunchRelayDrafts",
+            recommendation="Emit a draft-only launch relay packet with Product Hunt, Reddit, X, and HN drafts plus explicit approval boundaries.",
+        )
+        return issues
+    posting_policy = relay.get("postingPolicy") if isinstance(relay.get("postingPolicy"), dict) else {}
+    if relay.get("draftOnly") is not True:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-launch-relay-draft-boundary-missing",
+            evidence=f"{path_name} launch relay packet is not marked draftOnly",
+            recommendation="Mark launch relay drafts as draft-only so they cannot be mistaken for published launch proof.",
+        )
+    if relay.get("approvalRequired") is not True or posting_policy.get("requiresExplicitApproval") is not True:
+        add_issue(
+            issues,
+            severity="high",
+            rule_id="stable-publication-launch-relay-approval-gate-missing",
+            evidence=f"{path_name} launch relay packet does not require explicit approval before public posting",
+            recommendation="Require explicit human approval for the exact launch run before public posting, publishing, submission, scheduling, or account-visible actions.",
+        )
+    if relay.get("publicPostingAllowed") is not False or posting_policy.get("publicPostingAllowed") is not False:
+        add_issue(
+            issues,
+            severity="high",
+            rule_id="stable-publication-launch-relay-posting-not-blocked",
+            evidence=f"{path_name} launch relay packet does not block public posting by default",
+            recommendation="Keep publicPostingAllowed=false until a human approves the exact external launch action.",
+        )
+    if posting_policy.get("computerUseMayPost") is not False:
+        add_issue(
+            issues,
+            severity="high",
+            rule_id="stable-publication-launch-relay-computer-use-autopost-risk",
+            evidence=f"{path_name} launch relay packet does not explicitly forbid computer-use autoposting",
+            recommendation="State that computer-use may stage drafts only after explicit approval and must not post by default.",
+        )
+    relay_files = relay.get("files")
+    relay_paths = {str(item.get("path") or "") for item in relay_files if isinstance(item, dict)} if isinstance(relay_files, list) else set()
+    expected_relay_paths = {
+        "stable-publication-launch-relay/README.md",
+        "stable-publication-launch-relay/launch-relay-checklist.json",
+        "stable-publication-launch-relay/product-hunt-draft.md",
+        "stable-publication-launch-relay/reddit-r-shipguard-draft.md",
+        "stable-publication-launch-relay/x-thread-draft.md",
+        "stable-publication-launch-relay/hacker-news-draft.md",
+    }
+    missing_relay_paths = sorted(expected_relay_paths - relay_paths)
+    if missing_relay_paths:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-launch-relay-files-missing",
+            evidence=f"{path_name} launch relay packet missing files: {', '.join(missing_relay_paths)}",
+            recommendation="List README, checklist, Product Hunt, Reddit, X, and Hacker News draft files in stablePublicationLaunchRelayDrafts.files.",
+        )
+    channel_ids = {
+        str(item.get("id") or "")
+        for item in relay.get("channels", [])
+        if isinstance(item, dict)
+    }
+    expected_channels = {"product-hunt", "reddit-r-shipguard", "x-thread", "hacker-news"}
+    missing_channels = sorted(expected_channels - channel_ids)
+    if missing_channels:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-launch-relay-channels-missing",
+            evidence=f"{path_name} launch relay packet missing channels: {', '.join(missing_channels)}",
+            recommendation="Expose the intended public launch channels so a maintainer can review every draft before approval.",
+        )
+    if "stable-publication" not in str(relay.get("nextCommandTemplate") or ""):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-launch-relay-next-proof-command-missing",
+            evidence=f"{path_name} launch relay packet has no stable-publication rerun command",
+            recommendation="Include the stable-publication proof command so launch copy stays tied to the current evidence packet.",
+        )
+    relay_non_claims = " ".join(str(item) for item in relay.get("nonClaims") or [])
+    if "publish" not in relay_non_claims.lower() or "computer-use" not in relay_non_claims.lower():
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-launch-relay-non-claims-missing",
+            evidence=f"{path_name} launch relay packet nonClaims do not block posting and computer-use overclaims",
+            recommendation="Keep launch relay non-claims explicit: no publishing/submission/posting and no computer-use account action without approval.",
+        )
+    if "Launch Relay Drafts" not in markdown or "Approval required" not in markdown or "Public posting allowed" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-launch-relay-markdown-missing",
+            evidence=f"{path_name} Markdown does not render the launch relay approval boundary",
+            recommendation="Render Launch Relay Drafts in Markdown with approval-required and public-posting-allowed fields.",
         )
     return issues
 
@@ -5498,6 +5628,11 @@ def fixture_type_for_question(question: str, tool: str) -> str:
         return "ios-preview-devspace-routing-fixture"
     if (
         "product release" in text
+        or "stable publication" in text
+        or "stable-publication" in text
+        or "launch relay" in text
+        or "product hunt" in text
+        or "public posting" in text
         or "stable v4" in text
         or "stable-v4" in text
         or "release proof" in text
@@ -5559,6 +5694,12 @@ def should_create_fixture_candidate(question: str) -> bool:
             "product release",
             "stable v4",
             "stable-v4",
+            "stable publication",
+            "stable-publication",
+            "launch relay",
+            "product hunt",
+            "explicit human approval",
+            "public posting",
             "release proof",
             "release consumption",
             "rollback proof",
@@ -7463,6 +7604,161 @@ def synthetic_design_report_fields() -> dict[str, Any]:
     }
 
 
+def synthetic_stable_publication_report_fields() -> dict[str, Any]:
+    required = [
+        ("github-release-metadata", "githubReleaseMetadataProof"),
+        ("release-notes", "releaseNotesProof"),
+        ("launchkey-candidate-packet", "releaseCandidatePacketProof"),
+        ("downloaded-release-assets", "publishedReleaseAssetProof"),
+        ("post-release-consumer-proof", "postReleaseConsumerProof"),
+        ("independent-adoption-evidence", "externalAdoptionEvidenceStableGate"),
+        ("final-security-review-evidence", "securityReviewEvidenceStableGate"),
+    ]
+    evidence_packet = {
+        "schemaVersion": 1,
+        "releaseVersion": "0.0.0",
+        "status": "pass",
+        "stableV4Release": True,
+        "requiredEvidenceCount": len(required),
+        "passedEvidenceCount": len(required),
+        "missingEvidenceIds": [],
+        "firstBlockingGate": None,
+        "requiredEvidence": [
+            {
+                "id": evidence_id,
+                "receipt": receipt,
+                "status": "pass",
+                "provided": True,
+                "requiredForStableV4": True,
+                "realEvidenceRequired": True,
+                "summary": "Synthetic public fixture evidence row.",
+                "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+                **(
+                    {
+                        "templatePath": "templates/stable-publication/external-adoption-evidence.template.json",
+                        "templateCommand": "cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json",
+                    }
+                    if evidence_id == "independent-adoption-evidence"
+                    else {}
+                ),
+                **(
+                    {
+                        "templatePath": "templates/stable-publication/security-review-evidence.template.json",
+                        "templateCommand": "cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json",
+                    }
+                    if evidence_id == "final-security-review-evidence"
+                    else {}
+                ),
+            }
+            for evidence_id, receipt in required
+        ],
+        "nonClaims": [
+            "This synthetic fixture does not publish a GitHub release.",
+            "This synthetic fixture does not prove OpenAI marketplace acceptance.",
+            "Fixture adoption or security records prove tooling only.",
+        ],
+    }
+    return {
+        "surface": "ShipGuard V4 Stable Publication Proof",
+        "stableV4Release": True,
+        "stablePublicationGates": [
+            {"receipt": receipt, "status": "pass", "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable"}
+            for _, receipt in required
+        ],
+        "stablePublicationEvidencePacket": evidence_packet,
+        "stablePublicationEvidenceTemplates": {
+            "schemaVersion": 1,
+            "templateDirectory": "templates/stable-publication",
+            "draftOnly": True,
+            "templateIds": ["independent-adoption-evidence", "final-security-review-evidence"],
+            "templates": [
+                {
+                    "id": "independent-adoption-evidence",
+                    "path": "templates/stable-publication/external-adoption-evidence.template.json",
+                    "exists": True,
+                    "copyCommand": "cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json",
+                },
+                {
+                    "id": "final-security-review-evidence",
+                    "path": "templates/stable-publication/security-review-evidence.template.json",
+                    "exists": True,
+                    "copyCommand": "cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json",
+                },
+            ],
+        },
+        "stablePublicationEvidenceStarterKit": {
+            "schemaVersion": 1,
+            "draftOnly": True,
+            "directory": "stable-publication-evidence-kit",
+            "files": [
+                {"path": "stable-publication-evidence-kit/README.md", "purpose": "Synthetic starter-kit README."},
+                {"path": "stable-publication-evidence-kit/stable-publication-checklist.json", "purpose": "Synthetic checklist."},
+                {"path": "stable-publication-evidence-kit/external-adoption-evidence.json", "purpose": "Synthetic adoption starter."},
+                {"path": "stable-publication-evidence-kit/security-review-evidence.json", "purpose": "Synthetic security starter."},
+            ],
+            "nextCommandTemplate": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --external-adoption-evidence stable-publication-evidence-kit/external-adoption-evidence.json --security-review-evidence stable-publication-evidence-kit/security-review-evidence.json --shipguard-eval --shareable",
+        },
+        "stablePublicationReleaseNotesAuthoringKit": {
+            "schemaVersion": 1,
+            "draftOnly": True,
+            "directory": "stable-publication-release-notes",
+            "missingTopicIds": [],
+            "files": [
+                {"path": "stable-publication-release-notes/README.md", "purpose": "Synthetic release-notes README."},
+                {"path": "stable-publication-release-notes/release-notes-checklist.json", "purpose": "Synthetic checklist."},
+                {"path": "stable-publication-release-notes/draft-release-notes.md", "purpose": "Synthetic draft release notes."},
+            ],
+            "nextCommandTemplate": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+        },
+        "stablePublicationLaunchRelayDrafts": {
+            "schemaVersion": 1,
+            "draftOnly": True,
+            "directory": "stable-publication-launch-relay",
+            "releaseVersion": "0.0.0",
+            "status": "ready-to-stage",
+            "approvalRequired": True,
+            "publicPostingAllowed": False,
+            "stableV4Release": True,
+            "postingPolicy": {
+                "requiresExplicitApproval": True,
+                "publicPostingAllowed": False,
+                "computerUseMayStageDrafts": True,
+                "computerUseMayPost": False,
+                "approvalText": "Public posting, publishing, submission, or account-visible external actions require explicit human approval for that exact launch run.",
+            },
+            "channels": [
+                {"id": "product-hunt", "draftPath": "stable-publication-launch-relay/product-hunt-draft.md"},
+                {"id": "reddit-r-shipguard", "draftPath": "stable-publication-launch-relay/reddit-r-shipguard-draft.md"},
+                {"id": "x-thread", "draftPath": "stable-publication-launch-relay/x-thread-draft.md"},
+                {"id": "hacker-news", "draftPath": "stable-publication-launch-relay/hacker-news-draft.md"},
+            ],
+            "files": [
+                {"path": "stable-publication-launch-relay/README.md", "purpose": "Synthetic approval boundary."},
+                {"path": "stable-publication-launch-relay/launch-relay-checklist.json", "purpose": "Synthetic checklist."},
+                {"path": "stable-publication-launch-relay/product-hunt-draft.md", "purpose": "Synthetic Product Hunt draft."},
+                {"path": "stable-publication-launch-relay/reddit-r-shipguard-draft.md", "purpose": "Synthetic Reddit draft."},
+                {"path": "stable-publication-launch-relay/x-thread-draft.md", "purpose": "Synthetic X draft."},
+                {"path": "stable-publication-launch-relay/hacker-news-draft.md", "purpose": "Synthetic HN draft."},
+            ],
+            "nextCommandTemplate": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+            "nonClaims": [
+                "This packet does not publish, submit, post, or schedule anything.",
+                "This packet does not authorize computer-use to perform account-visible actions.",
+            ],
+        },
+        "releaseNotesProof": {"missingTopicIds": []},
+        "scopeBoundary": {
+            "shipguardOnly": True,
+            "targetAppsReadOnly": True,
+            "doesNotPublishRelease": True,
+            "doesNotPostExternally": True,
+        },
+        "blockedClaims": [
+            "Do not publish, submit, post, schedule, or perform account-visible external launch actions without explicit human approval for that exact launch run.",
+        ],
+    }
+
+
 def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
     question = materialized_source_question(candidate)
     source_tool = sanitize_materialized_text(candidate.get("sourceTool")) or "shipguard ios report-quality"
@@ -7519,6 +7815,8 @@ def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
         report.update(synthetic_lean_debt_report_fields())
     if source_tool == "shipguard lean review":
         report.update(synthetic_lean_review_report_fields())
+    if source_tool == "shipguard v4 stable-publication":
+        report.update(synthetic_stable_publication_report_fields())
     if source_tool == "shipguard prepare":
         report.update(
             {
@@ -7721,6 +8019,69 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "- Review packet: `shipguard-verdict.json`, `shipguard-verdict.md`, `<shipguard-task.json>`, `<patch.diff>`, `<validation-receipt.json>`",
                 "- Next action: Attach shipguard-verdict.json and the evidence receipts to the review.",
                 "- Boundary: Synthetic replay contract only; it does not replace target validation.",
+                "",
+            ]
+        )
+    if source_tool == "shipguard v4 stable-publication":
+        lines.extend(
+            [
+                "## Evidence Packet",
+                "",
+                "- Packet status: `pass`",
+                "- Required evidence passed: `7/7`",
+                "- First blocking gate: `none`",
+                "",
+                "| Evidence | Status |",
+                "| --- | --- |",
+                "| `github-release-metadata` | `pass` |",
+                "| `release-notes` | `pass` |",
+                "| `launchkey-candidate-packet` | `pass` |",
+                "| `downloaded-release-assets` | `pass` |",
+                "| `post-release-consumer-proof` | `pass` |",
+                "| `independent-adoption-evidence` | `pass` |",
+                "| `final-security-review-evidence` | `pass` |",
+                "",
+                "## Evidence Templates",
+                "",
+                "- Draft-only templates: `True`",
+                "",
+                "| Template | Exists | Copy command |",
+                "| --- | --- | --- |",
+                "| `independent-adoption-evidence` | `True` | `cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json` |",
+                "| `final-security-review-evidence` | `True` | `cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json` |",
+                "",
+                "## Evidence Starter Kit",
+                "",
+                "- Directory: `stable-publication-evidence-kit`",
+                "- Draft-only: `True`",
+                "",
+                "## Release Notes Authoring Kit",
+                "",
+                "- Directory: `stable-publication-release-notes`",
+                "- Draft-only: `True`",
+                "- Missing topics: `none`",
+                "",
+                "## Launch Relay Drafts",
+                "",
+                "- Directory: `stable-publication-launch-relay`",
+                "- Draft-only: `True`",
+                "- Approval required: `True`",
+                "- Public posting allowed: `False`",
+                "- Computer-use may post: `False`",
+                "- Status: `ready-to-stage`",
+                "",
+                "| File | Purpose |",
+                "| --- | --- |",
+                "| `stable-publication-launch-relay/README.md` | Synthetic approval boundary. |",
+                "| `stable-publication-launch-relay/launch-relay-checklist.json` | Synthetic checklist. |",
+                "| `stable-publication-launch-relay/product-hunt-draft.md` | Synthetic Product Hunt draft. |",
+                "| `stable-publication-launch-relay/reddit-r-shipguard-draft.md` | Synthetic Reddit draft. |",
+                "| `stable-publication-launch-relay/x-thread-draft.md` | Synthetic X draft. |",
+                "| `stable-publication-launch-relay/hacker-news-draft.md` | Synthetic HN draft. |",
+                "",
+                "Approval boundary:",
+                "",
+                "Public posting, publishing, submission, or account-visible external actions require explicit human approval for that exact launch run.",
                 "",
             ]
         )

@@ -133,6 +133,7 @@ STABLE_PUBLICATION_TEMPLATE_SPECS = [
 ]
 STARTER_KIT_DIRNAME = "stable-publication-evidence-kit"
 RELEASE_NOTES_KIT_DIRNAME = "stable-publication-release-notes"
+LAUNCH_RELAY_DIRNAME = "stable-publication-launch-relay"
 
 
 def utc_now() -> str:
@@ -606,6 +607,126 @@ def build_stable_publication_release_notes_authoring_kit(
     }
 
 
+def build_stable_publication_launch_relay_drafts(
+    *,
+    release_version: str,
+    stable_v4_release: bool,
+    evidence_packet: dict[str, Any],
+) -> dict[str, Any]:
+    status = "ready-to-stage" if stable_v4_release else "blocked-until-stable-publication-pass"
+    return {
+        "schemaVersion": 1,
+        "draftOnly": True,
+        "directory": LAUNCH_RELAY_DIRNAME,
+        "releaseVersion": release_version,
+        "status": status,
+        "approvalRequired": True,
+        "publicPostingAllowed": False,
+        "postingPolicy": {
+            "requiresExplicitApproval": True,
+            "publicPostingAllowed": False,
+            "computerUseMayStageDrafts": True,
+            "computerUseMayPost": False,
+            "approvalText": (
+                "Public posting, publishing, submission, or account-visible external actions require explicit human "
+                "approval for that exact launch run."
+            ),
+            "prohibitedActions": [
+                "submit Product Hunt launch",
+                "post to r/ShipGuard or any subreddit",
+                "publish X posts or threads",
+                "submit to Hacker News",
+                "change account-visible public settings",
+            ],
+            "allowedActions": [
+                "write local draft copy",
+                "prepare screenshots or asset checklists",
+                "stage browser fields only after explicit approval for that exact launch run",
+            ],
+        },
+        "channels": [
+            {
+                "id": "product-hunt",
+                "name": "Product Hunt",
+                "draftPath": f"{LAUNCH_RELAY_DIRNAME}/product-hunt-draft.md",
+                "approvalGate": "explicit-human-approval-required",
+            },
+            {
+                "id": "reddit-r-shipguard",
+                "name": "r/ShipGuard",
+                "draftPath": f"{LAUNCH_RELAY_DIRNAME}/reddit-r-shipguard-draft.md",
+                "approvalGate": "explicit-human-approval-required",
+            },
+            {
+                "id": "x-thread",
+                "name": "X thread",
+                "draftPath": f"{LAUNCH_RELAY_DIRNAME}/x-thread-draft.md",
+                "approvalGate": "explicit-human-approval-required",
+            },
+            {
+                "id": "hacker-news",
+                "name": "Hacker News",
+                "draftPath": f"{LAUNCH_RELAY_DIRNAME}/hacker-news-draft.md",
+                "approvalGate": "explicit-human-approval-required",
+            },
+        ],
+        "files": [
+            {
+                "id": "readme",
+                "path": f"{LAUNCH_RELAY_DIRNAME}/README.md",
+                "purpose": "Human launch-relay guardrails and approval boundary.",
+            },
+            {
+                "id": "checklist",
+                "path": f"{LAUNCH_RELAY_DIRNAME}/launch-relay-checklist.json",
+                "purpose": "Machine-readable draft-only launch checklist and posting policy.",
+            },
+            {
+                "id": "product-hunt-draft",
+                "path": f"{LAUNCH_RELAY_DIRNAME}/product-hunt-draft.md",
+                "purpose": "Draft Product Hunt launch copy; not submitted by ShipGuard.",
+            },
+            {
+                "id": "reddit-r-shipguard-draft",
+                "path": f"{LAUNCH_RELAY_DIRNAME}/reddit-r-shipguard-draft.md",
+                "purpose": "Draft subreddit announcement; not posted by ShipGuard.",
+            },
+            {
+                "id": "x-thread-draft",
+                "path": f"{LAUNCH_RELAY_DIRNAME}/x-thread-draft.md",
+                "purpose": "Draft X thread; not posted by ShipGuard.",
+            },
+            {
+                "id": "hacker-news-draft",
+                "path": f"{LAUNCH_RELAY_DIRNAME}/hacker-news-draft.md",
+                "purpose": "Draft Hacker News submission notes; not submitted by ShipGuard.",
+            },
+        ],
+        "proofSource": "stablePublicationEvidencePacket",
+        "proofStatus": evidence_packet.get("status"),
+        "stableV4Release": stable_v4_release,
+        "requiredBeforePosting": [
+            "stablePublicationEvidencePacket.status == pass",
+            "stableV4Release == true",
+            "public release notes reviewed",
+            "independent adoption and final security evidence attached",
+            "explicit human approval for the exact launch run",
+        ],
+        "nonClaims": [
+            "This packet does not publish, submit, post, or schedule anything.",
+            "This packet does not authorize computer-use to perform account-visible actions.",
+            "Draft copy must not claim adoption, security review, marketplace acceptance, or performance numbers beyond attached evidence.",
+        ],
+        "nextCommandTemplate": (
+            "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> "
+            "--github-release-repo <owner/repo> --release-version <version> "
+            "--release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets "
+            "--external-adoption-evidence <adoption-evidence-json-or-dir> "
+            "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
+        ),
+    }
+
+
 def build_stable_publication_evidence_packet(
     *,
     gates: list[tuple[str, dict[str, Any], str]],
@@ -840,6 +961,157 @@ def write_stable_publication_release_notes_authoring_kit(
     (kit_dir / "README.md").write_text("\n".join(readme_lines), encoding="utf-8")
 
 
+def write_stable_publication_launch_relay_drafts(
+    out_dir: Path,
+    *,
+    report: dict[str, Any],
+) -> None:
+    relay = report.get("stablePublicationLaunchRelayDrafts")
+    if not isinstance(relay, dict):
+        return
+    relay_dir = out_dir / LAUNCH_RELAY_DIRNAME
+    relay_dir.mkdir(parents=True, exist_ok=True)
+
+    status = str(relay.get("status") or "blocked-until-stable-publication-pass")
+    release_version = str(relay.get("releaseVersion") or report.get("releaseVersion") or "<version>")
+    posting_policy = relay.get("postingPolicy") if isinstance(relay.get("postingPolicy"), dict) else {}
+    approval_text = str(posting_policy.get("approvalText") or "Explicit human approval is required before posting.")
+    checklist = {
+        "schemaVersion": 1,
+        "draftOnly": True,
+        "releaseVersion": release_version,
+        "status": status,
+        "stableV4Release": bool(relay.get("stableV4Release")),
+        "approvalRequired": True,
+        "publicPostingAllowed": False,
+        "postingPolicy": posting_policy,
+        "channels": relay.get("channels") or [],
+        "requiredBeforePosting": relay.get("requiredBeforePosting") or [],
+        "nonClaims": relay.get("nonClaims") or [],
+        "nextCommandTemplate": relay.get("nextCommandTemplate"),
+    }
+    (relay_dir / "launch-relay-checklist.json").write_text(
+        json.dumps(checklist, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    guard_lines = [
+        f"Release: {release_version}",
+        f"Launch-relay status: {status}",
+        "",
+        "Approval boundary: draft only. Do not publish, submit, post, schedule, or perform account-visible external actions without explicit human approval for this exact launch run.",
+        f"Approval text: {approval_text}",
+        "",
+        "Evidence boundary: only claim facts backed by the stable-publication report, release notes, downloaded release assets, independent adoption evidence, and final security-review evidence.",
+    ]
+    common_intro = "\n".join(guard_lines)
+
+    readme_lines = [
+        "# Stable Publication Launch Relay",
+        "",
+        "This directory contains draft-only launch copy for verified major ShipGuard milestones.",
+        "It is a relay packet, not a posting tool.",
+        "",
+        "## Guardrails",
+        "",
+        "- Public posting, publishing, submission, scheduling, or account-visible external actions require explicit human approval for the exact launch run.",
+        "- Computer-use may help stage drafts only after that explicit approval; it must not post by default.",
+        "- Keep private app names, local paths, screenshots, account data, tokens, adoption claims, and security claims out of public copy unless they are covered by the stable-publication evidence packet.",
+        "- If the stable-publication report is not `pass`, treat every draft below as blocked context only.",
+        "",
+        "## Files",
+        "",
+        "- `launch-relay-checklist.json`: machine-readable approval boundary and channel list.",
+        "- `product-hunt-draft.md`: draft Product Hunt copy.",
+        "- `reddit-r-shipguard-draft.md`: draft r/ShipGuard post.",
+        "- `x-thread-draft.md`: draft X thread.",
+        "- `hacker-news-draft.md`: draft Hacker News submission notes.",
+        "",
+        "## Next Command",
+        "",
+        "```bash",
+        str(relay.get("nextCommandTemplate") or ""),
+        "```",
+        "",
+    ]
+    (relay_dir / "README.md").write_text("\n".join(readme_lines), encoding="utf-8")
+
+    drafts = {
+        "product-hunt-draft.md": [
+            "# Product Hunt Draft",
+            "",
+            common_intro,
+            "",
+            "## Tagline",
+            "",
+            "Local-first proof reports for AI-assisted development.",
+            "",
+            "## Launch Copy",
+            "",
+            "ShipGuard helps developers use coding agents without accepting vague `done` or `tested` claims. It scopes a task, checks evidence, rejects unsupported claims, and returns a reviewable verdict with the next exact action.",
+            "",
+            "## Proof To Mention",
+            "",
+            "- Stable-publication report status",
+            "- Downloaded release asset verification",
+            "- Post-release consumer proof",
+            "- Independent adoption and final security review evidence, if attached",
+            "",
+            "## Do Not Claim",
+            "",
+            "- OpenAI marketplace acceptance",
+            "- Private app validation",
+            "- External adoption beyond attached evidence",
+            "- Performance, security, or install numbers not in the proof packet",
+            "",
+        ],
+        "reddit-r-shipguard-draft.md": [
+            "# r/ShipGuard Draft",
+            "",
+            common_intro,
+            "",
+            "I am preparing a ShipGuard milestone announcement. ShipGuard is an open-source, local-first proof layer for AI-assisted development: prepare the task, verify the diff/evidence/claims, and keep the next action reviewable.",
+            "",
+            "The release should only be posted after the stable-publication report passes and the exact launch run is approved.",
+            "",
+            "Useful proof to attach: release notes, release proof, consumer verification, adoption evidence, security review evidence, and the stable-publication report.",
+            "",
+        ],
+        "x-thread-draft.md": [
+            "# X Thread Draft",
+            "",
+            common_intro,
+            "",
+            "1. ShipGuard is a local-first proof layer for AI-assisted development.",
+            "",
+            "2. The core loop is simple: prepare the task, collect proof, verify the diff and claims, then return pass/review/blocked with one next action.",
+            "",
+            "3. The milestone should be announced only after stable-publication proof passes: release metadata, release notes, downloaded assets, consumer proof, independent adoption, and security review.",
+            "",
+            "4. Draft only until explicit approval for this exact launch run.",
+            "",
+        ],
+        "hacker-news-draft.md": [
+            "# Hacker News Draft",
+            "",
+            common_intro,
+            "",
+            "## Title Draft",
+            "",
+            "Show HN: ShipGuard, local-first proof reports for AI-assisted coding agents",
+            "",
+            "## Comment Draft",
+            "",
+            "ShipGuard is an open-source CLI/plugin workflow that turns AI coding work into scoped task contracts and evidence-backed verification reports. It is local-first and focuses on whether a maintainer can review the change honestly: what changed, what proof exists, which claims are unsupported, and what the next action is.",
+            "",
+            "Post only after the stable-publication proof packet passes and the exact HN submission is approved.",
+            "",
+        ],
+    }
+    for name, lines in drafts.items():
+        (relay_dir / name).write_text("\n".join(lines), encoding="utf-8")
+
+
 def redact_report(report: dict[str, Any], args: argparse.Namespace, root: Path) -> dict[str, Any]:
     home = Path.home().resolve()
     replacements = {
@@ -931,6 +1203,11 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         stable_v4_release=stable_v4_release,
         evidence_templates=evidence_templates,
     )
+    launch_relay_drafts = build_stable_publication_launch_relay_drafts(
+        release_version=release_version,
+        stable_v4_release=stable_v4_release,
+        evidence_packet=evidence_packet,
+    )
 
     if blocked:
         receipt, proof, next_command = blocked
@@ -969,6 +1246,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "stablePublicationEvidenceTemplates": evidence_templates,
         "stablePublicationEvidenceStarterKit": evidence_starter_kit,
         "stablePublicationReleaseNotesAuthoringKit": release_notes_authoring_kit,
+        "stablePublicationLaunchRelayDrafts": launch_relay_drafts,
         "githubReleaseMetadataProof": metadata_proof,
         "releaseNotesProof": release_notes_proof,
         "releaseCandidatePacketProof": release_candidate_packet_proof,
@@ -986,6 +1264,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Do not use synthetic fixture adoption or security evidence as independent stable-v4 evidence.",
             "Do not treat GitHub release download counts as independent adoption evidence.",
             "Do not include private app paths, screenshots, identifiers, or token-like text in shareable proof.",
+            "Do not publish, submit, post, schedule, or perform account-visible external launch actions without explicit human approval for that exact launch run.",
         ],
         "scopeBoundary": {
             "shipguardOnly": True,
@@ -993,6 +1272,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "privateAppsUsed": False,
             "doesNotEditTargetApps": True,
             "doesNotPublishRelease": True,
+            "doesNotPostExternally": True,
             "shareable": bool(args.shareable),
         },
         "reportQualityQuestions": [
@@ -1001,6 +1281,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the stable-publication evidence packet list every required real-evidence input, first blocker, next command, and non-claim before a stable-v4 announcement?",
             "Does the stable-publication report provide draft-only evidence templates for independent adoption and final security review without manufacturing proof?",
             "Does the stable-publication report write a draft-only evidence starter kit so maintainers can collect the packet without reverse-engineering JSON shapes?",
+            "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?",
         ],
         "resultUX": result_ux,
     }
@@ -1125,6 +1406,36 @@ def render_markdown(report: dict[str, Any]) -> str:
             if isinstance(item, dict):
                 lines.append(f"| `{item.get('path')}` | {item.get('purpose')} |")
         lines.extend(["", "Next command template:", "", "```bash", str(starter_kit.get("nextCommandTemplate") or ""), "```"])
+    launch_relay = report.get("stablePublicationLaunchRelayDrafts") if isinstance(report.get("stablePublicationLaunchRelayDrafts"), dict) else {}
+    if launch_relay:
+        posting_policy = launch_relay.get("postingPolicy") if isinstance(launch_relay.get("postingPolicy"), dict) else {}
+        lines.extend(
+            [
+                "",
+                "## Launch Relay Drafts",
+                "",
+                f"- Directory: `{launch_relay.get('directory')}`",
+                f"- Draft-only: `{launch_relay.get('draftOnly')}`",
+                f"- Approval required: `{launch_relay.get('approvalRequired')}`",
+                f"- Public posting allowed: `{launch_relay.get('publicPostingAllowed')}`",
+                f"- Computer-use may post: `{posting_policy.get('computerUseMayPost')}`",
+                f"- Status: `{launch_relay.get('status')}`",
+                "",
+                "| File | Purpose |",
+                "| --- | --- |",
+            ]
+        )
+        for item in launch_relay.get("files", []):
+            if isinstance(item, dict):
+                lines.append(f"| `{item.get('path')}` | {item.get('purpose')} |")
+        lines.extend(
+            [
+                "",
+                "Approval boundary:",
+                "",
+                str(posting_policy.get("approvalText") or "Explicit human approval is required before posting."),
+            ]
+        )
     lines.extend(
         [
             "",
@@ -1190,6 +1501,7 @@ def main(argv: list[str]) -> int:
         (out_dir / "v4-stable-publication.md").write_text(render_markdown(report), encoding="utf-8")
     write_stable_publication_evidence_starter_kit(out_dir, report=report, root=Path(args.path).expanduser().resolve())
     write_stable_publication_release_notes_authoring_kit(out_dir, report=report)
+    write_stable_publication_launch_relay_drafts(out_dir, report=report)
     print(f"wrote {out_dir}")
     return 0 if report["status"] == "pass" else 1
 
