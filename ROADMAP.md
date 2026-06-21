@@ -159,8 +159,8 @@ v3.147  Full Audit copy-ready execution-command receipts
 v3.148  Tool Value Gauntlet stable-publication priority
 v3.149  Stable-publication final claim gate
 v3.150  Lean Review selected-mode bias fixture
-v3.151  Stable-publication evidence packet
-v3.152  Stable-publication draft evidence templates
+v3.151  Lean Debt marker-visibility fixture
+v3.152  Lean Debt benchmark-savings honesty fixture
 v3.153  Verify-first launch quickstart
 v3.154  Guarded launch relay drafts
 v3.155  One-command installer proof path

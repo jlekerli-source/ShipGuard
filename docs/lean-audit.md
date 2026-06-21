@@ -76,6 +76,12 @@ upgrade trigger, for example:
 
 Markers without an upgrade trigger are reported as `needs-trigger` so intentional
 simplifications stay visible instead of turning into permanent mystery debt.
+Standalone `lean debt` also emits `markerVisibilityReview`, which summarizes
+total markers, visible rows, omitted rows, rows with ceilings, rows missing
+ceilings, rows with upgrade triggers, rows needing upgrade triggers, and rows
+with explicit upgrade status. The Markdown renders this review before the raw
+ledger table so a maintainer can see which shortcut will rot without opening
+JSON or re-scanning source.
 
 For a ledger-only pass:
 

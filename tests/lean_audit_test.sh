@@ -62,6 +62,32 @@ if grep -q '/Users/' "$tmp_dir/lean/lean-audit.json"; then
   exit 1
 fi
 
+missing_ceiling_repo="$tmp_dir/missing-ceiling-repo"
+mkdir -p "$missing_ceiling_repo/Sources"
+cat > "$missing_ceiling_repo/Sources/MissingCeiling.swift" <<'SWIFT'
+// shipguard-lean: keep this bridge while adapter proof lands. upgrade: delete when the adapter call sites are gone.
+func bridge() {}
+SWIFT
+./bin/shipguard lean audit \
+  --path "$missing_ceiling_repo" \
+  --out "$tmp_dir/missing-ceiling-lean" \
+  --mode full \
+  --shipguard-eval \
+  --shareable >/dev/null
+grep -q '"missingCeiling": 1' "$tmp_dir/missing-ceiling-lean/lean-audit.json"
+grep -q '"shortcutDebt":' "$tmp_dir/missing-ceiling-lean/lean-audit.json"
+python3 - <<'PY' "$tmp_dir/missing-ceiling-lean/lean-audit.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+gate = data["behaviorGates"]["shortcutDebt"]
+if gate.get("status") != "review":
+    raise SystemExit(f"shortcutDebt should be review when ceiling is missing: {gate!r}")
+if gate.get("missingCeiling") != 1:
+    raise SystemExit(f"shortcutDebt should expose missingCeiling: {gate!r}")
+PY
+
 clean_repo="$tmp_dir/clean-lean-repo"
 mkdir -p "$clean_repo/Sources"
 cat > "$clean_repo/Sources/Tiny.py" <<'PY'
@@ -770,9 +796,15 @@ test -f "$tmp_dir/debt/lean-debt.json"
 test -f "$tmp_dir/debt/lean-debt.md"
 grep -q '"tool": "shipguard lean debt"' "$tmp_dir/debt/lean-debt.json"
 grep -q '"surface": "ShipGuard Lean Debt"' "$tmp_dir/debt/lean-debt.json"
+grep -q '"markerVisibilityReview":' "$tmp_dir/debt/lean-debt.json"
+grep -q '"allMarkersVisible": true' "$tmp_dir/debt/lean-debt.json"
+grep -q '"rowsWithCeiling": 1' "$tmp_dir/debt/lean-debt.json"
+grep -q '"rowsWithUpgradeStatus": 1' "$tmp_dir/debt/lean-debt.json"
 grep -q '"marker": "shipguard-lean"' "$tmp_dir/debt/lean-debt.json"
 grep -q '"status": "tracked"' "$tmp_dir/debt/lean-debt.json"
 grep -q 'ShipGuard Lean Debt' "$tmp_dir/debt/lean-debt.md"
+grep -q 'Marker Visibility Review' "$tmp_dir/debt/lean-debt.md"
+grep -q 'Rows with upgrade status' "$tmp_dir/debt/lean-debt.md"
 if grep -q '/Users/' "$tmp_dir/debt/lean-debt.json"; then
   echo "shareable lean debt leaked an absolute user path" >&2
   exit 1

@@ -90,7 +90,7 @@ Proof:
 - current diff: `shipguard lean review --diff <patch.diff> --path . --out /tmp/shipguard-lean-review --mode full --shipguard-eval --shareable`
 - shortcut ledger: `shipguard lean debt --path . --out /tmp/shipguard-lean-debt --shipguard-eval --shareable`
 - benchmark card: `shipguard lean gain --path . --out /tmp/shipguard-lean-gain --shipguard-eval --shareable`
-- inspect `leanMode`, `modeBiasReview`, `behaviorGates`, `nativeOpportunityCatalog`, `precisionReview`, and `leanDebtLedger` before proposing deletions
+- inspect `leanMode`, `modeBiasReview`, `behaviorGates`, `nativeOpportunityCatalog`, `precisionReview`, `leanDebtLedger`, and standalone Lean Debt `markerVisibilityReview` before proposing deletions or shortcut cleanup
 - do not claim current-repo line, token, cost, or time savings from `lean gain`; it is benchmark direction only unless a matched baseline exists
 - feed Lean reports to `shipguard ios report-quality --reports <lean-output-dir> --out /tmp/shipguard-lean-quality --shareable` when improving ShipGuard itself
 

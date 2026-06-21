@@ -310,6 +310,7 @@ def scan_lean_debt(root: Path, files: list[Path]) -> dict[str, Any]:
             if not match:
                 continue
             parsed = parse_lean_debt_body(match.group("body"))
+            has_ceiling = bool(parsed["ceiling"])
             has_trigger = bool(parsed["upgrade"])
             items.append(
                 {
@@ -318,9 +319,10 @@ def scan_lean_debt(root: Path, files: list[Path]) -> dict[str, Any]:
                     "marker": match.group("label").lower(),
                     "summary": parsed["summary"][:240],
                     "ceiling": parsed["ceiling"],
+                    "hasCeiling": has_ceiling,
                     "upgrade": parsed["upgrade"],
                     "hasUpgradeTrigger": has_trigger,
-                    "status": "tracked" if has_trigger else "needs-trigger",
+                    "status": "tracked" if has_ceiling and has_trigger else ("needs-trigger" if not has_trigger else "needs-ceiling"),
                 }
             )
     return {
@@ -328,6 +330,7 @@ def scan_lean_debt(root: Path, files: list[Path]) -> dict[str, Any]:
         "markers": items[:80],
         "summary": {
             "markers": len(items),
+            "missingCeiling": len([item for item in items if not item["hasCeiling"]]),
             "missingUpgradeTrigger": len([item for item in items if not item["hasUpgradeTrigger"]]),
             "omittedByLimit": max(0, len(items) - 80),
         },
@@ -895,6 +898,9 @@ def build_precision_review(findings: list[dict[str, Any]], mode: str = "full") -
 
 def build_behavior_gates(findings: list[dict[str, Any]], lean_debt_ledger: dict[str, Any]) -> dict[str, Any]:
     rule_ids = {str(item.get("ruleId") or "") for item in findings}
+    debt_summary = lean_debt_ledger.get("summary", {}) if isinstance(lean_debt_ledger.get("summary"), dict) else {}
+    missing_ceiling = int(debt_summary.get("missingCeiling") or 0)
+    missing_upgrade_trigger = int(debt_summary.get("missingUpgradeTrigger") or 0)
     return {
         "oneRunnableCheck": {
             "status": "enforced-in-lean-review",
@@ -916,11 +922,10 @@ def build_behavior_gates(findings: list[dict[str, Any]], lean_debt_ledger: dict[
             "policy": "Thin host adapters can be the product surface; flag them as keep-with-proof instead of deletion candidates.",
         },
         "shortcutDebt": {
-            "status": "pass"
-            if int(lean_debt_ledger.get("summary", {}).get("missingUpgradeTrigger") or 0) == 0
-            else "review",
-            "markers": int(lean_debt_ledger.get("summary", {}).get("markers") or 0),
-            "missingUpgradeTrigger": int(lean_debt_ledger.get("summary", {}).get("missingUpgradeTrigger") or 0),
+            "status": "pass" if missing_ceiling == 0 and missing_upgrade_trigger == 0 else "review",
+            "markers": int(debt_summary.get("markers") or 0),
+            "missingCeiling": missing_ceiling,
+            "missingUpgradeTrigger": missing_upgrade_trigger,
             "policy": "Every intentional shortcut needs a ceiling and upgrade trigger.",
         },
         "gainHonesty": {

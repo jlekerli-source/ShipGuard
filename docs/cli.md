@@ -169,7 +169,7 @@ Use `lean debt` when you only need the shortcut ledger:
   --shareable
 ```
 
-The command writes `lean-debt.json` and `lean-debt.md`. It harvests `ponytail:` and `shipguard-lean:` markers and flags any marker that lacks both a `ceiling:` and an `upgrade:` trigger.
+The command writes `lean-debt.json` and `lean-debt.md`. It harvests `ponytail:` and `shipguard-lean:` markers, emits `markerVisibilityReview` with total, visible, ceiling, missing-ceiling, upgrade-trigger, missing-trigger, upgrade-status, and omitted-row counts, and flags any marker that lacks a `ceiling:` or `upgrade:` trigger without hiding the incomplete row.
 
 Use `lean gain` when you want the Ponytail-style impact scoreboard without pretending the current repo has measured savings:
 

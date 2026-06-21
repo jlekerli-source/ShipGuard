@@ -168,6 +168,18 @@ The v3.150 read-only loop reran `shipguard lean audit`, `shipguard lean review`,
 
 Fresh combined Lean QA now treats the selected-mode question as covered and advances to the Lean Debt marker-visibility question.
 
+## Current Lean Debt Marker Visibility Fixture QA
+
+The v3.151 read-only loop reran `shipguard lean audit`, `shipguard lean review`, `shipguard lean gain`, `shipguard lean debt`, and `ios report-quality --write-fixture-candidates` against this checkout after the selected-mode fixture landed.
+
+- Finding: fresh combined Lean QA passed, but the next uncovered actionability question was "Does Lean Debt make every shortcut marker visible with a ceiling and upgrade trigger?"
+- Product weakness: standalone Lean Debt had the raw `leanDebtLedger`, but it did not expose a first-class review packet that proved marker rows, ceilings, upgrade-trigger status, omitted rows, and missing-trigger rows were visible in JSON and Markdown.
+- Native fix: `shipguard lean debt` now emits `markerVisibilityReview` with total, visible, omitted, ceiling, missing-ceiling, upgrade-trigger, missing-trigger, and upgrade-status counts plus row-level `visibilityRows`.
+- Report-quality fix: `ios report-quality` now flags standalone Lean Debt reports that omit the marker-visibility review, miscount the ledger, hide row fields, or skip the Markdown `Marker Visibility Review`.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4` uses public synthetic evidence for one tracked shortcut and one `needs-trigger` shortcut.
+
+Fresh combined Lean QA now treats the marker-visibility question as covered and advances to the Lean Debt benchmark-savings honesty question.
+
 ## Current Verify-PR First-Run QA
 
 The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `shipguard full-audit --plan-only`, docs-check, and the verify-first quickstart tests against this checkout.

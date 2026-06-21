@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-21T06:28:37Z
+- Generated: 2026-06-21T07:03:39Z
 - Current toolkit version: 3.131.0
-- Target release: v3.151.0
-- Title: Lean Debt Marker Visibility Fixture QA
+- Target release: v3.152.0
+- Title: Lean Debt Benchmark-Savings Honesty Fixture QA
 
 ## Slash Plan
 
 ```text
-/plan v3.151.0 Lean Debt Marker Visibility Fixture QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Promote the next combined Lean QA actionability question into public synthetic fixture coverage that proves Lean Debt makes shortcut markers visible with ceilings and upgrade triggers.
+/plan v3.152.0 Lean Debt Benchmark-Savings Honesty Fixture QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Promote the next combined Lean QA actionability question into public synthetic fixture coverage that proves Lean Debt avoids pretending benchmark savings are measurable in the current repo.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.151.0 Lean Debt Marker Visibility Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next combined Lean QA actionability question into public synthetic fixture coverage that proves Lean Debt makes shortcut markers visible with ceilings and upgrade triggers, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.152.0 Lean Debt Benchmark-Savings Honesty Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next combined Lean QA actionability question into public synthetic fixture coverage that proves Lean Debt avoids pretending benchmark savings are measurable in the current repo, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Promote the next combined Lean QA actionability question into public synthetic fixture coverage that proves Lean Debt makes shortcut markers visible with ceilings and upgrade triggers.
+Promote the next combined Lean QA actionability question into public synthetic fixture coverage that proves Lean Debt avoids pretending benchmark savings are measurable in the current repo.
 
 ## Completion Receipt
 
-- Completed scope: Promoted the Lean Review selected-mode question into public fixture coverage: shipguard lean review now emits modeBiasReview with selected priority order, expected first source, supported lite/full/ultra contracts, selected top-action match proof, and Markdown Mode Bias Review; lite now consistently records suggestion-first; ios report-quality now fails Lean Review reports that hide, misstate, under-render, or contradict selected-mode behavior; fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-expose-the-selec-bb4e13be proves the public synthetic case so fresh combined Lean QA advances to the Lean Debt marker-visibility question.
-- Evidence: Passed: git diff --check; python3 -m py_compile scripts/lean_audit.py scripts/lean_review.py scripts/ios_report_quality.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; public mode-bias fixture report-quality pass and private-term scan; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3150-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3150-value-gauntlet status pass; codex plugin marketplace add . && codex plugin add ios-shipguard@shipguard && ./bin/shipguard codex status --strict; bash -x ./tests/package_release_test.sh > /tmp/shipguard-v3150-package-release.stdout 2> /tmp/shipguard-v3150-package-release.trace.
+- Completed scope: Promoted the Lean Debt marker-visibility question into public fixture coverage: shipguard lean debt now emits markerVisibilityReview with total, visible, omitted, ceiling, missing-ceiling, upgrade-trigger, missing-trigger, and upgrade-status counts plus row-level visibilityRows; Lean Audit shortcutDebt gates now count missing ceilings; ios report-quality now fails standalone Lean Debt reports that hide, miscount, under-render, or contradict marker visibility; fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4 proves tracked plus needs-trigger shortcut rows so fresh combined Lean QA advances to the Lean Debt benchmark-savings honesty question.
+- Evidence: Validated with git diff --check; python3 -m py_compile scripts/lean_debt.py scripts/lean_audit.py scripts/ios_report_quality.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; private-term scan for the new fixture; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3151-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/tool_value_gauntlet_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3151-value-gauntlet.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.152.0 Lean Debt Trigger Coverage Fixture QA for jlekerli-source/ShipGuard:
+/plan v3.153.0 Lean Debt Rot-Risk Visibility Fixture QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Promote the next combined Lean QA actionability question into public synthetic f
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.152.0 Lean Debt Trigger Coverage Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.153.0 Lean Debt Rot-Risk Visibility Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.152.0 --title "Lean Debt Trigger Coverage Fixture QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.153.0 --title "Lean Debt Rot-Risk Visibility Fixture QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.151.0.
+1. Open or update the tracking issue for v3.152.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.151.0` and upload `dist/shipguard-v3.151.0.tar.gz`.
+6. Create release `v3.152.0` and upload `dist/shipguard-v3.152.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

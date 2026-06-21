@@ -4130,6 +4130,186 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 evidence=f"{path_name} Markdown does not expose the shortcut ledger with ceiling and upgrade-trigger columns",
                 recommendation="Render the Lean Debt Ledger in Markdown so maintainers can audit shortcut ceilings and upgrade triggers without opening JSON.",
             )
+        if tool == "shipguard lean debt":
+            ledger_summary = ledger.get("summary") if isinstance(ledger, dict) and isinstance(ledger.get("summary"), dict) else {}
+            ledger_markers = ledger.get("markers") if isinstance(ledger, dict) and isinstance(ledger.get("markers"), list) else []
+            marker_review = report.get("markerVisibilityReview")
+            if not isinstance(marker_review, dict):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-debt-marker-visibility-review-missing",
+                    evidence=f"{path_name} has no markerVisibilityReview object",
+                    recommendation="Emit markerVisibilityReview so standalone Lean Debt proves every shortcut row is visible with ceiling and upgrade-trigger status.",
+                )
+            else:
+                review_summary = marker_review.get("summary") if isinstance(marker_review.get("summary"), dict) else {}
+                visibility_rows = marker_review.get("visibilityRows")
+                required_summary = {
+                    "totalMarkers",
+                    "visibleMarkerRows",
+                    "omittedByLimit",
+                    "rowsWithCeiling",
+                    "rowsMissingCeiling",
+                    "rowsWithUpgradeTrigger",
+                    "rowsNeedingUpgradeTrigger",
+                    "rowsWithUpgradeStatus",
+                }
+                missing_summary = sorted(key for key in required_summary if key not in review_summary)
+                if missing_summary:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-debt-marker-visibility-summary-missing",
+                        evidence=f"{path_name} markerVisibilityReview.summary missing: {', '.join(missing_summary)}",
+                        recommendation="Summarize total, visible, omitted, ceiling, and upgrade-trigger-state marker counts.",
+                    )
+                if not isinstance(visibility_rows, list):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-debt-marker-visibility-rows-invalid",
+                        evidence=f"{path_name} markerVisibilityReview.visibilityRows is not a list",
+                        recommendation="Emit every visible shortcut marker as a structured visibility row.",
+                    )
+                    visibility_rows = []
+                expected_marker_count = int(ledger_summary.get("markers") or 0)
+                expected_visible_rows = len(ledger_markers)
+                row_objects = [row for row in visibility_rows if isinstance(row, dict)]
+                rows_with_ceiling = sum(
+                    1 for row in row_objects if row.get("hasCeiling") is True and str(row.get("ceiling") or "").strip()
+                )
+                rows_with_upgrade = sum(
+                    1
+                    for row in row_objects
+                    if row.get("hasUpgradeTrigger") is True and str(row.get("upgradeTrigger") or "").strip()
+                )
+                rows_with_upgrade_status = sum(1 for row in row_objects if row.get("exposesUpgradeStatus") is True)
+                rows_missing_ceiling = max(0, len(row_objects) - rows_with_ceiling)
+                count_mismatches = []
+                if int(review_summary.get("totalMarkers") or 0) != expected_marker_count:
+                    count_mismatches.append("totalMarkers")
+                if int(review_summary.get("visibleMarkerRows") or 0) != expected_visible_rows:
+                    count_mismatches.append("visibleMarkerRows")
+                if int(review_summary.get("omittedByLimit") or 0) != int(ledger_summary.get("omittedByLimit") or 0):
+                    count_mismatches.append("omittedByLimit")
+                if int(review_summary.get("rowsNeedingUpgradeTrigger") or 0) != int(
+                    ledger_summary.get("missingUpgradeTrigger") or 0
+                ):
+                    count_mismatches.append("rowsNeedingUpgradeTrigger")
+                if int(review_summary.get("rowsWithCeiling") or 0) != rows_with_ceiling:
+                    count_mismatches.append("rowsWithCeiling")
+                if int(review_summary.get("rowsMissingCeiling") or 0) != rows_missing_ceiling:
+                    count_mismatches.append("rowsMissingCeiling")
+                if int(review_summary.get("rowsWithUpgradeTrigger") or 0) != rows_with_upgrade:
+                    count_mismatches.append("rowsWithUpgradeTrigger")
+                if int(review_summary.get("rowsWithUpgradeStatus") or 0) != rows_with_upgrade_status:
+                    count_mismatches.append("rowsWithUpgradeStatus")
+                if isinstance(visibility_rows, list) and len(visibility_rows) != expected_visible_rows:
+                    count_mismatches.append("visibilityRows")
+                if count_mismatches:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-debt-marker-visibility-counts-mismatch",
+                        evidence=f"{path_name} markerVisibilityReview count mismatch: {', '.join(sorted(set(count_mismatches)))}",
+                        recommendation="Keep markerVisibilityReview counts aligned with leanDebtLedger so the review cannot hide omitted or missing-trigger rows.",
+                    )
+                if marker_count and (
+                    marker_review.get("allMarkersVisible") is not True
+                    and int(ledger_summary.get("omittedByLimit") or 0) == 0
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-debt-marker-visibility-flag-incomplete",
+                        evidence=f"{path_name} markerVisibilityReview does not confirm all non-omitted markers are visible",
+                        recommendation="Set allMarkersVisible only from ledger counts and omitted rows so visible coverage is machine-checkable.",
+                    )
+                malformed_rows = []
+                row_required_text = {"file", "line", "location", "marker", "status", "summary"}
+                row_required_keys = row_required_text | {
+                    "ceiling",
+                    "upgradeTrigger",
+                    "hasCeiling",
+                    "hasUpgradeTrigger",
+                    "exposesUpgradeStatus",
+                }
+                if isinstance(visibility_rows, list):
+                    for index, row in enumerate(visibility_rows[:20], start=1):
+                        if not isinstance(row, dict):
+                            malformed_rows.append(f"row {index} not object")
+                            continue
+                        missing_keys = sorted(key for key in row_required_keys if key not in row)
+                        missing_text = sorted(key for key in row_required_text if str(row.get(key) or "").strip() == "")
+                        missing_bool = sorted(
+                            key
+                            for key in ("hasCeiling", "hasUpgradeTrigger", "exposesUpgradeStatus")
+                            if not isinstance(row.get(key), bool)
+                        )
+                        if missing_keys or missing_text or missing_bool:
+                            parts = []
+                            if missing_keys:
+                                parts.append(f"missing keys {', '.join(missing_keys)}")
+                            if missing_text:
+                                parts.append(f"blank fields {', '.join(missing_text)}")
+                            if missing_bool:
+                                parts.append(f"non-boolean {', '.join(missing_bool)}")
+                            malformed_rows.append(f"row {index} {'; '.join(parts)}")
+                        has_ceiling = row.get("hasCeiling")
+                        ceiling_text = str(row.get("ceiling") or "").strip()
+                        if has_ceiling is True and not ceiling_text:
+                            malformed_rows.append(f"row {index} claims ceiling but has no ceiling text")
+                        if has_ceiling is False and ceiling_text:
+                            malformed_rows.append(f"row {index} has ceiling text but hasCeiling is false")
+                        has_upgrade = row.get("hasUpgradeTrigger")
+                        upgrade_text = str(row.get("upgradeTrigger") or "").strip()
+                        if has_upgrade is True and not upgrade_text:
+                            malformed_rows.append(f"row {index} claims upgrade trigger but has no trigger text")
+                        if row.get("hasUpgradeTrigger") is False and str(row.get("status") or "") != "needs-trigger":
+                            malformed_rows.append(f"row {index} missing trigger without needs-trigger status")
+                if malformed_rows:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-debt-marker-visibility-row-fields-incomplete",
+                        evidence=f"{path_name} markerVisibilityReview rows incomplete: {'; '.join(malformed_rows[:5])}",
+                        recommendation="Each marker visibility row should include location, marker, summary, ceiling, trigger text field, and boolean trigger-state fields.",
+                    )
+                required_visibility_markdown = [
+                    "Marker Visibility Review",
+                    "All markers visible",
+                    "Rows with ceiling",
+                    "Rows needing upgrade trigger",
+                    "Rows with upgrade status",
+                ]
+                missing_visibility_markdown = [token for token in required_visibility_markdown if token not in markdown]
+                if missing_visibility_markdown:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-debt-marker-visibility-markdown-missing",
+                        evidence=f"{path_name} Markdown missing marker visibility tokens: {', '.join(missing_visibility_markdown)}",
+                        recommendation="Render markerVisibilityReview in Markdown before the raw ledger table.",
+                    )
+                elif isinstance(visibility_rows, list):
+                    visibility_section = markdown.split("Marker Visibility Review", 1)[1]
+                    visibility_section = visibility_section.split("\n## ", 1)[0]
+                    missing_rows = []
+                    for row in visibility_rows[:20]:
+                        if not isinstance(row, dict):
+                            continue
+                        location = str(row.get("location") or "").strip()
+                        if location and location not in visibility_section:
+                            missing_rows.append(location)
+                    if missing_rows:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="lean-debt-marker-visibility-markdown-rows-missing",
+                            evidence=f"{path_name} Marker Visibility Review Markdown missing rows: {', '.join(missing_rows[:5])}",
+                            recommendation="Render each marker visibility row in Markdown so the ledger can be reviewed without opening JSON.",
+                        )
     return issues
 
 
@@ -4973,6 +5153,10 @@ def should_create_fixture_candidate(question: str) -> bool:
             "lean deck",
             "lean review",
             "leandebtledger",
+            "lean debt",
+            "shortcut marker",
+            "shortcut markers",
+            "upgrade trigger",
             "benchmark-backed impact",
             "fake per-repo",
             "safety-boundary",
@@ -5057,6 +5241,15 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
                     "the Markdown exposes Lean Mode and Mode Bias Review with the selected first-action bias",
                 ]
             )
+    if tool == "shipguard lean debt":
+        expected_assertions.extend(
+            [
+                "the fixture exposes markerVisibilityReview.summary counts for total, visible, ceiling, missing-ceiling, upgrade-trigger, missing-trigger, upgrade-status, and omitted marker rows",
+                "the fixture exposes markerVisibilityReview.visibilityRows for tracked and needs-trigger shortcuts",
+                "the fixture keeps every shortcut marker location, ceiling, and upgrade-trigger status visible without claiming benchmark savings",
+                "the Markdown exposes Marker Visibility Review with the same shortcut rows before the raw ledger table",
+            ]
+        )
     return {
         "priority": index,
         "candidateId": candidate_id,
@@ -5732,6 +5925,93 @@ def synthetic_lean_gain_report_fields() -> dict[str, Any]:
             "Use shipguard lean review on the active diff before merge.",
             "Use shipguard lean debt to count intentional shortcuts with ceilings and upgrade triggers.",
             "Do not claim per-repo line, token, cost, or time savings unless you have a real matched baseline.",
+        ],
+    }
+
+
+def synthetic_lean_debt_report_fields() -> dict[str, Any]:
+    markers = [
+        {
+            "file": "Sources/SyntheticLeanDebt/QueryBridge.swift",
+            "line": 12,
+            "marker": "shipguard-lean",
+            "summary": "use the native query parser while this bridge handles one query shape. ceiling: one query shape. upgrade: replace when repeated-key support is required.",
+            "ceiling": "one query shape",
+            "hasCeiling": True,
+            "upgrade": "replace when repeated-key support is required",
+            "hasUpgradeTrigger": True,
+            "status": "tracked",
+        },
+        {
+            "file": "Sources/SyntheticLeanDebt/LegacyPanel.swift",
+            "line": 27,
+            "marker": "ponytail",
+            "summary": "keep the temporary compatibility panel during migration. ceiling: one release migration window.",
+            "ceiling": "one release migration window",
+            "hasCeiling": True,
+            "upgrade": "",
+            "hasUpgradeTrigger": False,
+            "status": "needs-trigger",
+        },
+    ]
+    visibility_rows = [
+        {
+            "file": item["file"],
+            "line": item["line"],
+            "location": f"{item['file']}:{item['line']}",
+            "marker": item["marker"],
+            "status": item["status"],
+            "summary": item["summary"],
+            "ceiling": item["ceiling"],
+            "upgradeTrigger": item["upgrade"],
+            "hasCeiling": item["hasCeiling"],
+            "hasUpgradeTrigger": item["hasUpgradeTrigger"],
+            "exposesUpgradeStatus": True,
+        }
+        for item in markers
+    ]
+    return {
+        "surface": "ShipGuard Lean Debt",
+        "target": {"path": ".", "shareable": True},
+        "sourceInfluence": {
+            "name": "Ponytail",
+            "url": "https://github.com/DietrichGebert/ponytail",
+            "boundary": "ShipGuard implements a native shortcut ledger for its own lean-code markers. It does not vendor Ponytail code.",
+        },
+        "leanDebtLedger": {
+            "description": "Synthetic shortcut markers for standalone Lean Debt marker-visibility coverage.",
+            "summary": {
+                "markers": 2,
+                "missingCeiling": 0,
+                "missingUpgradeTrigger": 1,
+                "omittedByLimit": 0,
+            },
+            "markers": markers,
+        },
+        "markerVisibilityReview": {
+            "policy": (
+                "Every intentional shortcut marker should be rendered as a row with location, summary, ceiling, "
+                "upgrade-trigger status, and explicit missing-trigger state when the upgrade is not yet written."
+            ),
+            "summary": {
+                "totalMarkers": 2,
+                "visibleMarkerRows": 2,
+                "omittedByLimit": 0,
+                "rowsWithCeiling": 2,
+                "rowsMissingCeiling": 0,
+                "rowsWithUpgradeTrigger": 1,
+                "rowsNeedingUpgradeTrigger": 1,
+                "rowsWithUpgradeStatus": 2,
+            },
+            "allMarkersVisible": True,
+            "allVisibleRowsHaveCeiling": True,
+            "allVisibleRowsExposeUpgradeStatus": True,
+            "visibilityRows": visibility_rows,
+        },
+        "nextActions": [
+            "Add an upgrade trigger to every needs-trigger marker.",
+            "Remove markers whose ceiling no longer applies.",
+            "Use shipguard lean review on active diffs so new shortcuts are tracked before merge.",
         ],
     }
 
@@ -6621,6 +6901,8 @@ def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
         report["groupedActionPlan"] = synthetic_performance_grouped_action_plan()
     if source_tool == "shipguard lean gain":
         report.update(synthetic_lean_gain_report_fields())
+    if source_tool == "shipguard lean debt":
+        report.update(synthetic_lean_debt_report_fields())
     if source_tool == "shipguard lean review":
         report.update(synthetic_lean_review_report_fields())
     if source_tool == "shipguard ios design":
@@ -6649,6 +6931,41 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
             f"- Source question: {question}",
             "",
     ]
+    if source_tool == "shipguard lean debt":
+        lines.extend(
+            [
+                "## Marker Visibility Review",
+                "",
+                "- All markers visible: `true`",
+                "- Visible marker rows: 2 of 2",
+                "- Rows with ceiling: 2",
+                "- Rows missing ceiling: 0",
+                "- Rows with upgrade trigger: 1",
+                "- Rows needing upgrade trigger: 1",
+                "- Rows with upgrade status: 2",
+                "- Policy: Every intentional shortcut marker should be rendered as a row with location, summary, ceiling, upgrade-trigger status, and explicit missing-trigger state when the upgrade is not yet written.",
+                "",
+                "| Status | Marker | Location | Ceiling | Upgrade Trigger |",
+                "| --- | --- | --- | --- | --- |",
+                "| tracked | `shipguard-lean` | Sources/SyntheticLeanDebt/QueryBridge.swift:12 | one query shape | replace when repeated-key support is required |",
+                "| needs-trigger | `ponytail` | Sources/SyntheticLeanDebt/LegacyPanel.swift:27 | one release migration window | - |",
+                "",
+                "## Shortcut Ledger",
+                "",
+                "- Markers: 2; missing upgrade trigger: 1",
+                "",
+                "| Status | Marker | Location | Shortcut | Ceiling | Upgrade Trigger |",
+                "| --- | --- | --- | --- | --- | --- |",
+                "| tracked | `shipguard-lean` | Sources/SyntheticLeanDebt/QueryBridge.swift:12 | use the native query parser while this bridge handles one query shape. ceiling: one query shape. upgrade: replace when repeated-key support is required. | one query shape | replace when repeated-key support is required |",
+                "| needs-trigger | `ponytail` | Sources/SyntheticLeanDebt/LegacyPanel.swift:27 | keep the temporary compatibility panel during migration. ceiling: one release migration window. | one release migration window | - |",
+                "",
+                "## Current Repo Boundary",
+                "",
+                "- Shortcut markers are current-repo evidence only.",
+                "- Do not claim benchmark, line, token, cost, or time savings from marker counts.",
+                "",
+            ]
+        )
     if source_tool == "shipguard lean gain":
         lines.extend(
             [

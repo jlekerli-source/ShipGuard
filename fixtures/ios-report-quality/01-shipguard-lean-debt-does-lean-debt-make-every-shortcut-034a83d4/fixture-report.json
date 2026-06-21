@@ -1,0 +1,185 @@
+{
+  "findings": [],
+  "fixtureCandidate": {
+    "candidateId": "01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4",
+    "duplicateCount": 1,
+    "expectedAssertions": [
+      "report-quality preserves the actionability question in JSON and Markdown",
+      "report-quality emits a fixtureCandidates entry for the public synthetic case",
+      "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+      "shareable output contains no local absolute paths or private app identifiers",
+      "the fixture exposes markerVisibilityReview.summary counts for total, visible, ceiling, missing-ceiling, upgrade-trigger, missing-trigger, upgrade-status, and omitted marker rows",
+      "the fixture exposes markerVisibilityReview.visibilityRows for tracked and needs-trigger shortcuts",
+      "the fixture keeps every shortcut marker location, ceiling, and upgrade-trigger status visible without claiming benchmark savings",
+      "the Markdown exposes Marker Visibility Review with the same shortcut rows before the raw ledger table"
+    ],
+    "fixtureType": "shipguard-lean-report-quality-fixture",
+    "materialization": {
+      "files": [
+        "README.md",
+        "fixture-candidate.json",
+        "fixture-report.json",
+        "fixture-report.md"
+      ],
+      "safeSyntheticOnly": true,
+      "writeCommand": "./bin/shipguard ios report-quality --reports <report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>"
+    },
+    "priority": 1,
+    "privateDataPolicy": "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
+    "promotion": {
+      "candidateId": "01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4",
+      "copyCommands": [
+        "mkdir -p fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4",
+        "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4/README.md",
+        "cp <materialized-candidate-dir>/fixture-candidate.json fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4/fixture-candidate.json",
+        "cp <materialized-candidate-dir>/fixture-report.json fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4/fixture-report.json",
+        "cp <materialized-candidate-dir>/fixture-report.md fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4/fixture-report.md"
+      ],
+      "files": [
+        "README.md",
+        "fixture-candidate.json",
+        "fixture-report.json",
+        "fixture-report.md"
+      ],
+      "promotionPolicy": "Promotion is explicit maintainer work. ShipGuard writes starter files only to the requested output directory and does not auto-copy them into the repository.",
+      "reviewChecklist": [
+        "Confirm the fixture is synthetic and public-safe.",
+        "Confirm no private app code, screenshots, local paths, tokens, app identifiers, or proprietary text were copied.",
+        "Confirm scopeBoundary.shipguardOnly and targetAppsReadOnly remain explicit.",
+        "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates.",
+        "Register the fixture in validation only after the report-quality check passes."
+      ],
+      "sourceDirectory": "<materialized-fixture-output>/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4",
+      "suggestedFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4",
+      "validationCommands": [
+        "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4 --out <quality-dir> --shareable",
+        "./tests/ios_report_quality_test.sh",
+        "./bin/shipguard validate"
+      ]
+    },
+    "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-debt-does-lean-debt-make-every-shortcut-034a83d4",
+    "publicFixtureRecipe": "Create a minimal synthetic ShipGuard report pair that reproduces this report-quality question without private app code, local paths, screenshots, customer data, app names, or proprietary source snippets.",
+    "sourceQuestion": "Does Lean Debt make every shortcut marker visible with a ceiling and upgrade trigger?",
+    "sourceReportCount": 1,
+    "sourceReportsRedacted": true,
+    "sourceTool": "shipguard lean debt",
+    "validationCommands": [
+      "./bin/shipguard ios report-quality --reports <fixture-dir> --out <quality-dir> --shareable",
+      "./tests/ios_report_quality_test.sh"
+    ]
+  },
+  "generatedAt": "2026-06-21T06:47:39Z",
+  "intent": "shipguard-evaluation",
+  "leanDebtLedger": {
+    "description": "Synthetic shortcut markers for standalone Lean Debt marker-visibility coverage.",
+    "markers": [
+      {
+        "ceiling": "one query shape",
+        "file": "Sources/SyntheticLeanDebt/QueryBridge.swift",
+        "hasCeiling": true,
+        "hasUpgradeTrigger": true,
+        "line": 12,
+        "marker": "shipguard-lean",
+        "status": "tracked",
+        "summary": "use the native query parser while this bridge handles one query shape. ceiling: one query shape. upgrade: replace when repeated-key support is required.",
+        "upgrade": "replace when repeated-key support is required"
+      },
+      {
+        "ceiling": "one release migration window",
+        "file": "Sources/SyntheticLeanDebt/LegacyPanel.swift",
+        "hasCeiling": true,
+        "hasUpgradeTrigger": false,
+        "line": 27,
+        "marker": "ponytail",
+        "status": "needs-trigger",
+        "summary": "keep the temporary compatibility panel during migration. ceiling: one release migration window.",
+        "upgrade": ""
+      }
+    ],
+    "summary": {
+      "markers": 2,
+      "missingCeiling": 0,
+      "missingUpgradeTrigger": 1,
+      "omittedByLimit": 0
+    }
+  },
+  "markerVisibilityReview": {
+    "allMarkersVisible": true,
+    "allVisibleRowsExposeUpgradeStatus": true,
+    "allVisibleRowsHaveCeiling": true,
+    "policy": "Every intentional shortcut marker should be rendered as a row with location, summary, ceiling, upgrade-trigger status, and explicit missing-trigger state when the upgrade is not yet written.",
+    "summary": {
+      "omittedByLimit": 0,
+      "rowsMissingCeiling": 0,
+      "rowsNeedingUpgradeTrigger": 1,
+      "rowsWithCeiling": 2,
+      "rowsWithUpgradeStatus": 2,
+      "rowsWithUpgradeTrigger": 1,
+      "totalMarkers": 2,
+      "visibleMarkerRows": 2
+    },
+    "visibilityRows": [
+      {
+        "ceiling": "one query shape",
+        "exposesUpgradeStatus": true,
+        "file": "Sources/SyntheticLeanDebt/QueryBridge.swift",
+        "hasCeiling": true,
+        "hasUpgradeTrigger": true,
+        "line": 12,
+        "location": "Sources/SyntheticLeanDebt/QueryBridge.swift:12",
+        "marker": "shipguard-lean",
+        "status": "tracked",
+        "summary": "use the native query parser while this bridge handles one query shape. ceiling: one query shape. upgrade: replace when repeated-key support is required.",
+        "upgradeTrigger": "replace when repeated-key support is required"
+      },
+      {
+        "ceiling": "one release migration window",
+        "exposesUpgradeStatus": true,
+        "file": "Sources/SyntheticLeanDebt/LegacyPanel.swift",
+        "hasCeiling": true,
+        "hasUpgradeTrigger": false,
+        "line": 27,
+        "location": "Sources/SyntheticLeanDebt/LegacyPanel.swift:27",
+        "marker": "ponytail",
+        "status": "needs-trigger",
+        "summary": "keep the temporary compatibility panel during migration. ceiling: one release migration window.",
+        "upgradeTrigger": ""
+      }
+    ]
+  },
+  "nextActions": [
+    "Add an upgrade trigger to every needs-trigger marker.",
+    "Remove markers whose ceiling no longer applies.",
+    "Use shipguard lean review on active diffs so new shortcuts are tracked before merge."
+  ],
+  "reportQualityQuestions": [
+    "Does Lean Debt make every shortcut marker visible with a ceiling and upgrade trigger?"
+  ],
+  "scanScope": {
+    "note": "Synthetic fixture; no private source tree was scanned.",
+    "skippedDirectories": [],
+    "skippedDirectoryCount": 0
+  },
+  "schemaVersion": 1,
+  "scopeBoundary": {
+    "purpose": "Synthetic public fixture for ShipGuard report-quality behavior.",
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "shareability": {
+    "localAbsolutePathsIncluded": false,
+    "mode": "shareable"
+  },
+  "sourceInfluence": {
+    "boundary": "ShipGuard implements a native shortcut ledger for its own lean-code markers. It does not vendor Ponytail code.",
+    "name": "Ponytail",
+    "url": "https://github.com/DietrichGebert/ponytail"
+  },
+  "status": "pass",
+  "surface": "ShipGuard Lean Debt",
+  "target": {
+    "path": ".",
+    "shareable": true
+  },
+  "tool": "shipguard lean debt"
+}
