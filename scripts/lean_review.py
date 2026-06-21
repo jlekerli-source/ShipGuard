@@ -222,12 +222,111 @@ def proof_signals_for_file(file_name: str, proof_signals: list[dict[str, Any]]) 
 
 def proof_signal_summary(proof_signals: list[dict[str, Any]]) -> str:
     first = proof_signals[0] if proof_signals else {}
-    location = str(first.get("file") or "")
-    if first.get("line"):
-        location = f"{location}:{first['line']}"
+    location = proof_signal_location(first)
     if not location:
         return "same diff includes runnable-check signals"
     return f"same diff includes runnable-check signals starting at {location}"
+
+
+def proof_signal_location(signal: dict[str, Any]) -> str:
+    location = str(signal.get("file") or "")
+    if signal.get("line"):
+        location = f"{location}:{signal['line']}"
+    return location
+
+
+def proof_signal_key(signal: dict[str, Any]) -> str:
+    return "|".join(
+        [
+            str(signal.get("file") or ""),
+            str(signal.get("line") or ""),
+            str(signal.get("snippet") or ""),
+        ]
+    )
+
+
+def proof_signal_row(signal: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "file": str(signal.get("file") or ""),
+        "line": signal.get("line"),
+        "location": proof_signal_location(signal),
+        "kind": str(signal.get("kind") or ""),
+        "addedLines": int(signal.get("addedLines") or 0),
+        "snippet": str(signal.get("snippet") or ""),
+        "checkSignal": bool(signal.get("checkSignal")),
+    }
+
+
+def build_proof_signal_matching(
+    *,
+    files: list[dict[str, Any]],
+    proof_signals: list[dict[str, Any]],
+) -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    matched_signal_keys: set[str] = set()
+    changed_code_files = 0
+    inline_check_files = 0
+
+    for file_diff in files:
+        file_name = str(file_diff.get("file") or "")
+        suffix = Path(file_name).suffix
+        if suffix not in CODE_SUFFIXES or is_test_file(file_name):
+            continue
+        added_text = "\n".join(line_texts(file_diff))
+        if not added_text.strip():
+            continue
+        changed_code_files += 1
+        non_trivial = bool(NONTRIVIAL_LOGIC_RE.search(added_text))
+        added_check = has_added_check(file_name, added_text)
+        if added_check:
+            inline_check_files += 1
+        if not non_trivial:
+            continue
+        matched_signals = proof_signals_for_file(file_name, proof_signals) if not added_check else []
+        for signal in matched_signals:
+            matched_signal_keys.add(proof_signal_key(signal))
+        if added_check:
+            decision = "inline-check-present"
+        elif matched_signals:
+            decision = "matched-same-diff-proof"
+        else:
+            decision = "missing-proof"
+        rows.append(
+            {
+                "file": file_name,
+                "line": first_added_line(file_diff, NONTRIVIAL_LOGIC_RE.pattern),
+                "nonTrivialLogic": non_trivial,
+                "addedCheckInFile": added_check,
+                "matchedProofSignalCount": len(matched_signals),
+                "matchedProofSignals": [proof_signal_row(signal) for signal in matched_signals],
+                "matchingDecision": decision,
+            }
+        )
+
+    unmatched = [signal for signal in proof_signals if proof_signal_key(signal) not in matched_signal_keys]
+    return {
+        "policy": (
+            "Same-diff proof is file-scoped. A changed test or assertion satisfies a changed code file only when "
+            "ShipGuard can match it by same file, path stem, or meaningful path tokens."
+        ),
+        "nonGlobalProofBoundary": (
+            "Unrelated or unmatched proof signals are listed separately and do not satisfy missing proof for other "
+            "changed files; same-diff proof is not treated as global proof."
+        ),
+        "rows": rows,
+        "unmatchedProofSignals": [proof_signal_row(signal) for signal in unmatched],
+        "summary": {
+            "changedCodeFiles": changed_code_files,
+            "nonTrivialLogicFiles": len(rows),
+            "matchedSameDiffProofFiles": len(
+                [row for row in rows if row.get("matchingDecision") == "matched-same-diff-proof"]
+            ),
+            "missingProofFiles": len([row for row in rows if row.get("matchingDecision") == "missing-proof"]),
+            "inlineCheckFiles": inline_check_files,
+            "matchedProofSignalCount": len(matched_signal_keys),
+            "unmatchedProofSignalCount": len(unmatched),
+        },
+    }
 
 
 def build_proof_signal_calibration(
@@ -659,6 +758,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "policy"
         ] = "Same-diff runnable-check signals are visible; verify relevance before adding duplicate proof ceremony."
     proof_calibration = build_proof_signal_calibration(proof_signals=proof_signals, findings=findings)
+    proof_signal_matching = build_proof_signal_matching(files=files, proof_signals=proof_signals)
     runnable_check_review = build_runnable_check_review(proof_signals=proof_signals, findings=findings)
     current_diff_decision_map = build_current_diff_decision_map(
         diff_path=diff_path,
@@ -685,6 +785,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "currentDiffDecisionMap": current_diff_decision_map,
         "behaviorGates": behavior_gates,
         "proofSignalCalibration": proof_calibration,
+        "proofSignalMatching": proof_signal_matching,
         "runnableCheckReview": runnable_check_review,
         "precisionReview": precision,
         "findings": findings,
@@ -844,6 +945,37 @@ def render_markdown(report: dict[str, Any]) -> str:
                     f"| {str(row.get('location', '')).replace('|', '\\|')} | "
                     f"{str(row.get('recommendation', '')).replace('|', '\\|')} | "
                     f"{str(row.get('proofGuidance', '')).replace('|', '\\|')} |"
+                )
+    proof_matching = report.get("proofSignalMatching", {})
+    if isinstance(proof_matching, dict):
+        summary = proof_matching.get("summary") if isinstance(proof_matching.get("summary"), dict) else {}
+        lines.extend(["", "## Proof Signal Matching", ""])
+        lines.append(f"- Changed code files: {summary.get('changedCodeFiles', 0)}")
+        lines.append(f"- Non-trivial logic files: {summary.get('nonTrivialLogicFiles', 0)}")
+        lines.append(f"- Matched same-diff proof files: {summary.get('matchedSameDiffProofFiles', 0)}")
+        lines.append(f"- Missing proof files: {summary.get('missingProofFiles', 0)}")
+        lines.append(f"- Unmatched proof signals: {summary.get('unmatchedProofSignalCount', 0)}")
+        if proof_matching.get("policy"):
+            lines.append(f"- Policy: {proof_matching.get('policy')}")
+        if proof_matching.get("nonGlobalProofBoundary"):
+            lines.append(f"- Non-global proof boundary: {proof_matching.get('nonGlobalProofBoundary')}")
+        rows = proof_matching.get("rows")
+        if isinstance(rows, list) and rows:
+            lines.extend(["", "| File | Decision | Matched Proof Signals |", "| --- | --- | ---: |"])
+            for row in rows[:8]:
+                lines.append(
+                    f"| {str(row.get('file', '')).replace('|', '\\|')} | "
+                    f"`{row.get('matchingDecision', '')}` | {row.get('matchedProofSignalCount', 0)} |"
+                )
+        unmatched = proof_matching.get("unmatchedProofSignals")
+        if isinstance(unmatched, list) and unmatched:
+            lines.extend(["", "### Unmatched Proof Signals", ""])
+            lines.extend(["| Location | Kind | Signal |", "| --- | --- | --- |"])
+            for signal in unmatched[:8]:
+                lines.append(
+                    f"| {str(signal.get('location', '')).replace('|', '\\|')} | "
+                    f"{str(signal.get('kind', '')).replace('|', '\\|')} | "
+                    f"{str(signal.get('snippet', '')).replace('|', '\\|')} |"
                 )
     summary = precision.get("summary", {})
     lines.extend(["", "## Precision Ledger", ""])

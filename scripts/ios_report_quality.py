@@ -2840,6 +2840,20 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
             if isinstance(item, dict)
             and str(item.get("ruleId") or "").startswith("one-runnable-check")
         ]
+        missing_rule_count = len(
+            [
+                item
+                for item in proof_related
+                if str(item.get("ruleId") or "") == "one-runnable-check-missing-diff"
+            ]
+        )
+        same_diff_rule_count = len(
+            [
+                item
+                for item in proof_related
+                if str(item.get("ruleId") or "") == "one-runnable-check-signal-present-diff"
+            ]
+        )
         calibration = report.get("proofSignalCalibration")
         if proof_related:
             if not isinstance(calibration, dict):
@@ -2894,20 +2908,108 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 recommendation="Render proofSignalCalibration in Markdown so maintainers can see whether tests were absent or present elsewhere in the diff.",
             )
         if proof_related:
-            missing_rule_count = len(
-                [
-                    item
-                    for item in proof_related
-                    if str(item.get("ruleId") or "") == "one-runnable-check-missing-diff"
-                ]
-            )
-            same_diff_rule_count = len(
-                [
-                    item
-                    for item in proof_related
-                    if str(item.get("ruleId") or "") == "one-runnable-check-signal-present-diff"
-                ]
-            )
+            proof_matching = report.get("proofSignalMatching")
+            if not isinstance(proof_matching, dict):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-review-proof-signal-matching-missing",
+                    evidence=f"{path_name} has runnable-check findings but no proofSignalMatching",
+                    recommendation="Emit proofSignalMatching with matched rows, unmatched proof signals, and a non-global proof boundary.",
+                )
+            else:
+                summary = proof_matching.get("summary") if isinstance(proof_matching.get("summary"), dict) else {}
+                rows = proof_matching.get("rows")
+                unmatched = proof_matching.get("unmatchedProofSignals")
+                boundary = normalized_question_text(proof_matching.get("nonGlobalProofBoundary") or "")
+                required_summary = {
+                    "changedCodeFiles",
+                    "nonTrivialLogicFiles",
+                    "matchedSameDiffProofFiles",
+                    "missingProofFiles",
+                    "inlineCheckFiles",
+                    "unmatchedProofSignalCount",
+                }
+                missing_summary = sorted(key for key in required_summary if key not in summary)
+                if missing_summary:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-proof-signal-matching-summary-incomplete",
+                        evidence=f"{path_name} proofSignalMatching.summary missing: {', '.join(missing_summary)}",
+                        recommendation="Expose changed-code, non-trivial, matched-proof, missing-proof, inline-check, and unmatched-proof counts.",
+                    )
+                if missing_rule_count and (
+                    int(summary.get("missingProofFiles") or 0) < missing_rule_count
+                    or not isinstance(rows, list)
+                    or len([row for row in rows if isinstance(row, dict) and row.get("matchingDecision") == "missing-proof"])
+                    < missing_rule_count
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-proof-signal-matching-missing-proof-rows-incomplete",
+                        evidence=f"{path_name} has {missing_rule_count} missing runnable-check finding(s) but incomplete proofSignalMatching missing-proof rows",
+                        recommendation="List every non-trivial changed code file that still lacks matched same-diff proof.",
+                    )
+                if same_diff_rule_count and (
+                    int(summary.get("matchedSameDiffProofFiles") or 0) < same_diff_rule_count
+                    or not isinstance(rows, list)
+                    or len(
+                        [
+                            row
+                            for row in rows
+                            if isinstance(row, dict)
+                            and row.get("matchingDecision") == "matched-same-diff-proof"
+                            and int(row.get("matchedProofSignalCount") or 0) > 0
+                        ]
+                    )
+                    < same_diff_rule_count
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-proof-signal-matching-same-diff-rows-incomplete",
+                        evidence=f"{path_name} has {same_diff_rule_count} same-diff proof finding(s) but incomplete proofSignalMatching matched rows",
+                        recommendation="List each changed code file with its matched same-diff test/assertion proof signal.",
+                    )
+                signal_count = 0
+                if isinstance(calibration, dict):
+                    signal_count = int(calibration.get("sameDiffProofSignalCount") or 0)
+                matched_signal_count = int(summary.get("matchedProofSignalCount") or 0)
+                unmatched_signal_count = int(summary.get("unmatchedProofSignalCount") or 0)
+                expected_unmatched = max(0, signal_count - matched_signal_count)
+                if signal_count and matched_signal_count + unmatched_signal_count != signal_count:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-proof-signal-matching-counts-incoherent",
+                        evidence=f"{path_name} proofSignalMatching matched+unmatched counts do not equal proofSignalCalibration.sameDiffProofSignalCount",
+                        recommendation="Keep proofSignalMatching matched and unmatched proof-signal counts coherent with proofSignalCalibration proofSignals.",
+                    )
+                if expected_unmatched and (
+                    unmatched_signal_count < expected_unmatched
+                    or not isinstance(unmatched, list)
+                    or len(unmatched) < expected_unmatched
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-proof-signal-matching-unmatched-signals-incomplete",
+                        evidence=f"{path_name} has proof signals that do not map to same-diff proof findings",
+                        recommendation="List unmatched proof signals so unrelated tests cannot satisfy missing proof for another file.",
+                    )
+                if missing_rule_count and signal_count and (
+                    ("unrelated" not in boundary and "unmatched" not in boundary)
+                    or ("do not satisfy" not in boundary and "not global" not in boundary)
+                ):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-review-proof-signal-matching-boundary-incomplete",
+                        evidence=f"{path_name} proofSignalMatching.nonGlobalProofBoundary does not block unrelated proof overclaims",
+                        recommendation="State that unrelated or unmatched proof signals do not satisfy missing proof for other changed files.",
+                    )
             runnable_review = report.get("runnableCheckReview")
             if not isinstance(runnable_review, dict):
                 add_issue(
@@ -2971,6 +3073,14 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 rule_id="lean-review-runnable-check-markdown-missing",
                 evidence=f"{path_name} Markdown does not expose runnable check review",
                 recommendation="Render runnableCheckReview in Markdown so maintainers see missing checks and same-diff proof signals.",
+            )
+        if proof_related and "Proof Signal Matching" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="lean-review-proof-signal-matching-markdown-missing",
+                evidence=f"{path_name} Markdown does not expose proof signal matching",
+                recommendation="Render proofSignalMatching in Markdown so maintainers see matched and unmatched proof signals.",
             )
         decision_map = report.get("currentDiffDecisionMap")
         if not isinstance(decision_map, dict):
@@ -4412,7 +4522,9 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
                     "the fixture exposes runnableCheckReview.missingProofFindings for non-trivial logic without proof",
                     "the fixture exposes runnableCheckReview.sameDiffProofFindings for non-trivial logic with a matching same-diff proof signal",
                     "the fixture exposes proofSignalCalibration counts for missing proof and same-diff proof without treating unrelated tests as global proof",
+                    "the fixture exposes proofSignalMatching rows plus unmatched proof signals so unrelated tests are not global proof",
                     "the Markdown exposes Runnable Check Review, Missing Runnable Checks, Same-Diff Proof Signals, and the non-ceremony boundary",
+                    "the Markdown exposes Proof Signal Matching and Unmatched Proof Signals",
                 ]
             )
     return {
@@ -5260,6 +5372,18 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
             "validationRoute": "Run the focused test lane before broader validation.",
             "stopCondition": "Stop if the test is unrelated to the changed logic.",
         },
+        {
+            "file": "Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift",
+            "source": "unified-diff",
+            "decision": "clean",
+            "addedLines": 4,
+            "removedLines": 0,
+            "ruleIds": [],
+            "firstLocation": "Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift:7",
+            "firstExperiment": "Keep this unrelated smoke test visible as evidence that proof signals are not global.",
+            "validationRoute": "Run only if this separate smoke path matters to the task.",
+            "stopCondition": "Stop if a maintainer tries to count this unrelated test as proof for a different changed file.",
+        },
     ]
     proof_signal = {
         "file": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift",
@@ -5269,13 +5393,22 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
         "snippet": "func testPrimaryOptionWins() { XCTAssertEqual(policy.pick(primary), .preferred(primary.id)) }",
         "checkSignal": True,
     }
+    unrelated_proof_signal = {
+        "file": "Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift",
+        "line": 7,
+        "kind": "test-file",
+        "addedLines": 4,
+        "snippet": "func testUnrelatedSmokePath() { XCTAssertTrue(smokePath.isEnabled) }",
+        "checkSignal": True,
+    }
+    proof_signals = [proof_signal, unrelated_proof_signal]
     return {
         "surface": "ShipGuard Lean Review",
         "target": {"path": ".", "shareable": True},
-        "diff": {"path": "synthetic-current-change.diff", "filesChanged": 6},
+        "diff": {"path": "synthetic-current-change.diff", "filesChanged": 7},
         "metrics": {
-            "filesChanged": 6,
-            "addedLines": 37,
+            "filesChanged": 7,
+            "addedLines": 41,
             "findings": 5,
             "reviewFindings": 1,
             "opportunityFindings": 2,
@@ -5304,19 +5437,20 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
                 {"file": "Sources/SyntheticLeanReview/RuleRouter.swift", "addedLines": 7, "removedLines": 0},
                 {"file": "Sources/SyntheticLeanReview/SelectionPolicy.swift", "addedLines": 6, "removedLines": 0},
                 {"file": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift", "addedLines": 5, "removedLines": 0},
+                {"file": "Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift", "addedLines": 4, "removedLines": 0},
             ],
             "decisions": decisions,
             "deleteOrSimplifyList": [decisions[0], decisions[1]],
             "summary": {
-                "filesChanged": 6,
-                "addedLinesInspected": 37,
+                "filesChanged": 7,
+                "addedLinesInspected": 41,
                 "removedLinesSeen": 1,
-                "decisionRows": 6,
+                "decisionRows": 7,
                 "deleteCandidates": 1,
                 "simplifyCandidates": 1,
                 "keepBoundaries": 1,
                 "proofBlockedCandidates": 1,
-                "cleanFiles": 2,
+                "cleanFiles": 3,
             },
             "nonClaims": [
                 "Does not prove whole-repo inventory coverage.",
@@ -5348,11 +5482,55 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
         },
         "proofSignalCalibration": {
             "sameDiffProofStatus": "present",
-            "proofSignals": [proof_signal],
-            "sameDiffProofSignalCount": 1,
+            "proofSignals": proof_signals,
+            "sameDiffProofSignalCount": 2,
             "codeFindingsCoveredBySameDiffProof": 1,
             "missingRunnableCheckFindings": 1,
             "policy": "Lean Review should distinguish no proof signal from same-diff proof signal. Same-diff tests still need human relevance review, but they should not produce duplicate missing-check ceremony.",
+        },
+        "proofSignalMatching": {
+            "policy": "Same-diff proof is file-scoped. A changed test or assertion satisfies a changed code file only when ShipGuard can match it by same file, path stem, or meaningful path tokens.",
+            "nonGlobalProofBoundary": "Unrelated or unmatched proof signals are listed separately and do not satisfy missing proof for other changed files; same-diff proof is not treated as global proof.",
+            "rows": [
+                {
+                    "file": "Sources/SyntheticLeanReview/RuleRouter.swift",
+                    "line": 18,
+                    "nonTrivialLogic": True,
+                    "addedCheckInFile": False,
+                    "matchedProofSignalCount": 0,
+                    "matchedProofSignals": [],
+                    "matchingDecision": "missing-proof",
+                },
+                {
+                    "file": "Sources/SyntheticLeanReview/SelectionPolicy.swift",
+                    "line": 27,
+                    "nonTrivialLogic": True,
+                    "addedCheckInFile": False,
+                    "matchedProofSignalCount": 1,
+                    "matchedProofSignals": [
+                        {
+                            **proof_signal,
+                            "location": "Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift:9",
+                        }
+                    ],
+                    "matchingDecision": "matched-same-diff-proof",
+                },
+            ],
+            "unmatchedProofSignals": [
+                {
+                    **unrelated_proof_signal,
+                    "location": "Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift:7",
+                }
+            ],
+            "summary": {
+                "changedCodeFiles": 5,
+                "nonTrivialLogicFiles": 2,
+                "matchedSameDiffProofFiles": 1,
+                "missingProofFiles": 1,
+                "inlineCheckFiles": 0,
+                "matchedProofSignalCount": 1,
+                "unmatchedProofSignalCount": 1,
+            },
         },
         "runnableCheckReview": {
             "policy": "Non-trivial branch, loop, parser, and collection logic should leave one smallest runnable check.",
@@ -5381,11 +5559,11 @@ def synthetic_lean_review_report_fields() -> dict[str, Any]:
                     "proofGuidance": same_diff_proof_finding["proofGuidance"],
                 }
             ],
-            "sameDiffProofSignals": [proof_signal],
+            "sameDiffProofSignals": proof_signals,
             "summary": {
                 "missingRunnableCheckFindings": 1,
                 "sameDiffProofFindings": 1,
-                "sameDiffProofSignalCount": 1,
+                "sameDiffProofSignalCount": 2,
                 "duplicateCeremonyAvoided": 1,
             },
             "proofToReview": [
@@ -5750,7 +5928,7 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "- Diff: `synthetic-current-change.diff`",
                 "- Boundary: This report is built only from the supplied unified diff; it does not scan the whole repo or claim a whole-repo inventory.",
                 "- Whole-repo fallback: `shipguard lean audit --path <repo> --out <lean-audit-out> --mode full --shipguard-eval --shareable`",
-                "- Decision rows: 6; delete: 1; simplify: 1; keep: 1; proof-blocked: 1; clean files: 2",
+                "- Decision rows: 7; delete: 1; simplify: 1; keep: 1; proof-blocked: 1; clean files: 3",
                 "",
                 "| File | Decision | Added | Removed | Rules | First Experiment | Validation | Stop Condition |",
                 "| --- | --- | ---: | ---: | --- | --- | --- | --- |",
@@ -5760,6 +5938,7 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "| Sources/SyntheticLeanReview/RuleRouter.swift | `proof-blocked` | 7 | 0 | one-runnable-check-missing-diff | Add or identify one smallest runnable route-selection check before merging the new branch. | Run the focused route-selection test plus git diff --check. | Stop if the diff has no runnable proof signal for the changed non-trivial logic. |",
                 "| Sources/SyntheticLeanReview/SelectionPolicy.swift | `clean` | 6 | 0 | one-runnable-check-signal-present-diff | Review the matching same-diff test before adding any duplicate test ceremony. | Run Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift or the equivalent focused lane. | Stop if the changed same-diff test already proves the new branch and no Lean cleanup remains. |",
                 "| Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift | `clean` | 5 | 0 | - | Run the changed focused test and confirm it covers the changed selection branch. | Run the focused test lane before broader validation. | Stop if the test is unrelated to the changed logic. |",
+                "| Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift | `clean` | 4 | 0 | - | Keep this unrelated smoke test visible as evidence that proof signals are not global. | Run only if this separate smoke path matters to the task. | Stop if a maintainer tries to count this unrelated test as proof for a different changed file. |",
                 "",
                 "Non-claims:",
                 "- Does not prove whole-repo inventory coverage.",
@@ -5777,7 +5956,7 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "## Proof Signal Calibration",
                 "",
                 "- Same-diff proof status: `present`",
-                "- Proof signals: 1",
+                "- Proof signals: 2",
                 "- Code findings covered by same-diff proof: 1",
                 "- Missing runnable-check findings: 1",
                 "- Policy: Lean Review should distinguish no proof signal from same-diff proof signal. Same-diff tests still need human relevance review, but they should not produce duplicate missing-check ceremony.",
@@ -5785,12 +5964,13 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "| Kind | Location | Added Lines | Signal |",
                 "| --- | --- | ---: | --- |",
                 "| test-file | Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift:9 | 5 | func testPrimaryOptionWins() { XCTAssertEqual(policy.pick(primary), .preferred(primary.id)) } |",
+                "| test-file | Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift:7 | 4 | func testUnrelatedSmokePath() { XCTAssertTrue(smokePath.isEnabled) } |",
                 "",
                 "## Runnable Check Review",
                 "",
                 "- Missing proof findings: 1",
                 "- Same-diff proof findings: 1",
-                "- Same-diff proof signals: 1",
+                "- Same-diff proof signals: 2",
                 "- Duplicate ceremony avoided: 1",
                 "- Policy: Non-trivial branch, loop, parser, and collection logic should leave one smallest runnable check.",
                 "- Non-ceremony boundary: If the same diff already changes a focused test, XCTest, assertion, or explicit check signal, Lean Review records that same-diff proof signal instead of asking for duplicate test ceremony. The maintainer still needs to review relevance and run the focused check.",
@@ -5806,6 +5986,27 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "| Location | Recommendation | Proof Review |",
                 "| --- | --- | --- |",
                 "| Sources/SyntheticLeanReview/SelectionPolicy.swift:27 | Do not add duplicate test ceremony before checking whether the same-diff proof signal already covers this logic. | Review Tests/SyntheticLeanReviewTests/SelectionPolicyTests.swift, then run the focused test before merge. |",
+                "",
+                "## Proof Signal Matching",
+                "",
+                "- Changed code files: 5",
+                "- Non-trivial logic files: 2",
+                "- Matched same-diff proof files: 1",
+                "- Missing proof files: 1",
+                "- Unmatched proof signals: 1",
+                "- Policy: Same-diff proof is file-scoped. A changed test or assertion satisfies a changed code file only when ShipGuard can match it by same file, path stem, or meaningful path tokens.",
+                "- Non-global proof boundary: Unrelated or unmatched proof signals are listed separately and do not satisfy missing proof for other changed files; same-diff proof is not treated as global proof.",
+                "",
+                "| File | Decision | Matched Proof Signals |",
+                "| --- | --- | ---: |",
+                "| Sources/SyntheticLeanReview/RuleRouter.swift | `missing-proof` | 0 |",
+                "| Sources/SyntheticLeanReview/SelectionPolicy.swift | `matched-same-diff-proof` | 1 |",
+                "",
+                "### Unmatched Proof Signals",
+                "",
+                "| Location | Kind | Signal |",
+                "| --- | --- | --- |",
+                "| Tests/SyntheticLeanReviewTests/UnrelatedSmokeTests.swift:7 | test-file | func testUnrelatedSmokePath() { XCTAssertTrue(smokePath.isEnabled) } |",
                 "",
                 "## Precision Ledger",
                 "",

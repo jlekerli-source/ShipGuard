@@ -429,11 +429,62 @@ grep -q '"codeFindingsCoveredBySameDiffProof": 1' "$tmp_dir/same-diff-proof-revi
 grep -q '"sameDiffProofSignalCount": 1' "$tmp_dir/same-diff-proof-review/lean-review.json"
 grep -q '"runnableCheckReview":' "$tmp_dir/same-diff-proof-review/lean-review.json"
 grep -q '"duplicateCeremonyAvoided": 1' "$tmp_dir/same-diff-proof-review/lean-review.json"
+grep -q '"proofSignalMatching":' "$tmp_dir/same-diff-proof-review/lean-review.json"
+grep -q '"matchedSameDiffProofFiles": 1' "$tmp_dir/same-diff-proof-review/lean-review.json"
+grep -q '"missingProofFiles": 0' "$tmp_dir/same-diff-proof-review/lean-review.json"
+grep -q '"unmatchedProofSignalCount": 0' "$tmp_dir/same-diff-proof-review/lean-review.json"
 grep -q 'Proof Signal Calibration' "$tmp_dir/same-diff-proof-review/lean-review.md"
 grep -q 'Runnable Check Review' "$tmp_dir/same-diff-proof-review/lean-review.md"
+grep -q 'Proof Signal Matching' "$tmp_dir/same-diff-proof-review/lean-review.md"
 grep -q 'tests/test_proof_target.py:4' "$tmp_dir/same-diff-proof-review/lean-review.md"
 if grep -q '"ruleId": "one-runnable-check-missing-diff"' "$tmp_dir/same-diff-proof-review/lean-review.json"; then
   echo "Lean Review should calibrate same-diff test evidence instead of reporting a missing runnable check" >&2
+  exit 1
+fi
+
+cat > "$tmp_dir/unrelated-proof.diff" <<'DIFF'
+diff --git a/src/order_router.py b/src/order_router.py
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/src/order_router.py
+@@ -0,0 +1,5 @@
++def route_order(order):
++    if order.priority > 5:
++        return "priority"
++    return "normal"
+diff --git a/tests/test_profile_badge.py b/tests/test_profile_badge.py
+new file mode 100644
+index 0000000..2222222
+--- /dev/null
++++ b/tests/test_profile_badge.py
+@@ -0,0 +1,4 @@
++from src.profile_badge import badge_text
++
++def test_badge_text():
++    assert badge_text("new") == "New"
+DIFF
+
+./bin/shipguard lean review \
+  --path fixtures/lean-audit-demo \
+  --diff "$tmp_dir/unrelated-proof.diff" \
+  --out "$tmp_dir/unrelated-proof-review" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+grep -q '"ruleId": "one-runnable-check-missing-diff"' "$tmp_dir/unrelated-proof-review/lean-review.json"
+grep -q '"sameDiffProofStatus": "present"' "$tmp_dir/unrelated-proof-review/lean-review.json"
+grep -q '"codeFindingsCoveredBySameDiffProof": 0' "$tmp_dir/unrelated-proof-review/lean-review.json"
+grep -q '"missingRunnableCheckFindings": 1' "$tmp_dir/unrelated-proof-review/lean-review.json"
+grep -q '"matchedSameDiffProofFiles": 0' "$tmp_dir/unrelated-proof-review/lean-review.json"
+grep -q '"missingProofFiles": 1' "$tmp_dir/unrelated-proof-review/lean-review.json"
+grep -q '"unmatchedProofSignalCount": 1' "$tmp_dir/unrelated-proof-review/lean-review.json"
+grep -q '"duplicateCeremonyAvoided": 0' "$tmp_dir/unrelated-proof-review/lean-review.json"
+grep -q 'Proof Signal Matching' "$tmp_dir/unrelated-proof-review/lean-review.md"
+grep -q 'Unmatched Proof Signals' "$tmp_dir/unrelated-proof-review/lean-review.md"
+grep -q 'tests/test_profile_badge.py:4' "$tmp_dir/unrelated-proof-review/lean-review.md"
+if grep -q '"ruleId": "one-runnable-check-signal-present-diff"' "$tmp_dir/unrelated-proof-review/lean-review.json"; then
+  echo "Lean Review should not count unrelated changed tests as same-diff proof for another file" >&2
   exit 1
 fi
 

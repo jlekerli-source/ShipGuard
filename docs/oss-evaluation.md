@@ -119,6 +119,18 @@ The v3.146 read-only loop reran `shipguard lean audit`, `shipguard lean review`,
 
 Fresh combined Lean QA now treats the runnable-check question as covered and advances to the proof-signal calibration question.
 
+## Current Lean Review Proof-Signal Fixture QA
+
+The v3.147 read-only loop reran the Lean Deck self-QA set after the runnable-check fixture landed.
+
+- Finding: fresh combined Lean QA passed, but the next uncovered actionability question was "Does proofSignalCalibration distinguish missing runnable checks from same-diff proof signals?"
+- Product weakness: Lean Review counted raw proof signals and covered findings, but the report did not show the exact matched versus unmatched proof-signal map that proves unrelated tests are not global proof.
+- Native fix: `shipguard lean review` now emits `proofSignalMatching` with file-scoped rows, matched same-diff proof files, missing-proof files, unmatched proof signals, and a non-global proof boundary.
+- Report-quality fix: `ios report-quality` now flags Lean Review reports that omit `proofSignalMatching`, hide matched or missing rows, hide unmatched proof signals, miscount matched plus unmatched signals, omit the non-global boundary, or skip the Markdown `Proof Signal Matching` section.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-lean-review-does-proofsignalcalibration-disti-013d0422` uses public synthetic evidence for all three lanes: one route branch still missing proof, one selection branch matched to its same-diff test, and one unrelated smoke test listed as unmatched.
+
+Fresh combined Lean QA now treats the proof-signal calibration question as covered and advances to the hardware-boundary question.
+
 ## Current Verify-PR First-Run QA
 
 The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `shipguard full-audit --plan-only`, docs-check, and the verify-first quickstart tests against this checkout.
