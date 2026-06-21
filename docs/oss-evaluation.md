@@ -95,6 +95,18 @@ The v3.144 read-only loop reran `shipguard lean audit`, `shipguard lean review`,
 
 Fresh combined Lean QA now treats the current-repo evidence-routing question as covered and advances to the Lean Review current-diff usefulness question.
 
+## Current Lean Review Current-Diff Fixture QA
+
+The v3.145 read-only loop reran `shipguard lean audit`, `shipguard lean review`, `shipguard lean gain`, `shipguard lean debt`, and `ios report-quality --write-fixture-candidates` against this checkout after the Lean Gain evidence-routing fixture landed.
+
+- Finding: fresh combined Lean QA passed, but the next uncovered actionability question was "Does Lean Review give a current-diff delete/simplify list instead of a whole-repo inventory?"
+- Product weakness: Lean Review had a precision ledger and grouped plan, but the report did not expose a dedicated current-diff-only decision map that says which changed files are delete, simplify, keep, proof-blocked, or clean.
+- Native fix: `shipguard lean review` now emits `currentDiffDecisionMap` with `scope: current-diff-only`, changed-file rows, a delete/simplify subset, whole-repo non-claims, and a `shipguard lean audit` fallback for maintainers who actually need a repo inventory.
+- Report-quality fix: `ios report-quality` now flags Lean Review reports that omit the map, use a repo-inventory scope, hide decision rows, hide the delete/simplify subset, or omit the Markdown `Current Diff Decision Map`.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-give-a-current-d-9a6d6c8a` uses public synthetic evidence for current-diff delete, simplify, and keep decisions.
+
+Fresh combined Lean QA now treats the current-diff usefulness question as covered and advances to the Lean Review runnable-check question.
+
 ## Current Verify-PR First-Run QA
 
 The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `shipguard full-audit --plan-only`, docs-check, and the verify-first quickstart tests against this checkout.

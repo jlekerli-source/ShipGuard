@@ -1916,6 +1916,41 @@ if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_
   exit 1
 fi
 
+lean_review_current_diff_fixture="fixtures/ios-report-quality/01-shipguard-lean-review-does-lean-review-give-a-current-d-9a6d6c8a"
+./bin/shipguard ios report-quality \
+  --reports "$lean_review_current_diff_fixture" \
+  --out "$tmp_dir/lean-review-current-diff-public-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/lean-review-current-diff-public-quality/ios-report-quality.json"
+grep -q 'Does Lean Review give a current-diff delete/simplify list instead of a whole-repo inventory?' "$tmp_dir/lean-review-current-diff-public-quality/ios-report-quality.md"
+grep -q '"tool": "shipguard lean review"' "$lean_review_current_diff_fixture/fixture-report.json"
+grep -q '"currentDiffDecisionMap":' "$lean_review_current_diff_fixture/fixture-report.json"
+grep -q '"scope": "current-diff-only"' "$lean_review_current_diff_fixture/fixture-report.json"
+grep -q '"decision": "delete"' "$lean_review_current_diff_fixture/fixture-report.json"
+grep -q '"decision": "simplify"' "$lean_review_current_diff_fixture/fixture-report.json"
+grep -q '"decision": "keep"' "$lean_review_current_diff_fixture/fixture-report.json"
+grep -q '"deleteOrSimplifyList":' "$lean_review_current_diff_fixture/fixture-report.json"
+grep -q 'Current Diff Decision Map' "$lean_review_current_diff_fixture/fixture-report.md"
+grep -q 'current-diff-only' "$lean_review_current_diff_fixture/fixture-report.md"
+grep -q 'does not scan the whole repo' "$lean_review_current_diff_fixture/fixture-report.md"
+grep -q 'shipguard lean audit' "$lean_review_current_diff_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/lean-review-current-diff-public-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"Lean Review current-diff public fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+top = questions[0] if questions else {}
+if not top or not (top.get("sourceMaterializedFixture") is True or top.get("existingFixture")):
+    raise SystemExit(f"Lean Review current-diff fixture should retain materialized or fixture-coverage question evidence: {questions!r}")
+PY
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_review_current_diff_fixture"; then
+  echo "Lean Review current-diff fixture must not include local paths or private app identifiers" >&2
+  exit 1
+fi
+
 ./bin/shipguard lean audit \
   --path . \
   --out "$tmp_dir/lean-fresh-priority" \
@@ -1968,11 +2003,194 @@ empty_lean_diff="$tmp_dir/empty-lean.diff"
   --shareable \
   --write-fixture-candidates "$tmp_dir/lean-fresh-combined-candidates" >/dev/null
 grep -q '01-shipguard-lean-gain-does-it-route-current-repo-evidence-9bae8f6f' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q '01-shipguard-lean-review-does-lean-review-give-a-current-d-9a6d6c8a' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 grep -q 'Does Lean Review give a current-diff delete/simplify list instead of a whole-repo inventory?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q 'Does Lean Review require one smallest runnable check for non-trivial new logic?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
 if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$tmp_dir/lean-fresh-combined-candidates"; then
   echo "materialized combined Lean candidate must not include local paths or private app identifiers" >&2
   exit 1
 fi
+
+mkdir -p "$tmp_dir/lean-review-current-diff-missing"
+cat > "$tmp_dir/lean-review-current-diff-missing/lean-review.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard lean review",
+  "generatedAt": "2026-06-21T00:00:00Z",
+  "status": "review",
+  "metrics": {
+    "filesChanged": 1,
+    "addedLines": 6,
+    "findings": 1
+  },
+  "behaviorGates": {
+    "oneRunnableCheck": {"status": "enforced-in-lean-review"},
+    "hardwareCalibration": {"status": "available"},
+    "requestedExplanation": {"status": "policy"},
+    "adapterBoundary": {"status": "available"},
+    "gainHonesty": {"status": "available-in-lean-gain"}
+  },
+  "precisionReview": {
+    "summary": {
+      "deleteCandidates": 1,
+      "simplifyCandidates": 0,
+      "keepBoundaries": 0,
+      "proofBlockedCandidates": 0,
+      "actionGroups": 1
+    },
+    "actionGroups": [
+      {
+        "rank": 1,
+        "decision": "delete",
+        "ruleId": "thin-wrapper-diff-review",
+        "evidenceCount": 1,
+        "firstLocation": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+        "firstExperiment": "Search call sites.",
+        "validationRoute": "Run focused check.",
+        "stopCondition": "Stop at compatibility behavior."
+      }
+    ],
+    "topActions": [
+      {
+        "rank": 1,
+        "ruleId": "thin-wrapper-diff-review",
+        "location": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+        "severity": "opportunity",
+        "action": "Inline wrapper.",
+        "proofRequired": "Search call sites."
+      }
+    ]
+  },
+  "findings": [],
+  "reportQualityQuestions": [
+    "Does Lean Review give a current-diff delete/simplify list instead of a whole-repo inventory?"
+  ]
+}
+JSON
+cat > "$tmp_dir/lean-review-current-diff-missing/lean-review.md" <<'MD'
+# ShipGuard Lean Review
+
+## Behavior Gates
+
+- `oneRunnableCheck`: enforced-in-lean-review
+
+## Precision Ledger
+
+### Grouped Action Plan
+
+| Rank | Decision | Rule | Affected | First Location | First Experiment | Validation | Stop Condition |
+| ---: | --- | --- | ---: | --- | --- | --- | --- |
+| 1 | delete | `thin-wrapper-diff-review` | 1 | Sources/SyntheticLeanReview/FormatterShim.swift:14 | Search call sites. | Run focused check. | Stop at compatibility behavior. |
+MD
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-review-current-diff-missing" \
+  --out "$tmp_dir/lean-review-current-diff-missing-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-review-current-diff-map-missing"' "$tmp_dir/lean-review-current-diff-missing-quality/ios-report-quality.json"
+
+mkdir -p "$tmp_dir/lean-review-current-diff-incomplete"
+cat > "$tmp_dir/lean-review-current-diff-incomplete/lean-review.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard lean review",
+  "generatedAt": "2026-06-21T00:00:00Z",
+  "status": "review",
+  "metrics": {
+    "filesChanged": 1,
+    "addedLines": 6,
+    "findings": 1
+  },
+  "currentDiffDecisionMap": {
+    "scope": "repo-inventory",
+    "inventoryBoundary": "Scans useful files.",
+    "summary": {
+      "filesChanged": 1,
+      "addedLinesInspected": 6
+    },
+    "decisions": [
+      {
+        "file": "Sources/SyntheticLeanReview/FormatterShim.swift",
+        "source": "repo-scan",
+        "decision": "maybe",
+        "addedLines": 6
+      }
+    ]
+  },
+  "behaviorGates": {
+    "oneRunnableCheck": {"status": "enforced-in-lean-review"},
+    "hardwareCalibration": {"status": "available"},
+    "requestedExplanation": {"status": "policy"},
+    "adapterBoundary": {"status": "available"},
+    "gainHonesty": {"status": "available-in-lean-gain"}
+  },
+  "precisionReview": {
+    "summary": {
+      "deleteCandidates": 1,
+      "simplifyCandidates": 0,
+      "keepBoundaries": 0,
+      "proofBlockedCandidates": 0,
+      "actionGroups": 1
+    },
+    "actionGroups": [
+      {
+        "rank": 1,
+        "decision": "delete",
+        "ruleId": "thin-wrapper-diff-review",
+        "evidenceCount": 1,
+        "firstLocation": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+        "firstExperiment": "Search call sites.",
+        "validationRoute": "Run focused check.",
+        "stopCondition": "Stop at compatibility behavior."
+      }
+    ],
+    "topActions": [
+      {
+        "rank": 1,
+        "ruleId": "thin-wrapper-diff-review",
+        "location": "Sources/SyntheticLeanReview/FormatterShim.swift:14",
+        "severity": "opportunity",
+        "action": "Inline wrapper.",
+        "proofRequired": "Search call sites."
+      }
+    ]
+  },
+  "findings": [],
+  "reportQualityQuestions": [
+    "Does Lean Review give a current-diff delete/simplify list instead of a whole-repo inventory?"
+  ]
+}
+JSON
+cat > "$tmp_dir/lean-review-current-diff-incomplete/lean-review.md" <<'MD'
+# ShipGuard Lean Review
+
+## Current Diff Decision Map
+
+Generic map.
+
+## Behavior Gates
+
+- `oneRunnableCheck`: enforced-in-lean-review
+
+## Precision Ledger
+
+### Grouped Action Plan
+
+| Rank | Decision | Rule | Affected | First Location | First Experiment | Validation | Stop Condition |
+| ---: | --- | --- | ---: | --- | --- | --- | --- |
+| 1 | delete | `thin-wrapper-diff-review` | 1 | Sources/SyntheticLeanReview/FormatterShim.swift:14 | Search call sites. | Run focused check. | Stop at compatibility behavior. |
+MD
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-review-current-diff-incomplete" \
+  --out "$tmp_dir/lean-review-current-diff-incomplete-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-review-current-diff-scope-invalid"' "$tmp_dir/lean-review-current-diff-incomplete-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-current-diff-boundary-incomplete"' "$tmp_dir/lean-review-current-diff-incomplete-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-current-diff-summary-incomplete"' "$tmp_dir/lean-review-current-diff-incomplete-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-current-diff-decision-incomplete"' "$tmp_dir/lean-review-current-diff-incomplete-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-current-diff-decision-source-invalid"' "$tmp_dir/lean-review-current-diff-incomplete-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-current-diff-decision-kind-invalid"' "$tmp_dir/lean-review-current-diff-incomplete-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-current-diff-delete-simplify-list-missing"' "$tmp_dir/lean-review-current-diff-incomplete-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-review-current-diff-markdown-incomplete"' "$tmp_dir/lean-review-current-diff-incomplete-quality/ios-report-quality.json"
 
 mkdir -p "$tmp_dir/lean-missing-groups"
 cat > "$tmp_dir/lean-missing-groups/lean-audit.json" <<'JSON'

@@ -409,6 +409,139 @@ def review_lines(findings: list[dict[str, Any]]) -> list[str]:
     return lines
 
 
+def changed_file_summary(file_diff: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "file": str(file_diff.get("file") or ""),
+        "addedLines": len(file_diff.get("added", [])),
+        "removedLines": len(file_diff.get("removed", [])),
+    }
+
+
+def location_for_finding(item: dict[str, Any], fallback_file: str) -> str:
+    evidence = item.get("evidence", {})
+    file_name = str(evidence.get("file") or fallback_file)
+    line = evidence.get("line")
+    return f"{file_name}:{line}" if line else file_name
+
+
+def decision_for_findings(items: list[dict[str, Any]]) -> str:
+    rule_ids = {str(item.get("ruleId") or "") for item in items}
+    categories = {str(item.get("category") or "") for item in items}
+    if not items:
+        return "clean"
+    if rule_ids & {"thin-wrapper-diff-review", "speculative-future-hook-diff"}:
+        return "delete"
+    if "do-not-cut-safety-diff-without-proof" in rule_ids or "safety-boundary" in categories:
+        return "keep"
+    if rule_ids & {
+        "one-runnable-check-missing-diff",
+        "hardware-calibration-missing-diff",
+        "deferred-shortcut-without-trigger",
+    }:
+        return "proof-blocked"
+    return "simplify"
+
+
+def decision_guidance(decision: str) -> dict[str, str]:
+    if decision == "delete":
+        return {
+            "firstExperiment": "Search the changed call sites, then delete the candidate only if the wrapper or placeholder has no behavior, owner, or proof value.",
+            "validationRoute": "Run the smallest test or smoke command that covers the changed file, then run git diff --check.",
+            "stopCondition": "Stop if the search finds external call sites, compatibility behavior, or a requested proof boundary.",
+        }
+    if decision == "simplify":
+        return {
+            "firstExperiment": "Try the native, standard-library, or already-installed dependency replacement at this changed call site before adding more code.",
+            "validationRoute": "Run the focused check for this changed behavior plus git diff --check.",
+            "stopCondition": "Stop if the simpler form drops edge-case behavior, validation, accessibility, or user-visible output.",
+        }
+    if decision == "keep":
+        return {
+            "firstExperiment": "Treat this as a keep-with-proof boundary; identify the behavior proof before any deletion or simplification.",
+            "validationRoute": "Run or attach focused proof for the safety, trust, data-loss, permission, accessibility, or lifecycle behavior.",
+            "stopCondition": "Stop if the only evidence is less-code pressure without behavior proof.",
+        }
+    if decision == "proof-blocked":
+        return {
+            "firstExperiment": "Add or identify one smallest runnable check before merging the changed logic.",
+            "validationRoute": "Run the focused validation command named by the task or changed test file before broader cleanup.",
+            "stopCondition": "Stop if the diff has no runnable proof signal and the change is non-trivial, hardware-related, or shortcut debt.",
+        }
+    return {
+        "firstExperiment": "No Lean finding for this changed file; confirm the diff is intentional instead of inventing cleanup work.",
+        "validationRoute": "Use git diff --stat and git diff --check, then run the task's normal focused validation if this file matters.",
+        "stopCondition": "Stop if the file has no changed Lean candidate in the supplied diff.",
+    }
+
+
+def build_current_diff_decision_map(
+    *,
+    diff_path: Path,
+    files: list[dict[str, Any]],
+    findings: list[dict[str, Any]],
+    precision: dict[str, Any],
+) -> dict[str, Any]:
+    findings_by_file: dict[str, list[dict[str, Any]]] = {}
+    for item in findings:
+        evidence = item.get("evidence", {})
+        file_name = str(evidence.get("file") or "")
+        if not file_name:
+            continue
+        findings_by_file.setdefault(file_name, []).append(item)
+
+    decisions: list[dict[str, Any]] = []
+    for file_diff in files:
+        summary = changed_file_summary(file_diff)
+        file_name = str(summary["file"])
+        file_findings = findings_by_file.get(file_name, [])
+        decision = decision_for_findings(file_findings)
+        guidance = decision_guidance(decision)
+        first_finding = file_findings[0] if file_findings else {}
+        decisions.append(
+            {
+                "file": file_name,
+                "source": "unified-diff",
+                "decision": decision,
+                "addedLines": summary["addedLines"],
+                "removedLines": summary["removedLines"],
+                "ruleIds": sorted({str(item.get("ruleId") or "") for item in file_findings if item.get("ruleId")}),
+                "firstLocation": location_for_finding(first_finding, file_name) if first_finding else file_name,
+                "firstExperiment": guidance["firstExperiment"],
+                "validationRoute": guidance["validationRoute"],
+                "stopCondition": guidance["stopCondition"],
+            }
+        )
+
+    summary = precision.get("summary") if isinstance(precision.get("summary"), dict) else {}
+    return {
+        "scope": "current-diff-only",
+        "diffPath": diff_path.name,
+        "inventoryBoundary": "This report is built only from the supplied unified diff; it does not scan the whole repo or claim a whole-repo inventory.",
+        "wholeRepoFallbackCommand": "shipguard lean audit --path <repo> --out <lean-audit-out> --mode full --shipguard-eval --shareable",
+        "changedFiles": [changed_file_summary(file_diff) for file_diff in files],
+        "decisions": decisions,
+        "deleteOrSimplifyList": [
+            item for item in decisions if item.get("decision") in {"delete", "simplify"}
+        ],
+        "summary": {
+            "filesChanged": len(files),
+            "addedLinesInspected": sum(len(item.get("added", [])) for item in files),
+            "removedLinesSeen": sum(len(item.get("removed", [])) for item in files),
+            "decisionRows": len(decisions),
+            "deleteCandidates": int(summary.get("deleteCandidates") or 0),
+            "simplifyCandidates": int(summary.get("simplifyCandidates") or 0),
+            "keepBoundaries": int(summary.get("keepBoundaries") or 0),
+            "proofBlockedCandidates": int(summary.get("proofBlockedCandidates") or 0),
+            "cleanFiles": len([item for item in decisions if item.get("decision") == "clean"]),
+        },
+        "nonClaims": [
+            "Does not prove whole-repo inventory coverage.",
+            "Does not prove benchmark savings, token savings, cost savings, or time savings.",
+            "Does not authorize private target-app edits from ShipGuard product-QA runs.",
+        ],
+    }
+
+
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
     root = Path(args.path).resolve()
     diff_path = Path(args.diff)
@@ -432,6 +565,12 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "policy"
         ] = "Same-diff runnable-check signals are visible; verify relevance before adding duplicate proof ceremony."
     proof_calibration = build_proof_signal_calibration(proof_signals=proof_signals, findings=findings)
+    current_diff_decision_map = build_current_diff_decision_map(
+        diff_path=diff_path,
+        files=files,
+        findings=findings,
+        precision=precision,
+    )
     status = "pass" if not [item for item in findings if item.get("severity") in {"review", "opportunity"}] else "review"
     report: dict[str, Any] = {
         "schemaVersion": SCHEMA_VERSION,
@@ -448,6 +587,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         },
         "leanMode": lean_mode,
         "reviewLines": review_lines(findings),
+        "currentDiffDecisionMap": current_diff_decision_map,
         "behaviorGates": behavior_gates,
         "proofSignalCalibration": proof_calibration,
         "precisionReview": precision,
@@ -503,6 +643,49 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- {item}")
     else:
         lines.append("Lean already. Ship.")
+    decision_map = report.get("currentDiffDecisionMap", {})
+    if isinstance(decision_map, dict):
+        summary = decision_map.get("summary") if isinstance(decision_map.get("summary"), dict) else {}
+        lines.extend(["", "## Current Diff Decision Map", ""])
+        lines.append(f"- Scope: `{decision_map.get('scope', 'current-diff-only')}`")
+        lines.append(f"- Diff: `{decision_map.get('diffPath', '')}`")
+        lines.append(
+            f"- Boundary: {decision_map.get('inventoryBoundary', 'This report does not scan the whole repo.')}"
+        )
+        lines.append(
+            f"- Whole-repo fallback: `{decision_map.get('wholeRepoFallbackCommand', 'shipguard lean audit --path <repo> --out <lean-audit-out>')}`"
+        )
+        lines.append(
+            f"- Decision rows: {summary.get('decisionRows', 0)}; delete: {summary.get('deleteCandidates', 0)}; "
+            f"simplify: {summary.get('simplifyCandidates', 0)}; keep: {summary.get('keepBoundaries', 0)}; "
+            f"proof-blocked: {summary.get('proofBlockedCandidates', 0)}; clean files: {summary.get('cleanFiles', 0)}"
+        )
+        decisions = decision_map.get("decisions")
+        if isinstance(decisions, list) and decisions:
+            lines.extend(
+                [
+                    "",
+                    "| File | Decision | Added | Removed | Rules | First Experiment | Validation | Stop Condition |",
+                    "| --- | --- | ---: | ---: | --- | --- | --- | --- |",
+                ]
+            )
+            for item in decisions[:12]:
+                rules = ", ".join(str(rule) for rule in item.get("ruleIds", []) if rule) or "-"
+                lines.append(
+                    f"| {str(item.get('file', '')).replace('|', '\\|')} | `{item.get('decision', '')}` | "
+                    f"{item.get('addedLines', 0)} | {item.get('removedLines', 0)} | {rules.replace('|', '\\|')} | "
+                    f"{str(item.get('firstExperiment', '')).replace('|', '\\|')} | "
+                    f"{str(item.get('validationRoute', '')).replace('|', '\\|')} | "
+                    f"{str(item.get('stopCondition', '')).replace('|', '\\|')} |"
+                )
+        else:
+            lines.append("")
+            lines.append("No changed-file decision rows were found in the supplied diff.")
+        non_claims = decision_map.get("nonClaims")
+        if isinstance(non_claims, list) and non_claims:
+            lines.extend(["", "Non-claims:"])
+            for item in non_claims:
+                lines.append(f"- {item}")
     precision = report.get("precisionReview", {})
     gates = report.get("behaviorGates", {})
     if gates:
