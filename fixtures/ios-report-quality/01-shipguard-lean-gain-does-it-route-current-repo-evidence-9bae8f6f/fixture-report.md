@@ -1,4 +1,4 @@
-# Synthetic Lean Gain Honesty Fixture
+# Synthetic Lean Gain Current-Repo Evidence Routing Fixture
 
 ## ShipGuard Evaluation Boundary
 
@@ -7,7 +7,7 @@ This is a public synthetic ShipGuard fixture. It is not copied from a private ap
 ## Fixture Intent
 
 - Type: `shipguard-lean-report-quality-fixture`
-- Source question: Does lean gain avoid fake per-repo savings while still showing benchmark-backed impact?
+- Source question: Does it route current-repo evidence back to lean audit, lean review, and lean debt?
 
 ## Benchmark Scoreboard
 
@@ -50,4 +50,4 @@ This is ShipGuard product QA. The benchmark explains expected direction; only lo
 
 ## Report Quality Questions
 
-- Does lean gain avoid fake per-repo savings while still showing benchmark-backed impact?
+- Does it route current-repo evidence back to lean audit, lean review, and lean debt?

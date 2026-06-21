@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-21T02:14:45Z
+- Generated: 2026-06-21T02:47:23Z
 - Current toolkit version: 3.131.0
-- Target release: v3.143.0
-- Title: Lean Gain Honesty Fixture QA
+- Target release: v3.144.0
+- Title: Lean Gain Current-Repo Evidence Routing Fixture QA
 
 ## Slash Plan
 
 ```text
-/plan v3.143.0 Lean Gain Honesty Fixture QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Promote the next Lean report-quality actionability question into a public synthetic fixture that proves Lean Gain avoids fake per-repo savings while benchmark-backed impact stays visible.
+/plan v3.144.0 Lean Gain Current-Repo Evidence Routing Fixture QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Promote the next Lean report-quality actionability question into a public synthetic fixture that proves Lean Gain routes current-repo evidence back to lean audit, lean review, and lean debt with copy-ready commands, expected artifacts, proof boundaries, and non-claims.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.143.0 Lean Gain Honesty Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next Lean report-quality actionability question into a public synthetic fixture that proves Lean Gain avoids fake per-repo savings while benchmark-backed impact stays visible, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.144.0 Lean Gain Current-Repo Evidence Routing Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next Lean report-quality actionability question into a public synthetic fixture that proves Lean Gain routes current-repo evidence back to lean audit, lean review, and lean debt with copy-ready commands, expected artifacts, proof boundaries, and non-claims, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Promote the next Lean report-quality actionability question into a public synthetic fixture that proves Lean Gain avoids fake per-repo savings while benchmark-backed impact stays visible.
+Promote the next Lean report-quality actionability question into a public synthetic fixture that proves Lean Gain routes current-repo evidence back to lean audit, lean review, and lean debt with copy-ready commands, expected artifacts, proof boundaries, and non-claims.
 
 ## Completion Receipt
 
-- Completed scope: Reran Lean Deck audit/review, lean gain, lean debt, value-gauntlet, and report-quality as read-only ShipGuard self-QA; added report-quality checks for Lean Gain benchmark scope, benchmark metric pairs, `currentRepoBoundary`, current-repo evidence routes, and Markdown no-claim language; promoted the Lean Gain fake-savings question into a public synthetic fixture; updated regression coverage so fresh combined Lean QA now advances to the Lean Gain current-repo evidence-routing question.
-- Evidence: Passed: ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-audit-does-lean-gain-avoid-fake-per-repo-08315752 --out /tmp/shipguard-v3143-lean-gain-fixture-quality --shareable status pass averageScore 100; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3143-lean-audit --reports /tmp/shipguard-v3143-lean-review --reports /tmp/shipguard-v3143-lean-debt --reports /tmp/shipguard-v3143-lean-gain --reports /tmp/shipguard-v3143-value-gauntlet --out /tmp/shipguard-v3143-quality-after --shipguard-eval --shareable --write-fixture-candidates /tmp/shipguard-v3143-fixtures-after status pass averageScore 100 and priorityAction advanced to the Lean Gain current-repo evidence-routing question; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3143-value-gauntlet status pass; python3 -m py_compile scripts/ios_report_quality.py scripts/lean_gain.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh.
+- Completed scope: Reran Lean Deck audit/review, lean gain, lean debt, and report-quality as read-only ShipGuard self-QA; added structured Lean Gain evidence routes for lean audit, lean review, and lean debt; tightened report-quality checks for route commands, artifacts, proof boundaries, non-claims, and Markdown visibility; promoted the current-repo evidence-routing question into a public synthetic fixture; updated regression coverage so fresh combined Lean QA advances to the Lean Review current-diff usefulness question.
+- Evidence: Passed: python3 -m py_compile scripts/ios_report_quality.py scripts/lean_gain.py; ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-gain-does-it-route-current-repo-evidence-9bae8f6f --out /tmp/shipguard-v3144-route-fixture-quality --shareable status pass; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3144-lean-audit-after --reports /tmp/shipguard-v3144-lean-review-after --reports /tmp/shipguard-v3144-lean-debt-after --reports /tmp/shipguard-v3144-lean-gain-after2 --out /tmp/shipguard-v3144-quality-after --shipguard-eval --shareable --write-fixture-candidates /tmp/shipguard-v3144-fixtures-after status pass averageScore 100, covered the route fixture, and advanced priorityAction to the Lean Review current-diff usefulness question; ./tests/ios_report_quality_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.144.0 Lean Gain Current-Repo Evidence Routing Fixture QA for jlekerli-source/ShipGuard:
+/plan v3.145.0 Lean Review Current-Diff Fixture QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Promote the next Lean report-quality actionability question into a public synthe
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.144.0 Lean Gain Current-Repo Evidence Routing Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.145.0 Lean Review Current-Diff Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.144.0 --title "Lean Gain Current-Repo Evidence Routing Fixture QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.145.0 --title "Lean Review Current-Diff Fixture QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.143.0.
+1. Open or update the tracking issue for v3.144.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.143.0` and upload `dist/shipguard-v3.143.0.tar.gz`.
+6. Create release `v3.144.0` and upload `dist/shipguard-v3.144.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

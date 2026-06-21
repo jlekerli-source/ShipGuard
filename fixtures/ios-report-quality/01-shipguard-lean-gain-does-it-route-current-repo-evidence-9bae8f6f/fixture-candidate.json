@@ -1,12 +1,12 @@
 {
-  "candidateId": "01-shipguard-lean-audit-does-lean-gain-avoid-fake-per-repo-08315752",
+  "candidateId": "01-shipguard-lean-gain-does-it-route-current-repo-evidence-9bae8f6f",
   "duplicateCount": 1,
   "expectedAssertions": [
-    "report-quality preserves the Lean Gain honesty actionability question in JSON and Markdown",
-    "the fixture exposes benchmarkScoreboard.primary with benchmark scope, baseline, method, remaining-percent metrics, and reported-change metrics",
-    "the fixture marks currentRepoBoundary.perRepoSavingsClaim as not-computed with a reason",
-    "the fixture routes current-repo evidence back to lean audit, lean review, and lean debt with structured commands, artifacts, proof boundaries, and non-claims",
-    "the Markdown exposes Benchmark Scoreboard, Honesty Boundary, Current Repo Signals, Current Repo Evidence Routes, and no-claim language",
+    "report-quality preserves the Lean Gain current-repo routing question in JSON and Markdown",
+    "the fixture exposes currentRepoBoundary.evidenceRoutes for lean-audit, lean-review, and lean-debt",
+    "each route has a command, expected artifact, answer, proof boundary, and non-claim",
+    "the Markdown exposes Current Repo Evidence Routes with the exact Lean commands",
+    "the fixture keeps benchmark direction separate from current-repo savings claims",
     "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
     "shareable output contains no local absolute paths or private app identifiers"
   ],
@@ -24,7 +24,7 @@
   "priority": 1,
   "privateDataPolicy": "This promoted fixture is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
   "promotion": {
-    "candidateId": "01-shipguard-lean-audit-does-lean-gain-avoid-fake-per-repo-08315752",
+    "candidateId": "01-shipguard-lean-gain-does-it-route-current-repo-evidence-9bae8f6f",
     "files": [
       "README.md",
       "fixture-candidate.json",
@@ -35,20 +35,20 @@
     "reviewChecklist": [
       "Confirm the fixture is synthetic and public-safe.",
       "Confirm no private app code, screenshots, local paths, tokens, app identifiers, or proprietary text were copied.",
-      "Confirm benchmark direction is separate from current-repo savings.",
-      "Confirm current-repo savings remain not-computed without a matched baseline.",
+      "Confirm evidenceRoutes point to lean audit, lean review, and lean debt.",
+      "Confirm every route blocks savings overclaims.",
       "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates."
     ],
-    "suggestedFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-audit-does-lean-gain-avoid-fake-per-repo-08315752",
+    "suggestedFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-gain-does-it-route-current-repo-evidence-9bae8f6f",
     "validationCommands": [
-      "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-audit-does-lean-gain-avoid-fake-per-repo-08315752 --out <quality-dir> --shareable",
+      "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-gain-does-it-route-current-repo-evidence-9bae8f6f --out <quality-dir> --shareable",
       "./tests/ios_report_quality_test.sh",
       "./bin/shipguard validate"
     ]
   },
-  "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-audit-does-lean-gain-avoid-fake-per-repo-08315752",
-  "publicFixtureRecipe": "Create a minimal synthetic ShipGuard Lean Gain report pair that proves benchmark-backed impact remains separate from current-repo savings claims.",
-  "sourceQuestion": "Does lean gain avoid fake per-repo savings while still showing benchmark-backed impact?",
+  "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-gain-does-it-route-current-repo-evidence-9bae8f6f",
+  "publicFixtureRecipe": "Create a minimal synthetic ShipGuard Lean Gain report pair that proves benchmark impact routes current-repo evidence back to Lean Deck commands without claiming current-repo savings.",
+  "sourceQuestion": "Does it route current-repo evidence back to lean audit, lean review, and lean debt?",
   "sourceReportCount": 1,
   "sourceReportsRedacted": true,
   "sourceTool": "shipguard lean gain",

@@ -181,7 +181,7 @@ Use `lean gain` when you want the Ponytail-style impact scoreboard without prete
   --shareable
 ```
 
-The command writes `lean-gain.json` and `lean-gain.md`. It reports benchmark-backed line/token/cost/time direction, marks current-repo savings as `not-computed`, and points current repo proof back to `lean audit`, `lean review`, and `lean debt`.
+The command writes `lean-gain.json` and `lean-gain.md`. It reports benchmark-backed line/token/cost/time direction, marks current-repo savings as `not-computed`, and points current repo proof back to structured evidence routes for `lean audit`, `lean review`, and `lean debt`, including the command to run, expected artifact, answer, proof boundary, and non-claim for each route.
 
 ## Release Package Hygiene
 

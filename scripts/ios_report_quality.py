@@ -3093,6 +3093,71 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 evidence=f"{path_name} currentRepoBoundary.realRepoSignals missing routes: {', '.join(missing_signal_routes) or 'realRepoSignals list'}",
                 recommendation="Route current-repo evidence back to lean audit, lean review, and lean debt instead of implying the benchmark measured this repo.",
             )
+        expected_routes = {
+            "lean-audit": "shipguard lean audit",
+            "lean-review": "shipguard lean review",
+            "lean-debt": "shipguard lean debt",
+        }
+        evidence_routes = boundary.get("evidenceRoutes") if isinstance(boundary, dict) else None
+        if not isinstance(evidence_routes, list) or not evidence_routes:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="lean-gain-current-route-contract-missing",
+                evidence=f"{path_name} currentRepoBoundary has no structured evidenceRoutes",
+                recommendation="Add evidenceRoutes for lean audit, lean review, and lean debt with command, artifact, answer, proof boundary, and non-claim text.",
+            )
+        else:
+            routes_by_id = {
+                str(route.get("id") or "").strip(): route
+                for route in evidence_routes
+                if isinstance(route, dict)
+            }
+            missing_routes = sorted(route_id for route_id in expected_routes if route_id not in routes_by_id)
+            if missing_routes:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-gain-current-route-contract-incomplete",
+                    evidence=f"{path_name} evidenceRoutes missing: {', '.join(missing_routes)}",
+                    recommendation="Emit one current-repo evidence route each for lean-audit, lean-review, and lean-debt.",
+                )
+            for route_id, command_token in expected_routes.items():
+                route = routes_by_id.get(route_id)
+                if not isinstance(route, dict):
+                    continue
+                required_route_fields = {"command", "expectedArtifact", "answers", "proofBoundary", "nonClaim"}
+                missing_route_fields = sorted(field for field in required_route_fields if not str(route.get(field) or "").strip())
+                command = str(route.get("command") or "")
+                boundary_text = normalized_question_text(route.get("proofBoundary") or "")
+                non_claim = normalized_question_text(route.get("nonClaim") or "")
+                if missing_route_fields or command_token not in command:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-gain-current-route-incomplete",
+                        evidence=(
+                            f"{path_name} evidenceRoutes[{route_id}] missing: "
+                            f"{', '.join(missing_route_fields) or f'command containing {command_token}'}"
+                        ),
+                        recommendation="Make each Lean Gain evidence route copy-ready and tied to the exact Lean command that proves that current-repo signal.",
+                    )
+                if "does not prove" not in boundary_text or "savings" not in boundary_text:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-gain-current-route-boundary-incomplete",
+                        evidence=f"{path_name} evidenceRoutes[{route_id}] proofBoundary does not block savings overclaims",
+                        recommendation="State that each current-repo route proves only its own signal and does not prove line, token, cost, or time savings.",
+                    )
+                if "do not" not in non_claim or "savings" not in non_claim:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="lean-gain-current-route-nonclaim-incomplete",
+                        evidence=f"{path_name} evidenceRoutes[{route_id}] nonClaim does not explicitly block savings claims",
+                        recommendation="Add nonClaim text so current-repo evidence cannot be recast as benchmark or per-repo savings.",
+                    )
         scoreboard = report.get("benchmarkScoreboard")
         primary = scoreboard.get("primary") if isinstance(scoreboard, dict) else None
         if not isinstance(primary, dict):
@@ -3141,6 +3206,10 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
             "Honesty Boundary",
             "not-computed",
             "Current Repo Signals",
+            "Current Repo Evidence Routes",
+            "shipguard lean audit",
+            "shipguard lean review",
+            "shipguard lean debt",
             "Do not claim current-repo line, token, cost, or time savings",
         ]
         missing_markdown = [token for token in markdown_required if token not in markdown]
@@ -4712,6 +4781,94 @@ def synthetic_performance_evidence_promotion() -> dict[str, Any]:
     }
 
 
+def synthetic_lean_gain_report_fields() -> dict[str, Any]:
+    return {
+        "surface": "ShipGuard Lean Gain",
+        "target": {"path": ".", "shareable": True},
+        "sourceInfluence": {
+            "name": "Lean code benchmark influence",
+            "url": "https://github.com/DietrichGebert/ponytail",
+            "boundary": "ShipGuard reports benchmark direction honestly and implements its own native reports. It does not vendor external code.",
+        },
+        "benchmarkScoreboard": {
+            "primary": {
+                "label": "Synthetic Lean Gain public benchmark",
+                "baseline": "same agent without the lean-code ruleset",
+                "scope": "public benchmark, not this repository",
+                "method": "paired public fixture tasks with and without the lean-code ruleset",
+                "remainingPercentOfBaseline": {
+                    "linesOfCode": 46,
+                    "tokens": 78,
+                    "cost": 80,
+                    "time": 73,
+                    "safety": 100,
+                },
+                "reportedChange": {
+                    "linesOfCode": "-54%",
+                    "tokens": "-22%",
+                    "cost": "-20%",
+                    "time": "-27%",
+                    "safety": "100%",
+                },
+            },
+            "legacySingleShot": {
+                "status": "archival-context-only",
+                "boundary": "Older single-shot ranges are archival context only and are not the launch claim.",
+            },
+        },
+        "currentRepoBoundary": {
+            "perRepoSavingsClaim": "not-computed",
+            "reason": "There is no untreated baseline for this repository; ShipGuard cannot subtract code, cost, or time that was never produced.",
+            "realRepoSignals": [
+                "lean audit findings",
+                "lean review findings",
+                "lean debt marker counts",
+            ],
+            "evidenceRoutes": [
+                {
+                    "id": "lean-audit",
+                    "command": "shipguard lean audit --path <repo> --out <lean-audit-out> --mode full --shipguard-eval --shareable",
+                    "expectedArtifact": "lean-audit.json and lean-audit.md",
+                    "answers": "Which repo surfaces may be deleted, simplified, kept, or proof-blocked?",
+                    "proofBoundary": "Source-scan evidence only; it does not prove line, token, cost, or time savings.",
+                    "nonClaim": "Do not treat audit findings as benchmark savings.",
+                },
+                {
+                    "id": "lean-review",
+                    "command": "shipguard lean review --path <repo> --diff <diff-file> --out <lean-review-out> --mode full --shipguard-eval --shareable",
+                    "expectedArtifact": "lean-review.json and lean-review.md",
+                    "answers": "Which current-diff changes can be deleted, simplified, kept, or proof-blocked before merge?",
+                    "proofBoundary": "Diff-scoped evidence only; it does not prove whole-repo or benchmark savings.",
+                    "nonClaim": "Do not treat a smaller diff as measured token, cost, or time savings without a matched baseline.",
+                },
+                {
+                    "id": "lean-debt",
+                    "command": "shipguard lean debt --path <repo> --out <lean-debt-out> --shipguard-eval --shareable",
+                    "expectedArtifact": "lean-debt.json and lean-debt.md",
+                    "answers": "Which intentional shortcuts have ceilings, upgrade triggers, and missing-trigger debt?",
+                    "proofBoundary": "Shortcut-ledger evidence only; it does not prove benchmark or per-repo savings.",
+                    "nonClaim": "Do not present shortcut counts as code-size savings.",
+                },
+            ],
+        },
+        "leanDebtLedger": {
+            "description": "Synthetic shortcut ledger for Lean Gain routing coverage.",
+            "summary": {
+                "markers": 0,
+                "missingUpgradeTrigger": 0,
+                "omittedByLimit": 0,
+            },
+            "markers": [],
+        },
+        "nextActions": [
+            "Use shipguard lean audit for cuttable repo surfaces.",
+            "Use shipguard lean review on the active diff before merge.",
+            "Use shipguard lean debt to count intentional shortcuts with ceilings and upgrade triggers.",
+            "Do not claim per-repo line, token, cost, or time savings unless you have a real matched baseline.",
+        ],
+    }
+
+
 def synthetic_design_tailoring(app_type: str = "education") -> dict[str, Any]:
     return {
         "tailoredFor": app_type,
@@ -4930,6 +5087,8 @@ def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
         report["findings"] = synthetic_performance_findings()
         report["ruleSummary"] = synthetic_performance_rule_summary()
         report["groupedActionPlan"] = synthetic_performance_grouped_action_plan()
+    if source_tool == "shipguard lean gain":
+        report.update(synthetic_lean_gain_report_fields())
     if source_tool == "shipguard ios design":
         report.update(synthetic_design_report_fields())
     return report
@@ -4956,6 +5115,46 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
             f"- Source question: {question}",
             "",
     ]
+    if source_tool == "shipguard lean gain":
+        lines.extend(
+            [
+                "## Benchmark Scoreboard",
+                "",
+                "- Benchmark: Synthetic Lean Gain public benchmark",
+                "- Scope: public benchmark, not this repository",
+                "- Baseline: same agent without the lean-code ruleset",
+                "- Method: paired public fixture tasks with and without the lean-code ruleset",
+                "",
+                "| Metric | Baseline | Lean-code result | Change |",
+                "| --- | --- | --- | --- |",
+                "| Lines of code | 100% | 46% | -54% |",
+                "| Tokens | 100% | 78% | -22% |",
+                "| Cost | 100% | 80% | -20% |",
+                "| Time | 100% | 73% | -27% |",
+                "| Safety | 100% | 100% | 100% |",
+                "",
+                "## Honesty Boundary",
+                "",
+                "- Per-repo savings claim: `not-computed`",
+                "- Reason: There is no untreated baseline for this repository; ShipGuard cannot subtract code, cost, or time that was never produced.",
+                "- Do not claim current-repo line, token, cost, or time savings without a matched baseline.",
+                "",
+                "## Current Repo Signals",
+                "",
+                "- Lean audit findings show possible cuttable surfaces.",
+                "- Lean review findings show current-diff delete or simplify opportunities.",
+                "- Lean debt marker counts show intentional shortcuts that still need ceilings and upgrade triggers.",
+                "",
+                "## Current Repo Evidence Routes",
+                "",
+                "| Route | Command | Artifact | Answers | Boundary |",
+                "| --- | --- | --- | --- | --- |",
+                "| `lean-audit` | `shipguard lean audit --path <repo> --out <lean-audit-out> --mode full --shipguard-eval --shareable` | lean-audit.json and lean-audit.md | Which repo surfaces may be deleted, simplified, kept, or proof-blocked? | Source-scan evidence only; it does not prove line, token, cost, or time savings. Do not treat audit findings as benchmark savings. |",
+                "| `lean-review` | `shipguard lean review --path <repo> --diff <diff-file> --out <lean-review-out> --mode full --shipguard-eval --shareable` | lean-review.json and lean-review.md | Which current-diff changes can be deleted, simplified, kept, or proof-blocked before merge? | Diff-scoped evidence only; it does not prove whole-repo or benchmark savings. Do not treat a smaller diff as measured token, cost, or time savings without a matched baseline. |",
+                "| `lean-debt` | `shipguard lean debt --path <repo> --out <lean-debt-out> --shipguard-eval --shareable` | lean-debt.json and lean-debt.md | Which intentional shortcuts have ceilings, upgrade triggers, and missing-trigger debt? | Shortcut-ledger evidence only; it does not prove benchmark or per-repo savings. Do not present shortcut counts as code-size savings. |",
+                "",
+            ]
+        )
     if source_tool == "shipguard ios performance":
         lines.extend(
             [

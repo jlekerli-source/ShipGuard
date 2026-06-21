@@ -93,6 +93,32 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 "lean debt marker counts",
                 "diff size after an actual change",
             ],
+            "evidenceRoutes": [
+                {
+                    "id": "lean-audit",
+                    "command": "shipguard lean audit --path <repo> --out <lean-audit-out> --mode full --shipguard-eval --shareable",
+                    "expectedArtifact": "lean-audit.json and lean-audit.md",
+                    "answers": "Which repo surfaces may be deleted, simplified, kept, or proof-blocked?",
+                    "proofBoundary": "Source-scan evidence only; it does not prove line, token, cost, or time savings.",
+                    "nonClaim": "Do not treat audit findings as benchmark savings.",
+                },
+                {
+                    "id": "lean-review",
+                    "command": "shipguard lean review --path <repo> --diff <diff-file> --out <lean-review-out> --mode full --shipguard-eval --shareable",
+                    "expectedArtifact": "lean-review.json and lean-review.md",
+                    "answers": "Which current-diff changes can be deleted, simplified, kept, or proof-blocked before merge?",
+                    "proofBoundary": "Diff-scoped evidence only; it does not prove whole-repo or benchmark savings.",
+                    "nonClaim": "Do not treat a smaller diff as measured token, cost, or time savings without a matched baseline.",
+                },
+                {
+                    "id": "lean-debt",
+                    "command": "shipguard lean debt --path <repo> --out <lean-debt-out> --shipguard-eval --shareable",
+                    "expectedArtifact": "lean-debt.json and lean-debt.md",
+                    "answers": "Which intentional shortcuts have ceilings, upgrade triggers, and missing-trigger debt?",
+                    "proofBoundary": "Shortcut-ledger evidence only; it does not prove benchmark or per-repo savings.",
+                    "nonClaim": "Do not present shortcut counts as code-size savings.",
+                },
+            ],
         },
         "leanDebtLedger": ledger,
         "scanScope": scan_scope,
@@ -159,8 +185,22 @@ def render_markdown(report: dict[str, Any]) -> str:
             "",
             f"- Lean debt markers: {ledger_summary.get('markers', 0)}",
             f"- Missing upgrade trigger: {ledger_summary.get('missingUpgradeTrigger', 0)}",
+            "",
+            "## Current Repo Evidence Routes",
+            "",
+            "| Route | Command | Artifact | Answers | Boundary |",
+            "| --- | --- | --- | --- | --- |",
         ]
     )
+    for route in report["currentRepoBoundary"].get("evidenceRoutes", []):
+        lines.append(
+            "| "
+            f"`{route['id']}` | "
+            f"`{route['command']}` | "
+            f"{route['expectedArtifact']} | "
+            f"{route['answers']} | "
+            f"{route['proofBoundary']} {route['nonClaim']} |"
+        )
     lines.extend(["", "## Source Influence", ""])
     lines.append(
         f"Native ShipGuard implementation influenced by {report['sourceInfluence']['name']} "

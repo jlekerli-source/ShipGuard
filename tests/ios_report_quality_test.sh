@@ -1851,9 +1851,17 @@ grep -q 'Does lean gain avoid fake per-repo savings while still showing benchmar
 grep -q '"tool": "shipguard lean gain"' "$lean_gain_fixture/fixture-report.json"
 grep -q '"benchmarkScoreboard":' "$lean_gain_fixture/fixture-report.json"
 grep -q '"perRepoSavingsClaim": "not-computed"' "$lean_gain_fixture/fixture-report.json"
+grep -q '"evidenceRoutes":' "$lean_gain_fixture/fixture-report.json"
+grep -q '"id": "lean-audit"' "$lean_gain_fixture/fixture-report.json"
+grep -q '"id": "lean-review"' "$lean_gain_fixture/fixture-report.json"
+grep -q '"id": "lean-debt"' "$lean_gain_fixture/fixture-report.json"
 grep -q 'public benchmark, not this repository' "$lean_gain_fixture/fixture-report.json"
 grep -q 'Honesty Boundary' "$lean_gain_fixture/fixture-report.md"
 grep -q 'Current Repo Signals' "$lean_gain_fixture/fixture-report.md"
+grep -q 'Current Repo Evidence Routes' "$lean_gain_fixture/fixture-report.md"
+grep -q 'shipguard lean audit' "$lean_gain_fixture/fixture-report.md"
+grep -q 'shipguard lean review' "$lean_gain_fixture/fixture-report.md"
+grep -q 'shipguard lean debt' "$lean_gain_fixture/fixture-report.md"
 grep -q 'Do not claim current-repo line, token, cost, or time savings' "$lean_gain_fixture/fixture-report.md"
 python3 - <<'PY' "$tmp_dir/lean-gain-public-quality/ios-report-quality.json"
 import json
@@ -1869,6 +1877,42 @@ if not top or not (top.get("sourceMaterializedFixture") is True or top.get("exis
 PY
 if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_gain_fixture"; then
   echo "Lean Gain honesty fixture must not include local paths or private app identifiers" >&2
+  exit 1
+fi
+
+lean_gain_route_fixture="fixtures/ios-report-quality/01-shipguard-lean-gain-does-it-route-current-repo-evidence-9bae8f6f"
+./bin/shipguard ios report-quality \
+  --reports "$lean_gain_route_fixture" \
+  --out "$tmp_dir/lean-gain-route-public-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/lean-gain-route-public-quality/ios-report-quality.json"
+grep -q 'Does it route current-repo evidence back to lean audit, lean review, and lean debt?' "$tmp_dir/lean-gain-route-public-quality/ios-report-quality.md"
+grep -q '"tool": "shipguard lean gain"' "$lean_gain_route_fixture/fixture-report.json"
+grep -q '"evidenceRoutes":' "$lean_gain_route_fixture/fixture-report.json"
+grep -q '"command": "shipguard lean audit' "$lean_gain_route_fixture/fixture-report.json"
+grep -q '"command": "shipguard lean review' "$lean_gain_route_fixture/fixture-report.json"
+grep -q '"command": "shipguard lean debt' "$lean_gain_route_fixture/fixture-report.json"
+grep -q '"expectedArtifact": "lean-audit.json and lean-audit.md"' "$lean_gain_route_fixture/fixture-report.json"
+grep -q '"expectedArtifact": "lean-review.json and lean-review.md"' "$lean_gain_route_fixture/fixture-report.json"
+grep -q '"expectedArtifact": "lean-debt.json and lean-debt.md"' "$lean_gain_route_fixture/fixture-report.json"
+grep -q 'Current Repo Evidence Routes' "$lean_gain_route_fixture/fixture-report.md"
+grep -q 'does not prove line, token, cost, or time savings' "$lean_gain_route_fixture/fixture-report.md"
+grep -q 'does not prove whole-repo or benchmark savings' "$lean_gain_route_fixture/fixture-report.md"
+grep -q 'does not prove benchmark or per-repo savings' "$lean_gain_route_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/lean-gain-route-public-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"Lean Gain route public fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+top = questions[0] if questions else {}
+if not top or not (top.get("sourceMaterializedFixture") is True or top.get("existingFixture")):
+    raise SystemExit(f"Lean Gain route fixture should retain materialized or fixture-coverage question evidence: {questions!r}")
+PY
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_gain_route_fixture"; then
+  echo "Lean Gain route fixture must not include local paths or private app identifiers" >&2
   exit 1
 fi
 
@@ -1894,6 +1938,39 @@ grep -q '"fixtureCandidates":' "$tmp_dir/lean-fresh-priority-quality/ios-report-
 grep -q 'Does each finding explain the proof needed before removing code?' "$tmp_dir/lean-fresh-priority-quality/ios-report-quality.json"
 if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$tmp_dir/lean-fresh-priority-candidates"; then
   echo "materialized Lean Deck priority candidate must not include local paths or private app identifiers" >&2
+  exit 1
+fi
+
+empty_lean_diff="$tmp_dir/empty-lean.diff"
+: > "$empty_lean_diff"
+./bin/shipguard lean review \
+  --path . \
+  --diff "$empty_lean_diff" \
+  --out "$tmp_dir/lean-fresh-review-priority" \
+  --shipguard-eval \
+  --shareable >/dev/null
+./bin/shipguard lean debt \
+  --path . \
+  --out "$tmp_dir/lean-fresh-debt-priority" \
+  --shipguard-eval \
+  --shareable >/dev/null
+./bin/shipguard lean gain \
+  --path . \
+  --out "$tmp_dir/lean-fresh-gain-priority" \
+  --shipguard-eval \
+  --shareable >/dev/null
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-fresh-priority" \
+  --reports "$tmp_dir/lean-fresh-review-priority" \
+  --reports "$tmp_dir/lean-fresh-debt-priority" \
+  --reports "$tmp_dir/lean-fresh-gain-priority" \
+  --out "$tmp_dir/lean-fresh-combined-quality" \
+  --shareable \
+  --write-fixture-candidates "$tmp_dir/lean-fresh-combined-candidates" >/dev/null
+grep -q '01-shipguard-lean-gain-does-it-route-current-repo-evidence-9bae8f6f' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+grep -q 'Does Lean Review give a current-diff delete/simplify list instead of a whole-repo inventory?' "$tmp_dir/lean-fresh-combined-quality/ios-report-quality.json"
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$tmp_dir/lean-fresh-combined-candidates"; then
+  echo "materialized combined Lean candidate must not include local paths or private app identifiers" >&2
   exit 1
 fi
 
@@ -2129,9 +2206,107 @@ MD
   --shareable >/dev/null
 grep -q '"ruleId": "lean-gain-fake-repo-savings-risk"' "$tmp_dir/lean-gain-fake-savings-quality/ios-report-quality.json"
 grep -q '"ruleId": "lean-gain-current-routing-missing"' "$tmp_dir/lean-gain-fake-savings-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-gain-current-route-contract-missing"' "$tmp_dir/lean-gain-fake-savings-quality/ios-report-quality.json"
 grep -q '"ruleId": "lean-gain-scoreboard-incomplete"' "$tmp_dir/lean-gain-fake-savings-quality/ios-report-quality.json"
 grep -q '"ruleId": "lean-gain-scoreboard-metrics-missing"' "$tmp_dir/lean-gain-fake-savings-quality/ios-report-quality.json"
 grep -q '"ruleId": "lean-gain-honesty-markdown-missing"' "$tmp_dir/lean-gain-fake-savings-quality/ios-report-quality.json"
+
+mkdir -p "$tmp_dir/lean-gain-incomplete-routes"
+cat > "$tmp_dir/lean-gain-incomplete-routes/lean-gain.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard lean gain",
+  "generatedAt": "2026-06-21T00:00:00Z",
+  "status": "pass",
+  "surface": "ShipGuard Lean Gain",
+  "target": {"path": ".", "shareable": true},
+  "benchmarkScoreboard": {
+    "primary": {
+      "label": "Synthetic benchmark",
+      "baseline": "same agent without the lean-code ruleset",
+      "scope": "public benchmark, not this repository",
+      "method": "paired public fixture tasks",
+      "remainingPercentOfBaseline": {
+        "linesOfCode": 46,
+        "tokens": 78,
+        "cost": 80,
+        "time": 73,
+        "safety": 100
+      },
+      "reportedChange": {
+        "linesOfCode": "-54%",
+        "tokens": "-22%",
+        "cost": "-20%",
+        "time": "-27%",
+        "safety": "100%"
+      }
+    }
+  },
+  "currentRepoBoundary": {
+    "perRepoSavingsClaim": "not-computed",
+    "reason": "No untreated current-repo baseline exists.",
+    "realRepoSignals": [
+      "lean audit findings",
+      "lean review findings",
+      "lean debt marker counts"
+    ],
+    "evidenceRoutes": [
+      {
+        "id": "lean-audit",
+        "command": "shipguard lean audit --path <repo> --out <lean-audit-out>",
+        "expectedArtifact": "lean-audit.json and lean-audit.md",
+        "answers": "cuttable repo surfaces",
+        "proofBoundary": "Source scan only.",
+        "nonClaim": "Audit summary."
+      },
+      {
+        "id": "lean-review",
+        "command": "shipguard lean review --path <repo> --diff <diff-file> --out <lean-review-out>",
+        "expectedArtifact": "lean-review.json and lean-review.md",
+        "answers": "current-diff opportunities",
+        "proofBoundary": "Diff scan only.",
+        "nonClaim": "Review summary."
+      }
+    ]
+  },
+  "reportQualityQuestions": [
+    "Does it route current-repo evidence back to lean audit, lean review, and lean debt?"
+  ]
+}
+JSON
+cat > "$tmp_dir/lean-gain-incomplete-routes/lean-gain.md" <<'MD'
+# ShipGuard Lean Gain
+
+## Benchmark Scoreboard
+
+- Scope: public benchmark, not this repository
+
+## Honesty Boundary
+
+- Per-repo savings claim: `not-computed`
+- Do not claim current-repo line, token, cost, or time savings without a matched baseline.
+
+## Current Repo Signals
+
+- Lean audit findings
+- Lean review findings
+- Lean debt marker counts
+
+## Current Repo Evidence Routes
+
+| Route | Command |
+| --- | --- |
+| `lean-audit` | `shipguard lean audit --path <repo> --out <lean-audit-out>` |
+| `lean-review` | `shipguard lean review --path <repo> --diff <diff-file> --out <lean-review-out>` |
+MD
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-gain-incomplete-routes" \
+  --out "$tmp_dir/lean-gain-incomplete-routes-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-gain-current-route-contract-incomplete"' "$tmp_dir/lean-gain-incomplete-routes-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-gain-current-route-boundary-incomplete"' "$tmp_dir/lean-gain-incomplete-routes-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-gain-current-route-nonclaim-incomplete"' "$tmp_dir/lean-gain-incomplete-routes-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-gain-honesty-markdown-incomplete"' "$tmp_dir/lean-gain-incomplete-routes-quality/ios-report-quality.json"
 
 mkdir -p "$tmp_dir/lean-large-missing-evidence"
 cat > "$tmp_dir/lean-large-missing-evidence/lean-audit.json" <<'JSON'

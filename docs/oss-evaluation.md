@@ -83,6 +83,18 @@ The v3.143 read-only loop reran `shipguard lean audit`, `shipguard lean review`,
 
 Fresh combined Lean QA now treats the fake-savings question as covered and advances to the Lean Gain current-repo evidence-routing question.
 
+## Current Lean Gain Evidence-Routing Fixture QA
+
+The v3.144 read-only loop reran `shipguard lean audit`, `shipguard lean review`, `shipguard lean gain`, `shipguard lean debt`, and `ios report-quality --write-fixture-candidates` against this checkout after the Lean Gain honesty fixture landed.
+
+- Finding: fresh combined Lean QA passed, but the next uncovered actionability question was "Does it route current-repo evidence back to lean audit, lean review, and lean debt?"
+- Product weakness: Lean Gain named those signals but did not give maintainers a copy-ready route showing which command to run, what artifact to expect, and what each route does not prove.
+- Native fix: `shipguard lean gain` now emits `currentRepoBoundary.evidenceRoutes` for `lean audit`, `lean review`, and `lean debt`, each with command, expected artifact, answer, proof boundary, and non-claim text.
+- Report-quality fix: `ios report-quality` now flags Lean Gain reports that omit the route contract, omit a route, hide command/artifact/answer fields, or fail to block savings overclaims in route boundaries and Markdown.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-lean-gain-does-it-route-current-repo-evidence-9bae8f6f` uses public synthetic evidence for the structured route contract.
+
+Fresh combined Lean QA now treats the current-repo evidence-routing question as covered and advances to the Lean Review current-diff usefulness question.
+
 ## Current Verify-PR First-Run QA
 
 The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `shipguard full-audit --plan-only`, docs-check, and the verify-first quickstart tests against this checkout.
