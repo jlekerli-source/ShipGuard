@@ -176,6 +176,17 @@ When the LaunchKey candidate packet is a closure blocker, the candidate row also
 
 Markdown renders those fields as `LaunchKey Candidate Closure Kit` so maintainers can fix candidate package lineage first, then rerun the full final publication gate without hiding later release notes, asset, adoption, or security blockers.
 
+When post-release consumer proof is a closure blocker, the row also carries a consumer closure kit:
+
+- release-consume paths and statuses, including the consumer report path, asset digest matrix path, assets directory, consume output directory, version, command, exit code, stdout, stderr, and any error text when available
+- missing proof artifacts such as `consumer-report.json` or `asset-digests.json`
+- digest, replay, attestation, published replay, published attestation, and published badge crosscheck statuses
+- repair criteria, pass criteria, and fail criteria for proving the downloaded or supplied release assets from the consumer side
+- a `releaseConsumeRerunCommand` for the direct consumer proof and a full `stablePublicationRerunCommand` for the final publication gate
+- `consumerProofBoundary`, which says release-consume verification is required, downloaded or supplied release assets are required, source-only proof does not count, fixture proof does not count as stable-v4 publication proof, and consumer proof does not prove adoption or security evidence
+
+Markdown renders these fields as `Post-Release Consumer Closure Kit` so maintainers can see exactly why the consumer gate is still blocked and which proof artifact has to exist before any stable-v4 claim can move forward.
+
 When independent adoption or final security-review evidence is a closure blocker, the row also carries an evidence closure kit:
 
 - the generated starter file path and source template path
@@ -226,7 +237,7 @@ cp templates/stable-publication/security-review-evidence.template.json /tmp/ship
 
 `stable-publication` intentionally sits after `v4 release-candidate`.
 
-`v4 release-candidate` proves the package and release packet are candidate-ready. It can use public fixtures to prove the workflow works. `v4 stable-publication` proves the actual published release by reading public release metadata, real release notes, downloaded release assets, independent adoption evidence, and final security-review evidence. Synthetic fixture adoption or security records can prove the tool path, but they do not prove stable-v4 publication.
+`v4 release-candidate` proves the package and release packet are candidate-ready. It can use public fixtures to prove the workflow works. `v4 stable-publication` proves the actual published release by reading public release metadata, real release notes, downloaded release assets, independent adoption evidence, and final security-review evidence. Synthetic fixture adoption or security records can prove the tool path, but they do not prove stable-v4 publication. Source-only and fixture proof do not count as post-release `release-consume` consumer proof.
 
 Use `--shareable` before moving this report into GitHub, ChatGPT planning, public docs, or release evidence. Shareable output redacts local paths while preserving proof status, gate names, and next commands.
 

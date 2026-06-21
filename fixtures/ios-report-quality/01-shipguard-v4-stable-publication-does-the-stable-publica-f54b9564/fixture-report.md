@@ -266,6 +266,110 @@ Next command template:
 | `independent-adoption-evidence` | `True` | `cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json` |
 | `final-security-review-evidence` | `True` | `cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json` |
 
+### Post-Release Consumer Closure Kit
+
+- Status: `not-provided`
+- Consumer report status: `not-provided`
+- Consumer report path: `not-provided`
+- Asset digest matrix path: `not-provided`
+- Missing proof artifacts: `consumer-report.json, asset-digests.json`
+- Download source: `not-provided`
+- Download proof status: `not-provided`
+- Release version: `not-provided`
+- Assets directory: `not-provided`
+- Consume output directory: `not-provided`
+- Exit code: `not-provided`
+- Error: `none`
+- Release-consume required: `True`
+- Source-only proof counts as consumer proof: `False`
+- Fixture proof counts as stable-v4 publication proof: `False`
+
+| Consumer crosscheck | Status |
+| --- | --- |
+| Replay | `not-provided` |
+| Attestation | `not-provided` |
+| Published replay report | `not-provided` |
+| Published attestation | `not-provided` |
+| Published badge | `not-provided` |
+
+Repair criteria:
+
+- Download the published release assets with `shipguard v4 stable-publication --download-release-assets` or supply the exact downloaded asset directory with `--release-assets`.
+- Run `shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>` and keep both `consumer-report.json` and `asset-digests.json` with the stable-publication packet.
+- Repair missing or mismatched release assets, replay proof, attestation proof, badge proof, manifest, index, ledger, or tarball digest before rerunning stable-publication.
+- After `release-consume verify` passes, rerun `shipguard v4 stable-publication` with the same release metadata, LaunchKey, adoption, and security inputs so later gates remain visible.
+
+Pass criteria:
+
+- `shipguard release-consume verify` exits 0.
+- `consumer-report.json` exists and reports `status = pass`.
+- `asset-digests.json` exists and lists the downloaded release assets with SHA-256 and byte counts.
+- Replay and attestation status are `pass` or explicitly verified as matching published assets.
+- The stable-publication report records `postReleaseConsumerProof.status = pass` from the consumed release assets, not from source-only or fixture proof.
+
+Fail criteria:
+
+- No downloaded or supplied release-assets directory is available.
+- `release-consume verify` times out, exits non-zero, or cannot run from the current checkout.
+- `consumer-report.json` is missing, malformed, or reports a non-pass status.
+- `asset-digests.json` is missing, incomplete, or shows missing required release assets.
+- Replay, attestation, published crosscheck, version, or tarball SHA-256 proof is blocked or mismatched.
+- Source checkout tests, package fixtures, or draft release notes are treated as post-release consumer proof.
+
+Rerun release-consume proof:
+
+```bash
+./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>
+```
+
+Rerun the full stable-publication gate after consumer proof passes:
+
+```bash
+./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable
+```
+
+## Release Notes Proof
+
+- Notes digest: `1cc7b6c54184ecde88b9133805de4530eec2d81de91e139e41be86aa963e7d0f`
+- Missing topics: `none`
+
+| Topic | Status | Matched terms |
+| --- | --- | --- |
+| `stable-v4-claim` | `pass` | stable-v4, stable v4 |
+| `publication-proof-boundary` | `pass` | publication proof, release proof |
+| `downloaded-release-assets` | `pass` | downloaded release asset, release asset |
+| `post-release-consumer-proof` | `pass` | post-release consumer, consumer proof, release consume |
+| `independent-adoption-evidence` | `pass` | independent adoption, adoption evidence |
+| `final-security-review-evidence` | `pass` | final security, security review |
+| `non-claims-boundary` | `pass` | non-claim, blocked claim, blocked claims |
+
+## Release Notes Authoring Kit
+
+- Directory: `stable-publication-release-notes`
+- Draft-only: `True`
+- Missing topics: `none`
+
+| File | Purpose |
+| --- | --- |
+| `stable-publication-release-notes/release-notes-checklist.json` | Machine-readable checklist for the stable-publication release-notes topics. |
+| `stable-publication-release-notes/draft-release-notes.md` | Draft-only release notes section that includes every required stable-publication proof topic. |
+| `stable-publication-release-notes/README.md` | Human instructions for adapting the draft into the public GitHub release body. |
+
+Next command template:
+
+```bash
+./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable
+```
+
+## Evidence Templates
+
+- Draft-only templates: `True`
+
+| Template | Exists | Copy command |
+| --- | --- | --- |
+| `independent-adoption-evidence` | `True` | `cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json` |
+| `final-security-review-evidence` | `True` | `cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json` |
+
 ## Evidence Starter Kit
 
 - Directory: `stable-publication-evidence-kit`

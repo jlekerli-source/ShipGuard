@@ -682,14 +682,141 @@
         "summary": "No downloaded release assets were supplied; stable v4 proof still needs consumer-side release asset verification."
       },
       {
+        "assetDigestMatrixPath": "",
         "blocksStableV4": true,
+        "consumerProofBoundary": {
+          "downloadedOrSuppliedAssetsRequired": true,
+          "explanation": "Post-release consumer proof is only satisfied by release-consume verification of downloaded or supplied release assets. Source tests, package fixtures, release-note drafts, and GitHub metadata alone are not consumer proof.",
+          "fixtureProofCountsAsStableV4PublicationProof": false,
+          "postReleaseConsumerProofDoesNotProveAdoptionOrSecurity": true,
+          "releaseConsumeRequired": true,
+          "sourceOnlyProofCountsAsConsumerProof": false
+        },
+        "consumerReportPath": "",
+        "consumerReportStatus": "not-provided",
         "dependencyOrder": 5,
+        "failCriteria": [
+          "No downloaded or supplied release-assets directory is available.",
+          "`release-consume verify` times out, exits non-zero, or cannot run from the current checkout.",
+          "`consumer-report.json` is missing, malformed, or reports a non-pass status.",
+          "`asset-digests.json` is missing, incomplete, or shows missing required release assets.",
+          "Replay, attestation, published crosscheck, version, or tarball SHA-256 proof is blocked or mismatched.",
+          "Source checkout tests, package fixtures, or draft release notes are treated as post-release consumer proof."
+        ],
         "id": "post-release-consumer-proof",
         "isFirstBlockingGate": false,
+        "missingProofArtifacts": [
+          "consumer-report.json",
+          "asset-digests.json"
+        ],
         "nextCommand": "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>",
+        "passCriteria": [
+          "`shipguard release-consume verify` exits 0.",
+          "`consumer-report.json` exists and reports `status = pass`.",
+          "`asset-digests.json` exists and lists the downloaded release assets with SHA-256 and byte counts.",
+          "Replay and attestation status are `pass` or explicitly verified as matching published assets.",
+          "The stable-publication report records `postReleaseConsumerProof.status = pass` from the consumed release assets, not from source-only or fixture proof."
+        ],
+        "postReleaseConsumerClosureKit": {
+          "artifactSha256": "",
+          "assetCount": null,
+          "assetDigestMatrixPath": "",
+          "assetsDir": "",
+          "attestationStatus": "not-provided",
+          "consumeOut": "",
+          "consumerProofBoundary": {
+            "downloadedOrSuppliedAssetsRequired": true,
+            "explanation": "Post-release consumer proof is only satisfied by release-consume verification of downloaded or supplied release assets. Source tests, package fixtures, release-note drafts, and GitHub metadata alone are not consumer proof.",
+            "fixtureProofCountsAsStableV4PublicationProof": false,
+            "postReleaseConsumerProofDoesNotProveAdoptionOrSecurity": true,
+            "releaseConsumeRequired": true,
+            "sourceOnlyProofCountsAsConsumerProof": false
+          },
+          "consumerReportPath": "",
+          "consumerReportStatus": "not-provided",
+          "currentConsumerDiagnostics": {
+            "artifactSha256": "",
+            "assetCount": null,
+            "assetDigestMatrixPath": "",
+            "assetsDir": "",
+            "attestationStatus": "not-provided",
+            "command": "",
+            "commandTemplate": "",
+            "consumeCommand": "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>",
+            "consumeOut": "",
+            "consumerReportPath": "",
+            "consumerReportStatus": "not-provided",
+            "downloadProofStatus": "",
+            "downloadSource": "",
+            "error": "",
+            "exitCode": null,
+            "missingProofArtifacts": [
+              "consumer-report.json",
+              "asset-digests.json"
+            ],
+            "provided": false,
+            "publishedAttestationCrosscheck": "not-provided",
+            "publishedBadgeCrosscheck": "not-provided",
+            "publishedReplayCrosscheck": "not-provided",
+            "replayStatus": "not-provided",
+            "status": "not-provided",
+            "stderr": "",
+            "stdout": "",
+            "summary": "Post-release consumer proof needs downloaded assets to pass release-consume verification.",
+            "version": ""
+          },
+          "downloadProofStatus": "",
+          "downloadSource": "",
+          "failCriteria": [
+            "No downloaded or supplied release-assets directory is available.",
+            "`release-consume verify` times out, exits non-zero, or cannot run from the current checkout.",
+            "`consumer-report.json` is missing, malformed, or reports a non-pass status.",
+            "`asset-digests.json` is missing, incomplete, or shows missing required release assets.",
+            "Replay, attestation, published crosscheck, version, or tarball SHA-256 proof is blocked or mismatched.",
+            "Source checkout tests, package fixtures, or draft release notes are treated as post-release consumer proof."
+          ],
+          "missingProofArtifacts": [
+            "consumer-report.json",
+            "asset-digests.json"
+          ],
+          "passCriteria": [
+            "`shipguard release-consume verify` exits 0.",
+            "`consumer-report.json` exists and reports `status = pass`.",
+            "`asset-digests.json` exists and lists the downloaded release assets with SHA-256 and byte counts.",
+            "Replay and attestation status are `pass` or explicitly verified as matching published assets.",
+            "The stable-publication report records `postReleaseConsumerProof.status = pass` from the consumed release assets, not from source-only or fixture proof."
+          ],
+          "publishedCrosschecks": {
+            "attestation": "not-provided",
+            "attestationBadge": "not-provided",
+            "replayReport": "not-provided"
+          },
+          "releaseConsumeRerunCommand": "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>",
+          "repairCriteria": [
+            "Download the published release assets with `shipguard v4 stable-publication --download-release-assets` or supply the exact downloaded asset directory with `--release-assets`.",
+            "Run `shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>` and keep both `consumer-report.json` and `asset-digests.json` with the stable-publication packet.",
+            "Repair missing or mismatched release assets, replay proof, attestation proof, badge proof, manifest, index, ledger, or tarball digest before rerunning stable-publication.",
+            "After `release-consume verify` passes, rerun `shipguard v4 stable-publication` with the same release metadata, LaunchKey, adoption, and security inputs so later gates remain visible."
+          ],
+          "replayStatus": "not-provided",
+          "schemaVersion": 1,
+          "stablePublicationRerunCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable",
+          "status": "not-provided",
+          "summary": "Post-release consumer proof needs downloaded assets to pass release-consume verification.",
+          "title": "Post-release consumer proof closure kit",
+          "version": ""
+        },
         "proofBoundary": "A consumer proof must verify the published release assets outside the local build-only path.",
         "rank": 4,
         "receipt": "postReleaseConsumerProof",
+        "releaseConsumeRerunCommand": "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>",
+        "repairCriteria": [
+          "Download the published release assets with `shipguard v4 stable-publication --download-release-assets` or supply the exact downloaded asset directory with `--release-assets`.",
+          "Run `shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>` and keep both `consumer-report.json` and `asset-digests.json` with the stable-publication packet.",
+          "Repair missing or mismatched release assets, replay proof, attestation proof, badge proof, manifest, index, ledger, or tarball digest before rerunning stable-publication.",
+          "After `release-consume verify` passes, rerun `shipguard v4 stable-publication` with the same release metadata, LaunchKey, adoption, and security inputs so later gates remain visible."
+        ],
+        "stablePublicationRerunCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable",
         "status": "not-provided",
         "summary": "Post-release consumer proof needs downloaded assets to pass release-consume verification."
       },

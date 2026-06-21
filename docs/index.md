@@ -100,6 +100,7 @@ Open `/tmp/shipguard-verdict/shipguard-verdict.md`. The report shows whether the
 ## V4 Track
 
 These docs describe the v4 readiness path. They do not claim stable v4 publication by themselves.
+Only a passing `v4 stable-publication` report with post-release consumer proof from published assets can support a stable-v4 claim.
 
 - [ShipGuard V4 Preview](v4-preview.md)
 - [V4 Schema Freeze](v4-schema-freeze.md)

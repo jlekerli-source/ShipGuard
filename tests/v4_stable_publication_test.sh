@@ -442,6 +442,67 @@ grep -q 'stable-publication-evidence-kit/security-review-evidence.json' "$tmp_di
 
 if ./bin/shipguard v4 stable-publication \
   --path . \
+  --out "$tmp_dir/consumer-blocked" \
+  --github-release-repo jlekerli-source/ShipGuard \
+  --github-api-url "file://$api_root" \
+  --release-version "$version" \
+  --release-candidate-report "$tmp_dir/candidate-pass.json" \
+  --external-adoption-evidence "$tmp_dir/evidence/stable-adoption" \
+  --security-review-evidence "$tmp_dir/evidence/stable-security" \
+  --shipguard-eval \
+  --shareable >/dev/null 2>&1; then
+  echo "expected missing post-release consumer proof to block stable publication" >&2
+  exit 1
+fi
+python3 - "$tmp_dir/consumer-blocked/v4-stable-publication.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+assert report["status"] == "review"
+packet = report["stablePublicationEvidencePacket"]
+assert packet["missingEvidenceIds"] == [
+    "downloaded-release-assets",
+    "post-release-consumer-proof",
+]
+assert packet["firstBlockingGate"]["receipt"] == "publishedReleaseAssetProof"
+required_by_id = {item["id"]: item for item in packet["requiredEvidence"]}
+consumer_required = required_by_id["post-release-consumer-proof"]
+diagnostics = consumer_required["postReleaseConsumerDiagnostics"]
+assert diagnostics["status"] == "not-provided"
+assert diagnostics["consumerReportStatus"] == "not-provided"
+assert set(diagnostics["missingProofArtifacts"]) == {"consumer-report.json", "asset-digests.json"}
+closure = report["stablePublicationClosureChecklist"]
+assert [item["id"] for item in closure["items"]] == packet["missingEvidenceIds"]
+consumer_item = closure["items"][1]
+assert consumer_item["id"] == "post-release-consumer-proof"
+assert consumer_item["receipt"] == "postReleaseConsumerProof"
+assert consumer_item["isFirstBlockingGate"] is False
+kit = consumer_item["postReleaseConsumerClosureKit"]
+assert kit["status"] == "not-provided"
+assert kit["consumerReportStatus"] == "not-provided"
+assert kit["consumerReportPath"] == ""
+assert kit["assetDigestMatrixPath"] == ""
+assert set(kit["missingProofArtifacts"]) == {"consumer-report.json", "asset-digests.json"}
+assert kit["consumerProofBoundary"]["releaseConsumeRequired"] is True
+assert kit["consumerProofBoundary"]["sourceOnlyProofCountsAsConsumerProof"] is False
+assert kit["consumerProofBoundary"]["fixtureProofCountsAsStableV4PublicationProof"] is False
+assert "release-consume verify" in kit["releaseConsumeRerunCommand"]
+assert "stable-publication" in kit["stablePublicationRerunCommand"]
+assert len(kit["repairCriteria"]) >= 3
+assert len(kit["passCriteria"]) >= 4
+assert len(kit["failCriteria"]) >= 4
+assert kit["currentConsumerDiagnostics"]["status"] == "not-provided"
+assert consumer_item["nextCommand"] == consumer_item["releaseConsumeRerunCommand"] == kit["releaseConsumeRerunCommand"]
+PY
+grep -q 'Post-Release Consumer Closure Kit' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
+grep -q 'consumer-report.json, asset-digests.json' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
+grep -q 'Source-only proof counts as consumer proof: `False`' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
+grep -q 'Rerun release-consume proof' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
+grep -q 'release-consume verify' "$tmp_dir/consumer-blocked/v4-stable-publication.md"
+
+if ./bin/shipguard v4 stable-publication \
+  --path . \
   --out "$tmp_dir/hygiene-blocked" \
   --github-release-repo jlekerli-source/ShipGuard \
   --github-api-url "file://$api_root" \

@@ -5644,6 +5644,152 @@ MD
   --shareable >/dev/null
 grep -q '"ruleId": "stable-publication-launchkey-candidate-closure-kit-missing"' "$tmp_dir/stable-publication-launchkey-closure-quality/ios-report-quality.json"
 
+stable_publication_consumer_closure_dir="$tmp_dir/stable-publication-consumer-closure"
+mkdir -p "$stable_publication_consumer_closure_dir"
+cat > "$stable_publication_consumer_closure_dir/v4-stable-publication.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-20T00:00:00Z",
+  "tool": "shipguard v4 stable-publication",
+  "surface": "ShipGuard V4 Stable Publication Proof",
+  "status": "review",
+  "stableV4Release": false,
+  "postReleaseConsumerProof": {
+    "status": "not-provided",
+    "provided": false,
+    "summary": "Post-release consumer proof needs downloaded assets to pass release-consume verification.",
+    "consumerReportStatus": "not-provided",
+    "missingProofArtifacts": [
+      "consumer-report.json",
+      "asset-digests.json"
+    ]
+  },
+  "stablePublicationEvidencePacket": {
+    "schemaVersion": 1,
+    "status": "review",
+    "stableV4Release": false,
+    "requiredEvidenceCount": 7,
+    "passedEvidenceCount": 5,
+    "missingEvidenceIds": [
+      "downloaded-release-assets",
+      "post-release-consumer-proof"
+    ],
+    "firstBlockingGate": {
+      "id": "downloaded-release-assets",
+      "receipt": "publishedReleaseAssetProof",
+      "status": "not-provided",
+      "summary": "Downloaded release assets were not supplied.",
+      "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --download-release-assets --shipguard-eval --shareable"
+    },
+    "requiredEvidence": [
+      {"id": "github-release-metadata", "receipt": "githubReleaseMetadataProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "release-notes", "receipt": "releaseNotesProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "launchkey-candidate-packet", "receipt": "releaseCandidatePacketProof", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "downloaded-release-assets", "receipt": "publishedReleaseAssetProof", "status": "not-provided", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "post-release-consumer-proof", "receipt": "postReleaseConsumerProof", "status": "not-provided", "requiredForStableV4": true, "realEvidenceRequired": true, "nextCommand": "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>"},
+      {"id": "independent-adoption-evidence", "receipt": "externalAdoptionEvidenceStableGate", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true},
+      {"id": "final-security-review-evidence", "receipt": "securityReviewEvidenceStableGate", "status": "pass", "requiredForStableV4": true, "realEvidenceRequired": true}
+    ],
+    "nonClaims": [
+      "Downloaded release assets and release-consume proof are required."
+    ]
+  },
+  "stablePublicationClosureChecklist": {
+    "schemaVersion": 1,
+    "status": "review",
+    "stableV4Release": false,
+    "blockerCount": 2,
+    "blockedEvidenceIds": [
+      "downloaded-release-assets",
+      "post-release-consumer-proof"
+    ],
+    "noHiddenLowerOrderBlockers": true,
+    "items": [
+      {
+        "rank": 1,
+        "dependencyOrder": 4,
+        "id": "downloaded-release-assets",
+        "receipt": "publishedReleaseAssetProof",
+        "status": "not-provided",
+        "summary": "Downloaded release assets were not supplied.",
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --download-release-assets --shipguard-eval --shareable",
+        "proofBoundary": "Release assets must be downloaded or supplied and verified from the publication packet.",
+        "isFirstBlockingGate": true
+      },
+      {
+        "rank": 2,
+        "dependencyOrder": 5,
+        "id": "post-release-consumer-proof",
+        "receipt": "postReleaseConsumerProof",
+        "status": "not-provided",
+        "summary": "Post-release consumer proof needs downloaded assets to pass release-consume verification.",
+        "nextCommand": "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>",
+        "proofBoundary": "Post-release consumer proof must come from release-consume verification of the downloaded or supplied assets.",
+        "isFirstBlockingGate": false
+      }
+    ]
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  }
+}
+JSON
+cat > "$stable_publication_consumer_closure_dir/v4-stable-publication.md" <<'MD'
+# ShipGuard V4 Stable Publication Proof
+
+## Evidence Packet
+
+| Evidence | Status |
+| --- | --- |
+| `downloaded-release-assets` | `not-provided` |
+| `post-release-consumer-proof` | `not-provided` |
+
+## Closure Checklist
+
+| Rank | Evidence | Status | First | Next command | Proof boundary |
+| --- | --- | --- | --- | --- | --- |
+| `1` | `downloaded-release-assets` | `not-provided` | `True` | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --download-release-assets --shipguard-eval --shareable` | Release assets must be downloaded or supplied and verified from the publication packet. |
+| `2` | `post-release-consumer-proof` | `not-provided` | `False` | `./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>` | Post-release consumer proof must come from release-consume verification of the downloaded or supplied assets. |
+MD
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_consumer_closure_dir" \
+  --out "$tmp_dir/stable-publication-consumer-closure-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "stable-publication-post-release-consumer-closure-kit-missing"' "$tmp_dir/stable-publication-consumer-closure-quality/ios-report-quality.json"
+
+stable_publication_consumer_boundary_dir="$tmp_dir/stable-publication-consumer-boundary"
+mkdir -p "$stable_publication_consumer_boundary_dir"
+python3 - <<'PY' \
+  "fixtures/ios-report-quality/stable-publication-post-release-consumer-closure/fixture-report.json" \
+  "fixtures/ios-report-quality/stable-publication-post-release-consumer-closure/fixture-report.md" \
+  "$stable_publication_consumer_boundary_dir"
+import json
+import sys
+from pathlib import Path
+
+source_json = Path(sys.argv[1])
+source_md = Path(sys.argv[2])
+target = Path(sys.argv[3])
+report = json.loads(source_json.read_text(encoding="utf-8"))
+report.pop("fixtureCandidate", None)
+for item in report["stablePublicationClosureChecklist"]["items"]:
+    if item.get("id") == "post-release-consumer-proof":
+        boundary = item["postReleaseConsumerClosureKit"]["consumerProofBoundary"]
+        boundary["fixtureProofCountsAsStableV4PublicationProof"] = True
+        item["consumerProofBoundary"]["fixtureProofCountsAsStableV4PublicationProof"] = True
+report["reportQualityQuestions"] = [
+    "Does the post-release consumer closure row expose release-consume paths, missing proof artifacts, digest/replay/attestation statuses, repair/pass criteria, release-consume rerun, full stable-publication rerun, and source-only/fixture-proof boundaries?"
+]
+(target / "v4-stable-publication.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+(target / "v4-stable-publication.md").write_text(source_md.read_text(encoding="utf-8"), encoding="utf-8")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_consumer_boundary_dir" \
+  --out "$tmp_dir/stable-publication-consumer-boundary-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "stable-publication-post-release-consumer-boundary-missing"' "$tmp_dir/stable-publication-consumer-boundary-quality/ios-report-quality.json"
+
 launchkey_skip_dir="$tmp_dir/launchkey-proof-dir-skip"
 mkdir -p \
   "$launchkey_skip_dir/fresh-install-prefix/lib/shipguard/examples/demo-reports/arena" \
@@ -5878,6 +6024,65 @@ assert "LaunchKey candidate closure row" in item.get("question", ""), item
 priority = data.get("priorityAction") or {}
 assert priority.get("kind") == "review-existing-fixture", priority
 assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/stable-publication-launchkey-candidate-closure", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
+
+stable_publication_closure_checklist_fixture="fixtures/ios-report-quality/stable-publication-closure-checklist"
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_closure_checklist_fixture" \
+  --out "$tmp_dir/stable-publication-closure-checklist-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/stable-publication-closure-checklist-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/stable-publication-closure-checklist-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/stable-publication-closure-checklist"' "$tmp_dir/stable-publication-closure-checklist-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/stable-publication-closure-checklist-fixture-quality/ios-report-quality.json"
+grep -q '"stablePublicationClosureChecklist":' "$stable_publication_closure_checklist_fixture/fixture-report.json"
+grep -q 'Closure Checklist' "$stable_publication_closure_checklist_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/stable-publication-closure-checklist-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard v4 stable-publication", item
+assert item.get("fixtureType") == "shipguard-release-proof-quality-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/stable-publication-closure-checklist", item
+assert "closure checklist list every remaining blocker" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/stable-publication-closure-checklist", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
+
+stable_publication_consumer_closure_fixture="fixtures/ios-report-quality/stable-publication-post-release-consumer-closure"
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_consumer_closure_fixture" \
+  --out "$tmp_dir/stable-publication-consumer-closure-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/stable-publication-consumer-closure-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/stable-publication-consumer-closure-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/stable-publication-post-release-consumer-closure"' "$tmp_dir/stable-publication-consumer-closure-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/stable-publication-consumer-closure-fixture-quality/ios-report-quality.json"
+grep -q '"postReleaseConsumerClosureKit":' "$stable_publication_consumer_closure_fixture/fixture-report.json"
+grep -q 'Post-Release Consumer Closure Kit' "$stable_publication_consumer_closure_fixture/fixture-report.md"
+grep -q 'Source-only proof counts as consumer proof: `False`' "$stable_publication_consumer_closure_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/stable-publication-consumer-closure-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard v4 stable-publication", item
+assert item.get("fixtureType") == "shipguard-release-proof-quality-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/stable-publication-post-release-consumer-closure", item
+assert "post-release consumer closure row" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/stable-publication-post-release-consumer-closure", priority
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 

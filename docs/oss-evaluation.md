@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.167 read-only stable-v4 packet loop continued from the LaunchKey candidate closure kit and tested whether the post-release consumer blocker is directly actionable from the stable-publication report.
+
+- Finding: `v4 stable-publication` could show missing downloaded assets and post-release consumer proof, but the consumer row did not itself expose release-consume paths, missing consumer artifacts, digest/replay/attestation status, pass/fail criteria, or both rerun commands.
+- Product weakness: a solo maintainer should not have to infer whether `consumer-report.json`, `asset-digests.json`, replay proof, attestation proof, or published badge proof is missing before rerunning the consumer proof lane.
+- Native fix: `post-release-consumer-proof` closure items now carry `postReleaseConsumerClosureKit` with release-consume paths/statuses, missing proof artifacts, digest/replay/attestation crosschecks, repair/pass/fail criteria, direct release-consume rerun, full stable-publication rerun, and source-only/fixture-proof boundaries.
+- Report-quality fix: `ios report-quality` now flags stable-publication reports whose consumer closure item hides the kit, proof artifacts, consumer report status, crosschecks, diagnostics, criteria, rerun commands, or Markdown `Post-Release Consumer Closure Kit` rendering.
+- Fixture fix: `fixtures/ios-report-quality/stable-publication-closure-checklist` and `fixtures/ios-report-quality/stable-publication-post-release-consumer-closure` promote the dependency-ordered checklist and consumer closure row into public synthetic coverage.
+
+Fresh stable-v4 QA still does not claim real stable v4. Closure kits are repair guidance and report-quality proof only; source-only and fixture evidence do not count as post-release consumer proof, independent adoption evidence, or final security-review evidence.
+
 The v3.166 read-only stable-v4 packet loop continued from the adoption/security closure kits and tested whether the LaunchKey candidate blocker is directly actionable from the stable-publication report.
 
 - Finding: `v4 stable-publication` could mirror a LaunchKey blocker and package-hygiene evidence, but the closure row still did not carry the supplied candidate report path, synthesized nested receipt when the report was missing/incomplete, required LaunchKey proof areas, repair/pass criteria, or both rerun commands.

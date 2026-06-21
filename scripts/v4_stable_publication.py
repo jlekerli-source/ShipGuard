@@ -303,6 +303,30 @@ LAUNCHKEY_CANDIDATE_FAIL_CRITERIA = [
     "Fixture candidate proof is used as stable-v4 publication proof.",
 ]
 
+POST_RELEASE_CONSUMER_REPAIR_CRITERIA = [
+    "Download the published release assets with `shipguard v4 stable-publication --download-release-assets` or supply the exact downloaded asset directory with `--release-assets`.",
+    "Run `shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>` and keep both `consumer-report.json` and `asset-digests.json` with the stable-publication packet.",
+    "Repair missing or mismatched release assets, replay proof, attestation proof, badge proof, manifest, index, ledger, or tarball digest before rerunning stable-publication.",
+    "After `release-consume verify` passes, rerun `shipguard v4 stable-publication` with the same release metadata, LaunchKey, adoption, and security inputs so later gates remain visible.",
+]
+
+POST_RELEASE_CONSUMER_PASS_CRITERIA = [
+    "`shipguard release-consume verify` exits 0.",
+    "`consumer-report.json` exists and reports `status = pass`.",
+    "`asset-digests.json` exists and lists the downloaded release assets with SHA-256 and byte counts.",
+    "Replay and attestation status are `pass` or explicitly verified as matching published assets.",
+    "The stable-publication report records `postReleaseConsumerProof.status = pass` from the consumed release assets, not from source-only or fixture proof.",
+]
+
+POST_RELEASE_CONSUMER_FAIL_CRITERIA = [
+    "No downloaded or supplied release-assets directory is available.",
+    "`release-consume verify` times out, exits non-zero, or cannot run from the current checkout.",
+    "`consumer-report.json` is missing, malformed, or reports a non-pass status.",
+    "`asset-digests.json` is missing, incomplete, or shows missing required release assets.",
+    "Replay, attestation, published crosscheck, version, or tarball SHA-256 proof is blocked or mismatched.",
+    "Source checkout tests, package fixtures, or draft release notes are treated as post-release consumer proof.",
+]
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -767,20 +791,46 @@ def re_normalized(value: str) -> str:
 
 def build_post_release_consumer_proof(published_release_asset_proof: dict[str, Any]) -> dict[str, Any]:
     passed = published_release_asset_proof.get("status") == "pass"
-    return {
+    proof = {
         "status": "pass" if passed else published_release_asset_proof.get("status", "not-provided"),
+        "provided": published_release_asset_proof.get("provided") is True,
         "requiredForStableV4": True,
         "summary": (
             "Downloaded release assets passed post-release consumer verification."
             if passed
             else "Post-release consumer proof needs downloaded assets to pass release-consume verification."
         ),
+        "downloadSource": published_release_asset_proof.get("downloadSource"),
+        "downloadProofStatus": published_release_asset_proof.get("downloadProofStatus"),
+        "version": published_release_asset_proof.get("version"),
+        "assetsDir": published_release_asset_proof.get("assetsDir"),
+        "consumeOut": published_release_asset_proof.get("consumeOut"),
+        "command": published_release_asset_proof.get("command"),
+        "consumeCommand": published_release_asset_proof.get("consumeCommand"),
+        "commandTemplate": published_release_asset_proof.get("commandTemplate"),
+        "exitCode": published_release_asset_proof.get("exitCode"),
+        "error": published_release_asset_proof.get("error"),
+        "stdout": published_release_asset_proof.get("stdout"),
+        "stderr": published_release_asset_proof.get("stderr"),
         "consumerReportStatus": published_release_asset_proof.get("consumerReportStatus"),
         "replayStatus": published_release_asset_proof.get("replayStatus"),
         "attestationStatus": published_release_asset_proof.get("attestationStatus"),
         "assetDigestMatrixPath": published_release_asset_proof.get("assetDigestMatrixPath"),
         "consumerReportPath": published_release_asset_proof.get("consumerReportPath"),
+        "artifactSha256": published_release_asset_proof.get("artifactSha256"),
+        "publishedReplayCrosscheck": published_release_asset_proof.get("publishedReplayCrosscheck"),
+        "publishedAttestationCrosscheck": published_release_asset_proof.get("publishedAttestationCrosscheck"),
+        "publishedBadgeCrosscheck": published_release_asset_proof.get("publishedBadgeCrosscheck"),
+        "assetCount": published_release_asset_proof.get("assetCount"),
     }
+    missing_artifacts: list[str] = []
+    if not proof.get("consumerReportPath"):
+        missing_artifacts.append("consumer-report.json")
+    if not proof.get("assetDigestMatrixPath"):
+        missing_artifacts.append("asset-digests.json")
+    if missing_artifacts:
+        proof["missingProofArtifacts"] = missing_artifacts
+    return proof
 
 
 def first_blocking_gate(gates: list[tuple[str, dict[str, Any], str]]) -> tuple[str, dict[str, Any], str] | None:
@@ -969,6 +1019,92 @@ def build_launchkey_candidate_closure_kit(
             "stablePublicationRequiresRealPublishedReleaseProof": True,
             "doNotPromoteFixtureLaunchKeyProofToStableV4": True,
             "explanation": "LaunchKey fixture reports can test ShipGuard routing. Stable-v4 publication still requires the public release metadata, release notes, downloaded release assets, post-release consumer proof, independent adoption evidence, and final security-review evidence to pass in stable-publication.",
+        },
+    }
+
+
+def post_release_consumer_diagnostics_for_closure(proof: dict[str, Any]) -> dict[str, Any]:
+    missing_artifacts = proof.get("missingProofArtifacts") if isinstance(proof.get("missingProofArtifacts"), list) else []
+    return {
+        "status": proof.get("status"),
+        "provided": proof.get("provided") is True,
+        "summary": proof.get("summary") or "",
+        "downloadSource": proof.get("downloadSource") or "",
+        "downloadProofStatus": proof.get("downloadProofStatus") or "",
+        "version": proof.get("version") or "",
+        "assetsDir": proof.get("assetsDir") or "",
+        "consumeOut": proof.get("consumeOut") or "",
+        "command": proof.get("command") or "",
+        "consumeCommand": proof.get("consumeCommand") or "",
+        "commandTemplate": proof.get("commandTemplate") or "",
+        "exitCode": proof.get("exitCode"),
+        "error": proof.get("error") or "",
+        "stdout": proof.get("stdout") or "",
+        "stderr": proof.get("stderr") or "",
+        "consumerReportStatus": proof.get("consumerReportStatus") or "not-provided",
+        "consumerReportPath": proof.get("consumerReportPath") or "",
+        "assetDigestMatrixPath": proof.get("assetDigestMatrixPath") or "",
+        "missingProofArtifacts": missing_artifacts,
+        "replayStatus": proof.get("replayStatus") or "not-provided",
+        "attestationStatus": proof.get("attestationStatus") or "not-provided",
+        "artifactSha256": proof.get("artifactSha256") or "",
+        "publishedReplayCrosscheck": proof.get("publishedReplayCrosscheck") or "not-provided",
+        "publishedAttestationCrosscheck": proof.get("publishedAttestationCrosscheck") or "not-provided",
+        "publishedBadgeCrosscheck": proof.get("publishedBadgeCrosscheck") or "not-provided",
+        "assetCount": proof.get("assetCount"),
+    }
+
+
+def build_post_release_consumer_closure_kit(
+    *,
+    item: dict[str, Any],
+    rerun_command: str,
+) -> dict[str, Any]:
+    diagnostics = (
+        item.get("postReleaseConsumerDiagnostics")
+        if isinstance(item.get("postReleaseConsumerDiagnostics"), dict)
+        else {}
+    )
+    release_consume_rerun = (
+        str(diagnostics.get("command") or diagnostics.get("consumeCommand") or item.get("nextCommand") or "")
+        or "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>"
+    )
+    return {
+        "schemaVersion": 1,
+        "title": "Post-release consumer proof closure kit",
+        "status": diagnostics.get("status") or item.get("status") or "not-provided",
+        "summary": diagnostics.get("summary") or item.get("summary") or "",
+        "downloadSource": diagnostics.get("downloadSource") or "",
+        "downloadProofStatus": diagnostics.get("downloadProofStatus") or "",
+        "version": diagnostics.get("version") or "",
+        "assetsDir": diagnostics.get("assetsDir") or "",
+        "consumeOut": diagnostics.get("consumeOut") or "",
+        "consumerReportStatus": diagnostics.get("consumerReportStatus") or "not-provided",
+        "consumerReportPath": diagnostics.get("consumerReportPath") or "",
+        "assetDigestMatrixPath": diagnostics.get("assetDigestMatrixPath") or "",
+        "missingProofArtifacts": diagnostics.get("missingProofArtifacts") if isinstance(diagnostics.get("missingProofArtifacts"), list) else [],
+        "replayStatus": diagnostics.get("replayStatus") or "not-provided",
+        "attestationStatus": diagnostics.get("attestationStatus") or "not-provided",
+        "artifactSha256": diagnostics.get("artifactSha256") or "",
+        "publishedCrosschecks": {
+            "replayReport": diagnostics.get("publishedReplayCrosscheck") or "not-provided",
+            "attestation": diagnostics.get("publishedAttestationCrosscheck") or "not-provided",
+            "attestationBadge": diagnostics.get("publishedBadgeCrosscheck") or "not-provided",
+        },
+        "assetCount": diagnostics.get("assetCount"),
+        "currentConsumerDiagnostics": diagnostics,
+        "repairCriteria": POST_RELEASE_CONSUMER_REPAIR_CRITERIA,
+        "passCriteria": POST_RELEASE_CONSUMER_PASS_CRITERIA,
+        "failCriteria": POST_RELEASE_CONSUMER_FAIL_CRITERIA,
+        "releaseConsumeRerunCommand": release_consume_rerun,
+        "stablePublicationRerunCommand": rerun_command,
+        "consumerProofBoundary": {
+            "releaseConsumeRequired": True,
+            "downloadedOrSuppliedAssetsRequired": True,
+            "sourceOnlyProofCountsAsConsumerProof": False,
+            "fixtureProofCountsAsStableV4PublicationProof": False,
+            "postReleaseConsumerProofDoesNotProveAdoptionOrSecurity": True,
+            "explanation": "Post-release consumer proof is only satisfied by release-consume verification of downloaded or supplied release assets. Source tests, package fixtures, release-note drafts, and GitHub metadata alone are not consumer proof.",
         },
     }
 
@@ -1265,6 +1401,8 @@ def build_stable_publication_evidence_packet(
             )
         if evidence_id == "launchkey-candidate-packet":
             item["launchKeyCandidateDiagnostics"] = launchkey_candidate_diagnostics_for_closure(proof)
+        if evidence_id == "post-release-consumer-proof":
+            item["postReleaseConsumerDiagnostics"] = post_release_consumer_diagnostics_for_closure(proof)
         if evidence_id in {"independent-adoption-evidence", "final-security-review-evidence"}:
             item["evidenceDiagnostics"] = evidence_diagnostics_for_closure(proof)
         required_evidence.append(item)
@@ -1419,6 +1557,34 @@ def build_stable_publication_closure_checklist(
                 }
             )
             closure_item["nextCommand"] = closure_item["nestedRerunCommand"] or closure_item["stablePublicationRerunCommand"]
+        if evidence_id == "post-release-consumer-proof":
+            consumer_kit = build_post_release_consumer_closure_kit(
+                item=item,
+                rerun_command=rerun_command
+                or (
+                    "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> "
+                    "--github-release-repo <owner/repo> --release-version <version> "
+                    "--release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets "
+                    "--external-adoption-evidence <adoption-evidence-json-or-dir> "
+                    "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
+                ),
+            )
+            closure_item.update(
+                {
+                    "consumerReportStatus": consumer_kit.get("consumerReportStatus") or "not-provided",
+                    "consumerReportPath": consumer_kit.get("consumerReportPath") or "",
+                    "assetDigestMatrixPath": consumer_kit.get("assetDigestMatrixPath") or "",
+                    "missingProofArtifacts": consumer_kit.get("missingProofArtifacts") if isinstance(consumer_kit.get("missingProofArtifacts"), list) else [],
+                    "releaseConsumeRerunCommand": consumer_kit.get("releaseConsumeRerunCommand") or item.get("nextCommand") or "",
+                    "stablePublicationRerunCommand": consumer_kit.get("stablePublicationRerunCommand") or rerun_command,
+                    "repairCriteria": consumer_kit.get("repairCriteria") if isinstance(consumer_kit.get("repairCriteria"), list) else [],
+                    "passCriteria": consumer_kit.get("passCriteria") if isinstance(consumer_kit.get("passCriteria"), list) else [],
+                    "failCriteria": consumer_kit.get("failCriteria") if isinstance(consumer_kit.get("failCriteria"), list) else [],
+                    "consumerProofBoundary": consumer_kit.get("consumerProofBoundary") if isinstance(consumer_kit.get("consumerProofBoundary"), dict) else {},
+                    "postReleaseConsumerClosureKit": consumer_kit,
+                }
+            )
+            closure_item["nextCommand"] = closure_item["releaseConsumeRerunCommand"] or closure_item["stablePublicationRerunCommand"]
         if evidence_id in {"independent-adoption-evidence", "final-security-review-evidence"}:
             template = templates_by_id.get(evidence_id, {})
             starter_file = starter_files_by_id.get(evidence_id, {})
@@ -1993,6 +2159,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the stable-publication report provide draft-only evidence templates for independent adoption and final security review without manufacturing proof?",
             "Does the stable-publication report write a draft-only evidence starter kit so maintainers can collect the packet without reverse-engineering JSON shapes?",
             "Does the LaunchKey candidate closure row expose the supplied candidate path, nested receipt, required proof areas, package-hygiene diagnostics, repair/pass criteria, nested rerun, full stable-publication rerun, and fixture-proof boundary?",
+            "Does the post-release consumer closure row expose release-consume paths, missing proof artifacts, digest/replay/attestation statuses, repair/pass criteria, release-consume rerun, full stable-publication rerun, and source-only/fixture-proof boundaries?",
             "Do independent adoption and final security-review closure rows expose starter paths, required fields, redaction/privacy boundaries, pass/fail criteria, current diagnostics, and exact stable-publication rerun commands?",
             "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?",
         ],
@@ -2191,6 +2358,71 @@ def render_markdown(report: dict[str, Any]) -> str:
                     "```",
                     "",
                     "Rerun the full stable-publication gate after LaunchKey passes:",
+                    "",
+                    "```bash",
+                    str(kit.get("stablePublicationRerunCommand") or ""),
+                    "```",
+                ]
+            )
+        consumer_closure = next(
+            (item for item in items if isinstance(item, dict) and item.get("id") == "post-release-consumer-proof"),
+            None,
+        )
+        if isinstance(consumer_closure, dict) and isinstance(consumer_closure.get("postReleaseConsumerClosureKit"), dict):
+            kit = consumer_closure["postReleaseConsumerClosureKit"]
+            boundary = kit.get("consumerProofBoundary") if isinstance(kit.get("consumerProofBoundary"), dict) else {}
+            crosschecks = kit.get("publishedCrosschecks") if isinstance(kit.get("publishedCrosschecks"), dict) else {}
+            missing_artifacts = kit.get("missingProofArtifacts") if isinstance(kit.get("missingProofArtifacts"), list) else []
+            diagnostics = kit.get("currentConsumerDiagnostics") if isinstance(kit.get("currentConsumerDiagnostics"), dict) else {}
+            lines.extend(
+                [
+                    "",
+                    "### Post-Release Consumer Closure Kit",
+                    "",
+                    f"- Status: `{kit.get('status') or consumer_closure.get('status') or 'not-provided'}`",
+                    f"- Consumer report status: `{kit.get('consumerReportStatus') or 'not-provided'}`",
+                    f"- Consumer report path: `{kit.get('consumerReportPath') or 'not-provided'}`",
+                    f"- Asset digest matrix path: `{kit.get('assetDigestMatrixPath') or 'not-provided'}`",
+                    f"- Missing proof artifacts: `{', '.join(str(value) for value in missing_artifacts) or 'none'}`",
+                    f"- Download source: `{kit.get('downloadSource') or 'not-provided'}`",
+                    f"- Download proof status: `{kit.get('downloadProofStatus') or 'not-provided'}`",
+                    f"- Release version: `{kit.get('version') or 'not-provided'}`",
+                    f"- Assets directory: `{kit.get('assetsDir') or 'not-provided'}`",
+                    f"- Consume output directory: `{kit.get('consumeOut') or 'not-provided'}`",
+                    f"- Exit code: `{diagnostics.get('exitCode') if diagnostics.get('exitCode') is not None else 'not-provided'}`",
+                    f"- Error: `{diagnostics.get('error') or 'none'}`",
+                    f"- Release-consume required: `{boundary.get('releaseConsumeRequired')}`",
+                    f"- Source-only proof counts as consumer proof: `{boundary.get('sourceOnlyProofCountsAsConsumerProof')}`",
+                    f"- Fixture proof counts as stable-v4 publication proof: `{boundary.get('fixtureProofCountsAsStableV4PublicationProof')}`",
+                    "",
+                    "| Consumer crosscheck | Status |",
+                    "| --- | --- |",
+                    f"| Replay | `{kit.get('replayStatus') or 'not-provided'}` |",
+                    f"| Attestation | `{kit.get('attestationStatus') or 'not-provided'}` |",
+                    f"| Published replay report | `{crosschecks.get('replayReport') or 'not-provided'}` |",
+                    f"| Published attestation | `{crosschecks.get('attestation') or 'not-provided'}` |",
+                    f"| Published badge | `{crosschecks.get('attestationBadge') or 'not-provided'}` |",
+                ]
+            )
+            lines.extend(["", "Repair criteria:", ""])
+            for criterion in kit.get("repairCriteria", []):
+                lines.append(f"- {criterion}")
+            lines.extend(["", "Pass criteria:", ""])
+            for criterion in kit.get("passCriteria", []):
+                lines.append(f"- {criterion}")
+            lines.extend(["", "Fail criteria:", ""])
+            for criterion in kit.get("failCriteria", []):
+                lines.append(f"- {criterion}")
+            lines.extend(
+                [
+                    "",
+                    "Rerun release-consume proof:",
+                    "",
+                    "```bash",
+                    str(kit.get("releaseConsumeRerunCommand") or consumer_closure.get("nextCommand") or ""),
+                    "```",
+                    "",
+                    "Rerun the full stable-publication gate after consumer proof passes:",
                     "",
                     "```bash",
                     str(kit.get("stablePublicationRerunCommand") or ""),

@@ -3360,6 +3360,156 @@ def stable_publication_evidence_packet_issues(
                                 evidence=f"{path_name} Markdown does not render the LaunchKey candidate closure kit",
                                 recommendation="Render candidate report path, nested receipt, required proof areas, hygiene diagnostics, repair/pass criteria, nested rerun, full stable-publication rerun, and fixture-proof boundary in Markdown.",
                             )
+                if item.get("id") == "post-release-consumer-proof":
+                    source_consumer = (
+                        report.get("postReleaseConsumerProof")
+                        if isinstance(report.get("postReleaseConsumerProof"), dict)
+                        else {}
+                    )
+                    closure_kit = (
+                        item.get("postReleaseConsumerClosureKit")
+                        if isinstance(item.get("postReleaseConsumerClosureKit"), dict)
+                        else {}
+                    )
+                    if not closure_kit:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="stable-publication-post-release-consumer-closure-kit-missing",
+                            evidence=f"{path_name} post-release-consumer-proof closure item has no postReleaseConsumerClosureKit",
+                            recommendation="Attach a post-release consumer closure kit with release-consume paths, missing proof artifacts, digest/replay/attestation statuses, repair/pass criteria, release-consume rerun, stable-publication rerun, and source-only/fixture-proof boundaries.",
+                        )
+                    else:
+                        missing_artifacts = (
+                            closure_kit.get("missingProofArtifacts")
+                            if isinstance(closure_kit.get("missingProofArtifacts"), list)
+                            else []
+                        )
+                        if not closure_kit.get("consumerReportPath") and "consumer-report.json" not in missing_artifacts:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-post-release-consumer-report-path-or-missing-artifact-missing",
+                                evidence=f"{path_name} post-release consumer closure kit hides the consumer report path and does not list it as missing",
+                                recommendation="Expose consumerReportPath when release-consume ran, or list consumer-report.json in missingProofArtifacts when it did not.",
+                            )
+                        if not closure_kit.get("assetDigestMatrixPath") and "asset-digests.json" not in missing_artifacts:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-post-release-consumer-digest-path-or-missing-artifact-missing",
+                                evidence=f"{path_name} post-release consumer closure kit hides the asset digest matrix path and does not list it as missing",
+                                recommendation="Expose assetDigestMatrixPath when release-consume ran, or list asset-digests.json in missingProofArtifacts when it did not.",
+                            )
+                        if not closure_kit.get("consumerReportStatus"):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-post-release-consumer-status-missing",
+                                evidence=f"{path_name} post-release consumer closure kit omits consumerReportStatus",
+                                recommendation="Mirror consumerReportStatus so maintainers know whether release-consume produced a pass, blocked, missing, or malformed report.",
+                            )
+                        crosschecks = (
+                            closure_kit.get("publishedCrosschecks")
+                            if isinstance(closure_kit.get("publishedCrosschecks"), dict)
+                            else {}
+                        )
+                        if not closure_kit.get("replayStatus") or not closure_kit.get("attestationStatus") or not crosschecks:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-post-release-consumer-crosschecks-missing",
+                                evidence=f"{path_name} post-release consumer closure kit omits replay, attestation, or published crosscheck statuses",
+                                recommendation="Expose replayStatus, attestationStatus, and published replay/attestation/badge crosschecks from release-consume.",
+                            )
+                        diagnostics = (
+                            closure_kit.get("currentConsumerDiagnostics")
+                            if isinstance(closure_kit.get("currentConsumerDiagnostics"), dict)
+                            else {}
+                        )
+                        if not diagnostics:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-post-release-consumer-diagnostics-missing",
+                                evidence=f"{path_name} post-release consumer closure kit has no currentConsumerDiagnostics",
+                                recommendation="Mirror release-consume status, command, paths, exit code, missing artifacts, and errors into currentConsumerDiagnostics.",
+                            )
+                        else:
+                            source_status = str(source_consumer.get("status") or "")
+                            if source_status and str(diagnostics.get("status") or "") != source_status:
+                                add_issue(
+                                    issues,
+                                    severity="review",
+                                    rule_id="stable-publication-post-release-consumer-diagnostics-status-drift",
+                                    evidence=f"{path_name} post-release consumer diagnostics status does not mirror postReleaseConsumerProof.status",
+                                    recommendation="Keep currentConsumerDiagnostics.status aligned with postReleaseConsumerProof.status.",
+                                )
+                        if not isinstance(closure_kit.get("repairCriteria"), list) or len(closure_kit.get("repairCriteria") or []) < 3:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-post-release-consumer-repair-criteria-missing",
+                                evidence=f"{path_name} post-release consumer closure kit does not list repair criteria",
+                                recommendation="Tell maintainers to download/supply release assets, rerun release-consume, repair missing assets or digest proof, then rerun stable-publication.",
+                            )
+                        if not isinstance(closure_kit.get("passCriteria"), list) or len(closure_kit.get("passCriteria") or []) < 4:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-post-release-consumer-pass-criteria-missing",
+                                evidence=f"{path_name} post-release consumer closure kit does not list pass criteria",
+                                recommendation="List concrete pass criteria for release-consume exit code, consumer report, asset digest matrix, replay/attestation proof, and stable-publication status.",
+                            )
+                        if not isinstance(closure_kit.get("failCriteria"), list) or len(closure_kit.get("failCriteria") or []) < 4:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-post-release-consumer-fail-criteria-missing",
+                                evidence=f"{path_name} post-release consumer closure kit does not list fail criteria",
+                                recommendation="List fail cases such as missing assets, non-pass consumer report, missing digest matrix, replay/attestation mismatch, and source-only proof misuse.",
+                            )
+                        if "release-consume" not in str(closure_kit.get("releaseConsumeRerunCommand") or item.get("releaseConsumeRerunCommand") or item.get("nextCommand") or ""):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-post-release-consumer-rerun-command-missing",
+                                evidence=f"{path_name} post-release consumer closure kit lacks the release-consume rerun command",
+                                recommendation="Attach the exact release-consume command or a release-consume template when assets were not supplied.",
+                            )
+                        if "stable-publication" not in str(closure_kit.get("stablePublicationRerunCommand") or item.get("stablePublicationRerunCommand") or ""):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-post-release-consumer-full-rerun-command-missing",
+                                evidence=f"{path_name} post-release consumer closure kit lacks the full stable-publication rerun command",
+                                recommendation="Attach the full stable-publication command to run after release-consume passes.",
+                            )
+                        boundary = (
+                            closure_kit.get("consumerProofBoundary")
+                            if isinstance(closure_kit.get("consumerProofBoundary"), dict)
+                            else {}
+                        )
+                        if (
+                            boundary.get("releaseConsumeRequired") is not True
+                            or boundary.get("sourceOnlyProofCountsAsConsumerProof") is not False
+                            or boundary.get("fixtureProofCountsAsStableV4PublicationProof") is not False
+                        ):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-post-release-consumer-boundary-missing",
+                                evidence=f"{path_name} post-release consumer closure kit does not state the release-consume/source-only/fixture-proof boundary",
+                                recommendation="State that release-consume over downloaded or supplied assets is required, source-only proof cannot satisfy post-release consumer proof, and fixture proof cannot satisfy stable-v4 publication proof.",
+                            )
+                        if "Post-Release Consumer Closure Kit" not in markdown:
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-post-release-consumer-closure-kit-markdown-missing",
+                                evidence=f"{path_name} Markdown does not render the post-release consumer closure kit",
+                                recommendation="Render release-consume paths, missing artifacts, statuses, repair/pass/fail criteria, rerun commands, and proof boundaries in Markdown.",
+                            )
                 if item.get("id") == "release-notes":
                     release_notes_proof = report.get("releaseNotesProof") if isinstance(report.get("releaseNotesProof"), dict) else {}
                     proof_missing_topics = release_notes_proof.get("missingTopicIds")
