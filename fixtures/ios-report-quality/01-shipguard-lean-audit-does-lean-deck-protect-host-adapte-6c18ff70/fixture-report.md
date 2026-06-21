@@ -44,6 +44,14 @@ This is a public synthetic ShipGuard fixture. It is not copied from a private ap
 | Requested explanation | Docs/ReleaseWalkthrough.md:7 | Explicit reports and walkthroughs can be product support. | Requester or doc-ownership evidence. |
 | One runnable check | Tests/HostAdapterRegistrationTests.swift:11 | One focused check protects non-trivial behavior from proofless cleanup. | Equivalent runnable proof. |
 
+## Lean Debt Ledger
+
+- Markers: 0
+- Missing upgrade trigger: 0
+- Omitted by limit: 0
+
+No `ponytail:` or `shipguard-lean:` shortcut markers found.
+
 ## Report Quality Questions
 
 - Does Lean Deck protect host adapters, hardware calibration, requested explanation, and one-check minimums from false less-code pressure?

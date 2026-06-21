@@ -21,3 +21,11 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 - `adapterBoundary`: Thin host adapters are keep-with-proof boundaries.
 - `shortcutDebt`: Intentional shortcuts need a ceiling and upgrade trigger.
 - `gainHonesty`: Benchmark direction is not a current-repo savings claim.
+
+## Lean Debt Ledger
+
+- Markers: 0
+- Missing upgrade trigger: 0
+- Omitted by limit: 0
+
+No `ponytail:` or `shipguard-lean:` shortcut markers found.

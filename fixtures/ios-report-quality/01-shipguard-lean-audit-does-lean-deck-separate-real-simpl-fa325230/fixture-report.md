@@ -41,6 +41,14 @@ This is a public synthetic ShipGuard fixture. It is not copied from a private ap
 | 1 | simplify | Sources/PlainUtility.swift:12 | Try URLComponents after an encoding equivalence test. | Add checks for repeated keys, empty values, and encoding. |
 | 2 | keep | Sources/PaymentPermissionBoundary.swift:28 | Do not simplify trust-boundary validation from a less-code report alone. | Attach denied-state, rollback, and purchase validation tests first. |
 
+## Lean Debt Ledger
+
+- Markers: 0
+- Missing upgrade trigger: 0
+- Omitted by limit: 0
+
+No `ponytail:` or `shipguard-lean:` shortcut markers found.
+
 ## Report Quality Questions
 
 - Does Lean Deck separate real simplification candidates from safety-boundary files?

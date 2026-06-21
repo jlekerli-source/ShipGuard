@@ -61,6 +61,17 @@ The v3.141 read-only loop reran `shipguard lean audit`, `shipguard lean review`,
 
 Fresh QA now treats the deletion-usefulness question as covered and advances to the `leanDebtLedger` shortcut-audit question.
 
+## Current Lean Deck Shortcut-Ledger Fixture QA
+
+The v3.142 read-only loop reran `shipguard lean audit`, `shipguard lean review`, `shipguard lean gain`, `shipguard lean debt`, `shipguard value-gauntlet`, and `ios report-quality --write-fixture-candidates` against this checkout after the deletion-usefulness fixture landed.
+
+- Finding: fresh Lean Deck QA passed, but the next uncovered actionability question was "Does leanDebtLedger make intentional shortcuts auditable with ceilings and upgrade triggers?"
+- Product weakness: generated fixture starters preserved the question but did not prove the actual shortcut-ledger contract, so a report could look useful while hiding marker status, ceilings, upgrade triggers, or the Markdown table.
+- Native fix: `ios report-quality` now flags Lean Deck and Lean Debt reports that omit `leanDebtLedger` summary counts, marker fields, trigger status, or Markdown ledger visibility.
+- Fixture fix: `fixtures/ios-report-quality/01-shipguard-lean-audit-does-leandebtledger-make-intention-e856e9a3` uses public synthetic evidence for one tracked shortcut and one `needs-trigger` shortcut.
+
+Fresh QA now treats the shortcut-ledger question as covered and advances to the Lean Gain fake-savings question.
+
 ## Current Verify-PR First-Run QA
 
 The v3.198 read-only loop ran `shipguard inspect`, `shipguard value-gauntlet`, `shipguard full-audit --plan-only`, docs-check, and the verify-first quickstart tests against this checkout.

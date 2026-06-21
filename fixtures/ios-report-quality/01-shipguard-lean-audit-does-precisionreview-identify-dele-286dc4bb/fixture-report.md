@@ -33,6 +33,14 @@ This is a public synthetic ShipGuard fixture. It is not copied from a private ap
 | ---: | --- | --- | --- | --- |
 | 1 | delete | scripts/example.py:4 | Inline or delete the wrapper if search proves it adds no policy, naming, compatibility, or test value. | Use search results to confirm no public contract depends on it. |
 
+## Lean Debt Ledger
+
+- Markers: 0
+- Missing upgrade trigger: 0
+- Omitted by limit: 0
+
+No `ponytail:` or `shipguard-lean:` shortcut markers found.
+
 ## Report Quality Questions
 
 - Does precisionReview identify delete, simplify, keep, and proof-blocked decisions instead of dumping findings?

@@ -1,0 +1,142 @@
+{
+  "behaviorGates": {
+    "adapterBoundary": {
+      "policy": "Thin plugin, hook, MCP, and agent-host adapters can be the product boundary; keep them unless host registration proof says they are redundant.",
+      "status": "policy"
+    },
+    "gainHonesty": {
+      "policy": "Benchmark impact is not a current-repo savings claim without a matched baseline.",
+      "status": "available-in-lean-gain"
+    },
+    "hardwareCalibration": {
+      "policy": "Hardware, sensors, clocks, timing, and physical devices need calibration or tuning proof before simplification.",
+      "status": "available"
+    },
+    "oneRunnableCheck": {
+      "policy": "Non-trivial new logic should leave one smallest runnable check; trivial one-liners do not need ceremony.",
+      "status": "enforced-in-lean-review"
+    },
+    "requestedExplanation": {
+      "policy": "Explicitly requested reports, walkthroughs, phase notes, and rationale are not clutter.",
+      "status": "policy"
+    },
+    "shortcutDebt": {
+      "markers": 2,
+      "missingUpgradeTrigger": 1,
+      "policy": "Every intentional shortcut needs a ceiling and upgrade trigger.",
+      "status": "review"
+    }
+  },
+  "findings": [
+    {
+      "category": "shortcut-debt",
+      "evidence": {
+        "file": "Sources/CompactQueryParser.swift",
+        "line": 12,
+        "snippet": "shipguard-lean marker with a ceiling and upgrade trigger"
+      },
+      "proofGuidance": "Keep the marker until repeated-key support is required, then replace the parser and remove the shortcut.",
+      "recommendation": "Leave the tracked shortcut visible because it has a ceiling and upgrade trigger.",
+      "ruleId": "tracked-shortcut-with-trigger",
+      "severity": "info"
+    },
+    {
+      "category": "shortcut-debt",
+      "evidence": {
+        "file": "Sources/FastPreviewLoader.swift",
+        "line": 27,
+        "snippet": "shipguard-lean marker with a ceiling but no upgrade trigger"
+      },
+      "proofGuidance": "Add an upgrade trigger before treating this shortcut as intentional debt.",
+      "recommendation": "Mark the shortcut needs-trigger until the report says when to replace it.",
+      "ruleId": "deferred-shortcut-without-trigger",
+      "severity": "review"
+    }
+  ],
+  "fixtureCandidate": {
+    "candidateId": "01-shipguard-lean-audit-does-leandebtledger-make-intention-e856e9a3",
+    "duplicateCount": 1,
+    "expectedAssertions": [
+      "report-quality preserves the leanDebtLedger actionability question in JSON and Markdown",
+      "the fixture exposes leanDebtLedger summary and markers in JSON",
+      "the fixture exposes Lean Debt Ledger with Ceiling and Upgrade Trigger columns in Markdown",
+      "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+      "shareable output contains no local absolute paths or private app identifiers"
+    ],
+    "fixtureType": "shipguard-lean-report-quality-fixture",
+    "priority": 1,
+    "privateDataPolicy": "This promoted fixture is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
+    "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-audit-does-leandebtledger-make-intention-e856e9a3",
+    "sourceQuestion": "Does leanDebtLedger make intentional shortcuts auditable with ceilings and upgrade triggers?",
+    "sourceReportCount": 1,
+    "sourceReportsRedacted": true,
+    "sourceTool": "shipguard lean audit"
+  },
+  "generatedAt": "2026-06-21T01:42:00Z",
+  "intent": "shipguard-evaluation",
+  "leanDebtLedger": {
+    "description": "Intentional lean shortcuts found in comments. Every shortcut should name a ceiling and an upgrade trigger so deferrals stay reviewable.",
+    "markers": [
+      {
+        "ceiling": "only one query string shape",
+        "file": "Sources/CompactQueryParser.swift",
+        "hasUpgradeTrigger": true,
+        "line": 12,
+        "marker": "shipguard-lean",
+        "status": "tracked",
+        "summary": "use the native parser here. ceiling: only one query string shape. upgrade: replace when repeated-key support is required.",
+        "upgrade": "replace when repeated-key support is required"
+      },
+      {
+        "ceiling": "preview data only",
+        "file": "Sources/FastPreviewLoader.swift",
+        "hasUpgradeTrigger": false,
+        "line": 27,
+        "marker": "shipguard-lean",
+        "status": "needs-trigger",
+        "summary": "cache the first fixture load while the preview dataset is tiny. ceiling: preview data only.",
+        "upgrade": ""
+      }
+    ],
+    "summary": {
+      "markers": 2,
+      "missingUpgradeTrigger": 1,
+      "omittedByLimit": 0
+    }
+  },
+  "precisionReview": {
+    "blockedByProof": [],
+    "deleteList": [],
+    "keepList": [],
+    "simplifyFirst": [],
+    "summary": {
+      "actionGroups": 0,
+      "deleteCandidates": 0,
+      "keepBoundaries": 0,
+      "proofBlockedCandidates": 0,
+      "simplifyCandidates": 0
+    },
+    "topActions": []
+  },
+  "reportQualityQuestions": [
+    "Does leanDebtLedger make intentional shortcuts auditable with ceilings and upgrade triggers?"
+  ],
+  "scanScope": {
+    "note": "Synthetic fixture; no private source tree was scanned.",
+    "skippedDirectories": [],
+    "skippedDirectoryCount": 0
+  },
+  "schemaVersion": 1,
+  "scopeBoundary": {
+    "purpose": "Synthetic public fixture for ShipGuard report-quality behavior.",
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true
+  },
+  "shareability": {
+    "localAbsolutePathsIncluded": false,
+    "mode": "shareable"
+  },
+  "status": "review",
+  "surface": "ShipGuard Lean Deck",
+  "tool": "shipguard lean audit"
+}

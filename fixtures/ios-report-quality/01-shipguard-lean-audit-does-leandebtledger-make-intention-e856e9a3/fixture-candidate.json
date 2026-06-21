@@ -1,0 +1,57 @@
+{
+  "candidateId": "01-shipguard-lean-audit-does-leandebtledger-make-intention-e856e9a3",
+  "duplicateCount": 1,
+  "expectedAssertions": [
+    "report-quality preserves the leanDebtLedger actionability question in JSON and Markdown",
+    "the fixture exposes leanDebtLedger summary and markers in JSON",
+    "the fixture exposes Lean Debt Ledger with Ceiling and Upgrade Trigger columns in Markdown",
+    "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+    "shareable output contains no local absolute paths or private app identifiers"
+  ],
+  "fixtureType": "shipguard-lean-report-quality-fixture",
+  "materialization": {
+    "files": [
+      "README.md",
+      "fixture-candidate.json",
+      "fixture-report.json",
+      "fixture-report.md"
+    ],
+    "safeSyntheticOnly": true,
+    "writeCommand": "./bin/shipguard ios report-quality --reports <report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>"
+  },
+  "priority": 1,
+  "privateDataPolicy": "This promoted fixture is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
+  "promotion": {
+    "candidateId": "01-shipguard-lean-audit-does-leandebtledger-make-intention-e856e9a3",
+    "files": [
+      "README.md",
+      "fixture-candidate.json",
+      "fixture-report.json",
+      "fixture-report.md"
+    ],
+    "promotionPolicy": "Promotion is explicit maintainer work. ShipGuard writes starter files only to the requested output directory and does not auto-copy them into the repository.",
+    "reviewChecklist": [
+      "Confirm the fixture is synthetic and public-safe.",
+      "Confirm no private app code, screenshots, local paths, tokens, app identifiers, or proprietary text were copied.",
+      "Confirm tracked and needs-trigger shortcut lanes are visible in JSON and Markdown.",
+      "Confirm scopeBoundary.shipguardOnly and targetAppsReadOnly remain explicit.",
+      "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates."
+    ],
+    "suggestedFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-audit-does-leandebtledger-make-intention-e856e9a3",
+    "validationCommands": [
+      "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-audit-does-leandebtledger-make-intention-e856e9a3 --out <quality-dir> --shareable",
+      "./tests/ios_report_quality_test.sh",
+      "./bin/shipguard validate"
+    ]
+  },
+  "publicFixturePath": "fixtures/ios-report-quality/01-shipguard-lean-audit-does-leandebtledger-make-intention-e856e9a3",
+  "publicFixtureRecipe": "Create a minimal synthetic ShipGuard Lean Deck report pair that proves shortcut markers are auditable with ceilings, upgrade triggers, and explicit needs-trigger status.",
+  "sourceQuestion": "Does leanDebtLedger make intentional shortcuts auditable with ceilings and upgrade triggers?",
+  "sourceReportCount": 1,
+  "sourceReportsRedacted": true,
+  "sourceTool": "shipguard lean audit",
+  "validationCommands": [
+    "./bin/shipguard ios report-quality --reports <fixture-dir> --out <quality-dir> --shareable",
+    "./tests/ios_report_quality_test.sh"
+  ]
+}

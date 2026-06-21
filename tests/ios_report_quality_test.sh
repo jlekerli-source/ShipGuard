@@ -1811,6 +1811,36 @@ if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_
   exit 1
 fi
 
+lean_shortcut_fixture="fixtures/ios-report-quality/01-shipguard-lean-audit-does-leandebtledger-make-intention-e856e9a3"
+./bin/shipguard ios report-quality \
+  --reports "$lean_shortcut_fixture" \
+  --out "$tmp_dir/lean-shortcut-public-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/lean-shortcut-public-quality/ios-report-quality.json"
+grep -q 'Does leanDebtLedger make intentional shortcuts auditable with ceilings and upgrade triggers?' "$tmp_dir/lean-shortcut-public-quality/ios-report-quality.md"
+grep -q '"leanDebtLedger":' "$lean_shortcut_fixture/fixture-report.json"
+grep -q '"status": "tracked"' "$lean_shortcut_fixture/fixture-report.json"
+grep -q '"status": "needs-trigger"' "$lean_shortcut_fixture/fixture-report.json"
+grep -q '"missingUpgradeTrigger": 1' "$lean_shortcut_fixture/fixture-report.json"
+grep -q 'Lean Debt Ledger' "$lean_shortcut_fixture/fixture-report.md"
+grep -q 'Upgrade Trigger' "$lean_shortcut_fixture/fixture-report.md"
+python3 - <<'PY' "$tmp_dir/lean-shortcut-public-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+if data.get("fixtureCandidates"):
+    raise SystemExit(f"Lean Deck shortcut-ledger public fixture should not create recursive fixture candidates: {data['fixtureCandidates']!r}")
+questions = data.get("prioritizedActionabilityQuestions") or []
+top = questions[0] if questions else {}
+if not top or not (top.get("sourceMaterializedFixture") is True or top.get("existingFixture")):
+    raise SystemExit(f"Lean Deck shortcut-ledger fixture should retain materialized or fixture-coverage question evidence: {questions!r}")
+PY
+if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$lean_shortcut_fixture"; then
+  echo "Lean Deck shortcut-ledger fixture must not include local paths or private app identifiers" >&2
+  exit 1
+fi
+
 ./bin/shipguard lean audit \
   --path . \
   --out "$tmp_dir/lean-fresh-priority" \
@@ -1826,9 +1856,10 @@ grep -q '01-shipguard-lean-audit-does-precisionreview-identify-dele-286dc4bb' "$
 grep -q '01-shipguard-lean-audit-does-lean-deck-separate-real-simpl-fa325230' "$tmp_dir/lean-fresh-priority-quality/ios-report-quality.json"
 grep -q '01-shipguard-lean-audit-does-lean-deck-protect-host-adapte-6c18ff70' "$tmp_dir/lean-fresh-priority-quality/ios-report-quality.json"
 grep -q '01-shipguard-lean-audit-does-the-report-help-a-solo-develo-e645ec7e' "$tmp_dir/lean-fresh-priority-quality/ios-report-quality.json"
+grep -q '01-shipguard-lean-audit-does-leandebtledger-make-intention-e856e9a3' "$tmp_dir/lean-fresh-priority-quality/ios-report-quality.json"
 grep -q '"fixtureType": "shipguard-lean-report-quality-fixture"' "$tmp_dir/lean-fresh-priority-quality/ios-report-quality.json"
 grep -q '"fixtureCandidates":' "$tmp_dir/lean-fresh-priority-quality/ios-report-quality.json"
-grep -q 'Does leanDebtLedger make intentional shortcuts auditable with ceilings and upgrade triggers?' "$tmp_dir/lean-fresh-priority-quality/ios-report-quality.json"
+grep -q 'Does lean gain avoid fake per-repo savings while still showing benchmark-backed impact?' "$tmp_dir/lean-fresh-priority-quality/ios-report-quality.json"
 grep -q 'write-fixture-candidates' "$tmp_dir/lean-fresh-priority-quality/ios-report-quality.json"
 if grep -R -E -q '/Users|/private/tmp|/var/folders|Ringly|Ilmify|InweFi' "$tmp_dir/lean-fresh-priority-candidates"; then
   echo "materialized Lean Deck priority candidate must not include local paths or private app identifiers" >&2
@@ -1951,6 +1982,73 @@ MD
   --shareable >/dev/null
 grep -q '"ruleId": "lean-clean-state-action-missing"' "$tmp_dir/lean-clean-state-missing-quality/ios-report-quality.json"
 grep -q '"ruleId": "lean-clean-state-action-markdown-missing"' "$tmp_dir/lean-clean-state-missing-quality/ios-report-quality.json"
+
+mkdir -p "$tmp_dir/lean-debt-ledger-missing-proof"
+cat > "$tmp_dir/lean-debt-ledger-missing-proof/lean-audit.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard lean audit",
+  "generatedAt": "2026-06-21T00:00:00Z",
+  "status": "review",
+  "behaviorGates": {
+    "oneRunnableCheck": {"status": "enforced-in-lean-review"},
+    "hardwareCalibration": {"status": "available"},
+    "requestedExplanation": {"status": "policy"},
+    "adapterBoundary": {"status": "available"},
+    "gainHonesty": {"status": "available-in-lean-gain"}
+  },
+  "leanDebtLedger": {
+    "summary": {
+      "markers": 1
+    },
+    "markers": [
+      {
+        "file": "Sources/FastPreviewLoader.swift",
+        "line": 27,
+        "marker": "shipguard-lean",
+        "summary": "cache the first fixture load while the preview dataset is tiny",
+        "hasUpgradeTrigger": false,
+        "status": "tracked"
+      }
+    ]
+  },
+  "precisionReview": {
+    "summary": {
+      "deleteCandidates": 0,
+      "simplifyCandidates": 0,
+      "proofBlockedCandidates": 0,
+      "actionGroups": 0
+    },
+    "topActions": []
+  },
+  "reportQualityQuestions": [
+    "Does leanDebtLedger make intentional shortcuts auditable with ceilings and upgrade triggers?"
+  ]
+}
+JSON
+cat > "$tmp_dir/lean-debt-ledger-missing-proof/lean-audit.md" <<'MD'
+# ShipGuard Lean Deck
+
+## Behavior Gates
+
+- `oneRunnableCheck`: enforced-in-lean-review
+- `hardwareCalibration`: available
+- `requestedExplanation`: policy
+- `adapterBoundary`: available
+- `gainHonesty`: available-in-lean-gain
+
+## Findings
+
+Shortcut debt exists, but the ledger table is missing.
+MD
+./bin/shipguard ios report-quality \
+  --reports "$tmp_dir/lean-debt-ledger-missing-proof" \
+  --out "$tmp_dir/lean-debt-ledger-missing-proof-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "lean-debt-ledger-summary-missing"' "$tmp_dir/lean-debt-ledger-missing-proof-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-debt-ledger-marker-incomplete"' "$tmp_dir/lean-debt-ledger-missing-proof-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-debt-ledger-trigger-status-missing"' "$tmp_dir/lean-debt-ledger-missing-proof-quality/ios-report-quality.json"
+grep -q '"ruleId": "lean-debt-ledger-markdown-missing"' "$tmp_dir/lean-debt-ledger-missing-proof-quality/ios-report-quality.json"
 
 mkdir -p "$tmp_dir/lean-large-missing-evidence"
 cat > "$tmp_dir/lean-large-missing-evidence/lean-audit.json" <<'JSON'

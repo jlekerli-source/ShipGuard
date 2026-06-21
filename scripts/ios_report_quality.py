@@ -3087,6 +3087,91 @@ def lean_report_quality_issues(report: dict[str, Any], *, markdown: str, path_na
                 evidence=f"{path_name} Markdown does not expose the honesty boundary",
                 recommendation="Render the no-per-repo-savings boundary in Markdown, not only JSON.",
             )
+    if tool in {"shipguard lean audit", "shipguard lean debt"}:
+        ledger = report.get("leanDebtLedger")
+        if not isinstance(ledger, dict):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="lean-debt-ledger-missing",
+                evidence=f"{path_name} has no leanDebtLedger object",
+                recommendation="Emit leanDebtLedger so intentional shortcuts stay visible with ceilings and upgrade triggers.",
+            )
+        else:
+            summary = ledger.get("summary") if isinstance(ledger.get("summary"), dict) else {}
+            required_summary = {"markers", "missingUpgradeTrigger", "omittedByLimit"}
+            missing_summary = sorted(key for key in required_summary if key not in summary)
+            if missing_summary:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-debt-ledger-summary-missing",
+                    evidence=f"{path_name} leanDebtLedger.summary missing: {', '.join(missing_summary)}",
+                    recommendation="Report marker count, missing-trigger count, and omitted-by-limit count so shortcut debt is auditable.",
+                )
+            markers = ledger.get("markers")
+            if markers is not None and not isinstance(markers, list):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="lean-debt-ledger-markers-invalid",
+                    evidence=f"{path_name} leanDebtLedger.markers is not a list",
+                    recommendation="Emit shortcut markers as structured rows with file, line, marker, status, ceiling, and upgrade trigger fields.",
+                )
+            elif isinstance(markers, list):
+                required_marker = {"file", "line", "marker", "status", "summary", "ceiling", "hasUpgradeTrigger"}
+                for index, item in enumerate(markers[:20], start=1):
+                    if not isinstance(item, dict):
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="lean-debt-ledger-marker-invalid",
+                            evidence=f"{path_name} leanDebtLedger.markers[{index}] is not an object",
+                            recommendation="Emit every shortcut marker as a structured row so maintainers can review it without source inspection.",
+                        )
+                        continue
+                    missing_marker = sorted(key for key in required_marker if item.get(key) in (None, ""))
+                    if missing_marker:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="lean-debt-ledger-marker-incomplete",
+                            evidence=f"{path_name} leanDebtLedger.markers[{index}] missing: {', '.join(missing_marker)}",
+                            recommendation="Every shortcut marker should show location, marker label, status, shortcut summary, ceiling, and whether an upgrade trigger exists.",
+                        )
+                    has_trigger = item.get("hasUpgradeTrigger") is True
+                    status = str(item.get("status") or "")
+                    upgrade = str(item.get("upgrade") or "")
+                    if has_trigger and not upgrade:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="lean-debt-ledger-upgrade-missing",
+                            evidence=f"{path_name} leanDebtLedger.markers[{index}] claims a trigger but has no upgrade text",
+                            recommendation="Keep the trigger text next to the marker so the shortcut has an actionable upgrade path.",
+                        )
+                    if not has_trigger and status != "needs-trigger":
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="lean-debt-ledger-trigger-status-missing",
+                            evidence=f"{path_name} leanDebtLedger.markers[{index}] lacks an upgrade trigger but is not marked needs-trigger",
+                            recommendation="Mark shortcut markers without upgrade text as needs-trigger so they cannot look complete.",
+                        )
+        marker_count = 0
+        if isinstance(ledger, dict):
+            summary = ledger.get("summary") if isinstance(ledger.get("summary"), dict) else {}
+            marker_count = int(summary.get("markers") or 0)
+        has_ledger_heading = "Lean Debt Ledger" in markdown or "Shortcut Ledger" in markdown
+        missing_marker_columns = marker_count > 0 and ("Ceiling" not in markdown or "Upgrade Trigger" not in markdown)
+        if not has_ledger_heading or missing_marker_columns:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="lean-debt-ledger-markdown-missing",
+                evidence=f"{path_name} Markdown does not expose the shortcut ledger with ceiling and upgrade-trigger columns",
+                recommendation="Render the Lean Debt Ledger in Markdown so maintainers can audit shortcut ceilings and upgrade triggers without opening JSON.",
+            )
     return issues
 
 

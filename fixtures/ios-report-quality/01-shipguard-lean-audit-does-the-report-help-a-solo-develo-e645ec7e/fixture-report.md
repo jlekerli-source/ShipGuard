@@ -46,6 +46,14 @@ This is a public synthetic ShipGuard fixture. It is not copied from a private ap
 | Entitlement gate | Sources/SubscriptionEntitlementGate.swift:38 | Keep | Purchase, restore, denied, and expired entitlement behavior checks. |
 | Migration bridge | Sources/LegacyMigrationBridge.swift:51 | Proof-blocked | Call-site search plus migrated-user fixture. |
 
+## Lean Debt Ledger
+
+- Markers: 0
+- Missing upgrade trigger: 0
+- Omitted by limit: 0
+
+No `ponytail:` or `shipguard-lean:` shortcut markers found.
+
 ## Report Quality Questions
 
 - Does the report help a solo developer delete clutter without deleting product behavior?

@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-21T01:11:52Z
+- Generated: 2026-06-21T01:39:26Z
 - Current toolkit version: 3.131.0
-- Target release: v3.141.0
-- Title: Lean Deck Deletion-Usefulness Fixture QA
+- Target release: v3.142.0
+- Title: Lean Deck Shortcut-Ledger Fixture QA
 
 ## Slash Plan
 
 ```text
-/plan v3.141.0 Lean Deck Deletion-Usefulness Fixture QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Promote the next Lean Deck report-quality actionability question into a public synthetic fixture that proves a solo developer can delete clutter without deleting product behavior.
+/plan v3.142.0 Lean Deck Shortcut-Ledger Fixture QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Promote the next Lean Deck report-quality actionability question into a public synthetic fixture that proves leanDebtLedger makes intentional shortcuts auditable with ceilings and upgrade triggers.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.141.0 Lean Deck Deletion-Usefulness Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next Lean Deck report-quality actionability question into a public synthetic fixture that proves a solo developer can delete clutter without deleting product behavior, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.142.0 Lean Deck Shortcut-Ledger Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next Lean Deck report-quality actionability question into a public synthetic fixture that proves leanDebtLedger makes intentional shortcuts auditable with ceilings and upgrade triggers, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Promote the next Lean Deck report-quality actionability question into a public synthetic fixture that proves a solo developer can delete clutter without deleting product behavior.
+Promote the next Lean Deck report-quality actionability question into a public synthetic fixture that proves leanDebtLedger makes intentional shortcuts auditable with ceilings and upgrade triggers.
 
 ## Completion Receipt
 
-- Completed scope: Reran Lean Deck audit/review, lean gain, lean debt, value-gauntlet, and report-quality as read-only ShipGuard self-QA; promoted the solo-developer deletion-usefulness question into a public fixture with synthetic delete, simplify, keep, and proof-blocked lanes; updated report-quality regression coverage so fresh Lean QA now advances to the leanDebtLedger shortcut-audit question.
-- Evidence: Passed: ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-audit-does-the-report-help-a-solo-develo-e645ec7e --out /tmp/shipguard-v3141-deletion-fixture-quality --shareable status pass averageScore 100; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3141-lean-audit --reports /tmp/shipguard-v3141-lean-review --out /tmp/shipguard-v3141-lean-quality-after --shipguard-eval --shareable --write-fixture-candidates /tmp/shipguard-v3141-lean-fixtures-after status pass averageScore 100 and priorityAction advanced to the leanDebtLedger shortcut-audit question; ./tests/ios_report_quality_test.sh; ./tests/lean_audit_test.sh; python3 -m py_compile scripts/ios_report_quality.py scripts/lean_audit.py scripts/lean_review.py; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3141-value-gauntlet status pass.
+- Completed scope: Reran Lean Deck audit/review, lean gain, lean debt, value-gauntlet, and report-quality as read-only ShipGuard self-QA; added report-quality checks for Lean Deck and Lean Debt shortcut-ledger JSON/Markdown visibility; promoted the leanDebtLedger question into a public fixture with synthetic tracked and needs-trigger shortcut lanes; updated existing Lean fixtures with markerless ledger contracts; updated report-quality regression coverage so fresh Lean QA now advances to the Lean Gain fake-savings question.
+- Evidence: Passed: ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-lean-audit-does-leandebtledger-make-intention-e856e9a3 --out /tmp/shipguard-v3142-shortcut-fixture-quality --shareable status pass averageScore 100; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3142-lean-audit --reports /tmp/shipguard-v3142-lean-review --reports /tmp/shipguard-v3142-lean-debt --reports /tmp/shipguard-v3142-lean-gain --out /tmp/shipguard-v3142-lean-quality-after --shipguard-eval --shareable --write-fixture-candidates /tmp/shipguard-v3142-lean-fixtures-after status pass averageScore 100 and priorityAction advanced to the Lean Gain fake-savings question; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3142-value-gauntlet status pass; python3 -m py_compile scripts/ios_report_quality.py scripts/lean_audit.py scripts/lean_debt.py scripts/lean_gain.py scripts/lean_review.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; ./tests/next_goal_test.sh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.142.0 Lean Deck Shortcut-Ledger Fixture QA for jlekerli-source/ShipGuard:
+/plan v3.143.0 Lean Gain Honesty Fixture QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Promote the next Lean Deck report-quality actionability question into a public s
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.142.0 Lean Deck Shortcut-Ledger Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.143.0 Lean Gain Honesty Fixture QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.142.0 --title "Lean Deck Shortcut-Ledger Fixture QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.143.0 --title "Lean Gain Honesty Fixture QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.141.0.
+1. Open or update the tracking issue for v3.142.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.141.0` and upload `dist/shipguard-v3.141.0.tar.gz`.
+6. Create release `v3.142.0` and upload `dist/shipguard-v3.142.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

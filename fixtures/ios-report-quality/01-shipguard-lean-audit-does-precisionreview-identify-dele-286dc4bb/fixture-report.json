@@ -122,5 +122,14 @@
   },
   "status": "pass",
   "surface": "ShipGuard Lean Deck",
-  "tool": "shipguard lean audit"
+  "tool": "shipguard lean audit",
+  "leanDebtLedger": {
+    "description": "Intentional lean shortcuts found in comments. Every shortcut should name a ceiling and an upgrade trigger so deferrals stay reviewable.",
+    "markers": [],
+    "summary": {
+      "markers": 0,
+      "missingUpgradeTrigger": 0,
+      "omittedByLimit": 0
+    }
+  }
 }
