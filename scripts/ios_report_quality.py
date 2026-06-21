@@ -684,6 +684,163 @@ def is_launchdeck_receipt_question(question: object, tool: object) -> bool:
     return "execution" in question_text and ("quality" in question_text or "proof bundle" in question_text)
 
 
+def is_notification_scope_question(question: object) -> bool:
+    text = normalized_question_text(question)
+    return bool(
+        "notification permission owner scopes" in text
+        or "notification/permission owner scopes" in text
+        or "review only lifecycle" in text
+        or "review-only lifecycle" in text
+        or "forbidden entitlement/project" in text
+        or "forbidden entitlement" in text
+    )
+
+
+def synthetic_notification_domain_risk_pack() -> dict[str, Any]:
+    return {
+        "id": "ios-notification-permission-workflow",
+        "version": "1",
+        "status": "active",
+        "triggerSignals": [
+            "profile:ios",
+            "goal:notification",
+            "goal:permission",
+        ],
+        "scopeRecommendations": {
+            "authorized": [
+                {
+                    "pattern": "Sources/SyntheticPermissions/**",
+                    "reason": "Synthetic source owner for notification permission copy and copy-only UI.",
+                },
+                {
+                    "pattern": "Tests/SyntheticPermissionsTests/**",
+                    "reason": "Synthetic test owner for permission-state validation.",
+                },
+            ],
+            "reviewOnly": [
+                {
+                    "pattern": "**/Info.plist",
+                    "reason": "Permission purpose strings can change review behavior and require human review.",
+                },
+                {
+                    "pattern": "**/*AppDelegate*.swift",
+                    "reason": "Notification registration lifecycle changes must be reviewed before editing.",
+                },
+                {
+                    "pattern": "**/*SceneDelegate*.swift",
+                    "reason": "Scene lifecycle notification routing must be reviewed before editing.",
+                },
+            ],
+            "forbiddenUnlessExplicit": [
+                {
+                    "pattern": "**/*.entitlements",
+                    "reason": "Entitlement changes are release/signing sensitive and require explicit authorization.",
+                },
+                {
+                    "pattern": "**/project.pbxproj",
+                    "reason": "Project graph changes are forbidden unless the task explicitly authorizes Xcode project edits.",
+                },
+            ],
+        },
+        "candidateEvidence": {
+            "permissionSensitiveFiles": [
+                {
+                    "path": "Sources/SyntheticPermissions/NotificationPermissionCopy.swift",
+                    "signals": [
+                        "source references UNUserNotificationCenter",
+                        "path references notification permission",
+                    ],
+                },
+                {
+                    "path": "Tests/SyntheticPermissionsTests/NotificationPermissionStateTests.swift",
+                    "signals": ["test path references permission-state"],
+                },
+            ],
+            "scannedFileLimit": 10000,
+            "shareable": True,
+        },
+        "validationReceiptRequirements": [
+            {
+                "lane": "permission-state",
+                "required": True,
+                "proof": "Structured receipt must prove authorized, denied, and notDetermined state handling.",
+            },
+            {
+                "lane": "simulator-denied-state",
+                "required": True,
+                "proof": "Simulator proof must show the denied-state path was exercised or explain why it is unavailable.",
+            },
+            {
+                "lane": "physical-device-prompt-boundary",
+                "required": "manual",
+                "proof": "Prompt timing and notification delivery claims need physical-device proof before release claims.",
+            },
+        ],
+        "proofBoundaries": [
+            "Generic Swift tests do not prove permission prompt timing, denied-state behavior, or device delivery.",
+            "Simulator denied-state proof is not physical-device prompt proof.",
+        ],
+        "nextAction": {
+            "owner": "developer",
+            "command": "Attach permission-state and denied-state receipts before claiming notification permission behavior is complete.",
+            "expectedArtifact": "permission-state receipt plus denied-state receipt",
+            "successCondition": "ShipGuard verify accepts scoped notification permission claims without manual-proof gaps.",
+        },
+    }
+
+
+def synthetic_notification_scope_markdown_lines() -> list[str]:
+    return [
+        "## iOS Notification Permission Workflow",
+        "",
+        "- Status: `active`",
+        "- Trigger signals: `profile:ios`, `goal:notification`, `goal:permission`",
+        "",
+        "### Permission-sensitive source signals",
+        "",
+        "| Path | Signals |",
+        "| --- | --- |",
+        "| `Sources/SyntheticPermissions/NotificationPermissionCopy.swift` | source references UNUserNotificationCenter; path references notification permission |",
+        "| `Tests/SyntheticPermissionsTests/NotificationPermissionStateTests.swift` | test path references permission-state |",
+        "",
+        "### Scope recommendations",
+        "",
+        "Authorized candidate:",
+        "",
+        "| Pattern | Reason |",
+        "| --- | --- |",
+        "| `Sources/SyntheticPermissions/**` | Synthetic source owner for notification permission copy and copy-only UI. |",
+        "| `Tests/SyntheticPermissionsTests/**` | Synthetic test owner for permission-state validation. |",
+        "",
+        "Review only:",
+        "",
+        "| Pattern | Reason |",
+        "| --- | --- |",
+        "| `**/Info.plist` | Permission purpose strings can change review behavior and require human review. |",
+        "| `**/*AppDelegate*.swift` | Notification registration lifecycle changes must be reviewed before editing. |",
+        "| `**/*SceneDelegate*.swift` | Scene lifecycle notification routing must be reviewed before editing. |",
+        "",
+        "Forbidden unless explicit:",
+        "",
+        "| Pattern | Reason |",
+        "| --- | --- |",
+        "| `**/*.entitlements` | Entitlement changes are release/signing sensitive and require explicit authorization. |",
+        "| `**/project.pbxproj` | Project graph changes are forbidden unless the task explicitly authorizes Xcode project edits. |",
+        "",
+        "### Receipt requirements",
+        "",
+        "- Permission-state: structured receipt must prove authorized, denied, and notDetermined state handling.",
+        "- Simulator denied-state: show the denied-state path or explain why unavailable.",
+        "- Physical-device prompt boundary: prompt timing and delivery claims need device proof before release claims.",
+        "",
+        "### Proof boundaries",
+        "",
+        "- Generic Swift tests do not prove permission prompt timing, denied-state behavior, or device delivery.",
+        "- Simulator denied-state proof is not physical-device prompt proof.",
+        "",
+    ]
+
+
 def release_stabilization_signal_text(value: object) -> bool:
     text = normalized_question_text(value)
     if not text:
@@ -1118,6 +1275,104 @@ def task_contract_quickstart_replay_issues(report: dict[str, Any], *, markdown: 
                 evidence=f"{path_name} verify quickstartReplay is missing replay command, fast verdict, review packet, or next action",
                 recommendation="For verify reports, include the replay command, copy-ready proof report, review packet files, next action, and boundary.",
             )
+    return issues
+
+
+def task_contract_notification_scope_issues(
+    report: dict[str, Any], *, markdown: str, path_name: str
+) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    if str(report.get("tool") or "") != "shipguard prepare":
+        return issues
+
+    questions = report.get("reportQualityQuestions") if isinstance(report.get("reportQualityQuestions"), list) else []
+    question_text = normalized_question_text(" ".join(str(item) for item in questions))
+    pack = report.get("domainRiskPack")
+    pack_id = str((pack or {}).get("id") or "") if isinstance(pack, dict) else ""
+    scope_required = pack_id == "ios-notification-permission-workflow" or is_notification_scope_question(question_text)
+    if not scope_required:
+        return issues
+
+    if not isinstance(pack, dict) or pack_id != "ios-notification-permission-workflow":
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="task-contract-notification-scope-pack-missing",
+            evidence=f"{path_name} asks for notification/permission scope specificity but has no ios-notification-permission-workflow domainRiskPack",
+            recommendation="Emit domainRiskPack.id=ios-notification-permission-workflow with authorized, review-only, and forbidden scope recommendations.",
+        )
+        return issues
+
+    scope = pack.get("scopeRecommendations") if isinstance(pack.get("scopeRecommendations"), dict) else {}
+    authorized = scope.get("authorized") if isinstance(scope.get("authorized"), list) else []
+    review_only = scope.get("reviewOnly") if isinstance(scope.get("reviewOnly"), list) else []
+    forbidden = scope.get("forbiddenUnlessExplicit") if isinstance(scope.get("forbiddenUnlessExplicit"), list) else []
+
+    def rows_have_pattern_reason(rows: list[Any]) -> bool:
+        return bool(rows) and all(
+            isinstance(item, dict) and item.get("pattern") and item.get("reason") for item in rows
+        )
+
+    if not rows_have_pattern_reason(authorized):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="task-contract-notification-authorized-scope-missing",
+            evidence=f"{path_name} notification domainRiskPack has no authorized owner scope rows with reasons",
+            recommendation="List source/test owner scope patterns with reasons so a maintainer knows what the permission task may touch.",
+        )
+    review_patterns = {str(item.get("pattern") or "") for item in review_only if isinstance(item, dict)}
+    if not rows_have_pattern_reason(review_only) or not {
+        "**/Info.plist",
+        "**/*AppDelegate*.swift",
+        "**/*SceneDelegate*.swift",
+    } <= review_patterns:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="task-contract-notification-review-only-scope-incomplete",
+            evidence=f"{path_name} notification domainRiskPack review-only rows are missing plist or lifecycle surfaces",
+            recommendation="List Info.plist, AppDelegate, and SceneDelegate as review-only surfaces with reasons.",
+        )
+    forbidden_patterns = {str(item.get("pattern") or "") for item in forbidden if isinstance(item, dict)}
+    if not rows_have_pattern_reason(forbidden) or not {"**/*.entitlements", "**/project.pbxproj"} <= forbidden_patterns:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="task-contract-notification-forbidden-scope-incomplete",
+            evidence=f"{path_name} notification domainRiskPack forbidden rows are missing entitlement or project-file boundaries",
+            recommendation="List entitlements and project.pbxproj as forbidden-unless-explicit surfaces with reasons.",
+        )
+    candidate_evidence = pack.get("candidateEvidence") if isinstance(pack.get("candidateEvidence"), dict) else {}
+    sensitive_files = candidate_evidence.get("permissionSensitiveFiles") if isinstance(candidate_evidence.get("permissionSensitiveFiles"), list) else []
+    if not sensitive_files:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="task-contract-notification-source-signals-missing",
+            evidence=f"{path_name} notification domainRiskPack has no permission-sensitive source signal rows",
+            recommendation="Expose the source/test files or redacted targets that triggered the notification permission workflow.",
+        )
+    markdown_needles = [
+        "iOS Notification Permission Workflow",
+        "Authorized candidate",
+        "Review only",
+        "Forbidden unless explicit",
+        "`**/Info.plist`",
+        "`**/*AppDelegate*.swift`",
+        "`**/*SceneDelegate*.swift`",
+        "`**/*.entitlements`",
+        "`**/project.pbxproj`",
+    ]
+    missing_markdown = [needle for needle in markdown_needles if needle not in markdown]
+    if missing_markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="task-contract-notification-scope-markdown-missing",
+            evidence=f"{path_name} Markdown does not expose notification scope rows: {', '.join(missing_markdown[:4])}",
+            recommendation="Render notification authorized owner scopes, review-only lifecycle/plist surfaces, and forbidden entitlement/project boundaries in Markdown.",
+        )
     return issues
 
 
@@ -5198,6 +5453,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     issues.extend(result_ux_quality_issues(loaded, path_name=path.name))
     issues.extend(verify_pr_report_quality_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_quickstart_replay_issues(loaded, markdown=markdown, path_name=path.name))
+    issues.extend(task_contract_notification_scope_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_unsupported_claim_replay_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(full_audit_slash_handoff_issues(loaded, path_name=path.name))
     issues.extend(full_audit_execution_command_issues(loaded, markdown=markdown, path_name=path.name))
@@ -6049,6 +6305,17 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
                 "the fixture Markdown exposes Quickstart Replay without requiring JSON inspection",
                 "prepare fixtures connect goal, risk, scope, proof, claims, verdict, and next action through the replay contract",
                 "verify fixtures expose replay command, fast verdict, review packet, and next action",
+            ]
+        )
+    if tool == "shipguard prepare" and is_notification_scope_question(question):
+        expected_assertions.extend(
+            [
+                "the fixture exposes domainRiskPack.id=ios-notification-permission-workflow",
+                "the fixture exposes scopeRecommendations.authorized rows with source/test owner patterns and reasons",
+                "the fixture exposes scopeRecommendations.reviewOnly rows for Info.plist, AppDelegate, and SceneDelegate with reasons",
+                "the fixture exposes scopeRecommendations.forbiddenUnlessExplicit rows for entitlements and project.pbxproj with reasons",
+                "the fixture exposes permissionSensitiveFiles source signals that triggered the notification permission workflow",
+                "the fixture Markdown renders iOS Notification Permission Workflow with authorized, review-only, and forbidden scope recommendations",
             ]
         )
     if tool == "shipguard verify" and "unsupported completion claim" in normalized_question_text(question):
@@ -8012,6 +8279,8 @@ def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
                 },
             }
         )
+        if is_notification_scope_question(question):
+            report["domainRiskPack"] = synthetic_notification_domain_risk_pack()
     if source_tool == "shipguard verify":
         unsupported_fixture = "unsupported completion claim" in normalized_question_text(question)
         status = "blocked" if unsupported_fixture else "pass"
@@ -8256,6 +8525,8 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "",
             ]
         )
+        if is_notification_scope_question(question):
+            lines.extend(synthetic_notification_scope_markdown_lines())
     if source_tool == "shipguard verify":
         unsupported_fixture = "unsupported completion claim" in normalized_question_text(question)
         replay_command = (

@@ -63,6 +63,8 @@ For iOS notification, permission, authorization, denied-state, or provisional-fl
 - required receipt scopes for permission-state, denied-state, not-determined-state, and simulator permission-reset proof
 - a physical-device prompt boundary so simulator/source evidence is not treated as release proof
 
+Report-quality now treats those notification scope rows as part of the public task-contract UX. A prepare report that asks this question but hides `scopeRecommendations.authorized`, `scopeRecommendations.reviewOnly`, `scopeRecommendations.forbiddenUnlessExplicit`, permission-sensitive source signals, or the matching Markdown section is a ShipGuard report defect, not a target-app task.
+
 The notification workflow is implemented as a domain pack in `scripts/task_domain_packs.py`, not as another standalone report family. The generic task contract passes bounded scan helpers, shareable redaction helpers, and skip rules through `DomainPackContext`; the pack supplies the iOS-specific applicability, scope, proof requirements, proof-lane evaluation, and next action.
 
 `domainPackSDK` records the reusable extension layer:

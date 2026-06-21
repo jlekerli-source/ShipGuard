@@ -6090,16 +6090,23 @@ if not any(
     for item in coverage
 ):
     raise SystemExit(f"expected promoted unsupported-claim fixture coverage for second question: {coverage!r}")
+if not any(
+    item.get("question") == questions[2]
+    and item.get("publicFixturePath") == "fixtures/ios-report-quality/01-shipguard-prepare-did-prepare-identify-notification-per-1faa952e"
+    and item.get("fixtureType") == "shipguard-verify-first-task-contract-fixture"
+    for item in coverage
+):
+    raise SystemExit(f"expected promoted notification-scope fixture coverage for third question: {coverage!r}")
 candidates = data.get("fixtureCandidates") or []
-if [item.get("sourceQuestion") for item in candidates] != questions[2:]:
+if [item.get("sourceQuestion") for item in candidates] != questions[3:]:
     raise SystemExit(f"verify-first candidates did not match questions: {candidates!r}")
 if {item.get("fixtureType") for item in candidates} != {"shipguard-verify-first-task-contract-fixture"}:
     raise SystemExit(f"unexpected verify-first fixture types: {candidates!r}")
 priority = data.get("priorityAction") or {}
 if priority.get("kind") != "answer-actionability-question":
     raise SystemExit(f"expected actionability priority, got {priority!r}")
-if priority.get("question") != questions[2]:
-    raise SystemExit(f"expected verify-first QA to advance to third question, got {priority!r}")
+if priority.get("question") != questions[3]:
+    raise SystemExit(f"expected verify-first QA to advance to fourth question, got {priority!r}")
 if "write-fixture-candidates" not in str(priority.get("nextCommand") or ""):
     raise SystemExit(f"expected materialization next command, got {priority!r}")
 for item in candidates:
@@ -6154,6 +6161,76 @@ grep -q '"fixtureCandidates": \[\]' "$tmp_dir/verify-first-promoted-fixture-qual
 grep -q '"status": "pass"' "$tmp_dir/unsupported-claim-promoted-fixture-quality/ios-report-quality.json"
 grep -q '"fixtureCandidates": \[\]' "$tmp_dir/unsupported-claim-promoted-fixture-quality/ios-report-quality.json"
 grep -q 'Unsupported Claim Replay' fixtures/ios-report-quality/01-shipguard-verify-can-verify-reject-unsupported-completi-bfc3a617/fixture-report.md
+
+./bin/shipguard ios report-quality \
+  --reports fixtures/ios-report-quality/01-shipguard-prepare-did-prepare-identify-notification-per-1faa952e \
+  --out "$tmp_dir/notification-scope-promoted-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/notification-scope-promoted-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/notification-scope-promoted-fixture-quality/ios-report-quality.json"
+python3 - <<'PY' fixtures/ios-report-quality/01-shipguard-prepare-did-prepare-identify-notification-per-1faa952e/fixture-report.json
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+pack = data.get("domainRiskPack") or {}
+assert pack.get("id") == "ios-notification-permission-workflow", pack
+scope = pack.get("scopeRecommendations") or {}
+authorized = scope.get("authorized") or []
+review_only = scope.get("reviewOnly") or []
+forbidden = scope.get("forbiddenUnlessExplicit") or []
+assert authorized and all(row.get("pattern") and row.get("reason") for row in authorized), authorized
+review_patterns = {row.get("pattern") for row in review_only}
+assert {"**/Info.plist", "**/*AppDelegate*.swift", "**/*SceneDelegate*.swift"} <= review_patterns, review_only
+assert all(row.get("reason") for row in review_only), review_only
+forbidden_patterns = {row.get("pattern") for row in forbidden}
+assert {"**/*.entitlements", "**/project.pbxproj"} <= forbidden_patterns, forbidden
+assert all(row.get("reason") for row in forbidden), forbidden
+sensitive = (pack.get("candidateEvidence") or {}).get("permissionSensitiveFiles") or []
+assert sensitive and all(row.get("path") and row.get("signals") for row in sensitive), sensitive
+PY
+grep -q 'iOS Notification Permission Workflow' fixtures/ios-report-quality/01-shipguard-prepare-did-prepare-identify-notification-per-1faa952e/fixture-report.md
+grep -q 'Authorized candidate' fixtures/ios-report-quality/01-shipguard-prepare-did-prepare-identify-notification-per-1faa952e/fixture-report.md
+grep -q 'Review only' fixtures/ios-report-quality/01-shipguard-prepare-did-prepare-identify-notification-per-1faa952e/fixture-report.md
+grep -q 'Forbidden unless explicit' fixtures/ios-report-quality/01-shipguard-prepare-did-prepare-identify-notification-per-1faa952e/fixture-report.md
+
+missing_notification_scope="$tmp_dir/missing-notification-scope"
+mkdir -p "$missing_notification_scope"
+cp "$verify_first_reports/task/shipguard-task.json" "$missing_notification_scope/shipguard-task.json"
+cp "$verify_first_reports/task/shipguard-task.md" "$missing_notification_scope/shipguard-task.md"
+python3 - <<'PY' "$missing_notification_scope/shipguard-task.json"
+import json
+import sys
+
+path = sys.argv[1]
+data = json.load(open(path, encoding="utf-8"))
+data.pop("domainRiskPack", None)
+open(path, "w", encoding="utf-8").write(json.dumps(data, indent=2, sort_keys=True) + "\n")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$missing_notification_scope" \
+  --out "$tmp_dir/missing-notification-scope-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "task-contract-notification-scope-pack-missing"' "$tmp_dir/missing-notification-scope-quality/ios-report-quality.json"
+
+weak_notification_scope_markdown="$tmp_dir/weak-notification-scope-markdown"
+mkdir -p "$weak_notification_scope_markdown"
+cp "$verify_first_reports/task/shipguard-task.json" "$weak_notification_scope_markdown/shipguard-task.json"
+python3 - <<'PY' "$verify_first_reports/task/shipguard-task.md" "$weak_notification_scope_markdown/shipguard-task.md"
+import sys
+
+source, target = sys.argv[1:3]
+text = open(source, encoding="utf-8").read()
+text = text.replace("### Forbidden unless explicit", "### Hidden release-sensitive files")
+text = text.replace("`**/*.entitlements`", "`<entitlements>`")
+text = text.replace("`**/project.pbxproj`", "`<project-file>`")
+open(target, "w", encoding="utf-8").write(text)
+PY
+./bin/shipguard ios report-quality \
+  --reports "$weak_notification_scope_markdown" \
+  --out "$tmp_dir/weak-notification-scope-markdown-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "task-contract-notification-scope-markdown-missing"' "$tmp_dir/weak-notification-scope-markdown-quality/ios-report-quality.json"
 
 weak_unsupported_markdown="$tmp_dir/weak-unsupported-claim-markdown"
 mkdir -p "$weak_unsupported_markdown"

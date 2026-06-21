@@ -19,6 +19,7 @@ Proof:
 - `shipguard prepare "<goal>" --path . --out /tmp/shipguard-task --profile ios` before edits; add `--shareable` only for product-QA sharing, because external shareable contracts redact private target names
 - pass `--allowed`, `--forbidden`, and `--validation` when the task scope is known
 - inspect prepare output for `quickstartReplay`; it should show the first `shipguard verify` template and proof inputs without requiring internal ShipYard docs
+- for notification, permission, authorization, denied-state, or provisional-flow tasks, inspect `domainRiskPack.scopeRecommendations.authorized`, `reviewOnly`, and `forbiddenUnlessExplicit` plus the Markdown `iOS Notification Permission Workflow`; hidden owner scopes, lifecycle/plist review-only rows, or entitlement/project forbidden rows are report-quality defects
 - after Codex edits, capture the diff and a structured validation receipt JSON; plain logs are review context only
 - `shipguard verify --task /tmp/shipguard-task/shipguard-task.json --diff <patch> --evidence <receipt> --out /tmp/shipguard-verdict`
 - inspect verify output for `proofReport`, `quickstartReplay`, `unsupportedClaimReplay` when broad completion wording is rejected or still needs manual/device proof, and `nextAction`; the Markdown should expose `Quickstart Replay` directly after the proof report and `Unsupported Claim Replay` beside claim-specific repair guidance when present
