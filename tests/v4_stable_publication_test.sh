@@ -269,6 +269,16 @@ assert packet["passedEvidenceCount"] < 7
 assert "launchkey-candidate-packet" in packet["missingEvidenceIds"]
 assert packet["firstBlockingGate"]["receipt"] == "releaseCandidatePacketProof"
 assert packet["firstBlockingGate"]["nextCommand"].startswith("./bin/shipguard v4 release-candidate")
+closure = report["stablePublicationClosureChecklist"]
+assert closure["status"] == "review"
+assert closure["stableV4Release"] is False
+assert closure["blockerCount"] == len(packet["missingEvidenceIds"])
+assert closure["blockedEvidenceIds"] == packet["missingEvidenceIds"]
+assert closure["noHiddenLowerOrderBlockers"] is True
+assert [item["id"] for item in closure["items"]] == packet["missingEvidenceIds"]
+assert closure["items"][0]["isFirstBlockingGate"] is True
+assert all(item["nextCommand"] for item in closure["items"])
+assert all(item["proofBoundary"] for item in closure["items"])
 templates = report["stablePublicationEvidenceTemplates"]
 assert templates["draftOnly"] is True
 assert templates["templateDirectory"] == "templates/stable-publication"
@@ -314,6 +324,9 @@ test -f "$tmp_dir/blocked/stable-publication-evidence-kit/external-adoption-evid
 test -f "$tmp_dir/blocked/stable-publication-evidence-kit/security-review-evidence.json"
 grep -q '"draftOnly": true' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q 'Stable Publication Evidence Kit' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
+grep -q '"closureChecklist":' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
+grep -q 'Closure Checklist' "$tmp_dir/blocked/v4-stable-publication.md"
+grep -q 'final-security-review-evidence' "$tmp_dir/blocked/v4-stable-publication.md"
 test -f "$tmp_dir/blocked/stable-publication-launch-relay/README.md"
 test -f "$tmp_dir/blocked/stable-publication-launch-relay/launch-relay-checklist.json"
 test -f "$tmp_dir/blocked/stable-publication-launch-relay/product-hunt-draft.md"
@@ -362,12 +375,23 @@ packet = report["stablePublicationEvidencePacket"]
 assert packet["firstBlockingGate"]["receipt"] == "releaseCandidatePacketProof"
 assert packet["firstBlockingGate"]["nextCommand"].startswith("./bin/shipguard release-package hygiene")
 assert "appledouble-sidecar" in packet["firstBlockingGate"]["failureEvidence"]
+closure = report["stablePublicationClosureChecklist"]
+expected_missing = [item["id"] for item in packet["requiredEvidence"] if item["status"] != "pass"]
+assert [item["id"] for item in closure["items"]] == expected_missing
+assert closure["blockedEvidenceIds"] == expected_missing
+assert closure["blockerCount"] == len(expected_missing)
+assert closure["items"][0]["id"] == "launchkey-candidate-packet"
+assert closure["items"][0]["receipt"] == "releaseCandidatePacketProof"
+assert closure["items"][0]["blockingProof"]["receipt"] == "upgradePackageProof"
+assert "appledouble-sidecar" in closure["items"][0]["failureEvidence"]
+assert "release-package hygiene" in closure["items"][0]["nextCommand"]
 required_by_id = {item["id"]: item for item in packet["requiredEvidence"]}
 candidate_item = required_by_id["launchkey-candidate-packet"]
 assert candidate_item["blockingProof"]["receipt"] == "upgradePackageProof"
 assert candidate_item["blockingProof"]["packageHygieneEvidence"]["firstFinding"]["member"] == "._shipguard-v3.130.0"
 PY
 grep -q 'LaunchKey Candidate Blocker' "$tmp_dir/hygiene-blocked/v4-stable-publication.md"
+grep -q 'Closure Checklist' "$tmp_dir/hygiene-blocked/v4-stable-publication.md"
 grep -q 'appledouble-sidecar' "$tmp_dir/hygiene-blocked/v4-stable-publication.md"
 grep -q 'release-package hygiene' "$tmp_dir/hygiene-blocked/v4-stable-publication.md"
 
@@ -434,6 +458,10 @@ assert report["status"] == "review"
 assert report["stableV4Release"] is False
 assert report["releaseNotesProof"]["status"] == "review"
 assert report["stablePublicationEvidencePacket"]["firstBlockingGate"]["receipt"] == "releaseNotesProof"
+closure = report["stablePublicationClosureChecklist"]
+assert closure["items"][0]["id"] == "release-notes"
+assert closure["items"][0]["receipt"] == "releaseNotesProof"
+assert len(closure["items"]) == 1
 missing = set(report["releaseNotesProof"]["missingTopicIds"])
 assert {
     "downloaded-release-assets",
@@ -558,6 +586,12 @@ assert packet["requiredEvidenceCount"] == 7
 assert packet["passedEvidenceCount"] == 7
 assert packet["missingEvidenceIds"] == []
 assert packet["firstBlockingGate"] is None
+closure = report["stablePublicationClosureChecklist"]
+assert closure["status"] == "pass"
+assert closure["blockerCount"] == 0
+assert closure["blockedEvidenceIds"] == []
+assert closure["items"] == []
+assert closure["firstBlocker"] is None
 ids = {item["id"] for item in packet["requiredEvidence"]}
 assert {
     "github-release-metadata",
@@ -593,6 +627,8 @@ PY
 grep -q '# ShipGuard V4 Stable Publication Proof' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Stable Publication Gates' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Packet' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Closure Checklist' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Remaining blockers: `0`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release Notes Proof' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release Notes Authoring Kit' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Launch Relay Drafts' "$tmp_dir/pass/v4-stable-publication.md"

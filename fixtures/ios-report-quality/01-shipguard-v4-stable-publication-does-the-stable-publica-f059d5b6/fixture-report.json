@@ -182,6 +182,32 @@
     "stableV4Release": true,
     "status": "pass"
   },
+  "stablePublicationClosureChecklist": {
+    "schemaVersion": 1,
+    "releaseVersion": "<version>",
+    "status": "pass",
+    "stableV4Release": true,
+    "blockerCount": 0,
+    "blockedEvidenceIds": [],
+    "firstBlocker": null,
+    "items": [],
+    "dependencyOrder": [
+      "github-release-metadata",
+      "release-notes",
+      "launchkey-candidate-packet",
+      "downloaded-release-assets",
+      "post-release-consumer-proof",
+      "independent-adoption-evidence",
+      "final-security-review-evidence"
+    ],
+    "noHiddenLowerOrderBlockers": true,
+    "nextCommand": "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet",
+    "nonClaims": [
+      "This checklist does not prove stable v4 by itself.",
+      "Every listed item must pass from real publication evidence before stable-v4 claims are allowed.",
+      "Do not skip later blockers merely because an earlier gate is still failing."
+    ]
+  },
   "stablePublicationEvidenceStarterKit": {
     "directory": "stable-publication-evidence-kit",
     "draftOnly": true,

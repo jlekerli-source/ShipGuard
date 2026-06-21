@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.163 read-only stable-v4 packet loop continued from the propagated LaunchKey blocker and tested whether the final publication report gave maintainers the whole remaining closure path instead of only the first failure.
+
+- Finding: `v4 stable-publication` could identify the first blocking gate, but a maintainer still had to compare `missingEvidenceIds`, nested receipt rows, and Markdown sections to see every remaining real blocker.
+- Product weakness: the final pre-announcement report should answer "what still blocks stable v4, in what order, and what command clears each gate" without making solo developers chase JSON.
+- Native fix: `shipguard v4 stable-publication` now emits `stablePublicationClosureChecklist`, ranks every non-passing evidence gate in dependency order, marks the first blocker, carries exact next commands and proof boundaries, and renders the table as `Closure Checklist`.
+- Report-quality fix: `ios report-quality` now fails stable-publication reports that omit the closure checklist, hide lower-order blockers, miss rank/command/proof-boundary fields, or fail to render the checklist in Markdown.
+- Fixture fix: public stable-publication fixtures now include the closure checklist in JSON and Markdown, including both blocked and passing shapes.
+
+Fresh stable-v4 QA still does not claim real stable v4. It makes the final closure plan explicit while keeping release notes, LaunchKey candidate proof, downloaded release assets, independent adoption evidence, final security review evidence, and post-release consumer proof as separate gates.
+
 The v3.162 read-only stable-v4 packet loop continued from the LaunchKey package blocker and tested whether the final publication report preserved the useful evidence instead of forcing a maintainer to inspect nested candidate artifacts.
 
 - Finding: `v4 stable-publication` could receive a LaunchKey report with exact AppleDouble package-hygiene evidence, but the stable-publication packet kept only the broad candidate status and a generic rerun command.

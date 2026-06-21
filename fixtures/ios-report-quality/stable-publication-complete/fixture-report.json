@@ -177,6 +177,77 @@
     "stableV4Release": false,
     "status": "review"
   },
+  "stablePublicationClosureChecklist": {
+    "schemaVersion": 1,
+    "releaseVersion": "<version>",
+    "status": "review",
+    "stableV4Release": false,
+    "blockerCount": 2,
+    "blockedEvidenceIds": [
+      "independent-adoption-evidence",
+      "final-security-review-evidence"
+    ],
+    "firstBlocker": {
+      "rank": 1,
+      "dependencyOrder": 6,
+      "id": "independent-adoption-evidence",
+      "receipt": "externalAdoptionEvidenceStableGate",
+      "status": "not-provided",
+      "summary": "Independent adoption evidence is intentionally missing in this fixture.",
+      "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+      "proofBoundary": "Independent public adoption evidence must pass structure, redaction, and independence checks; fixture evidence is not enough.",
+      "blocksStableV4": true,
+      "isFirstBlockingGate": true,
+      "templatePath": "templates/stable-publication/external-adoption-evidence.template.json",
+      "templateCommand": "cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json"
+    },
+    "items": [
+      {
+        "rank": 1,
+        "dependencyOrder": 6,
+        "id": "independent-adoption-evidence",
+        "receipt": "externalAdoptionEvidenceStableGate",
+        "status": "not-provided",
+        "summary": "Independent adoption evidence is intentionally missing in this fixture.",
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+        "proofBoundary": "Independent public adoption evidence must pass structure, redaction, and independence checks; fixture evidence is not enough.",
+        "blocksStableV4": true,
+        "isFirstBlockingGate": true,
+        "templatePath": "templates/stable-publication/external-adoption-evidence.template.json",
+        "templateCommand": "cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json"
+      },
+      {
+        "rank": 2,
+        "dependencyOrder": 7,
+        "id": "final-security-review-evidence",
+        "receipt": "securityReviewEvidenceStableGate",
+        "status": "not-provided",
+        "summary": "Final security review evidence is intentionally missing in this fixture.",
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+        "proofBoundary": "Final security review evidence must cover CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy with no open critical or high findings.",
+        "blocksStableV4": true,
+        "isFirstBlockingGate": false,
+        "templatePath": "templates/stable-publication/security-review-evidence.template.json",
+        "templateCommand": "cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json"
+      }
+    ],
+    "dependencyOrder": [
+      "github-release-metadata",
+      "release-notes",
+      "launchkey-candidate-packet",
+      "downloaded-release-assets",
+      "post-release-consumer-proof",
+      "independent-adoption-evidence",
+      "final-security-review-evidence"
+    ],
+    "noHiddenLowerOrderBlockers": true,
+    "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+    "nonClaims": [
+      "This checklist does not prove stable v4 by itself.",
+      "Every listed item must pass from real publication evidence before stable-v4 claims are allowed.",
+      "Do not skip later blockers merely because an earlier gate is still failing."
+    ]
+  },
   "stablePublicationEvidenceStarterKit": {
     "directory": "stable-publication-evidence-kit",
     "draftOnly": true,

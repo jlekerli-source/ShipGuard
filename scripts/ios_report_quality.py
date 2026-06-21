@@ -3042,6 +3042,7 @@ def stable_publication_evidence_packet_issues(
         return issues
 
     required = packet.get("requiredEvidence")
+    required_rows = required if isinstance(required, list) else []
     if not isinstance(required, list) or len(required) < 7:
         add_issue(
             issues,
@@ -3051,7 +3052,7 @@ def stable_publication_evidence_packet_issues(
             recommendation="List release metadata, release notes, LaunchKey candidate proof, downloaded assets, consumer proof, adoption evidence, and security review evidence.",
         )
     else:
-        required_ids = {str(item.get("id") or "") for item in required if isinstance(item, dict)}
+        required_ids = {str(item.get("id") or "") for item in required_rows if isinstance(item, dict)}
         expected = {
             "github-release-metadata",
             "release-notes",
@@ -3070,7 +3071,7 @@ def stable_publication_evidence_packet_issues(
                 evidence=f"{path_name} evidence packet missing ids: {', '.join(missing_ids)}",
                 recommendation="Use stable evidence ids so downstream tools can identify exactly which stable-v4 proof is missing.",
             )
-        for item in required:
+        for item in required_rows:
             if not isinstance(item, dict):
                 continue
             if item.get("requiredForStableV4") is not True or item.get("realEvidenceRequired") is not True:
@@ -3128,6 +3129,101 @@ def stable_publication_evidence_packet_issues(
                 evidence=f"{path_name} first blocking gate has no nextCommand",
                 recommendation="Attach the exact next command needed to clear the first stable-publication blocker.",
             )
+
+    closure = report.get("stablePublicationClosureChecklist")
+    if not isinstance(closure, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-closure-checklist-missing",
+            evidence=f"{path_name} has no stablePublicationClosureChecklist",
+            recommendation="Emit a closure checklist that lists every remaining stable-v4 blocker in dependency order with exact next commands.",
+        )
+    else:
+        closure_items = closure.get("items")
+        if not isinstance(closure_items, list):
+            closure_items = []
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-closure-checklist-items-missing",
+                evidence=f"{path_name} closure checklist has no items list",
+                recommendation="List every non-passing stable-publication evidence gate as a closure item.",
+            )
+        expected_missing = [
+            str(item.get("id")) for item in required_rows if isinstance(item, dict) and item.get("status") != "pass"
+        ]
+        closure_ids = [str(item.get("id")) for item in closure_items if isinstance(item, dict)]
+        if stable_release:
+            if closure.get("status") != "pass" or int(closure.get("blockerCount") or 0) != 0 or closure_items:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-pass-has-closure-blockers",
+                    evidence=f"{path_name} stable-v4 pass still has closure checklist blockers",
+                    recommendation="Set closure checklist status to pass with zero items once every stable-publication gate passes.",
+                )
+        else:
+            if closure.get("noHiddenLowerOrderBlockers") is not True:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-closure-no-hidden-blockers-missing",
+                    evidence=f"{path_name} closure checklist does not assert noHiddenLowerOrderBlockers",
+                    recommendation="Set noHiddenLowerOrderBlockers=true after listing every non-passing gate in dependency order.",
+                )
+            if closure_ids != expected_missing or int(closure.get("blockerCount") or -1) != len(expected_missing):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-closure-checklist-incomplete",
+                    evidence=f"{path_name} closure ids {closure_ids!r} do not match missing evidence ids {expected_missing!r}",
+                    recommendation="Mirror every non-passing stablePublicationEvidencePacket.requiredEvidence row into the closure checklist in dependency order.",
+                )
+            first_blocking_id = first_blocking.get("id") if isinstance(first_blocking, dict) else None
+            for index, item in enumerate(closure_items, start=1):
+                if not isinstance(item, dict):
+                    continue
+                if item.get("rank") != index or not isinstance(item.get("dependencyOrder"), int):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="stable-publication-closure-checklist-rank-missing",
+                        evidence=f"{path_name} closure item `{item.get('id')}` lacks stable rank/dependencyOrder",
+                        recommendation="Give every closure item a rank and dependencyOrder so lower-order blockers remain visible.",
+                    )
+                if not item.get("nextCommand"):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="stable-publication-closure-checklist-command-missing",
+                        evidence=f"{path_name} closure item `{item.get('id')}` has no nextCommand",
+                        recommendation="Attach the exact command needed to clear each remaining stable-publication blocker.",
+                    )
+                if not item.get("proofBoundary"):
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="stable-publication-closure-checklist-boundary-missing",
+                        evidence=f"{path_name} closure item `{item.get('id')}` has no proofBoundary",
+                        recommendation="Explain what real evidence must pass for each closure item before stable-v4 claims are allowed.",
+                    )
+                if item.get("id") == first_blocking_id and item.get("isFirstBlockingGate") is not True:
+                    add_issue(
+                        issues,
+                        severity="review",
+                        rule_id="stable-publication-closure-first-blocker-unmarked",
+                        evidence=f"{path_name} closure item `{item.get('id')}` is the first blocker but is not marked",
+                        recommendation="Set isFirstBlockingGate=true on the closure item that matches firstBlockingGate.",
+                    )
+    if "Closure Checklist" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-closure-checklist-markdown-missing",
+            evidence=f"{path_name} Markdown does not render the stable-publication closure checklist",
+            recommendation="Render the closure checklist in Markdown so maintainers can see every remaining blocker without opening JSON.",
+        )
 
     non_claims = packet.get("nonClaims")
     if not isinstance(non_claims, list) or not non_claims:
@@ -8543,6 +8639,23 @@ def synthetic_stable_publication_report_fields() -> dict[str, Any]:
             "Fixture adoption or security records prove tooling only.",
         ],
     }
+    closure_checklist = {
+        "schemaVersion": 1,
+        "releaseVersion": "0.0.0",
+        "status": "pass",
+        "stableV4Release": True,
+        "blockerCount": 0,
+        "blockedEvidenceIds": [],
+        "firstBlocker": None,
+        "items": [],
+        "dependencyOrder": [evidence_id for evidence_id, _ in required],
+        "noHiddenLowerOrderBlockers": True,
+        "nextCommand": "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet",
+        "nonClaims": [
+            "This checklist does not prove stable v4 by itself.",
+            "Every listed item must pass from real publication evidence before stable-v4 claims are allowed.",
+        ],
+    }
     return {
         "surface": "ShipGuard V4 Stable Publication Proof",
         "stableV4Release": True,
@@ -8551,6 +8664,7 @@ def synthetic_stable_publication_report_fields() -> dict[str, Any]:
             for _, receipt in required
         ],
         "stablePublicationEvidencePacket": evidence_packet,
+        "stablePublicationClosureChecklist": closure_checklist,
         "stablePublicationEvidenceTemplates": {
             "schemaVersion": 1,
             "templateDirectory": "templates/stable-publication",
@@ -9068,6 +9182,16 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "| `post-release-consumer-proof` | `pass` |",
                 "| `independent-adoption-evidence` | `pass` |",
                 "| `final-security-review-evidence` | `pass` |",
+                "",
+                "## Closure Checklist",
+                "",
+                "- Checklist status: `pass`",
+                "- Remaining blockers: `0`",
+                "- No hidden lower-order blockers: `True`",
+                "",
+                "| Rank | Evidence | Status | First | Next command | Proof boundary |",
+                "| --- | --- | --- | --- | --- | --- |",
+                "| `none` | `none` | `pass` | `False` | `not-needed` | Every stable-publication gate passed. |",
                 "",
                 "## Evidence Templates",
                 "",

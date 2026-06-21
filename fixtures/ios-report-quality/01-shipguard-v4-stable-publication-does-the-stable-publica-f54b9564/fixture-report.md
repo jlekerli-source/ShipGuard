@@ -19,6 +19,21 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 - Required evidence passed: `1/7`
 - First blocking gate: `releaseNotesProof`
 
+## Closure Checklist
+
+- Checklist status: `review`
+- Remaining blockers: `6`
+- No hidden lower-order blockers: `True`
+
+| Rank | Evidence | Status | First | Next command | Proof boundary |
+| --- | --- | --- | --- | --- | --- |
+| `1` | `release-notes` | `review` | `True` | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable` | The public release body must include stable-v4 claims, proof boundaries, assets, consumer proof, adoption, security review, and non-claim language. |
+| `2` | `launchkey-candidate-packet` | `not-provided` | `False` | `./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --download-release-assets --github-release-repo <owner/repo> --release-version <version> --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable` | A prior LaunchKey release-candidate report must pass every required install, upgrade, rollback, asset, adoption, security, plugin, and package-hygiene proof gate. |
+| `3` | `downloaded-release-assets` | `not-provided` | `False` | `./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --release-assets <downloaded-assets-dir> --release-version <version> --shipguard-eval --shareable` | Release assets must be downloaded or supplied and consumed by release-consume verification. |
+| `4` | `post-release-consumer-proof` | `not-provided` | `False` | `./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>` | A consumer proof must verify the published release assets outside the local build-only path. |
+| `5` | `independent-adoption-evidence` | `not-provided` | `False` | `./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --external-adoption-evidence <evidence-json-or-dir> --shipguard-eval --shareable` | Independent public adoption evidence must pass structure, redaction, and independence checks; fixture evidence is not enough. |
+| `6` | `final-security-review-evidence` | `not-provided` | `False` | `./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable` | Final security review evidence must cover CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy with no open critical or high findings. |
+
 ## Evidence Templates
 
 - Draft-only templates: `True`

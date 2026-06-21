@@ -601,6 +601,19 @@ def evidence_id_for_receipt(receipt: str) -> str:
     return mapping.get(receipt, re.sub(r"[^a-z0-9]+", "-", receipt.lower()).strip("-"))
 
 
+def proof_boundary_for_evidence_id(evidence_id: str) -> str:
+    mapping = {
+        "github-release-metadata": "Public GitHub release metadata must exist for the requested tag and must not be draft-only or prerelease-only proof.",
+        "release-notes": "Public release notes must describe the stable-v4 proof packet, downloaded assets, consumer proof, adoption evidence, security review, and non-claims.",
+        "launchkey-candidate-packet": "LaunchKey candidate proof must pass before stable publication; package install, upgrade, rollback, release-asset, adoption, and security receipts cannot be inferred.",
+        "downloaded-release-assets": "Release assets must be downloaded or supplied and verified from the publication packet, not assumed from source state.",
+        "post-release-consumer-proof": "Post-release consumer proof must come from release-consume verification of the downloaded or supplied assets.",
+        "independent-adoption-evidence": "Independent adoption evidence must be real public or private-redacted evidence; GitHub download counts and maintainer-only runs do not count.",
+        "final-security-review-evidence": "Final security review evidence must cover CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy with no open critical or high findings.",
+    }
+    return mapping.get(evidence_id, "This stable-v4 evidence input must pass from real reviewed proof before stable publication can be claimed.")
+
+
 def build_stable_publication_evidence_templates(root: Path) -> dict[str, Any]:
     templates: list[dict[str, Any]] = []
     full_validate_command = (
@@ -931,6 +944,65 @@ def build_stable_publication_evidence_packet(
     }
 
 
+def build_stable_publication_closure_checklist(
+    *,
+    evidence_packet: dict[str, Any],
+    release_version: str,
+    stable_v4_release: bool,
+) -> dict[str, Any]:
+    required = evidence_packet.get("requiredEvidence") if isinstance(evidence_packet.get("requiredEvidence"), list) else []
+    first_blocking = evidence_packet.get("firstBlockingGate") if isinstance(evidence_packet.get("firstBlockingGate"), dict) else {}
+    items: list[dict[str, Any]] = []
+
+    for index, item in enumerate(required, start=1):
+        if not isinstance(item, dict):
+            continue
+        status = str(item.get("status") or "not-provided")
+        if status == "pass":
+            continue
+        evidence_id = str(item.get("id") or evidence_id_for_receipt(str(item.get("receipt") or "")))
+        closure_item = {
+            "rank": len(items) + 1,
+            "dependencyOrder": index,
+            "id": evidence_id,
+            "receipt": item.get("receipt"),
+            "status": status,
+            "summary": item.get("summary") or f"{evidence_id} has not passed.",
+            "nextCommand": item.get("nextCommand") or first_blocking.get("nextCommand") or "",
+            "proofBoundary": proof_boundary_for_evidence_id(evidence_id),
+            "blocksStableV4": True,
+            "isFirstBlockingGate": evidence_id == first_blocking.get("id"),
+        }
+        for optional_key in ("templatePath", "templateCommand", "failureEvidence", "blockingProof"):
+            if optional_key in item:
+                closure_item[optional_key] = item[optional_key]
+        items.append(closure_item)
+
+    first_item = items[0] if items else None
+    return {
+        "schemaVersion": 1,
+        "releaseVersion": release_version,
+        "status": "pass" if not items else "review",
+        "stableV4Release": stable_v4_release,
+        "blockerCount": len(items),
+        "blockedEvidenceIds": [str(item.get("id")) for item in items],
+        "firstBlocker": first_item,
+        "items": items,
+        "dependencyOrder": [str(item.get("id")) for item in required if isinstance(item, dict)],
+        "noHiddenLowerOrderBlockers": True,
+        "nextCommand": (
+            first_item.get("nextCommand")
+            if first_item
+            else "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet"
+        ),
+        "nonClaims": [
+            "This checklist does not prove stable v4 by itself.",
+            "Every listed item must pass from real publication evidence before stable-v4 claims are allowed.",
+            "Do not skip later blockers merely because an earlier gate is still failing.",
+        ],
+    }
+
+
 def write_stable_publication_evidence_starter_kit(
     out_dir: Path,
     *,
@@ -956,12 +1028,18 @@ def write_stable_publication_evidence_starter_kit(
         target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
 
     packet = report.get("stablePublicationEvidencePacket") if isinstance(report.get("stablePublicationEvidencePacket"), dict) else {}
+    closure_checklist = (
+        report.get("stablePublicationClosureChecklist")
+        if isinstance(report.get("stablePublicationClosureChecklist"), dict)
+        else {}
+    )
     checklist = {
         "schemaVersion": 1,
         "draftOnly": True,
         "status": packet.get("status", report.get("status")),
         "stableV4Release": False,
         "firstBlockingGate": packet.get("firstBlockingGate"),
+        "closureChecklist": closure_checklist,
         "requiredEvidence": packet.get("requiredEvidence", []),
         "missingEvidenceIds": packet.get("missingEvidenceIds", []),
         "blockedClaims": report.get("blockedClaims", []),
@@ -980,7 +1058,7 @@ def write_stable_publication_evidence_starter_kit(
         "",
         "## Files",
         "",
-        "- `stable-publication-checklist.json`: the current seven-gate checklist and first blocker.",
+        "- `stable-publication-checklist.json`: the current seven-gate checklist, closure checklist, and first blocker.",
         "- `external-adoption-evidence.json`: starter record for independent adoption evidence.",
         "- `security-review-evidence.json`: starter record for final security-review evidence.",
         "",
@@ -1332,6 +1410,11 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         stable_v4_release=stable_v4_release,
         evidence_templates=evidence_templates,
     )
+    closure_checklist = build_stable_publication_closure_checklist(
+        evidence_packet=evidence_packet,
+        release_version=release_version,
+        stable_v4_release=stable_v4_release,
+    )
     launch_relay_drafts = build_stable_publication_launch_relay_drafts(
         release_version=release_version,
         stable_v4_release=stable_v4_release,
@@ -1340,8 +1423,13 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
 
     if blocked:
         receipt, proof, next_command = blocked
-        summary = str(proof.get("summary") or f"{receipt} has not passed.")
-        priority_action = f"Complete `{receipt}` before claiming stable-v4 publication."
+        summary = (
+            f"{closure_checklist.get('blockerCount')} stable-v4 publication blocker(s) remain; first blocker: "
+            f"{proof.get('summary') or f'{receipt} has not passed.'}"
+        )
+        priority_action = (
+            f"Work the stablePublicationClosureChecklist in dependency order; first complete `{receipt}` before claiming stable-v4 publication."
+        )
         proof_source = receipt
     else:
         next_command = "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet"
@@ -1372,6 +1460,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "productStage": "v4-stable-publication-proof",
         "stableV4Release": stable_v4_release,
         "stablePublicationEvidencePacket": evidence_packet,
+        "stablePublicationClosureChecklist": closure_checklist,
         "stablePublicationEvidenceTemplates": evidence_templates,
         "stablePublicationEvidenceStarterKit": evidence_starter_kit,
         "stablePublicationReleaseNotesAuthoringKit": release_notes_authoring_kit,
@@ -1408,6 +1497,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Can ShipGuard prove stable-v4 publication from real release metadata, release notes, downloaded assets, external adoption evidence, security evidence, and post-release consumer proof?",
             "Does the stable-publication report block every stable-v4 claim until independent adoption and final security evidence are attached?",
             "Does the stable-publication evidence packet list every required real-evidence input, first blocker, next command, and non-claim before a stable-v4 announcement?",
+            "Does the stable-publication closure checklist list every remaining blocker in dependency order with exact next commands instead of hiding lower-order blockers behind only the first failing gate?",
             "Does the stable-publication report provide draft-only evidence templates for independent adoption and final security review without manufacturing proof?",
             "Does the stable-publication report write a draft-only evidence starter kit so maintainers can collect the packet without reverse-engineering JSON shapes?",
             "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?",
@@ -1461,6 +1551,36 @@ def render_markdown(report: dict[str, Any]) -> str:
         for item in packet.get("requiredEvidence", []):
             if isinstance(item, dict):
                 lines.append(f"| `{item.get('id')}` | `{item.get('status')}` |")
+    closure_checklist = (
+        report.get("stablePublicationClosureChecklist")
+        if isinstance(report.get("stablePublicationClosureChecklist"), dict)
+        else {}
+    )
+    if closure_checklist:
+        lines.extend(
+            [
+                "",
+                "## Closure Checklist",
+                "",
+                f"- Checklist status: `{closure_checklist.get('status')}`",
+                f"- Remaining blockers: `{closure_checklist.get('blockerCount')}`",
+                f"- No hidden lower-order blockers: `{closure_checklist.get('noHiddenLowerOrderBlockers')}`",
+                "",
+                "| Rank | Evidence | Status | First | Next command | Proof boundary |",
+                "| --- | --- | --- | --- | --- | --- |",
+            ]
+        )
+        items = closure_checklist.get("items") if isinstance(closure_checklist.get("items"), list) else []
+        if items:
+            for item in items:
+                if isinstance(item, dict):
+                    lines.append(
+                        f"| `{item.get('rank')}` | `{item.get('id')}` | `{item.get('status')}` | "
+                        f"`{item.get('isFirstBlockingGate')}` | `{item.get('nextCommand') or 'not-provided'}` | "
+                        f"{item.get('proofBoundary') or ''} |"
+                    )
+        else:
+            lines.append("| `none` | `none` | `pass` | `False` | `not-needed` | Every stable-publication gate passed. |")
     launchkey_blocker = {}
     release_candidate_proof = report.get("releaseCandidatePacketProof")
     if isinstance(release_candidate_proof, dict) and isinstance(release_candidate_proof.get("launchKeyBlockingProof"), dict):

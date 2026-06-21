@@ -56,6 +56,7 @@ Outputs:
 - `stable-publication-launch-relay/x-thread-draft.md`
 - `stable-publication-launch-relay/hacker-news-draft.md`
 - `stablePublicationEvidencePacket` in JSON, rendered as `Evidence Packet` in Markdown
+- `stablePublicationClosureChecklist` in JSON, rendered as `Closure Checklist` in Markdown
 - `stablePublicationEvidenceTemplates` in JSON, rendered as `Evidence Templates` in Markdown
 - `stablePublicationEvidenceStarterKit` in JSON, rendered as `Evidence Starter Kit` in Markdown
 - `stablePublicationReleaseNotesAuthoringKit` in JSON, rendered as `Release Notes Authoring Kit` in Markdown
@@ -139,6 +140,20 @@ When the supplied LaunchKey report is blocked by package proof, stable publicati
 
 `ios report-quality` checks this packet. A stable-publication report that has the gates but hides the packet receives a report-quality issue.
 
+## Closure Checklist
+
+`stablePublicationClosureChecklist` turns the evidence packet into the maintainer's ordered closing list.
+
+It includes:
+
+- every non-passing stable-publication evidence gate in dependency order
+- the first blocking gate marker without hiding later blockers
+- an exact `nextCommand` for each remaining blocker
+- proof-boundary language for what real evidence must pass
+- `noHiddenLowerOrderBlockers` so report-quality can detect summaries that stop at only the first failure
+
+Markdown renders the same table under `Closure Checklist`. A passing stable-publication report has zero checklist items; a blocked report must mirror every non-passing `stablePublicationEvidencePacket.requiredEvidence` row.
+
 ## Evidence Starter Kit
 
 Every run also writes `stable-publication-evidence-kit/` inside the report directory.
@@ -146,7 +161,7 @@ Every run also writes `stable-publication-evidence-kit/` inside the report direc
 This directory is a convenience artifact, not proof. It contains:
 
 - `README.md` with the collection rules and next command template
-- `stable-publication-checklist.json` with the current seven-gate packet, first blocker, missing evidence IDs, and non-claims
+- `stable-publication-checklist.json` with the current seven-gate packet, closure checklist, first blocker, missing evidence IDs, and non-claims
 - `external-adoption-evidence.json` copied from the draft-only adoption template
 - `security-review-evidence.json` copied from the draft-only security-review template
 

@@ -58,6 +58,17 @@
 | `stable-publication-release-notes/release-notes-checklist.json` | Machine-readable topic checklist. |
 | `stable-publication-release-notes/draft-release-notes.md` | Copy-ready draft release notes. |
 
+## Closure Checklist
+
+- Checklist status: `review`
+- Remaining blockers: `2`
+- No hidden lower-order blockers: `True`
+
+| Rank | Evidence | Status | First | Next command | Proof boundary |
+| --- | --- | --- | --- | --- | --- |
+| `1` | `independent-adoption-evidence` | `not-provided` | `True` | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable` | Independent public adoption evidence must pass structure, redaction, and independence checks; fixture evidence is not enough. |
+| `2` | `final-security-review-evidence` | `not-provided` | `False` | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable` | Final security review evidence must cover CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy with no open critical or high findings. |
+
 ## Evidence Templates
 
 | Template | Exists | Copy command |

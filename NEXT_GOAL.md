@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-21T16:11:41Z
+- Generated: 2026-06-21T16:39:19Z
 - Current toolkit version: 3.131.0
-- Target release: v3.163.0
-- Title: Stable V4 Publication Closure Checklist QA
+- Target release: v3.164.0
+- Title: Stable V4 Release Notes Closure Kit QA
 
 ## Slash Plan
 
 ```text
-/plan v3.163.0 Stable V4 Publication Closure Checklist QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Use the improved stable-publication packet to continue real stable-v4 publication QA, then refine the next product weakness: the final report should summarize every remaining real stable-v4 blocker in a single closure checklist, ranked by dependency and exact next command, without hiding lower-order blockers behind only the first failing gate and without claiming stable v4 until real release notes, LaunchKey candidate proof, post-release consumer proof, independent adoption evidence, and final security review evidence all pass.
+/plan v3.164.0 Stable V4 Release Notes Closure Kit QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Use the v3.163 closure-checklist report to refine the first stable-v4 blocker UX: when release notes block stable publication, the closure item should carry missing topic IDs, generated authoring-kit paths, the public GitHub release edit boundary, and an exact rerun command so maintainers can close the release-notes gate without opening nested JSON; do not fake stable-v4 proof, adoption evidence, security review evidence, or marketplace acceptance.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.163.0 Stable V4 Publication Closure Checklist QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Use the improved stable-publication packet to continue real stable-v4 publication QA, then refine the next product weakness: the final report should summarize every remaining real stable-v4 blocker in a single closure checklist, ranked by dependency and exact next command, without hiding lower-order blockers behind only the first failing gate and without claiming stable v4 until real release notes, LaunchKey candidate proof, post-release consumer proof, independent adoption evidence, and final security review evidence all pass, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.164.0 Stable V4 Release Notes Closure Kit QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Use the v3.163 closure-checklist report to refine the first stable-v4 blocker UX: when release notes block stable publication, the closure item should carry missing topic IDs, generated authoring-kit paths, the public GitHub release edit boundary, and an exact rerun command so maintainers can close the release-notes gate without opening nested JSON; do not fake stable-v4 proof, adoption evidence, security review evidence, or marketplace acceptance, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Use the improved stable-publication packet to continue real stable-v4 publication QA, then refine the next product weakness: the final report should summarize every remaining real stable-v4 blocker in a single closure checklist, ranked by dependency and exact next command, without hiding lower-order blockers behind only the first failing gate and without claiming stable v4 until real release notes, LaunchKey candidate proof, post-release consumer proof, independent adoption evidence, and final security review evidence all pass.
+Use the v3.163 closure-checklist report to refine the first stable-v4 blocker UX: when release notes block stable publication, the closure item should carry missing topic IDs, generated authoring-kit paths, the public GitHub release edit boundary, and an exact rerun command so maintainers can close the release-notes gate without opening nested JSON; do not fake stable-v4 proof, adoption evidence, security review evidence, or marketplace acceptance.
 
 ## Completion Receipt
 
-- Completed scope: v3.162 propagated LaunchKey package-blocking evidence into stable-publication: the final publication report now preserves the supplied candidate blocking proof, compact package-hygiene evidence, exact release-package hygiene command, and Markdown LaunchKey Candidate Blocker section instead of collapsing candidate failures into a generic rerun.
-- Evidence: git diff --check; python3 -m py_compile scripts/v4_stable_publication.py scripts/v4_release_candidate.py; ./tests/v4_stable_publication_test.sh; live stable-publication rerun against /tmp/shipguard-v3162-launchkey confirmed releaseCandidatePacketProof.launchKeyBlockingProof carries upgradePackageProof, appledouble-sidecar, 782 blocked findings, and release-package hygiene next command; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3162-stable-publication-after --out /tmp/shipguard-v3162-report-quality --shipguard-eval --shareable --write-fixture-candidates /tmp/shipguard-v3162-fixture-candidates; ./tests/v4_release_candidate_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3162-docs-check; ./tests/cli_smoke_test.sh; ./tests/ios_report_quality_test.sh; ./tests/self_audit_test.sh; ./bin/shipguard codex status --strict; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3162-value-gauntlet; ./tests/package_release_test.sh.
+- Completed scope: v3.163 added Stable V4 Publication Closure Checklist QA: stable-publication now emits stablePublicationClosureChecklist, mirrors every non-passing stable-v4 evidence gate in dependency order, marks the first blocker without hiding lower-order blockers, carries exact next commands and proof boundaries, renders Closure Checklist in Markdown, and stores the checklist in the generated evidence kit.
+- Evidence: git diff --check; python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3163-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3163-value-gauntlet; ./bin/shipguard codex status --strict; live stable-publication rerun at /tmp/shipguard-v3163-stable-publication showed closure ids release-notes, launchkey-candidate-packet, independent-adoption-evidence, final-security-review-evidence and Markdown Closure Checklist; ./bin/shipguard ios report-quality --reports /tmp/shipguard-v3163-stable-publication --out /tmp/shipguard-v3163-report-quality --shipguard-eval --shareable returned pass.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.164.0 Stable V4 Publication Evidence Closure Proof QA for jlekerli-source/ShipGuard:
+/plan v3.165.0 Stable V4 Adoption And Security Evidence Closure Kit QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Use the improved stable-publication packet to continue real stable-v4 publicatio
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.164.0 Stable V4 Publication Evidence Closure Proof QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.165.0 Stable V4 Adoption And Security Evidence Closure Kit QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.164.0 --title "Stable V4 Publication Evidence Closure Proof QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.165.0 --title "Stable V4 Adoption And Security Evidence Closure Kit QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.163.0.
+1. Open or update the tracking issue for v3.164.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.163.0` and upload `dist/shipguard-v3.163.0.tar.gz`.
+6. Create release `v3.164.0` and upload `dist/shipguard-v3.164.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
