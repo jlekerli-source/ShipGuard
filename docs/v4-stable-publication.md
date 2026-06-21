@@ -163,6 +163,18 @@ When release notes are a closure blocker, the release-notes row also carries a c
 
 Markdown renders those fields as `Release Notes Closure Kit` so the first blocker can be closed without opening nested JSON.
 
+When independent adoption or final security-review evidence is a closure blocker, the row also carries an evidence closure kit:
+
+- the generated starter file path and source template path
+- accepted `evidenceClass` values and required JSON fields
+- required security scope for final security review evidence
+- redaction and privacy boundaries, including private path, app identifier, screenshot, token, and account-data exclusions
+- pass criteria and common fail criteria, including unchanged templates, missing redaction, fixture evidence, missing security scope, and open critical/high findings
+- current diagnostics from the supplied evidence proof, such as record counts, first error, missing fields, and missing security scope
+- `rerunCommand`, the stable-publication command to run after attaching real adoption/security evidence
+
+Markdown renders these fields as `Evidence Closure Kit: <evidence-id>` so maintainers can close the adoption/security blockers without reverse-engineering template JSON or nested proof records.
+
 ## Evidence Starter Kit
 
 Every run also writes `stable-publication-evidence-kit/` inside the report directory.

@@ -173,6 +173,531 @@
     "localAbsolutePathsIncluded": false,
     "mode": "shareable"
   },
+  "stablePublicationClosureChecklist": {
+    "blockedEvidenceIds": [
+      "release-notes",
+      "launchkey-candidate-packet",
+      "downloaded-release-assets",
+      "post-release-consumer-proof",
+      "independent-adoption-evidence",
+      "final-security-review-evidence"
+    ],
+    "blockerCount": 6,
+    "dependencyOrder": [
+      "github-release-metadata",
+      "release-notes",
+      "launchkey-candidate-packet",
+      "downloaded-release-assets",
+      "post-release-consumer-proof",
+      "independent-adoption-evidence",
+      "final-security-review-evidence"
+    ],
+    "firstBlocker": {
+      "authoringKitPaths": [
+        "stable-publication-release-notes/release-notes-checklist.json",
+        "stable-publication-release-notes/draft-release-notes.md",
+        "stable-publication-release-notes/README.md"
+      ],
+      "blocksStableV4": true,
+      "dependencyOrder": 2,
+      "id": "release-notes",
+      "isFirstBlockingGate": true,
+      "missingTopicIds": [
+        "stable-v4-claim",
+        "downloaded-release-assets",
+        "post-release-consumer-proof",
+        "final-security-review-evidence"
+      ],
+      "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+      "proofBoundary": "The public release body must include stable-v4 claims, proof boundaries, assets, consumer proof, adoption, security review, and non-claim language.",
+      "publicGitHubReleaseEditBoundary": {
+        "authoringKitIsDraftOnly": true,
+        "instruction": "Edit the public GitHub release body with the missing stable-publication topics, then rerun stable-publication against public release metadata.",
+        "releaseUrl": "",
+        "requiresPublicReleaseEdit": true,
+        "shipguardDoesNotEditRelease": true,
+        "stableV4ClaimAllowed": false,
+        "target": "public GitHub release body"
+      },
+      "rank": 1,
+      "receipt": "releaseNotesProof",
+      "releaseNotesAuthoringKit": {
+        "checklistPath": "stable-publication-release-notes/release-notes-checklist.json",
+        "directory": "stable-publication-release-notes",
+        "draftOnly": true,
+        "draftPath": "stable-publication-release-notes/draft-release-notes.md",
+        "files": [
+          {
+            "id": "checklist",
+            "path": "stable-publication-release-notes/release-notes-checklist.json",
+            "purpose": "Machine-readable checklist for the stable-publication release-notes topics."
+          },
+          {
+            "id": "draft-release-notes",
+            "path": "stable-publication-release-notes/draft-release-notes.md",
+            "purpose": "Draft-only release notes section that includes every required stable-publication proof topic."
+          },
+          {
+            "id": "copy-brief",
+            "path": "stable-publication-release-notes/README.md",
+            "purpose": "Human instructions for adapting the draft into the public GitHub release body."
+          }
+        ],
+        "readmePath": "stable-publication-release-notes/README.md"
+      },
+      "rerunCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+      "status": "review",
+      "summary": "Release notes do not yet explicitly describe stable-v4 publication proof."
+    },
+    "items": [
+      {
+        "authoringKitPaths": [
+          "stable-publication-release-notes/release-notes-checklist.json",
+          "stable-publication-release-notes/draft-release-notes.md",
+          "stable-publication-release-notes/README.md"
+        ],
+        "blocksStableV4": true,
+        "dependencyOrder": 2,
+        "id": "release-notes",
+        "isFirstBlockingGate": true,
+        "missingTopicIds": [
+          "stable-v4-claim",
+          "downloaded-release-assets",
+          "post-release-consumer-proof",
+          "final-security-review-evidence"
+        ],
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+        "proofBoundary": "The public release body must include stable-v4 claims, proof boundaries, assets, consumer proof, adoption, security review, and non-claim language.",
+        "publicGitHubReleaseEditBoundary": {
+          "authoringKitIsDraftOnly": true,
+          "instruction": "Edit the public GitHub release body with the missing stable-publication topics, then rerun stable-publication against public release metadata.",
+          "releaseUrl": "",
+          "requiresPublicReleaseEdit": true,
+          "shipguardDoesNotEditRelease": true,
+          "stableV4ClaimAllowed": false,
+          "target": "public GitHub release body"
+        },
+        "rank": 1,
+        "receipt": "releaseNotesProof",
+        "releaseNotesAuthoringKit": {
+          "checklistPath": "stable-publication-release-notes/release-notes-checklist.json",
+          "directory": "stable-publication-release-notes",
+          "draftOnly": true,
+          "draftPath": "stable-publication-release-notes/draft-release-notes.md",
+          "files": [
+            {
+              "id": "checklist",
+              "path": "stable-publication-release-notes/release-notes-checklist.json",
+              "purpose": "Machine-readable checklist for the stable-publication release-notes topics."
+            },
+            {
+              "id": "draft-release-notes",
+              "path": "stable-publication-release-notes/draft-release-notes.md",
+              "purpose": "Draft-only release notes section that includes every required stable-publication proof topic."
+            },
+            {
+              "id": "copy-brief",
+              "path": "stable-publication-release-notes/README.md",
+              "purpose": "Human instructions for adapting the draft into the public GitHub release body."
+            }
+          ],
+          "readmePath": "stable-publication-release-notes/README.md"
+        },
+        "rerunCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+        "status": "review",
+        "summary": "Release notes do not yet explicitly describe stable-v4 publication proof."
+      },
+      {
+        "blocksStableV4": true,
+        "dependencyOrder": 3,
+        "id": "launchkey-candidate-packet",
+        "isFirstBlockingGate": false,
+        "nextCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --download-release-assets --github-release-repo <owner/repo> --release-version <version> --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+        "proofBoundary": "A prior LaunchKey release-candidate report must pass every required install, upgrade, rollback, asset, adoption, security, plugin, and package-hygiene proof gate.",
+        "rank": 2,
+        "receipt": "releaseCandidatePacketProof",
+        "status": "not-provided",
+        "summary": "No LaunchKey release-candidate report was supplied; stable publication needs prior package install, upgrade, and rollback proof."
+      },
+      {
+        "blocksStableV4": true,
+        "dependencyOrder": 4,
+        "id": "downloaded-release-assets",
+        "isFirstBlockingGate": false,
+        "nextCommand": "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --release-assets <downloaded-assets-dir> --release-version <version> --shipguard-eval --shareable",
+        "proofBoundary": "Release assets must be downloaded or supplied and consumed by release-consume verification.",
+        "rank": 3,
+        "receipt": "publishedReleaseAssetProof",
+        "status": "not-provided",
+        "summary": "No downloaded release assets were supplied; stable v4 proof still needs consumer-side release asset verification."
+      },
+      {
+        "blocksStableV4": true,
+        "dependencyOrder": 5,
+        "id": "post-release-consumer-proof",
+        "isFirstBlockingGate": false,
+        "nextCommand": "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>",
+        "proofBoundary": "A consumer proof must verify the published release assets outside the local build-only path.",
+        "rank": 4,
+        "receipt": "postReleaseConsumerProof",
+        "status": "not-provided",
+        "summary": "Post-release consumer proof needs downloaded assets to pass release-consume verification."
+      },
+      {
+        "acceptedEvidenceClasses": [
+          "public-external",
+          "private-redacted-external"
+        ],
+        "attachArgument": "--external-adoption-evidence stable-publication-evidence-kit/external-adoption-evidence.json",
+        "blocksStableV4": true,
+        "currentEvidenceDiagnostics": {
+          "collectionErrors": [],
+          "error": "",
+          "evidenceInputs": [],
+          "invalidRecordCount": null,
+          "provided": false,
+          "recordCount": null,
+          "stableV4EligibleEvidenceCount": null,
+          "stableV4GateStatus": null,
+          "status": null,
+          "summary": "",
+          "validRecordCount": null
+        },
+        "dependencyOrder": 6,
+        "evidenceClosureKit": {
+          "acceptedEvidenceClasses": [
+            "public-external",
+            "private-redacted-external"
+          ],
+          "attachArgument": "--external-adoption-evidence stable-publication-evidence-kit/external-adoption-evidence.json",
+          "currentEvidenceDiagnostics": {
+            "collectionErrors": [],
+            "error": "",
+            "evidenceInputs": [],
+            "invalidRecordCount": null,
+            "provided": false,
+            "recordCount": null,
+            "stableV4EligibleEvidenceCount": null,
+            "stableV4GateStatus": null,
+            "status": null,
+            "summary": "",
+            "validRecordCount": null
+          },
+          "directory": "stable-publication-evidence-kit",
+          "draftOnly": true,
+          "evidenceId": "independent-adoption-evidence",
+          "failCriteria": [
+            "The unchanged template or generated starter file is submitted as evidence.",
+            "status is not pass.",
+            "privateDataRedacted is not true.",
+            "actorRelationship is not independent.",
+            "fixtureSynthetic is true.",
+            "Evidence relies only on GitHub downloads or maintainer-only runs.",
+            "The record contains local paths, private app identifiers, screenshots with private data, tokens, or account data."
+          ],
+          "passCriteria": [
+            "At least one JSON record has status=pass.",
+            "evidenceType is shipguard-external-adoption.",
+            "evidenceClass is public-external or private-redacted-external.",
+            "actorRelationship is independent.",
+            "privateDataRedacted is true.",
+            "commands, artifacts, outcome, and nonClaims are present.",
+            "fixtureSynthetic is not true.",
+            "The record is public-shareable or summary-shareable with consent/privacy reviewed."
+          ],
+          "privacyBoundary": {
+            "consentToShareOrSummaryOnlyRequired": true,
+            "githubDownloadsDoNotCountAsAdoption": true,
+            "maintainerOnlyRunsDoNotCountAsIndependentAdoption": true,
+            "privateAppDetailsForbiddenInShareableProof": true
+          },
+          "redactionBoundary": {
+            "forbiddenContent": [
+              "private app source",
+              "private app identifiers",
+              "local absolute paths",
+              "screenshots with private data",
+              "tokens or account identifiers"
+            ],
+            "privateDataRedactedMustBeTrue": true
+          },
+          "requiredFields": [
+            "schemaVersion",
+            "evidenceType",
+            "evidenceClass",
+            "actorRelationship",
+            "generatedAt",
+            "status",
+            "privateDataRedacted",
+            "commands",
+            "artifacts",
+            "outcome",
+            "nonClaims"
+          ],
+          "requiredScope": [],
+          "rerunCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable",
+          "starterPath": "stable-publication-evidence-kit/external-adoption-evidence.json",
+          "templateCommand": "cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json",
+          "templatePath": "templates/stable-publication/external-adoption-evidence.template.json",
+          "title": "Independent adoption evidence"
+        },
+        "failCriteria": [
+          "The unchanged template or generated starter file is submitted as evidence.",
+          "status is not pass.",
+          "privateDataRedacted is not true.",
+          "actorRelationship is not independent.",
+          "fixtureSynthetic is true.",
+          "Evidence relies only on GitHub downloads or maintainer-only runs.",
+          "The record contains local paths, private app identifiers, screenshots with private data, tokens, or account data."
+        ],
+        "id": "independent-adoption-evidence",
+        "isFirstBlockingGate": false,
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable",
+        "passCriteria": [
+          "At least one JSON record has status=pass.",
+          "evidenceType is shipguard-external-adoption.",
+          "evidenceClass is public-external or private-redacted-external.",
+          "actorRelationship is independent.",
+          "privateDataRedacted is true.",
+          "commands, artifacts, outcome, and nonClaims are present.",
+          "fixtureSynthetic is not true.",
+          "The record is public-shareable or summary-shareable with consent/privacy reviewed."
+        ],
+        "privacyBoundary": {
+          "consentToShareOrSummaryOnlyRequired": true,
+          "githubDownloadsDoNotCountAsAdoption": true,
+          "maintainerOnlyRunsDoNotCountAsIndependentAdoption": true,
+          "privateAppDetailsForbiddenInShareableProof": true
+        },
+        "proofBoundary": "Independent public adoption evidence must pass structure, redaction, and independence checks; fixture evidence is not enough.",
+        "rank": 5,
+        "receipt": "externalAdoptionEvidenceStableGate",
+        "redactionBoundary": {
+          "forbiddenContent": [
+            "private app source",
+            "private app identifiers",
+            "local absolute paths",
+            "screenshots with private data",
+            "tokens or account identifiers"
+          ],
+          "privateDataRedactedMustBeTrue": true
+        },
+        "requiredFields": [
+          "schemaVersion",
+          "evidenceType",
+          "evidenceClass",
+          "actorRelationship",
+          "generatedAt",
+          "status",
+          "privateDataRedacted",
+          "commands",
+          "artifacts",
+          "outcome",
+          "nonClaims"
+        ],
+        "requiredScope": [],
+        "rerunCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable",
+        "stableRequirement": "Real independent public or private-redacted external adoption evidence; unchanged template records are draft-only and must not pass.",
+        "starterKitPath": "stable-publication-evidence-kit/external-adoption-evidence.json",
+        "status": "not-provided",
+        "summary": "No external adoption evidence was supplied; stable v4 proof still needs independent user or maintainer evidence outside the ShipGuard maintainer loop.",
+        "templateCommand": "cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json",
+        "templatePath": "templates/stable-publication/external-adoption-evidence.template.json"
+      },
+      {
+        "acceptedEvidenceClasses": [
+          "public-security-review",
+          "private-redacted-security-review"
+        ],
+        "attachArgument": "--security-review-evidence stable-publication-evidence-kit/security-review-evidence.json",
+        "blocksStableV4": true,
+        "currentEvidenceDiagnostics": {
+          "collectionErrors": [],
+          "error": "",
+          "evidenceInputs": [],
+          "invalidRecordCount": null,
+          "provided": false,
+          "recordCount": null,
+          "stableV4EligibleEvidenceCount": null,
+          "stableV4GateStatus": null,
+          "status": null,
+          "summary": "",
+          "validRecordCount": null
+        },
+        "dependencyOrder": 7,
+        "evidenceClosureKit": {
+          "acceptedEvidenceClasses": [
+            "public-security-review",
+            "private-redacted-security-review"
+          ],
+          "attachArgument": "--security-review-evidence stable-publication-evidence-kit/security-review-evidence.json",
+          "currentEvidenceDiagnostics": {
+            "collectionErrors": [],
+            "error": "",
+            "evidenceInputs": [],
+            "invalidRecordCount": null,
+            "provided": false,
+            "recordCount": null,
+            "stableV4EligibleEvidenceCount": null,
+            "stableV4GateStatus": null,
+            "status": null,
+            "summary": "",
+            "validRecordCount": null
+          },
+          "directory": "stable-publication-evidence-kit",
+          "draftOnly": true,
+          "evidenceId": "final-security-review-evidence",
+          "failCriteria": [
+            "The unchanged template or generated starter file is submitted as evidence.",
+            "status is not pass.",
+            "privateDataRedacted is not true.",
+            "required security scope is missing.",
+            "findingsSummary.criticalOpen or findingsSummary.highOpen is not 0.",
+            "fixtureSynthetic is true.",
+            "The record claims zero risk instead of reporting scope, findings, and residual risk.",
+            "The record contains local paths, private app identifiers, screenshots with private data, tokens, or account data."
+          ],
+          "passCriteria": [
+            "At least one JSON record has status=pass.",
+            "evidenceType is shipguard-security-review.",
+            "evidenceClass is public-security-review or private-redacted-security-review.",
+            "privateDataRedacted is true.",
+            "scope covers cli, plugin, github-actions, release-proof, package-install, and redaction-privacy.",
+            "methodology, commands, artifacts, findingsSummary, and nonClaims are present.",
+            "findingsSummary.criticalOpen is 0 and findingsSummary.highOpen is 0.",
+            "fixtureSynthetic is not true."
+          ],
+          "privacyBoundary": {
+            "criticalAndHighFindingsMustBeExplicit": true,
+            "privateAppDetailsForbiddenInShareableProof": true,
+            "privateAppReviewRequiresSeparateAuthorization": true,
+            "zeroRiskClaimsForbidden": true
+          },
+          "redactionBoundary": {
+            "forbiddenContent": [
+              "private app source",
+              "private app identifiers",
+              "local absolute paths",
+              "screenshots with private data",
+              "tokens or account identifiers"
+            ],
+            "privateDataRedactedMustBeTrue": true
+          },
+          "requiredFields": [
+            "schemaVersion",
+            "evidenceType",
+            "evidenceClass",
+            "reviewerRelationship",
+            "generatedAt",
+            "status",
+            "privateDataRedacted",
+            "scope",
+            "methodology",
+            "commands",
+            "artifacts",
+            "findingsSummary",
+            "nonClaims"
+          ],
+          "requiredScope": [
+            "cli",
+            "plugin",
+            "github-actions",
+            "release-proof",
+            "package-install",
+            "redaction-privacy"
+          ],
+          "rerunCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable",
+          "starterPath": "stable-publication-evidence-kit/security-review-evidence.json",
+          "templateCommand": "cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json",
+          "templatePath": "templates/stable-publication/security-review-evidence.template.json",
+          "title": "Final security review evidence"
+        },
+        "failCriteria": [
+          "The unchanged template or generated starter file is submitted as evidence.",
+          "status is not pass.",
+          "privateDataRedacted is not true.",
+          "required security scope is missing.",
+          "findingsSummary.criticalOpen or findingsSummary.highOpen is not 0.",
+          "fixtureSynthetic is true.",
+          "The record claims zero risk instead of reporting scope, findings, and residual risk.",
+          "The record contains local paths, private app identifiers, screenshots with private data, tokens, or account data."
+        ],
+        "id": "final-security-review-evidence",
+        "isFirstBlockingGate": false,
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable",
+        "passCriteria": [
+          "At least one JSON record has status=pass.",
+          "evidenceType is shipguard-security-review.",
+          "evidenceClass is public-security-review or private-redacted-security-review.",
+          "privateDataRedacted is true.",
+          "scope covers cli, plugin, github-actions, release-proof, package-install, and redaction-privacy.",
+          "methodology, commands, artifacts, findingsSummary, and nonClaims are present.",
+          "findingsSummary.criticalOpen is 0 and findingsSummary.highOpen is 0.",
+          "fixtureSynthetic is not true."
+        ],
+        "privacyBoundary": {
+          "criticalAndHighFindingsMustBeExplicit": true,
+          "privateAppDetailsForbiddenInShareableProof": true,
+          "privateAppReviewRequiresSeparateAuthorization": true,
+          "zeroRiskClaimsForbidden": true
+        },
+        "proofBoundary": "Final security review evidence must cover CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy with no open critical or high findings.",
+        "rank": 6,
+        "receipt": "securityReviewEvidenceStableGate",
+        "redactionBoundary": {
+          "forbiddenContent": [
+            "private app source",
+            "private app identifiers",
+            "local absolute paths",
+            "screenshots with private data",
+            "tokens or account identifiers"
+          ],
+          "privateDataRedactedMustBeTrue": true
+        },
+        "requiredFields": [
+          "schemaVersion",
+          "evidenceType",
+          "evidenceClass",
+          "reviewerRelationship",
+          "generatedAt",
+          "status",
+          "privateDataRedacted",
+          "scope",
+          "methodology",
+          "commands",
+          "artifacts",
+          "findingsSummary",
+          "nonClaims"
+        ],
+        "requiredScope": [
+          "cli",
+          "plugin",
+          "github-actions",
+          "release-proof",
+          "package-install",
+          "redaction-privacy"
+        ],
+        "rerunCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable",
+        "stableRequirement": "Real final review evidence covering CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy with no open critical or high findings.",
+        "starterKitPath": "stable-publication-evidence-kit/security-review-evidence.json",
+        "status": "not-provided",
+        "summary": "No final security review evidence was supplied; stable v4 proof still needs reviewed security evidence for CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy surfaces.",
+        "templateCommand": "cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json",
+        "templatePath": "templates/stable-publication/security-review-evidence.template.json"
+      }
+    ],
+    "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+    "noHiddenLowerOrderBlockers": true,
+    "nonClaims": [
+      "This checklist does not prove stable v4 by itself.",
+      "Every listed item must pass from real publication evidence before stable-v4 claims are allowed.",
+      "Do not skip later blockers merely because an earlier gate is still failing."
+    ],
+    "releaseVersion": "<version>",
+    "schemaVersion": 1,
+    "stableV4Release": false,
+    "status": "review"
+  },
   "stablePublicationEvidencePacket": {
     "firstBlockingGate": {
       "id": "release-notes",
@@ -255,6 +780,19 @@
         "summary": "Post-release consumer proof needs downloaded assets to pass release-consume verification."
       },
       {
+        "evidenceDiagnostics": {
+          "collectionErrors": [],
+          "error": "",
+          "evidenceInputs": [],
+          "invalidRecordCount": null,
+          "provided": false,
+          "recordCount": null,
+          "stableV4EligibleEvidenceCount": null,
+          "stableV4GateStatus": null,
+          "status": null,
+          "summary": "",
+          "validRecordCount": null
+        },
         "id": "independent-adoption-evidence",
         "nextCommand": "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --external-adoption-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
         "provided": false,
@@ -268,6 +806,19 @@
         "templatePath": "templates/stable-publication/external-adoption-evidence.template.json"
       },
       {
+        "evidenceDiagnostics": {
+          "collectionErrors": [],
+          "error": "",
+          "evidenceInputs": [],
+          "invalidRecordCount": null,
+          "provided": false,
+          "recordCount": null,
+          "stableV4EligibleEvidenceCount": null,
+          "stableV4GateStatus": null,
+          "status": null,
+          "summary": "",
+          "validRecordCount": null
+        },
         "id": "final-security-review-evidence",
         "nextCommand": "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
         "provided": false,
@@ -285,217 +836,6 @@
     "schemaVersion": 1,
     "stableV4Release": false,
     "status": "review"
-  },
-  "stablePublicationClosureChecklist": {
-    "schemaVersion": 1,
-    "releaseVersion": "<version>",
-    "status": "review",
-    "stableV4Release": false,
-    "blockerCount": 6,
-    "blockedEvidenceIds": [
-      "release-notes",
-      "launchkey-candidate-packet",
-      "downloaded-release-assets",
-      "post-release-consumer-proof",
-      "independent-adoption-evidence",
-      "final-security-review-evidence"
-    ],
-    "firstBlocker": {
-      "rank": 1,
-      "dependencyOrder": 2,
-      "id": "release-notes",
-      "receipt": "releaseNotesProof",
-      "status": "review",
-      "summary": "Release notes do not yet explicitly describe stable-v4 publication proof.",
-      "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
-      "proofBoundary": "The public release body must include stable-v4 claims, proof boundaries, assets, consumer proof, adoption, security review, and non-claim language.",
-      "blocksStableV4": true,
-      "isFirstBlockingGate": true,
-      "missingTopicIds": [
-        "stable-v4-claim",
-        "downloaded-release-assets",
-        "post-release-consumer-proof",
-        "final-security-review-evidence"
-      ],
-      "authoringKitPaths": [
-        "stable-publication-release-notes/release-notes-checklist.json",
-        "stable-publication-release-notes/draft-release-notes.md",
-        "stable-publication-release-notes/README.md"
-      ],
-      "releaseNotesAuthoringKit": {
-        "directory": "stable-publication-release-notes",
-        "draftOnly": true,
-        "readmePath": "stable-publication-release-notes/README.md",
-        "checklistPath": "stable-publication-release-notes/release-notes-checklist.json",
-        "draftPath": "stable-publication-release-notes/draft-release-notes.md",
-        "files": [
-          {
-            "id": "checklist",
-            "path": "stable-publication-release-notes/release-notes-checklist.json",
-            "purpose": "Machine-readable checklist for the stable-publication release-notes topics."
-          },
-          {
-            "id": "draft-release-notes",
-            "path": "stable-publication-release-notes/draft-release-notes.md",
-            "purpose": "Draft-only release notes section that includes every required stable-publication proof topic."
-          },
-          {
-            "id": "copy-brief",
-            "path": "stable-publication-release-notes/README.md",
-            "purpose": "Human instructions for adapting the draft into the public GitHub release body."
-          }
-        ]
-      },
-      "publicGitHubReleaseEditBoundary": {
-        "target": "public GitHub release body",
-        "releaseUrl": "",
-        "requiresPublicReleaseEdit": true,
-        "shipguardDoesNotEditRelease": true,
-        "authoringKitIsDraftOnly": true,
-        "stableV4ClaimAllowed": false,
-        "instruction": "Edit the public GitHub release body with the missing stable-publication topics, then rerun stable-publication against public release metadata."
-      },
-      "rerunCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable"
-    },
-    "items": [
-      {
-        "rank": 1,
-        "dependencyOrder": 2,
-        "id": "release-notes",
-        "receipt": "releaseNotesProof",
-        "status": "review",
-        "summary": "Release notes do not yet explicitly describe stable-v4 publication proof.",
-        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
-        "proofBoundary": "The public release body must include stable-v4 claims, proof boundaries, assets, consumer proof, adoption, security review, and non-claim language.",
-        "blocksStableV4": true,
-        "isFirstBlockingGate": true,
-        "missingTopicIds": [
-          "stable-v4-claim",
-          "downloaded-release-assets",
-          "post-release-consumer-proof",
-          "final-security-review-evidence"
-        ],
-        "authoringKitPaths": [
-          "stable-publication-release-notes/release-notes-checklist.json",
-          "stable-publication-release-notes/draft-release-notes.md",
-          "stable-publication-release-notes/README.md"
-        ],
-        "releaseNotesAuthoringKit": {
-          "directory": "stable-publication-release-notes",
-          "draftOnly": true,
-          "readmePath": "stable-publication-release-notes/README.md",
-          "checklistPath": "stable-publication-release-notes/release-notes-checklist.json",
-          "draftPath": "stable-publication-release-notes/draft-release-notes.md",
-          "files": [
-            {
-              "id": "checklist",
-              "path": "stable-publication-release-notes/release-notes-checklist.json",
-              "purpose": "Machine-readable checklist for the stable-publication release-notes topics."
-            },
-            {
-              "id": "draft-release-notes",
-              "path": "stable-publication-release-notes/draft-release-notes.md",
-              "purpose": "Draft-only release notes section that includes every required stable-publication proof topic."
-            },
-            {
-              "id": "copy-brief",
-              "path": "stable-publication-release-notes/README.md",
-              "purpose": "Human instructions for adapting the draft into the public GitHub release body."
-            }
-          ]
-        },
-        "publicGitHubReleaseEditBoundary": {
-          "target": "public GitHub release body",
-          "releaseUrl": "",
-          "requiresPublicReleaseEdit": true,
-          "shipguardDoesNotEditRelease": true,
-          "authoringKitIsDraftOnly": true,
-          "stableV4ClaimAllowed": false,
-          "instruction": "Edit the public GitHub release body with the missing stable-publication topics, then rerun stable-publication against public release metadata."
-        },
-        "rerunCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable"
-      },
-      {
-        "rank": 2,
-        "dependencyOrder": 3,
-        "id": "launchkey-candidate-packet",
-        "receipt": "releaseCandidatePacketProof",
-        "status": "not-provided",
-        "summary": "No LaunchKey release-candidate report was supplied; stable publication needs prior package install, upgrade, and rollback proof.",
-        "nextCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --download-release-assets --github-release-repo <owner/repo> --release-version <version> --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
-        "proofBoundary": "A prior LaunchKey release-candidate report must pass every required install, upgrade, rollback, asset, adoption, security, plugin, and package-hygiene proof gate.",
-        "blocksStableV4": true,
-        "isFirstBlockingGate": false
-      },
-      {
-        "rank": 3,
-        "dependencyOrder": 4,
-        "id": "downloaded-release-assets",
-        "receipt": "publishedReleaseAssetProof",
-        "status": "not-provided",
-        "summary": "No downloaded release assets were supplied; stable v4 proof still needs consumer-side release asset verification.",
-        "nextCommand": "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --release-assets <downloaded-assets-dir> --release-version <version> --shipguard-eval --shareable",
-        "proofBoundary": "Release assets must be downloaded or supplied and consumed by release-consume verification.",
-        "blocksStableV4": true,
-        "isFirstBlockingGate": false
-      },
-      {
-        "rank": 4,
-        "dependencyOrder": 5,
-        "id": "post-release-consumer-proof",
-        "receipt": "postReleaseConsumerProof",
-        "status": "not-provided",
-        "summary": "Post-release consumer proof needs downloaded assets to pass release-consume verification.",
-        "nextCommand": "./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>",
-        "proofBoundary": "A consumer proof must verify the published release assets outside the local build-only path.",
-        "blocksStableV4": true,
-        "isFirstBlockingGate": false
-      },
-      {
-        "rank": 5,
-        "dependencyOrder": 6,
-        "id": "independent-adoption-evidence",
-        "receipt": "externalAdoptionEvidenceStableGate",
-        "status": "not-provided",
-        "summary": "No external adoption evidence was supplied; stable v4 proof still needs independent user or maintainer evidence outside the ShipGuard maintainer loop.",
-        "nextCommand": "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --external-adoption-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
-        "proofBoundary": "Independent public adoption evidence must pass structure, redaction, and independence checks; fixture evidence is not enough.",
-        "blocksStableV4": true,
-        "isFirstBlockingGate": false,
-        "templatePath": "templates/stable-publication/external-adoption-evidence.template.json",
-        "templateCommand": "cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json"
-      },
-      {
-        "rank": 6,
-        "dependencyOrder": 7,
-        "id": "final-security-review-evidence",
-        "receipt": "securityReviewEvidenceStableGate",
-        "status": "not-provided",
-        "summary": "No final security review evidence was supplied; stable v4 proof still needs reviewed security evidence for CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy surfaces.",
-        "nextCommand": "./bin/shipguard v4 release-candidate --path . --out /tmp/shipguard-v4-release-candidate --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
-        "proofBoundary": "Final security review evidence must cover CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy with no open critical or high findings.",
-        "blocksStableV4": true,
-        "isFirstBlockingGate": false,
-        "templatePath": "templates/stable-publication/security-review-evidence.template.json",
-        "templateCommand": "cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json"
-      }
-    ],
-    "dependencyOrder": [
-      "github-release-metadata",
-      "release-notes",
-      "launchkey-candidate-packet",
-      "downloaded-release-assets",
-      "post-release-consumer-proof",
-      "independent-adoption-evidence",
-      "final-security-review-evidence"
-    ],
-    "noHiddenLowerOrderBlockers": true,
-    "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
-    "nonClaims": [
-      "This checklist does not prove stable v4 by itself.",
-      "Every listed item must pass from real publication evidence before stable-v4 claims are allowed.",
-      "Do not skip later blockers merely because an earlier gate is still failing."
-    ]
   },
   "stablePublicationEvidenceStarterKit": {
     "directory": "stable-publication-evidence-kit",

@@ -3272,6 +3272,105 @@ def stable_publication_evidence_packet_issues(
                             evidence=f"{path_name} Markdown does not render the release-notes closure kit",
                             recommendation="Render missing topics, authoring-kit paths, public edit boundary, and rerun command in Markdown.",
                         )
+                if item.get("id") in {"independent-adoption-evidence", "final-security-review-evidence"}:
+                    evidence_id = str(item.get("id"))
+                    expected = {
+                        "independent-adoption-evidence": {
+                            "starterPath": "stable-publication-evidence-kit/external-adoption-evidence.json",
+                            "templatePath": "templates/stable-publication/external-adoption-evidence.template.json",
+                            "classes": {"public-external", "private-redacted-external"},
+                        },
+                        "final-security-review-evidence": {
+                            "starterPath": "stable-publication-evidence-kit/security-review-evidence.json",
+                            "templatePath": "templates/stable-publication/security-review-evidence.template.json",
+                            "classes": {"public-security-review", "private-redacted-security-review"},
+                        },
+                    }[evidence_id]
+                    closure_kit = item.get("evidenceClosureKit") if isinstance(item.get("evidenceClosureKit"), dict) else {}
+                    if not closure_kit:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id=f"stable-publication-{evidence_id}-closure-kit-missing",
+                            evidence=f"{path_name} closure item `{evidence_id}` has no evidenceClosureKit",
+                            recommendation="Attach a per-blocker closure kit with starter path, template path, required fields, redaction/privacy boundaries, pass/fail criteria, diagnostics, and rerun command.",
+                        )
+                        continue
+                    if closure_kit.get("starterPath") != expected["starterPath"] or closure_kit.get("templatePath") != expected["templatePath"]:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id=f"stable-publication-{evidence_id}-closure-kit-paths-missing",
+                            evidence=f"{path_name} closure item `{evidence_id}` does not expose the expected starter/template paths",
+                            recommendation="Put the generated starter evidence path and repo template path directly on the closure kit.",
+                        )
+                    accepted_classes = set(str(value) for value in closure_kit.get("acceptedEvidenceClasses", [])) if isinstance(closure_kit.get("acceptedEvidenceClasses"), list) else set()
+                    if not expected["classes"] <= accepted_classes:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id=f"stable-publication-{evidence_id}-closure-kit-classes-missing",
+                            evidence=f"{path_name} closure item `{evidence_id}` does not list the accepted stable-v4 evidence classes",
+                            recommendation="List accepted evidenceClass values so maintainers know what record shape can pass the gate.",
+                        )
+                    if not isinstance(closure_kit.get("requiredFields"), list) or len(closure_kit.get("requiredFields") or []) < 5:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id=f"stable-publication-{evidence_id}-closure-kit-required-fields-missing",
+                            evidence=f"{path_name} closure item `{evidence_id}` does not list required evidence fields",
+                            recommendation="Expose the required JSON fields directly on the closure kit.",
+                        )
+                    redaction_boundary = closure_kit.get("redactionBoundary") if isinstance(closure_kit.get("redactionBoundary"), dict) else {}
+                    privacy_boundary = closure_kit.get("privacyBoundary") if isinstance(closure_kit.get("privacyBoundary"), dict) else {}
+                    if redaction_boundary.get("privateDataRedactedMustBeTrue") is not True or not privacy_boundary:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id=f"stable-publication-{evidence_id}-closure-kit-boundaries-missing",
+                            evidence=f"{path_name} closure item `{evidence_id}` does not expose redaction and privacy boundaries",
+                            recommendation="State the redaction/privacy boundary on the closure kit so private paths, app identifiers, screenshots, tokens, and account data cannot leak into shareable proof.",
+                        )
+                    if not isinstance(closure_kit.get("passCriteria"), list) or len(closure_kit.get("passCriteria") or []) < 3:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id=f"stable-publication-{evidence_id}-closure-kit-pass-criteria-missing",
+                            evidence=f"{path_name} closure item `{evidence_id}` does not list pass criteria",
+                            recommendation="List concrete pass criteria so maintainers know exactly when the evidence can satisfy stable publication.",
+                        )
+                    if not isinstance(closure_kit.get("failCriteria"), list) or len(closure_kit.get("failCriteria") or []) < 3:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id=f"stable-publication-{evidence_id}-closure-kit-fail-criteria-missing",
+                            evidence=f"{path_name} closure item `{evidence_id}` does not list fail criteria",
+                            recommendation="List common fail cases such as unchanged templates, missing redaction, fixture evidence, and private-data leakage.",
+                        )
+                    if "stable-publication" not in str(closure_kit.get("rerunCommand") or item.get("rerunCommand") or ""):
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id=f"stable-publication-{evidence_id}-closure-kit-rerun-command-missing",
+                            evidence=f"{path_name} closure item `{evidence_id}` has no exact stable-publication rerun command",
+                            recommendation="Attach the stable-publication command to rerun after real adoption/security evidence is attached.",
+                        )
+                    if not isinstance(closure_kit.get("currentEvidenceDiagnostics"), dict):
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id=f"stable-publication-{evidence_id}-closure-kit-diagnostics-missing",
+                            evidence=f"{path_name} closure item `{evidence_id}` does not show current evidence diagnostics",
+                            recommendation="Mirror the current gate status, record counts, first error, and relevant missing scope/fields into the closure kit.",
+                        )
+                    if f"Evidence Closure Kit: `{evidence_id}`" not in markdown:
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id=f"stable-publication-{evidence_id}-closure-kit-markdown-missing",
+                            evidence=f"{path_name} Markdown does not render the `{evidence_id}` closure kit",
+                            recommendation="Render starter path, required fields, privacy boundary, pass/fail criteria, diagnostics, and rerun command in Markdown.",
+                        )
     if "Closure Checklist" not in markdown:
         add_issue(
             issues,

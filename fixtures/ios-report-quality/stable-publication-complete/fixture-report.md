@@ -69,6 +69,87 @@
 | `1` | `independent-adoption-evidence` | `not-provided` | `True` | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable` | Independent public adoption evidence must pass structure, redaction, and independence checks; fixture evidence is not enough. |
 | `2` | `final-security-review-evidence` | `not-provided` | `False` | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable` | Final security review evidence must cover CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy with no open critical or high findings. |
 
+### Evidence Closure Kit: `independent-adoption-evidence`
+
+- Starter path: `stable-publication-evidence-kit/external-adoption-evidence.json`
+- Template path: `templates/stable-publication/external-adoption-evidence.template.json`
+- Attach argument: `--external-adoption-evidence stable-publication-evidence-kit/external-adoption-evidence.json`
+- Accepted evidence classes: `public-external, private-redacted-external`
+- Required fields: `schemaVersion, evidenceType, evidenceClass, actorRelationship, generatedAt, status, privateDataRedacted, commands, artifacts, outcome, nonClaims`
+- Required scope: `not-required`
+- Private data redacted required: `True`
+- Current gate: `not-provided`
+- Current error: `none`
+- Evidence records: `None` total, `None` valid, `None` stable-v4 eligible
+
+Pass criteria:
+
+- At least one JSON record has status=pass.
+- evidenceType is shipguard-external-adoption.
+- evidenceClass is public-external or private-redacted-external.
+- actorRelationship is independent.
+- privateDataRedacted is true.
+- commands, artifacts, outcome, and nonClaims are present.
+- fixtureSynthetic is not true.
+- The record is public-shareable or summary-shareable with consent/privacy reviewed.
+
+Fail criteria:
+
+- The unchanged template or generated starter file is submitted as evidence.
+- status is not pass.
+- privateDataRedacted is not true.
+- actorRelationship is not independent.
+- fixtureSynthetic is true.
+- Evidence relies only on GitHub downloads or maintainer-only runs.
+- The record contains local paths, private app identifiers, screenshots with private data, tokens, or account data.
+
+Rerun after attaching real evidence:
+
+```bash
+./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable
+```
+
+### Evidence Closure Kit: `final-security-review-evidence`
+
+- Starter path: `stable-publication-evidence-kit/security-review-evidence.json`
+- Template path: `templates/stable-publication/security-review-evidence.template.json`
+- Attach argument: `--security-review-evidence stable-publication-evidence-kit/security-review-evidence.json`
+- Accepted evidence classes: `public-security-review, private-redacted-security-review`
+- Required fields: `schemaVersion, evidenceType, evidenceClass, reviewerRelationship, generatedAt, status, privateDataRedacted, scope, methodology, commands, artifacts, findingsSummary, nonClaims`
+- Required scope: `cli, plugin, github-actions, release-proof, package-install, redaction-privacy`
+- Private data redacted required: `True`
+- Current gate: `not-provided`
+- Current error: `none`
+- Evidence records: `None` total, `None` valid, `None` stable-v4 eligible
+
+Pass criteria:
+
+- At least one JSON record has status=pass.
+- evidenceType is shipguard-security-review.
+- evidenceClass is public-security-review or private-redacted-security-review.
+- privateDataRedacted is true.
+- scope covers cli, plugin, github-actions, release-proof, package-install, and redaction-privacy.
+- methodology, commands, artifacts, findingsSummary, and nonClaims are present.
+- findingsSummary.criticalOpen is 0 and findingsSummary.highOpen is 0.
+- fixtureSynthetic is not true.
+
+Fail criteria:
+
+- The unchanged template or generated starter file is submitted as evidence.
+- status is not pass.
+- privateDataRedacted is not true.
+- required security scope is missing.
+- findingsSummary.criticalOpen or findingsSummary.highOpen is not 0.
+- fixtureSynthetic is true.
+- The record claims zero risk instead of reporting scope, findings, and residual risk.
+- The record contains local paths, private app identifiers, screenshots with private data, tokens, or account data.
+
+Rerun after attaching real evidence:
+
+```bash
+./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable
+```
+
 ## Evidence Templates
 
 | Template | Exists | Copy command |

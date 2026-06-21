@@ -339,6 +339,84 @@ grep -q 'Stable Publication Launch Relay' "$tmp_dir/blocked/stable-publication-l
 
 if ./bin/shipguard v4 stable-publication \
   --path . \
+  --out "$tmp_dir/evidence-blocked" \
+  --github-release-repo jlekerli-source/ShipGuard \
+  --github-api-url "file://$api_root" \
+  --release-version "$version" \
+  --release-candidate-report "$tmp_dir/candidate-pass.json" \
+  --release-assets "$tmp_dir/downloaded" \
+  --release-consume-out "$tmp_dir/evidence-blocked-consume" \
+  --shipguard-eval \
+  --shareable >/dev/null 2>&1; then
+  echo "expected missing adoption/security evidence to block stable publication" >&2
+  exit 1
+fi
+python3 - "$tmp_dir/evidence-blocked/v4-stable-publication.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+packet = report["stablePublicationEvidencePacket"]
+assert packet["missingEvidenceIds"] == [
+    "independent-adoption-evidence",
+    "final-security-review-evidence",
+]
+required_by_id = {item["id"]: item for item in packet["requiredEvidence"]}
+assert required_by_id["independent-adoption-evidence"]["evidenceDiagnostics"]["stableV4GateStatus"] == "not-provided"
+assert required_by_id["final-security-review-evidence"]["evidenceDiagnostics"]["stableV4GateStatus"] == "not-provided"
+closure = report["stablePublicationClosureChecklist"]
+items = closure["items"]
+assert [item["id"] for item in items] == packet["missingEvidenceIds"]
+expected = {
+    "independent-adoption-evidence": {
+        "starterPath": "stable-publication-evidence-kit/external-adoption-evidence.json",
+        "templatePath": "templates/stable-publication/external-adoption-evidence.template.json",
+        "classes": {"public-external", "private-redacted-external"},
+        "requiredFields": {"actorRelationship", "privateDataRedacted", "commands", "artifacts", "outcome", "nonClaims"},
+    },
+    "final-security-review-evidence": {
+        "starterPath": "stable-publication-evidence-kit/security-review-evidence.json",
+        "templatePath": "templates/stable-publication/security-review-evidence.template.json",
+        "classes": {"public-security-review", "private-redacted-security-review"},
+        "requiredFields": {"scope", "methodology", "findingsSummary", "privateDataRedacted", "nonClaims"},
+    },
+}
+for item in items:
+    spec = expected[item["id"]]
+    kit = item["evidenceClosureKit"]
+    assert item["starterKitPath"] == spec["starterPath"]
+    assert item["templatePath"] == spec["templatePath"]
+    assert kit["starterPath"] == spec["starterPath"]
+    assert kit["templatePath"] == spec["templatePath"]
+    assert set(kit["acceptedEvidenceClasses"]) == spec["classes"]
+    assert spec["requiredFields"] <= set(kit["requiredFields"])
+    assert kit["redactionBoundary"]["privateDataRedactedMustBeTrue"] is True
+    assert kit["privacyBoundary"]
+    assert len(kit["passCriteria"]) >= 3
+    assert len(kit["failCriteria"]) >= 3
+    assert "stable-publication" in kit["rerunCommand"]
+    assert kit["currentEvidenceDiagnostics"]["stableV4GateStatus"] == "not-provided"
+    assert item["nextCommand"] == item["rerunCommand"] == kit["rerunCommand"]
+security_kit = expected["final-security-review-evidence"]
+security_item = next(item for item in items if item["id"] == "final-security-review-evidence")
+assert set(security_item["evidenceClosureKit"]["requiredScope"]) == {
+    "cli",
+    "plugin",
+    "github-actions",
+    "release-proof",
+    "package-install",
+    "redaction-privacy",
+}
+PY
+grep -q 'Evidence Closure Kit: `independent-adoption-evidence`' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
+grep -q 'Evidence Closure Kit: `final-security-review-evidence`' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
+grep -q 'Pass criteria:' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
+grep -q 'Fail criteria:' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
+grep -q 'stable-publication-evidence-kit/external-adoption-evidence.json' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
+grep -q 'stable-publication-evidence-kit/security-review-evidence.json' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
+
+if ./bin/shipguard v4 stable-publication \
+  --path . \
   --out "$tmp_dir/hygiene-blocked" \
   --github-release-repo jlekerli-source/ShipGuard \
   --github-api-url "file://$api_root" \

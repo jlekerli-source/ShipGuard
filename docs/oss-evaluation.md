@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.165 read-only stable-v4 packet loop continued from the release-notes closure kit and tested whether adoption/security blockers are directly actionable without opening nested proof JSON or source templates.
+
+- Finding: `v4 stable-publication` could show `independent-adoption-evidence` and `final-security-review-evidence` as remaining blockers, but those rows did not themselves include the exact record contract, starter path, privacy boundary, pass/fail criteria, current diagnostics, or stable-publication rerun command.
+- Product weakness: a solo maintainer should not have to reverse-engineer adoption/security evidence from templates, LaunchKey internals, or nested proof records before closing the stable-v4 gate.
+- Native fix: adoption/security closure items now carry `evidenceClosureKit` with starter/template paths, accepted evidence classes, required fields, required security scope, redaction/privacy boundaries, pass/fail criteria, current diagnostics, and rerun commands.
+- Report-quality fix: `ios report-quality` now flags stable-publication reports whose adoption/security closure items hide the evidence closure kit, required fields, boundaries, pass/fail criteria, diagnostics, rerun commands, or Markdown `Evidence Closure Kit` rendering.
+- Fixture fix: public stable-publication fixtures with adoption/security blockers now include the new closure-kit fields in JSON and Markdown.
+
+Fresh stable-v4 QA still does not claim real stable v4. It makes adoption/security evidence closure explicit while keeping release notes, LaunchKey candidate proof, downloaded assets, and post-release consumer proof as separate gates.
+
 The v3.164 read-only stable-v4 packet loop continued from the closure checklist and tested whether the first release-notes blocker is directly actionable without opening nested JSON.
 
 - Finding: `v4 stable-publication` listed `release-notes` as the first remaining stable-v4 blocker, but the closure row did not itself show the missing topics, generated authoring-kit paths, public GitHub release edit boundary, or rerun command.

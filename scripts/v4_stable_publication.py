@@ -82,11 +82,15 @@ RELEASE_NOTES_TOPIC_RULES = [
 ]
 
 STABLE_PUBLICATION_TEMPLATE_DIR = "templates/stable-publication"
+STARTER_KIT_DIRNAME = "stable-publication-evidence-kit"
+RELEASE_NOTES_KIT_DIRNAME = "stable-publication-release-notes"
+LAUNCH_RELAY_DIRNAME = "stable-publication-launch-relay"
 STABLE_PUBLICATION_TEMPLATE_SPECS = [
     {
         "id": "independent-adoption-evidence",
         "title": "Independent adoption evidence",
         "path": f"{STABLE_PUBLICATION_TEMPLATE_DIR}/external-adoption-evidence.template.json",
+        "starterPath": f"{STARTER_KIT_DIRNAME}/external-adoption-evidence.json",
         "targetFile": "<evidence-dir>/external-adoption-evidence.json",
         "commandFlag": "--external-adoption-evidence",
         "evidenceType": "shipguard-external-adoption",
@@ -105,11 +109,47 @@ STABLE_PUBLICATION_TEMPLATE_SPECS = [
             "nonClaims",
         ],
         "stableRequirement": "Real independent public or private-redacted external adoption evidence; unchanged template records are draft-only and must not pass.",
+        "redactionBoundary": {
+            "privateDataRedactedMustBeTrue": True,
+            "forbiddenContent": [
+                "private app source",
+                "private app identifiers",
+                "local absolute paths",
+                "screenshots with private data",
+                "tokens or account identifiers",
+            ],
+        },
+        "privacyBoundary": {
+            "consentToShareOrSummaryOnlyRequired": True,
+            "privateAppDetailsForbiddenInShareableProof": True,
+            "githubDownloadsDoNotCountAsAdoption": True,
+            "maintainerOnlyRunsDoNotCountAsIndependentAdoption": True,
+        },
+        "passCriteria": [
+            "At least one JSON record has status=pass.",
+            "evidenceType is shipguard-external-adoption.",
+            "evidenceClass is public-external or private-redacted-external.",
+            "actorRelationship is independent.",
+            "privateDataRedacted is true.",
+            "commands, artifacts, outcome, and nonClaims are present.",
+            "fixtureSynthetic is not true.",
+            "The record is public-shareable or summary-shareable with consent/privacy reviewed.",
+        ],
+        "failCriteria": [
+            "The unchanged template or generated starter file is submitted as evidence.",
+            "status is not pass.",
+            "privateDataRedacted is not true.",
+            "actorRelationship is not independent.",
+            "fixtureSynthetic is true.",
+            "Evidence relies only on GitHub downloads or maintainer-only runs.",
+            "The record contains local paths, private app identifiers, screenshots with private data, tokens, or account data.",
+        ],
     },
     {
         "id": "final-security-review-evidence",
         "title": "Final security review evidence",
         "path": f"{STABLE_PUBLICATION_TEMPLATE_DIR}/security-review-evidence.template.json",
+        "starterPath": f"{STARTER_KIT_DIRNAME}/security-review-evidence.json",
         "targetFile": "<evidence-dir>/security-review-evidence.json",
         "commandFlag": "--security-review-evidence",
         "evidenceType": "shipguard-security-review",
@@ -130,11 +170,52 @@ STABLE_PUBLICATION_TEMPLATE_SPECS = [
             "nonClaims",
         ],
         "stableRequirement": "Real final review evidence covering CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy with no open critical or high findings.",
+        "requiredScope": [
+            "cli",
+            "plugin",
+            "github-actions",
+            "release-proof",
+            "package-install",
+            "redaction-privacy",
+        ],
+        "redactionBoundary": {
+            "privateDataRedactedMustBeTrue": True,
+            "forbiddenContent": [
+                "private app source",
+                "private app identifiers",
+                "local absolute paths",
+                "screenshots with private data",
+                "tokens or account identifiers",
+            ],
+        },
+        "privacyBoundary": {
+            "privateAppReviewRequiresSeparateAuthorization": True,
+            "privateAppDetailsForbiddenInShareableProof": True,
+            "zeroRiskClaimsForbidden": True,
+            "criticalAndHighFindingsMustBeExplicit": True,
+        },
+        "passCriteria": [
+            "At least one JSON record has status=pass.",
+            "evidenceType is shipguard-security-review.",
+            "evidenceClass is public-security-review or private-redacted-security-review.",
+            "privateDataRedacted is true.",
+            "scope covers cli, plugin, github-actions, release-proof, package-install, and redaction-privacy.",
+            "methodology, commands, artifacts, findingsSummary, and nonClaims are present.",
+            "findingsSummary.criticalOpen is 0 and findingsSummary.highOpen is 0.",
+            "fixtureSynthetic is not true.",
+        ],
+        "failCriteria": [
+            "The unchanged template or generated starter file is submitted as evidence.",
+            "status is not pass.",
+            "privateDataRedacted is not true.",
+            "required security scope is missing.",
+            "findingsSummary.criticalOpen or findingsSummary.highOpen is not 0.",
+            "fixtureSynthetic is true.",
+            "The record claims zero risk instead of reporting scope, findings, and residual risk.",
+            "The record contains local paths, private app identifiers, screenshots with private data, tokens, or account data.",
+        ],
     },
 ]
-STARTER_KIT_DIRNAME = "stable-publication-evidence-kit"
-RELEASE_NOTES_KIT_DIRNAME = "stable-publication-release-notes"
-LAUNCH_RELAY_DIRNAME = "stable-publication-launch-relay"
 
 
 def utc_now() -> str:
@@ -645,6 +726,37 @@ def proof_boundary_for_evidence_id(evidence_id: str) -> str:
     return mapping.get(evidence_id, "This stable-v4 evidence input must pass from real reviewed proof before stable publication can be claimed.")
 
 
+def evidence_diagnostics_for_closure(proof: dict[str, Any]) -> dict[str, Any]:
+    diagnostics: dict[str, Any] = {
+        "status": proof.get("status"),
+        "stableV4GateStatus": proof.get("stableV4GateStatus") or proof.get("status"),
+        "provided": proof.get("provided") is True,
+        "summary": proof.get("summary") or "",
+        "error": proof.get("error") or "",
+        "evidenceInputs": proof.get("evidenceInputs") if isinstance(proof.get("evidenceInputs"), list) else [],
+        "collectionErrors": proof.get("collectionErrors") if isinstance(proof.get("collectionErrors"), list) else [],
+        "recordCount": proof.get("evidenceRecordCount"),
+        "validRecordCount": proof.get("validRecordCount"),
+        "invalidRecordCount": proof.get("invalidRecordCount"),
+        "stableV4EligibleEvidenceCount": proof.get("stableV4EligibleEvidenceCount"),
+    }
+    if isinstance(proof.get("requiredScope"), list):
+        diagnostics["requiredScope"] = proof.get("requiredScope")
+    records = proof.get("records") if isinstance(proof.get("records"), list) else []
+    if records:
+        first = records[0] if isinstance(records[0], dict) else {}
+        diagnostics["firstRecord"] = {
+            "path": first.get("path"),
+            "status": first.get("status"),
+            "stableV4Eligible": first.get("stableV4Eligible") is True,
+            "missingFields": first.get("missingFields") if isinstance(first.get("missingFields"), list) else [],
+            "errors": first.get("errors") if isinstance(first.get("errors"), list) else [],
+            "missingStableScope": first.get("missingStableScope") if isinstance(first.get("missingStableScope"), list) else [],
+            "stableV4Reason": first.get("stableV4Reason") or "",
+        }
+    return diagnostics
+
+
 def build_stable_publication_evidence_templates(root: Path) -> dict[str, Any]:
     templates: list[dict[str, Any]] = []
     full_validate_command = (
@@ -935,6 +1047,8 @@ def build_stable_publication_evidence_packet(
                     "templateCommand": template.get("copyCommand"),
                 }
             )
+        if evidence_id in {"independent-adoption-evidence", "final-security-review-evidence"}:
+            item["evidenceDiagnostics"] = evidence_diagnostics_for_closure(proof)
         required_evidence.append(item)
 
     missing = [item for item in required_evidence if item.get("status") != "pass"]
@@ -980,16 +1094,30 @@ def build_stable_publication_closure_checklist(
     evidence_packet: dict[str, Any],
     release_version: str,
     stable_v4_release: bool,
+    evidence_templates: dict[str, Any] | None = None,
+    evidence_starter_kit: dict[str, Any] | None = None,
     release_notes_proof: dict[str, Any] | None = None,
     release_notes_authoring_kit: dict[str, Any] | None = None,
     metadata_proof: dict[str, Any] | None = None,
-    release_notes_rerun_command: str = "",
+    rerun_command: str = "",
 ) -> dict[str, Any]:
     required = evidence_packet.get("requiredEvidence") if isinstance(evidence_packet.get("requiredEvidence"), list) else []
     first_blocking = evidence_packet.get("firstBlockingGate") if isinstance(evidence_packet.get("firstBlockingGate"), dict) else {}
+    evidence_templates = evidence_templates if isinstance(evidence_templates, dict) else {}
+    evidence_starter_kit = evidence_starter_kit if isinstance(evidence_starter_kit, dict) else {}
     release_notes_proof = release_notes_proof if isinstance(release_notes_proof, dict) else {}
     release_notes_authoring_kit = release_notes_authoring_kit if isinstance(release_notes_authoring_kit, dict) else {}
     metadata_proof = metadata_proof if isinstance(metadata_proof, dict) else {}
+    templates_by_id = {
+        str(template.get("id")): template
+        for template in evidence_templates.get("templates", [])
+        if isinstance(template, dict)
+    }
+    starter_files_by_id = {
+        str(file_item.get("id")): file_item
+        for file_item in evidence_starter_kit.get("files", [])
+        if isinstance(file_item, dict)
+    }
     items: list[dict[str, Any]] = []
 
     for index, item in enumerate(required, start=1):
@@ -1038,7 +1166,50 @@ def build_stable_publication_closure_checklist(
                         "stableV4ClaimAllowed": False,
                         "instruction": "Edit the public GitHub release body with the missing stable-publication topics, then rerun stable-publication against public release metadata.",
                     },
-                    "rerunCommand": release_notes_rerun_command or item.get("nextCommand") or first_blocking.get("nextCommand") or "",
+                    "rerunCommand": rerun_command or item.get("nextCommand") or first_blocking.get("nextCommand") or "",
+                }
+            )
+            closure_item["nextCommand"] = closure_item["rerunCommand"]
+        if evidence_id in {"independent-adoption-evidence", "final-security-review-evidence"}:
+            template = templates_by_id.get(evidence_id, {})
+            starter_file = starter_files_by_id.get(evidence_id, {})
+            evidence_diagnostics = item.get("evidenceDiagnostics") if isinstance(item.get("evidenceDiagnostics"), dict) else {}
+            closure_rerun_command = rerun_command or item.get("nextCommand") or first_blocking.get("nextCommand") or ""
+            closure_item.update(
+                {
+                    "starterKitPath": starter_file.get("path") or template.get("starterPath") or "",
+                    "templatePath": template.get("path") or item.get("templatePath") or "",
+                    "templateCommand": template.get("copyCommand") or item.get("templateCommand") or "",
+                    "attachArgument": starter_file.get("attachArgument") or "",
+                    "acceptedEvidenceClasses": template.get("acceptedEvidenceClasses") if isinstance(template.get("acceptedEvidenceClasses"), list) else [],
+                    "requiredFields": template.get("requiredFields") if isinstance(template.get("requiredFields"), list) else [],
+                    "requiredScope": template.get("requiredScope") if isinstance(template.get("requiredScope"), list) else [],
+                    "stableRequirement": template.get("stableRequirement") or "",
+                    "redactionBoundary": template.get("redactionBoundary") if isinstance(template.get("redactionBoundary"), dict) else {},
+                    "privacyBoundary": template.get("privacyBoundary") if isinstance(template.get("privacyBoundary"), dict) else {},
+                    "passCriteria": template.get("passCriteria") if isinstance(template.get("passCriteria"), list) else [],
+                    "failCriteria": template.get("failCriteria") if isinstance(template.get("failCriteria"), list) else [],
+                    "currentEvidenceDiagnostics": evidence_diagnostics,
+                    "rerunCommand": closure_rerun_command,
+                    "evidenceClosureKit": {
+                        "evidenceId": evidence_id,
+                        "title": template.get("title") or closure_item["summary"],
+                        "directory": evidence_starter_kit.get("directory"),
+                        "draftOnly": evidence_starter_kit.get("draftOnly") is True,
+                        "starterPath": starter_file.get("path") or template.get("starterPath") or "",
+                        "templatePath": template.get("path") or item.get("templatePath") or "",
+                        "templateCommand": template.get("copyCommand") or item.get("templateCommand") or "",
+                        "attachArgument": starter_file.get("attachArgument") or "",
+                        "acceptedEvidenceClasses": template.get("acceptedEvidenceClasses") if isinstance(template.get("acceptedEvidenceClasses"), list) else [],
+                        "requiredFields": template.get("requiredFields") if isinstance(template.get("requiredFields"), list) else [],
+                        "requiredScope": template.get("requiredScope") if isinstance(template.get("requiredScope"), list) else [],
+                        "redactionBoundary": template.get("redactionBoundary") if isinstance(template.get("redactionBoundary"), dict) else {},
+                        "privacyBoundary": template.get("privacyBoundary") if isinstance(template.get("privacyBoundary"), dict) else {},
+                        "passCriteria": template.get("passCriteria") if isinstance(template.get("passCriteria"), list) else [],
+                        "failCriteria": template.get("failCriteria") if isinstance(template.get("failCriteria"), list) else [],
+                        "currentEvidenceDiagnostics": evidence_diagnostics,
+                        "rerunCommand": closure_rerun_command,
+                    },
                 }
             )
             closure_item["nextCommand"] = closure_item["rerunCommand"]
@@ -1480,10 +1651,12 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         evidence_packet=evidence_packet,
         release_version=release_version,
         stable_v4_release=stable_v4_release,
+        evidence_templates=evidence_templates,
+        evidence_starter_kit=evidence_starter_kit,
         release_notes_proof=release_notes_proof,
         release_notes_authoring_kit=release_notes_authoring_kit,
         metadata_proof=metadata_proof,
-        release_notes_rerun_command=stable_publication_rerun_command(args),
+        rerun_command=stable_publication_rerun_command(args),
     )
     launch_relay_drafts = build_stable_publication_launch_relay_drafts(
         release_version=release_version,
@@ -1570,6 +1743,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the stable-publication closure checklist list every remaining blocker in dependency order with exact next commands instead of hiding lower-order blockers behind only the first failing gate?",
             "Does the stable-publication report provide draft-only evidence templates for independent adoption and final security review without manufacturing proof?",
             "Does the stable-publication report write a draft-only evidence starter kit so maintainers can collect the packet without reverse-engineering JSON shapes?",
+            "Do independent adoption and final security-review closure rows expose starter paths, required fields, redaction/privacy boundaries, pass/fail criteria, current diagnostics, and exact stable-publication rerun commands?",
             "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?",
         ],
         "resultUX": result_ux,
@@ -1692,6 +1866,72 @@ def render_markdown(report: dict[str, Any]) -> str:
                     "",
                     "```bash",
                     str(release_notes_closure.get("rerunCommand") or release_notes_closure.get("nextCommand") or ""),
+                    "```",
+                ]
+            )
+        evidence_closure_items = [
+            item
+            for item in items
+            if isinstance(item, dict)
+            and item.get("id") in {"independent-adoption-evidence", "final-security-review-evidence"}
+            and isinstance(item.get("evidenceClosureKit"), dict)
+        ]
+        for item in evidence_closure_items:
+            kit = item.get("evidenceClosureKit") if isinstance(item.get("evidenceClosureKit"), dict) else {}
+            diagnostics = (
+                kit.get("currentEvidenceDiagnostics")
+                if isinstance(kit.get("currentEvidenceDiagnostics"), dict)
+                else {}
+            )
+            first_record = (
+                diagnostics.get("firstRecord")
+                if isinstance(diagnostics.get("firstRecord"), dict)
+                else {}
+            )
+            required_fields = ", ".join(str(field) for field in kit.get("requiredFields", [])) or "not-provided"
+            accepted_classes = ", ".join(str(value) for value in kit.get("acceptedEvidenceClasses", [])) or "not-provided"
+            required_scope = ", ".join(str(value) for value in kit.get("requiredScope", [])) or "not-required"
+            lines.extend(
+                [
+                    "",
+                    f"### Evidence Closure Kit: `{item.get('id')}`",
+                    "",
+                    f"- Starter path: `{kit.get('starterPath') or 'not-provided'}`",
+                    f"- Template path: `{kit.get('templatePath') or 'not-provided'}`",
+                    f"- Attach argument: `{kit.get('attachArgument') or 'not-provided'}`",
+                    f"- Accepted evidence classes: `{accepted_classes}`",
+                    f"- Required fields: `{required_fields}`",
+                    f"- Required scope: `{required_scope}`",
+                    f"- Private data redacted required: `{(kit.get('redactionBoundary') or {}).get('privateDataRedactedMustBeTrue')}`",
+                    f"- Current gate: `{diagnostics.get('stableV4GateStatus') or diagnostics.get('status') or 'not-provided'}`",
+                    f"- Current error: `{diagnostics.get('error') or 'none'}`",
+                    f"- Evidence records: `{diagnostics.get('recordCount')}` total, `{diagnostics.get('validRecordCount')}` valid, `{diagnostics.get('stableV4EligibleEvidenceCount')}` stable-v4 eligible",
+                ]
+            )
+            if first_record:
+                first_errors = ", ".join(str(value) for value in first_record.get("errors", [])) or "none"
+                missing_fields = ", ".join(str(value) for value in first_record.get("missingFields", [])) or "none"
+                missing_scope = ", ".join(str(value) for value in first_record.get("missingStableScope", [])) or "none"
+                lines.extend(
+                    [
+                        f"- First record missing fields: `{missing_fields}`",
+                        f"- First record errors: `{first_errors}`",
+                        f"- First record missing security scope: `{missing_scope}`",
+                    ]
+                )
+            lines.extend(["", "Pass criteria:", ""])
+            for criterion in kit.get("passCriteria", []):
+                lines.append(f"- {criterion}")
+            lines.extend(["", "Fail criteria:", ""])
+            for criterion in kit.get("failCriteria", []):
+                lines.append(f"- {criterion}")
+            lines.extend(
+                [
+                    "",
+                    "Rerun after attaching real evidence:",
+                    "",
+                    "```bash",
+                    str(kit.get("rerunCommand") or item.get("nextCommand") or ""),
                     "```",
                 ]
             )
