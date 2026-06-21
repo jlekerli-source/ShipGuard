@@ -63,7 +63,7 @@ For iOS notification, permission, authorization, denied-state, or provisional-fl
 - required receipt scopes for permission-state, denied-state, not-determined-state, and simulator permission-reset proof
 - a physical-device prompt boundary so simulator/source evidence is not treated as release proof
 
-Report-quality now treats those notification scope rows as part of the public task-contract UX. A prepare report that asks this question but hides `scopeRecommendations.authorized`, `scopeRecommendations.reviewOnly`, `scopeRecommendations.forbiddenUnlessExplicit`, permission-sensitive source signals, or the matching Markdown section is a ShipGuard report defect, not a target-app task.
+Report-quality now treats those notification scope and proof-lane rows as part of the public task-contract UX. A prepare report that asks these questions but hides `scopeRecommendations.authorized`, `scopeRecommendations.reviewOnly`, `scopeRecommendations.forbiddenUnlessExplicit`, permission-sensitive source signals, structured receipt requirements, generic-log failure meanings, or the matching Markdown section is a ShipGuard report defect, not a target-app task.
 
 The notification workflow is implemented as a domain pack in `scripts/task_domain_packs.py`, not as another standalone report family. The generic task contract passes bounded scan helpers, shareable redaction helpers, and skip rules through `DomainPackContext`; the pack supplies the iOS-specific applicability, scope, proof requirements, proof-lane evaluation, and next action.
 
@@ -189,7 +189,7 @@ Legacy receipts without `schemaVersion` are still accepted when they contain the
 
 `shipguard-verdict.json` and `diffFirstAnalysis` both include `evidenceReceiptSchema` with v2, legacy, artifact-only, missing, invalid, stale, downgraded, and structured-proof counts. This makes receipt confidence machine-readable for report-quality, package proof, and later agent adapters.
 
-For notification-permission workflows, a generic matching receipt such as `scope: ["NotificationPermissionTests"]` proves that the required command ran, but it does not prove the domain workflow. `verify` returns `review` until the receipt metadata proves the relevant lanes:
+For notification-permission workflows, a generic matching receipt such as `scope: ["NotificationPermissionTests"]` proves that the required command ran, but it does not prove the domain workflow. `verify` returns `review` until the receipt metadata proves the relevant lanes, and report-quality fails prepare/verify reports that hide these lanes or present a generic log as enough:
 
 - `permission-state-validation`: needs permission-state, denied-state, and not-determined-state scope labels.
 - `denied-state-recovery`: needs denied-state recovery proof.

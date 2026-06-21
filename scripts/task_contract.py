@@ -2014,6 +2014,10 @@ def render_prepare_markdown(contract: dict[str, Any]) -> str:
             required_scope = ", ".join(item.get("requiredReceiptScope") or [item.get("proofType") or item.get("environment") or ""])
             lines.append(f"  - {item.get('id')}: {required_scope}")
             lines.append(f"    Expected: {item.get('expectedArtifact')}")
+            if item.get("successCondition"):
+                lines.append(f"    Success: {item.get('successCondition')}")
+            if item.get("failureMeaning"):
+                lines.append(f"    Failure meaning: {item.get('failureMeaning')}")
         boundaries = risk_pack.get("proofBoundaries") or {}
         if boundaries:
             lines.append("- Proof boundaries:")

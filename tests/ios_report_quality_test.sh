@@ -6097,16 +6097,23 @@ if not any(
     for item in coverage
 ):
     raise SystemExit(f"expected promoted notification-scope fixture coverage for third question: {coverage!r}")
+if not any(
+    item.get("question") == questions[3]
+    and item.get("publicFixturePath") == "fixtures/ios-report-quality/01-shipguard-prepare-did-verify-require-permission-state-a-aa77287a"
+    and item.get("fixtureType") == "shipguard-verify-first-task-contract-fixture"
+    for item in coverage
+):
+    raise SystemExit(f"expected promoted proof-lane fixture coverage for fourth question: {coverage!r}")
 candidates = data.get("fixtureCandidates") or []
-if [item.get("sourceQuestion") for item in candidates] != questions[3:]:
+if [item.get("sourceQuestion") for item in candidates] != questions[4:]:
     raise SystemExit(f"verify-first candidates did not match questions: {candidates!r}")
 if {item.get("fixtureType") for item in candidates} != {"shipguard-verify-first-task-contract-fixture"}:
     raise SystemExit(f"unexpected verify-first fixture types: {candidates!r}")
 priority = data.get("priorityAction") or {}
 if priority.get("kind") != "answer-actionability-question":
     raise SystemExit(f"expected actionability priority, got {priority!r}")
-if priority.get("question") != questions[3]:
-    raise SystemExit(f"expected verify-first QA to advance to fourth question, got {priority!r}")
+if priority.get("question") != questions[4]:
+    raise SystemExit(f"expected verify-first QA to advance to fifth question, got {priority!r}")
 if "write-fixture-candidates" not in str(priority.get("nextCommand") or ""):
     raise SystemExit(f"expected materialization next command, got {priority!r}")
 for item in candidates:
@@ -6194,6 +6201,29 @@ grep -q 'Authorized candidate' fixtures/ios-report-quality/01-shipguard-prepare-
 grep -q 'Review only' fixtures/ios-report-quality/01-shipguard-prepare-did-prepare-identify-notification-per-1faa952e/fixture-report.md
 grep -q 'Forbidden unless explicit' fixtures/ios-report-quality/01-shipguard-prepare-did-prepare-identify-notification-per-1faa952e/fixture-report.md
 
+./bin/shipguard ios report-quality \
+  --reports fixtures/ios-report-quality/01-shipguard-prepare-did-verify-require-permission-state-a-aa77287a \
+  --out "$tmp_dir/notification-proof-lane-promoted-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/notification-proof-lane-promoted-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/notification-proof-lane-promoted-fixture-quality/ios-report-quality.json"
+python3 - <<'PY' fixtures/ios-report-quality/01-shipguard-prepare-did-verify-require-permission-state-a-aa77287a/fixture-report.json
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+pack = data.get("domainRiskPack") or {}
+requirements = pack.get("validationReceiptRequirements") or []
+text = json.dumps(requirements).lower()
+assert "permission-state" in text and "denied-state" in text and "not-determined-state" in text, requirements
+assert "generic test claim" in text and "not a permission workflow proof" in text, requirements
+next_action = json.dumps(pack.get("nextAction") or {}).lower()
+assert "structured receipt" in next_action and "permission-state" in next_action and "denied-state" in next_action, next_action
+PY
+grep -q 'Failure meaning: Permission-state behavior remains a generic test claim' fixtures/ios-report-quality/01-shipguard-prepare-did-verify-require-permission-state-a-aa77287a/fixture-report.md
+grep -q 'permission-state-validation' fixtures/ios-report-quality/01-shipguard-prepare-did-verify-require-permission-state-a-aa77287a/fixture-report.md
+grep -q 'denied-state' fixtures/ios-report-quality/01-shipguard-prepare-did-verify-require-permission-state-a-aa77287a/fixture-report.md
+
 missing_notification_scope="$tmp_dir/missing-notification-scope"
 mkdir -p "$missing_notification_scope"
 cp "$verify_first_reports/task/shipguard-task.json" "$missing_notification_scope/shipguard-task.json"
@@ -6231,6 +6261,63 @@ PY
   --out "$tmp_dir/weak-notification-scope-markdown-quality" \
   --shareable >/dev/null
 grep -q '"ruleId": "task-contract-notification-scope-markdown-missing"' "$tmp_dir/weak-notification-scope-markdown-quality/ios-report-quality.json"
+
+missing_notification_proof_lanes="$tmp_dir/missing-notification-proof-lanes"
+mkdir -p "$missing_notification_proof_lanes"
+cp "$verify_first_reports/task/shipguard-task.json" "$missing_notification_proof_lanes/shipguard-task.json"
+cp "$verify_first_reports/task/shipguard-task.md" "$missing_notification_proof_lanes/shipguard-task.md"
+python3 - <<'PY' "$missing_notification_proof_lanes/shipguard-task.json"
+import json
+import sys
+
+path = sys.argv[1]
+data = json.load(open(path, encoding="utf-8"))
+pack = data.get("domainRiskPack") or {}
+pack["validationReceiptRequirements"] = []
+open(path, "w", encoding="utf-8").write(json.dumps(data, indent=2, sort_keys=True) + "\n")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$missing_notification_proof_lanes" \
+  --out "$tmp_dir/missing-notification-proof-lanes-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "task-contract-notification-proof-lanes-requirements-missing"' "$tmp_dir/missing-notification-proof-lanes-quality/ios-report-quality.json"
+
+weak_notification_proof_markdown="$tmp_dir/weak-notification-proof-markdown"
+mkdir -p "$weak_notification_proof_markdown"
+cp "$verify_first_reports/task/shipguard-task.json" "$weak_notification_proof_markdown/shipguard-task.json"
+python3 - <<'PY' "$verify_first_reports/task/shipguard-task.md" "$weak_notification_proof_markdown/shipguard-task.md"
+import sys
+
+source, target = sys.argv[1:3]
+text = open(source, encoding="utf-8").read()
+text = text.replace("    Failure meaning: Permission-state behavior remains a generic test claim, not a permission workflow proof.\n", "")
+open(target, "w", encoding="utf-8").write(text)
+PY
+./bin/shipguard ios report-quality \
+  --reports "$weak_notification_proof_markdown" \
+  --out "$tmp_dir/weak-notification-proof-markdown-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "task-contract-notification-proof-lanes-markdown-missing"' "$tmp_dir/weak-notification-proof-markdown-quality/ios-report-quality.json"
+
+missing_verify_proof_lanes="$tmp_dir/missing-verify-proof-lanes"
+mkdir -p "$missing_verify_proof_lanes"
+cp "$verify_first_reports/review/shipguard-verdict.json" "$missing_verify_proof_lanes/shipguard-verdict.json"
+cp "$verify_first_reports/review/shipguard-verdict.md" "$missing_verify_proof_lanes/shipguard-verdict.md"
+python3 - <<'PY' "$missing_verify_proof_lanes/shipguard-verdict.json"
+import json
+import sys
+
+path = sys.argv[1]
+data = json.load(open(path, encoding="utf-8"))
+workflow = data.get("notificationPermissionWorkflow") or {}
+workflow["proofLanes"] = []
+open(path, "w", encoding="utf-8").write(json.dumps(data, indent=2, sort_keys=True) + "\n")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$missing_verify_proof_lanes" \
+  --out "$tmp_dir/missing-verify-proof-lanes-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "task-contract-notification-proof-lanes-missing"' "$tmp_dir/missing-verify-proof-lanes-quality/ios-report-quality.json"
 
 weak_unsupported_markdown="$tmp_dir/weak-unsupported-claim-markdown"
 mkdir -p "$weak_unsupported_markdown"

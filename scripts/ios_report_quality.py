@@ -696,6 +696,28 @@ def is_notification_scope_question(question: object) -> bool:
     )
 
 
+def is_notification_proof_lane_question(question: object) -> bool:
+    text = normalized_question_text(question)
+    if not text:
+        return False
+    proof_lane_tokens = (
+        "permission-state" in text
+        and "denied-state" in text
+        and (
+            "generic test log" in text
+            or "generic test receipt" in text
+            or "generic test receipts" in text
+            or "generic receipt" in text
+            or "generic validation" in text
+            or "scope labels" in text
+        )
+    )
+    return bool(
+        proof_lane_tokens
+        or "permission-state scope labels instead of accepting generic test receipts" in text
+    )
+
+
 def synthetic_notification_domain_risk_pack() -> dict[str, Any]:
     return {
         "id": "ios-notification-permission-workflow",
@@ -761,31 +783,49 @@ def synthetic_notification_domain_risk_pack() -> dict[str, Any]:
         },
         "validationReceiptRequirements": [
             {
-                "lane": "permission-state",
-                "required": True,
-                "proof": "Structured receipt must prove authorized, denied, and notDetermined state handling.",
+                "id": "permission-state-validation",
+                "validationId": "swift-test",
+                "command": "swift test",
+                "requiredReceiptScope": ["permission-state", "denied-state", "not-determined-state"],
+                "expectedArtifact": "structured validation receipt with permission-state scope labels",
+                "successCondition": "Tests or UI automation cover not-determined, denied, and authorized/provisional states.",
+                "failureMeaning": "Permission-state behavior remains a generic test claim, not a permission workflow proof.",
             },
             {
-                "lane": "simulator-denied-state",
-                "required": True,
-                "proof": "Simulator proof must show the denied-state path was exercised or explain why it is unavailable.",
+                "id": "simulator-denied-state-recovery",
+                "proofType": "ios-permission-simulator-reset",
+                "environment": "simulator",
+                "expectedArtifact": "simulator screenshot, UI log, or receipt after resetting notification permission state",
+                "successCondition": "Denied-state recovery is observed after a simulator permission reset.",
+                "failureMeaning": "The denied-state recovery path remains unproven in a runnable local environment.",
             },
             {
-                "lane": "physical-device-prompt-boundary",
-                "required": "manual",
-                "proof": "Prompt timing and notification delivery claims need physical-device proof before release claims.",
+                "id": "physical-device-prompt-boundary",
+                "proofType": "ios-permission-prompt-physical-device",
+                "environment": "physical-device",
+                "releaseOnly": True,
+                "expectedArtifact": "physical-device prompt receipt or manually reviewed screenshot reference",
+                "successCondition": "Real-device prompt timing and wording are observed before release claims.",
+                "failureMeaning": "ShipGuard must not treat simulator/source evidence as physical-device prompt proof.",
             },
         ],
-        "proofBoundaries": [
-            "Generic Swift tests do not prove permission prompt timing, denied-state behavior, or device delivery.",
-            "Simulator denied-state proof is not physical-device prompt proof.",
-        ],
+        "proofBoundaries": {
+            "localAutomation": "Structured validation receipts can prove state handling and regression coverage.",
+            "simulator": "Simulator proof can show reset/denied-state recovery, but not final physical-device prompt truth.",
+            "physicalDevice": "Physical-device prompt timing, OS-level permission UI, and release claims need manual/device proof.",
+        },
         "nextAction": {
             "owner": "developer",
-            "command": "Attach permission-state and denied-state receipts before claiming notification permission behavior is complete.",
-            "expectedArtifact": "permission-state receipt plus denied-state receipt",
-            "successCondition": "ShipGuard verify accepts scoped notification permission claims without manual-proof gaps.",
+            "command": "swift test",
+            "expectedArtifact": "structured receipt with scope labels: permission-state, denied-state, not-determined-state, simulator-permission-reset",
+            "successCondition": "ShipGuard verify can distinguish local permission workflow proof from manual device proof.",
+            "failureMeaning": "Notification permission work remains generic validation rather than a permission workflow contract.",
         },
+        "reportQualityQuestions": [
+            "Did prepare identify notification/permission owner scopes, review-only lifecycle/plist surfaces, and forbidden entitlement/project changes?",
+            "Did verify require permission-state and denied-state proof instead of treating a generic test log as enough?",
+            "Did the verdict separate simulator denied-state proof from physical-device prompt proof before release claims?",
+        ],
     }
 
 
@@ -829,14 +869,24 @@ def synthetic_notification_scope_markdown_lines() -> list[str]:
         "",
         "### Receipt requirements",
         "",
-        "- Permission-state: structured receipt must prove authorized, denied, and notDetermined state handling.",
-        "- Simulator denied-state: show the denied-state path or explain why unavailable.",
-        "- Physical-device prompt boundary: prompt timing and delivery claims need device proof before release claims.",
+        "- permission-state-validation: permission-state, denied-state, not-determined-state",
+        "  Expected: structured validation receipt with permission-state scope labels",
+        "  Success: Tests or UI automation cover not-determined, denied, and authorized/provisional states.",
+        "  Failure meaning: Permission-state behavior remains a generic test claim, not a permission workflow proof.",
+        "- simulator-denied-state-recovery: ios-permission-simulator-reset",
+        "  Expected: simulator screenshot, UI log, or receipt after resetting notification permission state",
+        "  Success: Denied-state recovery is observed after a simulator permission reset.",
+        "  Failure meaning: The denied-state recovery path remains unproven in a runnable local environment.",
+        "- physical-device-prompt-boundary: ios-permission-prompt-physical-device",
+        "  Expected: physical-device prompt receipt or manually reviewed screenshot reference",
+        "  Success: Real-device prompt timing and wording are observed before release claims.",
+        "  Failure meaning: ShipGuard must not treat simulator/source evidence as physical-device prompt proof.",
         "",
         "### Proof boundaries",
         "",
-        "- Generic Swift tests do not prove permission prompt timing, denied-state behavior, or device delivery.",
-        "- Simulator denied-state proof is not physical-device prompt proof.",
+        "- localAutomation: Structured validation receipts can prove state handling and regression coverage.",
+        "- simulator: Simulator proof can show reset/denied-state recovery, but not final physical-device prompt truth.",
+        "- physicalDevice: Physical-device prompt timing, OS-level permission UI, and release claims need manual/device proof.",
         "",
     ]
 
@@ -1515,6 +1565,192 @@ def task_contract_unsupported_claim_replay_issues(
             rule_id="task-contract-unsupported-claim-replay-markdown-missing",
             evidence=f"{path_name} Markdown does not render the unsupported-claim replay repair path",
             recommendation="Render Unsupported Claim Replay in Markdown with the unsupported claim, replay command, next action, proof boundary, and non-claims.",
+        )
+    return issues
+
+
+def task_contract_notification_proof_lane_issues(
+    report: dict[str, Any], *, markdown: str, path_name: str
+) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    tool = str(report.get("tool") or "")
+    if tool not in {"shipguard prepare", "shipguard verify"}:
+        return issues
+
+    def json_text(value: object) -> str:
+        try:
+            return normalized_question_text(json.dumps(value, sort_keys=True))
+        except TypeError:
+            return normalized_question_text(value)
+
+    report_questions = report.get("reportQualityQuestions") if isinstance(report.get("reportQualityQuestions"), list) else []
+    workflow = report.get("notificationPermissionWorkflow")
+    if not isinstance(workflow, dict):
+        workflows = report.get("domainWorkflows") if isinstance(report.get("domainWorkflows"), dict) else {}
+        workflow = workflows.get("notificationPermissionWorkflow") if isinstance(workflows.get("notificationPermissionWorkflow"), dict) else {}
+    pack = report.get("domainRiskPack") if isinstance(report.get("domainRiskPack"), dict) else {}
+    if not pack and isinstance(workflow, dict):
+        pack = workflow.get("riskPack") if isinstance(workflow.get("riskPack"), dict) else {}
+    pack_questions = pack.get("reportQualityQuestions") if isinstance(pack.get("reportQualityQuestions"), list) else []
+    workflow_questions = workflow.get("reportQualityQuestions") if isinstance(workflow, dict) and isinstance(workflow.get("reportQualityQuestions"), list) else []
+    question_text = normalized_question_text(" ".join(str(item) for item in [*report_questions, *pack_questions, *workflow_questions]))
+    workflow_active = (
+        isinstance(pack, dict)
+        and pack.get("id") == "ios-notification-permission-workflow"
+        and is_notification_proof_lane_question(question_text)
+    ) or (
+        isinstance(workflow, dict)
+        and workflow.get("id") == "ios-notification-permission-workflow"
+        and (is_notification_proof_lane_question(question_text) or bool(workflow.get("proofLanes")))
+    )
+    if not workflow_active:
+        return issues
+
+    if tool == "shipguard prepare":
+        if not isinstance(pack, dict) or pack.get("id") != "ios-notification-permission-workflow":
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="task-contract-notification-proof-lanes-pack-missing",
+                evidence=f"{path_name} asks for permission-state proof-lane specificity but has no notification domainRiskPack",
+                recommendation="Emit ios-notification-permission-workflow validationReceiptRequirements before prepare asks verify proof-lane questions.",
+            )
+            return issues
+        requirements = pack.get("validationReceiptRequirements") if isinstance(pack.get("validationReceiptRequirements"), list) else []
+        requirements_text = json_text(requirements)
+        if (
+            not requirements
+            or "permission-state" not in requirements_text
+            or "denied-state" not in requirements_text
+            or ("structured" not in requirements_text and "scope label" not in requirements_text)
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="task-contract-notification-proof-lanes-requirements-missing",
+                evidence=f"{path_name} notification domainRiskPack does not require structured permission-state and denied-state receipt scopes",
+                recommendation="List validationReceiptRequirements that require permission-state, denied-state, and not-determined-state scope labels.",
+            )
+        boundary_text = json_text(pack.get("proofBoundaries"))
+        next_action_text = json_text(pack.get("nextAction"))
+        if (
+            "generic" not in f"{requirements_text} {boundary_text} {next_action_text}"
+            or ("not a permission workflow proof" not in requirements_text and "rather than a permission workflow" not in next_action_text)
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="task-contract-notification-proof-lanes-generic-boundary-missing",
+                evidence=f"{path_name} notification domainRiskPack does not explain why a generic test log is insufficient",
+                recommendation="State that generic validation is not permission workflow proof and point to structured receipt scopes.",
+            )
+        if (
+            "structured" not in next_action_text
+            or "permission-state" not in next_action_text
+            or "denied-state" not in next_action_text
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="task-contract-notification-proof-lanes-next-action-missing",
+                evidence=f"{path_name} nextAction does not ask for structured permission-state and denied-state receipt proof",
+                recommendation="Make the next action name the structured receipt artifact and required permission-state/denied-state labels.",
+            )
+        markdown_text = normalized_question_text(markdown)
+        if (
+            "ios notification permission workflow" not in markdown_text
+            or "receipt requirements" not in markdown_text
+            or "permission-state" not in markdown_text
+            or "denied-state" not in markdown_text
+            or "generic test claim" not in markdown_text
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="task-contract-notification-proof-lanes-markdown-missing",
+                evidence=f"{path_name} Markdown does not render the generic-log proof-lane boundary",
+                recommendation="Render receipt requirements and failure meanings so a maintainer sees that generic logs are not enough.",
+            )
+        return issues
+
+    proof_lanes = workflow.get("proofLanes") if isinstance(workflow.get("proofLanes"), list) else []
+    lane_text = json_text(proof_lanes)
+    permission_lane = next(
+        (
+            item
+            for item in proof_lanes
+            if isinstance(item, dict)
+            and item.get("id") == "permission-state-validation"
+            and "permission-state" in json_text(item.get("requiredReceiptScope"))
+            and "denied-state" in json_text(item.get("requiredReceiptScope"))
+        ),
+        None,
+    )
+    denied_lane = next(
+        (
+            item
+            for item in proof_lanes
+            if isinstance(item, dict)
+            and "denied-state" in str(item.get("id") or "")
+            and "denied-state" in json_text(item.get("requiredReceiptScope"))
+        ),
+        None,
+    )
+    if not permission_lane or not denied_lane:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="task-contract-notification-proof-lanes-missing",
+            evidence=f"{path_name} verify report does not expose permission-state and denied-state proof lanes",
+            recommendation="Emit notificationPermissionWorkflow.proofLanes for permission-state-validation and denied-state-recovery.",
+        )
+    schema = report.get("evidenceReceiptSchema") if isinstance(report.get("evidenceReceiptSchema"), dict) else {}
+    next_action_text = json_text(workflow.get("nextAction") if isinstance(workflow, dict) else report.get("nextAction"))
+    generic_artifact_only = int(schema.get("artifactOnlyCount") or 0) > 0 and int(schema.get("structuredValidationCount") or 0) == 0
+    if generic_artifact_only:
+        if str(report.get("status") or "") == "pass":
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="task-contract-notification-proof-lanes-generic-log-accepted",
+                evidence=f"{path_name} accepted artifact-only evidence as a pass for notification permission proof",
+                recommendation="Keep generic logs at review until structured permission-state and denied-state receipt scopes are attached.",
+            )
+        if (
+            "structured" not in next_action_text
+            or "permission-state" not in next_action_text
+            or "denied-state" not in next_action_text
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="task-contract-notification-proof-lanes-generic-next-action-missing",
+                evidence=f"{path_name} generic-log review does not point to structured permission-state and denied-state receipts",
+                recommendation="For artifact-only evidence, nextAction should request structured scope labels instead of another generic log.",
+            )
+    if "generic" not in lane_text or "not proven" not in lane_text:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="task-contract-notification-proof-lanes-failure-meaning-missing",
+            evidence=f"{path_name} proof lanes do not explain that generic receipts leave permission-state proof missing",
+            recommendation="Add failureMeaning text that says permission-state coverage is not proven by a generic receipt.",
+        )
+    markdown_text = normalized_question_text(markdown)
+    if (
+        "ios notification permission workflow" not in markdown_text
+        or "proof lanes" not in markdown_text
+        or "permission-state-validation" not in markdown_text
+        or "denied-state-recovery" not in markdown_text
+        or "required receipt scope" not in markdown_text
+        or "generic receipt" not in markdown_text
+    ):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="task-contract-notification-proof-lanes-verify-markdown-missing",
+            evidence=f"{path_name} Markdown does not expose permission-state/denied-state proof-lane status and generic receipt boundary",
+            recommendation="Render proof lanes, required receipt scopes, and generic-receipt failure meanings in the verify Markdown report.",
         )
     return issues
 
@@ -5455,6 +5691,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     issues.extend(task_contract_quickstart_replay_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_notification_scope_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_unsupported_claim_replay_issues(loaded, markdown=markdown, path_name=path.name))
+    issues.extend(task_contract_notification_proof_lane_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(full_audit_slash_handoff_issues(loaded, path_name=path.name))
     issues.extend(full_audit_execution_command_issues(loaded, markdown=markdown, path_name=path.name))
     if tool == "shipguard ios performance":
@@ -6318,12 +6555,30 @@ def fixture_candidate_for_question(row: dict[str, Any], index: int) -> dict[str,
                 "the fixture Markdown renders iOS Notification Permission Workflow with authorized, review-only, and forbidden scope recommendations",
             ]
         )
+    if tool == "shipguard prepare" and is_notification_proof_lane_question(question):
+        expected_assertions.extend(
+            [
+                "the fixture exposes domainRiskPack.validationReceiptRequirements for permission-state, denied-state, and not-determined-state scope labels",
+                "the fixture exposes a failure meaning that generic validation is not notification permission workflow proof",
+                "the fixture nextAction asks for structured receipt scope labels instead of a generic test log",
+                "the fixture Markdown renders receipt requirements, failure meanings, permission-state, denied-state, and the generic-test boundary",
+            ]
+        )
     if tool == "shipguard verify" and "unsupported completion claim" in normalized_question_text(question):
         expected_assertions.extend(
             [
                 "the fixture exposes unsupportedClaimReplay with the rejected claim, proof phrase, replay command, and next action",
                 "the fixture Markdown renders Unsupported Claim Replay and tells the developer to revise the claim or attach structured evidence",
                 "the fixture keeps replay non-claims clear so a blocked verdict is not treated as product proof or merge approval",
+            ]
+        )
+    if tool == "shipguard verify" and is_notification_proof_lane_question(question):
+        expected_assertions.extend(
+            [
+                "the fixture exposes notificationPermissionWorkflow.proofLanes for permission-state-validation and denied-state-recovery",
+                "artifact-only generic evidence keeps the verify verdict at review instead of pass",
+                "the fixture nextAction asks for structured permission-state and denied-state receipts",
+                "the fixture Markdown renders proof lanes, required receipt scopes, and the generic receipt boundary",
             ]
         )
     return {
@@ -8279,7 +8534,7 @@ def synthetic_fixture_report(candidate: dict[str, Any]) -> dict[str, Any]:
                 },
             }
         )
-        if is_notification_scope_question(question):
+        if is_notification_scope_question(question) or is_notification_proof_lane_question(question):
             report["domainRiskPack"] = synthetic_notification_domain_risk_pack()
     if source_tool == "shipguard verify":
         unsupported_fixture = "unsupported completion claim" in normalized_question_text(question)
@@ -8525,7 +8780,7 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "",
             ]
         )
-        if is_notification_scope_question(question):
+        if is_notification_scope_question(question) or is_notification_proof_lane_question(question):
             lines.extend(synthetic_notification_scope_markdown_lines())
     if source_tool == "shipguard verify":
         unsupported_fixture = "unsupported completion claim" in normalized_question_text(question)
