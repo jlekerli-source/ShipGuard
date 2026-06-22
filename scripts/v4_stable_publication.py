@@ -1809,21 +1809,25 @@ def build_release_visibility_handoff(
                 if needs_release
                 else "Selected public release, latest release, tag target, and manifest are aligned; local source deltas are reported separately."
             ),
-            "nextCommand": "gh release create <tag> dist/shipguard-v<version>.tar.gz --notes-file <release-notes.md>",
+            "nextCommand": (
+                "gh release create <tag> dist/shipguard-v<version>.tar.gz --notes-file <release-notes.md>"
+                if needs_release
+                else "not-needed"
+            ),
         },
         {
             "id": "update-release-notes",
             "required": needs_notes,
             "status": "review" if needs_notes else "pass",
             "reason": release_notes_proof.get("summary") or "Release notes proof status decides this action.",
-            "nextCommand": release_notes_edit_command,
+            "nextCommand": release_notes_edit_command if needs_notes else "not-needed",
         },
         {
             "id": "attach-launchkey-candidate-proof",
             "required": needs_candidate,
             "status": "review" if needs_candidate else "pass",
             "reason": release_candidate_packet_proof.get("summary") or "LaunchKey candidate packet proof status decides this action.",
-            "nextCommand": str(release_candidate_packet_proof.get("nextCommand") or rerun_command),
+            "nextCommand": str(release_candidate_packet_proof.get("nextCommand") or rerun_command) if needs_candidate else "not-needed",
         },
         {
             "id": "update-release-assets",
@@ -1834,14 +1838,14 @@ def build_release_visibility_handoff(
                 if needs_assets
                 else "Release assets and digest coherence passed."
             ),
-            "nextCommand": str(published_asset_proof.get("nextCommand") or rerun_command),
+            "nextCommand": str(published_asset_proof.get("nextCommand") or rerun_command) if needs_assets else "not-needed",
         },
         {
             "id": "attach-adoption-security-evidence",
             "required": needs_evidence,
             "status": "review" if needs_evidence else "pass",
             "reason": public_evidence_closure_proof.get("summary") or "Adoption/security evidence closure status decides this action.",
-            "nextCommand": str(public_evidence_closure_proof.get("rerunCommand") or rerun_command),
+            "nextCommand": str(public_evidence_closure_proof.get("rerunCommand") or rerun_command) if needs_evidence else "not-needed",
         },
         {
             "id": "keep-current-public-release-unchanged",

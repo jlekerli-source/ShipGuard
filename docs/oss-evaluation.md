@@ -6,6 +6,15 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.187 read-only stable-v4 packet loop reran `shipguard v4 stable-publication` against the real public `v3.131.0` GitHub release after v3.186, then inspected the generated Markdown and JSON.
+
+- Finding: `Release Visibility Handoff` marked `update-release-assets` as passed and not required, but still showed `./tests/v4_release_candidate_test.sh` as its next command.
+- Product weakness: completed public-release action rows should not look like maintainer work. A fallback test command in a passed row makes the decision matrix feel noisy and less trustworthy.
+- Native fix: completed `pass`/not-required release visibility actions now use `nextCommand: not-needed`.
+- Report-quality fix: `ios report-quality` flags stable-publication handoffs whose completed release visibility actions still suggest runnable commands.
+
+Fresh real-public-release QA still does not claim stable v4. The real `v3.131.0` report remains product-blocked on release notes, LaunchKey candidate proof, independent adoption evidence, and final security-review evidence.
+
 The v3.183 read-only stable-v4 packet loop reran `shipguard v4 stable-publication` against the real public `v3.131.0` GitHub release after v3.182, then inspected the generated Markdown.
 
 - Finding: `Final claim public-release delta` rendered between the final claim evidence-table header and the evidence rows, breaking the Markdown table while `ios report-quality` still passed.

@@ -4568,6 +4568,20 @@ def stable_publication_evidence_packet_issues(
                 evidence=f"{path_name} releaseVisibilityHandoff does not expose the full publication decision matrix",
                 recommendation="Include primaryDecision plus action rows for release publication, notes, assets, adoption/security evidence, and keeping the current public release unchanged.",
             )
+        for action in actions:
+            if (
+                isinstance(action, dict)
+                and action.get("required") is False
+                and action.get("status") == "pass"
+                and str(action.get("nextCommand") or "") != "not-needed"
+            ):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-release-visibility-completed-action-command-noise",
+                    evidence=f"{path_name} releaseVisibilityHandoff action `{action.get('id')}` is complete but still suggests `{action.get('nextCommand')}`",
+                    recommendation="Set nextCommand to `not-needed` for pass/not-required release visibility actions so only real work rows carry commands.",
+                )
         notes_kit_for_visibility = (
             report.get("stablePublicationReleaseNotesAuthoringKit")
             if isinstance(report.get("stablePublicationReleaseNotesAuthoringKit"), dict)

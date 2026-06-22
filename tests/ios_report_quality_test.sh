@@ -6475,6 +6475,32 @@ assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-sh
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 
+stable_publication_visibility_command_noise="$tmp_dir/stable-publication-visibility-command-noise"
+mkdir -p "$stable_publication_visibility_command_noise"
+stable_publication_visibility_fixture="fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6"
+python3 - <<'PY' "$stable_publication_visibility_fixture/fixture-report.json" "$stable_publication_visibility_fixture/fixture-report.md" "$stable_publication_visibility_command_noise"
+import json
+import pathlib
+import sys
+
+source_json = pathlib.Path(sys.argv[1])
+source_md = pathlib.Path(sys.argv[2])
+target = pathlib.Path(sys.argv[3])
+report = json.loads(source_json.read_text(encoding="utf-8"))
+for action in report["releaseVisibilityHandoff"]["requiredActions"]:
+    if action.get("id") == "update-release-assets":
+        action["required"] = False
+        action["status"] = "pass"
+        action["nextCommand"] = "./tests/v4_release_candidate_test.sh"
+(target / "v4-stable-publication.json").write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+(target / "v4-stable-publication.md").write_text(source_md.read_text(encoding="utf-8"), encoding="utf-8")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_visibility_command_noise" \
+  --out "$tmp_dir/stable-publication-visibility-command-noise-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "stable-publication-release-visibility-completed-action-command-noise"' "$tmp_dir/stable-publication-visibility-command-noise-quality/ios-report-quality.json"
+
 stable_publication_launchkey_closure_fixture="fixtures/ios-report-quality/stable-publication-launchkey-candidate-closure"
 ./bin/shipguard ios report-quality \
   --reports "$stable_publication_launchkey_closure_fixture" \
