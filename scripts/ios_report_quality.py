@@ -2639,6 +2639,79 @@ def full_audit_execution_command_issues(
     return issues
 
 
+def full_audit_release_packet_plan_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    if str(report.get("tool") or "") != "shipguard full-audit":
+        return issues
+    stages = report.get("stages")
+    stage_ids = {str(stage.get("stageId") or "") for stage in stages if isinstance(stage, dict)} if isinstance(stages, list) else set()
+    release_stage_ids = {"package-release", "plugin-status", "install-refresh", "ci-proof", "release-proof"}
+    if not (stage_ids & release_stage_ids):
+        return issues
+    packet = report.get("releasePacketPlan")
+    if not isinstance(packet, dict) or not packet:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="full-audit-release-packet-plan-missing",
+            evidence=f"{path_name} selects release-packet stages but has no releasePacketPlan",
+            recommendation="Add releasePacketPlan with selected stages, required metadata, missing metadata, next command, non-claims, and proof boundaries.",
+        )
+        return issues
+    boundary = packet.get("proofBoundary") if isinstance(packet.get("proofBoundary"), dict) else {}
+    if (
+        boundary.get("planOnlyCountsAsReleaseProof") is not False
+        or boundary.get("sourceOnlyCountsAsStableV4Proof") is not False
+        or boundary.get("publishesGitHubRelease") is not False
+        or boundary.get("pushesMain") is not False
+    ):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="full-audit-release-packet-boundary-weak",
+            evidence=f"{path_name} releasePacketPlan weakens release/stable-v4 proof boundaries",
+            recommendation="State that plan-only/source-only proof does not count, and Full Audit does not push or publish releases.",
+        )
+    required_metadata = packet.get("requiredMetadata")
+    if not isinstance(required_metadata, list) or not {"release_url", "version", "tag", "commit", "ci_run_url"} <= {
+        str(item.get("field") or "") for item in required_metadata if isinstance(item, dict)
+    }:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="full-audit-release-packet-metadata-missing",
+            evidence=f"{path_name} releasePacketPlan does not expose all release-proof metadata fields",
+            recommendation="List release URL, version, tag, commit, and CI run URL so release-proof placeholders are inspectable in JSON.",
+        )
+    if not isinstance(packet.get("stagePlan"), list) or not packet.get("stagePlan"):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="full-audit-release-packet-stage-plan-missing",
+            evidence=f"{path_name} releasePacketPlan does not summarize selected release-packet stage statuses",
+            recommendation="Include stagePlan rows for selected release-packet stages with status and proof boundary.",
+        )
+    raw_non_claims = packet.get("nonClaims")
+    non_claims = " ".join(str(item) for item in raw_non_claims) if isinstance(raw_non_claims, list) else ""
+    if "does not publish" not in non_claims or "Plan-only" not in non_claims:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="full-audit-release-packet-nonclaims-missing",
+            evidence=f"{path_name} releasePacketPlan hides key release-packet non-claims",
+            recommendation="Expose that Full Audit does not publish a release and plan-only output is route proof only.",
+        )
+    if "Release Packet Plan" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="full-audit-release-packet-markdown-missing",
+            evidence=f"{path_name} Markdown does not render Release Packet Plan",
+            recommendation="Render a Release Packet Plan section so maintainers can see missing metadata and non-claims without opening JSON.",
+        )
+    return issues
+
+
 def source_report_findings(
     report: dict[str, Any],
     *,
@@ -8256,6 +8329,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     issues.extend(task_contract_notification_proof_lane_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(full_audit_slash_handoff_issues(loaded, path_name=path.name))
     issues.extend(full_audit_execution_command_issues(loaded, markdown=markdown, path_name=path.name))
+    issues.extend(full_audit_release_packet_plan_issues(loaded, markdown=markdown, path_name=path.name))
     if tool == "shipguard ios performance":
         issues.extend(performance_runtime_evidence_boundary_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_evidence_promotion_issues(loaded, markdown=markdown, path_name=path.name))

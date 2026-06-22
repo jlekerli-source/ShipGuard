@@ -64,6 +64,7 @@ PROFILE_STAGES = {
 }
 SLOW_DEFAULTS = {"package-release", "value-gauntlet", "report-quality", "release-proof", "ci-proof"}
 REQUIRED_RELEASE_PROOF_ARGS = ("release_url", "version", "tag", "commit", "ci_run_url")
+RELEASE_PACKET_STAGES = ("package-release", "plugin-status", "install-refresh", "ci-proof", "release-proof")
 
 
 def utc_now() -> str:
@@ -522,6 +523,52 @@ def summarize_status(stages: list[dict[str, Any]]) -> dict[str, int]:
     return counts
 
 
+def release_packet_plan(args: argparse.Namespace, ids: list[str], stages: list[dict[str, Any]], execute_command: str) -> dict[str, Any]:
+    selected = [stage_id for stage_id in RELEASE_PACKET_STAGES if stage_id in ids]
+    if not selected:
+        return {}
+    metadata = [
+        {"field": "release_url", "flag": "--release-url", "provided": bool(args.release_url), "placeholder": "<release-url>"},
+        {"field": "version", "flag": "--version", "provided": bool(args.version), "placeholder": "<version>"},
+        {"field": "tag", "flag": "--tag", "provided": bool(args.tag), "placeholder": "<tag>"},
+        {"field": "commit", "flag": "--commit", "provided": bool(args.commit), "placeholder": "<commit-sha>"},
+        {"field": "ci_run_url", "flag": "--ci-run-url", "provided": bool(args.ci_run_url), "placeholder": "<ci-run-url>"},
+    ]
+    missing = [item["field"] for item in metadata if not item["provided"]]
+    stage_rows = [
+        {
+            "stageId": stage["stageId"],
+            "status": stage["status"],
+            "skippedReason": stage.get("skippedReason", ""),
+            "proofBoundary": stage.get("proofBoundary", ""),
+        }
+        for stage in stages
+        if stage.get("stageId") in selected
+    ]
+    return {
+        "status": "review" if args.plan_only or missing or any(row["status"] != "pass" for row in stage_rows) else "pass",
+        "selectedStages": selected,
+        "proofOrder": selected,
+        "requiredMetadata": metadata,
+        "missingMetadataFields": missing,
+        "stagePlan": stage_rows,
+        "nextCommand": execute_command,
+        "proofBoundary": {
+            "planOnlyCountsAsReleaseProof": False,
+            "sourceOnlyCountsAsStableV4Proof": False,
+            "publishesGitHubRelease": False,
+            "pushesMain": False,
+            "installRefreshRequiresIncludeInstall": True,
+            "releaseProofRequiresMetadata": "release-proof" in selected,
+        },
+        "nonClaims": [
+            "Full Audit release-packet planning does not publish a GitHub release.",
+            "Plan-only output proves route shape only, not completed release proof.",
+            "Source-only proof does not count as stable-v4 publication proof.",
+        ],
+    }
+
+
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
     repo = Path(args.path).expanduser().resolve()
     if not repo.exists():
@@ -621,6 +668,9 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "slashPlan": slash_plan,
         "slashGoal": slash_goal,
     }
+    packet_plan = release_packet_plan(args, ids, stage_reports, execute_command)
+    if packet_plan:
+        report["releasePacketPlan"] = packet_plan
     if args.shareable:
         replacements = [(str(repo), "<shipguard-repo>"), (str(out_dir), "<shipguard-full-audit-out>"), (str(Path.home()), "<home>")]
         report = redact_value(report, replacements)
@@ -678,6 +728,18 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"| `{lane['stageId']}` | {lane['status']} | {lane['durationSeconds']}s | {lane['reason']} |")
     else:
         lines.append("No slow lanes were detected.")
+    packet_plan = report.get("releasePacketPlan") if isinstance(report.get("releasePacketPlan"), dict) else {}
+    if packet_plan:
+        lines.extend(["", "## Release Packet Plan", ""])
+        lines.append(f"- Status: `{packet_plan.get('status')}`")
+        lines.append(f"- Next command: `{packet_plan.get('nextCommand')}`")
+        lines.append(f"- Missing metadata: `{', '.join(packet_plan.get('missingMetadataFields') or []) or 'none'}`")
+        lines.extend(["", "| Stage | Status | Boundary |", "| --- | --- | --- |"])
+        for row in packet_plan.get("stagePlan", []):
+            lines.append(f"| `{row.get('stageId')}` | {row.get('status')} | {row.get('proofBoundary')} |")
+        lines.extend(["", "Non-claims:"])
+        for item in packet_plan.get("nonClaims", []):
+            lines.append(f"- {item}")
     lines.extend(
         [
             "",

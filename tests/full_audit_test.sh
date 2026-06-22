@@ -53,6 +53,21 @@ for expected in [
         raise SystemExit(next_command)
 if data["efficiency"]["executeCommand"] != next_command:
     raise SystemExit(data["efficiency"])
+packet = data.get("releasePacketPlan") or {}
+if packet.get("status") != "review":
+    raise SystemExit(packet)
+if packet.get("selectedStages") != ["package-release", "plugin-status", "install-refresh", "ci-proof", "release-proof"]:
+    raise SystemExit(packet)
+if packet.get("missingMetadataFields") != ["release_url", "version", "tag", "commit", "ci_run_url"]:
+    raise SystemExit(packet)
+if packet.get("nextCommand") != next_command:
+    raise SystemExit(packet)
+boundary = packet.get("proofBoundary") or {}
+for key in ["planOnlyCountsAsReleaseProof", "sourceOnlyCountsAsStableV4Proof", "publishesGitHubRelease", "pushesMain"]:
+    if boundary.get(key) is not False:
+        raise SystemExit(boundary)
+if "Full Audit release-packet planning does not publish a GitHub release." not in packet.get("nonClaims", []):
+    raise SystemExit(packet)
 source = data.get("slashHandoffSource") or {}
 if source.get("status") != "loaded" or source.get("sourcePath") != "NEXT_GOAL.md":
     raise SystemExit(source)
@@ -69,6 +84,9 @@ grep -q 'Proof source:' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Slow Lanes' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Execution Commands' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q '| Stage | Status | Command |' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Release Packet Plan' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Missing metadata: `release_url, version, tag, commit, ci_run_url`' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Plan-only output proves route shape only, not completed release proof.' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q '<shipguard-repo>/bin/shipguard version' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'git diff --check' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Slash Handoff Source' "$tmp_dir/plan/shipguard-full-audit.md"

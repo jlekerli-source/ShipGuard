@@ -925,6 +925,94 @@ grep -q '"status": "review"' "$tmp_dir/commandless-full-audit-quality/ios-report
 grep -q '"ruleId": "full-audit-execution-commands-markdown-missing"' "$tmp_dir/commandless-full-audit-quality/ios-report-quality.json"
 grep -q 'Render an Execution Commands table from stages' "$tmp_dir/commandless-full-audit-quality/ios-report-quality.md"
 
+release_packetless_full_audit="$tmp_dir/release-packetless-full-audit"
+mkdir -p "$release_packetless_full_audit"
+cat > "$release_packetless_full_audit/shipguard-full-audit.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard full-audit",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "review",
+  "resultUX": {
+    "status": "review",
+    "verdict": "REVIEW: Synthetic Full Audit release packet needs execution.",
+    "proofSource": "stageStatusSummary + stage receipts",
+    "whyItMatters": "Full Audit drives the release-packet handoff.",
+    "nextCommand": "shipguard full-audit --path <shipguard-repo> --out <shipguard-full-audit-out> --profile release --release-url <release-url> --version <version> --tag <tag> --commit <commit-sha> --ci-run-url <ci-run-url>",
+    "nextActionSummary": "Execute the planned release lane."
+  },
+  "stages": [
+    {
+      "stageId": "package-release",
+      "title": "Package release proof",
+      "status": "planned",
+      "durationSeconds": 0.0,
+      "purpose": "Build and inspect the distributable package.",
+      "command": ["./tests/package_release_test.sh"]
+    },
+    {
+      "stageId": "release-proof",
+      "title": "Release proof bundle",
+      "status": "manual-required",
+      "durationSeconds": 0.0,
+      "purpose": "Build release proof assets.",
+      "command": [],
+      "skippedReason": "release proof requires --release-url, --version, --tag, --commit, and --ci-run-url"
+    }
+  ],
+  "stageStatusSummary": {
+    "planned": 1,
+    "manual-required": 1
+  },
+  "scopeBoundary": {
+    "shipguardOnly": true,
+    "targetAppsReadOnly": true,
+    "doesNotPush": true,
+    "doesNotPublishRelease": true
+  },
+  "reportQualityQuestions": [
+    "Does the release-packet plan expose missing metadata and non-claims?"
+  ],
+  "slashHandoffSource": {
+    "status": "loaded",
+    "sourcePath": "NEXT_GOAL.md",
+    "section": "following"
+  },
+  "slashPlan": "/plan v3.145.0 Full Audit Release-Packet Plan Honesty for jlekerli-source/ShipGuard: make release packet planning explicit.",
+  "slashGoal": "/goal Implement v3.145.0 Full Audit Release-Packet Plan Honesty for jlekerli-source/ShipGuard: make release packet planning explicit."
+}
+JSON
+cat > "$release_packetless_full_audit/shipguard-full-audit.md" <<'MD'
+# ShipGuard Full Audit
+
+## Result
+
+- Verdict: REVIEW: Synthetic Full Audit release packet needs execution.
+- Proof source: stageStatusSummary + stage receipts
+- Why it matters: Full Audit drives the release-packet handoff.
+- Next command: `shipguard full-audit --path <shipguard-repo> --out <shipguard-full-audit-out> --profile release --release-url <release-url> --version <version> --tag <tag> --commit <commit-sha> --ci-run-url <ci-run-url>`
+- Next action: Execute the planned release lane.
+
+## Execution Commands
+
+| Stage | Status | Command |
+| --- | --- | --- |
+| `package-release` | planned | `./tests/package_release_test.sh` |
+
+## Slash Handoff Source
+
+- Status: `loaded`
+- Source path: `NEXT_GOAL.md`
+- Section: `following`
+MD
+./bin/shipguard ios report-quality \
+  --reports "$release_packetless_full_audit" \
+  --out "$tmp_dir/release-packetless-full-audit-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/release-packetless-full-audit-quality/ios-report-quality.json"
+grep -q '"ruleId": "full-audit-release-packet-plan-missing"' "$tmp_dir/release-packetless-full-audit-quality/ios-report-quality.json"
+grep -q 'releasePacketPlan' "$tmp_dir/release-packetless-full-audit-quality/ios-report-quality.md"
+
 design_tailoring_fixture="fixtures/ios-report-quality/design-app-type-tailoring"
 ./bin/shipguard ios report-quality \
   --reports "$design_tailoring_fixture" \

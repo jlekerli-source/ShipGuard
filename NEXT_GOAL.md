@@ -1,25 +1,25 @@
 # Next Goal
 
-- Generated: 2026-06-22T13:55:46Z
+- Generated: 2026-06-22T14:14:49Z
 - Current toolkit version: 3.132.0
-- Target release: v3.144.0
-- Title: Stable-v4 Final Security-Review Evidence Gate
+- Target release: v3.145.0
+- Title: Full Audit Release-Packet Plan Honesty
 
 ## Version Lineage Check
 
 - Status: review
 - VERSION: 3.132.0
 - Expected next release from VERSION: v3.133.0
-- Planned target release: v3.144.0
+- Planned target release: v3.145.0
 - Current checkout package artifact before version bump: dist/shipguard-v3.132.0.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v3.144.0.tar.gz
-- Action: Before publishing v3.144.0, bump VERSION to 3.144.0 or regenerate next-goal for v3.133.0.
+- Expected package artifact after release bump: dist/shipguard-v3.145.0.tar.gz
+- Action: Before publishing v3.145.0, bump VERSION to 3.145.0 or regenerate next-goal for v3.133.0.
 
 ## Slash Plan
 
 ```text
-/plan v3.144.0 Stable-v4 Final Security-Review Evidence Gate for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Attach compact final security-review gate proof to supplied security review evidence so record counts, accepted classes, accepted reviewers, required scope, required fields, first invalid record diagnostics, next command, and source-only/fixture/marketplace boundaries travel with the v4 candidate packet.
+/plan v3.145.0 Full Audit Release-Packet Plan Honesty for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Attach a compact release-packet plan to release-related Full Audit runs so selected release stages, required metadata, missing metadata, next command, non-claims, and proof boundaries are visible before anyone treats a plan as release proof.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, resolve version lineage before any release publication, then generate the following goal.
@@ -28,23 +28,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.144.0 Stable-v4 Final Security-Review Evidence Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Attach compact final security-review gate proof to supplied security review evidence so record counts, accepted classes, accepted reviewers, required scope, required fields, first invalid record diagnostics, next command, and source-only/fixture/marketplace boundaries travel with the v4 candidate packet, push main, verify GitHub Actions, resolve version lineage before publishing any release tarball, verify clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.145.0 Full Audit Release-Packet Plan Honesty for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Attach a compact release-packet plan to release-related Full Audit runs so selected release stages, required metadata, missing metadata, next command, non-claims, and proof boundaries are visible before anyone treats a plan as release proof, push main, verify GitHub Actions, resolve version lineage before publishing any release tarball, verify clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Attach compact final security-review gate proof to supplied security review evidence so record counts, accepted classes, accepted reviewers, required scope, required fields, first invalid record diagnostics, next command, and source-only/fixture/marketplace boundaries travel with the v4 candidate packet.
+Attach a compact release-packet plan to release-related Full Audit runs so selected release stages, required metadata, missing metadata, next command, non-claims, and proof boundaries are visible before anyone treats a plan as release proof.
 
 ## Completion Receipt
 
-- Completed scope: Stable-v4 final security-review evidence gate attachment added.
-- Evidence: scripts/v4_release_candidate.py emits securityReviewEvidenceProof.securityReviewGateAttachment and renders Security Review Gate Attachment in Markdown; scripts/ios_report_quality.py flags LaunchKey reports that hide it; tests/v4_release_candidate_test.sh and tests/ios_report_quality_test.sh prove supplied security review evidence and missing-attachment cases.
+- Completed scope: Full Audit release-packet plan honesty added.
+- Evidence: scripts/full_audit.py emits releasePacketPlan and renders Release Packet Plan in Markdown; scripts/ios_report_quality.py flags release-related Full Audit reports that hide it; tests/full_audit_test.sh and tests/ios_report_quality_test.sh prove the release-profile plan and missing-plan regression.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.145.0 Full Audit Release-Packet Plan Honesty for jlekerli-source/ShipGuard:
+/plan v3.146.0 Full Audit NEXT_GOAL-backed Slash Handoff Proof for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -54,13 +54,13 @@ Attach compact final security-review gate proof to supplied security review evid
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.145.0 Full Audit Release-Packet Plan Honesty for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.146.0 Full Audit NEXT_GOAL-backed Slash Handoff Proof for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.145.0 --title "Full Audit Release-Packet Plan Honesty" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.146.0 --title "Full Audit NEXT_GOAL-backed Slash Handoff Proof" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -160,12 +160,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.144.0.
+1. Open or update the tracking issue for v3.145.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Resolve version lineage first: bump VERSION to 3.144.0 and rebuild the tarball, or regenerate next-goal for v3.133.0 before creating a GitHub release.
+6. Resolve version lineage first: bump VERSION to 3.145.0 and rebuild the tarball, or regenerate next-goal for v3.133.0 before creating a GitHub release.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

@@ -218,6 +218,8 @@ v3.143 continues Stable-v4 external adoption evidence gating by adding `adoption
 
 v3.144 continues Stable-v4 final security-review evidence gating by adding `securityReviewGateAttachment` to supplied security review evidence so record counts, accepted classes, accepted reviewer relationships, required scope, required fields, first invalid record diagnostics, next command, and source-only/fixture/marketplace boundaries travel with the candidate packet.
 
+v3.145 continues Full Audit release-packet plan honesty by adding `releasePacketPlan` to release-related Full Audit runs so selected release stages, required metadata, missing metadata, next command, non-claims, and proof boundaries are visible before anyone treats a plan as release proof.
+
 Every release proposal must answer:
 
 1. Which developer decision changes?
