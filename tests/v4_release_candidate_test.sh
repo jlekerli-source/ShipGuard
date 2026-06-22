@@ -1149,6 +1149,7 @@ grep -q '"githubReleaseAssetDownloadProof": "blocked"' "$tmp_dir/native-missing-
 grep -q '"receipt": "githubReleaseAssetDownloadProof"' "$tmp_dir/native-missing-repo/v4-release-candidate.json"
 grep -q 'missing --github-release-repo' "$tmp_dir/native-missing-repo/v4-release-candidate.json"
 grep -q 'Download Blocking Proof' "$tmp_dir/native-missing-repo/v4-release-candidate.md"
+grep -q 'Download Blocking Receipt Handoff' "$tmp_dir/native-missing-repo/v4-release-candidate.md"
 python3 - "$tmp_dir/native-missing-repo/v4-release-candidate.json" <<'PY'
 import json
 import sys
@@ -1156,6 +1157,7 @@ import sys
 report = json.load(open(sys.argv[1], encoding="utf-8"))
 download = report["githubReleaseAssetDownloadProof"]
 blocking = download["downloadBlockingProof"]
+blocking_handoff = blocking["receiptHandoff"]
 assert download["status"] == "blocked"
 assert blocking["status"] == "blocked"
 assert blocking["repo"] == ""
@@ -1165,6 +1167,18 @@ assert blocking["error"] == "missing --github-release-repo <owner/repo>"
 assert "--download-release-assets" in blocking["nextCommand"]
 assert blocking["proofBoundary"]["githubReleaseRepoRequired"] is True
 assert blocking["proofBoundary"]["sourceOnlyProofCounts"] is False
+assert blocking_handoff["receipt"] == "githubReleaseAssetDownloadProof"
+assert blocking_handoff["candidateReportPath"] == "<v4-release-candidate-json>"
+assert blocking_handoff["downloadDir"] == "<downloaded-release-assets>"
+assert blocking_handoff["failureEvidence"] == "missing --github-release-repo <owner/repo>"
+assert "download-error" in blocking_handoff["proofArtifacts"]
+assert blocking_handoff["missingProofArtifacts"] == []
+assert "--download-release-assets" in blocking_handoff["repairCommand"]
+assert "--release-candidate-report <v4-release-candidate-json-or-dir>" in blocking_handoff["stablePublicationCommand"]
+assert blocking_handoff["proofBoundary"]["attachCandidateReportToStablePublication"] is True
+assert blocking_handoff["proofBoundary"]["blockedDownloadCountsAsStableV4Proof"] is False
+assert blocking_handoff["proofBoundary"]["releaseConsumeStillRequiredForStableV4"] is True
+assert blocking_handoff["proofBoundary"]["sourceOnlyProofCounts"] is False
 assert report["blockingProof"]["receipt"] == "githubReleaseAssetDownloadProof"
 assert report["resultUX"]["blockingProof"]["receipt"] == "githubReleaseAssetDownloadProof"
 PY

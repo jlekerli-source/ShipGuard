@@ -5757,6 +5757,77 @@ MD
 grep -q '"status": "review"' "$tmp_dir/launchkey-download-blocking-quality/ios-report-quality.json"
 grep -q 'launchkey-download-blocking-proof-missing' "$tmp_dir/launchkey-download-blocking-quality/ios-report-quality.json"
 
+launchkey_download_blocking_handoff_dir="$tmp_dir/launchkey-download-blocking-handoff"
+mkdir -p "$launchkey_download_blocking_handoff_dir"
+cat > "$launchkey_download_blocking_handoff_dir/v4-release-candidate.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard v4 release-candidate",
+  "surface": "ShipGuard V4 Release Candidate Readiness",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "review",
+  "resultUX": {
+    "status": "review",
+    "verdict": "REVIEW: Synthetic LaunchKey report has a download blocker.",
+    "proofSource": "synthetic release-readiness fixture",
+    "whyItMatters": "LaunchKey tracks stable-v4 proof gates.",
+    "nextCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --download-release-assets --github-release-repo <owner/repo> --shipguard-eval --shareable",
+    "nextActionSummary": "Fix release asset download inputs."
+  },
+  "githubReleaseAssetDownloadProof": {
+    "status": "blocked",
+    "requested": true,
+    "requiredForStableV4": false,
+    "repo": "",
+    "tag": "v3.132.0",
+    "downloadDir": "downloaded-release-assets",
+    "summary": "GitHub release asset download was requested, but no repository was supplied.",
+    "error": "missing --github-release-repo <owner/repo>",
+    "downloadBlockingProof": {
+      "status": "blocked",
+      "repo": "",
+      "tag": "v3.132.0",
+      "downloadDir": "downloaded-release-assets",
+      "summary": "GitHub release asset download was requested, but no repository was supplied.",
+      "error": "missing --github-release-repo <owner/repo>",
+      "nextCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --download-release-assets --github-release-repo <owner/repo> --shipguard-eval --shareable",
+      "proofBoundary": {
+        "githubReleaseRepoRequired": true,
+        "ownerRepoSyntaxRequired": true,
+        "emptyDownloadDestinationRequired": true,
+        "releaseAssetsRequired": true,
+        "sourceOnlyProofCounts": false,
+        "fixtureProofCountsAsStableV4PublicationProof": false
+      }
+    }
+  }
+}
+JSON
+cat > "$launchkey_download_blocking_handoff_dir/v4-release-candidate.md" <<'MD'
+# ShipGuard V4 Release Candidate Readiness
+
+## GitHub Release Asset Download
+
+- Status: `blocked`
+- Requested: `True`
+- Summary: GitHub release asset download was requested, but no repository was supplied.
+
+### Download Blocking Proof
+
+- Status: `blocked`
+- Repository: `missing`
+- Tag: `v3.132.0`
+- Download dir: `downloaded-release-assets`
+- Error: `missing --github-release-repo <owner/repo>`
+- Next command: `./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --download-release-assets --github-release-repo <owner/repo> --shipguard-eval --shareable`
+MD
+./bin/shipguard ios report-quality \
+  --reports "$launchkey_download_blocking_handoff_dir" \
+  --out "$tmp_dir/launchkey-download-blocking-handoff-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/launchkey-download-blocking-handoff-quality/ios-report-quality.json"
+grep -q 'launchkey-download-blocking-receipt-handoff-missing' "$tmp_dir/launchkey-download-blocking-handoff-quality/ios-report-quality.json"
+
 launchkey_download_attachment_dir="$tmp_dir/launchkey-download-attachment"
 mkdir -p "$launchkey_download_attachment_dir"
 cat > "$launchkey_download_attachment_dir/v4-release-candidate.json" <<'JSON'

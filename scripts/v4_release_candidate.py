@@ -1187,6 +1187,7 @@ def attach_github_release_asset_download_proof_attachment(proof: dict[str, Any])
 def attach_github_release_asset_download_blocking_proof(proof: dict[str, Any]) -> None:
     if not proof.get("requested") or proof.get("status") == "pass":
         return
+    proof_artifacts = ["download-blocking-proof", "download-error", "launchkey-rerun-command"]
     proof["downloadBlockingProof"] = {
         "status": proof.get("status"),
         "repo": proof.get("repo", ""),
@@ -1204,6 +1205,26 @@ def attach_github_release_asset_download_blocking_proof(proof: dict[str, Any]) -
         "summary": proof.get("summary", ""),
         "error": proof.get("error", ""),
         "nextCommand": proof.get("nextCommand"),
+        "receiptHandoff": {
+            "receipt": "githubReleaseAssetDownloadProof",
+            "candidateReportPath": proof.get("candidateReportPath", ""),
+            "repo": proof.get("repo", ""),
+            "tag": proof.get("tag", ""),
+            "releaseEndpoint": proof.get("releaseEndpoint", ""),
+            "downloadDir": proof.get("downloadDir", ""),
+            "failureEvidence": proof.get("error", "") or proof.get("summary", ""),
+            "proofArtifacts": proof_artifacts,
+            "missingProofArtifacts": [],
+            "repairCommand": proof.get("nextCommand"),
+            "stablePublicationCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --release-candidate-report <v4-release-candidate-json-or-dir> --shipguard-eval --shareable",
+            "proofBoundary": {
+                "attachCandidateReportToStablePublication": True,
+                "blockedDownloadCountsAsStableV4Proof": False,
+                "releaseConsumeStillRequiredForStableV4": True,
+                "sourceOnlyProofCounts": False,
+                "fixtureProofCountsAsStableV4PublicationProof": False,
+            },
+        },
         "proofBoundary": {
             "githubReleaseRepoRequired": True,
             "ownerRepoSyntaxRequired": True,
@@ -2872,6 +2893,18 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- Download dir: `{blocking.get('downloadDir') or 'missing'}`")
             lines.append(f"- Error: `{blocking.get('error') or 'missing'}`")
             lines.append(f"- Next command: `{blocking.get('nextCommand')}`")
+            handoff = blocking.get("receiptHandoff") if isinstance(blocking.get("receiptHandoff"), dict) else {}
+            if handoff:
+                lines.extend(["", "#### Download Blocking Receipt Handoff", ""])
+                lines.append(f"- Candidate report: `{handoff.get('candidateReportPath') or 'missing'}`")
+                lines.append(f"- Failure evidence: `{handoff.get('failureEvidence') or 'missing'}`")
+                lines.append(f"- Repair command: `{handoff.get('repairCommand') or 'missing'}`")
+                lines.append(f"- Stable publication command: `{handoff.get('stablePublicationCommand') or 'missing'}`")
+                boundary = handoff.get("proofBoundary") if isinstance(handoff.get("proofBoundary"), dict) else {}
+                lines.append(
+                    "- Blocked download counts as stable-v4 proof: "
+                    f"`{boundary.get('blockedDownloadCountsAsStableV4Proof')}`"
+                )
     else:
         lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     proof = report["publishedReleaseAssetProof"]

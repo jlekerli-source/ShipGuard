@@ -1629,6 +1629,34 @@ def launchkey_download_blocking_proof_issues(report: dict[str, Any], *, markdown
             evidence=f"{path_name} downloadBlockingProof has no rerun command",
             recommendation="Expose the LaunchKey rerun command with --download-release-assets and --github-release-repo placeholders.",
         )
+    handoff = blocking.get("receiptHandoff") if isinstance(blocking.get("receiptHandoff"), dict) else {}
+    if not handoff:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-download-blocking-receipt-handoff-missing",
+            evidence=f"{path_name} downloadBlockingProof has no receiptHandoff",
+            recommendation="Attach a receiptHandoff that points stable-publication at the candidate report, names the blocking evidence, and keeps the repair command visible.",
+        )
+    else:
+        handoff_boundary = handoff.get("proofBoundary") if isinstance(handoff.get("proofBoundary"), dict) else {}
+        if (
+            handoff.get("receipt") != "githubReleaseAssetDownloadProof"
+            or not handoff.get("candidateReportPath")
+            or not handoff.get("repairCommand")
+            or not handoff.get("stablePublicationCommand")
+            or handoff_boundary.get("attachCandidateReportToStablePublication") is not True
+            or handoff_boundary.get("blockedDownloadCountsAsStableV4Proof") is not False
+            or handoff_boundary.get("releaseConsumeStillRequiredForStableV4") is not True
+            or handoff_boundary.get("sourceOnlyProofCounts") is not False
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="launchkey-download-blocking-receipt-handoff-weak",
+                evidence=f"{path_name} downloadBlockingProof receiptHandoff is incomplete",
+                recommendation="Keep the blocking handoff tied to the candidate report, repair command, stable-publication command, blocked-download non-proof boundary, and release-consume requirement.",
+            )
     boundary = blocking.get("proofBoundary") if isinstance(blocking.get("proofBoundary"), dict) else {}
     if (
         boundary.get("githubReleaseRepoRequired") is not True
@@ -1652,6 +1680,14 @@ def launchkey_download_blocking_proof_issues(report: dict[str, Any], *, markdown
             rule_id="launchkey-download-blocking-proof-markdown-missing",
             evidence=f"{path_name} Markdown does not render Download Blocking Proof",
             recommendation="Render Download Blocking Proof under GitHub Release Asset Download so maintainers can inspect the download blocker without opening JSON.",
+        )
+    if handoff and "Download Blocking Receipt Handoff" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-download-blocking-receipt-handoff-markdown-missing",
+            evidence=f"{path_name} Markdown does not render Download Blocking Receipt Handoff",
+            recommendation="Render Download Blocking Receipt Handoff so the repair and stable-publication paths are visible without opening JSON.",
         )
     return issues
 
