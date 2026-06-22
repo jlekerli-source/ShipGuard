@@ -609,6 +609,7 @@ def build_upgrade_package_proof(args: argparse.Namespace, version: str) -> dict[
         "status": "blocked",
         "provided": True,
         "requiredForStableV4": True,
+        "candidateReportPath": (Path(args.out).expanduser().resolve() / "v4-release-candidate.json").as_posix(),
         "previousTarball": previous_tarball.as_posix(),
         "candidateTarball": candidate_tarball.as_posix(),
         "upgradePrefix": upgrade_prefix.as_posix(),
@@ -761,6 +762,14 @@ def attach_upgrade_package_proof_attachment(proof: dict[str, Any]) -> None:
         )
         if not isinstance(proof.get(field), dict)
     ]
+    proof_artifacts = [
+        "previous-shipguard-version",
+        "previous-codex-maintainer-version",
+        "upgraded-shipguard-version",
+        "upgraded-codex-maintainer-version",
+        "shipguard-validate",
+        "forbidden-installed-path-scan",
+    ]
     proof["upgradeProofAttachment"] = {
         "status": proof.get("status"),
         "previousTarball": proof.get("previousTarball", ""),
@@ -785,6 +794,23 @@ def attach_upgrade_package_proof_attachment(proof: dict[str, Any]) -> None:
         "forbiddenInstalledPaths": proof.get("forbiddenInstalledPaths", []),
         "missingProofArtifacts": missing_artifacts,
         "nextCommand": proof.get("nextCommand"),
+        "receiptHandoff": {
+            "receipt": "upgradePackageProof",
+            "candidateReportPath": proof.get("candidateReportPath", ""),
+            "previousTarball": proof.get("previousTarball", ""),
+            "candidateTarball": proof.get("candidateTarball", ""),
+            "upgradePrefix": proof.get("upgradePrefix", ""),
+            "installedRoot": proof.get("installedRoot", ""),
+            "proofArtifacts": proof_artifacts,
+            "missingProofArtifacts": missing_artifacts,
+            "stablePublicationCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --release-candidate-report <v4-release-candidate-json-or-dir> --shipguard-eval --shareable",
+            "proofBoundary": {
+                "attachCandidateReportToStablePublication": True,
+                "upgradePrefixAloneCountsAsStableV4Proof": False,
+                "sourceOnlyProofCounts": False,
+                "fixtureProofCountsAsStableV4PublicationProof": False,
+            },
+        },
         "proofBoundary": {
             "samePrefixUpgradeRequiredForStableV4": True,
             "previousPackageInstallRequired": True,
@@ -832,6 +858,7 @@ def build_rollback_package_proof(args: argparse.Namespace, version: str) -> dict
         "status": "blocked",
         "provided": True,
         "requiredForStableV4": True,
+        "candidateReportPath": (Path(args.out).expanduser().resolve() / "v4-release-candidate.json").as_posix(),
         "packageTarball": tarball.as_posix(),
         "rollbackPrefix": rollback_prefix.as_posix(),
         "workDir": work_dir.as_posix(),
@@ -927,6 +954,7 @@ def attach_rollback_package_proof_attachment(proof: dict[str, Any]) -> None:
         )
         if field not in proof
     ]
+    proof_artifacts = ["shipguard-version", "removed-package-paths", "remaining-package-paths"]
     proof["rollbackProofAttachment"] = {
         "status": proof.get("status"),
         "packageTarball": proof.get("packageTarball", ""),
@@ -942,6 +970,22 @@ def attach_rollback_package_proof_attachment(proof: dict[str, Any]) -> None:
         "remainingPaths": proof.get("remainingPaths", []),
         "missingProofArtifacts": missing_artifacts,
         "nextCommand": proof.get("nextCommand"),
+        "receiptHandoff": {
+            "receipt": "rollbackPackageProof",
+            "candidateReportPath": proof.get("candidateReportPath", ""),
+            "packageTarball": proof.get("packageTarball", ""),
+            "rollbackPrefix": proof.get("rollbackPrefix", ""),
+            "installedRoot": proof.get("installedRoot", ""),
+            "proofArtifacts": proof_artifacts,
+            "missingProofArtifacts": missing_artifacts,
+            "stablePublicationCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --release-candidate-report <v4-release-candidate-json-or-dir> --shipguard-eval --shareable",
+            "proofBoundary": {
+                "attachCandidateReportToStablePublication": True,
+                "rollbackPrefixAloneCountsAsStableV4Proof": False,
+                "sourceOnlyProofCounts": False,
+                "fixtureProofCountsAsStableV4PublicationProof": False,
+            },
+        },
         "proofBoundary": {
             "rollbackCleanupRequiredForStableV4": True,
             "temporaryPrefixInstallRequired": True,
@@ -2537,6 +2581,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             replacements[str(upgrade_package_proof["previousTarball"])] = "<previous-package-tarball>"
         if upgrade_package_proof.get("candidateTarball"):
             replacements[str(upgrade_package_proof["candidateTarball"])] = "<package-tarball>"
+        if upgrade_package_proof.get("candidateReportPath"):
+            replacements[str(upgrade_package_proof["candidateReportPath"])] = "<v4-release-candidate-json>"
         if upgrade_package_proof.get("upgradePrefix"):
             replacements[str(upgrade_package_proof["upgradePrefix"])] = "<upgrade-prefix>"
         if upgrade_package_proof.get("workDir"):
@@ -2549,6 +2595,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             replacements[str(upgrade_package_proof["installedRoot"])] = "<upgrade-installed-root>"
         if rollback_package_proof.get("packageTarball"):
             replacements[str(rollback_package_proof["packageTarball"])] = "<package-tarball>"
+        if rollback_package_proof.get("candidateReportPath"):
+            replacements[str(rollback_package_proof["candidateReportPath"])] = "<v4-release-candidate-json>"
         if rollback_package_proof.get("rollbackPrefix"):
             replacements[str(rollback_package_proof["rollbackPrefix"])] = "<rollback-prefix>"
         if rollback_package_proof.get("workDir"):
@@ -2689,6 +2737,14 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- Validation exit code: `{attachment.get('validateExitCode')}`")
             lines.append(f"- Forbidden installed paths: `{attachment.get('forbiddenInstalledPathCount')}`")
             lines.append(f"- Missing proof artifacts: `{', '.join(attachment.get('missingProofArtifacts') or []) or 'none'}`")
+            handoff = attachment.get("receiptHandoff") if isinstance(attachment.get("receiptHandoff"), dict) else {}
+            if handoff:
+                lines.extend(["", "#### Upgrade Receipt Handoff", ""])
+                lines.append(f"- Candidate report: `{handoff.get('candidateReportPath') or 'missing'}`")
+                lines.append(f"- Proof artifacts: `{', '.join(handoff.get('proofArtifacts') or []) or 'none'}`")
+                lines.append(f"- Stable publication command: `{handoff.get('stablePublicationCommand') or 'missing'}`")
+                boundary = handoff.get("proofBoundary") if isinstance(handoff.get("proofBoundary"), dict) else {}
+                lines.append(f"- Upgrade prefix alone counts as stable-v4 proof: `{boundary.get('upgradePrefixAloneCountsAsStableV4Proof')}`")
     else:
         lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## Uninstall", ""])
@@ -2715,6 +2771,14 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- Removed paths: `{attachment.get('removedPathCount')}`")
             lines.append(f"- Remaining paths: `{attachment.get('remainingPathCount')}`")
             lines.append(f"- Missing proof artifacts: `{', '.join(attachment.get('missingProofArtifacts') or []) or 'none'}`")
+            handoff = attachment.get("receiptHandoff") if isinstance(attachment.get("receiptHandoff"), dict) else {}
+            if handoff:
+                lines.extend(["", "#### Rollback Receipt Handoff", ""])
+                lines.append(f"- Candidate report: `{handoff.get('candidateReportPath') or 'missing'}`")
+                lines.append(f"- Proof artifacts: `{', '.join(handoff.get('proofArtifacts') or []) or 'none'}`")
+                lines.append(f"- Stable publication command: `{handoff.get('stablePublicationCommand') or 'missing'}`")
+                boundary = handoff.get("proofBoundary") if isinstance(handoff.get("proofBoundary"), dict) else {}
+                lines.append(f"- Rollback prefix alone counts as stable-v4 proof: `{boundary.get('rollbackPrefixAloneCountsAsStableV4Proof')}`")
     else:
         lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## Release Proof Consumption", ""])

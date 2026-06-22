@@ -483,7 +483,9 @@ test -f "$tmp_dir/with-assets/v4-release-candidate.md"
 grep -q 'Fresh Install Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
 grep -q 'Fresh Install Receipt Handoff' "$tmp_dir/with-assets/v4-release-candidate.md"
 grep -q 'Upgrade Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
+grep -q 'Upgrade Receipt Handoff' "$tmp_dir/with-assets/v4-release-candidate.md"
 grep -q 'Rollback Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
+grep -q 'Rollback Receipt Handoff' "$tmp_dir/with-assets/v4-release-candidate.md"
 grep -q 'Release Asset Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
 test -f "$tmp_dir/with-assets-consume/consumer-report.json"
 test -f "$tmp_dir/with-assets-consume/asset-digests.json"
@@ -503,8 +505,10 @@ fresh_attachment = fresh["freshInstallProofAttachment"]
 fresh_handoff = fresh_attachment["receiptHandoff"]
 upgrade = report["upgradePackageProof"]
 upgrade_attachment = upgrade["upgradeProofAttachment"]
+upgrade_handoff = upgrade_attachment["receiptHandoff"]
 rollback = report["rollbackPackageProof"]
 rollback_attachment = rollback["rollbackProofAttachment"]
+rollback_handoff = rollback_attachment["receiptHandoff"]
 proof = report["publishedReleaseAssetProof"]
 attachment = proof["releaseAssetProofAttachment"]
 adoption = report["externalAdoptionEvidenceProof"]
@@ -589,6 +593,18 @@ assert upgrade_attachment["forbiddenInstalledPathCount"] == 0
 assert upgrade_attachment["missingProofArtifacts"] == []
 assert upgrade_attachment["proofBoundary"]["samePrefixUpgradeRequiredForStableV4"] is True
 assert upgrade_attachment["proofBoundary"]["sourceOnlyProofCounts"] is False
+assert upgrade_handoff["receipt"] == "upgradePackageProof"
+assert upgrade_handoff["candidateReportPath"] == "<v4-release-candidate-json>"
+assert upgrade_handoff["previousTarball"] == "<previous-package-tarball>"
+assert upgrade_handoff["candidateTarball"] == "<package-tarball>"
+assert upgrade_handoff["upgradePrefix"] == "<upgrade-prefix>"
+assert upgrade_handoff["installedRoot"] == "<upgrade-installed-root>"
+assert "shipguard-validate" in upgrade_handoff["proofArtifacts"]
+assert upgrade_handoff["missingProofArtifacts"] == []
+assert "--release-candidate-report <v4-release-candidate-json-or-dir>" in upgrade_handoff["stablePublicationCommand"]
+assert upgrade_handoff["proofBoundary"]["attachCandidateReportToStablePublication"] is True
+assert upgrade_handoff["proofBoundary"]["upgradePrefixAloneCountsAsStableV4Proof"] is False
+assert upgrade_handoff["proofBoundary"]["sourceOnlyProofCounts"] is False
 assert rollback["status"] == "pass"
 assert rollback["provided"] is True
 assert rollback["installedVersion"] == report["version"]
@@ -610,6 +626,17 @@ assert rollback_attachment["remainingPathCount"] == 0
 assert rollback_attachment["missingProofArtifacts"] == []
 assert rollback_attachment["proofBoundary"]["rollbackCleanupRequiredForStableV4"] is True
 assert rollback_attachment["proofBoundary"]["sourceOnlyProofCounts"] is False
+assert rollback_handoff["receipt"] == "rollbackPackageProof"
+assert rollback_handoff["candidateReportPath"] == "<v4-release-candidate-json>"
+assert rollback_handoff["packageTarball"] == "<package-tarball>"
+assert rollback_handoff["rollbackPrefix"] == "<rollback-prefix>"
+assert rollback_handoff["installedRoot"] == "<rollback-installed-root>"
+assert "removed-package-paths" in rollback_handoff["proofArtifacts"]
+assert rollback_handoff["missingProofArtifacts"] == []
+assert "--release-candidate-report <v4-release-candidate-json-or-dir>" in rollback_handoff["stablePublicationCommand"]
+assert rollback_handoff["proofBoundary"]["attachCandidateReportToStablePublication"] is True
+assert rollback_handoff["proofBoundary"]["rollbackPrefixAloneCountsAsStableV4Proof"] is False
+assert rollback_handoff["proofBoundary"]["sourceOnlyProofCounts"] is False
 assert proof["status"] == "pass"
 assert proof["provided"] is True
 assert proof["downloadSource"] == "supplied-directory"

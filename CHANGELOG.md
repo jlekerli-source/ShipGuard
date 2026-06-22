@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added LaunchKey upgrade and rollback receipt handoffs: `upgradeProofAttachment` and `rollbackProofAttachment` now carry `receiptHandoff` blocks with the candidate report path, proof artifacts, stable-publication command, and boundaries that proof prefixes alone are not stable-v4 proof.
 - Added LaunchKey fresh-install receipt handoff: `freshInstallProofAttachment` now carries a `receiptHandoff` with the candidate report path, proof artifacts, stable-publication command, and boundary that an install prefix alone is not stable-v4 proof.
 - Added InspectDeck release-proof path handoff: release state now exposes the supplied release-assets path, resolved manifest path, optional badge path, rerun template, and no-mutation boundary in JSON and Markdown.
 - Added InspectDeck release-proof badge detail: supplied non-pass attestation badges now keep release state and overall inspect status in `review`, list badge problems, and route `nextAction.command` / `resultUX.nextCommand` to `shipguard release-proof build`.
