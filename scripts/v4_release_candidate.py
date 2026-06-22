@@ -1051,6 +1051,7 @@ def build_github_release_asset_download_proof(args: argparse.Namespace, version:
                 "downloadedAssets": downloaded_assets,
             }
         )
+        attach_github_release_asset_download_proof_attachment(proof)
     except (OSError, RuntimeError, urllib.error.URLError, urllib.error.HTTPError) as exc:
         if download_dir.exists():
             shutil.rmtree(download_dir, ignore_errors=True)
@@ -1059,6 +1060,46 @@ def build_github_release_asset_download_proof(args: argparse.Namespace, version:
     if proof.get("status") != "pass":
         attach_github_release_asset_download_blocking_proof(proof)
     return proof
+
+
+def attach_github_release_asset_download_proof_attachment(proof: dict[str, Any]) -> None:
+    if not proof.get("requested") or proof.get("status") != "pass":
+        return
+    downloaded_assets = [item for item in proof.get("downloadedAssets", []) if isinstance(item, dict)]
+    proof["downloadProofAttachment"] = {
+        "status": proof.get("status"),
+        "repo": proof.get("repo", ""),
+        "version": proof.get("version", ""),
+        "tag": proof.get("tag", ""),
+        "apiUrl": proof.get("apiUrl", ""),
+        "releaseEndpoint": proof.get("releaseEndpoint", ""),
+        "releaseUrl": proof.get("releaseUrl", ""),
+        "downloadDir": proof.get("downloadDir", ""),
+        "assetCount": proof.get("assetCount"),
+        "downloadedAssetNames": [
+            str(item.get("name") or "")
+            for item in downloaded_assets
+            if item.get("name")
+        ],
+        "downloadedAssetDigests": [
+            {
+                "name": str(item.get("name") or ""),
+                "sha256": str(item.get("sha256") or ""),
+            }
+            for item in downloaded_assets
+            if item.get("name")
+        ],
+        "nextCommand": proof.get("nextCommand"),
+        "proofBoundary": {
+            "githubReleaseRepoRequired": True,
+            "releaseTagRequired": True,
+            "assetDownloadRequired": True,
+            "sha256RecordedForDownloadedAssets": True,
+            "releaseConsumeStillRequiredForStableV4": True,
+            "sourceOnlyProofCounts": False,
+            "fixtureProofCountsAsStableV4PublicationProof": False,
+        },
+    }
 
 
 def attach_github_release_asset_download_blocking_proof(proof: dict[str, Any]) -> None:
@@ -2560,6 +2601,18 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append(f"- Asset count: `{proof.get('assetCount')}`")
         if proof.get("downloadDir"):
             lines.append(f"- Download directory: `{proof.get('downloadDir')}`")
+        attachment = proof.get("downloadProofAttachment") if isinstance(proof.get("downloadProofAttachment"), dict) else {}
+        if attachment:
+            asset_names = attachment.get("downloadedAssetNames") if isinstance(attachment.get("downloadedAssetNames"), list) else []
+            lines.extend(["", "### Download Proof Attachment", ""])
+            lines.append(f"- Status: `{attachment.get('status')}`")
+            lines.append(f"- Repository: `{attachment.get('repo') or 'missing'}`")
+            lines.append(f"- Tag: `{attachment.get('tag') or 'missing'}`")
+            lines.append(f"- Release endpoint: `{attachment.get('releaseEndpoint') or 'missing'}`")
+            lines.append(f"- Download dir: `{attachment.get('downloadDir') or 'missing'}`")
+            lines.append(f"- Downloaded assets: `{', '.join(str(name) for name in asset_names) or 'none'}`")
+            lines.append(f"- Asset digest rows: `{len(attachment.get('downloadedAssetDigests') or [])}`")
+            lines.append(f"- Next command: `{attachment.get('nextCommand')}`")
         blocking = proof.get("downloadBlockingProof") if isinstance(proof.get("downloadBlockingProof"), dict) else {}
         if blocking:
             lines.extend(["", "### Download Blocking Proof", ""])

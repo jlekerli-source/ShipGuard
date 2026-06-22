@@ -130,7 +130,7 @@ When `--download-release-assets` is supplied, LaunchKey uses the GitHub release 
   --shareable
 ```
 
-Use `--download-release-assets-dir <dir>` to choose the destination, `--github-token-env <env>` to use a token for private or rate-limited release access, and `--github-api-url <url>` for GitHub Enterprise or deterministic fixture tests. If the download fails, `githubReleaseAssetDownloadProof.status` is `blocked`, `githubReleaseAssetDownloadProof.downloadBlockingProof` carries repo, tag, endpoint, download directory, error, next command, and proof boundary details, and `blockingProof.receipt` points at `githubReleaseAssetDownloadProof`.
+Use `--download-release-assets-dir <dir>` to choose the destination, `--github-token-env <env>` to use a token for private or rate-limited release access, and `--github-api-url <url>` for GitHub Enterprise or deterministic fixture tests. If the download passes, `githubReleaseAssetDownloadProof.downloadProofAttachment` carries repo, tag, endpoint, download directory, downloaded asset names, SHA-256 rows, next command, and proof boundary details. If the download fails, `githubReleaseAssetDownloadProof.status` is `blocked`, `githubReleaseAssetDownloadProof.downloadBlockingProof` carries repo, tag, endpoint, download directory, error, next command, and proof boundary details, and `blockingProof.receipt` points at `githubReleaseAssetDownloadProof`.
 
 When `--release-assets` is supplied, LaunchKey runs:
 

@@ -5592,6 +5592,68 @@ MD
 grep -q '"status": "review"' "$tmp_dir/launchkey-download-blocking-quality/ios-report-quality.json"
 grep -q 'launchkey-download-blocking-proof-missing' "$tmp_dir/launchkey-download-blocking-quality/ios-report-quality.json"
 
+launchkey_download_attachment_dir="$tmp_dir/launchkey-download-attachment"
+mkdir -p "$launchkey_download_attachment_dir"
+cat > "$launchkey_download_attachment_dir/v4-release-candidate.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard v4 release-candidate",
+  "surface": "ShipGuard V4 Release Candidate Readiness",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "pass",
+  "resultUX": {
+    "status": "pass",
+    "verdict": "PASS: Synthetic LaunchKey report downloaded release assets.",
+    "proofSource": "synthetic release-readiness fixture",
+    "whyItMatters": "LaunchKey tracks native release asset download proof.",
+    "nextCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --download-release-assets --github-release-repo <owner/repo> --shipguard-eval --shareable",
+    "nextActionSummary": "Attach consumer-side release proof."
+  },
+  "githubReleaseAssetDownloadProof": {
+    "status": "pass",
+    "requested": true,
+    "requiredForStableV4": false,
+    "repo": "owner/repo",
+    "tag": "v3.132.0",
+    "releaseEndpoint": "https://api.github.com/repos/owner/repo/releases/tags/v3.132.0",
+    "downloadDir": "<downloaded-release-assets>",
+    "assetCount": 1,
+    "downloadedAssets": [
+      {
+        "name": "shipguard-v3.132.0.tar.gz",
+        "sha256": "abc123",
+        "path": "<downloaded-release-assets>/shipguard-v3.132.0.tar.gz",
+        "source": "https://github.com/owner/repo/releases/download/v3.132.0/shipguard-v3.132.0.tar.gz"
+      }
+    ],
+    "summary": "GitHub release assets were downloaded into a local LaunchKey proof directory."
+  }
+}
+JSON
+cat > "$launchkey_download_attachment_dir/v4-release-candidate.md" <<'MD'
+# ShipGuard V4 Release Candidate Readiness
+
+## Result
+
+- Verdict: PASS: Synthetic LaunchKey report downloaded release assets.
+- Proof source: synthetic release-readiness fixture
+- Why it matters: LaunchKey tracks native release asset download proof.
+- Next command: `./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --download-release-assets --github-release-repo <owner/repo> --shipguard-eval --shareable`
+- Next action: Attach consumer-side release proof.
+
+## GitHub Release Asset Download
+
+- Status: `pass`
+- Requested: `True`
+- Summary: GitHub release assets were downloaded into a local LaunchKey proof directory.
+MD
+./bin/shipguard ios report-quality \
+  --reports "$launchkey_download_attachment_dir" \
+  --out "$tmp_dir/launchkey-download-attachment-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/launchkey-download-attachment-quality/ios-report-quality.json"
+grep -q 'launchkey-download-proof-attachment-missing' "$tmp_dir/launchkey-download-attachment-quality/ios-report-quality.json"
+
 stable_publication_priority_dir="$tmp_dir/stable-publication-priority"
 mkdir -p "$stable_publication_priority_dir"
 cat > "$stable_publication_priority_dir/tool-value-gauntlet.json" <<'JSON'

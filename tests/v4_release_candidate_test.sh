@@ -693,6 +693,7 @@ test -f "$tmp_dir/native-assets/v4-release-candidate.json"
 test -f "$tmp_dir/native-assets/v4-release-candidate.md"
 test -f "$tmp_dir/native-assets/downloaded-release-assets/release-manifest.json"
 test -f "$tmp_dir/native-assets/release-consume/consumer-report.json"
+grep -q 'Download Proof Attachment' "$tmp_dir/native-assets/v4-release-candidate.md"
 
 python3 - "$tmp_dir/native-assets/v4-release-candidate.json" <<'PY'
 import json
@@ -700,6 +701,7 @@ import sys
 
 report = json.load(open(sys.argv[1], encoding="utf-8"))
 download = report["githubReleaseAssetDownloadProof"]
+download_attachment = download["downloadProofAttachment"]
 proof = report["publishedReleaseAssetProof"]
 attachment = proof["releaseAssetProofAttachment"]
 assert report["status"] == "pass"
@@ -714,6 +716,17 @@ assert download["releaseEndpoint"] == "<github-release-endpoint>"
 assert download["assetCount"] == 7
 assert all(asset["path"].startswith("<downloaded-release-assets>/") for asset in download["downloadedAssets"])
 assert all(asset["source"].startswith("<github-asset-url>/") for asset in download["downloadedAssets"])
+assert download_attachment["status"] == "pass"
+assert download_attachment["repo"] == "jlekerli-source/ShipGuard"
+assert download_attachment["tag"] == f"v{report['version']}"
+assert download_attachment["downloadDir"] == "<downloaded-release-assets>"
+assert download_attachment["apiUrl"] == "<github-api-url>"
+assert download_attachment["releaseEndpoint"] == "<github-release-endpoint>"
+assert download_attachment["assetCount"] == 7
+assert len(download_attachment["downloadedAssetNames"]) == 7
+assert len(download_attachment["downloadedAssetDigests"]) == 7
+assert download_attachment["proofBoundary"]["releaseConsumeStillRequiredForStableV4"] is True
+assert download_attachment["proofBoundary"]["sourceOnlyProofCounts"] is False
 assert proof["status"] == "pass"
 assert proof["downloadSource"] == "github-release-assets"
 assert proof["downloadProofStatus"] == "pass"

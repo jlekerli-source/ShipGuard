@@ -212,6 +212,8 @@ v3.140 continues LaunchKey upgrade and rollback receipt attachment by adding com
 
 v3.141 continues LaunchKey downloaded-asset blocking proof detail by adding `downloadBlockingProof` to failed native GitHub release-asset downloads so repo, tag, endpoint, destination, error, rerun command, and proof boundaries are visible.
 
+v3.142 continues LaunchKey native GitHub release-asset download by adding `downloadProofAttachment` to successful native downloads so repo, tag, endpoint, destination, downloaded asset names, SHA-256 rows, rerun command, and source-only/fixture-proof boundaries travel with the candidate packet.
+
 Every release proposal must answer:
 
 1. Which developer decision changes?

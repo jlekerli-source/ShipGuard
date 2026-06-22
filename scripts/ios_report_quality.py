@@ -1656,6 +1656,83 @@ def launchkey_download_blocking_proof_issues(report: dict[str, Any], *, markdown
     return issues
 
 
+def launchkey_download_proof_attachment_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
+    if str(report.get("tool") or "") != "shipguard v4 release-candidate":
+        return []
+    proof = report.get("githubReleaseAssetDownloadProof")
+    if not isinstance(proof, dict) or not proof.get("requested") or proof.get("status") != "pass":
+        return []
+    issues: list[dict[str, str]] = []
+    attachment = proof.get("downloadProofAttachment")
+    if not isinstance(attachment, dict) or not attachment:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-download-proof-attachment-missing",
+            evidence=f"{path_name} githubReleaseAssetDownloadProof passed but has no downloadProofAttachment",
+            recommendation="Attach downloadProofAttachment with repo, tag, endpoint, destination, downloaded asset names, SHA-256 rows, next command, and proof boundary.",
+        )
+        return issues
+    if attachment.get("status") != "pass":
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-download-proof-attachment-status-drift",
+            evidence=f"{path_name} downloadProofAttachment.status does not mirror the passing download proof",
+            recommendation="Keep downloadProofAttachment.status aligned with githubReleaseAssetDownloadProof.status.",
+        )
+    if not attachment.get("assetCount") or not attachment.get("downloadedAssetNames"):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-download-proof-attachment-assets-missing",
+            evidence=f"{path_name} downloadProofAttachment hides downloaded release asset names",
+            recommendation="List the downloaded release assets so maintainers can inspect the native download without opening downloadedAssets.",
+        )
+    if not attachment.get("downloadedAssetDigests"):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-download-proof-attachment-digests-missing",
+            evidence=f"{path_name} downloadProofAttachment hides downloaded asset SHA-256 rows",
+            recommendation="Carry compact downloadedAssetDigests with asset name and SHA-256 values.",
+        )
+    if not attachment.get("nextCommand"):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-download-proof-attachment-next-command-missing",
+            evidence=f"{path_name} downloadProofAttachment has no rerun command",
+            recommendation="Expose the LaunchKey rerun command with --download-release-assets and --github-release-repo placeholders.",
+        )
+    boundary = attachment.get("proofBoundary") if isinstance(attachment.get("proofBoundary"), dict) else {}
+    if (
+        boundary.get("githubReleaseRepoRequired") is not True
+        or boundary.get("releaseTagRequired") is not True
+        or boundary.get("assetDownloadRequired") is not True
+        or boundary.get("sha256RecordedForDownloadedAssets") is not True
+        or boundary.get("releaseConsumeStillRequiredForStableV4") is not True
+        or boundary.get("sourceOnlyProofCounts") is not False
+        or boundary.get("fixtureProofCountsAsStableV4PublicationProof") is not False
+    ):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-download-proof-attachment-boundary-missing",
+            evidence=f"{path_name} downloadProofAttachment weakens the native download proof boundary",
+            recommendation="State that repo/tag/API access, asset download, SHA-256 rows, and later release-consume proof are required; source-only and fixture proof do not count for stable-v4 publication.",
+        )
+    if "Download Proof Attachment" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-download-proof-attachment-markdown-missing",
+            evidence=f"{path_name} Markdown does not render Download Proof Attachment",
+            recommendation="Render Download Proof Attachment under GitHub Release Asset Download so maintainers can inspect the native download proof without opening JSON.",
+        )
+    return issues
+
+
 def task_contract_quickstart_replay_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     tool = str(report.get("tool") or "")
@@ -7992,6 +8069,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     issues.extend(launchkey_fresh_install_attachment_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(launchkey_upgrade_rollback_attachment_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(launchkey_download_blocking_proof_issues(loaded, markdown=markdown, path_name=path.name))
+    issues.extend(launchkey_download_proof_attachment_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_quickstart_replay_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_notification_scope_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_unsupported_claim_replay_issues(loaded, markdown=markdown, path_name=path.name))
