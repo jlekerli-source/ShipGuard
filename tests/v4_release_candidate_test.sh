@@ -189,6 +189,7 @@ import sys
 
 report = json.load(open(sys.argv[1], encoding="utf-8"))
 proof = report["externalAdoptionEvidenceProof"]
+attachment = proof["adoptionGateAttachment"]
 assert report["status"] == "pass"
 assert report["releaseReadiness"]["externalAdoptionEvidenceProof"] == "pass"
 assert report["releaseReadiness"]["externalAdoptionEvidenceStableGate"] == "review"
@@ -201,6 +202,14 @@ assert proof["stableV4EligibleEvidenceCount"] == 0
 assert proof["records"][0]["path"] == "<external-adoption-evidence>/synthetic-adoption.json"
 assert proof["records"][0]["stableV4Eligible"] is False
 assert "none of the records are stable-v4 eligible" in proof["summary"]
+assert attachment["status"] == "pass"
+assert attachment["stableV4GateStatus"] == "review"
+assert attachment["stableV4EligibleEvidenceCount"] == 0
+assert "public-external" in attachment["acceptedEvidenceClasses"]
+assert "private-redacted-external" in attachment["acceptedEvidenceClasses"]
+assert "actorRelationship" in attachment["requiredFields"]
+assert attachment["proofBoundary"]["fixtureSyntheticProofCounts"] is False
+assert attachment["proofBoundary"]["githubDownloadCountsAsAdoption"] is False
 PY
 if grep -R -F -q "$tmp_dir/adoption" "$tmp_dir/synthetic-adoption"; then
   echo "shareable v4 release-candidate output must redact adoption evidence paths" >&2
@@ -241,17 +250,23 @@ JSON
   --external-adoption-evidence "$tmp_dir/stable-adoption/external-adoption.json" \
   --shipguard-eval \
   --shareable
+grep -q 'Adoption Gate Attachment' "$tmp_dir/stable-adoption-report/v4-release-candidate.md"
 python3 - "$tmp_dir/stable-adoption-report/v4-release-candidate.json" <<'PY'
 import json
 import sys
 
 report = json.load(open(sys.argv[1], encoding="utf-8"))
 proof = report["externalAdoptionEvidenceProof"]
+attachment = proof["adoptionGateAttachment"]
 assert report["releaseReadiness"]["externalAdoptionEvidenceProof"] == "pass"
 assert report["releaseReadiness"]["externalAdoptionEvidenceStableGate"] == "pass"
 assert proof["stableV4GateStatus"] == "pass"
 assert proof["stableV4EligibleEvidenceCount"] == 1
 assert proof["records"][0]["stableV4Eligible"] is True
+assert attachment["stableV4GateStatus"] == "pass"
+assert attachment["stableV4EligibleEvidenceCount"] == 1
+assert attachment["invalidRecordCount"] == 0
+assert attachment["proofBoundary"]["sourceOnlyProofCounts"] is False
 PY
 
 mkdir -p "$tmp_dir/security"

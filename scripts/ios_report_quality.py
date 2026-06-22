@@ -1733,6 +1733,85 @@ def launchkey_download_proof_attachment_issues(report: dict[str, Any], *, markdo
     return issues
 
 
+def launchkey_external_adoption_gate_attachment_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
+    if str(report.get("tool") or "") != "shipguard v4 release-candidate":
+        return []
+    proof = report.get("externalAdoptionEvidenceProof")
+    if not isinstance(proof, dict) or not proof.get("provided"):
+        return []
+    issues: list[dict[str, str]] = []
+    attachment = proof.get("adoptionGateAttachment")
+    if not isinstance(attachment, dict) or not attachment:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-external-adoption-gate-attachment-missing",
+            evidence=f"{path_name} externalAdoptionEvidenceProof was supplied but has no adoptionGateAttachment",
+            recommendation="Attach adoptionGateAttachment with record counts, accepted classes, required fields, diagnostics, next command, and proof boundary.",
+        )
+        return issues
+    if attachment.get("stableV4GateStatus") != proof.get("stableV4GateStatus"):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-external-adoption-gate-attachment-status-drift",
+            evidence=f"{path_name} adoptionGateAttachment.stableV4GateStatus does not mirror externalAdoptionEvidenceProof",
+            recommendation="Keep adoptionGateAttachment stable-v4 gate status aligned with the adoption evidence proof.",
+        )
+    accepted_classes = set(str(value) for value in attachment.get("acceptedEvidenceClasses", [])) if isinstance(attachment.get("acceptedEvidenceClasses"), list) else set()
+    if not {"public-external", "private-redacted-external"} <= accepted_classes:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-external-adoption-gate-attachment-classes-missing",
+            evidence=f"{path_name} adoptionGateAttachment does not list accepted stable-v4 adoption evidence classes",
+            recommendation="List public-external and private-redacted-external so maintainers know what can pass stable-v4 adoption evidence.",
+        )
+    required_fields = set(str(value) for value in attachment.get("requiredFields", [])) if isinstance(attachment.get("requiredFields"), list) else set()
+    if not {"actorRelationship", "privateDataRedacted", "commands", "artifacts", "nonClaims"} <= required_fields:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-external-adoption-gate-attachment-required-fields-missing",
+            evidence=f"{path_name} adoptionGateAttachment hides key required adoption fields",
+            recommendation="Expose required fields including actorRelationship, privateDataRedacted, commands, artifacts, and nonClaims.",
+        )
+    if proof.get("status") == "blocked" and not attachment.get("firstInvalidRecord"):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-external-adoption-gate-attachment-diagnostics-missing",
+            evidence=f"{path_name} blocked adoption proof has no firstInvalidRecord diagnostics",
+            recommendation="Expose the first invalid adoption record path, missing fields, and errors.",
+        )
+    boundary = attachment.get("proofBoundary") if isinstance(attachment.get("proofBoundary"), dict) else {}
+    if (
+        boundary.get("independentActorRequired") is not True
+        or boundary.get("privateDataRedactedRequired") is not True
+        or boundary.get("consentOrShareableSummaryRequired") is not True
+        or boundary.get("fixtureSyntheticProofCounts") is not False
+        or boundary.get("sourceOnlyProofCounts") is not False
+        or boundary.get("githubDownloadCountsAsAdoption") is not False
+        or boundary.get("marketplaceAcceptanceClaimed") is not False
+    ):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-external-adoption-gate-attachment-boundary-missing",
+            evidence=f"{path_name} adoptionGateAttachment weakens the adoption evidence proof boundary",
+            recommendation="State that independent actors, redaction, consent/shareable summary, and real external evidence are required, while fixture/source/download/marketplace proof does not count.",
+        )
+    if "Adoption Gate Attachment" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-external-adoption-gate-attachment-markdown-missing",
+            evidence=f"{path_name} Markdown does not render Adoption Gate Attachment",
+            recommendation="Render Adoption Gate Attachment under External Adoption Evidence so maintainers can inspect the gate without opening JSON.",
+        )
+    return issues
+
+
 def task_contract_quickstart_replay_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     tool = str(report.get("tool") or "")
@@ -8070,6 +8149,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     issues.extend(launchkey_upgrade_rollback_attachment_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(launchkey_download_blocking_proof_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(launchkey_download_proof_attachment_issues(loaded, markdown=markdown, path_name=path.name))
+    issues.extend(launchkey_external_adoption_gate_attachment_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_quickstart_replay_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_notification_scope_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_unsupported_claim_replay_issues(loaded, markdown=markdown, path_name=path.name))

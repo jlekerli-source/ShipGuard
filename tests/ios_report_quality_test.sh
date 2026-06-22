@@ -5654,6 +5654,71 @@ MD
 grep -q '"status": "review"' "$tmp_dir/launchkey-download-attachment-quality/ios-report-quality.json"
 grep -q 'launchkey-download-proof-attachment-missing' "$tmp_dir/launchkey-download-attachment-quality/ios-report-quality.json"
 
+launchkey_adoption_attachment_dir="$tmp_dir/launchkey-adoption-attachment"
+mkdir -p "$launchkey_adoption_attachment_dir"
+cat > "$launchkey_adoption_attachment_dir/v4-release-candidate.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard v4 release-candidate",
+  "surface": "ShipGuard V4 Release Candidate Readiness",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "pass",
+  "resultUX": {
+    "status": "pass",
+    "verdict": "PASS: Synthetic LaunchKey report has adoption evidence.",
+    "proofSource": "synthetic release-readiness fixture",
+    "whyItMatters": "LaunchKey tracks stable-v4 adoption evidence.",
+    "nextCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --external-adoption-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+    "nextActionSummary": "Attach final security-review evidence."
+  },
+  "externalAdoptionEvidenceProof": {
+    "status": "pass",
+    "provided": true,
+    "requiredForStableV4": true,
+    "stableV4GateStatus": "pass",
+    "summary": "External adoption evidence passed the structural contract and includes stable-v4 eligible independent evidence.",
+    "nextCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --external-adoption-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
+    "evidenceRecordCount": 1,
+    "validRecordCount": 1,
+    "invalidRecordCount": 0,
+    "stableV4EligibleEvidenceCount": 1,
+    "records": [
+      {
+        "path": "<external-adoption-evidence>/external-adoption.json",
+        "status": "pass",
+        "stableV4Eligible": true,
+        "evidenceClass": "public-external",
+        "actorRelationship": "independent",
+        "generatedAt": "2026-06-19T00:00:00Z"
+      }
+    ]
+  }
+}
+JSON
+cat > "$launchkey_adoption_attachment_dir/v4-release-candidate.md" <<'MD'
+# ShipGuard V4 Release Candidate Readiness
+
+## Result
+
+- Verdict: PASS: Synthetic LaunchKey report has adoption evidence.
+- Proof source: synthetic release-readiness fixture
+- Why it matters: LaunchKey tracks stable-v4 adoption evidence.
+- Next command: `./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --external-adoption-evidence <evidence-json-or-dir> --shipguard-eval --shareable`
+- Next action: Attach final security-review evidence.
+
+## External Adoption Evidence
+
+- Status: `pass`
+- Stable v4 gate: `pass`
+- Summary: External adoption evidence passed the structural contract and includes stable-v4 eligible independent evidence.
+MD
+./bin/shipguard ios report-quality \
+  --reports "$launchkey_adoption_attachment_dir" \
+  --out "$tmp_dir/launchkey-adoption-attachment-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/launchkey-adoption-attachment-quality/ios-report-quality.json"
+grep -q 'launchkey-external-adoption-gate-attachment-missing' "$tmp_dir/launchkey-adoption-attachment-quality/ios-report-quality.json"
+
 stable_publication_priority_dir="$tmp_dir/stable-publication-priority"
 mkdir -p "$stable_publication_priority_dir"
 cat > "$stable_publication_priority_dir/tool-value-gauntlet.json" <<'JSON'

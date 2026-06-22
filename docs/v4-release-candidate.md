@@ -158,7 +158,7 @@ Attach adoption evidence as JSON files:
   --shareable
 ```
 
-Each JSON record must include `schemaVersion`, `evidenceType`, `evidenceClass`, `actorRelationship`, `generatedAt`, `status`, `privateDataRedacted`, `commands`, `artifacts`, `outcome`, and `nonClaims`. Stable-v4 eligible records must use `evidenceClass: public-external` or `private-redacted-external`, `actorRelationship: independent`, `status: pass`, `privateDataRedacted: true`, and either `consentToShare: true` or `shareableSummaryOnly: true`.
+Each JSON record must include `schemaVersion`, `evidenceType`, `evidenceClass`, `actorRelationship`, `generatedAt`, `status`, `privateDataRedacted`, `commands`, `artifacts`, `outcome`, and `nonClaims`. Stable-v4 eligible records must use `evidenceClass: public-external` or `private-redacted-external`, `actorRelationship: independent`, `status: pass`, `privateDataRedacted: true`, and either `consentToShare: true` or `shareableSummaryOnly: true`. When adoption evidence is supplied, `externalAdoptionEvidenceProof.adoptionGateAttachment` carries the compact gate handoff: record counts, accepted evidence classes, required fields, first invalid record diagnostics, next command, and proof boundaries.
 
 Synthetic fixture records can pass the structural evidence contract while keeping `stableV4GateStatus: review`. That is intentional: tests should prove the gate without faking real adoption. Invalid records, local private paths, private app identifiers, and token-like strings block with `blockingProof.receipt = externalAdoptionEvidenceProof`.
 
