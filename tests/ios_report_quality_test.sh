@@ -5548,6 +5548,97 @@ PY
 grep -q '"ruleId": "stable-publication-evidence-starter-kit-release-version-missing"' "$tmp_dir/stable-publication-starter-v2-quality/ios-report-quality.json"
 grep -q '"ruleId": "stable-publication-evidence-starter-kit-release-notes-link-missing"' "$tmp_dir/stable-publication-starter-v2-quality/ios-report-quality.json"
 
+stable_publication_final_claim_delta_dir="$tmp_dir/stable-publication-final-claim-delta"
+mkdir -p "$stable_publication_final_claim_delta_dir"
+python3 - "$stable_publication_final_claim_delta_dir" <<'PY'
+import json
+import pathlib
+import sys
+
+target = pathlib.Path(sys.argv[1])
+source = pathlib.Path("fixtures/ios-report-quality/stable-publication-complete")
+report = json.loads((source / "fixture-report.json").read_text(encoding="utf-8"))
+required = report["stablePublicationEvidencePacket"]["requiredEvidence"]
+report["publicReleaseDeltaProof"] = {
+    "schemaVersion": 1,
+    "status": "review",
+    "selectedGitHubReleaseTag": "v3.999.0",
+    "selectedPublicReleaseCommit": "public",
+    "localHeadCommit": "local",
+    "localMainCommit": "local",
+    "unpublishedLocalDelta": True,
+    "stableV4ClaimCoversSelectedPublicRelease": False,
+    "stableV4ClaimCoversLocalCheckout": False,
+    "comparisons": {
+        "selectedReleaseMatchesLatestGitHubRelease": True,
+        "packageAssetsVersionMatchesRequestedRelease": True,
+        "localHeadMatchesSelectedPublicReleaseCommit": False,
+        "localMainMatchesSelectedPublicReleaseCommit": False,
+        "releaseVersionCoherencePassed": True,
+        "releaseAssetCoherencePassed": True,
+    },
+    "releaseDeltaBoundary": {
+        "latestPublicGitHubReleaseIsPublicationSource": True,
+        "localHeadIsNotPublicReleaseProof": True,
+        "localMainIsNotPublicReleaseProof": True,
+        "unpublishedLocalCodeCountsAsReleased": False,
+        "downloadedOrSuppliedAssetsAreRequiredForPackageTruth": True,
+        "stableV4ClaimCoversSelectedReleaseOnly": True,
+    },
+}
+report["finalStableV4ClaimPacket"] = {
+    "schemaVersion": 1,
+    "releaseVersion": "3.999.0",
+    "status": "blocked",
+    "stableV4Release": False,
+    "claimDecision": "blocked",
+    "copyReadyClaim": "Do not claim ShipGuard 3.999.0 as stable v4 yet.",
+    "allowedClaims": ["Stable-v4 publication is still in review."],
+    "blockedClaims": ["ShipGuard v4 is stable."],
+    "evidenceSummary": [
+        {
+            "id": item["id"],
+            "status": item["status"],
+            "requiredForStableV4": True,
+            "nextCommand": item.get("nextCommand", ""),
+        }
+        for item in required
+    ],
+    "missingEvidenceIds": report["stablePublicationEvidencePacket"].get("missingEvidenceIds", []),
+    "firstBlockingGate": report["stablePublicationEvidencePacket"].get("firstBlockingGate"),
+    "publicEvidenceClosureStatus": "review",
+    "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --shipguard-eval --shareable",
+    "approvalBoundary": {
+        "publicPostingRequiresExplicitApproval": True,
+        "computerUseMayPost": False,
+    },
+    "claimBoundary": {
+        "stablePublicationReportRequired": True,
+        "allRequiredEvidenceMustPass": True,
+        "sourceOnlyProofCountsAsStableV4": False,
+        "fixtureProofCountsAsStableV4": False,
+        "githubDownloadCountsCountAsAdoptionEvidence": False,
+        "marketplaceAcceptanceClaimed": False,
+        "externalPostingClaimed": False,
+    },
+}
+(target / "v4-stable-publication.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+(target / "v4-stable-publication.md").write_text(
+    "# ShipGuard V4 Stable Publication Proof\n\n"
+    "## Public Release Delta\n\n"
+    "- Unpublished local delta: `True`\n\n"
+    "## Final Stable V4 Claim Packet\n\n"
+    "Copy-ready claim:\n\n"
+    "Do not claim ShipGuard 3.999.0 as stable v4 yet.\n",
+    encoding="utf-8",
+)
+PY
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_final_claim_delta_dir" \
+  --out "$tmp_dir/stable-publication-final-claim-delta-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "stable-publication-final-claim-release-delta-summary-missing"' "$tmp_dir/stable-publication-final-claim-delta-quality/ios-report-quality.json"
+
 stable_publication_launchkey_closure_dir="$tmp_dir/stable-publication-launchkey-closure"
 mkdir -p "$stable_publication_launchkey_closure_dir"
 cat > "$stable_publication_launchkey_closure_dir/v4-stable-publication.json" <<'JSON'
@@ -6501,8 +6592,30 @@ delta["comparisons"]["localMainMatchesSelectedPublicReleaseCommit"] = False
 visibility = report["releaseVisibilityHandoff"]
 visibility["unpublishedLocalDelta"] = True
 visibility["localMainCanBeAnnounced"] = False
+final_claim = report["finalStableV4ClaimPacket"]
+final_claim["publicReleaseDeltaSummary"] = {
+    "status": delta["status"],
+    "selectedGitHubReleaseTag": delta["selectedGitHubReleaseTag"],
+    "selectedPublicReleaseCommit": delta["selectedPublicReleaseCommit"],
+    "localHeadCommit": delta["localHeadCommit"],
+    "localMainCommit": delta["localMainCommit"],
+    "unpublishedLocalDelta": True,
+    "stableV4ClaimCoversSelectedPublicRelease": delta["stableV4ClaimCoversSelectedPublicRelease"],
+    "stableV4ClaimCoversLocalCheckout": False,
+    "unpublishedLocalCodeCountsAsReleased": False,
+    "localHeadIsNotPublicReleaseProof": True,
+    "localMainIsNotPublicReleaseProof": True,
+    "problems": delta.get("problems", []),
+}
 (target / "v4-stable-publication.json").write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
-(target / "v4-stable-publication.md").write_text(source_md.read_text(encoding="utf-8"), encoding="utf-8")
+(target / "v4-stable-publication.md").write_text(
+    source_md.read_text(encoding="utf-8")
+    + "\n\nFinal claim public-release delta:\n\n"
+    + "- Unpublished local delta: `True`\n"
+    + "- Claim covers local checkout: `False`\n"
+    + "- Unpublished local code counts as released: `False`\n",
+    encoding="utf-8",
+)
 PY
 ./bin/shipguard ios report-quality \
   --reports "$stable_publication_visibility_local_delta_only" \

@@ -4656,6 +4656,26 @@ def stable_publication_evidence_packet_issues(
                 evidence=f"{path_name} finalStableV4ClaimPacket weakens proof, marketplace, adoption, or posting boundaries",
                 recommendation="State that all real stable-publication evidence must pass, source/fixture/download proof is insufficient, marketplace/posting are not claimed, and public posting requires explicit approval.",
             )
+        if public_delta.get("unpublishedLocalDelta") is True:
+            delta_summary = (
+                final_claim.get("publicReleaseDeltaSummary")
+                if isinstance(final_claim.get("publicReleaseDeltaSummary"), dict)
+                else {}
+            )
+            if (
+                not delta_summary
+                or delta_summary.get("unpublishedLocalDelta") is not True
+                or delta_summary.get("stableV4ClaimCoversLocalCheckout") is not public_delta.get("stableV4ClaimCoversLocalCheckout")
+                or delta_summary.get("unpublishedLocalCodeCountsAsReleased") is not False
+                or "Final claim public-release delta" not in markdown
+            ):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-final-claim-release-delta-summary-missing",
+                    evidence=f"{path_name} finalStableV4ClaimPacket does not carry the unpublished-local-delta warning",
+                    recommendation="Mirror publicReleaseDeltaProof into finalStableV4ClaimPacket and Markdown so claim copy cannot imply unpublished local main is already released.",
+                )
         if "Final Stable V4 Claim Packet" not in markdown or "Copy-ready claim" not in markdown:
             add_issue(
                 issues,

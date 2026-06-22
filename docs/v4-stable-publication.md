@@ -66,7 +66,7 @@ Outputs:
 - `githubLatestReleaseProof` in JSON for latest public GitHub release metadata
 - `publicReleaseDeltaProof` in JSON, rendered as `Public Release Delta` in Markdown
 - `releaseVisibilityHandoff` in JSON, rendered as `Release Visibility Handoff` in Markdown
-- `finalStableV4ClaimPacket` in JSON, rendered as `Final Stable V4 Claim Packet` in Markdown
+- `finalStableV4ClaimPacket` in JSON, rendered as `Final Stable V4 Claim Packet` in Markdown, including public-release delta carry-through when local source has moved ahead of the selected release
 
 ## Stable Gates
 
@@ -317,9 +317,11 @@ The handoff does not publish, edit a GitHub release, or post externally. It make
 
 Stable publication emits `finalStableV4ClaimPacket` so the last report answers the maintainer question directly: what can I safely say now?
 
-The packet includes the claim decision, copy-ready allowed or blocked wording, evidence status rows, missing evidence IDs, first blocking gate, next command, public evidence closure status, explicit posting approval boundary, and non-claims for source-only proof, fixtures, GitHub downloads, marketplace acceptance, and external posting.
+The packet includes the claim decision, copy-ready allowed or blocked wording, evidence status rows, missing evidence IDs, first blocking gate, next command, public evidence closure status, public-release delta summary, explicit posting approval boundary, and non-claims for source-only proof, fixtures, GitHub downloads, marketplace acceptance, and external posting.
 
 Markdown renders this as `Final Stable V4 Claim Packet`. A blocked report says not to claim stable v4 yet and names the first blocker; a passing report gives bounded stable-v4 wording without claiming marketplace acceptance or public launch posting.
+
+When `publicReleaseDeltaProof.unpublishedLocalDelta` is true, the final claim packet also renders `Final claim public-release delta` and the copy-ready wording warns that local `HEAD` or `main` must not be described as released until a new public release passes.
 
 ## External Evidence Freshness
 

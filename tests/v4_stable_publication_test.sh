@@ -525,6 +525,11 @@ assert final_claim["status"] == "blocked"
 assert final_claim["claimDecision"] == "blocked"
 assert final_claim["stableV4Release"] is False
 assert "Do not claim ShipGuard" in final_claim["copyReadyClaim"]
+delta_summary = final_claim["publicReleaseDeltaSummary"]
+assert delta_summary["unpublishedLocalDelta"] is False
+assert delta_summary["stableV4ClaimCoversSelectedPublicRelease"] is False
+assert delta_summary["stableV4ClaimCoversLocalCheckout"] is False
+assert delta_summary["unpublishedLocalCodeCountsAsReleased"] is False
 assert final_claim["missingEvidenceIds"] == packet["missingEvidenceIds"]
 assert final_claim["firstBlockingGate"]["id"] == "independent-adoption-evidence"
 assert final_claim["publicEvidenceClosureStatus"] == "review"
@@ -1243,6 +1248,12 @@ assert final_claim["status"] == "allowed"
 assert final_claim["claimDecision"] == "allowed"
 assert final_claim["stableV4Release"] is True
 assert "has passed stable-v4 publication proof" in final_claim["copyReadyClaim"]
+delta_summary = final_claim["publicReleaseDeltaSummary"]
+assert delta_summary["status"] == "pass"
+assert delta_summary["unpublishedLocalDelta"] is False
+assert delta_summary["stableV4ClaimCoversSelectedPublicRelease"] is True
+assert delta_summary["stableV4ClaimCoversLocalCheckout"] is True
+assert delta_summary["unpublishedLocalCodeCountsAsReleased"] is False
 assert final_claim["missingEvidenceIds"] == []
 assert final_claim["firstBlockingGate"] is None
 assert final_claim["publicEvidenceClosureStatus"] == "pass"
@@ -1329,6 +1340,8 @@ grep -q 'keep-current-public-release-unchanged' "$tmp_dir/pass/v4-stable-publica
 grep -q 'Final Stable V4 Claim Packet' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Claim decision: `allowed`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'has passed stable-v4 publication proof' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Final claim public-release delta' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Unpublished local delta: `False`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release Version Coherence' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release Asset Coherence' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release version coherence: `pass`' "$tmp_dir/pass/v4-stable-publication.md"

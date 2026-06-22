@@ -6,6 +6,15 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.182 read-only stable-v4 packet loop reran `shipguard v4 stable-publication` against the real public `v3.131.0` GitHub release after v3.181, then scored the report with `ios report-quality`.
+
+- Finding: the real report correctly exposed `unpublishedLocalDelta=true`, but the final copy-ready claim packet did not carry that public-release delta warning into the exact wording maintainers are most likely to reuse.
+- Product weakness: a solo maintainer could read the final claim packet and still blur "selected public release" with the newer local `HEAD`/`main` state.
+- Native fix: `finalStableV4ClaimPacket.publicReleaseDeltaSummary` now mirrors the public release delta, Markdown renders `Final claim public-release delta`, and blocked or allowed copy-ready claim wording warns when local code is not the released packet.
+- Report-quality fix: `ios report-quality` flags stable-publication reports that expose `unpublishedLocalDelta=true` but omit the final claim delta summary or Markdown warning.
+
+Fresh real-public-release QA still does not claim stable v4. The real `v3.131.0` report passes report-quality and remains product-blocked on release notes, LaunchKey candidate proof, independent adoption evidence, and final security-review evidence.
+
 The v3.181 read-only stable-v4 packet loop reran `shipguard v4 stable-publication` against the real public `v3.131.0` GitHub release after v3.180, then scored the report with `ios report-quality`.
 
 - Finding: the real report passed report-quality, but the generated evidence starter kit still looked too detached from the first release-notes blocker: the starter checklist did not carry the target release version, and the starter README did not point maintainers to the release-notes authoring kit.

@@ -2127,6 +2127,7 @@ def build_final_stable_v4_claim_packet(
     evidence_packet: dict[str, Any],
     public_evidence_closure_proof: dict[str, Any],
     launch_relay_drafts: dict[str, Any],
+    public_release_delta_proof: dict[str, Any],
     rerun_command: str,
 ) -> dict[str, Any]:
     required = evidence_packet.get("requiredEvidence") if isinstance(evidence_packet.get("requiredEvidence"), list) else []
@@ -2137,11 +2138,32 @@ def build_final_stable_v4_claim_packet(
     first_blocker_id = str(first_blocker.get("id") or first_blocker.get("receipt") or "none")
     next_command = str(first_blocker.get("nextCommand") or rerun_command)
     claim_status = "allowed" if stable_v4_release else "blocked"
+    delta_boundary = public_release_delta_proof.get("releaseDeltaBoundary") if isinstance(public_release_delta_proof.get("releaseDeltaBoundary"), dict) else {}
+    public_delta_summary = {
+        "status": public_release_delta_proof.get("status") or "not-provided",
+        "selectedGitHubReleaseTag": public_release_delta_proof.get("selectedGitHubReleaseTag") or "",
+        "selectedPublicReleaseCommit": public_release_delta_proof.get("selectedPublicReleaseCommit") or "",
+        "localHeadCommit": public_release_delta_proof.get("localHeadCommit") or "",
+        "localMainCommit": public_release_delta_proof.get("localMainCommit") or "",
+        "unpublishedLocalDelta": public_release_delta_proof.get("unpublishedLocalDelta") is True,
+        "stableV4ClaimCoversSelectedPublicRelease": public_release_delta_proof.get("stableV4ClaimCoversSelectedPublicRelease") is True,
+        "stableV4ClaimCoversLocalCheckout": public_release_delta_proof.get("stableV4ClaimCoversLocalCheckout") is True,
+        "unpublishedLocalCodeCountsAsReleased": delta_boundary.get("unpublishedLocalCodeCountsAsReleased") is True,
+        "localHeadIsNotPublicReleaseProof": delta_boundary.get("localHeadIsNotPublicReleaseProof") is True,
+        "localMainIsNotPublicReleaseProof": delta_boundary.get("localMainIsNotPublicReleaseProof") is True,
+        "problems": public_release_delta_proof.get("problems") if isinstance(public_release_delta_proof.get("problems"), list) else [],
+    }
+    local_delta_note = (
+        " Local checkout has unpublished changes; do not describe local main as released until a new public release passes."
+        if public_delta_summary["unpublishedLocalDelta"]
+        else ""
+    )
     copy_ready_claim = (
         f"ShipGuard {release_version} has passed stable-v4 publication proof: public release metadata, release notes, "
         "downloaded release assets, post-release consumer proof, independent adoption evidence, and final security review all passed."
+        f"{local_delta_note}"
         if stable_v4_release
-        else f"Do not claim ShipGuard {release_version} as stable v4 yet. Stable-publication is {passed}/{total}; first blocker: {first_blocker_id}."
+        else f"Do not claim ShipGuard {release_version} as stable v4 yet. Stable-publication is {passed}/{total}; first blocker: {first_blocker_id}.{local_delta_note}"
     )
     return {
         "schemaVersion": 1,
@@ -2188,6 +2210,7 @@ def build_final_stable_v4_claim_packet(
         "missingEvidenceIds": missing_ids,
         "firstBlockingGate": first_blocker or None,
         "publicEvidenceClosureStatus": public_evidence_closure_proof.get("status") or "not-provided",
+        "publicReleaseDeltaSummary": public_delta_summary,
         "nextCommand": next_command,
         "approvalBoundary": {
             "publicPostingRequiresExplicitApproval": True,
@@ -4043,6 +4066,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         evidence_packet=evidence_packet,
         public_evidence_closure_proof=public_evidence_closure_proof,
         launch_relay_drafts=launch_relay_drafts,
+        public_release_delta_proof=public_release_delta_proof,
         rerun_command=stable_publication_rerun_command(args),
     )
     release_visibility_handoff = build_release_visibility_handoff(
@@ -4362,6 +4386,25 @@ def render_markdown(report: dict[str, Any]) -> str:
                 "| --- | --- |",
             ]
         )
+        delta = (
+            final_claim.get("publicReleaseDeltaSummary")
+            if isinstance(final_claim.get("publicReleaseDeltaSummary"), dict)
+            else {}
+        )
+        if delta:
+            lines.extend(
+                [
+                    "",
+                    "Final claim public-release delta:",
+                    "",
+                    f"- Delta status: `{delta.get('status')}`",
+                    f"- Selected public release: `{delta.get('selectedGitHubReleaseTag') or 'not-provided'}`",
+                    f"- Unpublished local delta: `{delta.get('unpublishedLocalDelta')}`",
+                    f"- Claim covers selected public release: `{delta.get('stableV4ClaimCoversSelectedPublicRelease')}`",
+                    f"- Claim covers local checkout: `{delta.get('stableV4ClaimCoversLocalCheckout')}`",
+                    f"- Unpublished local code counts as released: `{delta.get('unpublishedLocalCodeCountsAsReleased')}`",
+                ]
+            )
         for row in final_claim.get("evidenceSummary", []):
             if isinstance(row, dict):
                 lines.append(f"| `{row.get('id')}` | `{row.get('status')}` |")
