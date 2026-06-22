@@ -6,6 +6,15 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.188 read-only stable-v4 packet loop reran `shipguard v4 stable-publication` against the real public `v3.131.0` GitHub release after v3.187, then inspected the generated Markdown and JSON.
+
+- Finding: `Release Visibility Handoff` correctly cleaned completed action rows, but the blocked `keep-current-public-release-unchanged` row still duplicated the release-notes edit command.
+- Product weakness: "keep current release unchanged" is not an action a maintainer can take while earlier publication gates are still required. Duplicating the primary command there makes the table noisier than the decision it represents.
+- Native fix: blocked `keep-current-public-release-unchanged` rows now use `nextCommand: blocked-by-required-actions`.
+- Report-quality fix: `ios report-quality` flags stable-publication handoffs whose blocked keep-current row still suggests a runnable command.
+
+Fresh real-public-release QA still does not claim stable v4. The real `v3.131.0` report remains product-blocked on release notes, LaunchKey candidate proof, independent adoption evidence, and final security-review evidence.
+
 The v3.187 read-only stable-v4 packet loop reran `shipguard v4 stable-publication` against the real public `v3.131.0` GitHub release after v3.186, then inspected the generated Markdown and JSON.
 
 - Finding: `Release Visibility Handoff` marked `update-release-assets` as passed and not required, but still showed `./tests/v4_release_candidate_test.sh` as its next command.

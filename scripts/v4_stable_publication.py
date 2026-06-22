@@ -1856,7 +1856,9 @@ def build_release_visibility_handoff(
                 if not any([needs_release, needs_notes, needs_candidate, needs_assets, needs_evidence])
                 else "Do not treat the current public release as covering missing release, notes, candidate, asset, adoption, or security proof."
             ),
-            "nextCommand": str(final_claim_packet.get("nextCommand") or rerun_command),
+            "nextCommand": str(final_claim_packet.get("nextCommand") or rerun_command)
+            if not any([needs_release, needs_notes, needs_candidate, needs_assets, needs_evidence])
+            else "blocked-by-required-actions",
         },
     ]
     return {

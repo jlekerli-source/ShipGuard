@@ -176,6 +176,8 @@ v3.186 continues that release-notes actionability cleanup by routing the same ed
 
 v3.187 cleans the stable-publication release visibility handoff so completed `pass`/not-required rows say `not-needed` instead of leaking fallback commands like test scripts into maintainer-facing next-action tables.
 
+v3.188 extends that cleanup to the blocked `keep-current-public-release-unchanged` row: while earlier gates are still required, it now says `blocked-by-required-actions` instead of duplicating the primary repair command.
+
 Every release proposal must answer:
 
 1. Which developer decision changes?

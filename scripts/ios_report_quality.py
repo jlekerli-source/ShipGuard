@@ -4582,6 +4582,20 @@ def stable_publication_evidence_packet_issues(
                     evidence=f"{path_name} releaseVisibilityHandoff action `{action.get('id')}` is complete but still suggests `{action.get('nextCommand')}`",
                     recommendation="Set nextCommand to `not-needed` for pass/not-required release visibility actions so only real work rows carry commands.",
                 )
+            if (
+                isinstance(action, dict)
+                and action.get("id") == "keep-current-public-release-unchanged"
+                and action.get("required") is False
+                and action.get("status") == "blocked"
+                and str(action.get("nextCommand") or "") != "blocked-by-required-actions"
+            ):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-release-visibility-keep-current-command-noise",
+                    evidence=f"{path_name} releaseVisibilityHandoff keep-current row is blocked but still suggests `{action.get('nextCommand')}`",
+                    recommendation="Set keep-current-public-release-unchanged.nextCommand to `blocked-by-required-actions` while earlier publication gates remain required.",
+                )
         notes_kit_for_visibility = (
             report.get("stablePublicationReleaseNotesAuthoringKit")
             if isinstance(report.get("stablePublicationReleaseNotesAuthoringKit"), dict)

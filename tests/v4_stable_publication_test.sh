@@ -905,6 +905,7 @@ assert visibility_actions["update-release-notes"]["required"] is True
 assert visibility_actions["update-release-notes"]["nextCommand"] == notes_kit["publicReleaseEditCommand"]
 assert visibility_actions["publish-new-github-release"]["nextCommand"] == "not-needed"
 assert visibility_actions["update-release-assets"]["nextCommand"] == "not-needed"
+assert visibility_actions["keep-current-public-release-unchanged"]["nextCommand"] == "blocked-by-required-actions"
 assert set(notes_kit["missingTopicIds"]) == missing
 assert {
     "stable-publication-release-notes/README.md",
@@ -1040,6 +1041,7 @@ actions = {item["id"]: item for item in visibility["requiredActions"]}
 assert actions["publish-new-github-release"]["required"] is True
 assert actions["attach-launchkey-candidate-proof"]["required"] is False
 assert actions["keep-current-public-release-unchanged"]["status"] == "blocked"
+assert actions["keep-current-public-release-unchanged"]["nextCommand"] == "blocked-by-required-actions"
 assert report["stablePublicationEvidencePacket"]["firstBlockingGate"]["receipt"] == "publicReleaseFreshnessProof"
 closure = report["stablePublicationClosureChecklist"]
 assert closure["items"][0]["id"] == "public-release-freshness"
@@ -1266,6 +1268,7 @@ assert actions["attach-launchkey-candidate-proof"]["nextCommand"] == "not-needed
 assert actions["update-release-assets"]["nextCommand"] == "not-needed"
 assert actions["attach-adoption-security-evidence"]["nextCommand"] == "not-needed"
 assert actions["keep-current-public-release-unchanged"]["required"] is True
+assert actions["keep-current-public-release-unchanged"]["nextCommand"] != "blocked-by-required-actions"
 final_claim = report["finalStableV4ClaimPacket"]
 assert final_claim["status"] == "allowed"
 assert final_claim["claimDecision"] == "allowed"
