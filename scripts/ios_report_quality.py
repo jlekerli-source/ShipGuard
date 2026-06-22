@@ -1413,6 +1413,67 @@ def launchkey_release_asset_attachment_issues(report: dict[str, Any], *, markdow
     return issues
 
 
+def launchkey_fresh_install_attachment_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
+    if str(report.get("tool") or "") != "shipguard v4 release-candidate":
+        return []
+    proof = report.get("freshInstallPackageProof")
+    if not isinstance(proof, dict) or not proof.get("provided"):
+        return []
+    issues: list[dict[str, str]] = []
+    attachment = proof.get("freshInstallProofAttachment")
+    if not isinstance(attachment, dict) or not attachment:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-fresh-install-proof-attachment-missing",
+            evidence=f"{path_name} freshInstallPackageProof participated but has no freshInstallProofAttachment",
+            recommendation="Attach a compact freshInstallProofAttachment with install paths, version exits, validation exit, forbidden installed paths, next command, and proof boundary.",
+        )
+        return issues
+    if attachment.get("status") != proof.get("status"):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-fresh-install-proof-attachment-status-drift",
+            evidence=f"{path_name} freshInstallProofAttachment.status does not mirror freshInstallPackageProof.status",
+            recommendation="Keep the attachment status aligned with the root fresh install proof status.",
+        )
+    if attachment.get("validateExitCode") is None and "shipguard-validate" not in (attachment.get("missingProofArtifacts") or []):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-fresh-install-proof-attachment-validate-proof-missing",
+            evidence=f"{path_name} freshInstallProofAttachment hides shipguard validate status and does not list it as missing",
+            recommendation="Expose validateExitCode when validation ran, or list shipguard-validate in missingProofArtifacts.",
+        )
+    boundary = attachment.get("proofBoundary") if isinstance(attachment.get("proofBoundary"), dict) else {}
+    if (
+        boundary.get("freshInstallRequiredForStableV4") is not True
+        or boundary.get("cleanPrefixInstallRequired") is not True
+        or boundary.get("shipguardValidateRequired") is not True
+        or boundary.get("legacyAliasVersionRequired") is not True
+        or boundary.get("generatedCacheVcsPathsForbidden") is not True
+        or boundary.get("sourceOnlyProofCounts") is not False
+        or boundary.get("fixtureProofCountsAsStableV4PublicationProof") is not False
+    ):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-fresh-install-proof-attachment-boundary-missing",
+            evidence=f"{path_name} freshInstallProofAttachment weakens the fresh-install proof boundary",
+            recommendation="State that a clean prefix install, version checks, shipguard validate, and clean installed tree are required; source-only and fixture proof do not count for stable-v4 publication.",
+        )
+    if "Fresh Install Proof Attachment" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-fresh-install-proof-attachment-markdown-missing",
+            evidence=f"{path_name} Markdown does not render the fresh install proof attachment",
+            recommendation="Render the attachment under Fresh Install Package Proof so maintainers can inspect install and validation proof without opening JSON.",
+        )
+    return issues
+
+
 def task_contract_quickstart_replay_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     tool = str(report.get("tool") or "")
@@ -7746,6 +7807,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     issues.extend(result_ux_quality_issues(loaded, path_name=path.name))
     issues.extend(verify_pr_report_quality_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(launchkey_release_asset_attachment_issues(loaded, markdown=markdown, path_name=path.name))
+    issues.extend(launchkey_fresh_install_attachment_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_quickstart_replay_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_notification_scope_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_unsupported_claim_replay_issues(loaded, markdown=markdown, path_name=path.name))

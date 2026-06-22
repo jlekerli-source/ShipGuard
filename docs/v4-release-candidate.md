@@ -74,7 +74,7 @@ PREFIX=<fresh-prefix> <package>/scripts/install.sh
 <fresh-prefix>/bin/shipguard validate
 ```
 
-The report then records `freshInstallPackageProof`, including installed version, legacy alias version, validation result, forbidden installed path count, and redacted install paths. If install or validation fails, the release-candidate report returns review instead of treating static package docs as fresh-install proof.
+The report then records `freshInstallPackageProof`, including installed version, legacy alias version, validation result, forbidden installed path count, and redacted install paths. When fresh-install proof participates, the same block includes `freshInstallProofAttachment`, a compact handoff with install paths, version-check exits, validation exit, forbidden installed paths, missing proof artifacts, next command, and a boundary that source-only or fixture proof does not count as stable-v4 publication proof. If install or validation fails, the release-candidate report returns review instead of treating static package docs as fresh-install proof.
 
 When package or release-asset inputs are supplied, the top `Readiness Proof` rows reflect the actual receipt status. A blocked supplied upgrade or release-consume receipt must show as blocked there too, not as pass just because the route exists.
 

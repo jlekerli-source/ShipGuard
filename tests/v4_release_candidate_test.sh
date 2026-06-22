@@ -448,6 +448,7 @@ SHIPGUARD_GENERATED_AT="2026-06-19T00:00:00Z" \
 
 test -f "$tmp_dir/with-assets/v4-release-candidate.json"
 test -f "$tmp_dir/with-assets/v4-release-candidate.md"
+grep -q 'Fresh Install Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
 grep -q 'Release Asset Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
 test -f "$tmp_dir/with-assets-consume/consumer-report.json"
 test -f "$tmp_dir/with-assets-consume/asset-digests.json"
@@ -463,6 +464,7 @@ import sys
 
 report = json.load(open(sys.argv[1], encoding="utf-8"))
 fresh = report["freshInstallPackageProof"]
+fresh_attachment = fresh["freshInstallProofAttachment"]
 upgrade = report["upgradePackageProof"]
 rollback = report["rollbackPackageProof"]
 proof = report["publishedReleaseAssetProof"]
@@ -491,6 +493,21 @@ assert fresh["installedRoot"] == "<fresh-install-root>"
 assert fresh["versionResult"]["exitCode"] == 0
 assert fresh["legacyVersionResult"]["exitCode"] == 0
 assert fresh["validateResult"]["exitCode"] == 0
+assert fresh_attachment["status"] == "pass"
+assert fresh_attachment["packageTarball"] == "<package-tarball>"
+assert fresh_attachment["installPrefix"] == "<fresh-install-prefix>"
+assert fresh_attachment["workDir"] == "<fresh-install-work-dir>"
+assert fresh_attachment["packageRoot"] == "<fresh-install-package-root>"
+assert fresh_attachment["installedRoot"] == "<fresh-install-root>"
+assert fresh_attachment["installedVersion"] == report["version"]
+assert fresh_attachment["installedLegacyVersion"] == report["version"]
+assert fresh_attachment["versionExitCode"] == 0
+assert fresh_attachment["legacyVersionExitCode"] == 0
+assert fresh_attachment["validateExitCode"] == 0
+assert fresh_attachment["forbiddenInstalledPathCount"] == 0
+assert fresh_attachment["missingProofArtifacts"] == []
+assert fresh_attachment["proofBoundary"]["shipguardValidateRequired"] is True
+assert fresh_attachment["proofBoundary"]["sourceOnlyProofCounts"] is False
 assert upgrade["status"] == "pass"
 assert upgrade["provided"] is True
 assert upgrade["previousPackageVersion"] == "0.0.0"

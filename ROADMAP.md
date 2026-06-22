@@ -204,6 +204,8 @@ v3.136 continues InspectDeck executable next-command normalization by falling ba
 
 v3.137 continues LaunchKey published release-asset proof attachment by adding a compact `releaseAssetProofAttachment` to `publishedReleaseAssetProof`, so release-consume paths, digest status, missing artifacts, next command, and source-only/fixture-proof boundaries travel with the candidate packet.
 
+v3.138 continues LaunchKey fresh-install receipt attachment by adding a compact `freshInstallProofAttachment` to `freshInstallPackageProof`, so install paths, version and validation exits, forbidden installed paths, missing artifacts, next command, and source-only/fixture-proof boundaries travel with the candidate packet.
+
 Every release proposal must answer:
 
 1. Which developer decision changes?

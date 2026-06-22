@@ -367,11 +367,13 @@ def build_fresh_install_package_proof(args: argparse.Namespace, version: str) ->
     if not tarball.is_file():
         proof["summary"] = "Release package tarball was not found."
         proof["error"] = f"package tarball not found: {tarball}"
+        attach_fresh_install_proof_attachment(proof)
         return proof
 
     if install_prefix.exists() and not install_prefix.is_dir():
         proof["summary"] = "Fresh install prefix exists but is not a directory."
         proof["error"] = f"fresh install prefix is not a directory: {install_prefix}"
+        attach_fresh_install_proof_attachment(proof)
         return proof
     if install_prefix.exists() and any(install_prefix.iterdir()):
         if managed_prefix:
@@ -379,6 +381,7 @@ def build_fresh_install_package_proof(args: argparse.Namespace, version: str) ->
         else:
             proof["summary"] = "Fresh install prefix already exists and is not empty."
             proof["error"] = f"fresh install prefix must be empty: {install_prefix}"
+            attach_fresh_install_proof_attachment(proof)
             return proof
     if work_dir.exists() and not work_dir.is_dir():
         if managed_work_dir:
@@ -386,6 +389,7 @@ def build_fresh_install_package_proof(args: argparse.Namespace, version: str) ->
         else:
             proof["summary"] = "Fresh install work path exists but is not a directory."
             proof["error"] = f"fresh install work path is not a directory: {work_dir}"
+            attach_fresh_install_proof_attachment(proof)
             return proof
     if work_dir.exists() and any(work_dir.iterdir()):
         if managed_work_dir:
@@ -393,6 +397,7 @@ def build_fresh_install_package_proof(args: argparse.Namespace, version: str) ->
         else:
             proof["summary"] = "Fresh install work directory already exists and is not empty."
             proof["error"] = f"fresh install work directory must be empty: {work_dir}"
+            attach_fresh_install_proof_attachment(proof)
             return proof
     install_prefix.mkdir(parents=True, exist_ok=True)
     work_dir.mkdir(parents=True, exist_ok=True)
@@ -403,12 +408,14 @@ def build_fresh_install_package_proof(args: argparse.Namespace, version: str) ->
     if not extracted:
         attach_blocking_package_hygiene(proof, [tarball], args)
         proof["summary"] = "Release package tarball could not be safely extracted."
+        attach_fresh_install_proof_attachment(proof)
         return proof
 
     package_root = find_package_root(extract_dir, version)
     if package_root is None:
         proof["summary"] = "Extracted package did not contain scripts/install.sh."
         proof["error"] = "package root not found"
+        attach_fresh_install_proof_attachment(proof)
         return proof
     proof["packageRoot"] = package_root.as_posix()
 
@@ -417,6 +424,7 @@ def build_fresh_install_package_proof(args: argparse.Namespace, version: str) ->
     proof["installResult"] = install_result
     if install_result["exitCode"] != 0:
         proof["summary"] = "Fresh package install failed."
+        attach_fresh_install_proof_attachment(proof)
         return proof
 
     installed_bin = install_prefix / "bin" / "shipguard"
@@ -428,6 +436,7 @@ def build_fresh_install_package_proof(args: argparse.Namespace, version: str) ->
     if not installed_bin.is_file():
         proof["summary"] = "Fresh install did not create the shipguard wrapper."
         proof["error"] = f"installed CLI missing: {installed_bin}"
+        attach_fresh_install_proof_attachment(proof)
         return proof
 
     version_result = run_process([str(installed_bin), "version"], package_root, 30)
@@ -457,7 +466,48 @@ def build_fresh_install_package_proof(args: argparse.Namespace, version: str) ->
         proof["legacyVersionMatches"] = legacy_ok
         proof["validatePassed"] = validate_ok
         proof["installTreeClean"] = clean_ok
+    attach_fresh_install_proof_attachment(proof)
     return proof
+
+
+def attach_fresh_install_proof_attachment(proof: dict[str, Any]) -> None:
+    if not proof.get("provided"):
+        return
+    missing_artifacts = [
+        name
+        for field, name in (
+            ("versionResult", "shipguard-version"),
+            ("legacyVersionResult", "codex-maintainer-version"),
+            ("validateResult", "shipguard-validate"),
+        )
+        if not isinstance(proof.get(field), dict)
+    ]
+    proof["freshInstallProofAttachment"] = {
+        "status": proof.get("status"),
+        "packageTarball": proof.get("packageTarball", ""),
+        "installPrefix": proof.get("installPrefix", ""),
+        "workDir": proof.get("workDir", ""),
+        "packageRoot": proof.get("packageRoot", ""),
+        "installedRoot": proof.get("installedRoot", ""),
+        "installedVersion": proof.get("installedVersion", ""),
+        "installedLegacyVersion": proof.get("installedLegacyVersion", ""),
+        "versionExitCode": (proof.get("versionResult") or {}).get("exitCode") if isinstance(proof.get("versionResult"), dict) else None,
+        "legacyVersionExitCode": (proof.get("legacyVersionResult") or {}).get("exitCode") if isinstance(proof.get("legacyVersionResult"), dict) else None,
+        "validateExitCode": (proof.get("validateResult") or {}).get("exitCode") if isinstance(proof.get("validateResult"), dict) else None,
+        "forbiddenInstalledPathCount": proof.get("forbiddenInstalledPathCount"),
+        "forbiddenInstalledPaths": proof.get("forbiddenInstalledPaths", []),
+        "missingProofArtifacts": missing_artifacts,
+        "nextCommand": proof.get("nextCommand"),
+        "proofBoundary": {
+            "freshInstallRequiredForStableV4": True,
+            "cleanPrefixInstallRequired": True,
+            "shipguardValidateRequired": True,
+            "legacyAliasVersionRequired": True,
+            "generatedCacheVcsPathsForbidden": True,
+            "sourceOnlyProofCounts": False,
+            "fixtureProofCountsAsStableV4PublicationProof": False,
+        },
+    }
 
 
 def package_version(package_root: Path) -> str:
@@ -2282,6 +2332,16 @@ def render_markdown(report: dict[str, Any]) -> str:
         if proof.get("installPrefix"):
             lines.append(f"- Install prefix: `{proof.get('installPrefix')}`")
         append_package_hygiene_markdown(lines, proof)
+        attachment = proof.get("freshInstallProofAttachment") if isinstance(proof.get("freshInstallProofAttachment"), dict) else {}
+        if attachment:
+            lines.extend(["", "### Fresh Install Proof Attachment", ""])
+            lines.append(f"- Status: `{attachment.get('status')}`")
+            lines.append(f"- Package tarball: `{attachment.get('packageTarball') or 'missing'}`")
+            lines.append(f"- Install prefix: `{attachment.get('installPrefix') or 'missing'}`")
+            lines.append(f"- Installed version: `{attachment.get('installedVersion') or 'missing'}`")
+            lines.append(f"- Validation exit code: `{attachment.get('validateExitCode')}`")
+            lines.append(f"- Forbidden installed paths: `{attachment.get('forbiddenInstalledPathCount')}`")
+            lines.append(f"- Missing proof artifacts: `{', '.join(attachment.get('missingProofArtifacts') or []) or 'none'}`")
     else:
         lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## Upgrade", ""])
