@@ -1179,6 +1179,36 @@ def result_ux_quality_issues(report: dict[str, Any], *, path_name: str) -> list[
             evidence=f"{path_name} resultUX.nextCommand is prose or Markdown instead of a command template",
             recommendation="Move human explanation into resultUX.nextActionSummary and keep nextCommand as a runnable ShipGuard, test, or tool command template.",
         )
+    if str(report.get("tool") or "") == "shipguard v4 stable-publication":
+        result_summary = " ".join(
+            str(result.get(field) or "")
+            for field in ("nextActionSummary", "priorityAction", "proofSource")
+        )
+        leaked_tokens = [
+            token
+            for token in (
+                "stablePublicationClosureChecklist",
+                "githubReleaseMetadataProof",
+                "releaseNotesProof",
+                "releaseCandidatePacketProof",
+                "publishedReleaseAssetProof",
+                "postReleaseConsumerProof",
+                "publicReleaseFreshnessProof",
+                "releaseVersionCoherenceProof",
+                "releaseAssetCoherenceProof",
+                "externalAdoptionEvidenceStableGate",
+                "securityReviewEvidenceStableGate",
+            )
+            if token in result_summary
+        ]
+        if leaked_tokens:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-result-ux-internal-name-leak",
+                evidence=f"{path_name} resultUX leaks internal stable-publication field names: {', '.join(leaked_tokens)}",
+                recommendation="Use reader-facing labels in resultUX.nextActionSummary, priorityAction, and proofSource while keeping schema field names in structured JSON fields.",
+            )
     return issues
 
 

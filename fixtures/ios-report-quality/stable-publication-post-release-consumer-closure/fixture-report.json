@@ -400,10 +400,10 @@
     "Does the post-release consumer closure row expose release-consume paths, missing proof artifacts, digest/replay/attestation statuses, repair/pass criteria, release-consume rerun, full stable-publication rerun, and source-only/fixture-proof boundaries?"
   ],
   "resultUX": {
-    "nextActionSummary": "Work the stablePublicationClosureChecklist in dependency order; first complete `publishedReleaseAssetProof` before claiming stable-v4 publication.",
+    "nextActionSummary": "Work the Closure Checklist in order; first complete downloaded release assets before claiming stable-v4 publication.",
     "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --release-candidate-report <stable-publication-work>/candidate-pass.json --download-release-assets --external-adoption-evidence <stable-publication-work>/evidence/stable-adoption --security-review-evidence <stable-publication-work>/evidence/stable-security --shipguard-eval --shareable",
-    "priorityAction": "Work the stablePublicationClosureChecklist in dependency order; first complete `publishedReleaseAssetProof` before claiming stable-v4 publication.",
-    "proofSource": "publishedReleaseAssetProof",
+    "priorityAction": "Work the Closure Checklist in order; first complete downloaded release assets before claiming stable-v4 publication.",
+    "proofSource": "downloaded release assets",
     "sourceStatus": "review",
     "status": "review",
     "verdict": "REVIEW: 2 stable-v4 publication blocker(s) remain; first blocker: No downloaded release assets were supplied; stable v4 proof still needs consumer-side release asset verification.",

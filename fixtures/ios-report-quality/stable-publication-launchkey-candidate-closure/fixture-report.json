@@ -421,10 +421,10 @@
     "Does the LaunchKey candidate closure row expose the supplied candidate path, nested receipt, required proof areas, package-hygiene diagnostics, repair/pass criteria, nested rerun, full stable-publication rerun, and fixture-proof boundary?"
   ],
   "resultUX": {
-    "nextActionSummary": "Work the stablePublicationClosureChecklist in dependency order; first complete `releaseCandidatePacketProof` before claiming stable-v4 publication.",
+    "nextActionSummary": "Work the Closure Checklist in order; first complete LaunchKey candidate proof before claiming stable-v4 publication.",
     "nextCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --shipguard-eval --shareable",
-    "priorityAction": "Work the stablePublicationClosureChecklist in dependency order; first complete `releaseCandidatePacketProof` before claiming stable-v4 publication.",
-    "proofSource": "releaseCandidatePacketProof",
+    "priorityAction": "Work the Closure Checklist in order; first complete LaunchKey candidate proof before claiming stable-v4 publication.",
+    "proofSource": "LaunchKey candidate proof",
     "sourceStatus": "review",
     "status": "review",
     "verdict": "REVIEW: 1 stable-v4 publication blocker(s) remain; first blocker: LaunchKey report is missing package install, upgrade, or rollback proof required for stable publication.",

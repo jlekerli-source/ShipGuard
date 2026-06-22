@@ -19,10 +19,10 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 ## Result
 
 - Verdict: REVIEW: 2 stable-v4 publication blocker(s) remain; first blocker: GitHub release metadata could not be loaded.
-- Proof source: githubReleaseMetadataProof
+- Proof source: GitHub release metadata
 - Why it matters: Stable-v4 publication must be proven from public release artifacts and external evidence, not inferred from fixture receipts.
 - Next command: `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable`
-- Next action: Work the stablePublicationClosureChecklist in dependency order; first complete `githubReleaseMetadataProof` before claiming stable-v4 publication.
+- Next action: Work the Closure Checklist in order; first complete GitHub release metadata before claiming stable-v4 publication.
 
 
 ## Stable Publication Gates

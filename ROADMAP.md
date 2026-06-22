@@ -178,6 +178,8 @@ v3.187 cleans the stable-publication release visibility handoff so completed `pa
 
 v3.188 extends that cleanup to the blocked `keep-current-public-release-unchanged` row: while earlier gates are still required, it now says `blocked-by-required-actions` instead of duplicating the primary repair command.
 
+v3.189 humanizes the stable-publication result UX so the top proof source and first action use reader-facing evidence labels instead of leaking internal JSON names like `stablePublicationClosureChecklist` or `releaseNotesProof`.
+
 Every release proposal must answer:
 
 1. Which developer decision changes?

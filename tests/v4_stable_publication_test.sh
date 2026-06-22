@@ -898,6 +898,11 @@ assert notes_kit["publicReleaseEditCommand"] == (
 )
 assert report["stablePublicationEvidencePacket"]["firstBlockingGate"]["nextCommand"] == notes_kit["publicReleaseEditCommand"]
 assert report["resultUX"]["nextCommand"] == notes_kit["publicReleaseEditCommand"]
+assert report["resultUX"]["proofSource"] == "release notes"
+assert report["resultUX"]["nextActionSummary"] == "Work the Closure Checklist in order; first complete release notes before claiming stable-v4 publication."
+assert "stablePublicationClosureChecklist" not in report["resultUX"]["nextActionSummary"]
+assert "releaseNotesProof" not in report["resultUX"]["nextActionSummary"]
+assert "releaseNotesProof" not in report["resultUX"]["proofSource"]
 assert release_notes_item["nextCommand"] == notes_kit["publicReleaseEditCommand"]
 assert release_notes_item["rerunCommand"] != release_notes_item["nextCommand"]
 visibility_actions = {item["id"]: item for item in report["releaseVisibilityHandoff"]["requiredActions"]}

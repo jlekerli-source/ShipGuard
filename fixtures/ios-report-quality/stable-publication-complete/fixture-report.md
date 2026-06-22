@@ -3,7 +3,7 @@
 ## Result
 
 - Verdict: REVIEW: Stable publication blocked by missing external evidence.
-- Proof source: externalAdoptionEvidenceStableGate
+- Proof source: independent adoption evidence
 - Why it matters: Stable-v4 publication must be proven from public release artifacts and external evidence.
 - Next command: `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable`
 

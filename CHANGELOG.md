@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Humanized stable-publication result UX: blocked `resultUX.proofSource`, `nextActionSummary`, and `priorityAction` now use reader-facing evidence labels instead of internal JSON names like `stablePublicationClosureChecklist` or `releaseNotesProof`; `ios report-quality` flags regressions.
 - Cleaned blocked keep-current release visibility rows: when stable-publication still has required blockers, `keep-current-public-release-unchanged.nextCommand` now says `blocked-by-required-actions` instead of duplicating the primary repair command, and `ios report-quality` flags regressions.
 - Cleaned stable-publication release visibility handoff commands: completed `pass`/not-required action rows now use `not-needed` instead of leaking fallback test or rerun commands, and `ios report-quality` flags completed visibility actions that still suggest runnable commands.
 - Routed release-note edit commands through stable-publication first-blocker UX: when release notes are the first blocker, `stablePublicationEvidencePacket.firstBlockingGate.nextCommand`, `stablePublicationClosureChecklist.items[].nextCommand`, and `resultUX.nextCommand` now point at the generated `gh release edit ... --notes-file stable-publication-release-notes/draft-release-notes.md` command while `rerunCommand` remains the post-edit verifier. `ios report-quality` now flags reports that regress this split.

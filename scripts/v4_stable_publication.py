@@ -1916,6 +1916,22 @@ def evidence_id_for_receipt(receipt: str) -> str:
     return mapping.get(receipt, re.sub(r"[^a-z0-9]+", "-", receipt.lower()).strip("-"))
 
 
+def evidence_label_for_receipt(receipt: str) -> str:
+    mapping = {
+        "githubReleaseMetadataProof": "GitHub release metadata",
+        "releaseNotesProof": "release notes",
+        "releaseCandidatePacketProof": "LaunchKey candidate proof",
+        "publishedReleaseAssetProof": "downloaded release assets",
+        "postReleaseConsumerProof": "post-release consumer proof",
+        "publicReleaseFreshnessProof": "public release freshness",
+        "releaseVersionCoherenceProof": "release version coherence",
+        "releaseAssetCoherenceProof": "release asset coherence",
+        "externalAdoptionEvidenceStableGate": "independent adoption evidence",
+        "securityReviewEvidenceStableGate": "final security-review evidence",
+    }
+    return mapping.get(receipt, evidence_id_for_receipt(receipt).replace("-", " "))
+
+
 def proof_boundary_for_evidence_id(evidence_id: str) -> str:
     mapping = {
         "github-release-metadata": "Public GitHub release metadata must exist for the requested tag and must not be draft-only or prerelease-only proof.",
@@ -4164,9 +4180,9 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             f"{proof.get('summary') or f'{receipt} has not passed.'}"
         )
         priority_action = (
-            f"Work the stablePublicationClosureChecklist in dependency order; first complete `{receipt}` before claiming stable-v4 publication."
+            f"Work the Closure Checklist in order; first complete {evidence_label_for_receipt(receipt)} before claiming stable-v4 publication."
         )
-        proof_source = receipt
+        proof_source = evidence_label_for_receipt(receipt)
     else:
         next_command = "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet"
         summary = "Stable-v4 publication proof passed every local stable-publication gate."

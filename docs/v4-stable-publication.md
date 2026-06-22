@@ -85,6 +85,7 @@ The report returns `pass` only when every gate passes:
 - Final security-review evidence passes the stable-v4 gate with CLI, plugin, GitHub Actions, release-proof, package-install, and redaction/privacy scope coverage, and the record `generatedAt` timestamp is no earlier than the release manifest timestamp.
 
 If any gate fails, the report returns `review`, sets `stableV4Release` to `false`, and puts the next command in `resultUX.nextCommand`.
+The top result proof source and action use reader-facing labels such as `Closure Checklist`, `release notes`, and `LaunchKey candidate proof`; schema field names stay in structured JSON fields, not the maintainer-facing result.
 
 ## GitHub Release Metadata Closure Kit
 

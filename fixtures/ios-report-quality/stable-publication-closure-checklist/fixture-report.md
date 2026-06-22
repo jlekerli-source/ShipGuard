@@ -19,10 +19,10 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 ## Result
 
 - Verdict: REVIEW: 2 stable-v4 publication blocker(s) remain; first blocker: No downloaded release assets were supplied; stable v4 proof still needs consumer-side release asset verification.
-- Proof source: publishedReleaseAssetProof
+- Proof source: downloaded release assets
 - Why it matters: Stable-v4 publication must be proven from public release artifacts and external evidence, not inferred from fixture receipts.
 - Next command: `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --release-candidate-report <stable-publication-work>/candidate-pass.json --download-release-assets --external-adoption-evidence <stable-publication-work>/evidence/stable-adoption --security-review-evidence <stable-publication-work>/evidence/stable-security --shipguard-eval --shareable`
-- Next action: Work the stablePublicationClosureChecklist in dependency order; first complete `publishedReleaseAssetProof` before claiming stable-v4 publication.
+- Next action: Work the Closure Checklist in order; first complete downloaded release assets before claiming stable-v4 publication.
 
 
 ## Stable Publication Gates

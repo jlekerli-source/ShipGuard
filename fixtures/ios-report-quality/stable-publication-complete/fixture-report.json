@@ -68,7 +68,7 @@
   "resultUX": {
     "nextActionSummary": "Complete independent adoption and final security review evidence before claiming stable-v4 publication.",
     "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
-    "proofSource": "externalAdoptionEvidenceStableGate",
+    "proofSource": "independent adoption evidence",
     "status": "review",
     "verdict": "REVIEW: Stable publication blocked by missing external evidence.",
     "whyItMatters": "Stable-v4 publication must be proven from public release artifacts and external evidence."

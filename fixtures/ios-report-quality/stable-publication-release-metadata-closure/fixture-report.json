@@ -308,10 +308,10 @@
     "Does the GitHub release metadata closure row expose repo inference, release tag, API endpoint, release state, required/missing assets, release-note digest, repair/pass/fail criteria, rerun command, and public-metadata/source-only/fixture-API boundaries?"
   ],
   "resultUX": {
-    "nextActionSummary": "Work the stablePublicationClosureChecklist in dependency order; first complete `githubReleaseMetadataProof` before claiming stable-v4 publication.",
+    "nextActionSummary": "Work the Closure Checklist in order; first complete GitHub release metadata before claiming stable-v4 publication.",
     "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <evidence-json-or-dir> --security-review-evidence <evidence-json-or-dir> --shipguard-eval --shareable",
-    "priorityAction": "Work the stablePublicationClosureChecklist in dependency order; first complete `githubReleaseMetadataProof` before claiming stable-v4 publication.",
-    "proofSource": "githubReleaseMetadataProof",
+    "priorityAction": "Work the Closure Checklist in order; first complete GitHub release metadata before claiming stable-v4 publication.",
+    "proofSource": "GitHub release metadata",
     "sourceStatus": "review",
     "status": "review",
     "verdict": "REVIEW: 2 stable-v4 publication blocker(s) remain; first blocker: GitHub release metadata could not be loaded.",

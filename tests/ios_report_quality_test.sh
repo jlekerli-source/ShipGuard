@@ -6496,6 +6496,9 @@ for action in report["releaseVisibilityHandoff"]["requiredActions"]:
         action["required"] = False
         action["status"] = "blocked"
         action["nextCommand"] = "gh release edit v3.131.0 --repo jlekerli-source/ShipGuard --notes-file draft.md"
+report.setdefault("resultUX", {})["nextActionSummary"] = "Work the stablePublicationClosureChecklist in dependency order; first complete `releaseNotesProof` before claiming stable-v4 publication."
+report.setdefault("resultUX", {})["priorityAction"] = report["resultUX"]["nextActionSummary"]
+report.setdefault("resultUX", {})["proofSource"] = "releaseNotesProof"
 (target / "v4-stable-publication.json").write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
 (target / "v4-stable-publication.md").write_text(source_md.read_text(encoding="utf-8"), encoding="utf-8")
 PY
@@ -6505,6 +6508,7 @@ PY
   --shareable >/dev/null
 grep -q '"ruleId": "stable-publication-release-visibility-completed-action-command-noise"' "$tmp_dir/stable-publication-visibility-command-noise-quality/ios-report-quality.json"
 grep -q '"ruleId": "stable-publication-release-visibility-keep-current-command-noise"' "$tmp_dir/stable-publication-visibility-command-noise-quality/ios-report-quality.json"
+grep -q '"ruleId": "stable-publication-result-ux-internal-name-leak"' "$tmp_dir/stable-publication-visibility-command-noise-quality/ios-report-quality.json"
 
 stable_publication_launchkey_closure_fixture="fixtures/ios-report-quality/stable-publication-launchkey-candidate-closure"
 ./bin/shipguard ios report-quality \

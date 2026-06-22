@@ -6,6 +6,15 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.189 read-only stable-v4 packet loop reran `shipguard v4 stable-publication` against the real public `v3.131.0` GitHub release after v3.188, then inspected the generated Markdown and JSON.
+
+- Finding: the top `Proof source` and `Next action` lines still used internal JSON names such as `releaseNotesProof` and `stablePublicationClosureChecklist`.
+- Product weakness: the first maintainer-facing action should read like a decision, not an implementation detail. Internal schema names are useful in JSON, but they make the report feel less polished and harder to scan.
+- Native fix: blocked result UX now uses reader-facing proof labels such as `release notes`, `LaunchKey candidate proof`, and `downloaded release assets`, and the first action says `Closure Checklist`.
+- Report-quality fix: `ios report-quality` flags stable-publication result UX that leaks internal stable-publication field names in `proofSource`, `nextActionSummary`, or `priorityAction`.
+
+Fresh real-public-release QA still does not claim stable v4. The real `v3.131.0` report remains product-blocked on release notes, LaunchKey candidate proof, independent adoption evidence, and final security-review evidence.
+
 The v3.188 read-only stable-v4 packet loop reran `shipguard v4 stable-publication` against the real public `v3.131.0` GitHub release after v3.187, then inspected the generated Markdown and JSON.
 
 - Finding: `Release Visibility Handoff` correctly cleaned completed action rows, but the blocked `keep-current-public-release-unchanged` row still duplicated the release-notes edit command.

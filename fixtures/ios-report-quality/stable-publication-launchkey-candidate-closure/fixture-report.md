@@ -19,10 +19,10 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 ## Result
 
 - Verdict: REVIEW: 1 stable-v4 publication blocker(s) remain; first blocker: LaunchKey report is missing package install, upgrade, or rollback proof required for stable publication.
-- Proof source: releaseCandidatePacketProof
+- Proof source: LaunchKey candidate proof
 - Why it matters: Stable-v4 publication must be proven from public release artifacts and external evidence, not inferred from fixture receipts.
 - Next command: `./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --package-tarball <release-tarball> --upgrade-from-tarball <previous-release-tarball> --shipguard-eval --shareable`
-- Next action: Work the stablePublicationClosureChecklist in dependency order; first complete `releaseCandidatePacketProof` before claiming stable-v4 publication.
+- Next action: Work the Closure Checklist in order; first complete LaunchKey candidate proof before claiming stable-v4 publication.
 
 
 ## Stable Publication Gates
