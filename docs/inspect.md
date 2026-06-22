@@ -59,6 +59,8 @@ When Value Gauntlet and Full Audit receipts are already present but release proo
 
 If a release manifest is readable but missing required receipt fields such as tag, commit, artifact SHA-256, release URL, or CI run URL, InspectDeck keeps `releaseState.status` at `review`, lists the missing fields, and routes the next action back to `shipguard release-proof build`.
 
+If a supplied attestation badge has a non-pass status, InspectDeck keeps `releaseState.status` at `review`, lists the badge problem, and routes the next action back to `shipguard release-proof build`.
+
 If an upstream Full Audit receipt has a missing or unsafe failed-stage id, InspectDeck falls back to a full-audit rerun command instead of rendering a malformed `--stage` command.
 
 If a proof input is absent, InspectDeck marks it missing or not supplied instead of pretending the state is proven.

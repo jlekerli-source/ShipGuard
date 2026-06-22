@@ -206,6 +206,8 @@ v3.135 continues InspectDeck missing-receipt priority by exposing `missingReceip
 
 v3.136 continues InspectDeck executable next-command normalization by falling back to a runnable full-audit command when a failed-stage receipt has a missing or unsafe `stageId`, instead of leaking malformed `--stage` commands into `resultUX.nextCommand`.
 
+v3.136 also continues InspectDeck release-proof badge detail by keeping supplied non-pass attestation badges in `review`, listing badge problems, and routing the next action back to `shipguard release-proof build`.
+
 v3.137 continues LaunchKey published release-asset proof attachment by adding a compact `releaseAssetProofAttachment` to `publishedReleaseAssetProof`, so release-consume paths, digest status, missing artifacts, next command, and source-only/fixture-proof boundaries travel with the candidate packet.
 
 v3.138 continues LaunchKey fresh-install receipt attachment by adding a compact `freshInstallProofAttachment` to `freshInstallPackageProof`, so install paths, version and validation exits, forbidden installed paths, missing artifacts, next command, and source-only/fixture-proof boundaries travel with the candidate packet.

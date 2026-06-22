@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added InspectDeck release-proof badge detail: supplied non-pass attestation badges now keep release state and overall inspect status in `review`, list badge problems, and route `nextAction.command` / `resultUX.nextCommand` to `shipguard release-proof build`.
 - Added InspectDeck release-proof receipt detail: readable but incomplete release manifests now keep `releaseState.status` and overall inspect status in `review`, list missing required fields, and route `nextAction.command` / `resultUX.nextCommand` to `shipguard release-proof build`.
 - Prioritized missing release-proof receipts in InspectDeck: when value-gauntlet and full-audit receipts are present but release proof is absent, `shipguard inspect` now keeps the report in `review` and routes `nextAction.command` / `resultUX.nextCommand` to `shipguard release-proof build` before falling back to lower-priority product recommendations.
 - Routed InspectDeck stable-publication priorities forward: when Value Gauntlet supplies `stablePublicationPriority.nextCommand`, `shipguard inspect` now uses that stable-v4 publication command as `nextAction.command` and `resultUX.nextCommand` instead of looping maintainers back to rerun value-gauntlet.

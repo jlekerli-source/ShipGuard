@@ -298,6 +298,52 @@ grep -q 'Missing required fields:' "$tmp_dir/incomplete-release-proof/shipguard-
 grep -q 'artifact.sha256' "$tmp_dir/incomplete-release-proof/shipguard-inspect.md"
 grep -q 'release-proof build' "$tmp_dir/incomplete-release-proof/shipguard-inspect.md"
 
+mkdir -p "$tmp_dir/release-badge-review/proof" "$tmp_dir/release-badge-review/attestation"
+cp "$tmp_dir/release/proof/release-manifest.json" "$tmp_dir/release-badge-review/proof/release-manifest.json"
+cat > "$tmp_dir/release-badge-review/attestation/attestation-badge.json" <<'JSON'
+{
+  "status": "failed"
+}
+JSON
+
+./bin/shipguard inspect \
+  --path . \
+  --out "$tmp_dir/nonpass-release-badge" \
+  --value-gauntlet "$tmp_dir/value" \
+  --full-audit "$tmp_dir/full-pass" \
+  --release-assets "$tmp_dir/release-badge-review" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+python3 - <<'PY' "$tmp_dir/nonpass-release-badge/shipguard-inspect.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+release = data.get("releaseState") or {}
+next_action = data.get("nextAction") or {}
+result = data.get("resultUX") or {}
+expected = "./bin/shipguard release-proof build --out <dir> --release-url <url> --version <version> --tag <tag> --commit <sha> --ci-run-url <url>"
+if data.get("status") != "review" or release.get("status") != "review":
+    raise SystemExit(f"non-pass release badge should keep inspect in review: {data.get('status')!r} {release!r}")
+if release.get("badgeStatus") != "failed":
+    raise SystemExit(f"badge status should be exposed: {release!r}")
+if "attestation-badge.status=failed" not in (release.get("badgeProblems") or []):
+    raise SystemExit(f"badge problem should be exposed: {release!r}")
+if release.get("missingRequiredFields"):
+    raise SystemExit(f"complete manifest should not invent missing fields: {release!r}")
+if next_action.get("source") != "release-assets.incomplete":
+    raise SystemExit(f"non-pass release badge should drive next action: {next_action!r}")
+if next_action.get("command") != expected or result.get("nextCommand") != expected:
+    raise SystemExit(f"non-pass release badge should route to release-proof build: {next_action!r} {result!r}")
+if result.get("proofSource") != "release-assets.incomplete":
+    raise SystemExit(f"resultUX should expose incomplete release source: {result!r}")
+PY
+
+grep -q 'Attestation badge status: failed' "$tmp_dir/nonpass-release-badge/shipguard-inspect.md"
+grep -q 'Badge problems: attestation-badge.status=failed' "$tmp_dir/nonpass-release-badge/shipguard-inspect.md"
+grep -q 'release-proof build' "$tmp_dir/nonpass-release-badge/shipguard-inspect.md"
+
 ./bin/shipguard inspect \
   --path . \
   --out "$tmp_dir/missing-inputs" \

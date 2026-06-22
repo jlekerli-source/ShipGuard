@@ -228,7 +228,9 @@ def release_state(source: str | None, root: Path, *, shareable: bool) -> dict[st
         "proofs.ci_run_url": proofs.get("ci_run_url") or "",
     }
     missing_fields = [key for key, value in required.items() if not str(value).strip()]
-    status = "not-provided" if not source else ("missing" if not manifest else ("review" if missing_fields else "pass"))
+    badge_status = str(badge.get("status") or "").strip() if isinstance(badge, dict) else ""
+    badge_problems = [f"attestation-badge.status={badge_status}"] if manifest and badge_status and badge_status != "pass" else []
+    status = "not-provided" if not source else ("missing" if not manifest else ("review" if missing_fields or badge_problems else "pass"))
     return {
         "found": bool(manifest),
         "manifestPath": rel_or_redacted(manifest_path, root, shareable=shareable),
@@ -241,10 +243,11 @@ def release_state(source: str | None, root: Path, *, shareable: bool) -> dict[st
         "artifactSHA256": artifact.get("sha256") or "",
         "releaseURL": proofs.get("release_url") or "",
         "ciRunURL": proofs.get("ci_run_url") or "",
-        "badgeStatus": badge.get("status") if isinstance(badge, dict) else "",
+        "badgeStatus": badge_status,
+        "badgeProblems": badge_problems,
         "requiredFields": sorted(required),
         "missingRequiredFields": missing_fields,
-        "nextCommand": RELEASE_PROOF_COMMAND if missing_fields or not manifest else "",
+        "nextCommand": RELEASE_PROOF_COMMAND if missing_fields or not manifest or badge_problems else "",
     }
 
 
@@ -370,11 +373,13 @@ def choose_next_action(value_summary: dict[str, Any], full_summary: dict[str, An
         }
     if release.get("status") != "pass":
         missing = release.get("missingRequiredFields") if isinstance(release.get("missingRequiredFields"), list) else []
-        missing_text = ", ".join(str(item) for item in missing[:8] if item) or "unknown required fields"
+        badge_problems = release.get("badgeProblems") if isinstance(release.get("badgeProblems"), list) else []
+        problems = [str(item) for item in [*missing, *badge_problems] if item]
+        problem_text = ", ".join(problems[:8]) or "unknown release proof issue"
         return {
             "source": "release-assets.incomplete",
             "command": str(release.get("nextCommand") or RELEASE_PROOF_COMMAND),
-            "reason": f"Release proof is readable but incomplete. Missing: {missing_text}.",
+            "reason": f"Release proof is readable but incomplete. Problems: {problem_text}.",
         }
     lowest = value_summary.get("lowestValueSurface") or {}
     if lowest.get("recommendation"):
@@ -499,6 +504,8 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"- Version: {release.get('version') or 'unknown'}",
             f"- Tag: {release.get('tag') or 'unknown'}",
             f"- Artifact SHA-256: `{release.get('artifactSHA256') or 'unknown'}`",
+            f"- Attestation badge status: {release.get('badgeStatus') or 'not-provided'}",
+            f"- Badge problems: {', '.join(release.get('badgeProblems') or []) or 'none'}",
             f"- Missing required fields: {', '.join(release.get('missingRequiredFields') or []) or 'none'}",
             f"- Next command: `{release.get('nextCommand') or 'none'}`",
             "",
