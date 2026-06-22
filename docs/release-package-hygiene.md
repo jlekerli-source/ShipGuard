@@ -20,7 +20,7 @@ Scan explicit tarballs or downloaded GitHub release assets:
 ```bash
 ./bin/shipguard release-package hygiene \
   --path . \
-  --tarball dist/shipguard-v3.131.0.tar.gz \
+  --tarball "dist/shipguard-v$(cat VERSION).tar.gz" \
   --assets /tmp/downloaded-release-assets \
   --out /tmp/shipguard-package-hygiene \
   --shareable

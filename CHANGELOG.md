@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Prepared the buildable `v3.132.0` release line: `VERSION` now names the post-bump package target and the next-goal handoff can advance without treating the older `v3.131.0` public release as current local package state.
 - Added a version lineage check to `shipguard next-goal`: generated handoffs now compare `VERSION`, the expected next release, the planned target release, the current pre-bump package artifact, and the expected post-bump artifact, then make the slash plan/goal and release-loop publish step stop at lineage resolution when the target skips the next semantic release.
 - Added phase timing logs to `tests/package_release_test.sh` so the slow release-package proof lane reports coarse progress such as package build, manifest checks, packaged CLI smoke proof, value-gauntlet/full-audit proof, v4 proof gates, and install proof instead of appearing hung.
 - Added generated output paths to the stable-publication release-notes authoring kit: `stablePublicationReleaseNotesAuthoringKit.generatedPaths` and each `files[].generatedPath` now point at the generated README, checklist, and draft release notes under the report output directory, with shareable reports redacting the local root.
