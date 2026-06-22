@@ -145,7 +145,7 @@ v3.133  root report-quality and bounded source-scan hardening
 v3.134  stable-publication publish-first visibility handoff
 v3.135  package-release duplicate proof pruning
 v3.136  stable-publication concrete release-create handoff
-v3.137  LaunchKey published release-asset proof attachment
+v3.137  stable-publication concrete release-asset paths
 v3.138  LaunchKey fresh-install receipt attachment
 v3.139  LaunchKey generated proof-directory report-quality exclusion
 v3.140  LaunchKey upgrade and rollback receipt attachment
@@ -194,7 +194,9 @@ v3.195 keeps that lineage honest for the normal next-release path: a passing nex
 
 v3.136 public-release catch-up makes the stable-publication release visibility handoff copy-ready: when the primary decision is `publish-new-github-release`, the action row now points at the generated `gh release create ...` command with the report output draft release notes and required release-proof assets instead of a placeholder.
 
-Release-line note: local `VERSION` now advances to `3.136.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
+v3.137 makes that public-release packet fully asset-path aware: when stable-publication has a supplied or downloaded release-assets directory, the generated `gh release create ...` handoff uses those concrete files instead of `<release-proof-assets-dir>` placeholders.
+
+Release-line note: local `VERSION` now advances to `3.137.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
 
 v3.135 trims package-release proof duplication: after source CI runs the focused fixture suites, `tests/package_release_test.sh` verifies those packaged test scripts are included, executable, and shell-syntax-valid instead of rerunning the same suites from the extracted tarball.
 

@@ -6,6 +6,12 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.137 public-release packet pass followed the v3.136 concrete release-create handoff and removed the next placeholder from the same maintainer action.
+
+- Finding: the visible release-create command now used the generated draft release notes, but non-tarball proof assets still appeared as `<release-proof-assets-dir>/...` even when stable-publication had already consumed a concrete supplied/downloaded asset directory.
+- Product weakness: a public-release packet should be runnable from the report without making a maintainer replace asset-path placeholders for files ShipGuard has already verified.
+- Native fix: the release-create handoff now uses concrete supplied/downloaded release-asset file paths when they exist, and only falls back to placeholders when no concrete asset directory is available.
+
 The v3.136 public-release catch-up pass targeted the next obvious maintainer actionability gap after the local release-candidate packet passed but the public GitHub release was still behind.
 
 - Finding: `releaseVisibilityHandoff` correctly chose `publish-new-github-release`, but its visible next command still used `<tag>`, `<version>`, and `<release-notes.md>` placeholders even though the metadata closure kit already generated the concrete `gh release create ...` command.

@@ -2412,6 +2412,7 @@ def build_github_release_metadata_closure_kit(
     item: dict[str, Any],
     rerun_command: str,
     notes_file: str | Path | None = None,
+    assets_dir: str | Path | None = None,
 ) -> dict[str, Any]:
     diagnostics = (
         item.get("githubReleaseMetadataDiagnostics")
@@ -2433,7 +2434,7 @@ def build_github_release_metadata_closure_kit(
             "--external-adoption-evidence <adoption-evidence-json-or-dir> "
             "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
         )
-    release_create = github_release_create_handoff(diagnostics, notes_file=notes_file)
+    release_create = github_release_create_handoff(diagnostics, notes_file=notes_file, assets_dir=assets_dir)
     return {
         "schemaVersion": 1,
         "title": "GitHub release metadata closure kit",
@@ -2490,6 +2491,7 @@ def build_github_release_metadata_closure_kit(
 def github_release_create_handoff(
     diagnostics: dict[str, Any],
     notes_file: str | Path | None = None,
+    assets_dir: str | Path | None = None,
 ) -> dict[str, Any]:
     repo = str(diagnostics.get("repo") or "<owner/repo>")
     tag = str(diagnostics.get("tag") or "")
@@ -2502,10 +2504,16 @@ def github_release_create_handoff(
     if not isinstance(required_assets, list) or not required_assets:
         tarball = requested_tarball_name(version or "<version>")
         required_assets = sorted(REQUIRED_RELEASE_ASSETS | {tarball})
+    assets_dir_raw = str(assets_dir or "").strip()
+    assets_dir_path = Path(assets_dir_raw).expanduser() if assets_dir_raw and "<" not in assets_dir_raw else None
     asset_args = []
     for asset in required_assets:
         name = str(asset)
         if not name:
+            continue
+        concrete_asset = assets_dir_path / name if assets_dir_path else None
+        if concrete_asset and concrete_asset.is_file():
+            asset_args.append(concrete_asset.as_posix())
             continue
         if name.startswith("shipguard-v") and name.endswith(".tar.gz"):
             asset_args.append(f"dist/{name}")
@@ -2533,6 +2541,7 @@ def github_release_create_handoff(
             "tag": tag,
             "title": title,
             "notesFile": notes_file,
+            "assetsDir": assets_dir_raw,
             "requiredAssets": required_assets,
             "assetArguments": asset_args,
         },
@@ -3346,6 +3355,7 @@ def build_stable_publication_closure_checklist(
     release_notes_proof: dict[str, Any] | None = None,
     release_notes_authoring_kit: dict[str, Any] | None = None,
     metadata_proof: dict[str, Any] | None = None,
+    release_assets_dir: str | Path | None = None,
     rerun_command: str = "",
 ) -> dict[str, Any]:
     required = evidence_packet.get("requiredEvidence") if isinstance(evidence_packet.get("requiredEvidence"), list) else []
@@ -3402,6 +3412,7 @@ def build_stable_publication_closure_checklist(
                     "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
                 ),
                 notes_file=generated_paths.get("draftReleaseNotes") or None,
+                assets_dir=release_assets_dir,
             )
             closure_item.update(
                 {
@@ -4152,6 +4163,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         public_release_freshness_proof=public_release_freshness_proof,
         release_version_coherence_proof=release_version_coherence_proof,
     )
+    release_assets_dir = published_asset_proof.get("assetsDir") or args.release_assets or ""
     adoption_proof = attach_external_evidence_freshness(
         launchkey.build_external_adoption_evidence_proof(args),
         evidence_id="independent-adoption-evidence",
@@ -4229,6 +4241,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         release_notes_proof=release_notes_proof,
         release_notes_authoring_kit=release_notes_authoring_kit,
         metadata_proof=metadata_proof,
+        release_assets_dir=release_assets_dir,
         rerun_command=stable_publication_rerun_command(args),
     )
     launch_relay_drafts = build_stable_publication_launch_relay_drafts(
@@ -4268,6 +4281,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         release_create_command = github_release_create_handoff(
             metadata_proof,
             notes_file=generated_paths.get("draftReleaseNotes") or None,
+            assets_dir=release_assets_dir,
         )["command"]
     release_visibility_handoff = build_release_visibility_handoff(
         release_version=release_version,

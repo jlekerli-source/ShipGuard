@@ -345,6 +345,7 @@ assert item["releaseCreateCommand"] == kit["releaseCreateCommand"]
 assert actions["publish-new-github-release"]["nextCommand"] == kit["releaseCreateCommand"]
 assert "/stable-publication-release-notes/draft-release-notes.md" in actions["publish-new-github-release"]["nextCommand"]
 assert "<release-notes.md>" not in actions["publish-new-github-release"]["nextCommand"]
+assert "<release-proof-assets-dir>" not in actions["publish-new-github-release"]["nextCommand"]
 create_boundary = kit["releaseCreateCommandBoundary"]
 assert create_boundary["manualApprovalRequired"] is True
 assert create_boundary["shipguardPublishesGitHubRelease"] is False
@@ -1084,6 +1085,7 @@ assert actions["publish-new-github-release"]["nextCommand"].startswith(f"gh rele
 assert "jlekerli-source/ShipGuard" in actions["publish-new-github-release"]["nextCommand"]
 assert "/stable-publication-release-notes/draft-release-notes.md" in actions["publish-new-github-release"]["nextCommand"]
 assert "<release-notes.md>" not in actions["publish-new-github-release"]["nextCommand"]
+assert "<release-proof-assets-dir>" not in actions["publish-new-github-release"]["nextCommand"]
 assert actions["attach-launchkey-candidate-proof"]["required"] is False
 assert actions["keep-current-public-release-unchanged"]["status"] == "blocked"
 assert actions["keep-current-public-release-unchanged"]["nextCommand"] == "blocked-by-required-actions"

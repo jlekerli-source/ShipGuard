@@ -1,24 +1,24 @@
 # Next Goal
 
-- Generated: 2026-06-22T23:02:12Z
-- Current toolkit version: 3.136.0
-- Target release: v3.136.0
-- Title: Public Release Catch-Up
+- Generated: 2026-06-22T23:18:09Z
+- Current toolkit version: 3.137.0
+- Target release: v3.137.0
+- Title: Stable Publication Public Release Packet
 
 ## Version Lineage Check
 
 - Status: pass
-- VERSION: 3.136.0
-- Expected next release from VERSION: v3.137.0
-- Planned target release: v3.136.0
-- Current checkout package artifact: dist/shipguard-v3.136.0.tar.gz
-- Release package artifact to build: dist/shipguard-v3.136.0.tar.gz
-- Action: VERSION already names v3.136.0; build, verify, publish, and consume dist/shipguard-v3.136.0.tar.gz before generating the next goal.
+- VERSION: 3.137.0
+- Expected next release from VERSION: v3.138.0
+- Planned target release: v3.137.0
+- Current checkout package artifact: dist/shipguard-v3.137.0.tar.gz
+- Release package artifact to build: dist/shipguard-v3.137.0.tar.gz
+- Action: VERSION already names v3.137.0; build, verify, publish, and consume dist/shipguard-v3.137.0.tar.gz before generating the next goal.
 
 ## Slash Plan
 
 ```text
-/plan v3.136.0 Public Release Catch-Up for jlekerli-source/ShipGuard:
+/plan v3.137.0 Stable Publication Public Release Packet for jlekerli-source/ShipGuard:
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
@@ -28,19 +28,19 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.136.0 Public Release Catch-Up for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.137.0 Stable Publication Public Release Packet for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Completion Receipt
 
-- Completed scope: Stable-publication publish-new-release handoffs now use the concrete generated GitHub release-create command instead of a placeholder.
-- Evidence: Focused stable-publication tests assert the release visibility handoff points at the generated draft release notes and required release-proof assets, with manual-publication boundaries preserved.
+- Completed scope: Stable-publication release-create commands now use concrete supplied/downloaded release-asset file paths when those files are available, falling back to placeholders only when ShipGuard lacks a real asset directory.
+- Evidence: Focused stable-publication tests assert publish-new-release handoffs include generated draft release notes, avoid release-proof asset placeholders, and keep manual-publication boundaries.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.137.0 Stable Publication Public Release Packet for jlekerli-source/ShipGuard:
+/plan v3.138.0 Stable Publication Asset Repair Handoff for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -50,13 +50,13 @@
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.137.0 Stable Publication Public Release Packet for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.138.0 Stable Publication Asset Repair Handoff for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.137.0 --title "Stable Publication Public Release Packet" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.138.0 --title "Stable Publication Asset Repair Handoff" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -156,12 +156,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.136.0.
+1. Open or update the tracking issue for v3.137.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Build `dist/shipguard-v3.136.0.tar.gz`, create release `v3.136.0`, upload the rebuilt tarball, and consume release proof.
+6. Build `dist/shipguard-v3.137.0.tar.gz`, create release `v3.137.0`, upload the rebuilt tarball, and consume release proof.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
