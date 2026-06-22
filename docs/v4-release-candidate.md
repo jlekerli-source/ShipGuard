@@ -141,7 +141,7 @@ When `--release-assets` is supplied, LaunchKey runs:
   --version <version>
 ```
 
-The report then records `publishedReleaseAssetProof`, including consumer report status, replay status, attestation status, digest matrix path, and artifact SHA-256 when available. When release assets participate, the same block includes `releaseAssetProofAttachment`, a compact handoff with the consumer report path, asset digest matrix path, missing proof artifacts, next release-consume command, and a boundary that source-only or fixture proof does not count as stable-v4 publication proof. If consumer verification fails, the release-candidate report returns review instead of treating the supplied assets as stable proof.
+The report then records `publishedReleaseAssetProof`, including consumer report status, replay status, attestation status, digest matrix path, and artifact SHA-256 when available. When release assets participate, the same block includes `releaseAssetProofAttachment`, a compact handoff with the consumer report path, asset digest matrix path, missing proof artifacts, next release-consume command, and a boundary that source-only or fixture proof does not count as stable-v4 publication proof. The attachment also carries `receiptHandoff`, which points `stable-publication` at the containing candidate report, names the release-consume proof artifacts, and makes clear that a release-assets directory alone is not stable-v4 proof. If consumer verification fails, the release-candidate report returns review instead of treating the supplied assets as stable proof.
 
 ## External Adoption Evidence
 

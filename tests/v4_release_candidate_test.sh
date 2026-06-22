@@ -487,6 +487,7 @@ grep -q 'Upgrade Receipt Handoff' "$tmp_dir/with-assets/v4-release-candidate.md"
 grep -q 'Rollback Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
 grep -q 'Rollback Receipt Handoff' "$tmp_dir/with-assets/v4-release-candidate.md"
 grep -q 'Release Asset Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
+grep -q 'Release Asset Receipt Handoff' "$tmp_dir/with-assets/v4-release-candidate.md"
 test -f "$tmp_dir/with-assets-consume/consumer-report.json"
 test -f "$tmp_dir/with-assets-consume/asset-digests.json"
 test -x "$tmp_dir/fresh-prefix/bin/shipguard"
@@ -511,6 +512,7 @@ rollback_attachment = rollback["rollbackProofAttachment"]
 rollback_handoff = rollback_attachment["receiptHandoff"]
 proof = report["publishedReleaseAssetProof"]
 attachment = proof["releaseAssetProofAttachment"]
+release_asset_handoff = attachment["receiptHandoff"]
 adoption = report["externalAdoptionEvidenceProof"]
 security = report["securityReviewEvidenceProof"]
 assert report["status"] == "pass"
@@ -656,6 +658,18 @@ assert attachment["missingProofArtifacts"] == []
 assert attachment["proofBoundary"]["releaseConsumeVerificationRequired"] is True
 assert attachment["proofBoundary"]["sourceOnlyProofCounts"] is False
 assert attachment["proofBoundary"]["fixtureProofCountsAsStableV4PublicationProof"] is False
+assert release_asset_handoff["receipt"] == "publishedReleaseAssetProof"
+assert release_asset_handoff["candidateReportPath"] == "<v4-release-candidate-json>"
+assert release_asset_handoff["assetsDir"] == "<release-assets>"
+assert release_asset_handoff["consumeOut"] == "<release-consume-out>"
+assert release_asset_handoff["consumerReportPath"] == "<release-consume-out>/consumer-report.json"
+assert release_asset_handoff["assetDigestMatrixPath"] == "<release-consume-out>/asset-digests.json"
+assert "release-consume-verification" in release_asset_handoff["proofArtifacts"]
+assert release_asset_handoff["missingProofArtifacts"] == []
+assert "--release-candidate-report <v4-release-candidate-json-or-dir>" in release_asset_handoff["stablePublicationCommand"]
+assert release_asset_handoff["proofBoundary"]["attachCandidateReportToStablePublication"] is True
+assert release_asset_handoff["proofBoundary"]["releaseAssetsDirectoryAloneCountsAsStableV4Proof"] is False
+assert release_asset_handoff["proofBoundary"]["sourceOnlyProofCounts"] is False
 assert adoption["status"] == "pass"
 assert adoption["stableV4GateStatus"] == "pass"
 assert adoption["evidenceInputs"][0].startswith("<external-adoption-evidence>")
@@ -777,6 +791,7 @@ download = report["githubReleaseAssetDownloadProof"]
 download_attachment = download["downloadProofAttachment"]
 proof = report["publishedReleaseAssetProof"]
 attachment = proof["releaseAssetProofAttachment"]
+release_asset_handoff = attachment["receiptHandoff"]
 assert report["status"] == "pass"
 assert report["releaseReadiness"]["githubReleaseAssetDownloadProof"] == "pass"
 assert report["releaseReadiness"]["publishedReleaseAssetProof"] == "pass"
@@ -812,6 +827,13 @@ assert attachment["downloadSource"] == "github-release-assets"
 assert attachment["consumerReportPath"] == "<release-consume-out>/consumer-report.json"
 assert attachment["assetDigestMatrixPath"] == "<release-consume-out>/asset-digests.json"
 assert attachment["missingProofArtifacts"] == []
+assert release_asset_handoff["receipt"] == "publishedReleaseAssetProof"
+assert release_asset_handoff["candidateReportPath"] == "<v4-release-candidate-json>"
+assert release_asset_handoff["assetsDir"] == "<downloaded-release-assets>"
+assert release_asset_handoff["consumeOut"] == "<release-consume-out>"
+assert "release-consume-verification" in release_asset_handoff["proofArtifacts"]
+assert release_asset_handoff["missingProofArtifacts"] == []
+assert release_asset_handoff["proofBoundary"]["releaseAssetsDirectoryAloneCountsAsStableV4Proof"] is False
 PY
 
 if grep -R -F -q "$api_root" "$tmp_dir/native-assets"; then

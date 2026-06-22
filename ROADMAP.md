@@ -220,6 +220,8 @@ v3.139 continues LaunchKey generated proof-directory report-quality exclusion by
 
 v3.139 also adds LaunchKey upgrade and rollback receipt handoffs so same-prefix upgrade and cleanup attachments point stable-publication at the containing candidate report, name proof artifacts, and make clear proof prefixes alone are not stable-v4 proof.
 
+v3.140 adds LaunchKey release-asset receipt handoff so verified downloaded or supplied release assets point stable-publication at the containing candidate report, name release-consume proof artifacts, and make clear a release-assets directory alone is not stable-v4 proof.
+
 v3.140 continues LaunchKey upgrade and rollback receipt attachment by adding compact `upgradeProofAttachment` and `rollbackProofAttachment` blocks so same-prefix upgrade and rollback cleanup proof travel with the candidate packet.
 
 v3.141 continues LaunchKey downloaded-asset blocking proof detail by adding `downloadBlockingProof` to failed native GitHub release-asset downloads so repo, tag, endpoint, destination, error, rerun command, and proof boundaries are visible.

@@ -1214,6 +1214,7 @@ def build_published_release_asset_proof(
             "status": "blocked",
             "provided": True,
             "requiredForStableV4": True,
+            "candidateReportPath": (Path(args.out).expanduser().resolve() / "v4-release-candidate.json").as_posix(),
             "downloadSource": "github-release-assets",
             "summary": "GitHub release assets could not be downloaded, so consumer-side release asset verification did not run.",
             "nextCommand": github_release_asset_download_proof.get("nextCommand") or command_template,
@@ -1262,6 +1263,7 @@ def build_published_release_asset_proof(
         "status": "blocked",
         "provided": True,
         "requiredForStableV4": True,
+        "candidateReportPath": (Path(args.out).expanduser().resolve() / "v4-release-candidate.json").as_posix(),
         "assetsDir": assets_dir.as_posix(),
         "consumeOut": consume_out.as_posix(),
         "version": release_version,
@@ -1343,6 +1345,7 @@ def attach_release_asset_proof_attachment(proof: dict[str, Any]) -> None:
         )
         if not proof.get(field)
     ]
+    proof_artifacts = ["release-consume-verification", "consumer-report.json", "asset-digests.json"]
     proof["releaseAssetProofAttachment"] = {
         "status": proof.get("status"),
         "downloadSource": proof.get("downloadSource"),
@@ -1362,6 +1365,23 @@ def attach_release_asset_proof_attachment(proof: dict[str, Any]) -> None:
         "missingProofArtifacts": missing_artifacts,
         "consumeCommand": proof.get("consumeCommand"),
         "nextCommand": proof.get("consumeCommand") or proof.get("nextCommand"),
+        "receiptHandoff": {
+            "receipt": "publishedReleaseAssetProof",
+            "candidateReportPath": proof.get("candidateReportPath", ""),
+            "assetsDir": proof.get("assetsDir", ""),
+            "consumeOut": proof.get("consumeOut", ""),
+            "consumerReportPath": proof.get("consumerReportPath", ""),
+            "assetDigestMatrixPath": proof.get("assetDigestMatrixPath", ""),
+            "proofArtifacts": proof_artifacts,
+            "missingProofArtifacts": missing_artifacts,
+            "stablePublicationCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --release-candidate-report <v4-release-candidate-json-or-dir> --shipguard-eval --shareable",
+            "proofBoundary": {
+                "attachCandidateReportToStablePublication": True,
+                "releaseAssetsDirectoryAloneCountsAsStableV4Proof": False,
+                "sourceOnlyProofCounts": False,
+                "fixtureProofCountsAsStableV4PublicationProof": False,
+            },
+        },
         "proofBoundary": {
             "downloadedOrSuppliedReleaseAssetsRequired": True,
             "releaseConsumeVerificationRequired": True,
@@ -2555,6 +2575,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             replacements[str(published_release_asset_proof["assetsDir"])] = assets_replacement
         if published_release_asset_proof.get("consumeOut"):
             replacements[str(published_release_asset_proof["consumeOut"])] = "<release-consume-out>"
+        if published_release_asset_proof.get("candidateReportPath"):
+            replacements[str(published_release_asset_proof["candidateReportPath"])] = "<v4-release-candidate-json>"
         if github_release_asset_download_proof.get("apiUrl") and str(github_release_asset_download_proof["apiUrl"]).startswith("file:"):
             replacements[str(github_release_asset_download_proof["apiUrl"])] = "<github-api-url>"
         if github_release_asset_download_proof.get("releaseEndpoint") and str(github_release_asset_download_proof["releaseEndpoint"]).startswith("file:"):
@@ -2839,6 +2861,17 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- Consumer report: `{attachment.get('consumerReportPath') or 'missing'}`")
             lines.append(f"- Asset digest matrix: `{attachment.get('assetDigestMatrixPath') or 'missing'}`")
             lines.append(f"- Missing proof artifacts: `{', '.join(attachment.get('missingProofArtifacts') or []) or 'none'}`")
+            handoff = attachment.get("receiptHandoff") if isinstance(attachment.get("receiptHandoff"), dict) else {}
+            if handoff:
+                lines.extend(["", "#### Release Asset Receipt Handoff", ""])
+                lines.append(f"- Candidate report: `{handoff.get('candidateReportPath') or 'missing'}`")
+                lines.append(f"- Proof artifacts: `{', '.join(handoff.get('proofArtifacts') or []) or 'none'}`")
+                lines.append(f"- Stable publication command: `{handoff.get('stablePublicationCommand') or 'missing'}`")
+                boundary = handoff.get("proofBoundary") if isinstance(handoff.get("proofBoundary"), dict) else {}
+                lines.append(
+                    "- Release-assets directory alone counts as stable-v4 proof: "
+                    f"`{boundary.get('releaseAssetsDirectoryAloneCountsAsStableV4Proof')}`"
+                )
     else:
         lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## External Adoption Packet", ""])
