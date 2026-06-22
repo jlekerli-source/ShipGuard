@@ -102,11 +102,20 @@ fi
 following_version="$(next_minor_version "$release_version")"
 
 lineage_status="pass"
+current_artifact_label="Current checkout package artifact before version bump"
+expected_artifact_label="Expected package artifact after release bump"
 lineage_action="Before publishing v$release_version, bump VERSION to $release_version, rebuild, and verify dist/shipguard-v$release_version.tar.gz."
 release_publish_step="Bump VERSION to $release_version, build \`dist/shipguard-v$release_version.tar.gz\`, create release \`v$release_version\`, and upload the rebuilt tarball."
 plan_release_step="4. Push main, verify GitHub Actions, bump VERSION before release packaging, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal."
 goal_release_detail="push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release"
-if [[ "$release_version" != "$expected_release_version" ]]; then
+if [[ "$release_version" == "$current_version" ]]; then
+  current_artifact_label="Current checkout package artifact"
+  expected_artifact_label="Release package artifact to build"
+  lineage_action="VERSION already names v$release_version; build, verify, publish, and consume dist/shipguard-v$release_version.tar.gz before generating the next goal."
+  release_publish_step="Build \`dist/shipguard-v$release_version.tar.gz\`, create release \`v$release_version\`, upload the rebuilt tarball, and consume release proof."
+  plan_release_step="4. Push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal."
+  goal_release_detail="push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release"
+elif [[ "$release_version" != "$expected_release_version" ]]; then
   lineage_status="review"
   lineage_action="Before publishing v$release_version, bump VERSION to $release_version or regenerate next-goal for v$expected_release_version."
   release_publish_step="Resolve version lineage first: bump VERSION to $release_version and rebuild the tarball, or regenerate next-goal for v$expected_release_version before creating a GitHub release."
@@ -128,8 +137,8 @@ cat > "$out_file" <<EOF
 - VERSION: $current_version
 - Expected next release from VERSION: v$expected_release_version
 - Planned target release: v$release_version
-- Current checkout package artifact before version bump: dist/shipguard-v$current_version.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v$release_version.tar.gz
+- $current_artifact_label: dist/shipguard-v$current_version.tar.gz
+- $expected_artifact_label: dist/shipguard-v$release_version.tar.gz
 - Action: $lineage_action
 
 ## Slash Plan

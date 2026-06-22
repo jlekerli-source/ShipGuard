@@ -115,6 +115,24 @@ grep -q 'bump VERSION before publishing the release tarball' "$tmp_dir/DEFAULT_N
 
 SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \
   ./bin/shipguard next-goal \
+    --out "$tmp_dir/CURRENT_RELEASE_NEXT_GOAL.md" \
+    --release "$current_version" \
+    --title "Current Release Publication" >/dev/null
+
+grep -q "Target release: v$current_version" "$tmp_dir/CURRENT_RELEASE_NEXT_GOAL.md"
+grep -q 'Status: pass' "$tmp_dir/CURRENT_RELEASE_NEXT_GOAL.md"
+grep -q "Current checkout package artifact: dist/shipguard-v$current_version.tar.gz" "$tmp_dir/CURRENT_RELEASE_NEXT_GOAL.md"
+grep -q "Release package artifact to build: dist/shipguard-v$current_version.tar.gz" "$tmp_dir/CURRENT_RELEASE_NEXT_GOAL.md"
+grep -q "VERSION already names v$current_version" "$tmp_dir/CURRENT_RELEASE_NEXT_GOAL.md"
+grep -q "Build \`dist/shipguard-v$current_version.tar.gz\`, create release \`v$current_version\`" "$tmp_dir/CURRENT_RELEASE_NEXT_GOAL.md"
+grep -q 'build and verify the release tarball, publish and consume release proof' "$tmp_dir/CURRENT_RELEASE_NEXT_GOAL.md"
+if grep -q 'Before publishing v.*bump VERSION' "$tmp_dir/CURRENT_RELEASE_NEXT_GOAL.md"; then
+  echo "current-release next-goal should not ask for another VERSION bump" >&2
+  exit 1
+fi
+
+SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \
+  ./bin/shipguard next-goal \
     --out "$tmp_dir/SCOPED_NEXT_GOAL.md" \
     --release 2.6.0 \
     --title "Scoped Goal Handoff" \

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Taught `shipguard next-goal` the already-bumped release path: when `--release` equals the current `VERSION`, the handoff now asks maintainers to build, publish, and consume the current tarball instead of asking for another version bump.
+- Prepared the buildable `v3.133.0` release line: `VERSION` and release-consumption examples now target the next package path while keeping stable-v4 publication blocked until real public release metadata, downloaded assets, consumer proof, adoption evidence, and security evidence pass.
 - Added LaunchKey download-blocking receipt handoff: blocked `downloadBlockingProof` reports now carry `receiptHandoff` with the candidate report path, failure evidence, repair command, stable-publication command, and boundary that a blocked download is not stable-v4 proof.
 - Added LaunchKey download receipt handoff: successful `downloadProofAttachment` reports now carry `receiptHandoff` with the candidate report path, download proof artifacts, stable-publication command, and boundary that a downloaded asset directory alone is not stable-v4 proof.
 - Added LaunchKey release-asset receipt handoff: `releaseAssetProofAttachment` now carries a `receiptHandoff` with the candidate report path, release-consume proof artifacts, stable-publication command, and boundary that a release-assets directory alone is not stable-v4 proof.

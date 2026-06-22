@@ -1,40 +1,40 @@
 # Next Goal
 
-- Generated: 2026-06-22T21:48:01Z
-- Current toolkit version: 3.132.0
+- Generated: 2026-06-22T21:58:24Z
+- Current toolkit version: 3.133.0
 - Target release: v3.133.0
 - Title: Release Lineage Reconciliation
 
 ## Version Lineage Check
 
 - Status: pass
-- VERSION: 3.132.0
-- Expected next release from VERSION: v3.133.0
+- VERSION: 3.133.0
+- Expected next release from VERSION: v3.134.0
 - Planned target release: v3.133.0
-- Current checkout package artifact before version bump: dist/shipguard-v3.132.0.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v3.133.0.tar.gz
-- Action: Before publishing v3.133.0, bump VERSION to 3.133.0, rebuild, and verify dist/shipguard-v3.133.0.tar.gz.
+- Current checkout package artifact: dist/shipguard-v3.133.0.tar.gz
+- Release package artifact to build: dist/shipguard-v3.133.0.tar.gz
+- Action: VERSION already names v3.133.0; build, verify, publish, and consume dist/shipguard-v3.133.0.tar.gz before generating the next goal.
 
 ## Slash Plan
 
 ```text
 /plan v3.133.0 Release Lineage Reconciliation for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Reconcile VERSION, release package, public release metadata, and NEXT_GOAL so the next public ShipGuard release publishes the current v4-stabilization code without treating local handoff labels as stable-v4 proof.
+1. Implement this bounded improvement: Publish and consume the already-bumped v3.133.0 release package so public release metadata can catch up with current v4-stabilization code without treating local handoff labels as stable-v4 proof.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
-4. Push main, verify GitHub Actions, bump VERSION before release packaging, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
+4. Push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
 ```
 
 ## Slash Goal
 
 ```text
-/goal Implement v3.133.0 Release Lineage Reconciliation for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Reconcile VERSION, release package, public release metadata, and NEXT_GOAL so the next public ShipGuard release publishes the current v4-stabilization code without treating local handoff labels as stable-v4 proof, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.133.0 Release Lineage Reconciliation for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Publish and consume the already-bumped v3.133.0 release package so public release metadata can catch up with current v4-stabilization code without treating local handoff labels as stable-v4 proof, push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Reconcile VERSION, release package, public release metadata, and NEXT_GOAL so the next public ShipGuard release publishes the current v4-stabilization code without treating local handoff labels as stable-v4 proof.
+Publish and consume the already-bumped v3.133.0 release package so public release metadata can catch up with current v4-stabilization code without treating local handoff labels as stable-v4 proof.
 
 ## Constraints
 
@@ -138,7 +138,7 @@ Reconcile VERSION, release package, public release metadata, and NEXT_GOAL so th
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Bump VERSION to 3.133.0, build `dist/shipguard-v3.133.0.tar.gz`, create release `v3.133.0`, and upload the rebuilt tarball.
+6. Build `dist/shipguard-v3.133.0.tar.gz`, create release `v3.133.0`, upload the rebuilt tarball, and consume release proof.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
