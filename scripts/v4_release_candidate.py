@@ -1028,6 +1028,7 @@ def build_github_release_asset_download_proof(args: argparse.Namespace, version:
         "repo": args.github_release_repo or "",
         "version": release_version,
         "tag": release_tag,
+        "candidateReportPath": (Path(args.out).expanduser().resolve() / "v4-release-candidate.json").as_posix(),
         "apiUrl": api_url,
         "downloadDir": download_dir.as_posix(),
         "nextCommand": command_template,
@@ -1128,6 +1129,7 @@ def attach_github_release_asset_download_proof_attachment(proof: dict[str, Any])
     if not proof.get("requested") or proof.get("status") != "pass":
         return
     downloaded_assets = [item for item in proof.get("downloadedAssets", []) if isinstance(item, dict)]
+    proof_artifacts = ["github-release-metadata", "downloaded-release-assets", "downloaded-asset-sha256"]
     proof["downloadProofAttachment"] = {
         "status": proof.get("status"),
         "repo": proof.get("repo", ""),
@@ -1152,6 +1154,24 @@ def attach_github_release_asset_download_proof_attachment(proof: dict[str, Any])
             if item.get("name")
         ],
         "nextCommand": proof.get("nextCommand"),
+        "receiptHandoff": {
+            "receipt": "githubReleaseAssetDownloadProof",
+            "candidateReportPath": proof.get("candidateReportPath", ""),
+            "repo": proof.get("repo", ""),
+            "tag": proof.get("tag", ""),
+            "releaseEndpoint": proof.get("releaseEndpoint", ""),
+            "downloadDir": proof.get("downloadDir", ""),
+            "proofArtifacts": proof_artifacts,
+            "missingProofArtifacts": [],
+            "stablePublicationCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --release-candidate-report <v4-release-candidate-json-or-dir> --shipguard-eval --shareable",
+            "proofBoundary": {
+                "attachCandidateReportToStablePublication": True,
+                "downloadDirectoryAloneCountsAsStableV4Proof": False,
+                "releaseConsumeStillRequiredForStableV4": True,
+                "sourceOnlyProofCounts": False,
+                "fixtureProofCountsAsStableV4PublicationProof": False,
+            },
+        },
         "proofBoundary": {
             "githubReleaseRepoRequired": True,
             "releaseTagRequired": True,
@@ -2566,6 +2586,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         }
         if github_release_asset_download_proof.get("downloadDir"):
             replacements[str(github_release_asset_download_proof["downloadDir"])] = "<downloaded-release-assets>"
+        if github_release_asset_download_proof.get("candidateReportPath"):
+            replacements[str(github_release_asset_download_proof["candidateReportPath"])] = "<v4-release-candidate-json>"
         if published_release_asset_proof.get("assetsDir"):
             assets_replacement = (
                 "<downloaded-release-assets>"
@@ -2829,6 +2851,17 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- Downloaded assets: `{', '.join(str(name) for name in asset_names) or 'none'}`")
             lines.append(f"- Asset digest rows: `{len(attachment.get('downloadedAssetDigests') or [])}`")
             lines.append(f"- Next command: `{attachment.get('nextCommand')}`")
+            handoff = attachment.get("receiptHandoff") if isinstance(attachment.get("receiptHandoff"), dict) else {}
+            if handoff:
+                lines.extend(["", "#### Download Receipt Handoff", ""])
+                lines.append(f"- Candidate report: `{handoff.get('candidateReportPath') or 'missing'}`")
+                lines.append(f"- Proof artifacts: `{', '.join(handoff.get('proofArtifacts') or []) or 'none'}`")
+                lines.append(f"- Stable publication command: `{handoff.get('stablePublicationCommand') or 'missing'}`")
+                boundary = handoff.get("proofBoundary") if isinstance(handoff.get("proofBoundary"), dict) else {}
+                lines.append(
+                    "- Download directory alone counts as stable-v4 proof: "
+                    f"`{boundary.get('downloadDirectoryAloneCountsAsStableV4Proof')}`"
+                )
         blocking = proof.get("downloadBlockingProof") if isinstance(proof.get("downloadBlockingProof"), dict) else {}
         if blocking:
             lines.extend(["", "### Download Blocking Proof", ""])

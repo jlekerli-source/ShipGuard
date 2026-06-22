@@ -1705,6 +1705,33 @@ def launchkey_download_proof_attachment_issues(report: dict[str, Any], *, markdo
             evidence=f"{path_name} downloadProofAttachment has no rerun command",
             recommendation="Expose the LaunchKey rerun command with --download-release-assets and --github-release-repo placeholders.",
         )
+    handoff = attachment.get("receiptHandoff") if isinstance(attachment.get("receiptHandoff"), dict) else {}
+    if not handoff:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-download-proof-receipt-handoff-missing",
+            evidence=f"{path_name} downloadProofAttachment has no receiptHandoff",
+            recommendation="Attach a receiptHandoff that points stable-publication at the candidate report, names download proof artifacts, and states that the download directory alone is not stable-v4 proof.",
+        )
+    else:
+        handoff_boundary = handoff.get("proofBoundary") if isinstance(handoff.get("proofBoundary"), dict) else {}
+        if (
+            handoff.get("receipt") != "githubReleaseAssetDownloadProof"
+            or not handoff.get("candidateReportPath")
+            or not handoff.get("stablePublicationCommand")
+            or handoff_boundary.get("attachCandidateReportToStablePublication") is not True
+            or handoff_boundary.get("downloadDirectoryAloneCountsAsStableV4Proof") is not False
+            or handoff_boundary.get("releaseConsumeStillRequiredForStableV4") is not True
+            or handoff_boundary.get("sourceOnlyProofCounts") is not False
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="launchkey-download-proof-receipt-handoff-weak",
+                evidence=f"{path_name} downloadProofAttachment receiptHandoff is incomplete",
+                recommendation="Keep the download receipt handoff tied to the candidate report, stable-publication command, release-consume requirement, and source-only non-proof boundary.",
+            )
     boundary = attachment.get("proofBoundary") if isinstance(attachment.get("proofBoundary"), dict) else {}
     if (
         boundary.get("githubReleaseRepoRequired") is not True
@@ -1729,6 +1756,14 @@ def launchkey_download_proof_attachment_issues(report: dict[str, Any], *, markdo
             rule_id="launchkey-download-proof-attachment-markdown-missing",
             evidence=f"{path_name} Markdown does not render Download Proof Attachment",
             recommendation="Render Download Proof Attachment under GitHub Release Asset Download so maintainers can inspect the native download proof without opening JSON.",
+        )
+    if handoff and "Download Receipt Handoff" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-download-proof-receipt-handoff-markdown-missing",
+            evidence=f"{path_name} Markdown does not render Download Receipt Handoff",
+            recommendation="Render Download Receipt Handoff so stable-publication next steps are visible without opening JSON.",
         )
     return issues
 

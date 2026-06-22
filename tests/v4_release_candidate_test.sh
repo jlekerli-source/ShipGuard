@@ -781,6 +781,7 @@ test -f "$tmp_dir/native-assets/v4-release-candidate.md"
 test -f "$tmp_dir/native-assets/downloaded-release-assets/release-manifest.json"
 test -f "$tmp_dir/native-assets/release-consume/consumer-report.json"
 grep -q 'Download Proof Attachment' "$tmp_dir/native-assets/v4-release-candidate.md"
+grep -q 'Download Receipt Handoff' "$tmp_dir/native-assets/v4-release-candidate.md"
 
 python3 - "$tmp_dir/native-assets/v4-release-candidate.json" <<'PY'
 import json
@@ -789,6 +790,7 @@ import sys
 report = json.load(open(sys.argv[1], encoding="utf-8"))
 download = report["githubReleaseAssetDownloadProof"]
 download_attachment = download["downloadProofAttachment"]
+download_handoff = download_attachment["receiptHandoff"]
 proof = report["publishedReleaseAssetProof"]
 attachment = proof["releaseAssetProofAttachment"]
 release_asset_handoff = attachment["receiptHandoff"]
@@ -815,6 +817,19 @@ assert len(download_attachment["downloadedAssetNames"]) == 7
 assert len(download_attachment["downloadedAssetDigests"]) == 7
 assert download_attachment["proofBoundary"]["releaseConsumeStillRequiredForStableV4"] is True
 assert download_attachment["proofBoundary"]["sourceOnlyProofCounts"] is False
+assert download_handoff["receipt"] == "githubReleaseAssetDownloadProof"
+assert download_handoff["candidateReportPath"] == "<v4-release-candidate-json>"
+assert download_handoff["repo"] == "jlekerli-source/ShipGuard"
+assert download_handoff["tag"] == f"v{report['version']}"
+assert download_handoff["downloadDir"] == "<downloaded-release-assets>"
+assert download_handoff["releaseEndpoint"] == "<github-release-endpoint>"
+assert "downloaded-asset-sha256" in download_handoff["proofArtifacts"]
+assert download_handoff["missingProofArtifacts"] == []
+assert "--release-candidate-report <v4-release-candidate-json-or-dir>" in download_handoff["stablePublicationCommand"]
+assert download_handoff["proofBoundary"]["attachCandidateReportToStablePublication"] is True
+assert download_handoff["proofBoundary"]["downloadDirectoryAloneCountsAsStableV4Proof"] is False
+assert download_handoff["proofBoundary"]["releaseConsumeStillRequiredForStableV4"] is True
+assert download_handoff["proofBoundary"]["sourceOnlyProofCounts"] is False
 assert proof["status"] == "pass"
 assert proof["downloadSource"] == "github-release-assets"
 assert proof["downloadProofStatus"] == "pass"

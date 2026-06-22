@@ -5819,6 +5819,91 @@ MD
 grep -q '"status": "review"' "$tmp_dir/launchkey-download-attachment-quality/ios-report-quality.json"
 grep -q 'launchkey-download-proof-attachment-missing' "$tmp_dir/launchkey-download-attachment-quality/ios-report-quality.json"
 
+launchkey_download_handoff_dir="$tmp_dir/launchkey-download-handoff"
+mkdir -p "$launchkey_download_handoff_dir"
+cat > "$launchkey_download_handoff_dir/v4-release-candidate.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard v4 release-candidate",
+  "surface": "ShipGuard V4 Release Candidate Readiness",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "pass",
+  "resultUX": {
+    "status": "pass",
+    "verdict": "PASS: Synthetic LaunchKey report downloaded release assets.",
+    "proofSource": "synthetic release-readiness fixture",
+    "whyItMatters": "LaunchKey tracks native release asset download proof.",
+    "nextCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --download-release-assets --github-release-repo <owner/repo> --shipguard-eval --shareable",
+    "nextActionSummary": "Attach consumer-side release proof."
+  },
+  "githubReleaseAssetDownloadProof": {
+    "status": "pass",
+    "requested": true,
+    "requiredForStableV4": false,
+    "repo": "owner/repo",
+    "tag": "v3.132.0",
+    "releaseEndpoint": "https://api.github.com/repos/owner/repo/releases/tags/v3.132.0",
+    "downloadDir": "<downloaded-release-assets>",
+    "assetCount": 1,
+    "downloadedAssets": [
+      {
+        "name": "shipguard-v3.132.0.tar.gz",
+        "sha256": "abc123",
+        "path": "<downloaded-release-assets>/shipguard-v3.132.0.tar.gz",
+        "source": "https://github.com/owner/repo/releases/download/v3.132.0/shipguard-v3.132.0.tar.gz"
+      }
+    ],
+    "downloadProofAttachment": {
+      "status": "pass",
+      "repo": "owner/repo",
+      "tag": "v3.132.0",
+      "releaseEndpoint": "https://api.github.com/repos/owner/repo/releases/tags/v3.132.0",
+      "downloadDir": "<downloaded-release-assets>",
+      "assetCount": 1,
+      "downloadedAssetNames": ["shipguard-v3.132.0.tar.gz"],
+      "downloadedAssetDigests": [{"name": "shipguard-v3.132.0.tar.gz", "sha256": "abc123"}],
+      "nextCommand": "./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --download-release-assets --github-release-repo <owner/repo> --shipguard-eval --shareable",
+      "proofBoundary": {
+        "githubReleaseRepoRequired": true,
+        "releaseTagRequired": true,
+        "assetDownloadRequired": true,
+        "sha256RecordedForDownloadedAssets": true,
+        "releaseConsumeStillRequiredForStableV4": true,
+        "sourceOnlyProofCounts": false,
+        "fixtureProofCountsAsStableV4PublicationProof": false
+      }
+    },
+    "summary": "GitHub release assets were downloaded into a local LaunchKey proof directory."
+  }
+}
+JSON
+cat > "$launchkey_download_handoff_dir/v4-release-candidate.md" <<'MD'
+# ShipGuard V4 Release Candidate Readiness
+
+## GitHub Release Asset Download
+
+- Status: `pass`
+- Requested: `True`
+- Summary: GitHub release assets were downloaded into a local LaunchKey proof directory.
+
+### Download Proof Attachment
+
+- Status: `pass`
+- Repository: `owner/repo`
+- Tag: `v3.132.0`
+- Release endpoint: `https://api.github.com/repos/owner/repo/releases/tags/v3.132.0`
+- Download dir: `<downloaded-release-assets>`
+- Downloaded assets: `shipguard-v3.132.0.tar.gz`
+- Asset digest rows: `1`
+- Next command: `./bin/shipguard v4 release-candidate --path . --out <candidate-dir> --download-release-assets --github-release-repo <owner/repo> --shipguard-eval --shareable`
+MD
+./bin/shipguard ios report-quality \
+  --reports "$launchkey_download_handoff_dir" \
+  --out "$tmp_dir/launchkey-download-handoff-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/launchkey-download-handoff-quality/ios-report-quality.json"
+grep -q 'launchkey-download-proof-receipt-handoff-missing' "$tmp_dir/launchkey-download-handoff-quality/ios-report-quality.json"
+
 launchkey_adoption_attachment_dir="$tmp_dir/launchkey-adoption-attachment"
 mkdir -p "$launchkey_adoption_attachment_dir"
 cat > "$launchkey_adoption_attachment_dir/v4-release-candidate.json" <<'JSON'

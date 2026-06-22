@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added LaunchKey download receipt handoff: successful `downloadProofAttachment` reports now carry `receiptHandoff` with the candidate report path, download proof artifacts, stable-publication command, and boundary that a downloaded asset directory alone is not stable-v4 proof.
 - Added LaunchKey release-asset receipt handoff: `releaseAssetProofAttachment` now carries a `receiptHandoff` with the candidate report path, release-consume proof artifacts, stable-publication command, and boundary that a release-assets directory alone is not stable-v4 proof.
 - Added LaunchKey upgrade and rollback receipt handoffs: `upgradeProofAttachment` and `rollbackProofAttachment` now carry `receiptHandoff` blocks with the candidate report path, proof artifacts, stable-publication command, and boundaries that proof prefixes alone are not stable-v4 proof.
 - Added LaunchKey fresh-install receipt handoff: `freshInstallProofAttachment` now carries a `receiptHandoff` with the candidate report path, proof artifacts, stable-publication command, and boundary that an install prefix alone is not stable-v4 proof.

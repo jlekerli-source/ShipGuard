@@ -226,6 +226,8 @@ v3.140 continues LaunchKey upgrade and rollback receipt attachment by adding com
 
 v3.141 continues LaunchKey downloaded-asset blocking proof detail by adding `downloadBlockingProof` to failed native GitHub release-asset downloads so repo, tag, endpoint, destination, error, rerun command, and proof boundaries are visible.
 
+v3.141 also adds LaunchKey download receipt handoff so successful native GitHub asset downloads point stable-publication at the containing candidate report, name download proof artifacts, and make clear the download directory alone is not stable-v4 proof.
+
 v3.142 continues LaunchKey native GitHub release-asset download by adding `downloadProofAttachment` to successful native downloads so repo, tag, endpoint, destination, downloaded asset names, SHA-256 rows, rerun command, and source-only/fixture-proof boundaries travel with the candidate packet.
 
 v3.143 continues Stable-v4 external adoption evidence gating by adding `adoptionGateAttachment` to supplied adoption evidence so record counts, accepted classes, required fields, first invalid record diagnostics, next command, and source-only/fixture/download/marketplace boundaries travel with the candidate packet.
