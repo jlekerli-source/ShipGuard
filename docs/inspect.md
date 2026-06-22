@@ -61,6 +61,8 @@ If a release manifest is readable but missing required receipt fields such as ta
 
 If a supplied attestation badge has a non-pass status, InspectDeck keeps `releaseState.status` at `review`, lists the badge problem, and routes the next action back to `shipguard release-proof build`.
 
+`releaseState.releaseProofPathHandoff` carries the supplied release-assets path, resolved manifest path, optional badge path, an inspect rerun template, and a boundary that InspectDeck does not rebuild, publish, or mutate release assets.
+
 If an upstream Full Audit receipt has a missing or unsafe failed-stage id, InspectDeck falls back to a full-audit rerun command instead of rendering a malformed `--stage` command.
 
 If a proof input is absent, InspectDeck marks it missing or not supplied instead of pretending the state is proven.

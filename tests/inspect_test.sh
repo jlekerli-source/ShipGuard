@@ -158,6 +158,39 @@ grep -q '"tool": "shipguard inspect"' <<<"$json_stdout"
 markdown_stdout="$(./bin/shipguard inspect --path . --out "$tmp_dir/md" --value-gauntlet "$tmp_dir/value" --full-audit "$tmp_dir/full" --release-assets "$tmp_dir/release" --markdown)"
 grep -q '# ShipGuard InspectDeck' <<<"$markdown_stdout"
 
+./bin/shipguard inspect \
+  --path . \
+  --out "$tmp_dir/path-handoff" \
+  --value-gauntlet "$tmp_dir/value" \
+  --full-audit "$tmp_dir/full" \
+  --release-assets "$tmp_dir/release" \
+  --shipguard-eval >/dev/null
+
+python3 - <<'PY' "$tmp_dir/path-handoff/shipguard-inspect.json" "$tmp_dir/release"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+release_dir = sys.argv[2]
+handoff = data.get("releaseState", {}).get("releaseProofPathHandoff") or {}
+if handoff.get("status") != "manifest-and-badge":
+    raise SystemExit(f"release path handoff should expose manifest and badge state: {handoff!r}")
+if handoff.get("releaseAssetsPath") != release_dir:
+    raise SystemExit(f"release assets path should be the supplied bundle root: {handoff!r}")
+if handoff.get("manifestPath") != f"{release_dir}/proof/release-manifest.json":
+    raise SystemExit(f"manifest path should be concrete: {handoff!r}")
+if handoff.get("badgePath") != f"{release_dir}/attestation/attestation-badge.json":
+    raise SystemExit(f"badge path should be concrete: {handoff!r}")
+if "--release-assets <release-assets-dir>" not in handoff.get("inspectRerunCommand", ""):
+    raise SystemExit(f"handoff should include an inspect rerun template: {handoff!r}")
+if "does not rebuild, publish, or mutate" not in handoff.get("boundary", ""):
+    raise SystemExit(f"handoff boundary should be explicit: {handoff!r}")
+PY
+
+grep -q 'Release Proof Path Handoff' "$tmp_dir/path-handoff/shipguard-inspect.md"
+grep -q "Release assets path: $tmp_dir/release" "$tmp_dir/path-handoff/shipguard-inspect.md"
+grep -q 'Inspect rerun:' "$tmp_dir/path-handoff/shipguard-inspect.md"
+
 python3 - <<'PY' "$tmp_dir/value/tool-value-gauntlet.json" "$tmp_dir/value/tool-value-gauntlet-stable.json"
 import json
 import sys

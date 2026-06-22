@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added InspectDeck release-proof path handoff: release state now exposes the supplied release-assets path, resolved manifest path, optional badge path, rerun template, and no-mutation boundary in JSON and Markdown.
 - Added InspectDeck release-proof badge detail: supplied non-pass attestation badges now keep release state and overall inspect status in `review`, list badge problems, and route `nextAction.command` / `resultUX.nextCommand` to `shipguard release-proof build`.
 - Added InspectDeck release-proof receipt detail: readable but incomplete release manifests now keep `releaseState.status` and overall inspect status in `review`, list missing required fields, and route `nextAction.command` / `resultUX.nextCommand` to `shipguard release-proof build`.
 - Prioritized missing release-proof receipts in InspectDeck: when value-gauntlet and full-audit receipts are present but release proof is absent, `shipguard inspect` now keeps the report in `review` and routes `nextAction.command` / `resultUX.nextCommand` to `shipguard release-proof build` before falling back to lower-priority product recommendations.

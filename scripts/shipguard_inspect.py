@@ -216,6 +216,10 @@ def plugin_state(root: Path, *, shareable: bool) -> dict[str, Any]:
 def release_state(source: str | None, root: Path, *, shareable: bool) -> dict[str, Any]:
     manifest_path, manifest = find_json(source, "release-manifest.json")
     badge_path, badge = find_json(source, "attestation-badge.json")
+    source_path = Path(source).expanduser() if source else None
+    bundle_path = source_path
+    if manifest_path and manifest_path.name == "release-manifest.json":
+        bundle_path = manifest_path.parent.parent if manifest_path.parent.name == "proof" else manifest_path.parent
     artifact = manifest.get("artifact") if isinstance(manifest.get("artifact"), dict) else {}
     proofs = manifest.get("proofs") if isinstance(manifest.get("proofs"), dict) else {}
     required = {
@@ -231,6 +235,16 @@ def release_state(source: str | None, root: Path, *, shareable: bool) -> dict[st
     badge_status = str(badge.get("status") or "").strip() if isinstance(badge, dict) else ""
     badge_problems = [f"attestation-badge.status={badge_status}"] if manifest and badge_status and badge_status != "pass" else []
     status = "not-provided" if not source else ("missing" if not manifest else ("review" if missing_fields or badge_problems else "pass"))
+    path_status = "not-provided" if not source else ("manifest-missing" if not manifest else ("manifest-and-badge" if badge else "manifest-only"))
+    path_handoff = {
+        "status": path_status,
+        "sourcePath": rel_or_redacted(source_path, root, shareable=shareable),
+        "releaseAssetsPath": rel_or_redacted(bundle_path, root, shareable=shareable),
+        "manifestPath": rel_or_redacted(manifest_path, root, shareable=shareable),
+        "badgePath": rel_or_redacted(badge_path, root, shareable=shareable),
+        "inspectRerunCommand": "./bin/shipguard inspect --path . --out /tmp/shipguard-inspect --release-assets <release-assets-dir>",
+        "boundary": "Path handoff only; InspectDeck does not rebuild, publish, or mutate release assets.",
+    }
     return {
         "found": bool(manifest),
         "manifestPath": rel_or_redacted(manifest_path, root, shareable=shareable),
@@ -247,6 +261,7 @@ def release_state(source: str | None, root: Path, *, shareable: bool) -> dict[st
         "badgeProblems": badge_problems,
         "requiredFields": sorted(required),
         "missingRequiredFields": missing_fields,
+        "releaseProofPathHandoff": path_handoff,
         "nextCommand": RELEASE_PROOF_COMMAND if missing_fields or not manifest or badge_problems else "",
     }
 
@@ -508,6 +523,14 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"- Badge problems: {', '.join(release.get('badgeProblems') or []) or 'none'}",
             f"- Missing required fields: {', '.join(release.get('missingRequiredFields') or []) or 'none'}",
             f"- Next command: `{release.get('nextCommand') or 'none'}`",
+            "",
+            "### Release Proof Path Handoff",
+            "",
+            f"- Status: {(release.get('releaseProofPathHandoff') or {}).get('status') or 'unknown'}",
+            f"- Release assets path: {(release.get('releaseProofPathHandoff') or {}).get('releaseAssetsPath') or 'not supplied'}",
+            f"- Manifest path: {(release.get('releaseProofPathHandoff') or {}).get('manifestPath') or 'not supplied'}",
+            f"- Badge path: {(release.get('releaseProofPathHandoff') or {}).get('badgePath') or 'not supplied'}",
+            f"- Inspect rerun: `{(release.get('releaseProofPathHandoff') or {}).get('inspectRerunCommand') or 'none'}`",
             "",
             "## Underlying Evidence",
             "",
