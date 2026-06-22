@@ -347,6 +347,12 @@ def choose_next_action(value_summary: dict[str, Any], full_summary: dict[str, An
             "command": stable_command,
             "reason": reason,
         }
+    if not release.get("found"):
+        return {
+            "source": "release-assets.missing",
+            "command": "./bin/shipguard release-proof build --out <dir> --release-url <url> --version <version> --tag <tag> --commit <sha> --ci-run-url <url>",
+            "reason": "No release proof manifest was supplied to inspect; attach release proof before following lower-priority product recommendations.",
+        }
     lowest = value_summary.get("lowestValueSurface") or {}
     if lowest.get("recommendation"):
         proof = str(lowest.get("proofGuidance") or "")
@@ -366,12 +372,6 @@ def choose_next_action(value_summary: dict[str, Any], full_summary: dict[str, An
             "command": "codex plugin marketplace add . && codex plugin add ios-shipguard@shipguard && ./bin/shipguard codex status --strict",
             "reason": "The installed Codex plugin state is stale or missing.",
         }
-    if not release.get("found"):
-        return {
-            "source": "release-assets",
-            "command": "./bin/shipguard release-proof build --out <dir> --release-url <url> --version <version> --tag <tag> --commit <sha> --ci-run-url <url>",
-            "reason": "No release proof manifest was supplied to inspect.",
-        }
     return {
         "source": "inspect",
         "command": "./bin/shipguard full-audit --path . --out /tmp/shipguard-full-audit --profile shipyard --shipguard-eval --shareable",
@@ -390,6 +390,8 @@ def combined_status(inputs: list[dict[str, Any]], repo: dict[str, Any], plugin: 
     if any(item.get("provided") and not item.get("found") for item in inputs):
         return "review"
     if not any(item.get("found") for item in inputs):
+        return "review"
+    if any(item.get("id") == "release-assets" and not item.get("found") for item in inputs):
         return "review"
     if any(status in {"review", "missing"} for status in hard):
         return "review"

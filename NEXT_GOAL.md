@@ -1,50 +1,50 @@
 # Next Goal
 
-- Generated: 2026-06-22T16:37:37Z
+- Generated: 2026-06-22T16:58:53Z
 - Current toolkit version: 3.132.0
-- Target release: v3.133.0
-- Title: InspectDeck Stable-publication Priority Handoff
+- Target release: v3.134.0
+- Title: InspectDeck Release-proof Receipt Priority
 
 ## Version Lineage Check
 
-- Status: pass
+- Status: review
 - VERSION: 3.132.0
 - Expected next release from VERSION: v3.133.0
-- Planned target release: v3.133.0
+- Planned target release: v3.134.0
 - Current checkout package artifact before version bump: dist/shipguard-v3.132.0.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v3.133.0.tar.gz
-- Action: Before publishing v3.133.0, bump VERSION to 3.133.0, rebuild, and verify dist/shipguard-v3.133.0.tar.gz.
+- Expected package artifact after release bump: dist/shipguard-v3.134.0.tar.gz
+- Action: Before publishing v3.134.0, bump VERSION to 3.134.0 or regenerate next-goal for v3.133.0.
 
 ## Slash Plan
 
 ```text
-/plan v3.133.0 InspectDeck Stable-publication Priority Handoff for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make InspectDeck advance from supplied Value Gauntlet proof to the real stable-publication command instead of looping back to value-gauntlet.
+/plan v3.134.0 InspectDeck Release-proof Receipt Priority for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make InspectDeck treat missing release proof as the next release-loop action once value-gauntlet and full-audit receipts are present.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
-4. Push main, verify GitHub Actions, bump VERSION before release packaging, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
+4. Push main, verify GitHub Actions, resolve version lineage before any release publication, then generate the following goal.
 ```
 
 ## Slash Goal
 
 ```text
-/goal Implement v3.133.0 InspectDeck Stable-publication Priority Handoff for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make InspectDeck advance from supplied Value Gauntlet proof to the real stable-publication command instead of looping back to value-gauntlet, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.134.0 InspectDeck Release-proof Receipt Priority for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make InspectDeck treat missing release proof as the next release-loop action once value-gauntlet and full-audit receipts are present, push main, verify GitHub Actions, resolve version lineage before publishing any release tarball, verify clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make InspectDeck advance from supplied Value Gauntlet proof to the real stable-publication command instead of looping back to value-gauntlet.
+Make InspectDeck treat missing release proof as the next release-loop action once value-gauntlet and full-audit receipts are present.
 
 ## Completion Receipt
 
-- Completed scope: InspectDeck now routes Value Gauntlet stable-publication priority to nextAction and resultUX.
-- Evidence: py_compile, inspect_test, concise_verdict_result_ux_test, tool_value_gauntlet_test, live inspect rerun, and report-quality over InspectDeck output passed
+- Completed scope: InspectDeck now keeps missing release proof in review and routes nextAction/resultUX to shipguard release-proof build before lower-priority value recommendations.
+- Evidence: py_compile, inspect_test, live inspect rerun, report-quality over InspectDeck output, concise result UX, and tool value gauntlet focused tests passed
 
 ## Following Slash Plan
 
 ```text
-/plan v3.134.0 InspectDeck Release-proof Receipt Priority for jlekerli-source/ShipGuard:
+/plan v3.135.0 InspectDeck Release-proof Receipt Detail for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -54,13 +54,13 @@ Make InspectDeck advance from supplied Value Gauntlet proof to the real stable-p
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.134.0 InspectDeck Release-proof Receipt Priority for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.135.0 InspectDeck Release-proof Receipt Detail for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.134.0 --title "InspectDeck Release-proof Receipt Priority" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.135.0 --title "InspectDeck Release-proof Receipt Detail" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -160,12 +160,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.133.0.
+1. Open or update the tracking issue for v3.134.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Bump VERSION to 3.133.0, build `dist/shipguard-v3.133.0.tar.gz`, create release `v3.133.0`, and upload the rebuilt tarball.
+6. Resolve version lineage first: bump VERSION to 3.134.0 and rebuild the tarball, or regenerate next-goal for v3.133.0 before creating a GitHub release.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

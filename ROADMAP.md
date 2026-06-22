@@ -198,6 +198,8 @@ v3.133 starts real stable-publication packet QA by making missing GitHub release
 
 v3.134 continues result-UX command-field hardening by making report-quality reject prose or Markdown in `priorityAction.nextCommand`, so copy-facing source-report actions stay executable while explanation stays in summary fields.
 
+v3.134 also continues InspectDeck release-proof receipt priority by making missing release proof keep `shipguard inspect` in `review` and route `nextAction` / `resultUX.nextCommand` to `shipguard release-proof build` before lower-priority value-gauntlet recommendations.
+
 v3.135 continues InspectDeck missing-receipt priority by exposing `missingReceiptPriority` in JSON and Markdown, keeping the first executable next action singular while showing the remaining value-gauntlet, full-audit, and release-proof queue.
 
 v3.136 continues InspectDeck executable next-command normalization by falling back to a runnable full-audit command when a failed-stage receipt has a missing or unsafe `stageId`, instead of leaking malformed `--stage` commands into `resultUX.nextCommand`.

@@ -55,6 +55,8 @@ InspectDeck leads with:
 
 When Value Gauntlet exposes `stablePublicationPriority.nextCommand`, InspectDeck uses that stable-publication command directly. It should not send maintainers back to rerun Value Gauntlet after that receipt has already identified the real v4 publication blocker.
 
+When Value Gauntlet and Full Audit receipts are already present but release proof is missing, InspectDeck points `nextAction` and `resultUX.nextCommand` at `shipguard release-proof build` before falling back to the generic lowest-value recommendation. Release proof absence keeps the report in `review`.
+
 If an upstream Full Audit receipt has a missing or unsafe failed-stage id, InspectDeck falls back to a full-audit rerun command instead of rendering a malformed `--stage` command.
 
 If a proof input is absent, InspectDeck marks it missing or not supplied instead of pretending the state is proven.

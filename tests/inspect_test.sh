@@ -208,6 +208,48 @@ if "public GitHub release metadata" not in next_action.get("reason", ""):
     raise SystemExit(f"stable-publication blockers should be in reason: {next_action!r}")
 PY
 
+mkdir -p "$tmp_dir/full-pass"
+python3 - <<'PY' "$tmp_dir/full/shipguard-full-audit.json" "$tmp_dir/full-pass/shipguard-full-audit.json"
+import json
+import sys
+
+source, target = sys.argv[1:3]
+data = json.load(open(source, encoding="utf-8"))
+data["status"] = "pass"
+data["planOnly"] = False
+data["stageStatusSummary"] = {"pass": 14}
+json.dump(data, open(target, "w", encoding="utf-8"), indent=2, sort_keys=True)
+PY
+
+./bin/shipguard inspect \
+  --path . \
+  --out "$tmp_dir/missing-release-proof" \
+  --value-gauntlet "$tmp_dir/value" \
+  --full-audit "$tmp_dir/full-pass" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+python3 - <<'PY' "$tmp_dir/missing-release-proof/shipguard-inspect.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+next_action = data.get("nextAction") or {}
+result = data.get("resultUX") or {}
+expected = "./bin/shipguard release-proof build --out <dir> --release-url <url> --version <version> --tag <tag> --commit <sha> --ci-run-url <url>"
+if data.get("status") != "review":
+    raise SystemExit(f"missing release proof should keep inspect in review: {data.get('status')!r}")
+if next_action.get("source") != "release-assets.missing":
+    raise SystemExit(f"release proof should be prioritized before lowest-value fallback: {next_action!r}")
+if next_action.get("command") != expected:
+    raise SystemExit(f"release proof command should be executable: {next_action!r}")
+if result.get("proofSource") != "release-assets.missing" or result.get("nextCommand") != expected:
+    raise SystemExit(f"resultUX should mirror missing release proof: {result!r}")
+missing = data.get("missingReceiptPriority") or []
+if [item.get("id") for item in missing] != ["release-assets"]:
+    raise SystemExit(f"only release proof should be missing: {missing!r}")
+PY
+
 ./bin/shipguard inspect \
   --path . \
   --out "$tmp_dir/missing-inputs" \
