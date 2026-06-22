@@ -1747,6 +1747,7 @@ def build_release_visibility_handoff(
     release_version: str,
     stable_v4_release: bool,
     release_notes_proof: dict[str, Any],
+    release_notes_authoring_kit: dict[str, Any],
     release_candidate_packet_proof: dict[str, Any],
     published_asset_proof: dict[str, Any],
     public_evidence_closure_proof: dict[str, Any],
@@ -1793,6 +1794,11 @@ def build_release_visibility_handoff(
     else:
         primary = "keep-current-public-release-in-review"
 
+    release_notes_edit_command = str(
+        release_notes_authoring_kit.get("publicReleaseEditCommand")
+        or release_notes_proof.get("nextCommand")
+        or rerun_command
+    )
     actions = [
         {
             "id": "publish-new-github-release",
@@ -1810,7 +1816,7 @@ def build_release_visibility_handoff(
             "required": needs_notes,
             "status": "review" if needs_notes else "pass",
             "reason": release_notes_proof.get("summary") or "Release notes proof status decides this action.",
-            "nextCommand": str(release_notes_proof.get("nextCommand") or rerun_command),
+            "nextCommand": release_notes_edit_command,
         },
         {
             "id": "attach-launchkey-candidate-proof",
@@ -4130,6 +4136,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         release_version=release_version,
         stable_v4_release=stable_v4_release,
         release_notes_proof=release_notes_proof,
+        release_notes_authoring_kit=release_notes_authoring_kit,
         release_candidate_packet_proof=release_candidate_packet_proof,
         published_asset_proof=published_asset_proof,
         public_evidence_closure_proof=public_evidence_closure_proof,
@@ -4397,13 +4404,16 @@ def render_markdown(report: dict[str, Any]) -> str:
                 f"- Local main can be announced: `{visibility.get('localMainCanBeAnnounced')}`",
                 f"- Unpublished local code counts as released: `{boundary.get('unpublishedLocalCodeCountsAsReleased')}`",
                 "",
-                "| Action | Required | Status |",
-                "| --- | ---: | --- |",
+                "| Action | Required | Status | Next command |",
+                "| --- | ---: | --- | --- |",
             ]
         )
         for action in visibility.get("requiredActions", []):
             if isinstance(action, dict):
-                lines.append(f"| `{action.get('id')}` | `{action.get('required')}` | `{action.get('status')}` |")
+                lines.append(
+                    f"| `{action.get('id')}` | `{action.get('required')}` | "
+                    f"`{action.get('status')}` | `{action.get('nextCommand') or 'not-provided'}` |"
+                )
         lines.extend(["", "Next command:", "", "```bash", str(visibility.get("nextCommand") or ""), "```"])
     final_claim = (
         report.get("finalStableV4ClaimPacket")

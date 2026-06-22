@@ -301,7 +301,7 @@ Stable publication emits `releaseVisibilityHandoff` to turn the release delta in
 
 The handoff answers one maintainer question: do we publish a new GitHub release, update release notes, attach LaunchKey candidate proof, update release assets, attach adoption/security evidence, or keep the current public release unchanged?
 
-Markdown renders this as `Release Visibility Handoff`.
+Markdown renders this as `Release Visibility Handoff`, including action-level next commands.
 
 Important fields:
 
@@ -309,6 +309,7 @@ Important fields:
 - `currentPublicReleaseCanBeAnnounced`
 - `localMainCanBeAnnounced`
 - `requiredActions[]` for `publish-new-github-release`, `update-release-notes`, `attach-launchkey-candidate-proof`, `update-release-assets`, `attach-adoption-security-evidence`, and `keep-current-public-release-unchanged`
+- `requiredActions[].nextCommand`, where `update-release-notes` points at the generated `gh release edit ... --notes-file stable-publication-release-notes/draft-release-notes.md` command when release notes are the blocker
 - `visibilityBoundary.unpublishedLocalCodeCountsAsReleased = false`
 
 The handoff does not publish, edit a GitHub release, or post externally. It makes the next release action explicit while keeping local `HEAD`/`main` deltas advisory: a selected public release can still be the announcement target when stable-publication evidence passes for that release.

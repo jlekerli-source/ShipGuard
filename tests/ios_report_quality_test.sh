@@ -6366,6 +6366,56 @@ PY
   --shareable >/dev/null
 grep -q '"ruleId": "stable-publication-release-notes-authoring-kit-edit-command-missing"' "$tmp_dir/stable-publication-missing-notes-edit-command-quality/ios-report-quality.json"
 
+stable_publication_visibility_wrong_notes_command="$tmp_dir/stable-publication-visibility-wrong-notes-command"
+mkdir -p "$stable_publication_visibility_wrong_notes_command"
+python3 - <<'PY' "$stable_publication_block_fixture/fixture-report.json" "$stable_publication_block_fixture/fixture-report.md" "$stable_publication_visibility_wrong_notes_command"
+import json
+import pathlib
+import sys
+
+source_json = pathlib.Path(sys.argv[1])
+source_md = pathlib.Path(sys.argv[2])
+target = pathlib.Path(sys.argv[3])
+report = json.loads(source_json.read_text(encoding="utf-8"))
+kit = report["stablePublicationReleaseNotesAuthoringKit"]
+kit["schemaVersion"] = 2
+kit["status"] = "review"
+kit["missingTopicIds"] = kit.get("missingTopicIds") or ["stable-v4-claim"]
+kit["publicReleaseEditCommand"] = "gh release edit v0.0.0 --repo example/shipguard --notes-file stable-publication-release-notes/draft-release-notes.md"
+report.setdefault("releaseNotesProof", {})["status"] = "review"
+visibility = report.setdefault("releaseVisibilityHandoff", {
+    "schemaVersion": 1,
+    "primaryDecision": "update-release-notes",
+    "requiredActions": [
+        {"id": "publish-new-github-release", "required": False, "status": "pass", "nextCommand": "not-needed"},
+        {"id": "update-release-notes", "required": True, "status": "review", "nextCommand": "placeholder"},
+        {"id": "attach-launchkey-candidate-proof", "required": False, "status": "pass", "nextCommand": "not-needed"},
+        {"id": "update-release-assets", "required": False, "status": "pass", "nextCommand": "not-needed"},
+        {"id": "attach-adoption-security-evidence", "required": False, "status": "pass", "nextCommand": "not-needed"},
+        {"id": "keep-current-public-release-unchanged", "required": False, "status": "blocked", "nextCommand": "not-needed"},
+    ],
+    "visibilityBoundary": {
+        "doesNotPublishRelease": True,
+        "doesNotEditGitHubRelease": True,
+        "doesNotPostExternally": True,
+        "latestPublicGitHubReleaseIsPublicationTruth": True,
+        "localHeadIsNotPublicationProof": True,
+        "localMainIsNotPublicationProof": True,
+        "unpublishedLocalCodeCountsAsReleased": False,
+    },
+})
+for action in visibility["requiredActions"]:
+    if action.get("id") == "update-release-notes":
+        action["nextCommand"] = "./bin/shipguard v4 stable-publication --path . --out /tmp/wrong"
+(target / "v4-stable-publication.json").write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+(target / "v4-stable-publication.md").write_text(source_md.read_text(encoding="utf-8"), encoding="utf-8")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_visibility_wrong_notes_command" \
+  --out "$tmp_dir/stable-publication-visibility-wrong-notes-command-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "stable-publication-release-visibility-update-notes-command-missing"' "$tmp_dir/stable-publication-visibility-wrong-notes-command-quality/ios-report-quality.json"
+
 stable_publication_packet_fixture="fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publication-evid"
 ./bin/shipguard ios report-quality \
   --reports "$stable_publication_packet_fixture" \

@@ -897,6 +897,9 @@ assert notes_kit["publicReleaseEditCommand"] == (
     f"gh release edit v{report['releaseVersion']} --repo jlekerli-source/ShipGuard "
     "--notes-file stable-publication-release-notes/draft-release-notes.md"
 )
+visibility_actions = {item["id"]: item for item in report["releaseVisibilityHandoff"]["requiredActions"]}
+assert visibility_actions["update-release-notes"]["required"] is True
+assert visibility_actions["update-release-notes"]["nextCommand"] == notes_kit["publicReleaseEditCommand"]
 assert set(notes_kit["missingTopicIds"]) == missing
 assert {
     "stable-publication-release-notes/README.md",
@@ -912,6 +915,7 @@ PY
 grep -q 'Release Notes Proof' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'Release Notes Authoring Kit' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'Release Notes Closure Kit' "$tmp_dir/weak-notes/v4-stable-publication.md"
+grep -q 'update-release-notes.*gh release edit' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'post-release-consumer-proof' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'Public release edit required: `True`' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'gh release edit' "$tmp_dir/weak-notes/v4-stable-publication.md"
@@ -1414,6 +1418,7 @@ handoff = build_release_visibility_handoff(
     release_version="3.131.0",
     stable_v4_release=True,
     release_notes_proof={"status": "pass", "summary": "Release notes passed."},
+    release_notes_authoring_kit={"publicReleaseEditCommand": "gh release edit v3.131.0 --repo example/shipguard --notes-file stable-publication-release-notes/draft-release-notes.md"},
     release_candidate_packet_proof={"status": "pass", "summary": "Candidate proof passed."},
     published_asset_proof={"status": "pass"},
     public_evidence_closure_proof={"status": "pass", "summary": "Public evidence passed."},

@@ -4532,6 +4532,42 @@ def stable_publication_evidence_packet_issues(
                 evidence=f"{path_name} releaseVisibilityHandoff does not expose the full publication decision matrix",
                 recommendation="Include primaryDecision plus action rows for release publication, notes, assets, adoption/security evidence, and keeping the current public release unchanged.",
             )
+        notes_kit_for_visibility = (
+            report.get("stablePublicationReleaseNotesAuthoringKit")
+            if isinstance(report.get("stablePublicationReleaseNotesAuthoringKit"), dict)
+            else {}
+        )
+        release_notes_proof_for_visibility = (
+            report.get("releaseNotesProof")
+            if isinstance(report.get("releaseNotesProof"), dict)
+            else {}
+        )
+        if (
+            int(notes_kit_for_visibility.get("schemaVersion") or 1) >= 2
+            and (
+                release_notes_proof_for_visibility.get("status") == "review"
+                or notes_kit_for_visibility.get("status") == "review"
+                or bool(notes_kit_for_visibility.get("missingTopicIds"))
+            )
+        ):
+            update_notes_action = next(
+                (action for action in actions if isinstance(action, dict) and action.get("id") == "update-release-notes"),
+                {},
+            )
+            update_notes_command = str(update_notes_action.get("nextCommand") or "")
+            expected_notes_command = str(notes_kit_for_visibility.get("publicReleaseEditCommand") or "")
+            if (
+                not expected_notes_command
+                or update_notes_command != expected_notes_command
+                or "gh release edit" not in update_notes_command
+            ):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-release-visibility-update-notes-command-missing",
+                    evidence=f"{path_name} releaseVisibilityHandoff update-release-notes action does not point at the release-notes edit command",
+                    recommendation="Set update-release-notes.nextCommand to stablePublicationReleaseNotesAuthoringKit.publicReleaseEditCommand.",
+                )
         if (
             boundary.get("doesNotPublishRelease") is not True
             or boundary.get("doesNotEditGitHubRelease") is not True
@@ -4581,6 +4617,23 @@ def stable_publication_evidence_packet_issues(
                 rule_id="stable-publication-release-visibility-markdown-missing",
                 evidence=f"{path_name} has releaseVisibilityHandoff but Markdown does not render it",
                 recommendation="Render the release visibility handoff in Markdown so maintainers can choose the next public-release action without opening JSON.",
+            )
+        elif (
+            int(notes_kit_for_visibility.get("schemaVersion") or 1) >= 2
+            and (
+                release_notes_proof_for_visibility.get("status") == "review"
+                or notes_kit_for_visibility.get("status") == "review"
+                or bool(notes_kit_for_visibility.get("missingTopicIds"))
+            )
+            and "update-release-notes" in markdown
+            and "gh release edit" not in markdown
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-release-visibility-update-notes-markdown-missing",
+                evidence=f"{path_name} Markdown renders releaseVisibilityHandoff but hides the update-release-notes edit command",
+                recommendation="Render action-level next commands in the Release Visibility Handoff table.",
             )
 
     final_claim = (
@@ -4933,7 +4986,7 @@ def stable_publication_evidence_packet_issues(
             )
         edit_command = str(notes_kit.get("publicReleaseEditCommand") or "")
         requires_edit_command = int(notes_kit.get("schemaVersion") or 1) >= 2
-        review_notes = notes_kit.get("status") != "pass" or bool(kit_missing_topics)
+        review_notes = notes_kit.get("status") == "review" or bool(kit_missing_topics)
         if requires_edit_command and review_notes and (
             "gh release edit" not in edit_command
             or "--notes-file" not in edit_command
@@ -4957,7 +5010,7 @@ def stable_publication_evidence_packet_issues(
     elif (
         isinstance(notes_kit, dict)
         and int(notes_kit.get("schemaVersion") or 1) >= 2
-        and notes_kit.get("status") != "pass"
+        and notes_kit.get("status") == "review"
         and "gh release edit" not in markdown
     ):
         add_issue(
