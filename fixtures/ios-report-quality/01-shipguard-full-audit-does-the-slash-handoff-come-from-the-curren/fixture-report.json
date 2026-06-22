@@ -89,6 +89,28 @@
     "sourcePath": "NEXT_GOAL.md",
     "status": "loaded"
   },
+  "slashHandoffProof": {
+    "activeTargetRelease": "v3.synthetic",
+    "activeTitle": "Synthetic Full Audit fixture handoff",
+    "completionReceiptPresent": true,
+    "copyReadyGoal": true,
+    "copyReadyPlan": true,
+    "goalHeading": "Following Slash Goal",
+    "nextGoalGeneratedAt": "2026-06-20T00:00:00Z",
+    "planHeading": "Following Slash Plan",
+    "proofBoundary": {
+      "doesNotMarkGoalComplete": true,
+      "doesNotPublishRelease": true,
+      "fallbackIsReviewOnly": true,
+      "nextGoalFileRequired": true
+    },
+    "selectedSection": "following",
+    "sourcePath": "NEXT_GOAL.md",
+    "staleHardcodedV3132Absent": true,
+    "status": "pass",
+    "versionLineageAction": "Synthetic fixture; no release publication.",
+    "versionLineageStatus": "review"
+  },
   "slashPlan": "/plan Promote the Full Audit slash-handoff freshness fixture, validate report-quality coverage, update docs and package proof, then generate the next goal.",
   "status": "pass",
   "tool": "shipguard full-audit"

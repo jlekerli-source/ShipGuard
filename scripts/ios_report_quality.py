@@ -2576,6 +2576,35 @@ def full_audit_slash_handoff_issues(report: dict[str, Any], *, path_name: str) -
             evidence=f"{path_name} does not prove slashPlan and slashGoal came from NEXT_GOAL.md",
             recommendation="Load the slash handoff from NEXT_GOAL.md and include slashHandoffSource.status=loaded.",
         )
+    else:
+        proof = report.get("slashHandoffProof")
+        if not isinstance(proof, dict) or not proof:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="full-audit-slash-handoff-proof-missing",
+                evidence=f"{path_name} claims a loaded NEXT_GOAL.md slash handoff but has no slashHandoffProof",
+                recommendation="Attach slashHandoffProof with selected section, copy-ready plan/goal checks, completion receipt presence, version lineage status, and non-publication boundaries.",
+            )
+        else:
+            boundary = proof.get("proofBoundary") if isinstance(proof.get("proofBoundary"), dict) else {}
+            if (
+                proof.get("sourcePath") != "NEXT_GOAL.md"
+                or proof.get("copyReadyPlan") is not True
+                or proof.get("copyReadyGoal") is not True
+                or proof.get("staleHardcodedV3132Absent") is not True
+                or boundary.get("nextGoalFileRequired") is not True
+                or boundary.get("fallbackIsReviewOnly") is not True
+                or boundary.get("doesNotMarkGoalComplete") is not True
+                or boundary.get("doesNotPublishRelease") is not True
+            ):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="full-audit-slash-handoff-proof-weak",
+                    evidence=f"{path_name} slashHandoffProof does not prove copy-ready NEXT_GOAL.md handoff boundaries",
+                    recommendation="Keep slashHandoffProof aligned to NEXT_GOAL.md, copy-ready /plan and /goal text, stale-handoff rejection, and no goal-complete/publication claims.",
+                )
     if "v3.132.0 v4 product release stabilization" in combined:
         add_issue(
             issues,

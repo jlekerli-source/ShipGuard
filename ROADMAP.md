@@ -220,6 +220,8 @@ v3.144 continues Stable-v4 final security-review evidence gating by adding `secu
 
 v3.145 continues Full Audit release-packet plan honesty by adding `releasePacketPlan` to release-related Full Audit runs so selected release stages, required metadata, missing metadata, next command, non-claims, and proof boundaries are visible before anyone treats a plan as release proof.
 
+v3.146 continues Full Audit NEXT_GOAL-backed slash handoff proof by adding `slashHandoffProof` so selected section, completion receipt presence, version-lineage status, copy-ready slash commands, stale-handoff rejection, and no-publication boundaries are visible beside the copied `/plan` and `/goal`.
+
 Every release proposal must answer:
 
 1. Which developer decision changes?

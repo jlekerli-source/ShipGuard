@@ -191,6 +191,27 @@ def markdown_fenced_section(text: str, heading: str) -> str:
     return match.group(1).strip() if match else ""
 
 
+def markdown_bullet(text: str, label: str) -> str:
+    match = re.search(rf"(?m)^- {re.escape(label)}: (.*)$", text)
+    return match.group(1).strip() if match else ""
+
+
+def next_goal_metadata(text: str) -> dict[str, Any]:
+    lineage_match = re.search(r"(?ms)^## Version Lineage Check\s*\n+(.*?)(?:\n## |\Z)", text)
+    lineage_text = lineage_match.group(1) if lineage_match else ""
+    return {
+        "generatedAt": markdown_bullet(text, "Generated"),
+        "currentToolkitVersion": markdown_bullet(text, "Current toolkit version"),
+        "activeTargetRelease": markdown_bullet(text, "Target release"),
+        "activeTitle": markdown_bullet(text, "Title"),
+        "versionLineageStatus": markdown_bullet(lineage_text, "Status"),
+        "versionLineageAction": markdown_bullet(lineage_text, "Action"),
+        "completionReceiptPresent": "## Completion Receipt" in text
+        and bool(markdown_bullet(text, "Completed scope"))
+        and bool(markdown_bullet(text, "Evidence")),
+    }
+
+
 def slash_handoff_from_next_goal(repo: Path) -> tuple[str, str, dict[str, Any]]:
     next_goal_path = repo / "NEXT_GOAL.md"
     fallback_plan = (
@@ -229,6 +250,7 @@ def slash_handoff_from_next_goal(repo: Path) -> tuple[str, str, dict[str, Any]]:
         ("Following Slash Plan", "Following Slash Goal", "following"),
         ("Slash Plan", "Slash Goal", "active"),
     ]
+    metadata = next_goal_metadata(text)
     for plan_heading, goal_heading, section in section_pairs:
         plan = markdown_fenced_section(text, plan_heading)
         goal = markdown_fenced_section(text, goal_heading)
@@ -242,6 +264,7 @@ def slash_handoff_from_next_goal(repo: Path) -> tuple[str, str, dict[str, Any]]:
                     "section": section,
                     "planHeading": plan_heading,
                     "goalHeading": goal_heading,
+                    **metadata,
                 },
             )
     return (
@@ -254,6 +277,35 @@ def slash_handoff_from_next_goal(repo: Path) -> tuple[str, str, dict[str, Any]]:
             "section": "fallback",
         },
     )
+
+
+def slash_handoff_proof(source: dict[str, Any], plan: str, goal: str) -> dict[str, Any]:
+    copy_ready_plan = plan.strip().startswith("/plan ")
+    copy_ready_goal = goal.strip().startswith("/goal ")
+    stale_v3132_absent = "v3.132.0 v4 Product Release Stabilization" not in f"{plan}\n{goal}"
+    loaded = source.get("status") == "loaded" and source.get("sourcePath") == "NEXT_GOAL.md"
+    return {
+        "status": "pass" if loaded and copy_ready_plan and copy_ready_goal and stale_v3132_absent else "review",
+        "sourcePath": source.get("sourcePath", ""),
+        "selectedSection": source.get("section", ""),
+        "planHeading": source.get("planHeading", ""),
+        "goalHeading": source.get("goalHeading", ""),
+        "nextGoalGeneratedAt": source.get("generatedAt", ""),
+        "activeTargetRelease": source.get("activeTargetRelease", ""),
+        "activeTitle": source.get("activeTitle", ""),
+        "versionLineageStatus": source.get("versionLineageStatus", ""),
+        "versionLineageAction": source.get("versionLineageAction", ""),
+        "completionReceiptPresent": bool(source.get("completionReceiptPresent")),
+        "copyReadyPlan": copy_ready_plan,
+        "copyReadyGoal": copy_ready_goal,
+        "staleHardcodedV3132Absent": stale_v3132_absent,
+        "proofBoundary": {
+            "nextGoalFileRequired": True,
+            "fallbackIsReviewOnly": True,
+            "doesNotMarkGoalComplete": True,
+            "doesNotPublishRelease": True,
+        },
+    }
 
 
 def stage_catalog(repo: Path, out_dir: Path, args: argparse.Namespace) -> dict[str, dict[str, Any]]:
@@ -624,6 +676,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         next_action_summary=next_action,
     )
     slash_plan, slash_goal, slash_handoff_source = slash_handoff_from_next_goal(repo)
+    slash_proof = slash_handoff_proof(slash_handoff_source, slash_plan, slash_goal)
     report: dict[str, Any] = {
         "schemaVersion": SCHEMA_VERSION,
         "tool": "shipguard full-audit",
@@ -665,6 +718,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the slash handoff come from the current NEXT_GOAL.md instead of stale hardcoded roadmap text?",
         ],
         "slashHandoffSource": slash_handoff_source,
+        "slashHandoffProof": slash_proof,
         "slashPlan": slash_plan,
         "slashGoal": slash_goal,
     }
@@ -769,6 +823,24 @@ def render_markdown(report: dict[str, Any]) -> str:
     )
     if source.get("reason"):
         lines.append(f"- Reason: {source['reason']}")
+    proof = report.get("slashHandoffProof") if isinstance(report.get("slashHandoffProof"), dict) else {}
+    if proof:
+        lines.extend(
+            [
+                "",
+                "## Slash Handoff Proof",
+                "",
+                f"- Status: `{proof.get('status', 'unknown')}`",
+                f"- Selected section: `{proof.get('selectedSection', 'unknown')}`",
+                f"- NEXT_GOAL generated: `{proof.get('nextGoalGeneratedAt') or 'unknown'}`",
+                f"- Active target: `{proof.get('activeTargetRelease') or 'unknown'}`",
+                f"- Active title: `{proof.get('activeTitle') or 'unknown'}`",
+                f"- Version lineage: `{proof.get('versionLineageStatus') or 'unknown'}`",
+                f"- Completion receipt present: {str(bool(proof.get('completionReceiptPresent'))).lower()}",
+                f"- Copy-ready plan/goal: {str(bool(proof.get('copyReadyPlan'))).lower()}/{str(bool(proof.get('copyReadyGoal'))).lower()}",
+                f"- Stale v3.132 handoff absent: {str(bool(proof.get('staleHardcodedV3132Absent'))).lower()}",
+            ]
+        )
     lines.extend(["", "## Slash Plan", "", "```text", report["slashPlan"], "```", "", "## Slash Goal", "", "```text", report["slashGoal"], "```", ""])
     return "\n".join(lines)
 

@@ -923,6 +923,7 @@ MD
   --shareable >/dev/null
 grep -q '"status": "review"' "$tmp_dir/commandless-full-audit-quality/ios-report-quality.json"
 grep -q '"ruleId": "full-audit-execution-commands-markdown-missing"' "$tmp_dir/commandless-full-audit-quality/ios-report-quality.json"
+grep -q '"ruleId": "full-audit-slash-handoff-proof-missing"' "$tmp_dir/commandless-full-audit-quality/ios-report-quality.json"
 grep -q 'Render an Execution Commands table from stages' "$tmp_dir/commandless-full-audit-quality/ios-report-quality.md"
 
 release_packetless_full_audit="$tmp_dir/release-packetless-full-audit"
@@ -977,6 +978,21 @@ cat > "$release_packetless_full_audit/shipguard-full-audit.json" <<'JSON'
     "status": "loaded",
     "sourcePath": "NEXT_GOAL.md",
     "section": "following"
+  },
+  "slashHandoffProof": {
+    "status": "pass",
+    "sourcePath": "NEXT_GOAL.md",
+    "selectedSection": "following",
+    "completionReceiptPresent": true,
+    "copyReadyPlan": true,
+    "copyReadyGoal": true,
+    "staleHardcodedV3132Absent": true,
+    "proofBoundary": {
+      "nextGoalFileRequired": true,
+      "fallbackIsReviewOnly": true,
+      "doesNotMarkGoalComplete": true,
+      "doesNotPublishRelease": true
+    }
   },
   "slashPlan": "/plan v3.145.0 Full Audit Release-Packet Plan Honesty for jlekerli-source/ShipGuard: make release packet planning explicit.",
   "slashGoal": "/goal Implement v3.145.0 Full Audit Release-Packet Plan Honesty for jlekerli-source/ShipGuard: make release packet planning explicit."
@@ -5312,6 +5328,21 @@ cat > "$mixed_release_priority_dir/shipguard-full-audit.json" <<'JSON'
     "status": "loaded",
     "sourcePath": "NEXT_GOAL.md",
     "section": "following"
+  },
+  "slashHandoffProof": {
+    "status": "pass",
+    "sourcePath": "NEXT_GOAL.md",
+    "selectedSection": "following",
+    "completionReceiptPresent": true,
+    "copyReadyPlan": true,
+    "copyReadyGoal": true,
+    "staleHardcodedV3132Absent": true,
+    "proofBoundary": {
+      "nextGoalFileRequired": true,
+      "fallbackIsReviewOnly": true,
+      "doesNotMarkGoalComplete": true,
+      "doesNotPublishRelease": true
+    }
   },
   "slashPlan": "/plan v3.148.0 Stable V4 Release Packet Artifact Receipts for jlekerli-source/ShipGuard: prioritize release-proof artifact gaps from self-QA.",
   "slashGoal": "/goal Implement v3.148.0 Stable V4 Release Packet Artifact Receipts for jlekerli-source/ShipGuard: make report-quality follow concrete release-proof gaps.",

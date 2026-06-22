@@ -71,6 +71,20 @@ if "Full Audit release-packet planning does not publish a GitHub release." not i
 source = data.get("slashHandoffSource") or {}
 if source.get("status") != "loaded" or source.get("sourcePath") != "NEXT_GOAL.md":
     raise SystemExit(source)
+proof = data.get("slashHandoffProof") or {}
+if proof.get("status") != "pass":
+    raise SystemExit(proof)
+if proof.get("sourcePath") != "NEXT_GOAL.md" or proof.get("selectedSection") != "following":
+    raise SystemExit(proof)
+if proof.get("copyReadyPlan") is not True or proof.get("copyReadyGoal") is not True:
+    raise SystemExit(proof)
+if proof.get("completionReceiptPresent") is not True:
+    raise SystemExit(proof)
+if proof.get("versionLineageStatus") != "review":
+    raise SystemExit(proof)
+for key in ["nextGoalFileRequired", "fallbackIsReviewOnly", "doesNotMarkGoalComplete", "doesNotPublishRelease"]:
+    if (proof.get("proofBoundary") or {}).get(key) is not True:
+        raise SystemExit(proof)
 if not data.get("slashPlan", "").startswith("/plan "):
     raise SystemExit(data.get("slashPlan"))
 if not data.get("slashGoal", "").startswith("/goal "):
@@ -91,6 +105,10 @@ grep -q '<shipguard-repo>/bin/shipguard version' "$tmp_dir/plan/shipguard-full-a
 grep -q 'git diff --check' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Slash Handoff Source' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Source path: `NEXT_GOAL.md`' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Slash Handoff Proof' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Selected section: `following`' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Completion receipt present: true' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Copy-ready plan/goal: true/true' "$tmp_dir/plan/shipguard-full-audit.md"
 if grep -q 'v3.132.0 v4 Product Release Stabilization' "$tmp_dir/plan/shipguard-full-audit.md"; then
   echo "full-audit output should not carry stale v3.132 slash handoff text" >&2
   exit 1
