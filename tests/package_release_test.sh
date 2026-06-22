@@ -1135,33 +1135,38 @@ grep -q 'actions/upload-artifact@v4' "$package_root/actions/release-evidence-ver
 test -f "$package_root/actions/release-consume/action.yml"
 grep -q 'release-consume verify' "$package_root/actions/release-consume/action.yml"
 grep -q 'actions/upload-artifact@v4' "$package_root/actions/release-consume/action.yml"
-"$package_root/tests/release_consume_action_test.sh" >/dev/null
-"$package_root/tests/release_diff_action_test.sh" >/dev/null
-"$package_root/tests/release_evidence_test.sh" >/dev/null
-"$package_root/tests/release_evidence_action_test.sh" >/dev/null
-"$package_root/tests/release_evidence_negative_index_action_test.sh" >/dev/null
-"$package_root/tests/release_evidence_verify_test.sh" >/dev/null
-"$package_root/tests/release_evidence_verify_action_test.sh" >/dev/null
-"$package_root/tests/release_proof_consumption_test.sh" >/dev/null
-"$package_root/tests/arena_compare_action_test.sh" >/dev/null
-"$package_root/tests/transcript_redaction_test.sh" >/dev/null
-"$package_root/tests/transcript_verify_test.sh" >/dev/null
-"$package_root/tests/transcript_verify_action_test.sh" >/dev/null
-"$package_root/tests/transcript_corpus_test.sh" >/dev/null
-"$package_root/tests/transcript_corpus_action_test.sh" >/dev/null
-"$package_root/tests/profile_audit_test.sh" >/dev/null
-"$package_root/tests/profile_fix_plan_test.sh" >/dev/null
-"$package_root/tests/profile_validation_receipts_test.sh" >/dev/null
-"$package_root/tests/profile_validation_rerun_receipts_test.sh" >/dev/null
-"$package_root/tests/profile_proof_handoff_receipts_test.sh" >/dev/null
-"$package_root/tests/command_family_runtime_output_receipts_test.sh" >/dev/null
-"$package_root/tests/trust_hardening_receipts_test.sh" >/dev/null
-"$package_root/tests/domain_pack_sdk_test.sh" >/dev/null
-"$package_root/tests/configuration_baseline_test.sh" >/dev/null
-"$package_root/tests/task_contract_test.sh" >/dev/null
-"$package_root/tests/task_contract_receipts_test.sh" >/dev/null
-"$package_root/tests/structured_evidence_receipts_test.sh" >/dev/null
-"$package_root/tests/agent_trace_test.sh" >/dev/null
+phase "checking packaged focused test syntax"
+for packaged_test in \
+  release_consume_action_test.sh \
+  release_diff_action_test.sh \
+  release_evidence_test.sh \
+  release_evidence_action_test.sh \
+  release_evidence_negative_index_action_test.sh \
+  release_evidence_verify_test.sh \
+  release_evidence_verify_action_test.sh \
+  release_proof_consumption_test.sh \
+  arena_compare_action_test.sh \
+  transcript_redaction_test.sh \
+  transcript_verify_test.sh \
+  transcript_verify_action_test.sh \
+  transcript_corpus_test.sh \
+  transcript_corpus_action_test.sh \
+  profile_audit_test.sh \
+  profile_fix_plan_test.sh \
+  profile_validation_receipts_test.sh \
+  profile_validation_rerun_receipts_test.sh \
+  profile_proof_handoff_receipts_test.sh \
+  command_family_runtime_output_receipts_test.sh \
+  trust_hardening_receipts_test.sh \
+  domain_pack_sdk_test.sh \
+  configuration_baseline_test.sh \
+  task_contract_test.sh \
+  task_contract_receipts_test.sh \
+  structured_evidence_receipts_test.sh \
+  agent_trace_test.sh; do
+  test -x "$package_root/tests/$packaged_test"
+  bash -n "$package_root/tests/$packaged_test"
+done
 package_raw_transcript="$tmp_dir/package-raw-transcript.md"
 package_home_prefix="/""home"
 package_home_path="$package_home_prefix/runner/AcmePrivateApp"

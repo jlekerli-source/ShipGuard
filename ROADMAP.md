@@ -143,7 +143,7 @@ v3.131  v4 release-candidate readiness
 v3.132  v4 product release stabilization
 v3.133  root report-quality and bounded source-scan hardening
 v3.134  stable-publication publish-first visibility handoff
-v3.135  InspectDeck missing-receipt priority
+v3.135  package-release duplicate proof pruning
 v3.136  InspectDeck executable next-command normalization
 v3.137  LaunchKey published release-asset proof attachment
 v3.138  LaunchKey fresh-install receipt attachment
@@ -192,7 +192,9 @@ v3.194 makes next-goal release lineage explicit: generated handoffs now compare 
 
 v3.195 keeps that lineage honest for the normal next-release path: a passing next-goal lineage check no longer implies the current checkout already builds the post-bump tarball; it now names the pre-bump artifact and tells maintainers to bump `VERSION` before release packaging.
 
-Release-line note: local `VERSION` now advances to `3.134.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
+Release-line note: local `VERSION` now advances to `3.135.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
+
+v3.135 trims package-release proof duplication: after source CI runs the focused fixture suites, `tests/package_release_test.sh` verifies those packaged test scripts are included, executable, and shell-syntax-valid instead of rerunning the same suites from the extracted tarball.
 
 v3.134 corrects stable-publication visibility routing from real release-line QA: missing or stale public GitHub release metadata now routes the primary decision to `publish-new-github-release` before release-note edits.
 
@@ -202,9 +204,9 @@ v3.134 also continues result-UX command-field hardening by making report-quality
 
 v3.134 also continues InspectDeck release-proof receipt priority by making missing release proof keep `shipguard inspect` in `review` and route `nextAction` / `resultUX.nextCommand` to `shipguard release-proof build` before lower-priority value-gauntlet recommendations.
 
-v3.135 continues InspectDeck release-proof receipt detail by keeping readable-but-incomplete release manifests in `review`, listing missing required receipt fields, and routing the next action back to `shipguard release-proof build`.
+v3.135 also continues InspectDeck release-proof receipt detail by keeping readable-but-incomplete release manifests in `review`, listing missing required receipt fields, and routing the next action back to `shipguard release-proof build`.
 
-v3.135 continues InspectDeck missing-receipt priority by exposing `missingReceiptPriority` in JSON and Markdown, keeping the first executable next action singular while showing the remaining value-gauntlet, full-audit, and release-proof queue.
+v3.135 also continues InspectDeck missing-receipt priority by exposing `missingReceiptPriority` in JSON and Markdown, keeping the first executable next action singular while showing the remaining value-gauntlet, full-audit, and release-proof queue.
 
 v3.136 continues InspectDeck executable next-command normalization by falling back to a runnable full-audit command when a failed-stage receipt has a missing or unsafe `stageId`, instead of leaking malformed `--stage` commands into `resultUX.nextCommand`.
 

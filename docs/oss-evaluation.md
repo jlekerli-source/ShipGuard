@@ -12,6 +12,12 @@ The v3.195 release-lineage follow-up caught the adjacent pass-state bug after th
 - Product weakness: a release handoff must distinguish "valid next release target" from "current checkout already produces that release artifact."
 - Native fix: `shipguard next-goal` now renders the current pre-bump artifact and expected post-bump artifact separately, and the pass-state action tells maintainers to bump `VERSION` before release packaging.
 
+The v3.135 release-loop pass targeted the next package-lane efficiency issue after the 749s local package proof.
+
+- Finding: `tests/package_release_test.sh` reran many source-focused fixture suites from the extracted tarball after CI had already run those same suites on the source checkout.
+- Product weakness: required release proof should prove package integrity, installability, and representative packaged CLI behavior without duplicating the full source validation matrix.
+- Native fix: the package lane now keeps the packaged CLI/release/evidence/install proof, then checks the packaged focused test scripts for presence, executable bit, and shell syntax instead of executing them all again.
+
 The v3.194 release-lineage pass targeted a publication-trust problem exposed while checking v4 distance: `NEXT_GOAL.md` could target a later stabilization slice while `VERSION` and package scripts still described the latest actual package line.
 
 - Finding: the generated goal said target `v3.194.0`, but the checkout `VERSION` still produced `shipguard-v3.131.0.tar.gz`.

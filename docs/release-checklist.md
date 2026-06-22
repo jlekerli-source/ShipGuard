@@ -43,7 +43,7 @@ Use this checklist for every release after `v2.0.0`.
 ./tests/package_release_test.sh
 ```
 
-`./tests/package_release_test.sh` prints coarse phase timings to stderr. If it is slow, use the latest phase line to distinguish package build, manifest/privacy checks, packaged CLI smoke proof, full-audit/value-gauntlet proof, v4 proof gates, or install proof instead of treating silence as a hang.
+`./tests/package_release_test.sh` prints coarse phase timings to stderr. If it is slow, use the latest phase line to distinguish package build, manifest/privacy checks, packaged CLI smoke proof, full-audit/value-gauntlet proof, v4 proof gates, packaged focused-test syntax checks, or install proof instead of treating silence as a hang. Source-focused fixture tests are executed by CI before package proof; the package lane verifies their packaged presence and shell syntax instead of rerunning the same suites from the extracted tarball.
 
 Then:
 
