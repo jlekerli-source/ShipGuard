@@ -4556,15 +4556,23 @@ def stable_publication_evidence_packet_issues(
                 evidence=f"{path_name} claims stableV4Release=true but releaseVisibilityHandoff does not announce the current public release",
                 recommendation="When stable-v4 publication passes, the handoff should make the current public release the announcement target.",
             )
-        if public_delta.get("unpublishedLocalDelta") is True:
+        delta_comparisons = public_delta.get("comparisons") if isinstance(public_delta.get("comparisons"), dict) else {}
+        publication_mismatch = any(
+            delta_comparisons.get(key) is not True
+            for key in (
+                "selectedReleaseMatchesLatestGitHubRelease",
+                "publicTagTargetMatchesReleaseManifestCommit",
+            )
+        )
+        if publication_mismatch:
             publish_action = next((action for action in actions if isinstance(action, dict) and action.get("id") == "publish-new-github-release"), {})
             if publish_action.get("required") is not True:
                 add_issue(
                     issues,
                     severity="review",
-                    rule_id="stable-publication-release-visibility-unpublished-delta-hidden",
-                    evidence=f"{path_name} has unpublished local delta but releaseVisibilityHandoff does not require publication action",
-                    recommendation="Mark publish-new-github-release as required when local HEAD/main are not the selected public release.",
+                    rule_id="stable-publication-release-visibility-publication-mismatch-hidden",
+                    evidence=f"{path_name} has a selected/latest release or public tag/manifest mismatch but releaseVisibilityHandoff does not require publication action",
+                    recommendation="Mark publish-new-github-release as required when the selected public release is not latest or its public tag target does not match the release manifest.",
                 )
         if "Release Visibility Handoff" not in markdown:
             add_issue(

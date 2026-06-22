@@ -6,6 +6,15 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.180 read-only stable-v4 packet loop reran `shipguard v4 stable-publication` against the real public `v3.131.0` GitHub release after v3.179, then scored the report with `ios report-quality`.
+
+- Finding: the source report correctly kept local `HEAD`/`main` deltas advisory, but `ios report-quality` still enforced the older rule that unpublished local deltas must require `publish-new-github-release`.
+- Product weakness: the evaluator contradicted the product report. This would send maintainers back to publishing work even when the selected public release itself is coherent and the real blockers are release notes, LaunchKey candidate proof, adoption evidence, or security evidence.
+- Native fix: `ios report-quality` now flags `publish-new-github-release` only when the selected release is not latest or the public tag target does not match the release manifest.
+- Fixture fix: focused report-quality tests cover both local-delta-only advisory behavior and true public publication mismatch behavior.
+
+Fresh real-public-release QA still does not claim stable v4. The real `v3.131.0` report now passes report-quality and remains product-blocked on release notes, LaunchKey candidate proof, independent adoption evidence, and final security-review evidence.
+
 The v3.179 read-only stable-v4 packet loop ran `shipguard v4 stable-publication` against the real public `v3.131.0` GitHub release assets with missing candidate/adoption/security evidence intentionally left blocked, then scored the report with `ios report-quality`.
 
 - Finding: `releaseVisibilityHandoff` treated local `HEAD`/`main` being ahead of the selected public release as a reason to make `publish-new-github-release` the primary decision, and it did not include LaunchKey candidate proof as its own action row.

@@ -6457,6 +6457,59 @@ PY
   --shareable >/dev/null
 grep -q '"ruleId": "stable-publication-release-visibility-action-missing"' "$tmp_dir/stable-publication-visibility-missing-candidate-quality/ios-report-quality.json"
 
+stable_publication_visibility_local_delta_only="$tmp_dir/stable-publication-visibility-local-delta-only"
+mkdir -p "$stable_publication_visibility_local_delta_only"
+python3 - <<'PY' "$stable_publication_launch_relay_fixture/fixture-report.json" "$stable_publication_launch_relay_fixture/fixture-report.md" "$stable_publication_visibility_local_delta_only"
+import json
+import pathlib
+import sys
+
+source_json = pathlib.Path(sys.argv[1])
+source_md = pathlib.Path(sys.argv[2])
+target = pathlib.Path(sys.argv[3])
+report = json.loads(source_json.read_text(encoding="utf-8"))
+delta = report["publicReleaseDeltaProof"]
+delta["unpublishedLocalDelta"] = True
+delta["stableV4ClaimCoversLocalCheckout"] = False
+delta["comparisons"]["localHeadMatchesSelectedPublicReleaseCommit"] = False
+delta["comparisons"]["localMainMatchesSelectedPublicReleaseCommit"] = False
+visibility = report["releaseVisibilityHandoff"]
+visibility["unpublishedLocalDelta"] = True
+visibility["localMainCanBeAnnounced"] = False
+(target / "v4-stable-publication.json").write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+(target / "v4-stable-publication.md").write_text(source_md.read_text(encoding="utf-8"), encoding="utf-8")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_visibility_local_delta_only" \
+  --out "$tmp_dir/stable-publication-visibility-local-delta-only-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/stable-publication-visibility-local-delta-only-quality/ios-report-quality.json"
+
+stable_publication_visibility_public_mismatch="$tmp_dir/stable-publication-visibility-public-mismatch"
+mkdir -p "$stable_publication_visibility_public_mismatch"
+python3 - <<'PY' "$stable_publication_launch_relay_fixture/fixture-report.json" "$stable_publication_launch_relay_fixture/fixture-report.md" "$stable_publication_visibility_public_mismatch"
+import json
+import pathlib
+import sys
+
+source_json = pathlib.Path(sys.argv[1])
+source_md = pathlib.Path(sys.argv[2])
+target = pathlib.Path(sys.argv[3])
+report = json.loads(source_json.read_text(encoding="utf-8"))
+report["publicReleaseDeltaProof"]["comparisons"]["publicTagTargetMatchesReleaseManifestCommit"] = False
+for action in report["releaseVisibilityHandoff"]["requiredActions"]:
+    if action.get("id") == "publish-new-github-release":
+        action["required"] = False
+        action["status"] = "pass"
+(target / "v4-stable-publication.json").write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+(target / "v4-stable-publication.md").write_text(source_md.read_text(encoding="utf-8"), encoding="utf-8")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_visibility_public_mismatch" \
+  --out "$tmp_dir/stable-publication-visibility-public-mismatch-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "stable-publication-release-visibility-publication-mismatch-hidden"' "$tmp_dir/stable-publication-visibility-public-mismatch-quality/ios-report-quality.json"
+
 stable_publication_product_hunt_missing_relay="$tmp_dir/stable-publication-product-hunt-missing-relay"
 mkdir -p "$stable_publication_product_hunt_missing_relay"
 python3 - <<'PY' "$stable_publication_launch_relay_fixture/fixture-report.json" "$stable_publication_launch_relay_fixture/fixture-report.md" "$stable_publication_product_hunt_missing_relay"
