@@ -130,6 +130,7 @@ def value_gauntlet_summary(path: Path | None, data: dict[str, Any], root: Path, 
     probe = data.get("lowestValueSurfaceProbe") if isinstance(data.get("lowestValueSurfaceProbe"), dict) else {}
     answer = probe.get("answer") if isinstance(probe.get("answer"), dict) else {}
     summary = data.get("summary") if isinstance(data.get("summary"), dict) else {}
+    stable_publication = data.get("stablePublicationPriority") if isinstance(data.get("stablePublicationPriority"), dict) else {}
     return {
         "found": bool(data),
         "path": rel_or_redacted(path, root, shareable=shareable),
@@ -146,6 +147,13 @@ def value_gauntlet_summary(path: Path | None, data: dict[str, Any], root: Path, 
             "recommendation": answer.get("recommendation") or "",
             "proofGuidance": answer.get("proofGuidance") or "",
             "reason": answer.get("reason") or "",
+        },
+        "stablePublicationPriority": {
+            "status": stable_publication.get("status") or "",
+            "surface": stable_publication.get("surface") or "",
+            "nextCommand": stable_publication.get("nextCommand") or "",
+            "blockedBy": stable_publication.get("blockedBy") or [],
+            "whyItMatters": stable_publication.get("whyItMatters") or "",
         },
         "reportQualityQuestions": data.get("reportQualityQuestions") or [],
     }
@@ -325,6 +333,19 @@ def choose_next_action(value_summary: dict[str, Any], full_summary: dict[str, An
             "source": "full-audit.failedStages",
             "command": command,
             "reason": f"Full Audit has a non-passing stage: {stage.get('stageId') or 'unknown'}.",
+        }
+    stable_publication = value_summary.get("stablePublicationPriority") or {}
+    stable_command = command_template_or_default(str(stable_publication.get("nextCommand") or ""), "")
+    if stable_publication.get("status") in {"review", "blocked"} and stable_command:
+        blockers = stable_publication.get("blockedBy") if isinstance(stable_publication.get("blockedBy"), list) else []
+        blocker_text = ", ".join(str(item) for item in blockers[:5] if item)
+        reason = stable_publication.get("whyItMatters") or "Stable v4 publication needs real public release proof."
+        if blocker_text:
+            reason = f"{reason} Blocked by: {blocker_text}."
+        return {
+            "source": "value-gauntlet.stablePublicationPriority",
+            "command": stable_command,
+            "reason": reason,
         }
     lowest = value_summary.get("lowestValueSurface") or {}
     if lowest.get("recommendation"):

@@ -1,9 +1,9 @@
 # Next Goal
 
-- Generated: 2026-06-22T16:12:52Z
+- Generated: 2026-06-22T16:37:37Z
 - Current toolkit version: 3.132.0
 - Target release: v3.133.0
-- Title: Next Maintainer Reliability Upgrade
+- Title: InspectDeck Stable-publication Priority Handoff
 
 ## Version Lineage Check
 
@@ -18,8 +18,8 @@
 ## Slash Plan
 
 ```text
-/plan v3.133.0 Next Maintainer Reliability Upgrade for jlekerli-source/ShipGuard:
-1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
+/plan v3.133.0 InspectDeck Stable-publication Priority Handoff for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make InspectDeck advance from supplied Value Gauntlet proof to the real stable-publication command instead of looping back to value-gauntlet.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, bump VERSION before release packaging, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -28,9 +28,40 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.133.0 Next Maintainer Reliability Upgrade for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.133.0 InspectDeck Stable-publication Priority Handoff for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make InspectDeck advance from supplied Value Gauntlet proof to the real stable-publication command instead of looping back to value-gauntlet, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
+
+## Bounded Scope
+
+Make InspectDeck advance from supplied Value Gauntlet proof to the real stable-publication command instead of looping back to value-gauntlet.
+
+## Completion Receipt
+
+- Completed scope: InspectDeck now routes Value Gauntlet stable-publication priority to nextAction and resultUX.
+- Evidence: py_compile, inspect_test, concise_verdict_result_ux_test, tool_value_gauntlet_test, live inspect rerun, and report-quality over InspectDeck output passed
+
+## Following Slash Plan
+
+```text
+/plan v3.134.0 InspectDeck Release-proof Receipt Priority for jlekerli-source/ShipGuard:
+1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
+2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
+3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
+4. Generate the next completion receipt and following /plan plus /goal after validation passes.
+```
+
+## Following Slash Goal
+
+```text
+/goal Implement v3.134.0 InspectDeck Release-proof Receipt Priority for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+```
+
+Generate that follow-up file with:
+
+```bash
+./bin/shipguard next-goal --release 3.134.0 --title "InspectDeck Release-proof Receipt Priority" --out NEXT_GOAL.md
+```
 
 ## Constraints
 

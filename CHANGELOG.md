@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Routed InspectDeck stable-publication priorities forward: when Value Gauntlet supplies `stablePublicationPriority.nextCommand`, `shipguard inspect` now uses that stable-v4 publication command as `nextAction.command` and `resultUX.nextCommand` instead of looping maintainers back to rerun value-gauntlet.
 - Refreshed `NEXT_GOAL.md` back to the current buildable v3.133.0 handoff and adjusted Full Audit handoff proof to accept either a current active handoff or a completed following handoff, instead of requiring stale completed-loop state.
 - Hardened stable-publication final claim gates: blocked `finalStableV4ClaimPacket` reports now keep `allowedClaims` empty, passing reports must include bounded allowed claims, and `ios report-quality` flags any blocked packet that mixes allowed wording into the final claim decision.
 - Added Tool Value Gauntlet stable-publication priority: `shipguard value-gauntlet` now emits `stablePublicationPriority` in JSON and Markdown so the real v4 blocker, required proof packet, copy-ready `shipguard v4 stable-publication` command, and source/fixture non-claims are visible without reverse-engineering `lowestValueSurfaceProbe`.

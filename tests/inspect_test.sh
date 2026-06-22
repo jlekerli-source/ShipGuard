@@ -158,6 +158,56 @@ grep -q '"tool": "shipguard inspect"' <<<"$json_stdout"
 markdown_stdout="$(./bin/shipguard inspect --path . --out "$tmp_dir/md" --value-gauntlet "$tmp_dir/value" --full-audit "$tmp_dir/full" --release-assets "$tmp_dir/release" --markdown)"
 grep -q '# ShipGuard InspectDeck' <<<"$markdown_stdout"
 
+python3 - <<'PY' "$tmp_dir/value/tool-value-gauntlet.json" "$tmp_dir/value/tool-value-gauntlet-stable.json"
+import json
+import sys
+
+source, target = sys.argv[1:3]
+data = json.load(open(source, encoding="utf-8"))
+data["stablePublicationPriority"] = {
+    "status": "review",
+    "surface": "v4 Stable Release Publication",
+    "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-out> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable",
+    "blockedBy": [
+        "public GitHub release metadata and release notes",
+        "downloaded release assets",
+        "post-release consumer proof",
+    ],
+    "whyItMatters": "Stable v4 should not be claimed until public release assets and consumer proof pass together.",
+}
+json.dump(data, open(target, "w", encoding="utf-8"), indent=2, sort_keys=True)
+PY
+
+mkdir -p "$tmp_dir/value-stable"
+mv "$tmp_dir/value/tool-value-gauntlet-stable.json" "$tmp_dir/value-stable/tool-value-gauntlet.json"
+
+./bin/shipguard inspect \
+  --path . \
+  --out "$tmp_dir/stable-priority" \
+  --value-gauntlet "$tmp_dir/value-stable" \
+  --full-audit "$tmp_dir/full" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+python3 - <<'PY' "$tmp_dir/stable-priority/shipguard-inspect.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+next_action = data.get("nextAction") or {}
+result = data.get("resultUX") or {}
+priority = data["proofReceipts"]["valueGauntlet"].get("stablePublicationPriority") or {}
+expected = priority.get("nextCommand")
+if next_action.get("source") != "value-gauntlet.stablePublicationPriority":
+    raise SystemExit(f"stable-publication priority should drive nextAction: {next_action!r}")
+if not expected or next_action.get("command") != expected:
+    raise SystemExit(f"stable-publication command should survive inspect: {next_action!r} {priority!r}")
+if result.get("nextCommand") != expected:
+    raise SystemExit(f"resultUX should mirror stable-publication command: {result!r}")
+if "public GitHub release metadata" not in next_action.get("reason", ""):
+    raise SystemExit(f"stable-publication blockers should be in reason: {next_action!r}")
+PY
+
 ./bin/shipguard inspect \
   --path . \
   --out "$tmp_dir/missing-inputs" \
