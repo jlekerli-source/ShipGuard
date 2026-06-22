@@ -6,6 +6,15 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.181 read-only stable-v4 packet loop reran `shipguard v4 stable-publication` against the real public `v3.131.0` GitHub release after v3.180, then scored the report with `ios report-quality`.
+
+- Finding: the real report passed report-quality, but the generated evidence starter kit still looked too detached from the first release-notes blocker: the starter checklist did not carry the target release version, and the starter README did not point maintainers to the release-notes authoring kit.
+- Product weakness: a solo maintainer opening `stable-publication-evidence-kit/` should know which public release the packet closes and where to fix the first release-notes blocker without jumping back into the root JSON report.
+- Native fix: `stablePublicationEvidenceStarterKit` is now schema v2 with `releaseVersion` and `relatedAuthoringKits`, linking to `stable-publication-release-notes`, its status, missing topics, files, and rerun command. The written checklist JSON, starter README, and Markdown report render the same handoff.
+- Report-quality fix: `ios report-quality` flags v2 starter kits that omit the report release version or the release-notes authoring-kit link.
+
+Fresh real-public-release QA still does not claim stable v4. The real `v3.131.0` report passes report-quality and remains product-blocked on release notes, LaunchKey candidate proof, independent adoption evidence, and final security-review evidence.
+
 The v3.180 read-only stable-v4 packet loop reran `shipguard v4 stable-publication` against the real public `v3.131.0` GitHub release after v3.179, then scored the report with `ios report-quality`.
 
 - Finding: the source report correctly kept local `HEAD`/`main` deltas advisory, but `ios report-quality` still enforced the older rule that unpublished local deltas must require `publish-new-github-release`.

@@ -425,8 +425,13 @@ by_id = {item["id"]: item for item in templates["templates"]}
 assert by_id["independent-adoption-evidence"]["exists"] is True
 assert by_id["final-security-review-evidence"]["exists"] is True
 starter = report["stablePublicationEvidenceStarterKit"]
+assert starter["schemaVersion"] == 2
 assert starter["draftOnly"] is True
 assert starter["directory"] == "stable-publication-evidence-kit"
+assert starter["releaseVersion"] == report["releaseVersion"]
+related = {item["id"]: item for item in starter["relatedAuthoringKits"]}
+assert related["release-notes-authoring-kit"]["directory"] == "stable-publication-release-notes"
+assert related["release-notes-authoring-kit"]["status"] == report["stablePublicationReleaseNotesAuthoringKit"]["status"]
 assert {
     "stable-publication-evidence-kit/README.md",
     "stable-publication-evidence-kit/stable-publication-checklist.json",
@@ -458,7 +463,11 @@ test -f "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-che
 test -f "$tmp_dir/blocked/stable-publication-evidence-kit/external-adoption-evidence.json"
 test -f "$tmp_dir/blocked/stable-publication-evidence-kit/security-review-evidence.json"
 grep -q '"draftOnly": true' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
+grep -q "\"releaseVersion\": \"$version\"" "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
+grep -q '"relatedAuthoringKits":' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q 'Stable Publication Evidence Kit' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
+grep -q "Release version: \`$version\`" "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
+grep -q 'Release notes kit: `stable-publication-release-notes`' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q '"closureChecklist":' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q 'Closure Checklist' "$tmp_dir/blocked/v4-stable-publication.md"
 grep -q 'LaunchKey Candidate Closure Kit' "$tmp_dir/blocked/v4-stable-publication.md"
@@ -1280,8 +1289,12 @@ templates = report["stablePublicationEvidenceTemplates"]
 assert templates["draftOnly"] is True
 assert len(templates["templates"]) == 2
 starter = report["stablePublicationEvidenceStarterKit"]
+assert starter["schemaVersion"] == 2
 assert starter["draftOnly"] is True
 assert starter["directory"] == "stable-publication-evidence-kit"
+assert starter["releaseVersion"] == report["releaseVersion"]
+related = {item["id"]: item for item in starter["relatedAuthoringKits"]}
+assert related["release-notes-authoring-kit"]["directory"] == "stable-publication-release-notes"
 assert "stable-publication-evidence-kit/security-review-evidence.json" in starter["nextCommandTemplate"]
 relay = report["stablePublicationLaunchRelayDrafts"]
 assert relay["draftOnly"] is True
@@ -1326,9 +1339,13 @@ grep -q 'Security review freshness: `pass`' "$tmp_dir/pass/v4-stable-publication
 grep -q 'independent-adoption-evidence' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Templates' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Starter Kit' "$tmp_dir/pass/v4-stable-publication.md"
+grep -Eq 'Release version: `v?3\.131\.0`' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'stable-publication-release-notes' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Stable v4 release claim allowed: `True`' "$tmp_dir/pass/v4-stable-publication.md"
 test -f "$tmp_dir/pass/stable-publication-evidence-kit/README.md"
 test -f "$tmp_dir/pass/stable-publication-evidence-kit/stable-publication-checklist.json"
+grep -q '"relatedAuthoringKits":' "$tmp_dir/pass/stable-publication-evidence-kit/stable-publication-checklist.json"
+grep -q 'Release notes kit: `stable-publication-release-notes`' "$tmp_dir/pass/stable-publication-evidence-kit/README.md"
 test -f "$tmp_dir/pass/stable-publication-evidence-kit/external-adoption-evidence.json"
 test -f "$tmp_dir/pass/stable-publication-evidence-kit/security-review-evidence.json"
 test -f "$tmp_dir/pass/stable-publication-release-notes/README.md"

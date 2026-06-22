@@ -5523,6 +5523,31 @@ grep -q '"ruleId": "stable-publication-evidence-templates-markdown-missing"' "$t
 grep -q '"ruleId": "stable-publication-evidence-starter-kit-missing"' "$tmp_dir/stable-publication-templates-quality/ios-report-quality.json"
 grep -q '"ruleId": "stable-publication-evidence-starter-kit-markdown-missing"' "$tmp_dir/stable-publication-templates-quality/ios-report-quality.json"
 
+stable_publication_starter_v2_dir="$tmp_dir/stable-publication-starter-v2"
+mkdir -p "$stable_publication_starter_v2_dir"
+python3 - "$stable_publication_starter_v2_dir" <<'PY'
+import json
+import pathlib
+import sys
+
+target = pathlib.Path(sys.argv[1])
+source = pathlib.Path("fixtures/ios-report-quality/stable-publication-complete")
+report = json.loads((source / "fixture-report.json").read_text(encoding="utf-8"))
+report["releaseVersion"] = "3.999.0"
+starter = report["stablePublicationEvidenceStarterKit"]
+starter["schemaVersion"] = 2
+starter.pop("releaseVersion", None)
+starter.pop("relatedAuthoringKits", None)
+(target / "v4-stable-publication.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+(target / "v4-stable-publication.md").write_text((source / "fixture-report.md").read_text(encoding="utf-8"), encoding="utf-8")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_starter_v2_dir" \
+  --out "$tmp_dir/stable-publication-starter-v2-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "stable-publication-evidence-starter-kit-release-version-missing"' "$tmp_dir/stable-publication-starter-v2-quality/ios-report-quality.json"
+grep -q '"ruleId": "stable-publication-evidence-starter-kit-release-notes-link-missing"' "$tmp_dir/stable-publication-starter-v2-quality/ios-report-quality.json"
+
 stable_publication_launchkey_closure_dir="$tmp_dir/stable-publication-launchkey-closure"
 mkdir -p "$stable_publication_launchkey_closure_dir"
 cat > "$stable_publication_launchkey_closure_dir/v4-stable-publication.json" <<'JSON'

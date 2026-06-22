@@ -4811,6 +4811,32 @@ def stable_publication_evidence_packet_issues(
                 evidence=f"{path_name} starter kit does not include an attach-ready nextCommandTemplate",
                 recommendation="Include a stable-publication nextCommandTemplate that references the generated adoption and security starter files.",
             )
+        starter_schema = starter.get("schemaVersion")
+        if isinstance(starter_schema, int) and starter_schema >= 2:
+            report_release_version = str(report.get("releaseVersion") or "")
+            if report_release_version and str(starter.get("releaseVersion") or "") != report_release_version:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-evidence-starter-kit-release-version-missing",
+                    evidence=f"{path_name} starter kit does not carry the report releaseVersion",
+                    recommendation="Copy the report releaseVersion into stablePublicationEvidenceStarterKit and the written starter checklist so users know which public release the packet closes.",
+                )
+            related_kits = starter.get("relatedAuthoringKits")
+            release_notes_related = [
+                item for item in related_kits
+                if isinstance(item, dict)
+                and item.get("id") == "release-notes-authoring-kit"
+                and item.get("directory") == "stable-publication-release-notes"
+            ] if isinstance(related_kits, list) else []
+            if isinstance(report.get("stablePublicationReleaseNotesAuthoringKit"), dict) and not release_notes_related:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-evidence-starter-kit-release-notes-link-missing",
+                    evidence=f"{path_name} starter kit does not link to the release-notes authoring kit",
+                    recommendation="Add stablePublicationEvidenceStarterKit.relatedAuthoringKits with the release-notes directory, status, missing topics, files, and rerun command.",
+                )
     if "Evidence Starter Kit" not in markdown:
         add_issue(
             issues,

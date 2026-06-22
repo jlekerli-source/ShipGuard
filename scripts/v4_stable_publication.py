@@ -2825,7 +2825,7 @@ def build_stable_publication_evidence_templates(root: Path) -> dict[str, Any]:
 
 def build_stable_publication_evidence_starter_kit_manifest() -> dict[str, Any]:
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "draftOnly": True,
         "directory": STARTER_KIT_DIRNAME,
         "files": [
@@ -2868,6 +2868,29 @@ def build_stable_publication_evidence_starter_kit_manifest() -> dict[str, Any]:
             "--shipguard-eval --shareable"
         ),
     }
+
+
+def attach_release_notes_authoring_kit_to_starter(
+    starter_kit: dict[str, Any],
+    *,
+    release_version: str,
+    release_notes_authoring_kit: dict[str, Any],
+) -> dict[str, Any]:
+    updated = dict(starter_kit)
+    related_files = release_notes_authoring_kit.get("files")
+    updated["releaseVersion"] = release_version
+    updated["relatedAuthoringKits"] = [
+        {
+            "id": "release-notes-authoring-kit",
+            "directory": release_notes_authoring_kit.get("directory") or RELEASE_NOTES_KIT_DIRNAME,
+            "status": release_notes_authoring_kit.get("status") or "review",
+            "draftOnly": release_notes_authoring_kit.get("draftOnly") is True,
+            "missingTopicIds": release_notes_authoring_kit.get("missingTopicIds") if isinstance(release_notes_authoring_kit.get("missingTopicIds"), list) else [],
+            "files": related_files if isinstance(related_files, list) else [],
+            "nextCommandTemplate": release_notes_authoring_kit.get("nextCommandTemplate") or "",
+        }
+    ]
+    return updated
 
 
 def build_stable_publication_release_notes_authoring_kit(
@@ -3535,12 +3558,14 @@ def write_stable_publication_evidence_starter_kit(
         "schemaVersion": 1,
         "draftOnly": True,
         "status": packet.get("status", report.get("status")),
+        "releaseVersion": report.get("releaseVersion"),
         "stableV4Release": False,
         "firstBlockingGate": packet.get("firstBlockingGate"),
         "closureChecklist": closure_checklist,
         "requiredEvidence": packet.get("requiredEvidence", []),
         "missingEvidenceIds": packet.get("missingEvidenceIds", []),
         "blockedClaims": report.get("blockedClaims", []),
+        "relatedAuthoringKits": starter_kit.get("relatedAuthoringKits", []),
         "nextCommandTemplate": starter_kit.get("nextCommandTemplate"),
     }
     (kit_dir / "stable-publication-checklist.json").write_text(
@@ -3548,11 +3573,22 @@ def write_stable_publication_evidence_starter_kit(
         encoding="utf-8",
     )
 
+    related_kits = starter_kit.get("relatedAuthoringKits")
+    release_notes_kit = next(
+        (
+            item for item in related_kits
+            if isinstance(item, dict) and item.get("id") == "release-notes-authoring-kit"
+        ),
+        {},
+    ) if isinstance(related_kits, list) else {}
+
     readme_lines = [
         "# Stable Publication Evidence Kit",
         "",
         "This directory is a draft-only starter kit for `shipguard v4 stable-publication`.",
         "It helps collect the real evidence packet; it is not evidence by itself.",
+        "",
+        f"- Release version: `{report.get('releaseVersion') or 'unknown'}`",
         "",
         "## Files",
         "",
@@ -3566,13 +3602,29 @@ def write_stable_publication_evidence_starter_kit(
         "- Redact private app names, private paths, screenshots, account data, and token-like strings before sharing.",
         "- Stable v4 is only claimable when `shipguard v4 stable-publication` returns `pass`.",
         "",
-        "## Next Command",
-        "",
-        "```bash",
-        str(starter_kit.get("nextCommandTemplate") or ""),
-        "```",
-        "",
     ]
+    if release_notes_kit:
+        missing_topics = ", ".join(str(item) for item in release_notes_kit.get("missingTopicIds", [])) or "none"
+        readme_lines.extend(
+            [
+                "## Related Authoring Kits",
+                "",
+                f"- Release notes kit: `{release_notes_kit.get('directory') or RELEASE_NOTES_KIT_DIRNAME}`",
+                f"- Release notes status: `{release_notes_kit.get('status') or 'review'}`",
+                f"- Missing release-note topics: `{missing_topics}`",
+                "",
+            ]
+        )
+    readme_lines.extend(
+        [
+            "## Next Command",
+            "",
+            "```bash",
+            str(starter_kit.get("nextCommandTemplate") or ""),
+            "```",
+            "",
+        ]
+    )
     (kit_dir / "README.md").write_text("\n".join(readme_lines), encoding="utf-8")
 
 
@@ -3932,6 +3984,15 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     stable_v4_release = status == "pass"
     evidence_templates = build_stable_publication_evidence_templates(root)
     evidence_starter_kit = build_stable_publication_evidence_starter_kit_manifest()
+    release_notes_authoring_kit = build_stable_publication_release_notes_authoring_kit(
+        release_version=release_version,
+        release_notes_proof=release_notes_proof,
+    )
+    evidence_starter_kit = attach_release_notes_authoring_kit_to_starter(
+        evidence_starter_kit,
+        release_version=release_version,
+        release_notes_authoring_kit=release_notes_authoring_kit,
+    )
     public_evidence_closure_proof = build_public_evidence_closure_proof(
         release_version=release_version,
         adoption_proof=adoption_proof,
@@ -3939,10 +4000,6 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         evidence_templates=evidence_templates,
         evidence_starter_kit=evidence_starter_kit,
         rerun_command=stable_publication_rerun_command(args),
-    )
-    release_notes_authoring_kit = build_stable_publication_release_notes_authoring_kit(
-        release_version=release_version,
-        release_notes_proof=release_notes_proof,
     )
     evidence_packet = build_stable_publication_evidence_packet(
         gates=gates,
@@ -5010,6 +5067,7 @@ def render_markdown(report: dict[str, Any]) -> str:
                 "",
                 f"- Directory: `{starter_kit.get('directory')}`",
                 f"- Draft-only: `{starter_kit.get('draftOnly')}`",
+                f"- Release version: `{starter_kit.get('releaseVersion') or report.get('releaseVersion') or 'unknown'}`",
                 "",
                 "| File | Purpose |",
                 "| --- | --- |",
@@ -5018,6 +5076,13 @@ def render_markdown(report: dict[str, Any]) -> str:
         for item in starter_kit.get("files", []):
             if isinstance(item, dict):
                 lines.append(f"| `{item.get('path')}` | {item.get('purpose')} |")
+        related = starter_kit.get("relatedAuthoringKits")
+        if isinstance(related, list) and related:
+            lines.extend(["", "| Related kit | Status | Missing topics |", "| --- | --- | --- |"])
+            for item in related:
+                if isinstance(item, dict):
+                    missing = ", ".join(str(topic) for topic in item.get("missingTopicIds", [])) or "none"
+                    lines.append(f"| `{item.get('directory')}` | `{item.get('status')}` | {missing} |")
         lines.extend(["", "Next command template:", "", "```bash", str(starter_kit.get("nextCommandTemplate") or ""), "```"])
     launch_relay = report.get("stablePublicationLaunchRelayDrafts") if isinstance(report.get("stablePublicationLaunchRelayDrafts"), dict) else {}
     if launch_relay:

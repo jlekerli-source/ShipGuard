@@ -352,7 +352,12 @@ This directory is a convenience artifact, not proof. It contains:
 - `external-adoption-evidence.json` copied from the draft-only adoption template
 - `security-review-evidence.json` copied from the draft-only security-review template
 
-The report exposes the same information in `stablePublicationEvidenceStarterKit`. `ios report-quality` flags stable-publication reports that do not write or render this starter kit, because the final publication gate should be actionable without making maintainers reverse-engineer JSON shapes from source code.
+The report exposes the same information in `stablePublicationEvidenceStarterKit`. In schema v2, the starter kit also carries:
+
+- `releaseVersion`, so the local starter files stay tied to the public release packet being closed
+- `relatedAuthoringKits`, currently linking to `stable-publication-release-notes`, its status, missing topics, files, and rerun command
+
+`ios report-quality` flags stable-publication reports that do not write or render this starter kit, and flags schema-v2 starter kits that lose the release version or release-notes authoring-kit link, because the final publication gate should be actionable without making maintainers reverse-engineer JSON shapes from source code.
 
 Starter-kit files are intentionally not pass-ready. Fill them with real reviewed evidence, redact private details, and pass the completed files back with `--external-adoption-evidence` and `--security-review-evidence`.
 
