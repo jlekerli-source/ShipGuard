@@ -1724,6 +1724,136 @@ def build_public_release_delta_proof(
     }
 
 
+def build_release_visibility_handoff(
+    *,
+    release_version: str,
+    stable_v4_release: bool,
+    release_notes_proof: dict[str, Any],
+    published_asset_proof: dict[str, Any],
+    public_evidence_closure_proof: dict[str, Any],
+    public_release_delta_proof: dict[str, Any],
+    release_asset_coherence_proof: dict[str, Any],
+    final_claim_packet: dict[str, Any],
+    rerun_command: str,
+) -> dict[str, Any]:
+    comparisons = (
+        public_release_delta_proof.get("comparisons")
+        if isinstance(public_release_delta_proof.get("comparisons"), dict)
+        else {}
+    )
+    unpublished_delta = public_release_delta_proof.get("unpublishedLocalDelta") is True
+    public_release_mismatch = any(
+        comparisons.get(key) is not True
+        for key in (
+            "selectedReleaseMatchesLatestGitHubRelease",
+            "publicTagTargetMatchesReleaseManifestCommit",
+            "sourceVersionMatchesRequestedRelease",
+            "localHeadMatchesSelectedPublicReleaseCommit",
+            "localMainMatchesSelectedPublicReleaseCommit",
+        )
+    )
+    needs_release = unpublished_delta or public_release_mismatch
+    needs_notes = release_notes_proof.get("status") != "pass"
+    needs_assets = (
+        published_asset_proof.get("status") != "pass"
+        or release_asset_coherence_proof.get("status") != "pass"
+        or comparisons.get("packageAssetsVersionMatchesRequestedRelease") is not True
+    )
+    needs_evidence = public_evidence_closure_proof.get("status") != "pass"
+
+    if stable_v4_release:
+        primary = "announce-current-public-release"
+    elif needs_release:
+        primary = "publish-new-github-release"
+    elif needs_notes:
+        primary = "update-release-notes"
+    elif needs_assets:
+        primary = "update-release-assets"
+    elif needs_evidence:
+        primary = "attach-adoption-security-evidence"
+    else:
+        primary = "keep-current-public-release-in-review"
+
+    actions = [
+        {
+            "id": "publish-new-github-release",
+            "required": needs_release,
+            "status": "review" if needs_release else "pass",
+            "reason": (
+                "Local source, latest GitHub release, tag target, or manifest commit is not aligned with the selected public release."
+                if needs_release
+                else "Selected public release, latest release, tag target, manifest, and local checkout are aligned."
+            ),
+            "nextCommand": "gh release create <tag> dist/shipguard-v<version>.tar.gz --notes-file <release-notes.md>",
+        },
+        {
+            "id": "update-release-notes",
+            "required": needs_notes,
+            "status": "review" if needs_notes else "pass",
+            "reason": release_notes_proof.get("summary") or "Release notes proof status decides this action.",
+            "nextCommand": str(release_notes_proof.get("nextCommand") or rerun_command),
+        },
+        {
+            "id": "update-release-assets",
+            "required": needs_assets,
+            "status": "review" if needs_assets else "pass",
+            "reason": (
+                "Downloaded or supplied release assets, package version, or SHA-256 coherence still needs repair."
+                if needs_assets
+                else "Release assets and digest coherence passed."
+            ),
+            "nextCommand": str(published_asset_proof.get("nextCommand") or rerun_command),
+        },
+        {
+            "id": "attach-adoption-security-evidence",
+            "required": needs_evidence,
+            "status": "review" if needs_evidence else "pass",
+            "reason": public_evidence_closure_proof.get("summary") or "Adoption/security evidence closure status decides this action.",
+            "nextCommand": str(public_evidence_closure_proof.get("rerunCommand") or rerun_command),
+        },
+        {
+            "id": "keep-current-public-release-unchanged",
+            "required": not any([needs_release, needs_notes, needs_assets, needs_evidence]),
+            "status": "pass" if not any([needs_release, needs_notes, needs_assets, needs_evidence]) else "blocked",
+            "reason": (
+                "The current public release can remain the announcement target."
+                if not any([needs_release, needs_notes, needs_assets, needs_evidence])
+                else "Do not treat the current public release as covering missing release, notes, asset, adoption, or security proof."
+            ),
+            "nextCommand": str(final_claim_packet.get("nextCommand") or rerun_command),
+        },
+    ]
+    return {
+        "schemaVersion": 1,
+        "releaseVersion": release_version,
+        "status": "pass" if stable_v4_release else "review",
+        "primaryDecision": primary,
+        "summary": (
+            f"ShipGuard {release_version} can be announced from the current public release."
+            if stable_v4_release
+            else f"ShipGuard {release_version} is not ready for stable-v4 announcement; next action: {primary}."
+        ),
+        "latestGitHubReleaseVersion": public_release_delta_proof.get("latestGitHubReleaseVersion") or "",
+        "selectedGitHubReleaseTag": public_release_delta_proof.get("selectedGitHubReleaseTag") or "",
+        "latestGitHubReleaseTag": public_release_delta_proof.get("latestGitHubReleaseTag") or "",
+        "unpublishedLocalDelta": unpublished_delta,
+        "stableV4Release": stable_v4_release,
+        "currentPublicReleaseCanBeAnnounced": stable_v4_release and public_release_delta_proof.get("status") == "pass",
+        "localMainCanBeAnnounced": stable_v4_release and public_release_delta_proof.get("stableV4ClaimCoversLocalCheckout") is True,
+        "requiredActions": actions,
+        "nextCommand": str(final_claim_packet.get("nextCommand") or rerun_command),
+        "visibilityBoundary": {
+            "doesNotPublishRelease": True,
+            "doesNotEditGitHubRelease": True,
+            "doesNotPostExternally": True,
+            "latestPublicGitHubReleaseIsPublicationTruth": True,
+            "localHeadIsNotPublicationProof": True,
+            "localMainIsNotPublicationProof": True,
+            "unpublishedLocalCodeCountsAsReleased": False,
+        },
+    }
+
+
 def first_blocking_gate(gates: list[tuple[str, dict[str, Any], str]]) -> tuple[str, dict[str, Any], str] | None:
     for receipt, proof, command in gates:
         if proof.get("status") == "pass":
@@ -3850,6 +3980,17 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         launch_relay_drafts=launch_relay_drafts,
         rerun_command=stable_publication_rerun_command(args),
     )
+    release_visibility_handoff = build_release_visibility_handoff(
+        release_version=release_version,
+        stable_v4_release=stable_v4_release,
+        release_notes_proof=release_notes_proof,
+        published_asset_proof=published_asset_proof,
+        public_evidence_closure_proof=public_evidence_closure_proof,
+        public_release_delta_proof=public_release_delta_proof,
+        release_asset_coherence_proof=release_asset_coherence_proof,
+        final_claim_packet=final_claim_packet,
+        rerun_command=stable_publication_rerun_command(args),
+    )
 
     if blocked:
         receipt, proof, next_command = blocked
@@ -3896,6 +4037,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "stablePublicationReleaseNotesAuthoringKit": release_notes_authoring_kit,
         "stablePublicationLaunchRelayDrafts": launch_relay_drafts,
         "publicReleaseDeltaProof": public_release_delta_proof,
+        "releaseVisibilityHandoff": release_visibility_handoff,
         "finalStableV4ClaimPacket": final_claim_packet,
         "githubReleaseMetadataProof": metadata_proof,
         "githubLatestReleaseProof": latest_release_proof,
@@ -3946,6 +4088,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Do independent adoption and final security-review evidence records prove generatedAt freshness against the release manifest instead of reusing stale packet evidence?",
             "Does the public evidence closure proof summarize adoption/security gate status, freshness, starter paths, copy-ready commands, and non-claims before stable-v4 publication?",
             "Does the public release delta proof show whether local main, latest GitHub release, package assets, and stable-publication claims are aligned before announcement copy?",
+            "Does the release visibility handoff say whether to publish a new GitHub release, update notes/assets, attach adoption/security evidence, or keep the current public release unchanged?",
             "Does the final stable-v4 claim packet give copy-ready allowed wording, blocked wording, evidence status rows, approval boundaries, and non-claims before any launch announcement?",
             "Do independent adoption and final security-review closure rows expose starter paths, required fields, redaction/privacy boundaries, pass/fail criteria, current diagnostics, and exact stable-publication rerun commands?",
             "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?",
@@ -4082,6 +4225,39 @@ def render_markdown(report: dict[str, Any]) -> str:
             for problem in public_delta.get("problems", []):
                 lines.append(f"- {problem}")
         lines.extend(["", "Next command:", "", "```bash", str(public_delta.get("nextCommand") or ""), "```"])
+    visibility = (
+        report.get("releaseVisibilityHandoff")
+        if isinstance(report.get("releaseVisibilityHandoff"), dict)
+        else {}
+    )
+    if visibility:
+        boundary = (
+            visibility.get("visibilityBoundary")
+            if isinstance(visibility.get("visibilityBoundary"), dict)
+            else {}
+        )
+        lines.extend(
+            [
+                "",
+                "## Release Visibility Handoff",
+                "",
+                f"- Status: `{visibility.get('status')}`",
+                f"- Primary decision: `{visibility.get('primaryDecision')}`",
+                f"- Latest GitHub release: `{visibility.get('latestGitHubReleaseVersion') or 'not-provided'}`",
+                f"- Selected release tag: `{visibility.get('selectedGitHubReleaseTag') or 'not-provided'}`",
+                f"- Unpublished local delta: `{visibility.get('unpublishedLocalDelta')}`",
+                f"- Current public release can be announced: `{visibility.get('currentPublicReleaseCanBeAnnounced')}`",
+                f"- Local main can be announced: `{visibility.get('localMainCanBeAnnounced')}`",
+                f"- Unpublished local code counts as released: `{boundary.get('unpublishedLocalCodeCountsAsReleased')}`",
+                "",
+                "| Action | Required | Status |",
+                "| --- | ---: | --- |",
+            ]
+        )
+        for action in visibility.get("requiredActions", []):
+            if isinstance(action, dict):
+                lines.append(f"| `{action.get('id')}` | `{action.get('required')}` | `{action.get('status')}` |")
+        lines.extend(["", "Next command:", "", "```bash", str(visibility.get("nextCommand") or ""), "```"])
     final_claim = (
         report.get("finalStableV4ClaimPacket")
         if isinstance(report.get("finalStableV4ClaimPacket"), dict)

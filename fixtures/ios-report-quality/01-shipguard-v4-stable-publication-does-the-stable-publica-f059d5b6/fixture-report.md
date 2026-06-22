@@ -201,6 +201,25 @@ Public posting, publishing, submission, or account-visible external actions requ
 | `localHeadMatchesSelectedPublicReleaseCommit` | `True` |
 | `localMainMatchesSelectedPublicReleaseCommit` | `True` |
 
+## Release Visibility Handoff
+
+- Status: `pass`
+- Primary decision: `announce-current-public-release`
+- Latest GitHub release: `0.0.0`
+- Selected release tag: `v0.0.0`
+- Unpublished local delta: `False`
+- Current public release can be announced: `True`
+- Local main can be announced: `True`
+- Unpublished local code counts as released: `False`
+
+| Action | Required | Status |
+| --- | ---: | --- |
+| `publish-new-github-release` | `False` | `pass` |
+| `update-release-notes` | `False` | `pass` |
+| `update-release-assets` | `False` | `pass` |
+| `attach-adoption-security-evidence` | `False` | `pass` |
+| `keep-current-public-release-unchanged` | `True` | `pass` |
+
 ## Final Stable V4 Claim Packet
 
 - Claim decision: `allowed`

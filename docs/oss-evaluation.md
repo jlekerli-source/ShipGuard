@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.178 read-only stable-v4 packet loop continued from public release delta proof and tested whether the report gave maintainers an explicit release visibility decision.
+
+- Finding: `v4 stable-publication` could show the public/local delta, but still left the maintainer to infer whether to publish a new GitHub release, update release notes, update release assets, attach adoption/security evidence, or keep the current public release unchanged.
+- Product weakness: a solo maintainer needs a release-facing handoff, not only an alignment matrix, especially when local `main` is ahead of the latest public release.
+- Native fix: `releaseVisibilityHandoff` now emits `primaryDecision`, release/version tags, local/public announcement booleans, a fixed action matrix, next command, and boundaries that the handoff does not publish, edit a release, post externally, or count unpublished local code as released.
+- Report-quality fix: `ios report-quality` now flags full stable-publication reports that hide the handoff, omit action rows, weaken publication boundaries, mismatch stable-v4 decisions, or fail to render `Release Visibility Handoff`.
+- Fixture fix: focused stable-publication tests assert blocked and passing release visibility behavior, and the full stable-publication synthetic fixture carries the handoff in JSON and Markdown.
+
+Fresh stable-v4 QA still does not claim real stable v4. Release visibility is an action handoff; it does not replace release metadata, release assets, adoption evidence, security review, or post-release consumer proof.
+
 The v3.177 read-only stable-v4 packet loop continued from the final claim packet and tested whether the report could still blur unpublished local work with the latest public release.
 
 - Finding: `v4 stable-publication` could prove a selected release packet, but did not explicitly show whether local `HEAD`/`main`, the selected release, the latest GitHub release, package assets, and claim scope were aligned.

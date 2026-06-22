@@ -997,6 +997,15 @@ assert delta["comparisons"]["selectedReleaseMatchesLatestGitHubRelease"] is True
 assert delta["comparisons"]["publicTagTargetMatchesReleaseManifestCommit"] is False
 assert delta["comparisons"]["localMainMatchesSelectedPublicReleaseCommit"] is True
 assert delta["releaseDeltaBoundary"]["unpublishedLocalCodeCountsAsReleased"] is False
+visibility = report["releaseVisibilityHandoff"]
+assert visibility["status"] == "review"
+assert visibility["primaryDecision"] == "publish-new-github-release"
+assert visibility["unpublishedLocalDelta"] is False
+assert visibility["currentPublicReleaseCanBeAnnounced"] is False
+assert visibility["visibilityBoundary"]["unpublishedLocalCodeCountsAsReleased"] is False
+actions = {item["id"]: item for item in visibility["requiredActions"]}
+assert actions["publish-new-github-release"]["required"] is True
+assert actions["keep-current-public-release-unchanged"]["status"] == "blocked"
 assert report["stablePublicationEvidencePacket"]["firstBlockingGate"]["receipt"] == "publicReleaseFreshnessProof"
 closure = report["stablePublicationClosureChecklist"]
 assert closure["items"][0]["id"] == "public-release-freshness"
@@ -1013,6 +1022,8 @@ assert len(kit["failCriteria"]) >= 5
 PY
 grep -q 'Public Release Freshness Closure Kit' "$tmp_dir/stale-freshness/v4-stable-publication.md"
 grep -q 'Public Release Delta' "$tmp_dir/stale-freshness/v4-stable-publication.md"
+grep -q 'Release Visibility Handoff' "$tmp_dir/stale-freshness/v4-stable-publication.md"
+grep -q 'Primary decision: `publish-new-github-release`' "$tmp_dir/stale-freshness/v4-stable-publication.md"
 grep -q 'publicTagTargetMatchesReleaseManifestCommit' "$tmp_dir/stale-freshness/v4-stable-publication.md"
 grep -q 'tagTargetMatchesManifestCommit' "$tmp_dir/stale-freshness/v4-stable-publication.md"
 grep -q 'Source-only proof counts as freshness proof: `False`' "$tmp_dir/stale-freshness/v4-stable-publication.md"
@@ -1198,6 +1209,23 @@ assert delta["comparisons"]["releaseAssetCoherencePassed"] is True
 assert delta["releaseDeltaBoundary"]["localHeadIsNotPublicReleaseProof"] is True
 assert delta["releaseDeltaBoundary"]["localMainIsNotPublicReleaseProof"] is True
 assert delta["releaseDeltaBoundary"]["unpublishedLocalCodeCountsAsReleased"] is False
+visibility = report["releaseVisibilityHandoff"]
+assert visibility["status"] == "pass"
+assert visibility["primaryDecision"] == "announce-current-public-release"
+assert visibility["currentPublicReleaseCanBeAnnounced"] is True
+assert visibility["localMainCanBeAnnounced"] is True
+assert visibility["visibilityBoundary"]["latestPublicGitHubReleaseIsPublicationTruth"] is True
+assert visibility["visibilityBoundary"]["localMainIsNotPublicationProof"] is True
+actions = {item["id"]: item for item in visibility["requiredActions"]}
+assert {
+    "publish-new-github-release",
+    "update-release-notes",
+    "update-release-assets",
+    "attach-adoption-security-evidence",
+    "keep-current-public-release-unchanged",
+} <= set(actions)
+assert actions["publish-new-github-release"]["required"] is False
+assert actions["keep-current-public-release-unchanged"]["required"] is True
 final_claim = report["finalStableV4ClaimPacket"]
 assert final_claim["status"] == "allowed"
 assert final_claim["claimDecision"] == "allowed"
@@ -1279,6 +1307,9 @@ grep -q 'External Evidence Freshness' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Public Evidence Closure' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Public Release Delta' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Unpublished local code counts as released: `False`' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Release Visibility Handoff' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Primary decision: `announce-current-public-release`' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'keep-current-public-release-unchanged' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Final Stable V4 Claim Packet' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Claim decision: `allowed`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'has passed stable-v4 publication proof' "$tmp_dir/pass/v4-stable-publication.md"

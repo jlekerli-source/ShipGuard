@@ -659,6 +659,67 @@
     "summary": "Local source, latest GitHub release, release manifest, package assets, and stable-v4 claim context are aligned.",
     "unpublishedLocalDelta": false
   },
+  "releaseVisibilityHandoff": {
+    "currentPublicReleaseCanBeAnnounced": true,
+    "latestGitHubReleaseTag": "v0.0.0",
+    "latestGitHubReleaseVersion": "0.0.0",
+    "localMainCanBeAnnounced": true,
+    "nextCommand": "./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>",
+    "primaryDecision": "announce-current-public-release",
+    "releaseVersion": "0.0.0",
+    "requiredActions": [
+      {
+        "id": "publish-new-github-release",
+        "nextCommand": "not-needed",
+        "reason": "Synthetic release is aligned.",
+        "required": false,
+        "status": "pass"
+      },
+      {
+        "id": "update-release-notes",
+        "nextCommand": "not-needed",
+        "reason": "Synthetic release notes passed.",
+        "required": false,
+        "status": "pass"
+      },
+      {
+        "id": "update-release-assets",
+        "nextCommand": "not-needed",
+        "reason": "Synthetic assets passed.",
+        "required": false,
+        "status": "pass"
+      },
+      {
+        "id": "attach-adoption-security-evidence",
+        "nextCommand": "not-needed",
+        "reason": "Synthetic evidence closure passed.",
+        "required": false,
+        "status": "pass"
+      },
+      {
+        "id": "keep-current-public-release-unchanged",
+        "nextCommand": "./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>",
+        "reason": "The current public release can remain the announcement target.",
+        "required": true,
+        "status": "pass"
+      }
+    ],
+    "schemaVersion": 1,
+    "selectedGitHubReleaseTag": "v0.0.0",
+    "stableV4Release": true,
+    "status": "pass",
+    "summary": "ShipGuard 0.0.0 can be announced from the current public release.",
+    "unpublishedLocalDelta": false,
+    "visibilityBoundary": {
+      "doesNotEditGitHubRelease": true,
+      "doesNotPostExternally": true,
+      "doesNotPublishRelease": true,
+      "latestPublicGitHubReleaseIsPublicationTruth": true,
+      "localHeadIsNotPublicationProof": true,
+      "localMainIsNotPublicationProof": true,
+      "unpublishedLocalCodeCountsAsReleased": false
+    }
+  },
   "finalStableV4ClaimPacket": {
     "allowedClaims": [
       "Stable-v4 publication proof passed.",

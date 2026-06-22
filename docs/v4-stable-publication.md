@@ -65,6 +65,7 @@ Outputs:
 - `stablePublicationLaunchRelayDrafts` in JSON, rendered as `Launch Relay Drafts` in Markdown
 - `githubLatestReleaseProof` in JSON for latest public GitHub release metadata
 - `publicReleaseDeltaProof` in JSON, rendered as `Public Release Delta` in Markdown
+- `releaseVisibilityHandoff` in JSON, rendered as `Release Visibility Handoff` in Markdown
 - `finalStableV4ClaimPacket` in JSON, rendered as `Final Stable V4 Claim Packet` in Markdown
 
 ## Stable Gates
@@ -293,6 +294,24 @@ Important fields:
 - `releaseDeltaBoundary.unpublishedLocalCodeCountsAsReleased = false`
 
 `ios report-quality` flags full stable-publication reports that hide this block, weaken the unpublished-code boundary, or allow stable-v4 claim wording when the selected public release is not covered.
+
+## Release Visibility Handoff
+
+Stable publication emits `releaseVisibilityHandoff` to turn the release delta into the next public-release action.
+
+The handoff answers one maintainer question: do we publish a new GitHub release, update release notes, update release assets, attach adoption/security evidence, or keep the current public release unchanged?
+
+Markdown renders this as `Release Visibility Handoff`.
+
+Important fields:
+
+- `primaryDecision`
+- `currentPublicReleaseCanBeAnnounced`
+- `localMainCanBeAnnounced`
+- `requiredActions[]` for `publish-new-github-release`, `update-release-notes`, `update-release-assets`, `attach-adoption-security-evidence`, and `keep-current-public-release-unchanged`
+- `visibilityBoundary.unpublishedLocalCodeCountsAsReleased = false`
+
+The handoff does not publish, edit a GitHub release, or post externally. It makes the next release action explicit so local `main` is not mistaken for the latest public release.
 
 ## Final Stable V4 Claim Packet
 

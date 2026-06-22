@@ -4494,6 +4494,86 @@ def stable_publication_evidence_packet_issues(
                 recommendation="Render the public-release delta in Markdown so unpublished local work cannot be mistaken for released code.",
             )
 
+    visibility = (
+        report.get("releaseVisibilityHandoff")
+        if isinstance(report.get("releaseVisibilityHandoff"), dict)
+        else {}
+    )
+    visibility_expected = (
+        bool(public_delta)
+        or report.get("stableV4Release") is True
+        or any("release visibility handoff" in normalized_question_text(question) for question in report.get("reportQualityQuestions", []))
+    )
+    if visibility_expected and not visibility:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-release-visibility-handoff-missing",
+            evidence=f"{path_name} has no releaseVisibilityHandoff",
+            recommendation="Tell maintainers whether to publish a new GitHub release, update release notes/assets, attach adoption/security evidence, or keep the current public release unchanged.",
+        )
+    elif visibility:
+        boundary = visibility.get("visibilityBoundary") if isinstance(visibility.get("visibilityBoundary"), dict) else {}
+        actions = visibility.get("requiredActions") if isinstance(visibility.get("requiredActions"), list) else []
+        action_ids = {str(action.get("id")) for action in actions if isinstance(action, dict)}
+        required_ids = {
+            "publish-new-github-release",
+            "update-release-notes",
+            "update-release-assets",
+            "attach-adoption-security-evidence",
+            "keep-current-public-release-unchanged",
+        }
+        if not visibility.get("primaryDecision") or not required_ids.issubset(action_ids):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-release-visibility-action-missing",
+                evidence=f"{path_name} releaseVisibilityHandoff does not expose the full publication decision matrix",
+                recommendation="Include primaryDecision plus action rows for release publication, notes, assets, adoption/security evidence, and keeping the current public release unchanged.",
+            )
+        if (
+            boundary.get("doesNotPublishRelease") is not True
+            or boundary.get("doesNotEditGitHubRelease") is not True
+            or boundary.get("doesNotPostExternally") is not True
+            or boundary.get("latestPublicGitHubReleaseIsPublicationTruth") is not True
+            or boundary.get("localHeadIsNotPublicationProof") is not True
+            or boundary.get("localMainIsNotPublicationProof") is not True
+            or boundary.get("unpublishedLocalCodeCountsAsReleased") is not False
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-release-visibility-boundary-missing",
+                evidence=f"{path_name} releaseVisibilityHandoff weakens release/publication boundaries",
+                recommendation="State that the handoff does not publish, edit releases, or post externally, and that local HEAD/main are not publication proof.",
+            )
+        if report.get("stableV4Release") is True and visibility.get("primaryDecision") != "announce-current-public-release":
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-release-visibility-decision-mismatch",
+                evidence=f"{path_name} claims stableV4Release=true but releaseVisibilityHandoff does not announce the current public release",
+                recommendation="When stable-v4 publication passes, the handoff should make the current public release the announcement target.",
+            )
+        if public_delta.get("unpublishedLocalDelta") is True:
+            publish_action = next((action for action in actions if isinstance(action, dict) and action.get("id") == "publish-new-github-release"), {})
+            if publish_action.get("required") is not True:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-release-visibility-unpublished-delta-hidden",
+                    evidence=f"{path_name} has unpublished local delta but releaseVisibilityHandoff does not require publication action",
+                    recommendation="Mark publish-new-github-release as required when local HEAD/main are not the selected public release.",
+                )
+        if "Release Visibility Handoff" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-release-visibility-markdown-missing",
+                evidence=f"{path_name} has releaseVisibilityHandoff but Markdown does not render it",
+                recommendation="Render the release visibility handoff in Markdown so maintainers can choose the next public-release action without opening JSON.",
+            )
+
     final_claim = (
         report.get("finalStableV4ClaimPacket")
         if isinstance(report.get("finalStableV4ClaimPacket"), dict)
@@ -10139,6 +10219,37 @@ def synthetic_stable_publication_report_fields() -> dict[str, Any]:
                 "stableV4ClaimCoversSelectedReleaseOnly": True,
             },
         },
+        "releaseVisibilityHandoff": {
+            "schemaVersion": 1,
+            "releaseVersion": "0.0.0",
+            "status": "pass",
+            "primaryDecision": "announce-current-public-release",
+            "summary": "ShipGuard 0.0.0 can be announced from the current public release.",
+            "latestGitHubReleaseVersion": "0.0.0",
+            "selectedGitHubReleaseTag": "v0.0.0",
+            "latestGitHubReleaseTag": "v0.0.0",
+            "unpublishedLocalDelta": False,
+            "stableV4Release": True,
+            "currentPublicReleaseCanBeAnnounced": True,
+            "localMainCanBeAnnounced": True,
+            "requiredActions": [
+                {"id": "publish-new-github-release", "required": False, "status": "pass", "reason": "Synthetic release is aligned.", "nextCommand": "not-needed"},
+                {"id": "update-release-notes", "required": False, "status": "pass", "reason": "Synthetic release notes passed.", "nextCommand": "not-needed"},
+                {"id": "update-release-assets", "required": False, "status": "pass", "reason": "Synthetic assets passed.", "nextCommand": "not-needed"},
+                {"id": "attach-adoption-security-evidence", "required": False, "status": "pass", "reason": "Synthetic evidence closure passed.", "nextCommand": "not-needed"},
+                {"id": "keep-current-public-release-unchanged", "required": True, "status": "pass", "reason": "The current public release can remain the announcement target.", "nextCommand": "./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>"},
+            ],
+            "nextCommand": "./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>",
+            "visibilityBoundary": {
+                "doesNotPublishRelease": True,
+                "doesNotEditGitHubRelease": True,
+                "doesNotPostExternally": True,
+                "latestPublicGitHubReleaseIsPublicationTruth": True,
+                "localHeadIsNotPublicationProof": True,
+                "localMainIsNotPublicationProof": True,
+                "unpublishedLocalCodeCountsAsReleased": False,
+            },
+        },
         "finalStableV4ClaimPacket": {
             "schemaVersion": 1,
             "releaseVersion": "0.0.0",
@@ -10740,7 +10851,7 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "## Evidence Packet",
                 "",
                 "- Packet status: `pass`",
-                "- Required evidence passed: `8/8`",
+                "- Required evidence passed: `10/10`",
                 "- First blocking gate: `none`",
                 "",
                 "| Evidence | Status |",
@@ -10751,6 +10862,8 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "| `downloaded-release-assets` | `pass` |",
                 "| `post-release-consumer-proof` | `pass` |",
                 "| `public-release-freshness` | `pass` |",
+                "| `release-version-coherence` | `pass` |",
+                "| `release-asset-coherence` | `pass` |",
                 "| `independent-adoption-evidence` | `pass` |",
                 "| `final-security-review-evidence` | `pass` |",
                 "",
@@ -10829,6 +10942,25 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "| `releaseVersionCoherencePassed` | `True` |",
                 "| `localHeadMatchesSelectedPublicReleaseCommit` | `True` |",
                 "| `localMainMatchesSelectedPublicReleaseCommit` | `True` |",
+                "",
+                "## Release Visibility Handoff",
+                "",
+                "- Status: `pass`",
+                "- Primary decision: `announce-current-public-release`",
+                "- Latest GitHub release: `0.0.0`",
+                "- Selected release tag: `v0.0.0`",
+                "- Unpublished local delta: `False`",
+                "- Current public release can be announced: `True`",
+                "- Local main can be announced: `True`",
+                "- Unpublished local code counts as released: `False`",
+                "",
+                "| Action | Required | Status |",
+                "| --- | ---: | --- |",
+                "| `publish-new-github-release` | `False` | `pass` |",
+                "| `update-release-notes` | `False` | `pass` |",
+                "| `update-release-assets` | `False` | `pass` |",
+                "| `attach-adoption-security-evidence` | `False` | `pass` |",
+                "| `keep-current-public-release-unchanged` | `True` | `pass` |",
                 "",
                 "## Final Stable V4 Claim Packet",
                 "",
