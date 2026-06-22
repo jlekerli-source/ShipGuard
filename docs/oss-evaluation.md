@@ -6,6 +6,12 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.194 release-lineage pass targeted a publication-trust problem exposed while checking v4 distance: `NEXT_GOAL.md` could target a later stabilization slice while `VERSION` and package scripts still described the latest actual package line.
+
+- Finding: the generated goal said target `v3.194.0`, but the checkout `VERSION` still produced `shipguard-v3.131.0.tar.gz`.
+- Product weakness: a maintainer should not have to know whether a version number is a planning handoff or a publishable package artifact.
+- Native fix: `shipguard next-goal` now writes a `Version Lineage Check` with `VERSION`, expected next release, planned target, package artifact name, and an explicit bump-or-regenerate action when they diverge. In that state the slash plan, slash goal, and release-loop publish step stop at lineage resolution instead of instructing a release upload for a tarball the checkout cannot build.
+
 The v3.193 release-loop pass targeted a maintainer efficiency problem exposed by repeated validation: `tests/package_release_test.sh` was the slowest required proof lane, but it was silent for long stretches.
 
 - Finding: local package proof reached full-audit/value-gauntlet at 6s, v4 proof gates at 50s, and install proof at 336s.

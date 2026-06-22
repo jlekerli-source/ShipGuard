@@ -31,7 +31,8 @@ next_minor_version() {
 
 out_file="NEXT_GOAL.md"
 current_version="$(sed -n '1p' "$tool_root/VERSION")"
-release_version="$(next_minor_version "$current_version")"
+expected_release_version="$(next_minor_version "$current_version")"
+release_version="$expected_release_version"
 title="Next Maintainer Reliability Upgrade"
 scope=""
 completed_scope_override=""
@@ -100,6 +101,19 @@ fi
 
 following_version="$(next_minor_version "$release_version")"
 
+lineage_status="pass"
+lineage_action="Package scripts will build dist/shipguard-v$release_version.tar.gz from VERSION."
+release_publish_step="Create release \`v$release_version\` and upload \`dist/shipguard-v$release_version.tar.gz\`."
+plan_release_step="4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal."
+goal_release_detail="push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release"
+if [[ "$release_version" != "$expected_release_version" ]]; then
+  lineage_status="review"
+  lineage_action="Before publishing v$release_version, bump VERSION to $release_version or regenerate next-goal for v$expected_release_version."
+  release_publish_step="Resolve version lineage first: bump VERSION to $release_version and rebuild the tarball, or regenerate next-goal for v$expected_release_version before creating a GitHub release."
+  plan_release_step="4. Push main, verify GitHub Actions, resolve version lineage before any release publication, then generate the following goal."
+  goal_release_detail="push main, verify GitHub Actions, resolve version lineage before publishing any release tarball, verify clean git status, then run shipguard next-goal again for the following release"
+fi
+
 cat > "$out_file" <<EOF
 # Next Goal
 
@@ -108,6 +122,15 @@ cat > "$out_file" <<EOF
 - Target release: v$release_version
 - Title: $title
 
+## Version Lineage Check
+
+- Status: $lineage_status
+- VERSION: $current_version
+- Expected next release from VERSION: v$expected_release_version
+- Planned target release: v$release_version
+- Package artifact from current checkout: dist/shipguard-v$current_version.tar.gz
+- Action: $lineage_action
+
 ## Slash Plan
 
 \`\`\`text
@@ -115,13 +138,13 @@ cat > "$out_file" <<EOF
 $plan_step_one
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
-4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
+$plan_release_step
 \`\`\`
 
 ## Slash Goal
 
 \`\`\`text
-/goal Implement v$release_version $title for jlekerli-source/ShipGuard: follow the /plan above, $goal_detail, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v$release_version $title for jlekerli-source/ShipGuard: follow the /plan above, $goal_detail, $goal_release_detail.
 \`\`\`
 
 EOF
@@ -277,7 +300,7 @@ cat >> "$out_file" <<EOF
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push \`main\` and verify GitHub Actions success.
-6. Create release \`v$release_version\` and upload \`dist/shipguard-v$release_version.tar.gz\`.
+6. $release_publish_step
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

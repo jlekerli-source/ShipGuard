@@ -1484,6 +1484,12 @@ grep -q '"version" : "2.1.0"' "$tmp_dir/package-sarif/results.sarif"
   --release 2.6.0 \
   --title "Package Proof Followup" \
   --out "$tmp_dir/package-next-goal.md" >/dev/null
+grep -q '## Version Lineage Check' "$tmp_dir/package-next-goal.md"
+grep -q 'Status: review' "$tmp_dir/package-next-goal.md"
+grep -q "Package artifact from current checkout: dist/shipguard-v$version.tar.gz" "$tmp_dir/package-next-goal.md"
+grep -q 'Resolve version lineage first: bump VERSION to 2.6.0 and rebuild the tarball' "$tmp_dir/package-next-goal.md"
+grep -q 'resolve version lineage before any release publication' "$tmp_dir/package-next-goal.md"
+grep -q 'resolve version lineage before publishing any release tarball' "$tmp_dir/package-next-goal.md"
 grep -q '/plan v2.6.0 Package Proof Followup' "$tmp_dir/package-next-goal.md"
 grep -q 'Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md' "$tmp_dir/package-next-goal.md"
 grep -q '/goal Implement v2.6.0 Package Proof Followup' "$tmp_dir/package-next-goal.md"

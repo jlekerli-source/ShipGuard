@@ -188,6 +188,8 @@ v3.192 makes the release-notes authoring kit self-locating: stable-publication n
 
 v3.193 makes the release-loop bottleneck visible: `tests/package_release_test.sh` now prints coarse phase timings for package build, manifest/privacy checks, packaged CLI smoke proof, full-audit/value-gauntlet proof, v4 proof gates, and install proof so maintainers can tell whether the slow package lane is progressing.
 
+v3.194 makes next-goal release lineage explicit: generated handoffs now compare `VERSION`, the expected next semantic release, the planned target release, and the package artifact that the current checkout would actually build, then stop slash plan/goal publishing language at version-lineage resolution when a planning-only stabilization slice is not yet a buildable release tarball.
+
 Every release proposal must answer:
 
 1. Which developer decision changes?

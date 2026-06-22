@@ -12,6 +12,7 @@ The generated file includes:
 
 - an exact `/plan` block for the next release
 - an exact `/goal` block for the next release
+- a version lineage check that compares `VERSION`, the expected next release, the planned target, and the package artifact name
 - optional bounded scope and completion receipt sections
 - an optional following `/plan` and `/goal` handoff after completion evidence is supplied
 - release constraints
@@ -31,6 +32,8 @@ Override the target release or title when needed:
 ```
 
 The command does not open issues, commit, push, or publish releases. It creates auditable `/plan` and `/goal` blocks that a maintainer can review before starting the next loop.
+
+If `--release` skips ahead of the next semantic release from `VERSION`, the generated `Version Lineage Check` is `review`. That is allowed for planning handoffs, but a real package publish still needs either a `VERSION` bump to the planned release or a regenerated goal for the next `VERSION`-based release. In that state the slash plan, slash goal, and release loop stop at version-lineage resolution instead of telling the maintainer to publish a tarball that the current checkout cannot build.
 
 When the improvement scope is already known, include it directly in the slash-plan:
 

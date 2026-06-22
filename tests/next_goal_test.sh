@@ -20,6 +20,14 @@ SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \
 test -f "$tmp_dir/NEXT_GOAL.md"
 grep -q "Current toolkit version: $current_version" "$tmp_dir/NEXT_GOAL.md"
 grep -q 'Target release: v2.6.0' "$tmp_dir/NEXT_GOAL.md"
+grep -q '## Version Lineage Check' "$tmp_dir/NEXT_GOAL.md"
+grep -q 'Status: review' "$tmp_dir/NEXT_GOAL.md"
+grep -q "Expected next release from VERSION: v" "$tmp_dir/NEXT_GOAL.md"
+grep -q "Package artifact from current checkout: dist/shipguard-v$current_version.tar.gz" "$tmp_dir/NEXT_GOAL.md"
+grep -q 'Before publishing v2.6.0, bump VERSION to 2.6.0' "$tmp_dir/NEXT_GOAL.md"
+grep -q 'Resolve version lineage first: bump VERSION to 2.6.0 and rebuild the tarball' "$tmp_dir/NEXT_GOAL.md"
+grep -q 'resolve version lineage before any release publication' "$tmp_dir/NEXT_GOAL.md"
+grep -q 'resolve version lineage before publishing any release tarball' "$tmp_dir/NEXT_GOAL.md"
 grep -q '## Slash Plan' "$tmp_dir/NEXT_GOAL.md"
 grep -q '/plan v2.6.0 External Fixture Pack Import' "$tmp_dir/NEXT_GOAL.md"
 grep -q 'Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md' "$tmp_dir/NEXT_GOAL.md"
@@ -87,6 +95,17 @@ grep -q './tests/release_proof_consumption_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/release_proof_workflow_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './tests/release_replay_test.sh' "$tmp_dir/NEXT_GOAL.md"
 grep -q './bin/shipguard next-goal --out NEXT_GOAL.md' "$tmp_dir/NEXT_GOAL.md"
+
+SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \
+  ./bin/shipguard next-goal \
+    --out "$tmp_dir/DEFAULT_NEXT_GOAL.md" >/dev/null
+
+grep -q '## Version Lineage Check' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
+grep -q 'Status: pass' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
+grep -q "Package scripts will build dist/shipguard-v" "$tmp_dir/DEFAULT_NEXT_GOAL.md"
+grep -q 'Create release `v' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
+grep -q 'publish and consume release proof' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
+grep -q 'publish the release tarball' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
 
 SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \
   ./bin/shipguard next-goal \
