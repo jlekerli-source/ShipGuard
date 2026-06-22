@@ -186,6 +186,8 @@ v3.191 makes release-notes edit commands path-safe: stable-publication now point
 
 v3.192 makes the release-notes authoring kit self-locating: stable-publication now emits generated README/checklist/draft paths in `stablePublicationReleaseNotesAuthoringKit.generatedPaths` and `files[].generatedPath`, with shareable reports redacting the local output root.
 
+v3.193 makes the release-loop bottleneck visible: `tests/package_release_test.sh` now prints coarse phase timings for package build, manifest/privacy checks, packaged CLI smoke proof, full-audit/value-gauntlet proof, v4 proof gates, and install proof so maintainers can tell whether the slow package lane is progressing.
+
 Every release proposal must answer:
 
 1. Which developer decision changes?

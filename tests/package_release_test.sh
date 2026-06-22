@@ -17,11 +17,17 @@ trap 'echo "package release test failed at line $LINENO: $BASH_COMMAND" >&2' ERR
 
 cd "$repo_root"
 
+started_at=$SECONDS
+phase() {
+  printf 'package release test: %s (%ss)\n' "$1" "$((SECONDS - started_at))" >&2
+}
+
 mkdir -p scripts/__pycache__ .cache DerivedData
 printf 'bytecode sentinel\n' > scripts/__pycache__/shipguard_package_test.pyc
 printf 'cache sentinel\n' > .cache/shipguard-package-test.tmp
 printf 'derived data sentinel\n' > DerivedData/shipguard-package-test.tmp
 
+phase "building release tarball"
 tarball="$(./scripts/package_release.sh)"
 version="$(sed -n '1p' VERSION)"
 package_name="shipguard-v$version"
@@ -32,6 +38,7 @@ tar_list="$tmp_dir/tar-list.txt"
   exit 1
 }
 
+phase "checking package manifest"
 tar -tzf "$tarball" > "$tar_list"
 python3 - "$tarball" <<'PY'
 import sys
@@ -661,6 +668,7 @@ fi
 tar -xzf "$tarball" -C "$tmp_dir"
 package_root="$tmp_dir/$package_name"
 
+phase "checking extracted package privacy"
 local_path_pattern="/""Users/[^/[:space:]]+/(Developer|Documents|Desktop|Downloads|Code|Library|Projects|Project|Repositories|repos|src|work|tmp)/"
 linux_home_path="/""home/[^/[:space:]]+/(Developer|Documents|Desktop|Downloads|Code|Projects|repositories|repos|src|work|tmp)/"
 if grep -RIEq "$local_path_pattern|$linux_home_path|ghp_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}" "$package_root"; then
@@ -668,6 +676,7 @@ if grep -RIEq "$local_path_pattern|$linux_home_path|ghp_[A-Za-z0-9_]{20,}|sk-[A-
   exit 1
 fi
 
+phase "running packaged CLI smoke proof"
 test "$("$package_root/bin/shipguard" version)" = "$version"
 test "$("$package_root/bin/codex-maintainer" version)" = "$version"
 "$package_root/bin/shipguard" policy show >/dev/null
@@ -727,6 +736,7 @@ grep -q '"benchmarkVersion": 2' "$tmp_dir/package-external-benchmark-v2/pilot-be
 grep -q 'External Benchmark v2' "$tmp_dir/package-external-benchmark-v2/pilot-bench.md"
 "$package_root/bin/shipguard" agent trace --help >/dev/null
 "$package_root/bin/shipguard" codex trace --help >/dev/null
+phase "running packaged full-audit and value-gauntlet proof"
 "$package_root/bin/shipguard" full-audit --path "$package_root" --out "$tmp_dir/package-full-audit" --stage version --stage py-compile --shipguard-eval --shareable >/dev/null
 grep -q '"tool": "shipguard full-audit"' "$tmp_dir/package-full-audit/shipguard-full-audit.json"
 grep -q '"status": "pass"' "$tmp_dir/package-full-audit/shipguard-full-audit.json"
@@ -754,6 +764,7 @@ grep -q 'V4 Preview Stabilization Receipts' "$tmp_dir/package-value-gauntlet/too
 grep -q '"v4SchemaFreezeReceipts":' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.json"
 grep -q 'V4 Schema Freeze Receipts' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
 grep -q 'ShipGuard Tool Value Gauntlet' "$tmp_dir/package-value-gauntlet/tool-value-gauntlet.md"
+phase "running packaged v4 proof gates"
 "$package_root/bin/shipguard" v4 preview \
   --path "$package_root" \
   --out "$tmp_dir/package-v4-preview" \
@@ -1554,6 +1565,7 @@ if grep -q 'follow the following /plan above' "$tmp_dir/package-scoped-next-goal
 fi
 grep -q './bin/shipguard next-goal --release 2.7.0 --title "Package Followup Two" --out NEXT_GOAL.md' "$tmp_dir/package-scoped-next-goal.md"
 
+phase "running packaged install proof"
 install_prefix="$tmp_dir/install"
 mkdir -p "$package_root/scripts/__pycache__" "$package_root/dist" "$package_root/.git"
 printf 'bytecode sentinel\n' > "$package_root/scripts/__pycache__/install_sentinel.pyc"
@@ -1570,4 +1582,5 @@ if find "$install_prefix/lib/shipguard" \
   exit 1
 fi
 
+phase "complete"
 echo "package release tests passed"

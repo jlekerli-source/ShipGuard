@@ -6,6 +6,12 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.193 release-loop pass targeted a maintainer efficiency problem exposed by repeated validation: `tests/package_release_test.sh` was the slowest required proof lane, but it was silent for long stretches.
+
+- Finding: local package proof reached full-audit/value-gauntlet at 6s, v4 proof gates at 50s, and install proof at 336s.
+- Product weakness: a required release proof lane should not look hung while it is doing real work.
+- Native fix: `tests/package_release_test.sh` now prints coarse phase timings to stderr so future loops can identify the slow section without process-tree probing.
+
 The v3.192 stable-publication loop followed the same real public-release QA path and found the next adjacent actionability issue: the edit command was now path-safe, but the authoring-kit metadata still made humans and scripts infer where the generated README, checklist, and draft lived.
 
 - Finding: the report had the right `gh release edit --notes-file` target, but no explicit generated output path fields for the authoring-kit files.

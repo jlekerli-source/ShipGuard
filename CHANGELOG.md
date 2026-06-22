@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added phase timing logs to `tests/package_release_test.sh` so the slow release-package proof lane reports coarse progress such as package build, manifest checks, packaged CLI smoke proof, value-gauntlet/full-audit proof, v4 proof gates, and install proof instead of appearing hung.
 - Added generated output paths to the stable-publication release-notes authoring kit: `stablePublicationReleaseNotesAuthoringKit.generatedPaths` and each `files[].generatedPath` now point at the generated README, checklist, and draft release notes under the report output directory, with shareable reports redacting the local root.
 - Made stable-publication release-notes edit commands path-safe: `stablePublicationReleaseNotesAuthoringKit.publicReleaseEditCommand`, first-blocker UX, closure rows, and visibility handoff now point `--notes-file` at the generated draft under the report output directory instead of a bare relative path.
 - Made stable-publication default asset downloads rerunnable: when `--download-release-assets` uses the generated `--out/downloaded-release-assets` directory, ShipGuard refreshes that generated directory before downloading so repeated proof runs do not create false missing-asset blockers; explicit custom download directories still reject non-empty contents.
