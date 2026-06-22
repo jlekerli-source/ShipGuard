@@ -885,7 +885,6 @@ assert edit_boundary["stableV4ClaimAllowed"] is False
 assert "stable-publication" in release_notes_item["rerunCommand"]
 assert "--github-release-repo jlekerli-source/ShipGuard" in release_notes_item["rerunCommand"]
 assert f"--release-version {report['releaseVersion']}" in release_notes_item["rerunCommand"]
-assert release_notes_item["nextCommand"] == release_notes_item["rerunCommand"]
 assert len(report["releaseNotesProof"]["topicMatrix"]) == 7
 notes_kit = report["stablePublicationReleaseNotesAuthoringKit"]
 assert notes_kit["schemaVersion"] == 2
@@ -897,6 +896,10 @@ assert notes_kit["publicReleaseEditCommand"] == (
     f"gh release edit v{report['releaseVersion']} --repo jlekerli-source/ShipGuard "
     "--notes-file stable-publication-release-notes/draft-release-notes.md"
 )
+assert report["stablePublicationEvidencePacket"]["firstBlockingGate"]["nextCommand"] == notes_kit["publicReleaseEditCommand"]
+assert report["resultUX"]["nextCommand"] == notes_kit["publicReleaseEditCommand"]
+assert release_notes_item["nextCommand"] == notes_kit["publicReleaseEditCommand"]
+assert release_notes_item["rerunCommand"] != release_notes_item["nextCommand"]
 visibility_actions = {item["id"]: item for item in report["releaseVisibilityHandoff"]["requiredActions"]}
 assert visibility_actions["update-release-notes"]["required"] is True
 assert visibility_actions["update-release-notes"]["nextCommand"] == notes_kit["publicReleaseEditCommand"]

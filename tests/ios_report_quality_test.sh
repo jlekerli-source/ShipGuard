@@ -6383,6 +6383,36 @@ kit["status"] = "review"
 kit["missingTopicIds"] = kit.get("missingTopicIds") or ["stable-v4-claim"]
 kit["publicReleaseEditCommand"] = "gh release edit v0.0.0 --repo example/shipguard --notes-file stable-publication-release-notes/draft-release-notes.md"
 report.setdefault("releaseNotesProof", {})["status"] = "review"
+packet = report.setdefault("stablePublicationEvidencePacket", {})
+packet["firstBlockingGate"] = {
+    "id": "release-notes",
+    "receipt": "releaseNotesProof",
+    "status": "review",
+    "summary": "Synthetic release notes need edit.",
+    "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/wrong",
+}
+closure = report.setdefault("stablePublicationClosureChecklist", {})
+closure["items"] = [
+    {
+        "id": "release-notes",
+        "receipt": "releaseNotesProof",
+        "status": "review",
+        "summary": "Synthetic release notes need edit.",
+        "missingTopicIds": kit["missingTopicIds"],
+        "authoringKitPaths": [
+            "stable-publication-release-notes/README.md",
+            "stable-publication-release-notes/release-notes-checklist.json",
+            "stable-publication-release-notes/draft-release-notes.md",
+        ],
+        "publicGitHubReleaseEditBoundary": {
+            "requiresPublicReleaseEdit": True,
+            "shipguardDoesNotEditRelease": True,
+            "publicReleaseEditCommand": kit["publicReleaseEditCommand"],
+        },
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/wrong",
+        "rerunCommand": "./bin/shipguard v4 stable-publication --path . --out /tmp/wrong",
+    }
+]
 visibility = report.setdefault("releaseVisibilityHandoff", {
     "schemaVersion": 1,
     "primaryDecision": "update-release-notes",
@@ -6415,6 +6445,8 @@ PY
   --out "$tmp_dir/stable-publication-visibility-wrong-notes-command-quality" \
   --shareable >/dev/null
 grep -q '"ruleId": "stable-publication-release-visibility-update-notes-command-missing"' "$tmp_dir/stable-publication-visibility-wrong-notes-command-quality/ios-report-quality.json"
+grep -q '"ruleId": "stable-publication-first-blocker-release-notes-command-wrong"' "$tmp_dir/stable-publication-visibility-wrong-notes-command-quality/ios-report-quality.json"
+grep -q '"ruleId": "stable-publication-release-notes-closure-next-command-missing"' "$tmp_dir/stable-publication-visibility-wrong-notes-command-quality/ios-report-quality.json"
 
 stable_publication_packet_fixture="fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publication-evid"
 ./bin/shipguard ios report-quality \

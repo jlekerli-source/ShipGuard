@@ -130,6 +130,8 @@ This directory is a draft-only authoring aid, not proof that the public GitHub r
 
 The report exposes the same artifact as `stablePublicationReleaseNotesAuthoringKit`, and Markdown renders it under `Release Notes Authoring Kit`. `ios report-quality` flags stable-publication reports that expose release-note gaps but do not give maintainers a draft/checklist path and public GitHub edit command to fix the public release body.
 
+When release notes are the first blocker, the report's first-blocking gate, result UX, and closure checklist `nextCommand` point at the manual `gh release edit` command. The stable-publication rerun command stays available as `rerunCommand` for after the public release body has been edited.
+
 The generated release-notes directory is an authoring attachment, not a separate source report. `ios report-quality` grades the root `v4-stable-publication.json` report and skips the generated checklist during recursive report discovery.
 
 ## Launch Relay Drafts

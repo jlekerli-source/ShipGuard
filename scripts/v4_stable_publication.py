@@ -3314,6 +3314,7 @@ def build_stable_publication_closure_checklist(
         if evidence_id == "release-notes":
             kit_files = release_notes_authoring_kit.get("files") if isinstance(release_notes_authoring_kit.get("files"), list) else []
             authoring_paths = [str(file_item.get("path")) for file_item in kit_files if isinstance(file_item, dict) and file_item.get("path")]
+            edit_command = str(release_notes_authoring_kit.get("publicReleaseEditCommand") or "")
             closure_item.update(
                 {
                     "missingTopicIds": release_notes_proof.get("missingTopicIds") if isinstance(release_notes_proof.get("missingTopicIds"), list) else [],
@@ -3334,13 +3335,13 @@ def build_stable_publication_closure_checklist(
                         "shipguardDoesNotEditRelease": True,
                         "authoringKitIsDraftOnly": True,
                         "stableV4ClaimAllowed": False,
-                        "publicReleaseEditCommand": release_notes_authoring_kit.get("publicReleaseEditCommand") or "",
+                        "publicReleaseEditCommand": edit_command,
                         "instruction": "Edit the public GitHub release body with the missing stable-publication topics, then rerun stable-publication against public release metadata.",
                     },
                     "rerunCommand": rerun_command or item.get("nextCommand") or first_blocking.get("nextCommand") or "",
                 }
             )
-            closure_item["nextCommand"] = closure_item["rerunCommand"]
+            closure_item["nextCommand"] = edit_command or closure_item["rerunCommand"]
         if evidence_id == "launchkey-candidate-packet":
             candidate_kit = build_launchkey_candidate_closure_kit(
                 item=item,
@@ -4051,10 +4052,19 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         **security_proof,
         "status": security_proof.get("stableV4GateStatus") or security_proof.get("status"),
     }
+    release_notes_authoring_kit = build_stable_publication_release_notes_authoring_kit(
+        release_version=release_version,
+        release_notes_proof=release_notes_proof,
+        metadata_proof=metadata_proof,
+    )
+    release_notes_next_command = str(
+        release_notes_authoring_kit.get("publicReleaseEditCommand")
+        or stable_publication_command(args, placeholders=True)
+    )
 
     gates = [
         ("githubReleaseMetadataProof", metadata_proof, stable_publication_command(args, placeholders=True)),
-        ("releaseNotesProof", release_notes_proof, stable_publication_command(args, placeholders=True)),
+        ("releaseNotesProof", release_notes_proof, release_notes_next_command),
         ("releaseCandidatePacketProof", release_candidate_packet_proof, release_candidate_packet_proof.get("nextCommand", "")),
         ("publishedReleaseAssetProof", published_asset_proof, stable_publication_rerun_command(args)),
         ("postReleaseConsumerProof", post_release_consumer_proof, published_asset_proof.get("consumeCommand", "")),
@@ -4069,11 +4079,6 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     stable_v4_release = status == "pass"
     evidence_templates = build_stable_publication_evidence_templates(root)
     evidence_starter_kit = build_stable_publication_evidence_starter_kit_manifest()
-    release_notes_authoring_kit = build_stable_publication_release_notes_authoring_kit(
-        release_version=release_version,
-        release_notes_proof=release_notes_proof,
-        metadata_proof=metadata_proof,
-    )
     evidence_starter_kit = attach_release_notes_authoring_kit_to_starter(
         evidence_starter_kit,
         release_version=release_version,

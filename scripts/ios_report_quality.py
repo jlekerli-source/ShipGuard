@@ -3136,6 +3136,24 @@ def stable_publication_evidence_packet_issues(
                 evidence=f"{path_name} first blocking gate has no nextCommand",
                 recommendation="Attach the exact next command needed to clear the first stable-publication blocker.",
             )
+        else:
+            notes_kit_for_first_blocker = (
+                report.get("stablePublicationReleaseNotesAuthoringKit")
+                if isinstance(report.get("stablePublicationReleaseNotesAuthoringKit"), dict)
+                else {}
+            )
+            if (
+                first_blocking.get("id") == "release-notes"
+                and int(notes_kit_for_first_blocker.get("schemaVersion") or 1) >= 2
+                and first_blocking.get("nextCommand") != notes_kit_for_first_blocker.get("publicReleaseEditCommand")
+            ):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-first-blocker-release-notes-command-wrong",
+                    evidence=f"{path_name} first blocking release-notes gate does not point at the GitHub release edit command",
+                    recommendation="Set firstBlockingGate.nextCommand to stablePublicationReleaseNotesAuthoringKit.publicReleaseEditCommand when release notes are the first blocker.",
+                )
 
     closure = report.get("stablePublicationClosureChecklist")
     if not isinstance(closure, dict):
@@ -4050,6 +4068,24 @@ def stable_publication_evidence_packet_issues(
                             rule_id="stable-publication-release-notes-closure-edit-boundary-missing",
                             evidence=f"{path_name} release-notes closure item does not expose the public GitHub release edit boundary",
                             recommendation="State that ShipGuard generated a draft-only kit and the maintainer must edit the public GitHub release body before rerunning stable-publication.",
+                        )
+                    edit_command = str(edit_boundary.get("publicReleaseEditCommand") or "")
+                    notes_kit_for_closure = (
+                        report.get("stablePublicationReleaseNotesAuthoringKit")
+                        if isinstance(report.get("stablePublicationReleaseNotesAuthoringKit"), dict)
+                        else {}
+                    )
+                    if int(notes_kit_for_closure.get("schemaVersion") or 1) >= 2 and (
+                        not edit_command
+                        or item.get("nextCommand") != edit_command
+                        or "gh release edit" not in str(item.get("nextCommand") or "")
+                    ):
+                        add_issue(
+                            issues,
+                            severity="review",
+                            rule_id="stable-publication-release-notes-closure-next-command-missing",
+                            evidence=f"{path_name} release-notes closure nextCommand does not point at the GitHub release edit command",
+                            recommendation="Set the release-notes closure nextCommand to publicGitHubReleaseEditBoundary.publicReleaseEditCommand, and keep rerunCommand for after the edit.",
                         )
                     if "stable-publication" not in str(item.get("rerunCommand") or ""):
                         add_issue(
