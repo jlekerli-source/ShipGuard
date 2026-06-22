@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Added a version lineage check to `shipguard next-goal`: generated handoffs now compare `VERSION`, the expected next release, the planned target release, and the package artifact name, then make the slash plan/goal and release-loop publish step stop at lineage resolution when the target is not buildable from the current checkout.
+- Added a version lineage check to `shipguard next-goal`: generated handoffs now compare `VERSION`, the expected next release, the planned target release, the current pre-bump package artifact, and the expected post-bump artifact, then make the slash plan/goal and release-loop publish step stop at lineage resolution when the target skips the next semantic release.
 - Added phase timing logs to `tests/package_release_test.sh` so the slow release-package proof lane reports coarse progress such as package build, manifest checks, packaged CLI smoke proof, value-gauntlet/full-audit proof, v4 proof gates, and install proof instead of appearing hung.
 - Added generated output paths to the stable-publication release-notes authoring kit: `stablePublicationReleaseNotesAuthoringKit.generatedPaths` and each `files[].generatedPath` now point at the generated README, checklist, and draft release notes under the report output directory, with shareable reports redacting the local root.
 - Made stable-publication release-notes edit commands path-safe: `stablePublicationReleaseNotesAuthoringKit.publicReleaseEditCommand`, first-blocker UX, closure rows, and visibility handoff now point `--notes-file` at the generated draft under the report output directory instead of a bare relative path.

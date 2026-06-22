@@ -102,10 +102,10 @@ fi
 following_version="$(next_minor_version "$release_version")"
 
 lineage_status="pass"
-lineage_action="Package scripts will build dist/shipguard-v$release_version.tar.gz from VERSION."
-release_publish_step="Create release \`v$release_version\` and upload \`dist/shipguard-v$release_version.tar.gz\`."
-plan_release_step="4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal."
-goal_release_detail="push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release"
+lineage_action="Before publishing v$release_version, bump VERSION to $release_version, rebuild, and verify dist/shipguard-v$release_version.tar.gz."
+release_publish_step="Bump VERSION to $release_version, build \`dist/shipguard-v$release_version.tar.gz\`, create release \`v$release_version\`, and upload the rebuilt tarball."
+plan_release_step="4. Push main, verify GitHub Actions, bump VERSION before release packaging, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal."
+goal_release_detail="push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release"
 if [[ "$release_version" != "$expected_release_version" ]]; then
   lineage_status="review"
   lineage_action="Before publishing v$release_version, bump VERSION to $release_version or regenerate next-goal for v$expected_release_version."
@@ -128,7 +128,8 @@ cat > "$out_file" <<EOF
 - VERSION: $current_version
 - Expected next release from VERSION: v$expected_release_version
 - Planned target release: v$release_version
-- Package artifact from current checkout: dist/shipguard-v$current_version.tar.gz
+- Current checkout package artifact before version bump: dist/shipguard-v$current_version.tar.gz
+- Expected package artifact after release bump: dist/shipguard-v$release_version.tar.gz
 - Action: $lineage_action
 
 ## Slash Plan

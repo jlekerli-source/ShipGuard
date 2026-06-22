@@ -933,7 +933,7 @@ After the slice is complete, add caller-supplied proof evidence and the title fo
   --out NEXT_GOAL.md
 ```
 
-The command writes a Markdown plan with `/plan` and `/goal` blocks, a version lineage check that warns when a planned release does not match the next `VERSION`-based package artifact, optional bounded scope and completion receipt sections, release constraints, Brand Deck strict proof for public surface naming changes, proof commands, publishing checks, and the command to generate the following goal. See `next-goal.md`.
+The command writes a Markdown plan with `/plan` and `/goal` blocks, a version lineage check that separates the current pre-bump `VERSION` package artifact from the expected post-bump release artifact and warns when a planned release skips the next semantic target, optional bounded scope and completion receipt sections, release constraints, Brand Deck strict proof for public surface naming changes, proof commands, publishing checks, and the command to generate the following goal. See `next-goal.md`.
 
 ## Install From Release Tarball
 

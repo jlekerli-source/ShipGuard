@@ -6,11 +6,17 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.195 release-lineage follow-up caught the adjacent pass-state bug after the active handoff was regenerated to the next buildable semantic target.
+
+- Finding: `v3.132.0` correctly passed lineage as the expected next release from `VERSION=3.131.0`, but the action text implied package scripts would already build `shipguard-v3.132.0.tar.gz` before the `VERSION` bump.
+- Product weakness: a release handoff must distinguish "valid next release target" from "current checkout already produces that release artifact."
+- Native fix: `shipguard next-goal` now renders the current pre-bump artifact and expected post-bump artifact separately, and the pass-state action tells maintainers to bump `VERSION` before release packaging.
+
 The v3.194 release-lineage pass targeted a publication-trust problem exposed while checking v4 distance: `NEXT_GOAL.md` could target a later stabilization slice while `VERSION` and package scripts still described the latest actual package line.
 
 - Finding: the generated goal said target `v3.194.0`, but the checkout `VERSION` still produced `shipguard-v3.131.0.tar.gz`.
 - Product weakness: a maintainer should not have to know whether a version number is a planning handoff or a publishable package artifact.
-- Native fix: `shipguard next-goal` now writes a `Version Lineage Check` with `VERSION`, expected next release, planned target, package artifact name, and an explicit bump-or-regenerate action when they diverge. In that state the slash plan, slash goal, and release-loop publish step stop at lineage resolution instead of instructing a release upload for a tarball the checkout cannot build.
+- Native fix: `shipguard next-goal` now writes a `Version Lineage Check` with `VERSION`, expected next release, planned target, the current pre-bump package artifact, the expected post-bump release artifact, and an explicit bump-or-regenerate action when the target skips the next semantic release. In that state the slash plan, slash goal, and release-loop publish step stop at lineage resolution instead of instructing a release upload for a tarball the checkout cannot build.
 
 The v3.193 release-loop pass targeted a maintainer efficiency problem exposed by repeated validation: `tests/package_release_test.sh` was the slowest required proof lane, but it was silent for long stretches.
 

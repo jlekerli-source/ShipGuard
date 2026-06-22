@@ -23,7 +23,8 @@ grep -q 'Target release: v2.6.0' "$tmp_dir/NEXT_GOAL.md"
 grep -q '## Version Lineage Check' "$tmp_dir/NEXT_GOAL.md"
 grep -q 'Status: review' "$tmp_dir/NEXT_GOAL.md"
 grep -q "Expected next release from VERSION: v" "$tmp_dir/NEXT_GOAL.md"
-grep -q "Package artifact from current checkout: dist/shipguard-v$current_version.tar.gz" "$tmp_dir/NEXT_GOAL.md"
+grep -q "Current checkout package artifact before version bump: dist/shipguard-v$current_version.tar.gz" "$tmp_dir/NEXT_GOAL.md"
+grep -q 'Expected package artifact after release bump: dist/shipguard-v2.6.0.tar.gz' "$tmp_dir/NEXT_GOAL.md"
 grep -q 'Before publishing v2.6.0, bump VERSION to 2.6.0' "$tmp_dir/NEXT_GOAL.md"
 grep -q 'Resolve version lineage first: bump VERSION to 2.6.0 and rebuild the tarball' "$tmp_dir/NEXT_GOAL.md"
 grep -q 'resolve version lineage before any release publication' "$tmp_dir/NEXT_GOAL.md"
@@ -102,10 +103,15 @@ SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \
 
 grep -q '## Version Lineage Check' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
 grep -q 'Status: pass' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
-grep -q "Package scripts will build dist/shipguard-v" "$tmp_dir/DEFAULT_NEXT_GOAL.md"
-grep -q 'Create release `v' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
+grep -q "Current checkout package artifact before version bump: dist/shipguard-v$current_version.tar.gz" "$tmp_dir/DEFAULT_NEXT_GOAL.md"
+grep -q 'Expected package artifact after release bump: dist/shipguard-v' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
+grep -q 'bump VERSION to' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
+grep -q 'and verify dist/shipguard-v' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
+grep -q 'Bump VERSION to' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
+grep -q 'create release `v' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
+grep -q 'bump VERSION before release packaging' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
 grep -q 'publish and consume release proof' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
-grep -q 'publish the release tarball' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
+grep -q 'bump VERSION before publishing the release tarball' "$tmp_dir/DEFAULT_NEXT_GOAL.md"
 
 SHIPGUARD_GENERATED_AT="2026-06-16T00:00:00Z" \
   ./bin/shipguard next-goal \
