@@ -270,7 +270,7 @@ For stable publication, `release-consume` must run against the published release
 
 `v4 stable-publication` infers `--github-release-repo` from the target repo's `origin` remote when possible; pass it explicitly for forks, mirrors, fixtures, or any publication target that is not `origin`.
 
-For `v4 stable-publication --download-release-assets`, the default generated `--out/downloaded-release-assets` directory is refreshed on rerun; explicit `--download-release-assets-dir` paths remain caller-owned and keep the non-empty destination guard, and `--release-assets` paths are never refreshed by ShipGuard.
+For `v4 stable-publication --download-release-assets`, the default generated `--out/downloaded-release-assets` directory is refreshed on rerun; explicit `--download-release-assets-dir` paths remain caller-owned and keep the non-empty destination guard, and `--release-assets` paths are never refreshed by ShipGuard. When verified local release assets exist but the public asset packet needs repair, the update-assets handoff emits a manual `gh release upload ... --clobber` command; ShipGuard does not upload assets itself.
 
 When release notes are the first blocker, the generated `gh release edit --notes-file` command points at the draft under the report output directory; `stablePublicationReleaseNotesAuthoringKit.generatedPaths` and `files[].generatedPath` expose the generated README/checklist/draft paths, and shareable reports redact the local output root.
 

@@ -218,7 +218,7 @@ When downloaded release assets are a closure blocker, the row also carries a rel
 - downloaded or supplied local asset names and local missing assets
 - download source, download proof status, asset directory, consumer output directory, command, exit code, and any error text when available
 - repair criteria, pass criteria, and fail criteria for closing the release-assets gate without editing source or generated reports
-- a `downloadAssetsRerunCommand` that downloads or points at the published release assets and a full `stablePublicationRerunCommand` for the final publication gate
+- a `downloadAssetsRerunCommand` that downloads or points at the published release assets, a `releaseAssetUploadCommand` for the manual `gh release upload ... --clobber` handoff when verified local assets exist, and a full `stablePublicationRerunCommand` for the final publication gate
 - `releaseAssetProofBoundary`, which says downloaded or supplied public release assets are required, GitHub metadata alone does not count, source-only proof does not count, and fixture proof does not count as stable-v4 publication proof
 
 Markdown renders these fields as `Release Asset Closure Kit` so maintainers can fix the public release asset packet before chasing the downstream post-release consumer proof.
@@ -275,6 +275,8 @@ The proof compares:
 - the consumer artifact SHA-256
 
 Markdown renders this as `Release Asset Coherence`. A stable-v4 claim cannot pass if the public asset packet is missing required assets, omits digest rows, lacks SHA-256 values, or points the manifest, digest matrix, and consumer report at different tarballs.
+
+If the coherence repair has all required local asset files, the closure checklist and Markdown include a concrete manual `gh release upload <tag> --repo <owner/repo> --clobber ...` command. ShipGuard still does not upload or replace GitHub release assets itself.
 
 ## Public Evidence Closure
 

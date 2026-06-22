@@ -1552,6 +1552,59 @@ assert handoff["localMainCanBeAnnounced"] is False
 assert actions["publish-new-github-release"]["required"] is False
 assert actions["keep-current-public-release-unchanged"]["required"] is True
 PY
+
+python3 - "$tmp_dir/downloaded" "$version" <<'PY'
+import sys
+from pathlib import Path
+
+from scripts.v4_stable_publication import build_release_visibility_handoff, github_release_upload_handoff
+
+assets_dir = Path(sys.argv[1])
+version = sys.argv[2]
+required_assets = [f"shipguard-v{version}.tar.gz", "release-manifest.json"]
+handoff = github_release_upload_handoff(
+    {
+        "repo": "jlekerli-source/ShipGuard",
+        "tag": f"v{version}",
+        "version": version,
+        "requiredAssets": required_assets,
+    },
+    assets_dir=assets_dir,
+)
+assert handoff["inputs"]["concreteAssetCount"] == len(required_assets)
+assert handoff["inputs"]["assetArguments"] == [(assets_dir / name).as_posix() for name in required_assets]
+assert "<release-proof-assets-dir>" not in handoff["command"]
+assert handoff["command"].startswith(f"gh release upload v{version} --repo jlekerli-source/ShipGuard --clobber ")
+assert handoff["boundary"]["manualApprovalRequired"] is True
+assert handoff["boundary"]["shipguardUploadsGitHubAssets"] is False
+
+delta = {
+    "comparisons": {
+        "selectedReleaseMatchesLatestGitHubRelease": True,
+        "publicTagTargetMatchesReleaseManifestCommit": True,
+        "packageAssetsVersionMatchesRequestedRelease": True,
+    },
+}
+visibility = build_release_visibility_handoff(
+    release_version=version,
+    stable_v4_release=False,
+    release_notes_proof={"status": "pass"},
+    release_notes_authoring_kit={},
+    release_candidate_packet_proof={"status": "pass"},
+    published_asset_proof={"status": "pass", "nextCommand": "old-asset-command"},
+    public_evidence_closure_proof={"status": "pass"},
+    public_release_delta_proof=delta,
+    release_asset_coherence_proof={"status": "review"},
+    final_claim_packet={"nextCommand": "final-rerun"},
+    rerun_command="stable-rerun",
+    release_asset_repair_command=handoff["command"],
+)
+actions = {item["id"]: item for item in visibility["requiredActions"]}
+assert visibility["primaryDecision"] == "update-release-assets"
+assert actions["update-release-assets"]["required"] is True
+assert actions["update-release-assets"]["nextCommand"] == handoff["command"]
+assert actions["publish-new-github-release"]["nextCommand"] == "not-needed"
+PY
 grep -q '"publicPostingAllowed": false' "$tmp_dir/pass/stable-publication-launch-relay/launch-relay-checklist.json"
 grep -q 'Draft only until explicit approval' "$tmp_dir/pass/stable-publication-launch-relay/x-thread-draft.md"
 

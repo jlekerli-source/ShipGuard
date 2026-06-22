@@ -1671,3 +1671,4 @@ Status: started.
 - Expanded Brand Deck from an iOS-heavy surface list to a toolkit-wide naming contract after the full-renaming request showed root commands, release commands, CI tools, transcript tools, plugin status, and smaller preview handoff helpers also needed branded names and future coverage checks.
 - Moved legacy command-wrapper guidance out of primary README and CLI flow into `docs/compatibility.md`.
 - Keep Agents SDK deferred unless ShipGuard becomes a runnable agent service with a concrete eval target.
+- Added the stable-publication asset-repair handoff after release-publication QA showed `update-release-assets` could still send maintainers to a generic rerun. When verified local release assets exist, the report now gives a manual `gh release upload ... --clobber` command while preserving the no-mutation boundary.

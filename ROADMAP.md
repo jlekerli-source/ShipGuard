@@ -146,8 +146,8 @@ v3.134  stable-publication publish-first visibility handoff
 v3.135  package-release duplicate proof pruning
 v3.136  stable-publication concrete release-create handoff
 v3.137  stable-publication concrete release-asset paths
-v3.138  LaunchKey fresh-install receipt attachment
-v3.139  LaunchKey generated proof-directory report-quality exclusion
+v3.138  stable-publication release-asset upload handoff
+v3.139  stable-publication public release closure
 v3.140  LaunchKey upgrade and rollback receipt attachment
 v3.141  LaunchKey downloaded-asset blocking proof detail
 v3.142  LaunchKey native GitHub release-asset download
@@ -196,7 +196,9 @@ v3.136 public-release catch-up makes the stable-publication release visibility h
 
 v3.137 makes that public-release packet fully asset-path aware: when stable-publication has a supplied or downloaded release-assets directory, the generated `gh release create ...` handoff uses those concrete files instead of `<release-proof-assets-dir>` placeholders.
 
-Release-line note: local `VERSION` now advances to `3.137.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
+v3.138 adds a stable-publication release-asset upload handoff: when public release assets or asset coherence need repair and the local release asset files are present, `update-release-assets` now points to a concrete manual `gh release upload ... --clobber` command instead of a generic rerun. The boundary remains explicit: ShipGuard prepares the command but does not mutate GitHub releases.
+
+Release-line note: local `VERSION` now advances to `3.138.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
 
 v3.135 trims package-release proof duplication: after source CI runs the focused fixture suites, `tests/package_release_test.sh` verifies those packaged test scripts are included, executable, and shell-syntax-valid instead of rerunning the same suites from the extracted tarball.
 
@@ -219,14 +221,6 @@ v3.136 also continues InspectDeck release-proof badge detail by keeping supplied
 v3.137 continues InspectDeck release-proof path handoff by exposing release-assets, manifest, and badge paths plus a rerun template and no-mutation boundary in release-state reports.
 
 v3.137 continues LaunchKey published release-asset proof attachment by adding a compact `releaseAssetProofAttachment` to `publishedReleaseAssetProof`, so release-consume paths, digest status, missing artifacts, next command, and source-only/fixture-proof boundaries travel with the candidate packet.
-
-v3.138 continues LaunchKey fresh-install receipt attachment by adding a compact `freshInstallProofAttachment` to `freshInstallPackageProof`, so install paths, version and validation exits, forbidden installed paths, missing artifacts, next command, and source-only/fixture-proof boundaries travel with the candidate packet.
-
-v3.138 also adds a LaunchKey fresh-install receipt handoff so the attachment points stable-publication at the containing candidate report, names the proof artifacts, and makes clear the install prefix alone is not stable-v4 proof.
-
-v3.139 continues LaunchKey generated proof-directory report-quality exclusion by making skipped generated package/install/upgrade/rollback/download/consume JSON files visible through `skippedReportDiscovery` and Markdown while still scoring only the root report.
-
-v3.139 also adds LaunchKey upgrade and rollback receipt handoffs so same-prefix upgrade and cleanup attachments point stable-publication at the containing candidate report, name proof artifacts, and make clear proof prefixes alone are not stable-v4 proof.
 
 v3.140 adds LaunchKey release-asset receipt handoff so verified downloaded or supplied release assets point stable-publication at the containing candidate report, name release-consume proof artifacts, and make clear a release-assets directory alone is not stable-v4 proof.
 

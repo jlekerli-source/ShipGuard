@@ -1768,6 +1768,7 @@ def build_release_visibility_handoff(
     final_claim_packet: dict[str, Any],
     rerun_command: str,
     release_create_command: str = "",
+    release_asset_repair_command: str = "",
 ) -> dict[str, Any]:
     comparisons = (
         public_release_delta_proof.get("comparisons")
@@ -1851,7 +1852,7 @@ def build_release_visibility_handoff(
                 if needs_assets
                 else "Release assets and digest coherence passed."
             ),
-            "nextCommand": str(published_asset_proof.get("nextCommand") or rerun_command) if needs_assets else "not-needed",
+            "nextCommand": str(release_asset_repair_command or published_asset_proof.get("nextCommand") or rerun_command) if needs_assets else "not-needed",
         },
         {
             "id": "attach-adoption-security-evidence",
@@ -2557,6 +2558,59 @@ def github_release_create_handoff(
     }
 
 
+def github_release_upload_handoff(
+    diagnostics: dict[str, Any],
+    assets_dir: str | Path | None = None,
+) -> dict[str, Any]:
+    repo = str(diagnostics.get("repo") or "<owner/repo>")
+    tag = str(diagnostics.get("tag") or "")
+    version = str(diagnostics.get("version") or "").strip()
+    if not tag:
+        tag = f"v{version}" if version else "v<version>"
+    if not version and tag.startswith("v") and "<" not in tag:
+        version = tag[1:]
+    required_assets = diagnostics.get("requiredAssets")
+    if not isinstance(required_assets, list) or not required_assets:
+        required_assets = sorted(REQUIRED_RELEASE_ASSETS | {requested_tarball_name(version or "<version>")})
+
+    assets_dir_raw = str(assets_dir or "").strip()
+    assets_dir_path = Path(assets_dir_raw).expanduser() if assets_dir_raw and "<" not in assets_dir_raw else None
+    asset_args = []
+    concrete_count = 0
+    for asset in required_assets:
+        name = str(asset)
+        if not name:
+            continue
+        concrete_asset = assets_dir_path / name if assets_dir_path else None
+        if concrete_asset and concrete_asset.is_file():
+            asset_args.append(concrete_asset.as_posix())
+            concrete_count += 1
+        else:
+            asset_args.append(f"<release-proof-assets-dir>/{name}")
+
+    command_parts = ["gh", "release", "upload", tag, "--repo", repo, "--clobber", *asset_args]
+    return {
+        "command": " ".join(shlex.quote(part) for part in command_parts),
+        "inputs": {
+            "repo": repo,
+            "tag": tag,
+            "assetsDir": assets_dir_raw,
+            "requiredAssets": required_assets,
+            "assetArguments": asset_args,
+            "concreteAssetCount": concrete_count,
+        },
+        "boundary": {
+            "manualApprovalRequired": True,
+            "shipguardUploadsGitHubAssets": False,
+            "requiresReleaseProofAssets": True,
+            "usesClobber": True,
+            "sourceOnlyProofCountsAsPublishedRelease": False,
+            "fixtureApiProofCountsAsPublishedRelease": False,
+            "explanation": "ShipGuard prepares the release-asset upload command, but it does not upload or replace GitHub release assets.",
+        },
+    }
+
+
 def asset_names_from_dir(raw_path: object) -> list[str]:
     if not raw_path:
         return []
@@ -2636,6 +2690,9 @@ def build_release_asset_closure_kit(
             "--external-adoption-evidence <adoption-evidence-json-or-dir> "
             "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
         )
+    upload_handoff = github_release_upload_handoff(metadata_proof, assets_dir=diagnostics.get("assetsDir") or "")
+    upload_inputs = upload_handoff["inputs"]
+    upload_ready = bool(upload_inputs.get("concreteAssetCount")) and upload_inputs.get("concreteAssetCount") == len(upload_inputs.get("requiredAssets", []))
     return {
         "schemaVersion": 1,
         "title": "Release asset proof closure kit",
@@ -2659,6 +2716,10 @@ def build_release_asset_closure_kit(
         "passCriteria": RELEASE_ASSET_PASS_CRITERIA,
         "failCriteria": RELEASE_ASSET_FAIL_CRITERIA,
         "downloadAssetsRerunCommand": download_command,
+        "releaseAssetUploadCommand": upload_handoff["command"],
+        "releaseAssetUploadInputs": upload_inputs,
+        "releaseAssetUploadCommandReady": upload_ready,
+        "releaseAssetUploadCommandBoundary": upload_handoff["boundary"],
         "stablePublicationRerunCommand": stable_rerun,
         "releaseAssetProofBoundary": {
             "downloadedOrSuppliedAssetsRequired": True,
@@ -3525,6 +3586,9 @@ def build_stable_publication_closure_checklist(
                     "localAssetNames": asset_kit.get("localAssetNames") if isinstance(asset_kit.get("localAssetNames"), list) else [],
                     "missingLocalAssets": asset_kit.get("missingLocalAssets") if isinstance(asset_kit.get("missingLocalAssets"), list) else [],
                     "downloadAssetsRerunCommand": asset_kit.get("downloadAssetsRerunCommand") or item.get("nextCommand") or "",
+                    "releaseAssetUploadCommand": asset_kit.get("releaseAssetUploadCommand") or "",
+                    "releaseAssetUploadCommandReady": asset_kit.get("releaseAssetUploadCommandReady") is True,
+                    "releaseAssetUploadCommandBoundary": asset_kit.get("releaseAssetUploadCommandBoundary") if isinstance(asset_kit.get("releaseAssetUploadCommandBoundary"), dict) else {},
                     "stablePublicationRerunCommand": asset_kit.get("stablePublicationRerunCommand") or rerun_command,
                     "repairCriteria": asset_kit.get("repairCriteria") if isinstance(asset_kit.get("repairCriteria"), list) else [],
                     "passCriteria": asset_kit.get("passCriteria") if isinstance(asset_kit.get("passCriteria"), list) else [],
@@ -3626,6 +3690,9 @@ def build_stable_publication_closure_checklist(
                 if isinstance(item.get("releaseAssetCoherenceDiagnostics"), dict)
                 else {}
             )
+            upload_handoff = github_release_upload_handoff(metadata_proof, assets_dir=release_assets_dir)
+            upload_inputs = upload_handoff["inputs"]
+            upload_ready = bool(upload_inputs.get("concreteAssetCount")) and upload_inputs.get("concreteAssetCount") == len(upload_inputs.get("requiredAssets", []))
             closure_item.update(
                 {
                     "expectedTarballName": diagnostics.get("expectedTarballName") or "",
@@ -3646,10 +3713,13 @@ def build_stable_publication_closure_checklist(
                     "repairCriteria": RELEASE_ASSET_COHERENCE_REPAIR_CRITERIA,
                     "passCriteria": RELEASE_ASSET_COHERENCE_PASS_CRITERIA,
                     "failCriteria": RELEASE_ASSET_COHERENCE_FAIL_CRITERIA,
+                    "releaseAssetUploadCommand": upload_handoff["command"],
+                    "releaseAssetUploadCommandReady": upload_ready,
+                    "releaseAssetUploadCommandBoundary": upload_handoff["boundary"],
                     "assetCoherenceRerunCommand": rerun_command or item.get("nextCommand") or first_blocking.get("nextCommand") or "",
                 }
             )
-            closure_item["nextCommand"] = closure_item["assetCoherenceRerunCommand"]
+            closure_item["nextCommand"] = closure_item["releaseAssetUploadCommand"] if upload_ready else closure_item["assetCoherenceRerunCommand"]
         if evidence_id in {"independent-adoption-evidence", "final-security-review-evidence"}:
             template = templates_by_id.get(evidence_id, {})
             starter_file = starter_files_by_id.get(evidence_id, {})
@@ -4283,6 +4353,13 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             notes_file=generated_paths.get("draftReleaseNotes") or None,
             assets_dir=release_assets_dir,
         )["command"]
+    release_asset_repair_command = ""
+    for item in closure_checklist.get("items", []):
+        if not isinstance(item, dict):
+            continue
+        if item.get("id") in {"downloaded-release-assets", "release-asset-coherence"}:
+            release_asset_repair_command = str(item.get("nextCommand") or "")
+            break
     release_visibility_handoff = build_release_visibility_handoff(
         release_version=release_version,
         stable_v4_release=stable_v4_release,
@@ -4296,6 +4373,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         final_claim_packet=final_claim_packet,
         rerun_command=stable_publication_rerun_command(args),
         release_create_command=release_create_command,
+        release_asset_repair_command=release_asset_repair_command,
     )
 
     if blocked:
@@ -4709,11 +4787,11 @@ def render_markdown(report: dict[str, Any]) -> str:
                 lines.append(f"- {problem}")
         else:
             lines.append("- none")
-    asset_coherence = (
-        report.get("releaseAssetCoherenceProof")
-        if isinstance(report.get("releaseAssetCoherenceProof"), dict)
-        else {}
-    )
+        asset_coherence = (
+            report.get("releaseAssetCoherenceProof")
+            if isinstance(report.get("releaseAssetCoherenceProof"), dict)
+            else {}
+        )
     if asset_coherence:
         comparisons = asset_coherence.get("comparisons") if isinstance(asset_coherence.get("comparisons"), dict) else {}
         problems = asset_coherence.get("problems") if isinstance(asset_coherence.get("problems"), list) else []
@@ -4754,6 +4832,28 @@ def render_markdown(report: dict[str, Any]) -> str:
                 lines.append(f"- {problem}")
         else:
             lines.append("- none")
+        closure_items = (
+            report.get("stablePublicationClosureChecklist", {}).get("items", [])
+            if isinstance(report.get("stablePublicationClosureChecklist"), dict)
+            else []
+        )
+        coherence_closure = next(
+            (item for item in closure_items if isinstance(item, dict) and item.get("id") == "release-asset-coherence"),
+            None,
+        )
+        if isinstance(coherence_closure, dict) and coherence_closure.get("releaseAssetUploadCommand"):
+            lines.extend(
+                [
+                    "",
+                    "Release asset upload handoff:",
+                    "",
+                    f"- Command ready: `{coherence_closure.get('releaseAssetUploadCommandReady')}`",
+                    "",
+                    "```bash",
+                    str(coherence_closure.get("releaseAssetUploadCommand") or ""),
+                    "```",
+                ]
+            )
     closure_checklist = (
         report.get("stablePublicationClosureChecklist")
         if isinstance(report.get("stablePublicationClosureChecklist"), dict)
@@ -5013,6 +5113,7 @@ def render_markdown(report: dict[str, Any]) -> str:
                     f"- GitHub metadata only counts as release-asset proof: `{boundary.get('githubMetadataOnlyCountsAsReleaseAssetProof')}`",
                     f"- Source-only proof counts as release-asset proof: `{boundary.get('sourceOnlyProofCountsAsReleaseAssetProof')}`",
                     f"- Fixture proof counts as stable-v4 publication proof: `{boundary.get('fixtureProofCountsAsStableV4PublicationProof')}`",
+                    f"- Release asset upload command ready: `{kit.get('releaseAssetUploadCommandReady')}`",
                 ]
             )
             lines.extend(["", "Repair criteria:", ""])
@@ -5031,6 +5132,12 @@ def render_markdown(report: dict[str, Any]) -> str:
                     "",
                     "```bash",
                     str(kit.get("downloadAssetsRerunCommand") or asset_closure.get("nextCommand") or ""),
+                    "```",
+                    "",
+                    "Upload or replace public release assets manually when local release assets are complete:",
+                    "",
+                    "```bash",
+                    str(kit.get("releaseAssetUploadCommand") or ""),
                     "```",
                     "",
                     "Rerun the full stable-publication gate after release assets pass:",
