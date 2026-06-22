@@ -1721,6 +1721,98 @@ def attach_external_evidence_freshness(
     return updated
 
 
+def build_public_evidence_closure_proof(
+    *,
+    release_version: str,
+    adoption_proof: dict[str, Any],
+    security_proof: dict[str, Any],
+    evidence_templates: dict[str, Any],
+    evidence_starter_kit: dict[str, Any],
+    rerun_command: str,
+) -> dict[str, Any]:
+    templates = {
+        str(item.get("id")): item
+        for item in evidence_templates.get("templates", [])
+        if isinstance(item, dict)
+    }
+    starter_files = {
+        "independent-adoption-evidence": "stable-publication-evidence-kit/external-adoption-evidence.json",
+        "final-security-review-evidence": "stable-publication-evidence-kit/security-review-evidence.json",
+    }
+    proof_pairs = [
+        ("independent-adoption-evidence", adoption_proof),
+        ("final-security-review-evidence", security_proof),
+    ]
+    rows: list[dict[str, Any]] = []
+    problems: list[str] = []
+    for evidence_id, proof in proof_pairs:
+        template = templates.get(evidence_id, {})
+        freshness = proof.get("evidencePacketFreshness") if isinstance(proof.get("evidencePacketFreshness"), dict) else {}
+        gate_status = str(proof.get("stableV4GateStatus") or proof.get("status") or "not-provided")
+        freshness_status = str(freshness.get("status") or "not-provided")
+        row = {
+            "id": evidence_id,
+            "status": "pass" if gate_status == "pass" and freshness_status == "pass" else "review",
+            "provided": proof.get("provided") is True,
+            "stableV4GateStatus": gate_status,
+            "freshnessStatus": freshness_status,
+            "stableV4EligibleEvidenceCount": proof.get("stableV4EligibleEvidenceCount") or 0,
+            "freshStableRecordCount": freshness.get("freshStableRecordCount") or 0,
+            "staleStableRecordCount": freshness.get("staleStableRecordCount") or 0,
+            "starterPath": starter_files[evidence_id],
+            "templatePath": template.get("path") or "",
+            "copyCommand": template.get("copyCommand") or "",
+            "attachArgument": (
+                "--external-adoption-evidence"
+                if evidence_id == "independent-adoption-evidence"
+                else "--security-review-evidence"
+            ),
+            "copyReadyNextCommand": rerun_command,
+        }
+        if row["status"] != "pass":
+            problems.append(f"{evidence_id} needs passing real evidence and freshness proof.")
+        rows.append(row)
+
+    return {
+        "schemaVersion": 1,
+        "releaseVersion": release_version,
+        "status": "pass" if not problems else "review",
+        "requiredForStableV4": True,
+        "summary": (
+            "Independent adoption and final security-review evidence are present, fresh for this release, and claim-bounded."
+            if not problems
+            else "Independent adoption or final security-review evidence still needs real, fresh, claim-bounded proof."
+        ),
+        "evidenceRows": rows,
+        "missingOrBlockingEvidenceIds": [row["id"] for row in rows if row["status"] != "pass"],
+        "starterKitDirectory": evidence_starter_kit.get("directory") or "stable-publication-evidence-kit",
+        "rerunCommand": rerun_command,
+        "copyReadyCommands": [
+            row["copyCommand"]
+            for row in rows
+            if row.get("copyCommand")
+        ] + [rerun_command],
+        "problems": problems,
+        "publicEvidenceBoundary": {
+            "realExternalAdoptionEvidenceRequired": True,
+            "finalSecurityReviewEvidenceRequired": True,
+            "generatedAtMustBeNoEarlierThanReleaseManifest": True,
+            "privateEvidenceMustBeRedacted": True,
+            "githubDownloadCountsCountAsAdoptionEvidence": False,
+            "fixtureEvidenceCountsAsStableV4Evidence": False,
+            "sourceOnlyProofCountsAsPublicEvidence": False,
+            "doesNotClaimMarketplaceAcceptance": True,
+            "doesNotPostOrSubmitExternally": True,
+        },
+        "nonClaims": [
+            "GitHub stars, forks, or download counts are not independent adoption evidence.",
+            "Fixture adoption or security records prove the tool path only.",
+            "Security-review evidence does not imply marketplace acceptance.",
+            "Private app evidence must stay redacted before shareable publication proof.",
+        ],
+    }
+
+
 def launchkey_candidate_proof_areas_for_closure(proof: dict[str, Any]) -> list[dict[str, Any]]:
     statuses = proof.get("candidateReadinessStatuses")
     if not isinstance(statuses, dict):
@@ -3446,6 +3538,14 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     stable_v4_release = status == "pass"
     evidence_templates = build_stable_publication_evidence_templates(root)
     evidence_starter_kit = build_stable_publication_evidence_starter_kit_manifest()
+    public_evidence_closure_proof = build_public_evidence_closure_proof(
+        release_version=release_version,
+        adoption_proof=adoption_proof,
+        security_proof=security_proof,
+        evidence_templates=evidence_templates,
+        evidence_starter_kit=evidence_starter_kit,
+        rerun_command=stable_publication_rerun_command(args),
+    )
     release_notes_authoring_kit = build_stable_publication_release_notes_authoring_kit(
         release_version=release_version,
         release_notes_proof=release_notes_proof,
@@ -3527,6 +3627,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "publicReleaseFreshnessProof": public_release_freshness_proof,
         "releaseVersionCoherenceProof": release_version_coherence_proof,
         "releaseAssetCoherenceProof": release_asset_coherence_proof,
+        "publicEvidenceClosureProof": public_evidence_closure_proof,
         "externalAdoptionEvidenceProof": adoption_proof,
         "securityReviewEvidenceProof": security_proof,
         "stablePublicationGates": [
@@ -3563,6 +3664,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the release version coherence row prove VERSION, GitHub metadata, release manifest, package proof, and consumer report all name the same release version?",
             "Does the release asset coherence row prove required asset names and SHA-256 values match across metadata, local assets, manifest, digest matrix, and consumer proof?",
             "Do independent adoption and final security-review evidence records prove generatedAt freshness against the release manifest instead of reusing stale packet evidence?",
+            "Does the public evidence closure proof summarize adoption/security gate status, freshness, starter paths, copy-ready commands, and non-claims before stable-v4 publication?",
             "Do independent adoption and final security-review closure rows expose starter paths, required fields, redaction/privacy boundaries, pass/fail criteria, current diagnostics, and exact stable-publication rerun commands?",
             "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?",
         ],
@@ -3615,6 +3717,47 @@ def render_markdown(report: dict[str, Any]) -> str:
         for item in packet.get("requiredEvidence", []):
             if isinstance(item, dict):
                 lines.append(f"| `{item.get('id')}` | `{item.get('status')}` |")
+    public_evidence = (
+        report.get("publicEvidenceClosureProof")
+        if isinstance(report.get("publicEvidenceClosureProof"), dict)
+        else {}
+    )
+    if public_evidence:
+        boundary = (
+            public_evidence.get("publicEvidenceBoundary")
+            if isinstance(public_evidence.get("publicEvidenceBoundary"), dict)
+            else {}
+        )
+        lines.extend(
+            [
+                "",
+                "## Public Evidence Closure",
+                "",
+                f"- Status: `{public_evidence.get('status')}`",
+                f"- Starter kit: `{public_evidence.get('starterKitDirectory') or 'not-provided'}`",
+                f"- Real adoption evidence required: `{boundary.get('realExternalAdoptionEvidenceRequired')}`",
+                f"- Final security review required: `{boundary.get('finalSecurityReviewEvidenceRequired')}`",
+                f"- GitHub download counts count as adoption evidence: `{boundary.get('githubDownloadCountsCountAsAdoptionEvidence')}`",
+                f"- Fixture evidence counts as stable-v4 evidence: `{boundary.get('fixtureEvidenceCountsAsStableV4Evidence')}`",
+                f"- Marketplace acceptance claimed: `{not boundary.get('doesNotClaimMarketplaceAcceptance')}`",
+                "",
+                "| Evidence | Gate | Freshness | Eligible | Fresh | Stale | Starter |",
+                "| --- | --- | --- | ---: | ---: | ---: | --- |",
+            ]
+        )
+        for row in public_evidence.get("evidenceRows", []):
+            if isinstance(row, dict):
+                lines.append(
+                    f"| `{row.get('id')}` | `{row.get('stableV4GateStatus')}` | `{row.get('freshnessStatus')}` | "
+                    f"`{row.get('stableV4EligibleEvidenceCount')}` | `{row.get('freshStableRecordCount')}` | "
+                    f"`{row.get('staleStableRecordCount')}` | `{row.get('starterPath') or 'not-provided'}` |"
+                )
+        lines.extend(["", "Copy-ready commands:", ""])
+        for command in public_evidence.get("copyReadyCommands", []):
+            lines.append(f"- `{command}`")
+        lines.extend(["", "Public evidence non-claims:", ""])
+        for claim in public_evidence.get("nonClaims", []):
+            lines.append(f"- {claim}")
     evidence_freshness_rows = []
     for label, proof_key in (
         ("independent-adoption-evidence", "externalAdoptionEvidenceProof"),
@@ -4365,6 +4508,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"- Public release freshness: `{report.get('publicReleaseFreshnessProof', {}).get('status')}`",
             f"- Release version coherence: `{report.get('releaseVersionCoherenceProof', {}).get('status')}`",
             f"- Release asset coherence: `{report.get('releaseAssetCoherenceProof', {}).get('status')}`",
+            f"- Public evidence closure: `{report.get('publicEvidenceClosureProof', {}).get('status')}`",
             f"- External adoption stable gate: `{report.get('externalAdoptionEvidenceProof', {}).get('stableV4GateStatus')}`",
             f"- External adoption freshness: `{(report.get('externalAdoptionEvidenceProof', {}).get('evidencePacketFreshness') or {}).get('status')}`",
             f"- Security review stable gate: `{report.get('securityReviewEvidenceProof', {}).get('stableV4GateStatus')}`",

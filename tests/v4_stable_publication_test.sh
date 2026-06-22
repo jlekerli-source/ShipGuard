@@ -503,6 +503,15 @@ assert packet["missingEvidenceIds"] == [
 required_by_id = {item["id"]: item for item in packet["requiredEvidence"]}
 assert required_by_id["independent-adoption-evidence"]["evidenceDiagnostics"]["stableV4GateStatus"] == "not-provided"
 assert required_by_id["final-security-review-evidence"]["evidenceDiagnostics"]["stableV4GateStatus"] == "not-provided"
+public_evidence = report["publicEvidenceClosureProof"]
+assert public_evidence["status"] == "review"
+assert public_evidence["missingOrBlockingEvidenceIds"] == [
+    "independent-adoption-evidence",
+    "final-security-review-evidence",
+]
+assert public_evidence["publicEvidenceBoundary"]["githubDownloadCountsCountAsAdoptionEvidence"] is False
+assert public_evidence["publicEvidenceBoundary"]["doesNotClaimMarketplaceAcceptance"] is True
+assert any("stable-publication" in command for command in public_evidence["copyReadyCommands"])
 closure = report["stablePublicationClosureChecklist"]
 items = closure["items"]
 assert [item["id"] for item in items] == packet["missingEvidenceIds"]
@@ -549,6 +558,8 @@ assert set(security_item["evidenceClosureKit"]["requiredScope"]) == {
 PY
 grep -q 'Evidence Closure Kit: `independent-adoption-evidence`' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
 grep -q 'Evidence Closure Kit: `final-security-review-evidence`' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
+grep -q 'Public Evidence Closure' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
+grep -q 'GitHub download counts count as adoption evidence: `False`' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
 grep -q 'Pass criteria:' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
 grep -q 'Fail criteria:' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
 grep -q 'stable-publication-evidence-kit/external-adoption-evidence.json' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
@@ -1130,6 +1141,16 @@ assert adoption_freshness["staleStableRecordCount"] == 0
 assert security_freshness["staleStableRecordCount"] == 0
 assert adoption_freshness["freshnessBoundary"]["generatedAtMustBeNoEarlierThanReleaseManifest"] is True
 assert adoption_freshness["freshnessBoundary"]["sourceOnlyProofRefreshesExternalEvidence"] is False
+public_evidence = report["publicEvidenceClosureProof"]
+assert public_evidence["status"] == "pass"
+assert public_evidence["missingOrBlockingEvidenceIds"] == []
+assert {row["id"] for row in public_evidence["evidenceRows"]} == {
+    "independent-adoption-evidence",
+    "final-security-review-evidence",
+}
+assert all(row["freshnessStatus"] == "pass" for row in public_evidence["evidenceRows"])
+assert public_evidence["publicEvidenceBoundary"]["fixtureEvidenceCountsAsStableV4Evidence"] is False
+assert public_evidence["publicEvidenceBoundary"]["doesNotPostOrSubmitExternally"] is True
 assert report["scopeBoundary"]["shipguardOnly"] is True
 assert report["shipguardEval"]["mode"] == "ShipGuard product QA"
 assert "value-gauntlet" in report["resultUX"]["nextCommand"]
@@ -1191,10 +1212,12 @@ grep -q 'Release Notes Authoring Kit' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Launch Relay Drafts' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Public posting allowed: `False`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'External Evidence Freshness' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Public Evidence Closure' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release Version Coherence' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release Asset Coherence' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release version coherence: `pass`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release asset coherence: `pass`' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Public evidence closure: `pass`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'External adoption freshness: `pass`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Security review freshness: `pass`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'independent-adoption-evidence' "$tmp_dir/pass/v4-stable-publication.md"

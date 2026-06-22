@@ -188,6 +188,69 @@
     "status": "pass",
     "summary": "Synthetic asset coherence fixture; release asset names and SHA-256 values agree across the public-safe test packet."
   },
+  "publicEvidenceClosureProof": {
+    "copyReadyCommands": [
+      "cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json",
+      "cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json",
+      "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable"
+    ],
+    "evidenceRows": [
+      {
+        "copyCommand": "cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json",
+        "copyReadyNextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+        "freshStableRecordCount": 1,
+        "freshnessStatus": "pass",
+        "id": "independent-adoption-evidence",
+        "provided": true,
+        "stableV4EligibleEvidenceCount": 1,
+        "stableV4GateStatus": "pass",
+        "staleStableRecordCount": 0,
+        "starterPath": "stable-publication-evidence-kit/external-adoption-evidence.json",
+        "status": "pass",
+        "templatePath": "templates/stable-publication/external-adoption-evidence.template.json"
+      },
+      {
+        "copyCommand": "cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json",
+        "copyReadyNextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+        "freshStableRecordCount": 1,
+        "freshnessStatus": "pass",
+        "id": "final-security-review-evidence",
+        "provided": true,
+        "stableV4EligibleEvidenceCount": 1,
+        "stableV4GateStatus": "pass",
+        "staleStableRecordCount": 0,
+        "starterPath": "stable-publication-evidence-kit/security-review-evidence.json",
+        "status": "pass",
+        "templatePath": "templates/stable-publication/security-review-evidence.template.json"
+      }
+    ],
+    "missingOrBlockingEvidenceIds": [],
+    "nonClaims": [
+      "GitHub stars, forks, or download counts are not independent adoption evidence.",
+      "Fixture adoption or security records prove the tool path only.",
+      "Security-review evidence does not imply marketplace acceptance.",
+      "Private app evidence must stay redacted before shareable publication proof."
+    ],
+    "problems": [],
+    "publicEvidenceBoundary": {
+      "doesNotClaimMarketplaceAcceptance": true,
+      "doesNotPostOrSubmitExternally": true,
+      "finalSecurityReviewEvidenceRequired": true,
+      "fixtureEvidenceCountsAsStableV4Evidence": false,
+      "generatedAtMustBeNoEarlierThanReleaseManifest": true,
+      "githubDownloadCountsCountAsAdoptionEvidence": false,
+      "privateEvidenceMustBeRedacted": true,
+      "realExternalAdoptionEvidenceRequired": true,
+      "sourceOnlyProofCountsAsPublicEvidence": false
+    },
+    "releaseVersion": "0.0.0",
+    "requiredForStableV4": true,
+    "rerunCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+    "schemaVersion": 1,
+    "starterKitDirectory": "stable-publication-evidence-kit",
+    "status": "pass",
+    "summary": "Synthetic public evidence closure fixture; adoption and security rows are fresh and claim-bounded."
+  },
   "reportQualityQuestions": [
     "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?"
   ],

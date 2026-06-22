@@ -4355,6 +4355,74 @@ def stable_publication_evidence_packet_issues(
                 recommendation="Render the asset coherence matrix in Markdown so mismatched release assets cannot hide in JSON.",
             )
 
+    public_evidence = (
+        report.get("publicEvidenceClosureProof")
+        if isinstance(report.get("publicEvidenceClosureProof"), dict)
+        else {}
+    )
+    if report.get("stableV4Release") is True and not public_evidence:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-public-evidence-closure-missing",
+            evidence=f"{path_name} claims stableV4Release=true but has no publicEvidenceClosureProof",
+            recommendation="Expose one copy-ready public evidence closure proof for adoption/security status, freshness, starter paths, rerun commands, and non-claims.",
+        )
+    if public_evidence:
+        rows = public_evidence.get("evidenceRows") if isinstance(public_evidence.get("evidenceRows"), list) else []
+        row_ids = {str(row.get("id")) for row in rows if isinstance(row, dict)}
+        boundary = (
+            public_evidence.get("publicEvidenceBoundary")
+            if isinstance(public_evidence.get("publicEvidenceBoundary"), dict)
+            else {}
+        )
+        if report.get("stableV4Release") is True and public_evidence.get("status") != "pass":
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-public-evidence-closure-not-pass",
+                evidence=f"{path_name} claims stableV4Release=true but publicEvidenceClosureProof is {public_evidence.get('status')}",
+                recommendation="Block stable-v4 claims until adoption and security evidence both pass and are fresh for the release manifest.",
+            )
+        if {"independent-adoption-evidence", "final-security-review-evidence"} - row_ids:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-public-evidence-closure-row-missing",
+                evidence=f"{path_name} publicEvidenceClosureProof omits adoption or security evidence rows",
+                recommendation="Summarize both independent adoption and final security-review evidence in the public closure proof.",
+            )
+        if (
+            boundary.get("realExternalAdoptionEvidenceRequired") is not True
+            or boundary.get("finalSecurityReviewEvidenceRequired") is not True
+            or boundary.get("githubDownloadCountsCountAsAdoptionEvidence") is not False
+            or boundary.get("fixtureEvidenceCountsAsStableV4Evidence") is not False
+            or boundary.get("doesNotClaimMarketplaceAcceptance") is not True
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-public-evidence-closure-boundary-missing",
+                evidence=f"{path_name} publicEvidenceClosureProof does not expose adoption/security non-claim boundaries",
+                recommendation="State that real adoption and final security evidence are required, and that downloads, fixtures, source-only proof, marketplace acceptance, or posting claims do not count.",
+            )
+        if not public_evidence.get("copyReadyCommands"):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-public-evidence-closure-command-missing",
+                evidence=f"{path_name} publicEvidenceClosureProof has no copy-ready commands",
+                recommendation="Include template-copy and stable-publication rerun commands so evidence closure is actionable from the report.",
+            )
+        if "Public Evidence Closure" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-public-evidence-closure-markdown-missing",
+                evidence=f"{path_name} has publicEvidenceClosureProof but Markdown does not render it",
+                recommendation="Render the public evidence closure proof in Markdown so adoption/security status and non-claims are visible without opening JSON.",
+            )
+
     non_claims = packet.get("nonClaims")
     if not isinstance(non_claims, list) or not non_claims:
         add_issue(
@@ -9951,6 +10019,58 @@ def synthetic_stable_publication_report_fields() -> dict[str, Any]:
                 "assetDigestMatrixRequired": True,
                 "sourceOnlyProofCountsAsAssetCoherenceProof": False,
                 "metadataOnlyProofCountsAsAssetCoherenceProof": False,
+            },
+        },
+        "publicEvidenceClosureProof": {
+            "schemaVersion": 1,
+            "releaseVersion": "0.0.0",
+            "status": "pass",
+            "requiredForStableV4": True,
+            "evidenceRows": [
+                {
+                    "id": "independent-adoption-evidence",
+                    "status": "pass",
+                    "provided": True,
+                    "stableV4GateStatus": "pass",
+                    "freshnessStatus": "pass",
+                    "stableV4EligibleEvidenceCount": 1,
+                    "freshStableRecordCount": 1,
+                    "staleStableRecordCount": 0,
+                    "starterPath": "stable-publication-evidence-kit/external-adoption-evidence.json",
+                    "templatePath": "templates/stable-publication/external-adoption-evidence.template.json",
+                    "copyCommand": "cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json",
+                    "copyReadyNextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+                },
+                {
+                    "id": "final-security-review-evidence",
+                    "status": "pass",
+                    "provided": True,
+                    "stableV4GateStatus": "pass",
+                    "freshnessStatus": "pass",
+                    "stableV4EligibleEvidenceCount": 1,
+                    "freshStableRecordCount": 1,
+                    "staleStableRecordCount": 0,
+                    "starterPath": "stable-publication-evidence-kit/security-review-evidence.json",
+                    "templatePath": "templates/stable-publication/security-review-evidence.template.json",
+                    "copyCommand": "cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json",
+                    "copyReadyNextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+                },
+            ],
+            "copyReadyCommands": [
+                "cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json",
+                "cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json",
+                "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+            ],
+            "publicEvidenceBoundary": {
+                "realExternalAdoptionEvidenceRequired": True,
+                "finalSecurityReviewEvidenceRequired": True,
+                "generatedAtMustBeNoEarlierThanReleaseManifest": True,
+                "privateEvidenceMustBeRedacted": True,
+                "githubDownloadCountsCountAsAdoptionEvidence": False,
+                "fixtureEvidenceCountsAsStableV4Evidence": False,
+                "sourceOnlyProofCountsAsPublicEvidence": False,
+                "doesNotClaimMarketplaceAcceptance": True,
+                "doesNotPostOrSubmitExternally": True,
             },
         },
         "scopeBoundary": {

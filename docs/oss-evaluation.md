@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.175 read-only stable-v4 packet loop continued from release asset coherence and tested whether the adoption/security evidence closure was too scattered across individual rows.
+
+- Finding: `v4 stable-publication` exposed adoption/security gates, freshness, templates, and closure rows, but did not provide one compact public-evidence closure proof with copy-ready commands and non-claims.
+- Product weakness: a solo maintainer should not have to stitch together starter files, freshness rows, and closure rows before knowing what adoption/security evidence still blocks the public stable-v4 claim.
+- Native fix: `publicEvidenceClosureProof` now summarizes adoption/security gate status, freshness status, eligible/fresh/stale counts, starter paths, copy commands, rerun command, and explicit boundaries for GitHub downloads, fixtures, source-only proof, marketplace acceptance, and external posting.
+- Report-quality fix: `ios report-quality` now flags stable-publication reports that claim `stableV4Release=true` while hiding, failing, or under-rendering public evidence closure.
+- Fixture fix: focused stable-publication tests assert missing and passing public evidence closure shapes, and synthetic stable-publication reports now carry the proof.
+
+Fresh stable-v4 QA still does not claim real stable v4. Public evidence closure is a visibility and anti-overclaim proof; it does not replace independent adoption evidence or final security-review evidence.
+
 The v3.174 read-only stable-v4 packet loop continued from release version coherence and tested whether a stable-v4 report could still hide mismatched or incomplete release asset names and SHA-256 values.
 
 - Finding: `v4 stable-publication` exposed version coherence and consumer digest freshness, but did not summarize one asset matrix across GitHub metadata, downloaded/supplied assets, `release-manifest.json`, `asset-digests.json`, and consumer artifact SHA-256.

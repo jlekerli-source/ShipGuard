@@ -263,6 +263,14 @@ The proof compares:
 
 Markdown renders this as `Release Asset Coherence`. A stable-v4 claim cannot pass if the public asset packet is missing required assets, omits digest rows, lacks SHA-256 values, or points the manifest, digest matrix, and consumer report at different tarballs.
 
+## Public Evidence Closure
+
+Stable publication emits `publicEvidenceClosureProof` as the copy-ready summary for independent adoption and final security-review evidence.
+
+The proof lists both evidence rows with gate status, freshness status, stable-v4 eligible record counts, fresh/stale record counts, starter paths, template copy commands, the full stable-publication rerun command, and non-claims. It is deliberately a summary of the adoption/security gates, not a new way to manufacture evidence.
+
+Markdown renders this as `Public Evidence Closure`. A stable-v4 claim cannot pass if adoption/security proof is missing, stale, fixture-only, source-only, based on GitHub downloads, or framed as marketplace acceptance or external launch proof.
+
 ## External Evidence Freshness
 
 Stable publication also emits `evidencePacketFreshness` inside both `externalAdoptionEvidenceProof` and `securityReviewEvidenceProof`.

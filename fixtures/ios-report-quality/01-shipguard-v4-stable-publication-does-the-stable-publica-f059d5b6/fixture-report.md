@@ -31,6 +31,34 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 | `independent-adoption-evidence` | `pass` |
 | `final-security-review-evidence` | `pass` |
 
+## Public Evidence Closure
+
+- Status: `pass`
+- Starter kit: `stable-publication-evidence-kit`
+- Real adoption evidence required: `True`
+- Final security review required: `True`
+- GitHub download counts count as adoption evidence: `False`
+- Fixture evidence counts as stable-v4 evidence: `False`
+- Marketplace acceptance claimed: `False`
+
+| Evidence | Gate | Freshness | Eligible | Fresh | Stale | Starter |
+| --- | --- | --- | ---: | ---: | ---: | --- |
+| `independent-adoption-evidence` | `pass` | `pass` | `1` | `1` | `0` | `stable-publication-evidence-kit/external-adoption-evidence.json` |
+| `final-security-review-evidence` | `pass` | `pass` | `1` | `1` | `0` | `stable-publication-evidence-kit/security-review-evidence.json` |
+
+Copy-ready commands:
+
+- `cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json`
+- `cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json`
+- `./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable`
+
+Public evidence non-claims:
+
+- GitHub stars, forks, or download counts are not independent adoption evidence.
+- Fixture adoption or security records prove the tool path only.
+- Security-review evidence does not imply marketplace acceptance.
+- Private app evidence must stay redacted before shareable publication proof.
+
 ## External Evidence Freshness
 
 | Evidence | Status | Reference timestamp | Fresh stable records | Stale stable records |
