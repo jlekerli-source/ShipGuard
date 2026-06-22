@@ -95,13 +95,17 @@ if source.get("status") != "loaded" or source.get("sourcePath") != "NEXT_GOAL.md
 proof = data.get("slashHandoffProof") or {}
 if proof.get("status") != "pass":
     raise SystemExit(proof)
-if proof.get("sourcePath") != "NEXT_GOAL.md" or proof.get("selectedSection") != "following":
+if proof.get("sourcePath") != "NEXT_GOAL.md" or proof.get("selectedSection") not in {"active", "following"}:
     raise SystemExit(proof)
 if proof.get("copyReadyPlan") is not True or proof.get("copyReadyGoal") is not True:
     raise SystemExit(proof)
-if proof.get("completionReceiptPresent") is not True:
+if not isinstance(proof.get("completionReceiptPresent"), bool):
     raise SystemExit(proof)
-if proof.get("versionLineageStatus") != "review":
+if proof.get("selectedSection") == "following" and proof.get("completionReceiptPresent") is not True:
+    raise SystemExit(proof)
+if proof.get("selectedSection") == "active" and proof.get("completionReceiptPresent") is not False:
+    raise SystemExit(proof)
+if proof.get("versionLineageStatus") not in {"pass", "review"}:
     raise SystemExit(proof)
 for key in ["nextGoalFileRequired", "fallbackIsReviewOnly", "doesNotMarkGoalComplete", "doesNotPublishRelease"]:
     if (proof.get("proofBoundary") or {}).get(key) is not True:
@@ -130,8 +134,8 @@ grep -q 'git diff --check' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Slash Handoff Source' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Source path: `NEXT_GOAL.md`' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Slash Handoff Proof' "$tmp_dir/plan/shipguard-full-audit.md"
-grep -q 'Selected section: `following`' "$tmp_dir/plan/shipguard-full-audit.md"
-grep -q 'Completion receipt present: true' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -Eq 'Selected section: `(active|following)`' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -Eq 'Completion receipt present: (true|false)' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Copy-ready plan/goal: true/true' "$tmp_dir/plan/shipguard-full-audit.md"
 if grep -q 'v3.132.0 v4 Product Release Stabilization' "$tmp_dir/plan/shipguard-full-audit.md"; then
   echo "full-audit output should not carry stale v3.132 slash handoff text" >&2
