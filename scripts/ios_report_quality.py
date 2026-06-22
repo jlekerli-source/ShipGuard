@@ -1209,6 +1209,15 @@ def result_ux_quality_issues(report: dict[str, Any], *, path_name: str) -> list[
                 evidence=f"{path_name} resultUX leaks internal stable-publication field names: {', '.join(leaked_tokens)}",
                 recommendation="Use reader-facing labels in resultUX.nextActionSummary, priorityAction, and proofSource while keeping schema field names in structured JSON fields.",
             )
+    priority = report.get("priorityAction")
+    if isinstance(priority, dict) and "nextCommand" in priority and not is_command_shaped(priority.get("nextCommand")):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="priority-action-next-command-not-command",
+            evidence=f"{path_name} priorityAction.nextCommand is prose or Markdown instead of a command template",
+            recommendation="Keep priorityAction.nextCommand runnable; put explanation in priorityAction.summary or recommendation.",
+        )
     return issues
 
 

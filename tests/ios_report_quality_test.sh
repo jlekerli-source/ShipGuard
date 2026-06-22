@@ -727,6 +727,53 @@ grep -q '"status": "review"' "$tmp_dir/broken-result-ux-quality/ios-report-quali
 grep -q '"ruleId": "result-ux-next-command-not-command"' "$tmp_dir/broken-result-ux-quality/ios-report-quality.json"
 grep -q 'resultUX.nextCommand is prose or Markdown instead of a command template' "$tmp_dir/broken-result-ux-quality/ios-report-quality.md"
 
+broken_priority_action="$tmp_dir/broken-priority-action"
+mkdir -p "$broken_priority_action"
+cat > "$broken_priority_action/tool-value-gauntlet.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard value-gauntlet",
+  "surface": "ShipGuard Tool Value Gauntlet",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "review",
+  "resultUX": {
+    "status": "review",
+    "verdict": "REVIEW: Synthetic report has a priority-action command bug.",
+    "proofSource": "synthetic fixture",
+    "whyItMatters": "Copy-facing command fields must stay executable.",
+    "nextCommand": "./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>",
+    "nextActionSummary": "Repair the priority action command field."
+  },
+  "priorityAction": {
+    "kind": "fix-command-field",
+    "summary": "Repair the command field.",
+    "nextCommand": "Start by reading this report and deciding what to do."
+  },
+  "reportQualityQuestions": [
+    "Does priorityAction keep prose action separate from the command template?"
+  ]
+}
+JSON
+cat > "$broken_priority_action/tool-value-gauntlet.md" <<'MD'
+# Synthetic Value Gauntlet
+
+## Result
+
+- Verdict: REVIEW: Synthetic report has a priority-action command bug.
+- Proof source: synthetic fixture
+- Why it matters: Copy-facing command fields must stay executable.
+- Next command: `./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>`
+- Next action: Repair the priority action command field.
+MD
+./bin/shipguard ios report-quality \
+  --reports "$broken_priority_action" \
+  --out "$tmp_dir/broken-priority-action-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/broken-priority-action-quality/ios-report-quality.json"
+grep -q '"ruleId": "priority-action-next-command-not-command"' "$tmp_dir/broken-priority-action-quality/ios-report-quality.json"
+grep -q 'priority-action-next-command-not-command' "$tmp_dir/broken-priority-action-quality/ios-report-quality.md"
+grep -q 'Keep priorityAction.nextCommand runnable' "$tmp_dir/broken-priority-action-quality/ios-report-quality.md"
+
 stale_full_audit="$tmp_dir/stale-full-audit"
 mkdir -p "$stale_full_audit"
 cat > "$stale_full_audit/shipguard-full-audit.json" <<'JSON'

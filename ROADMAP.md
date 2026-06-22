@@ -196,6 +196,8 @@ Release-line note: local `VERSION` now advances to `3.132.0` for the buildable v
 
 v3.133 starts real stable-publication packet QA by making missing GitHub release metadata actionable: the closure kit now includes a manual `gh release create ...` starter with the required release-proof assets and a boundary that ShipGuard prepares proof but does not publish public releases.
 
+v3.134 continues result-UX command-field hardening by making report-quality reject prose or Markdown in `priorityAction.nextCommand`, so copy-facing source-report actions stay executable while explanation stays in summary fields.
+
 Every release proposal must answer:
 
 1. Which developer decision changes?
