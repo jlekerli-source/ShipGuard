@@ -22,6 +22,7 @@ import argparse
 
 SCHEMA_VERSION = 1
 SURFACE = "ShipGuard InspectDeck"
+RELEASE_PROOF_COMMAND = "./bin/shipguard release-proof build --out <dir> --release-url <url> --version <version> --tag <tag> --commit <sha> --ci-run-url <url>"
 
 
 def utc_now() -> str:
@@ -217,11 +218,22 @@ def release_state(source: str | None, root: Path, *, shareable: bool) -> dict[st
     badge_path, badge = find_json(source, "attestation-badge.json")
     artifact = manifest.get("artifact") if isinstance(manifest.get("artifact"), dict) else {}
     proofs = manifest.get("proofs") if isinstance(manifest.get("proofs"), dict) else {}
+    required = {
+        "version": manifest.get("version") or "",
+        "tag": manifest.get("tag") or "",
+        "commit": manifest.get("commit") or "",
+        "artifact.name": artifact.get("name") or "",
+        "artifact.sha256": artifact.get("sha256") or "",
+        "proofs.release_url": proofs.get("release_url") or "",
+        "proofs.ci_run_url": proofs.get("ci_run_url") or "",
+    }
+    missing_fields = [key for key, value in required.items() if not str(value).strip()]
+    status = "not-provided" if not source else ("missing" if not manifest else ("review" if missing_fields else "pass"))
     return {
         "found": bool(manifest),
         "manifestPath": rel_or_redacted(manifest_path, root, shareable=shareable),
         "badgePath": rel_or_redacted(badge_path, root, shareable=shareable),
-        "status": "pass" if manifest else ("not-provided" if not source else "missing"),
+        "status": status,
         "version": manifest.get("version") or "",
         "tag": manifest.get("tag") or "",
         "commit": manifest.get("commit") or "",
@@ -230,6 +242,9 @@ def release_state(source: str | None, root: Path, *, shareable: bool) -> dict[st
         "releaseURL": proofs.get("release_url") or "",
         "ciRunURL": proofs.get("ci_run_url") or "",
         "badgeStatus": badge.get("status") if isinstance(badge, dict) else "",
+        "requiredFields": sorted(required),
+        "missingRequiredFields": missing_fields,
+        "nextCommand": RELEASE_PROOF_COMMAND if missing_fields or not manifest else "",
     }
 
 
@@ -245,7 +260,7 @@ def missing_receipt_priority(inputs: list[dict[str, Any]]) -> list[dict[str, str
     commands = {
         "value-gauntlet": "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet",
         "full-audit": "./bin/shipguard full-audit --path . --out /tmp/shipguard-full-audit --profile quick --plan-only --shipguard-eval --shareable",
-        "release-assets": "./bin/shipguard release-proof build --out <dir> --release-url <url> --version <version> --tag <tag> --commit <sha> --ci-run-url <url>",
+        "release-assets": RELEASE_PROOF_COMMAND,
     }
     reasons = {
         "value-gauntlet": "Generate this first so InspectDeck can rank the weakest ShipGuard surface before release proof.",
@@ -350,8 +365,16 @@ def choose_next_action(value_summary: dict[str, Any], full_summary: dict[str, An
     if not release.get("found"):
         return {
             "source": "release-assets.missing",
-            "command": "./bin/shipguard release-proof build --out <dir> --release-url <url> --version <version> --tag <tag> --commit <sha> --ci-run-url <url>",
+            "command": RELEASE_PROOF_COMMAND,
             "reason": "No release proof manifest was supplied to inspect; attach release proof before following lower-priority product recommendations.",
+        }
+    if release.get("status") != "pass":
+        missing = release.get("missingRequiredFields") if isinstance(release.get("missingRequiredFields"), list) else []
+        missing_text = ", ".join(str(item) for item in missing[:8] if item) or "unknown required fields"
+        return {
+            "source": "release-assets.incomplete",
+            "command": str(release.get("nextCommand") or RELEASE_PROOF_COMMAND),
+            "reason": f"Release proof is readable but incomplete. Missing: {missing_text}.",
         }
     lowest = value_summary.get("lowestValueSurface") or {}
     if lowest.get("recommendation"):
@@ -392,6 +415,8 @@ def combined_status(inputs: list[dict[str, Any]], repo: dict[str, Any], plugin: 
     if not any(item.get("found") for item in inputs):
         return "review"
     if any(item.get("id") == "release-assets" and not item.get("found") for item in inputs):
+        return "review"
+    if any(item.get("id") == "release-assets" and item.get("status") != "pass" for item in inputs):
         return "review"
     if any(status in {"review", "missing"} for status in hard):
         return "review"
@@ -474,6 +499,8 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"- Version: {release.get('version') or 'unknown'}",
             f"- Tag: {release.get('tag') or 'unknown'}",
             f"- Artifact SHA-256: `{release.get('artifactSHA256') or 'unknown'}`",
+            f"- Missing required fields: {', '.join(release.get('missingRequiredFields') or []) or 'none'}",
+            f"- Next command: `{release.get('nextCommand') or 'none'}`",
             "",
             "## Underlying Evidence",
             "",

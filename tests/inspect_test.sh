@@ -250,6 +250,54 @@ if [item.get("id") for item in missing] != ["release-assets"]:
     raise SystemExit(f"only release proof should be missing: {missing!r}")
 PY
 
+mkdir -p "$tmp_dir/release-incomplete/proof"
+cat > "$tmp_dir/release-incomplete/proof/release-manifest.json" <<'JSON'
+{
+  "schema_version": "1.0",
+  "version": "3.125.0",
+  "artifact": {
+    "name": "shipguard-v3.125.0.tar.gz"
+  },
+  "proofs": {}
+}
+JSON
+
+./bin/shipguard inspect \
+  --path . \
+  --out "$tmp_dir/incomplete-release-proof" \
+  --value-gauntlet "$tmp_dir/value" \
+  --full-audit "$tmp_dir/full-pass" \
+  --release-assets "$tmp_dir/release-incomplete" \
+  --shipguard-eval \
+  --shareable >/dev/null
+
+python3 - <<'PY' "$tmp_dir/incomplete-release-proof/shipguard-inspect.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+release = data.get("releaseState") or {}
+next_action = data.get("nextAction") or {}
+result = data.get("resultUX") or {}
+expected = "./bin/shipguard release-proof build --out <dir> --release-url <url> --version <version> --tag <tag> --commit <sha> --ci-run-url <url>"
+missing = set(release.get("missingRequiredFields") or [])
+required_missing = {"tag", "commit", "artifact.sha256", "proofs.release_url", "proofs.ci_run_url"}
+if data.get("status") != "review" or release.get("status") != "review":
+    raise SystemExit(f"incomplete release proof should keep inspect in review: {data.get('status')!r} {release!r}")
+if not required_missing <= missing:
+    raise SystemExit(f"incomplete release proof should list missing required fields: {release!r}")
+if next_action.get("source") != "release-assets.incomplete":
+    raise SystemExit(f"incomplete release proof should drive next action: {next_action!r}")
+if next_action.get("command") != expected or result.get("nextCommand") != expected:
+    raise SystemExit(f"incomplete release proof should route to release-proof build: {next_action!r} {result!r}")
+if result.get("proofSource") != "release-assets.incomplete":
+    raise SystemExit(f"resultUX should expose incomplete release source: {result!r}")
+PY
+
+grep -q 'Missing required fields:' "$tmp_dir/incomplete-release-proof/shipguard-inspect.md"
+grep -q 'artifact.sha256' "$tmp_dir/incomplete-release-proof/shipguard-inspect.md"
+grep -q 'release-proof build' "$tmp_dir/incomplete-release-proof/shipguard-inspect.md"
+
 ./bin/shipguard inspect \
   --path . \
   --out "$tmp_dir/missing-inputs" \
