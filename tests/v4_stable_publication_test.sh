@@ -1005,6 +1005,7 @@ assert visibility["currentPublicReleaseCanBeAnnounced"] is False
 assert visibility["visibilityBoundary"]["unpublishedLocalCodeCountsAsReleased"] is False
 actions = {item["id"]: item for item in visibility["requiredActions"]}
 assert actions["publish-new-github-release"]["required"] is True
+assert actions["attach-launchkey-candidate-proof"]["required"] is False
 assert actions["keep-current-public-release-unchanged"]["status"] == "blocked"
 assert report["stablePublicationEvidencePacket"]["firstBlockingGate"]["receipt"] == "publicReleaseFreshnessProof"
 closure = report["stablePublicationClosureChecklist"]
@@ -1220,11 +1221,13 @@ actions = {item["id"]: item for item in visibility["requiredActions"]}
 assert {
     "publish-new-github-release",
     "update-release-notes",
+    "attach-launchkey-candidate-proof",
     "update-release-assets",
     "attach-adoption-security-evidence",
     "keep-current-public-release-unchanged",
 } <= set(actions)
 assert actions["publish-new-github-release"]["required"] is False
+assert actions["attach-launchkey-candidate-proof"]["required"] is False
 assert actions["keep-current-public-release-unchanged"]["required"] is True
 final_claim = report["finalStableV4ClaimPacket"]
 assert final_claim["status"] == "allowed"
@@ -1337,6 +1340,44 @@ test -f "$tmp_dir/pass/stable-publication-launch-relay/product-hunt-draft.md"
 test -f "$tmp_dir/pass/stable-publication-launch-relay/reddit-r-shipguard-draft.md"
 test -f "$tmp_dir/pass/stable-publication-launch-relay/x-thread-draft.md"
 test -f "$tmp_dir/pass/stable-publication-launch-relay/hacker-news-draft.md"
+
+python3 - <<'PY'
+from scripts.v4_stable_publication import build_release_visibility_handoff
+
+delta = {
+    "status": "review",
+    "releaseVersion": "3.131.0",
+    "latestGitHubReleaseVersion": "3.131.0",
+    "selectedGitHubReleaseTag": "v3.131.0",
+    "latestGitHubReleaseTag": "v3.131.0",
+    "unpublishedLocalDelta": True,
+    "stableV4ClaimCoversSelectedPublicRelease": True,
+    "stableV4ClaimCoversLocalCheckout": False,
+    "comparisons": {
+        "selectedReleaseMatchesLatestGitHubRelease": True,
+        "publicTagTargetMatchesReleaseManifestCommit": True,
+        "packageAssetsVersionMatchesRequestedRelease": True,
+    },
+}
+handoff = build_release_visibility_handoff(
+    release_version="3.131.0",
+    stable_v4_release=True,
+    release_notes_proof={"status": "pass", "summary": "Release notes passed."},
+    release_candidate_packet_proof={"status": "pass", "summary": "Candidate proof passed."},
+    published_asset_proof={"status": "pass"},
+    public_evidence_closure_proof={"status": "pass", "summary": "Public evidence passed."},
+    public_release_delta_proof=delta,
+    release_asset_coherence_proof={"status": "pass"},
+    final_claim_packet={"nextCommand": "next"},
+    rerun_command="rerun",
+)
+actions = {item["id"]: item for item in handoff["requiredActions"]}
+assert handoff["primaryDecision"] == "announce-current-public-release"
+assert handoff["currentPublicReleaseCanBeAnnounced"] is True
+assert handoff["localMainCanBeAnnounced"] is False
+assert actions["publish-new-github-release"]["required"] is False
+assert actions["keep-current-public-release-unchanged"]["required"] is True
+PY
 grep -q '"publicPostingAllowed": false' "$tmp_dir/pass/stable-publication-launch-relay/launch-relay-checklist.json"
 grep -q 'Draft only until explicit approval' "$tmp_dir/pass/stable-publication-launch-relay/x-thread-draft.md"
 

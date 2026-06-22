@@ -6433,6 +6433,30 @@ PY
   --shareable >/dev/null
 grep -q '"ruleId": "stable-publication-release-visibility-handoff-missing"' "$tmp_dir/stable-publication-missing-visibility-quality/ios-report-quality.json"
 
+stable_publication_visibility_missing_candidate="$tmp_dir/stable-publication-visibility-missing-candidate"
+mkdir -p "$stable_publication_visibility_missing_candidate"
+python3 - <<'PY' "$stable_publication_launch_relay_fixture/fixture-report.json" "$stable_publication_launch_relay_fixture/fixture-report.md" "$stable_publication_visibility_missing_candidate"
+import json
+import pathlib
+import sys
+
+source_json = pathlib.Path(sys.argv[1])
+source_md = pathlib.Path(sys.argv[2])
+target = pathlib.Path(sys.argv[3])
+report = json.loads(source_json.read_text(encoding="utf-8"))
+actions = report["releaseVisibilityHandoff"]["requiredActions"]
+report["releaseVisibilityHandoff"]["requiredActions"] = [
+    action for action in actions if action.get("id") != "attach-launchkey-candidate-proof"
+]
+(target / "v4-stable-publication.json").write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+(target / "v4-stable-publication.md").write_text(source_md.read_text(encoding="utf-8"), encoding="utf-8")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_visibility_missing_candidate" \
+  --out "$tmp_dir/stable-publication-visibility-missing-candidate-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "stable-publication-release-visibility-action-missing"' "$tmp_dir/stable-publication-visibility-missing-candidate-quality/ios-report-quality.json"
+
 stable_publication_product_hunt_missing_relay="$tmp_dir/stable-publication-product-hunt-missing-relay"
 mkdir -p "$stable_publication_product_hunt_missing_relay"
 python3 - <<'PY' "$stable_publication_launch_relay_fixture/fixture-report.json" "$stable_publication_launch_relay_fixture/fixture-report.md" "$stable_publication_product_hunt_missing_relay"

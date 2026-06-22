@@ -4519,6 +4519,7 @@ def stable_publication_evidence_packet_issues(
         required_ids = {
             "publish-new-github-release",
             "update-release-notes",
+            "attach-launchkey-candidate-proof",
             "update-release-assets",
             "attach-adoption-security-evidence",
             "keep-current-public-release-unchanged",
@@ -10235,6 +10236,7 @@ def synthetic_stable_publication_report_fields() -> dict[str, Any]:
             "requiredActions": [
                 {"id": "publish-new-github-release", "required": False, "status": "pass", "reason": "Synthetic release is aligned.", "nextCommand": "not-needed"},
                 {"id": "update-release-notes", "required": False, "status": "pass", "reason": "Synthetic release notes passed.", "nextCommand": "not-needed"},
+                {"id": "attach-launchkey-candidate-proof", "required": False, "status": "pass", "reason": "Synthetic LaunchKey candidate proof passed.", "nextCommand": "not-needed"},
                 {"id": "update-release-assets", "required": False, "status": "pass", "reason": "Synthetic assets passed.", "nextCommand": "not-needed"},
                 {"id": "attach-adoption-security-evidence", "required": False, "status": "pass", "reason": "Synthetic evidence closure passed.", "nextCommand": "not-needed"},
                 {"id": "keep-current-public-release-unchanged", "required": True, "status": "pass", "reason": "The current public release can remain the announcement target.", "nextCommand": "./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>"},
@@ -10958,6 +10960,7 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "| --- | ---: | --- |",
                 "| `publish-new-github-release` | `False` | `pass` |",
                 "| `update-release-notes` | `False` | `pass` |",
+                "| `attach-launchkey-candidate-proof` | `False` | `pass` |",
                 "| `update-release-assets` | `False` | `pass` |",
                 "| `attach-adoption-security-evidence` | `False` | `pass` |",
                 "| `keep-current-public-release-unchanged` | `True` | `pass` |",

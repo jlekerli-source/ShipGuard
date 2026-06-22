@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.179 read-only stable-v4 packet loop ran `shipguard v4 stable-publication` against the real public `v3.131.0` GitHub release assets with missing candidate/adoption/security evidence intentionally left blocked, then scored the report with `ios report-quality`.
+
+- Finding: `releaseVisibilityHandoff` treated local `HEAD`/`main` being ahead of the selected public release as a reason to make `publish-new-github-release` the primary decision, and it did not include LaunchKey candidate proof as its own action row.
+- Product weakness: a selected public release can still be the announcement target when stable-publication evidence passes for that release; local source deltas should be visible but not automatically recast as a publication requirement. Missing LaunchKey candidate proof also needs an explicit action, not only an evidence-table row.
+- Native fix: `releaseVisibilityHandoff` now keeps local source deltas advisory, sets `currentPublicReleaseCanBeAnnounced` from selected-public-release claim coverage, and adds `attach-launchkey-candidate-proof` to the fixed action matrix.
+- Report-quality fix: `ios report-quality` now flags handoffs that omit the LaunchKey candidate-proof action.
+- Fixture fix: focused stable-publication tests cover local-delta-only behavior, and the full stable-publication synthetic fixture carries the candidate-proof action in JSON and Markdown.
+
+Fresh real-public-release QA still does not claim stable v4. The real `v3.131.0` run remains blocked on release notes, LaunchKey candidate proof, independent adoption evidence, and final security-review evidence.
+
 The v3.178 read-only stable-v4 packet loop continued from public release delta proof and tested whether the report gave maintainers an explicit release visibility decision.
 
 - Finding: `v4 stable-publication` could show the public/local delta, but still left the maintainer to infer whether to publish a new GitHub release, update release notes, update release assets, attach adoption/security evidence, or keep the current public release unchanged.

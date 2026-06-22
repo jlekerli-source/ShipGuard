@@ -155,7 +155,7 @@ Public posting, publishing, submission, scheduling, browser-field staging with a
 
 The JSON report includes `stablePublicationEvidencePacket` so humans and tools can inspect the real publication packet without piecing it together from scattered sections. It lists:
 
-- all eight required evidence inputs with stable IDs and statuses
+- all ten required evidence inputs with stable IDs and statuses
 - whether each input is required for stable v4 and must be real evidence
 - `missingEvidenceIds`
 - `firstBlockingGate` with the exact next command
@@ -299,7 +299,7 @@ Important fields:
 
 Stable publication emits `releaseVisibilityHandoff` to turn the release delta into the next public-release action.
 
-The handoff answers one maintainer question: do we publish a new GitHub release, update release notes, update release assets, attach adoption/security evidence, or keep the current public release unchanged?
+The handoff answers one maintainer question: do we publish a new GitHub release, update release notes, attach LaunchKey candidate proof, update release assets, attach adoption/security evidence, or keep the current public release unchanged?
 
 Markdown renders this as `Release Visibility Handoff`.
 
@@ -308,10 +308,10 @@ Important fields:
 - `primaryDecision`
 - `currentPublicReleaseCanBeAnnounced`
 - `localMainCanBeAnnounced`
-- `requiredActions[]` for `publish-new-github-release`, `update-release-notes`, `update-release-assets`, `attach-adoption-security-evidence`, and `keep-current-public-release-unchanged`
+- `requiredActions[]` for `publish-new-github-release`, `update-release-notes`, `attach-launchkey-candidate-proof`, `update-release-assets`, `attach-adoption-security-evidence`, and `keep-current-public-release-unchanged`
 - `visibilityBoundary.unpublishedLocalCodeCountsAsReleased = false`
 
-The handoff does not publish, edit a GitHub release, or post externally. It makes the next release action explicit so local `main` is not mistaken for the latest public release.
+The handoff does not publish, edit a GitHub release, or post externally. It makes the next release action explicit while keeping local `HEAD`/`main` deltas advisory: a selected public release can still be the announcement target when stable-publication evidence passes for that release.
 
 ## Final Stable V4 Claim Packet
 
@@ -348,7 +348,7 @@ Every run also writes `stable-publication-evidence-kit/` inside the report direc
 This directory is a convenience artifact, not proof. It contains:
 
 - `README.md` with the collection rules and next command template
-- `stable-publication-checklist.json` with the current eight-gate packet, closure checklist, first blocker, missing evidence IDs, and non-claims
+- `stable-publication-checklist.json` with the current ten-gate packet, closure checklist, first blocker, missing evidence IDs, and non-claims
 - `external-adoption-evidence.json` copied from the draft-only adoption template
 - `security-review-evidence.json` copied from the draft-only security-review template
 

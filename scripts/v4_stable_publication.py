@@ -1729,6 +1729,7 @@ def build_release_visibility_handoff(
     release_version: str,
     stable_v4_release: bool,
     release_notes_proof: dict[str, Any],
+    release_candidate_packet_proof: dict[str, Any],
     published_asset_proof: dict[str, Any],
     public_evidence_closure_proof: dict[str, Any],
     public_release_delta_proof: dict[str, Any],
@@ -1742,18 +1743,16 @@ def build_release_visibility_handoff(
         else {}
     )
     unpublished_delta = public_release_delta_proof.get("unpublishedLocalDelta") is True
-    public_release_mismatch = any(
+    publication_mismatch = any(
         comparisons.get(key) is not True
         for key in (
             "selectedReleaseMatchesLatestGitHubRelease",
             "publicTagTargetMatchesReleaseManifestCommit",
-            "sourceVersionMatchesRequestedRelease",
-            "localHeadMatchesSelectedPublicReleaseCommit",
-            "localMainMatchesSelectedPublicReleaseCommit",
         )
     )
-    needs_release = unpublished_delta or public_release_mismatch
+    needs_release = publication_mismatch
     needs_notes = release_notes_proof.get("status") != "pass"
+    needs_candidate = release_candidate_packet_proof.get("status") != "pass"
     needs_assets = (
         published_asset_proof.get("status") != "pass"
         or release_asset_coherence_proof.get("status") != "pass"
@@ -1763,10 +1762,12 @@ def build_release_visibility_handoff(
 
     if stable_v4_release:
         primary = "announce-current-public-release"
-    elif needs_release:
-        primary = "publish-new-github-release"
     elif needs_notes:
         primary = "update-release-notes"
+    elif needs_candidate:
+        primary = "attach-launchkey-candidate-proof"
+    elif needs_release:
+        primary = "publish-new-github-release"
     elif needs_assets:
         primary = "update-release-assets"
     elif needs_evidence:
@@ -1780,9 +1781,9 @@ def build_release_visibility_handoff(
             "required": needs_release,
             "status": "review" if needs_release else "pass",
             "reason": (
-                "Local source, latest GitHub release, tag target, or manifest commit is not aligned with the selected public release."
+                "The selected release is not the latest public release or its tag target does not match the release manifest commit."
                 if needs_release
-                else "Selected public release, latest release, tag target, manifest, and local checkout are aligned."
+                else "Selected public release, latest release, tag target, and manifest are aligned; local source deltas are reported separately."
             ),
             "nextCommand": "gh release create <tag> dist/shipguard-v<version>.tar.gz --notes-file <release-notes.md>",
         },
@@ -1792,6 +1793,13 @@ def build_release_visibility_handoff(
             "status": "review" if needs_notes else "pass",
             "reason": release_notes_proof.get("summary") or "Release notes proof status decides this action.",
             "nextCommand": str(release_notes_proof.get("nextCommand") or rerun_command),
+        },
+        {
+            "id": "attach-launchkey-candidate-proof",
+            "required": needs_candidate,
+            "status": "review" if needs_candidate else "pass",
+            "reason": release_candidate_packet_proof.get("summary") or "LaunchKey candidate packet proof status decides this action.",
+            "nextCommand": str(release_candidate_packet_proof.get("nextCommand") or rerun_command),
         },
         {
             "id": "update-release-assets",
@@ -1813,12 +1821,12 @@ def build_release_visibility_handoff(
         },
         {
             "id": "keep-current-public-release-unchanged",
-            "required": not any([needs_release, needs_notes, needs_assets, needs_evidence]),
-            "status": "pass" if not any([needs_release, needs_notes, needs_assets, needs_evidence]) else "blocked",
+            "required": not any([needs_release, needs_notes, needs_candidate, needs_assets, needs_evidence]),
+            "status": "pass" if not any([needs_release, needs_notes, needs_candidate, needs_assets, needs_evidence]) else "blocked",
             "reason": (
                 "The current public release can remain the announcement target."
-                if not any([needs_release, needs_notes, needs_assets, needs_evidence])
-                else "Do not treat the current public release as covering missing release, notes, asset, adoption, or security proof."
+                if not any([needs_release, needs_notes, needs_candidate, needs_assets, needs_evidence])
+                else "Do not treat the current public release as covering missing release, notes, candidate, asset, adoption, or security proof."
             ),
             "nextCommand": str(final_claim_packet.get("nextCommand") or rerun_command),
         },
@@ -1838,7 +1846,7 @@ def build_release_visibility_handoff(
         "latestGitHubReleaseTag": public_release_delta_proof.get("latestGitHubReleaseTag") or "",
         "unpublishedLocalDelta": unpublished_delta,
         "stableV4Release": stable_v4_release,
-        "currentPublicReleaseCanBeAnnounced": stable_v4_release and public_release_delta_proof.get("status") == "pass",
+        "currentPublicReleaseCanBeAnnounced": stable_v4_release and public_release_delta_proof.get("stableV4ClaimCoversSelectedPublicRelease") is True,
         "localMainCanBeAnnounced": stable_v4_release and public_release_delta_proof.get("stableV4ClaimCoversLocalCheckout") is True,
         "requiredActions": actions,
         "nextCommand": str(final_claim_packet.get("nextCommand") or rerun_command),
@@ -2829,7 +2837,7 @@ def build_stable_publication_evidence_starter_kit_manifest() -> dict[str, Any]:
             {
                 "id": "stable-publication-checklist",
                 "path": f"{STARTER_KIT_DIRNAME}/stable-publication-checklist.json",
-                "purpose": "Machine-readable draft checklist with the eight required stable-publication gates.",
+                "purpose": "Machine-readable draft checklist with the ten required stable-publication gates.",
             },
             {
                 "id": "independent-adoption-evidence",
@@ -3548,7 +3556,7 @@ def write_stable_publication_evidence_starter_kit(
         "",
         "## Files",
         "",
-        "- `stable-publication-checklist.json`: the current eight-gate checklist, closure checklist, and first blocker.",
+        "- `stable-publication-checklist.json`: the current ten-gate checklist, closure checklist, and first blocker.",
         "- `external-adoption-evidence.json`: starter record for independent adoption evidence.",
         "- `security-review-evidence.json`: starter record for final security-review evidence.",
         "",
@@ -3984,6 +3992,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         release_version=release_version,
         stable_v4_release=stable_v4_release,
         release_notes_proof=release_notes_proof,
+        release_candidate_packet_proof=release_candidate_packet_proof,
         published_asset_proof=published_asset_proof,
         public_evidence_closure_proof=public_evidence_closure_proof,
         public_release_delta_proof=public_release_delta_proof,

@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-22T02:16:28Z
+- Generated: 2026-06-22T02:50:09Z
 - Current toolkit version: 3.131.0
-- Target release: v3.179.0
-- Title: Stable V4 Publication Next Public Proof QA
+- Target release: v3.180.0
+- Title: Stable V4 Publication Real Release Packet QA
 
 ## Slash Plan
 
 ```text
-/plan v3.179.0 Stable V4 Publication Next Public Proof QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Choose the next bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, preferably the next public stable-v4 publication gap after release visibility handoff, and implement it with CLI output, docs, fixtures, report-quality enforcement, package proof, plugin refresh, push, CI verification, and the next loop handoff.
+/plan v3.180.0 Stable V4 Publication Real Release Packet QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Choose the next bounded ShipGuard stable-publication report-quality improvement from docs/oss-evaluation.md, preferably the next public stable-v4 publication gap after release visibility candidate-proof routing, and implement it with CLI output, docs, fixtures, report-quality enforcement, package proof, plugin refresh, push, CI verification, and the next loop handoff.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.179.0 Stable V4 Publication Next Public Proof QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Choose the next bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, preferably the next public stable-v4 publication gap after release visibility handoff, and implement it with CLI output, docs, fixtures, report-quality enforcement, package proof, plugin refresh, push, CI verification, and the next loop handoff, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.180.0 Stable V4 Publication Real Release Packet QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Choose the next bounded ShipGuard stable-publication report-quality improvement from docs/oss-evaluation.md, preferably the next public stable-v4 publication gap after release visibility candidate-proof routing, and implement it with CLI output, docs, fixtures, report-quality enforcement, package proof, plugin refresh, push, CI verification, and the next loop handoff, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Choose the next bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, preferably the next public stable-v4 publication gap after release visibility handoff, and implement it with CLI output, docs, fixtures, report-quality enforcement, package proof, plugin refresh, push, CI verification, and the next loop handoff.
+Choose the next bounded ShipGuard stable-publication report-quality improvement from docs/oss-evaluation.md, preferably the next public stable-v4 publication gap after release visibility candidate-proof routing, and implement it with CLI output, docs, fixtures, report-quality enforcement, package proof, plugin refresh, push, CI verification, and the next loop handoff.
 
 ## Completion Receipt
 
-- Completed scope: v3.178 added releaseVisibilityHandoff to v4 stable-publication reports: a primary release visibility decision, fixed action rows for publishing a new GitHub release, updating release notes, updating release assets, attaching adoption/security evidence, or keeping the current public release unchanged, Markdown rendering, report-quality enforcement, fixture coverage, docs, README, roadmap, OSS evaluation notes, and plugin guidance.
-- Evidence: python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; python3 -m json.tool fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6/fixture-report.json; git diff --check; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3178-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3178-value-gauntlet; ./tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict
+- Completed scope: v3.179 tightened releaseVisibilityHandoff from real public-release QA: local HEAD/main deltas stay advisory, currentPublicReleaseCanBeAnnounced follows selected-public-release claim coverage, public tag/manifest publication mismatch stays a publish/fix-release decision, attach-launchkey-candidate-proof is a fixed action row, and ios report-quality flags handoffs that omit candidate proof.
+- Evidence: python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; python3 -m json.tool fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6/fixture-report.json; git diff --check; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3179-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3179-value-gauntlet-final; ./tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict
 
 ## Following Slash Plan
 
 ```text
-/plan v3.180.0 Stable V4 Publication Next Public Proof QA for jlekerli-source/ShipGuard:
+/plan v3.181.0 Stable V4 Publication Real Release Packet QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Choose the next bounded ShipGuard report-quality improvement from ROADMAP.md and
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.180.0 Stable V4 Publication Next Public Proof QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.181.0 Stable V4 Publication Real Release Packet QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.180.0 --title "Stable V4 Publication Next Public Proof QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.181.0 --title "Stable V4 Publication Real Release Packet QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.179.0.
+1. Open or update the tracking issue for v3.180.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.179.0` and upload `dist/shipguard-v3.179.0.tar.gz`.
+6. Create release `v3.180.0` and upload `dist/shipguard-v3.180.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
