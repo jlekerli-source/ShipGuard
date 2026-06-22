@@ -512,6 +512,22 @@ assert public_evidence["missingOrBlockingEvidenceIds"] == [
 assert public_evidence["publicEvidenceBoundary"]["githubDownloadCountsCountAsAdoptionEvidence"] is False
 assert public_evidence["publicEvidenceBoundary"]["doesNotClaimMarketplaceAcceptance"] is True
 assert any("stable-publication" in command for command in public_evidence["copyReadyCommands"])
+final_claim = report["finalStableV4ClaimPacket"]
+assert final_claim["status"] == "blocked"
+assert final_claim["claimDecision"] == "blocked"
+assert final_claim["stableV4Release"] is False
+assert "Do not claim ShipGuard" in final_claim["copyReadyClaim"]
+assert final_claim["missingEvidenceIds"] == packet["missingEvidenceIds"]
+assert final_claim["firstBlockingGate"]["id"] == "independent-adoption-evidence"
+assert final_claim["publicEvidenceClosureStatus"] == "review"
+assert any("ShipGuard v4 is stable" in claim for claim in final_claim["blockedClaims"])
+assert len(final_claim["evidenceSummary"]) == packet["requiredEvidenceCount"]
+assert final_claim["claimBoundary"]["sourceOnlyProofCountsAsStableV4"] is False
+assert final_claim["claimBoundary"]["fixtureProofCountsAsStableV4"] is False
+assert final_claim["claimBoundary"]["githubDownloadCountsCountAsAdoptionEvidence"] is False
+assert final_claim["claimBoundary"]["marketplaceAcceptanceClaimed"] is False
+assert final_claim["approvalBoundary"]["publicPostingRequiresExplicitApproval"] is True
+assert final_claim["approvalBoundary"]["computerUseMayPost"] is False
 closure = report["stablePublicationClosureChecklist"]
 items = closure["items"]
 assert [item["id"] for item in items] == packet["missingEvidenceIds"]
@@ -559,6 +575,9 @@ PY
 grep -q 'Evidence Closure Kit: `independent-adoption-evidence`' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
 grep -q 'Evidence Closure Kit: `final-security-review-evidence`' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
 grep -q 'Public Evidence Closure' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
+grep -q 'Final Stable V4 Claim Packet' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
+grep -q 'Claim decision: `blocked`' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
+grep -q 'ShipGuard v4 is stable.' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
 grep -q 'GitHub download counts count as adoption evidence: `False`' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
 grep -q 'Pass criteria:' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
 grep -q 'Fail criteria:' "$tmp_dir/evidence-blocked/v4-stable-publication.md"
@@ -1151,6 +1170,23 @@ assert {row["id"] for row in public_evidence["evidenceRows"]} == {
 assert all(row["freshnessStatus"] == "pass" for row in public_evidence["evidenceRows"])
 assert public_evidence["publicEvidenceBoundary"]["fixtureEvidenceCountsAsStableV4Evidence"] is False
 assert public_evidence["publicEvidenceBoundary"]["doesNotPostOrSubmitExternally"] is True
+final_claim = report["finalStableV4ClaimPacket"]
+assert final_claim["status"] == "allowed"
+assert final_claim["claimDecision"] == "allowed"
+assert final_claim["stableV4Release"] is True
+assert "has passed stable-v4 publication proof" in final_claim["copyReadyClaim"]
+assert final_claim["missingEvidenceIds"] == []
+assert final_claim["firstBlockingGate"] is None
+assert final_claim["publicEvidenceClosureStatus"] == "pass"
+assert len(final_claim["evidenceSummary"]) == 10
+assert all(item["status"] == "pass" for item in final_claim["evidenceSummary"])
+assert final_claim["claimBoundary"]["allRequiredEvidenceMustPass"] is True
+assert final_claim["claimBoundary"]["sourceOnlyProofCountsAsStableV4"] is False
+assert final_claim["claimBoundary"]["fixtureProofCountsAsStableV4"] is False
+assert final_claim["claimBoundary"]["marketplaceAcceptanceClaimed"] is False
+assert final_claim["claimBoundary"]["externalPostingClaimed"] is False
+assert final_claim["approvalBoundary"]["publicPostingRequiresExplicitApproval"] is True
+assert final_claim["approvalBoundary"]["computerUseMayPost"] is False
 assert report["scopeBoundary"]["shipguardOnly"] is True
 assert report["shipguardEval"]["mode"] == "ShipGuard product QA"
 assert "value-gauntlet" in report["resultUX"]["nextCommand"]
@@ -1213,6 +1249,9 @@ grep -q 'Launch Relay Drafts' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Public posting allowed: `False`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'External Evidence Freshness' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Public Evidence Closure' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Final Stable V4 Claim Packet' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Claim decision: `allowed`' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'has passed stable-v4 publication proof' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release Version Coherence' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release Asset Coherence' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release version coherence: `pass`' "$tmp_dir/pass/v4-stable-publication.md"

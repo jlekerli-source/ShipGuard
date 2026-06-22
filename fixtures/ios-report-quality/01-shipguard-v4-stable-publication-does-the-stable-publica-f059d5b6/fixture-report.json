@@ -618,6 +618,103 @@
     "stableV4Release": true,
     "status": "ready-to-stage"
   },
+  "finalStableV4ClaimPacket": {
+    "allowedClaims": [
+      "Stable-v4 publication proof passed.",
+      "The attached report is the local proof source for the stable-v4 claim."
+    ],
+    "approvalBoundary": {
+      "computerUseMayPost": false,
+      "launchRelayStatus": "ready-to-stage",
+      "publicPostingRequiresExplicitApproval": true
+    },
+    "blockedClaims": [
+      "OpenAI marketplace acceptance is proven.",
+      "Public launch posts were published or submitted.",
+      "GitHub stars, forks, or downloads prove independent adoption."
+    ],
+    "claimBoundary": {
+      "allRequiredEvidenceMustPass": true,
+      "externalPostingClaimed": false,
+      "fixtureProofCountsAsStableV4": false,
+      "githubDownloadCountsCountAsAdoptionEvidence": false,
+      "marketplaceAcceptanceClaimed": false,
+      "sourceOnlyProofCountsAsStableV4": false,
+      "stablePublicationReportRequired": true
+    },
+    "claimDecision": "allowed",
+    "copyReadyClaim": "ShipGuard 0.0.0 has passed stable-v4 publication proof.",
+    "evidenceSummary": [
+      {
+        "id": "github-release-metadata",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "release-notes",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "launchkey-candidate-packet",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "downloaded-release-assets",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "post-release-consumer-proof",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "public-release-freshness",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "release-version-coherence",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "release-asset-coherence",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "independent-adoption-evidence",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "final-security-review-evidence",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      }
+    ],
+    "firstBlockingGate": null,
+    "missingEvidenceIds": [],
+    "nextCommand": "./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>",
+    "publicEvidenceClosureStatus": "pass",
+    "releaseVersion": "0.0.0",
+    "schemaVersion": 1,
+    "stableV4Release": true,
+    "status": "allowed"
+  },
   "stablePublicationReleaseNotesAuthoringKit": {
     "directory": "stable-publication-release-notes",
     "draftOnly": true,

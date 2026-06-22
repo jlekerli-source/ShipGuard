@@ -176,3 +176,37 @@ Asset coherence problems:
 Approval boundary:
 
 Public posting, publishing, submission, or account-visible external actions require explicit human approval for that exact launch run.
+
+## Final Stable V4 Claim Packet
+
+- Claim decision: `allowed`
+- Stable v4 release: `True`
+- Public evidence closure: `pass`
+- Public posting requires explicit approval: `True`
+- Computer-use may post: `False`
+- Source-only proof counts as stable v4: `False`
+- Fixture proof counts as stable v4: `False`
+- GitHub downloads count as adoption evidence: `False`
+
+Copy-ready claim:
+
+ShipGuard 0.0.0 has passed stable-v4 publication proof.
+
+| Evidence | Status |
+| --- | --- |
+| `github-release-metadata` | `pass` |
+| `release-notes` | `pass` |
+| `launchkey-candidate-packet` | `pass` |
+| `downloaded-release-assets` | `pass` |
+| `post-release-consumer-proof` | `pass` |
+| `public-release-freshness` | `pass` |
+| `release-version-coherence` | `pass` |
+| `release-asset-coherence` | `pass` |
+| `independent-adoption-evidence` | `pass` |
+| `final-security-review-evidence` | `pass` |
+
+Blocked claim wording:
+
+- OpenAI marketplace acceptance is proven.
+- Public launch posts were published or submitted.
+- GitHub stars, forks, or downloads prove independent adoption.

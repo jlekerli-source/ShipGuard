@@ -271,6 +271,14 @@ The proof lists both evidence rows with gate status, freshness status, stable-v4
 
 Markdown renders this as `Public Evidence Closure`. A stable-v4 claim cannot pass if adoption/security proof is missing, stale, fixture-only, source-only, based on GitHub downloads, or framed as marketplace acceptance or external launch proof.
 
+## Final Stable V4 Claim Packet
+
+Stable publication emits `finalStableV4ClaimPacket` so the last report answers the maintainer question directly: what can I safely say now?
+
+The packet includes the claim decision, copy-ready allowed or blocked wording, evidence status rows, missing evidence IDs, first blocking gate, next command, public evidence closure status, explicit posting approval boundary, and non-claims for source-only proof, fixtures, GitHub downloads, marketplace acceptance, and external posting.
+
+Markdown renders this as `Final Stable V4 Claim Packet`. A blocked report says not to claim stable v4 yet and names the first blocker; a passing report gives bounded stable-v4 wording without claiming marketplace acceptance or public launch posting.
+
 ## External Evidence Freshness
 
 Stable publication also emits `evidencePacketFreshness` inside both `externalAdoptionEvidenceProof` and `securityReviewEvidenceProof`.

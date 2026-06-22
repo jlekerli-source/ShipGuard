@@ -1813,6 +1813,92 @@ def build_public_evidence_closure_proof(
     }
 
 
+def build_final_stable_v4_claim_packet(
+    *,
+    release_version: str,
+    stable_v4_release: bool,
+    evidence_packet: dict[str, Any],
+    public_evidence_closure_proof: dict[str, Any],
+    launch_relay_drafts: dict[str, Any],
+    rerun_command: str,
+) -> dict[str, Any]:
+    required = evidence_packet.get("requiredEvidence") if isinstance(evidence_packet.get("requiredEvidence"), list) else []
+    first_blocker = evidence_packet.get("firstBlockingGate") if isinstance(evidence_packet.get("firstBlockingGate"), dict) else {}
+    missing_ids = evidence_packet.get("missingEvidenceIds") if isinstance(evidence_packet.get("missingEvidenceIds"), list) else []
+    passed = int(evidence_packet.get("passedEvidenceCount") or 0)
+    total = int(evidence_packet.get("requiredEvidenceCount") or len(required))
+    first_blocker_id = str(first_blocker.get("id") or first_blocker.get("receipt") or "none")
+    next_command = str(first_blocker.get("nextCommand") or rerun_command)
+    claim_status = "allowed" if stable_v4_release else "blocked"
+    copy_ready_claim = (
+        f"ShipGuard {release_version} has passed stable-v4 publication proof: public release metadata, release notes, "
+        "downloaded release assets, post-release consumer proof, independent adoption evidence, and final security review all passed."
+        if stable_v4_release
+        else f"Do not claim ShipGuard {release_version} as stable v4 yet. Stable-publication is {passed}/{total}; first blocker: {first_blocker_id}."
+    )
+    return {
+        "schemaVersion": 1,
+        "releaseVersion": release_version,
+        "status": claim_status,
+        "stableV4Release": stable_v4_release,
+        "claimDecision": claim_status,
+        "copyReadyClaim": copy_ready_claim,
+        "allowedClaims": (
+            [
+                "Stable-v4 publication proof passed.",
+                "The attached report is the local proof source for the stable-v4 claim.",
+                "Release metadata, release notes, downloaded assets, consumer proof, adoption evidence, and security evidence passed.",
+            ]
+            if stable_v4_release
+            else [
+                "Stable-v4 publication is still in review.",
+                f"{passed}/{total} stable-publication gates passed.",
+                f"First blocker: {first_blocker_id}.",
+            ]
+        ),
+        "blockedClaims": [
+            claim
+            for claim in [
+                "ShipGuard v4 is stable." if not stable_v4_release else "",
+                "OpenAI marketplace acceptance is proven.",
+                "Public launch posts were published or submitted.",
+                "GitHub stars, forks, or downloads prove independent adoption.",
+                "Fixture, source-only, or local package proof proves stable-v4 publication.",
+                "Private app evidence can be shared without redaction.",
+            ]
+            if claim
+        ],
+        "evidenceSummary": [
+            {
+                "id": str(item.get("id") or ""),
+                "status": str(item.get("status") or "not-provided"),
+                "requiredForStableV4": item.get("requiredForStableV4") is True,
+                "nextCommand": str(item.get("nextCommand") or ""),
+            }
+            for item in required
+            if isinstance(item, dict)
+        ],
+        "missingEvidenceIds": missing_ids,
+        "firstBlockingGate": first_blocker or None,
+        "publicEvidenceClosureStatus": public_evidence_closure_proof.get("status") or "not-provided",
+        "nextCommand": next_command,
+        "approvalBoundary": {
+            "publicPostingRequiresExplicitApproval": True,
+            "computerUseMayPost": False,
+            "launchRelayStatus": launch_relay_drafts.get("status") or "not-provided",
+        },
+        "claimBoundary": {
+            "stablePublicationReportRequired": True,
+            "allRequiredEvidenceMustPass": True,
+            "sourceOnlyProofCountsAsStableV4": False,
+            "fixtureProofCountsAsStableV4": False,
+            "githubDownloadCountsCountAsAdoptionEvidence": False,
+            "marketplaceAcceptanceClaimed": False,
+            "externalPostingClaimed": False,
+        },
+    }
+
+
 def launchkey_candidate_proof_areas_for_closure(proof: dict[str, Any]) -> list[dict[str, Any]]:
     statuses = proof.get("candidateReadinessStatuses")
     if not isinstance(statuses, dict):
@@ -3573,6 +3659,14 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         stable_v4_release=stable_v4_release,
         evidence_packet=evidence_packet,
     )
+    final_claim_packet = build_final_stable_v4_claim_packet(
+        release_version=release_version,
+        stable_v4_release=stable_v4_release,
+        evidence_packet=evidence_packet,
+        public_evidence_closure_proof=public_evidence_closure_proof,
+        launch_relay_drafts=launch_relay_drafts,
+        rerun_command=stable_publication_rerun_command(args),
+    )
 
     if blocked:
         receipt, proof, next_command = blocked
@@ -3618,6 +3712,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "stablePublicationEvidenceStarterKit": evidence_starter_kit,
         "stablePublicationReleaseNotesAuthoringKit": release_notes_authoring_kit,
         "stablePublicationLaunchRelayDrafts": launch_relay_drafts,
+        "finalStableV4ClaimPacket": final_claim_packet,
         "githubReleaseMetadataProof": metadata_proof,
         "releaseNotesProof": release_notes_proof,
         "releaseCandidatePacketProof": release_candidate_packet_proof,
@@ -3665,6 +3760,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the release asset coherence row prove required asset names and SHA-256 values match across metadata, local assets, manifest, digest matrix, and consumer proof?",
             "Do independent adoption and final security-review evidence records prove generatedAt freshness against the release manifest instead of reusing stale packet evidence?",
             "Does the public evidence closure proof summarize adoption/security gate status, freshness, starter paths, copy-ready commands, and non-claims before stable-v4 publication?",
+            "Does the final stable-v4 claim packet give copy-ready allowed wording, blocked wording, evidence status rows, approval boundaries, and non-claims before any launch announcement?",
             "Do independent adoption and final security-review closure rows expose starter paths, required fields, redaction/privacy boundaries, pass/fail criteria, current diagnostics, and exact stable-publication rerun commands?",
             "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?",
         ],
@@ -3758,6 +3854,51 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.extend(["", "Public evidence non-claims:", ""])
         for claim in public_evidence.get("nonClaims", []):
             lines.append(f"- {claim}")
+    final_claim = (
+        report.get("finalStableV4ClaimPacket")
+        if isinstance(report.get("finalStableV4ClaimPacket"), dict)
+        else {}
+    )
+    if final_claim:
+        approval = (
+            final_claim.get("approvalBoundary")
+            if isinstance(final_claim.get("approvalBoundary"), dict)
+            else {}
+        )
+        boundary = (
+            final_claim.get("claimBoundary")
+            if isinstance(final_claim.get("claimBoundary"), dict)
+            else {}
+        )
+        lines.extend(
+            [
+                "",
+                "## Final Stable V4 Claim Packet",
+                "",
+                f"- Claim decision: `{final_claim.get('claimDecision')}`",
+                f"- Stable v4 release: `{final_claim.get('stableV4Release')}`",
+                f"- Public evidence closure: `{final_claim.get('publicEvidenceClosureStatus')}`",
+                f"- Public posting requires explicit approval: `{approval.get('publicPostingRequiresExplicitApproval')}`",
+                f"- Computer-use may post: `{approval.get('computerUseMayPost')}`",
+                f"- Source-only proof counts as stable v4: `{boundary.get('sourceOnlyProofCountsAsStableV4')}`",
+                f"- Fixture proof counts as stable v4: `{boundary.get('fixtureProofCountsAsStableV4')}`",
+                f"- GitHub downloads count as adoption evidence: `{boundary.get('githubDownloadCountsCountAsAdoptionEvidence')}`",
+                "",
+                "Copy-ready claim:",
+                "",
+                str(final_claim.get("copyReadyClaim") or ""),
+                "",
+                "| Evidence | Status |",
+                "| --- | --- |",
+            ]
+        )
+        for row in final_claim.get("evidenceSummary", []):
+            if isinstance(row, dict):
+                lines.append(f"| `{row.get('id')}` | `{row.get('status')}` |")
+        lines.extend(["", "Blocked claim wording:", ""])
+        for claim in final_claim.get("blockedClaims", []):
+            lines.append(f"- {claim}")
+        lines.extend(["", "Next command:", "", "```bash", str(final_claim.get("nextCommand") or ""), "```"])
     evidence_freshness_rows = []
     for label, proof_key in (
         ("independent-adoption-evidence", "externalAdoptionEvidenceProof"),

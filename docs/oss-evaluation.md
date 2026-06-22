@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.176 read-only stable-v4 packet loop continued from public evidence closure and tested whether the final report still left maintainers to invent announcement wording.
+
+- Finding: `v4 stable-publication` exposed evidence closure and launch drafts, but did not provide one final claim packet that says what wording is allowed or blocked now.
+- Product weakness: a solo maintainer should not have to infer safe launch copy from ten evidence rows and multiple non-claim sections.
+- Native fix: `finalStableV4ClaimPacket` now emits the claim decision, copy-ready allowed or blocked wording, evidence status rows, missing evidence IDs, first blocker, next command, posting approval boundary, and marketplace/source-only/fixture/download non-claims.
+- Report-quality fix: `ios report-quality` now flags current stable-publication reports that hide the final claim packet, mismatch the claim decision, omit evidence rows, weaken boundaries, or fail to render `Final Stable V4 Claim Packet`.
+- Fixture fix: focused stable-publication tests assert both blocked and passing final claim packets, and the stable-publication synthetic fixture carries the packet in JSON and Markdown.
+
+Fresh stable-v4 QA still does not claim real stable v4. The final claim packet is wording control; it does not replace public release assets, independent adoption, final security review, or explicit human approval for external posting.
+
 The v3.175 read-only stable-v4 packet loop continued from release asset coherence and tested whether the adoption/security evidence closure was too scattered across individual rows.
 
 - Finding: `v4 stable-publication` exposed adoption/security gates, freshness, templates, and closure rows, but did not provide one compact public-evidence closure proof with copy-ready commands and non-claims.

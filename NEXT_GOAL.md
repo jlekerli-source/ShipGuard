@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-22T00:28:59Z
+- Generated: 2026-06-22T01:10:48Z
 - Current toolkit version: 3.131.0
-- Target release: v3.176.0
-- Title: Stable V4 Publication Final Claim Packet QA
+- Target release: v3.177.0
+- Title: Stable V4 Publication Public Release Delta QA
 
 ## Slash Plan
 
 ```text
-/plan v3.176.0 Stable V4 Publication Final Claim Packet QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add the next stable-publication report-quality guard after public evidence closure: make the final stable-v4 claim packet more copy-ready and harder to overclaim, without faking release, adoption, security, marketplace, or external launch proof.
+/plan v3.177.0 Stable V4 Publication Public Release Delta QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add the next stable-publication report-quality guard after final claim packet: make the public release delta explicit so maintainers can see when local main, latest GitHub release, package assets, and stable-publication claims are out of sync, without pretending unpublished local code is released.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.176.0 Stable V4 Publication Final Claim Packet QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add the next stable-publication report-quality guard after public evidence closure: make the final stable-v4 claim packet more copy-ready and harder to overclaim, without faking release, adoption, security, marketplace, or external launch proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.177.0 Stable V4 Publication Public Release Delta QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add the next stable-publication report-quality guard after final claim packet: make the public release delta explicit so maintainers can see when local main, latest GitHub release, package assets, and stable-publication claims are out of sync, without pretending unpublished local code is released, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add the next stable-publication report-quality guard after public evidence closure: make the final stable-v4 claim packet more copy-ready and harder to overclaim, without faking release, adoption, security, marketplace, or external launch proof.
+Add the next stable-publication report-quality guard after final claim packet: make the public release delta explicit so maintainers can see when local main, latest GitHub release, package assets, and stable-publication claims are out of sync, without pretending unpublished local code is released.
 
 ## Completion Receipt
 
-- Completed scope: v3.175 added public evidence closure proof to stable-publication reports: adoption/security gate status, freshness status, starter paths, copy-ready commands, missing/blocking evidence ids, public-evidence boundaries, non-claims, Markdown rendering, report-quality rules, synthetic fixture coverage, plugin guidance, and docs now make adoption/security closure easier to act on without implying adoption, security review, marketplace acceptance, or external posting proof.
-- Evidence: python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; python3 -m json.tool fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6/fixture-report.json; git diff --check; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3175-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3175-value-gauntlet; ./tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict
+- Completed scope: v3.176 added final stable-v4 claim packets to stable-publication reports: allowed or blocked claim decision, copy-ready safe wording, evidence status rows, missing evidence ids, first blocker, next command, approval boundary, marketplace/source-only/fixture/download non-claims, Markdown rendering, report-quality rules, synthetic fixture coverage, plugin guidance, and docs now make announcement wording explicit without claiming marketplace acceptance or external posting proof.
+- Evidence: python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; python3 -m json.tool fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6/fixture-report.json; git diff --check; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3176-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3176-value-gauntlet; ./tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict
 
 ## Following Slash Plan
 
 ```text
-/plan v3.177.0 Stable V4 Publication Final Claim Packet QA for jlekerli-source/ShipGuard:
+/plan v3.178.0 Stable V4 Publication Public Release Delta QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add the next stable-publication report-quality guard after public evidence closu
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.177.0 Stable V4 Publication Final Claim Packet QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.178.0 Stable V4 Publication Public Release Delta QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.177.0 --title "Stable V4 Publication Final Claim Packet QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.178.0 --title "Stable V4 Publication Public Release Delta QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.176.0.
+1. Open or update the tracking issue for v3.177.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.176.0` and upload `dist/shipguard-v3.176.0.tar.gz`.
+6. Create release `v3.177.0` and upload `dist/shipguard-v3.177.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

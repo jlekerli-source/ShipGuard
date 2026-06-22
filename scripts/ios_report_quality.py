@@ -4423,6 +4423,88 @@ def stable_publication_evidence_packet_issues(
                 recommendation="Render the public evidence closure proof in Markdown so adoption/security status and non-claims are visible without opening JSON.",
             )
 
+    final_claim = (
+        report.get("finalStableV4ClaimPacket")
+        if isinstance(report.get("finalStableV4ClaimPacket"), dict)
+        else {}
+    )
+    final_claim_expected = (
+        report.get("stableV4Release") is True
+        or bool(public_evidence)
+        or any("final stable-v4 claim packet" in normalized_question_text(question) for question in report.get("reportQualityQuestions", []))
+    )
+    if final_claim_expected and not final_claim:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-final-claim-packet-missing",
+            evidence=f"{path_name} has no finalStableV4ClaimPacket",
+            recommendation="Emit one final claim packet with copy-ready allowed/blocked wording, evidence rows, next command, approval boundary, and non-claims.",
+        )
+    elif final_claim:
+        boundary = final_claim.get("claimBoundary") if isinstance(final_claim.get("claimBoundary"), dict) else {}
+        approval = final_claim.get("approvalBoundary") if isinstance(final_claim.get("approvalBoundary"), dict) else {}
+        evidence_summary = final_claim.get("evidenceSummary") if isinstance(final_claim.get("evidenceSummary"), list) else []
+        expected_decision = "allowed" if report.get("stableV4Release") is True else "blocked"
+        if final_claim.get("claimDecision") != expected_decision or final_claim.get("stableV4Release") is not report.get("stableV4Release"):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-final-claim-decision-mismatch",
+                evidence=f"{path_name} finalStableV4ClaimPacket does not match stableV4Release={report.get('stableV4Release')}",
+                recommendation="Set the final claim decision from the stable-publication status so blocked reports cannot emit allowed v4 wording.",
+            )
+        if not final_claim.get("copyReadyClaim") or not isinstance(final_claim.get("blockedClaims"), list) or not final_claim.get("blockedClaims"):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-final-claim-wording-missing",
+                evidence=f"{path_name} finalStableV4ClaimPacket lacks copy-ready wording or blocked claims",
+                recommendation="Include explicit wording the maintainer may say now and wording they must not say.",
+            )
+        if len(evidence_summary) < len(required_rows):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-final-claim-evidence-summary-missing",
+                evidence=f"{path_name} finalStableV4ClaimPacket does not mirror required evidence rows",
+                recommendation="Mirror stablePublicationEvidencePacket.requiredEvidence into the final claim packet so every claim maps back to proof status.",
+            )
+        if expected_decision == "blocked" and not final_claim.get("nextCommand"):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-final-claim-next-command-missing",
+                evidence=f"{path_name} finalStableV4ClaimPacket is blocked without a next command",
+                recommendation="Carry the first blocker or stable-publication rerun command into the final claim packet.",
+            )
+        if (
+            boundary.get("stablePublicationReportRequired") is not True
+            or boundary.get("allRequiredEvidenceMustPass") is not True
+            or boundary.get("sourceOnlyProofCountsAsStableV4") is not False
+            or boundary.get("fixtureProofCountsAsStableV4") is not False
+            or boundary.get("githubDownloadCountsCountAsAdoptionEvidence") is not False
+            or boundary.get("marketplaceAcceptanceClaimed") is not False
+            or boundary.get("externalPostingClaimed") is not False
+            or approval.get("publicPostingRequiresExplicitApproval") is not True
+            or approval.get("computerUseMayPost") is not False
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-final-claim-boundary-missing",
+                evidence=f"{path_name} finalStableV4ClaimPacket weakens proof, marketplace, adoption, or posting boundaries",
+                recommendation="State that all real stable-publication evidence must pass, source/fixture/download proof is insufficient, marketplace/posting are not claimed, and public posting requires explicit approval.",
+            )
+        if "Final Stable V4 Claim Packet" not in markdown or "Copy-ready claim" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-final-claim-markdown-missing",
+                evidence=f"{path_name} has finalStableV4ClaimPacket but Markdown does not render it",
+                recommendation="Render the final claim packet in Markdown so maintainers do not need JSON to know what they may safely say.",
+            )
+
     non_claims = packet.get("nonClaims")
     if not isinstance(non_claims, list) or not non_claims:
         add_issue(
@@ -9946,6 +10028,56 @@ def synthetic_stable_publication_report_fields() -> dict[str, Any]:
                 "This packet does not authorize computer-use to perform account-visible actions.",
             ],
         },
+        "finalStableV4ClaimPacket": {
+            "schemaVersion": 1,
+            "releaseVersion": "0.0.0",
+            "status": "allowed",
+            "stableV4Release": True,
+            "claimDecision": "allowed",
+            "copyReadyClaim": "ShipGuard 0.0.0 has passed stable-v4 publication proof.",
+            "allowedClaims": [
+                "Stable-v4 publication proof passed.",
+                "The attached report is the local proof source for the stable-v4 claim.",
+            ],
+            "blockedClaims": [
+                "OpenAI marketplace acceptance is proven.",
+                "Public launch posts were published or submitted.",
+                "GitHub stars, forks, or downloads prove independent adoption.",
+            ],
+            "evidenceSummary": [
+                {"id": evidence_id, "status": "pass", "requiredForStableV4": True, "nextCommand": "not-needed"}
+                for evidence_id in [
+                    "github-release-metadata",
+                    "release-notes",
+                    "launchkey-candidate-packet",
+                    "downloaded-release-assets",
+                    "post-release-consumer-proof",
+                    "public-release-freshness",
+                    "release-version-coherence",
+                    "release-asset-coherence",
+                    "independent-adoption-evidence",
+                    "final-security-review-evidence",
+                ]
+            ],
+            "missingEvidenceIds": [],
+            "firstBlockingGate": None,
+            "publicEvidenceClosureStatus": "pass",
+            "nextCommand": "./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>",
+            "approvalBoundary": {
+                "publicPostingRequiresExplicitApproval": True,
+                "computerUseMayPost": False,
+                "launchRelayStatus": "ready-to-stage",
+            },
+            "claimBoundary": {
+                "stablePublicationReportRequired": True,
+                "allRequiredEvidenceMustPass": True,
+                "sourceOnlyProofCountsAsStableV4": False,
+                "fixtureProofCountsAsStableV4": False,
+                "githubDownloadCountsCountAsAdoptionEvidence": False,
+                "marketplaceAcceptanceClaimed": False,
+                "externalPostingClaimed": False,
+            },
+        },
         "releaseNotesProof": {"missingTopicIds": []},
         "publicReleaseFreshnessProof": {
             "status": "pass",
@@ -10562,6 +10694,40 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "Approval boundary:",
                 "",
                 "Public posting, publishing, submission, or account-visible external actions require explicit human approval for that exact launch run.",
+                "",
+                "## Final Stable V4 Claim Packet",
+                "",
+                "- Claim decision: `allowed`",
+                "- Stable v4 release: `True`",
+                "- Public evidence closure: `pass`",
+                "- Public posting requires explicit approval: `True`",
+                "- Computer-use may post: `False`",
+                "- Source-only proof counts as stable v4: `False`",
+                "- Fixture proof counts as stable v4: `False`",
+                "- GitHub downloads count as adoption evidence: `False`",
+                "",
+                "Copy-ready claim:",
+                "",
+                "ShipGuard 0.0.0 has passed stable-v4 publication proof.",
+                "",
+                "| Evidence | Status |",
+                "| --- | --- |",
+                "| `github-release-metadata` | `pass` |",
+                "| `release-notes` | `pass` |",
+                "| `launchkey-candidate-packet` | `pass` |",
+                "| `downloaded-release-assets` | `pass` |",
+                "| `post-release-consumer-proof` | `pass` |",
+                "| `public-release-freshness` | `pass` |",
+                "| `release-version-coherence` | `pass` |",
+                "| `release-asset-coherence` | `pass` |",
+                "| `independent-adoption-evidence` | `pass` |",
+                "| `final-security-review-evidence` | `pass` |",
+                "",
+                "Blocked claim wording:",
+                "",
+                "- OpenAI marketplace acceptance is proven.",
+                "- Public launch posts were published or submitted.",
+                "- GitHub stars, forks, or downloads prove independent adoption.",
                 "",
             ]
         )
