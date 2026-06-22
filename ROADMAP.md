@@ -224,6 +224,8 @@ v3.146 continues Full Audit NEXT_GOAL-backed slash handoff proof by adding `slas
 
 v3.147 continues Full Audit copy-ready execution-command receipts by adding `executionCommandReceipt` so execute/resume commands, per-stage command rows, empty/manual stage fallbacks, and no-push/no-publish boundaries are visible in JSON and Markdown.
 
+v3.148 continues Tool Value Gauntlet stable-publication priority by adding `stablePublicationPriority` so the v4 blocker, proof packet, copy-ready stable-publication command, and source/fixture non-claims are visible without digging through the lowest-value probe internals.
+
 Every release proposal must answer:
 
 1. Which developer decision changes?

@@ -5054,6 +5054,43 @@ def priority_actions(findings: list[dict[str, Any]], probe: dict[str, Any]) -> l
     return actions
 
 
+def stable_publication_priority(probe: dict[str, Any]) -> dict[str, Any]:
+    answer = probe.get("answer") if isinstance(probe, dict) and isinstance(probe.get("answer"), dict) else {}
+    missing = {str(item) for item in answer.get("missingDepthSignals", [])} if isinstance(answer.get("missingDepthSignals"), list) else set()
+    is_stable_gap = answer.get("identifier") == "shipguard v4-stable-release-publication" or "runtimeV4StableReleasePublication" in missing
+    return {
+        "status": "review" if is_stable_gap else "not-current-priority",
+        "priorityId": "stable-v4-publication" if is_stable_gap else "none",
+        "source": "lowestValueSurfaceProbe.answer",
+        "surface": answer.get("name") or "",
+        "identifier": answer.get("identifier") or "",
+        "missingDepthSignal": "runtimeV4StableReleasePublication" if is_stable_gap else "",
+        "whyItMatters": "Stable v4 should not be claimed until public release assets, release notes, post-release consumer proof, independent adoption evidence, and final security review pass together.",
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-out> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable",
+        "blockedBy": [
+            "public GitHub release metadata and release notes",
+            "downloaded release assets",
+            "post-release consumer proof",
+            "independent adoption evidence",
+            "final security review evidence",
+        ]
+        if is_stable_gap
+        else [],
+        "nonClaims": [
+            "Value Gauntlet does not claim stable v4 is published.",
+            "Fixture-backed v4 product-release stabilization is not independent adoption or final security proof.",
+        ],
+        "proofBoundary": {
+            "sourceOnlyCountsAsStableV4Proof": False,
+            "fixtureProofCountsAsStableV4Proof": False,
+            "requiresDownloadedPublicReleaseAssets": True,
+            "requiresIndependentAdoptionEvidence": True,
+            "requiresFinalSecurityReviewEvidence": True,
+            "doesNotPublishGitHubRelease": True,
+        },
+    }
+
+
 def build_report(root: Path, strict: bool) -> dict[str, Any]:
     findings: list[dict[str, Any]] = []
     text_index = build_text_index(root)
@@ -5148,6 +5185,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     review_count = sum(1 for finding in findings if finding["severity"] == "review")
     status = "blocked" if high_count else "review" if review_count else "pass"
     priority_action_rows = priority_actions(findings, probe)
+    stable_priority = stable_publication_priority(probe)
     answer = (probe.get("answer") if isinstance(probe, dict) else {}) or {}
     next_command = "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet"
     result_ux = build_result_ux(
@@ -5229,6 +5267,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
         "v4ReleaseCandidateReadinessReceipts": v4_release_candidate_readiness_receipts,
         "v4ProductReleaseStabilizationReceipts": v4_product_release_stabilization_receipts,
         "lowestValueSurfaceProbe": probe,
+        "stablePublicationPriority": stable_priority,
         "findings": findings,
         "priorityActions": priority_action_rows,
         "reportQualityQuestions": report_quality_questions_for_probe(probe),
@@ -5285,6 +5324,22 @@ def render_markdown(report: dict[str, Any]) -> str:
             )
     else:
         lines.append("- No surfaces were available for depth probing.")
+    stable_priority = report.get("stablePublicationPriority") or {}
+    lines.extend(["", "## Stable Publication Priority", ""])
+    lines.append(f"- Status: {stable_priority.get('status') or 'unknown'}")
+    lines.append(f"- Priority: `{stable_priority.get('priorityId') or 'none'}`")
+    if stable_priority.get("identifier"):
+        lines.append(f"- Surface: `{stable_priority.get('identifier')}`")
+    if stable_priority.get("whyItMatters"):
+        lines.append(f"- Why it matters: {stable_priority['whyItMatters']}")
+    if stable_priority.get("nextCommand"):
+        lines.append(f"- Next command: `{stable_priority['nextCommand']}`")
+    blocked_by = stable_priority.get("blockedBy") if isinstance(stable_priority.get("blockedBy"), list) else []
+    if blocked_by:
+        lines.append(f"- Blocked by: {', '.join(str(item) for item in blocked_by)}")
+    non_claims = stable_priority.get("nonClaims") if isinstance(stable_priority.get("nonClaims"), list) else []
+    if non_claims:
+        lines.append(f"- Non-claims: {'; '.join(str(item) for item in non_claims)}")
     runtime_probe = report.get("runtimeOutputProbe") or {}
     lines.extend(["", "## Runtime Output Probe", ""])
     lines.append(f"- Status: {runtime_probe.get('status') or 'unknown'}")

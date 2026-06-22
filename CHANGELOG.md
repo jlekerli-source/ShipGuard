@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added Tool Value Gauntlet stable-publication priority: `shipguard value-gauntlet` now emits `stablePublicationPriority` in JSON and Markdown so the real v4 blocker, required proof packet, copy-ready `shipguard v4 stable-publication` command, and source/fixture non-claims are visible without reverse-engineering `lowestValueSurfaceProbe`.
 - Added Full Audit execution command receipts: Full Audit now emits `executionCommandReceipt` with execute/resume commands, stage command rows, empty/manual stage fallbacks, and no-push/no-publish boundaries; `ios report-quality` flags Full Audit reports that hide or weaken the receipt.
 - Added Full Audit slash handoff proof: Full Audit now emits `slashHandoffProof` from `NEXT_GOAL.md` with selected section, completion receipt presence, version-lineage status, copy-ready `/plan` and `/goal` checks, stale-handoff rejection, and no-publication boundaries; `ios report-quality` flags loaded Full Audit handoffs that hide or weaken it.
 - Added Full Audit release-packet plans: release-related `shipguard full-audit` runs now emit `releasePacketPlan` with selected release stages, required metadata, missing metadata, next command, non-claims, and proof boundaries, and `ios report-quality` flags release Full Audit reports that hide it.

@@ -28,6 +28,7 @@ grep -q '"actions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"skills":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"plugins":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"lowestValueSurfaceProbe":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"stablePublicationPriority":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"runtimeOutputProbe":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"runtimeOutputNegativeFixtures":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"runtimeCommandFamilyCoverage":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -87,6 +88,7 @@ grep -q '"path": ".agents/skills/ui-polish/SKILL.md"' "$tmp_dir/gauntlet/tool-va
 grep -q '# ShipGuard Tool Value Gauntlet' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Priority Actions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Lowest-Value Surface Probe' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Stable Publication Priority' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Commands' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Skills' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Plugins' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
@@ -144,6 +146,7 @@ if "`" in next_command or next_command.lower().startswith("run "):
     raise SystemExit(f"value-gauntlet nextCommand should not be prose or Markdown: {next_command!r}")
 probe = data.get("lowestValueSurfaceProbe") or {}
 answer = probe.get("answer") or {}
+stable_priority = data.get("stablePublicationPriority") or {}
 runtime = data.get("runtimeOutputProbe") or {}
 negative = data.get("runtimeOutputNegativeFixtures") or {}
 command_family = data.get("runtimeCommandFamilyCoverage") or {}
@@ -214,6 +217,30 @@ if "runtimeV4ReleaseCandidateReadiness" in answer.get("missingDepthSignals", [])
     raise SystemExit(f"v4 release-candidate readiness should no longer be missing: {answer!r}")
 if "runtimeV4StableReleasePublication" not in answer.get("missingDepthSignals", []):
     raise SystemExit(f"stable v4 publication gap should be explicit: {answer!r}")
+if stable_priority.get("status") != "review" or stable_priority.get("priorityId") != "stable-v4-publication":
+    raise SystemExit(f"stable-publication priority should be explicit: {stable_priority!r}")
+if stable_priority.get("identifier") != "shipguard v4-stable-release-publication":
+    raise SystemExit(f"stable-publication priority should point at the lowest-value answer: {stable_priority!r}")
+stable_next = stable_priority.get("nextCommand") or ""
+if "shipguard v4 stable-publication" not in stable_next or "--download-release-assets" not in stable_next:
+    raise SystemExit(f"stable-publication priority needs a copy-ready stable-publication command: {stable_priority!r}")
+blocked_by = set(stable_priority.get("blockedBy") or [])
+expected_blockers = {
+    "public GitHub release metadata and release notes",
+    "downloaded release assets",
+    "post-release consumer proof",
+    "independent adoption evidence",
+    "final security review evidence",
+}
+if blocked_by != expected_blockers:
+    raise SystemExit(f"stable-publication priority should list the real blockers: {stable_priority!r}")
+boundary = stable_priority.get("proofBoundary") or {}
+if boundary.get("sourceOnlyCountsAsStableV4Proof") is not False or boundary.get("fixtureProofCountsAsStableV4Proof") is not False:
+    raise SystemExit(f"stable-publication priority must preserve source/fixture non-claims: {stable_priority!r}")
+if boundary.get("requiresDownloadedPublicReleaseAssets") is not True or boundary.get("requiresIndependentAdoptionEvidence") is not True or boundary.get("requiresFinalSecurityReviewEvidence") is not True:
+    raise SystemExit(f"stable-publication priority must name the real proof requirements: {stable_priority!r}")
+if boundary.get("doesNotPublishGitHubRelease") is not True:
+    raise SystemExit(f"stable-publication priority must not imply publishing side effects: {stable_priority!r}")
 if "runtimeUnifiedInspectExperience" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"unified inspect should no longer be missing: {answer!r}")
 for retired_signal in ("runtimeSkillPluginReceipts", "runtimeWorkflowChainReceipts", "runtimeScenarioMatrixReceipts", "runtimeScenarioFailureReceipts", "runtimeScenarioRemediationReceipts", "runtimeAdoptionReceipts", "runtimeTargetOnboardingReceipts", "runtimeMultiProfileOnboardingReceipts", "runtimeProfileNativeFirstAuditReceipts", "runtimeProfileNativeFixPlanReceipts", "runtimeProfileNativeValidationReceipts", "runtimeProfileNativeValidationRerunReceipts", "runtimeProfileNativeProofHandoffReceipts", "runtimeCommandFamilyOutputReceipts", "runtimeTrustHardeningReceipts", "runtimeProofGatedTaskContract", "runtimeIOSNotificationPermissionWorkflow", "runtimeExternalPilotVerdictBench", "runtimeDomainPackSDK", "runtimeConfigurationBaselineSuppressions", "runtimeStructuredEvidenceReceiptsV2", "runtimeCodexNativeTaskTraceAdapter", "runtimeXcodeBuildMCPEvidenceAdapter", "runtimeExpoMCPAndEASAdapter", "runtimeUniversalAgentPackagingAdapter", "runtimeFullAuditOrchestrator", "runtimeUnifiedInspectExperience", "runtimeConciseVerdictResultUX", "runtimeCodexMarketplaceReadiness", "runtimeExternalBenchmarkV2", "runtimeV4PreviewStabilization", "runtimeV4SchemaFreeze", "runtimeV4ReleaseCandidateReadiness", "runtimeV4ProductReleaseStabilization"):
