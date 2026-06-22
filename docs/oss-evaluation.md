@@ -6,6 +6,15 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.190 stable-publication loop promoted a real maintainer time-waster found during public-release QA: rerunning into the same output directory could make the generated `downloaded-release-assets/` directory block a fresh download and create false downstream asset/freshness/coherence noise.
+
+- Finding: the proof packet itself was valid, but a stale generated download directory made the rerun look like release assets were missing.
+- Product weakness: repeated proof runs should be cheap and deterministic when ShipGuard owns the generated attachment directory.
+- Native fix: default `--download-release-assets` now refreshes `--out/downloaded-release-assets` before downloading again.
+- Safety boundary: explicit `--download-release-assets-dir` paths remain caller-owned and still reject non-empty download destinations, while supplied `--release-assets` directories are never refreshed or deleted by ShipGuard.
+
+Fresh real-public-release QA still does not claim stable v4. The real `v3.131.0` report remains product-blocked on release notes, LaunchKey candidate proof, independent adoption evidence, and final security-review evidence.
+
 The v3.189 read-only stable-v4 packet loop reran `shipguard v4 stable-publication` against the real public `v3.131.0` GitHub release after v3.188, then inspected the generated Markdown and JSON.
 
 - Finding: the top `Proof source` and `Next action` lines still used internal JSON names such as `releaseNotesProof` and `stablePublicationClosureChecklist`.

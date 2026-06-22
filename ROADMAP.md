@@ -180,6 +180,8 @@ v3.188 extends that cleanup to the blocked `keep-current-public-release-unchange
 
 v3.189 humanizes the stable-publication result UX so the top proof source and first action use reader-facing evidence labels instead of leaking internal JSON names like `stablePublicationClosureChecklist` or `releaseNotesProof`.
 
+v3.190 makes stable-publication default asset downloads rerunnable: generated `--out/downloaded-release-assets` state is refreshed before a new download, while explicit custom download directories and supplied release-asset directories remain caller-owned and protected from deletion.
+
 Every release proposal must answer:
 
 1. Which developer decision changes?

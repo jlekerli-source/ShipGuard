@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import shlex
 import subprocess
 import sys
@@ -573,6 +574,15 @@ def normalize_args(args: argparse.Namespace, root: Path) -> argparse.Namespace:
     if inference.get("repo"):
         normalized.github_release_repo = str(inference["repo"])
     return normalized
+
+
+def refresh_generated_download_destination(args: argparse.Namespace, out_dir: Path) -> None:
+    if not args.download_release_assets or args.download_release_assets_dir or args.release_assets:
+        return
+    download_dir = out_dir / "downloaded-release-assets"
+    # ponytail: only this default path is ShipGuard-owned; custom asset dirs stay protected.
+    if download_dir.is_dir():
+        shutil.rmtree(download_dir)
 
 
 def stable_publication_command(args: argparse.Namespace, *, placeholders: bool = False) -> str:
@@ -4025,6 +4035,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     consumer_args = argparse.Namespace(**vars(args))
     if consumer_args.release_version:
         consumer_args.release_version = normalize_version(consumer_args.release_version)
+    refresh_generated_download_destination(args, out_dir)
 
     metadata_proof = build_github_release_metadata_proof(args, version)
     latest_release_proof = build_github_latest_release_proof(args)

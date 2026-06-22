@@ -1157,6 +1157,64 @@ SHIPGUARD_GENERATED_AT="2026-06-20T00:00:00Z" \
     --shipguard-eval \
     --shareable >/dev/null
 
+default_rerun_out="$tmp_dir/pass-default-rerun"
+SHIPGUARD_GENERATED_AT="2026-06-20T00:00:00Z" \
+  ./bin/shipguard v4 stable-publication \
+    --path . \
+    --out "$default_rerun_out" \
+    --github-api-url "file://$api_root" \
+    --release-version "v$version" \
+    --release-candidate-report "$tmp_dir/candidate-pass.json" \
+    --download-release-assets \
+    --external-adoption-evidence "$tmp_dir/evidence/stable-adoption" \
+    --security-review-evidence "$tmp_dir/evidence/stable-security" \
+    --shipguard-eval \
+    --shareable >/dev/null
+printf 'stale' > "$default_rerun_out/downloaded-release-assets/stale.txt"
+SHIPGUARD_GENERATED_AT="2026-06-20T00:00:00Z" \
+  ./bin/shipguard v4 stable-publication \
+    --path . \
+    --out "$default_rerun_out" \
+    --github-api-url "file://$api_root" \
+    --release-version "v$version" \
+    --release-candidate-report "$tmp_dir/candidate-pass.json" \
+    --download-release-assets \
+    --external-adoption-evidence "$tmp_dir/evidence/stable-adoption" \
+    --security-review-evidence "$tmp_dir/evidence/stable-security" \
+    --shipguard-eval \
+    --shareable >/dev/null
+test ! -e "$default_rerun_out/downloaded-release-assets/stale.txt"
+python3 - "$default_rerun_out/v4-stable-publication.json" <<'PY'
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+assert report["status"] == "pass"
+assert report["githubReleaseAssetDownloadProof"]["status"] == "pass"
+assert report["publishedReleaseAssetProof"]["status"] == "pass"
+assert report["postReleaseConsumerProof"]["status"] == "pass"
+PY
+custom_download_dir="$tmp_dir/custom-download-protected"
+mkdir -p "$custom_download_dir"
+printf 'keep' > "$custom_download_dir/keep.txt"
+if SHIPGUARD_GENERATED_AT="2026-06-20T00:00:00Z" \
+  ./bin/shipguard v4 stable-publication \
+    --path . \
+    --out "$tmp_dir/custom-download-protected-run" \
+    --github-api-url "file://$api_root" \
+    --release-version "v$version" \
+    --release-candidate-report "$tmp_dir/candidate-pass.json" \
+    --download-release-assets \
+    --download-release-assets-dir "$custom_download_dir" \
+    --external-adoption-evidence "$tmp_dir/evidence/stable-adoption" \
+    --security-review-evidence "$tmp_dir/evidence/stable-security" \
+    --shipguard-eval \
+    --shareable >/dev/null 2>&1; then
+  echo "custom download destinations must still reject non-empty directories" >&2
+  exit 1
+fi
+test -f "$custom_download_dir/keep.txt"
+
 test -f "$tmp_dir/pass/v4-stable-publication.json"
 test -f "$tmp_dir/pass/v4-stable-publication.md"
 test -f "$tmp_dir/pass-consume/consumer-report.json"

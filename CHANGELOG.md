@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Made stable-publication default asset downloads rerunnable: when `--download-release-assets` uses the generated `--out/downloaded-release-assets` directory, ShipGuard refreshes that generated directory before downloading so repeated proof runs do not create false missing-asset blockers; explicit custom download directories still reject non-empty contents.
 - Humanized stable-publication result UX: blocked `resultUX.proofSource`, `nextActionSummary`, and `priorityAction` now use reader-facing evidence labels instead of internal JSON names like `stablePublicationClosureChecklist` or `releaseNotesProof`; `ios report-quality` flags regressions.
 - Cleaned blocked keep-current release visibility rows: when stable-publication still has required blockers, `keep-current-public-release-unchanged.nextCommand` now says `blocked-by-required-actions` instead of duplicating the primary repair command, and `ios report-quality` flags regressions.
 - Cleaned stable-publication release visibility handoff commands: completed `pass`/not-required action rows now use `not-needed` instead of leaking fallback test or rerun commands, and `ios report-quality` flags completed visibility actions that still suggest runnable commands.

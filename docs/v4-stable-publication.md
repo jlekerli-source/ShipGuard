@@ -68,6 +68,8 @@ Outputs:
 - `releaseVisibilityHandoff` in JSON, rendered as `Release Visibility Handoff` in Markdown
 - `finalStableV4ClaimPacket` in JSON, rendered as `Final Stable V4 Claim Packet` in Markdown, including public-release delta carry-through when local source has moved ahead of the selected release
 
+Repeated runs with `--download-release-assets` refresh the generated `downloaded-release-assets/` directory under `--out` before downloading again. Explicit `--download-release-assets-dir` paths remain caller-owned and keep the non-empty destination guard; `--release-assets` paths are caller-owned and never refreshed by ShipGuard.
+
 ## Stable Gates
 
 The report returns `pass` only when every gate passes:
