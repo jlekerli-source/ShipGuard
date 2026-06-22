@@ -1,25 +1,25 @@
 # Next Goal
 
-- Generated: 2026-06-22T18:50:45Z
+- Generated: 2026-06-22T19:16:14Z
 - Current toolkit version: 3.132.0
-- Target release: v3.137.0
-- Title: InspectDeck Release-proof Path Handoff
+- Target release: v3.138.0
+- Title: LaunchKey Fresh-install Receipt Handoff
 
 ## Version Lineage Check
 
 - Status: review
 - VERSION: 3.132.0
 - Expected next release from VERSION: v3.133.0
-- Planned target release: v3.137.0
+- Planned target release: v3.138.0
 - Current checkout package artifact before version bump: dist/shipguard-v3.132.0.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v3.137.0.tar.gz
-- Action: Before publishing v3.137.0, bump VERSION to 3.137.0 or regenerate next-goal for v3.133.0.
+- Expected package artifact after release bump: dist/shipguard-v3.138.0.tar.gz
+- Action: Before publishing v3.138.0, bump VERSION to 3.138.0 or regenerate next-goal for v3.133.0.
 
 ## Slash Plan
 
 ```text
-/plan v3.137.0 InspectDeck Release-proof Path Handoff for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make InspectDeck expose release-proof bundle, manifest, and badge paths with an inspect rerun template and no-mutation boundary.
+/plan v3.138.0 LaunchKey Fresh-install Receipt Handoff for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make LaunchKey fresh-install proof attach a stable-publication receipt handoff that points at the candidate report, names proof artifacts, and makes clear an install prefix alone is not stable-v4 proof.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, resolve version lineage before any release publication, then generate the following goal.
@@ -28,23 +28,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.137.0 InspectDeck Release-proof Path Handoff for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make InspectDeck expose release-proof bundle, manifest, and badge paths with an inspect rerun template and no-mutation boundary, push main, verify GitHub Actions, resolve version lineage before publishing any release tarball, verify clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.138.0 LaunchKey Fresh-install Receipt Handoff for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make LaunchKey fresh-install proof attach a stable-publication receipt handoff that points at the candidate report, names proof artifacts, and makes clear an install prefix alone is not stable-v4 proof, push main, verify GitHub Actions, resolve version lineage before publishing any release tarball, verify clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make InspectDeck expose release-proof bundle, manifest, and badge paths with an inspect rerun template and no-mutation boundary.
+Make LaunchKey fresh-install proof attach a stable-publication receipt handoff that points at the candidate report, names proof artifacts, and makes clear an install prefix alone is not stable-v4 proof.
 
 ## Completion Receipt
 
-- Completed scope: InspectDeck now exposes releaseProofPathHandoff with source, release-assets, manifest, and badge paths plus an inspect rerun template and explicit no-rebuild/no-publish/no-mutation boundary.
-- Evidence: py_compile, inspect_test, generated release-proof inspect path handoff, and live inspect report-quality passed
+- Completed scope: LaunchKey freshInstallProofAttachment now carries receiptHandoff with candidate report path, package and install paths, proof artifacts, stable-publication command, and explicit install-prefix-alone non-proof boundary.
+- Evidence: py_compile, v4_release_candidate_test, generated package LaunchKey run, and live report-quality passed
 
 ## Following Slash Plan
 
 ```text
-/plan v3.138.0 LaunchKey Fresh-install Receipt Handoff for jlekerli-source/ShipGuard:
+/plan v3.139.0 LaunchKey Upgrade Rollback Receipt Handoff for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -54,13 +54,13 @@ Make InspectDeck expose release-proof bundle, manifest, and badge paths with an 
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.138.0 LaunchKey Fresh-install Receipt Handoff for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.139.0 LaunchKey Upgrade Rollback Receipt Handoff for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.138.0 --title "LaunchKey Fresh-install Receipt Handoff" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.139.0 --title "LaunchKey Upgrade Rollback Receipt Handoff" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -160,12 +160,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.137.0.
+1. Open or update the tracking issue for v3.138.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Resolve version lineage first: bump VERSION to 3.137.0 and rebuild the tarball, or regenerate next-goal for v3.133.0 before creating a GitHub release.
+6. Resolve version lineage first: bump VERSION to 3.138.0 and rebuild the tarball, or regenerate next-goal for v3.133.0 before creating a GitHub release.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

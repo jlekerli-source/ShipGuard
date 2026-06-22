@@ -214,6 +214,8 @@ v3.137 continues LaunchKey published release-asset proof attachment by adding a 
 
 v3.138 continues LaunchKey fresh-install receipt attachment by adding a compact `freshInstallProofAttachment` to `freshInstallPackageProof`, so install paths, version and validation exits, forbidden installed paths, missing artifacts, next command, and source-only/fixture-proof boundaries travel with the candidate packet.
 
+v3.138 also adds a LaunchKey fresh-install receipt handoff so the attachment points stable-publication at the containing candidate report, names the proof artifacts, and makes clear the install prefix alone is not stable-v4 proof.
+
 v3.139 continues LaunchKey generated proof-directory report-quality exclusion by making skipped generated package/install/upgrade/rollback/download/consume JSON files visible through `skippedReportDiscovery` and Markdown while still scoring only the root report.
 
 v3.140 continues LaunchKey upgrade and rollback receipt attachment by adding compact `upgradeProofAttachment` and `rollbackProofAttachment` blocks so same-prefix upgrade and rollback cleanup proof travel with the candidate packet.

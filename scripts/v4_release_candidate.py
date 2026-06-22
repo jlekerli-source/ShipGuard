@@ -357,6 +357,7 @@ def build_fresh_install_package_proof(args: argparse.Namespace, version: str) ->
         "status": "blocked",
         "provided": True,
         "requiredForStableV4": True,
+        "candidateReportPath": (Path(args.out).expanduser().resolve() / "v4-release-candidate.json").as_posix(),
         "packageTarball": tarball.as_posix(),
         "installPrefix": install_prefix.as_posix(),
         "workDir": work_dir.as_posix(),
@@ -482,6 +483,7 @@ def attach_fresh_install_proof_attachment(proof: dict[str, Any]) -> None:
         )
         if not isinstance(proof.get(field), dict)
     ]
+    proof_artifacts = ["shipguard-version", "codex-maintainer-version", "shipguard-validate", "forbidden-installed-path-scan"]
     proof["freshInstallProofAttachment"] = {
         "status": proof.get("status"),
         "packageTarball": proof.get("packageTarball", ""),
@@ -498,6 +500,22 @@ def attach_fresh_install_proof_attachment(proof: dict[str, Any]) -> None:
         "forbiddenInstalledPaths": proof.get("forbiddenInstalledPaths", []),
         "missingProofArtifacts": missing_artifacts,
         "nextCommand": proof.get("nextCommand"),
+        "receiptHandoff": {
+            "receipt": "freshInstallPackageProof",
+            "candidateReportPath": proof.get("candidateReportPath", ""),
+            "packageTarball": proof.get("packageTarball", ""),
+            "installPrefix": proof.get("installPrefix", ""),
+            "installedRoot": proof.get("installedRoot", ""),
+            "proofArtifacts": proof_artifacts,
+            "missingProofArtifacts": missing_artifacts,
+            "stablePublicationCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --release-candidate-report <v4-release-candidate-json-or-dir> --shipguard-eval --shareable",
+            "proofBoundary": {
+                "attachCandidateReportToStablePublication": True,
+                "installPrefixAloneCountsAsStableV4Proof": False,
+                "sourceOnlyProofCounts": False,
+                "fixtureProofCountsAsStableV4PublicationProof": False,
+            },
+        },
         "proofBoundary": {
             "freshInstallRequiredForStableV4": True,
             "cleanPrefixInstallRequired": True,
@@ -2505,6 +2523,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                     replacements[str(asset["source"])] = "<github-asset-url>/" + str(asset.get("name") or "asset")
         if fresh_install_package_proof.get("packageTarball"):
             replacements[str(fresh_install_package_proof["packageTarball"])] = "<package-tarball>"
+        if fresh_install_package_proof.get("candidateReportPath"):
+            replacements[str(fresh_install_package_proof["candidateReportPath"])] = "<v4-release-candidate-json>"
         if fresh_install_package_proof.get("installPrefix"):
             replacements[str(fresh_install_package_proof["installPrefix"])] = "<fresh-install-prefix>"
         if fresh_install_package_proof.get("workDir"):
@@ -2631,6 +2651,14 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- Validation exit code: `{attachment.get('validateExitCode')}`")
             lines.append(f"- Forbidden installed paths: `{attachment.get('forbiddenInstalledPathCount')}`")
             lines.append(f"- Missing proof artifacts: `{', '.join(attachment.get('missingProofArtifacts') or []) or 'none'}`")
+            handoff = attachment.get("receiptHandoff") if isinstance(attachment.get("receiptHandoff"), dict) else {}
+            if handoff:
+                lines.extend(["", "#### Fresh Install Receipt Handoff", ""])
+                lines.append(f"- Candidate report: `{handoff.get('candidateReportPath') or 'missing'}`")
+                lines.append(f"- Proof artifacts: `{', '.join(handoff.get('proofArtifacts') or []) or 'none'}`")
+                lines.append(f"- Stable publication command: `{handoff.get('stablePublicationCommand') or 'missing'}`")
+                boundary = handoff.get("proofBoundary") if isinstance(handoff.get("proofBoundary"), dict) else {}
+                lines.append(f"- Install prefix alone counts as stable-v4 proof: `{boundary.get('installPrefixAloneCountsAsStableV4Proof')}`")
     else:
         lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## Upgrade", ""])

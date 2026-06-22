@@ -481,6 +481,7 @@ SHIPGUARD_GENERATED_AT="2026-06-19T00:00:00Z" \
 test -f "$tmp_dir/with-assets/v4-release-candidate.json"
 test -f "$tmp_dir/with-assets/v4-release-candidate.md"
 grep -q 'Fresh Install Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
+grep -q 'Fresh Install Receipt Handoff' "$tmp_dir/with-assets/v4-release-candidate.md"
 grep -q 'Upgrade Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
 grep -q 'Rollback Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
 grep -q 'Release Asset Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
@@ -499,6 +500,7 @@ import sys
 report = json.load(open(sys.argv[1], encoding="utf-8"))
 fresh = report["freshInstallPackageProof"]
 fresh_attachment = fresh["freshInstallProofAttachment"]
+fresh_handoff = fresh_attachment["receiptHandoff"]
 upgrade = report["upgradePackageProof"]
 upgrade_attachment = upgrade["upgradeProofAttachment"]
 rollback = report["rollbackPackageProof"]
@@ -544,6 +546,17 @@ assert fresh_attachment["forbiddenInstalledPathCount"] == 0
 assert fresh_attachment["missingProofArtifacts"] == []
 assert fresh_attachment["proofBoundary"]["shipguardValidateRequired"] is True
 assert fresh_attachment["proofBoundary"]["sourceOnlyProofCounts"] is False
+assert fresh_handoff["receipt"] == "freshInstallPackageProof"
+assert fresh_handoff["candidateReportPath"] == "<v4-release-candidate-json>"
+assert fresh_handoff["packageTarball"] == "<package-tarball>"
+assert fresh_handoff["installPrefix"] == "<fresh-install-prefix>"
+assert fresh_handoff["installedRoot"] == "<fresh-install-root>"
+assert "shipguard-validate" in fresh_handoff["proofArtifacts"]
+assert fresh_handoff["missingProofArtifacts"] == []
+assert "--release-candidate-report <v4-release-candidate-json-or-dir>" in fresh_handoff["stablePublicationCommand"]
+assert fresh_handoff["proofBoundary"]["attachCandidateReportToStablePublication"] is True
+assert fresh_handoff["proofBoundary"]["installPrefixAloneCountsAsStableV4Proof"] is False
+assert fresh_handoff["proofBoundary"]["sourceOnlyProofCounts"] is False
 assert upgrade["status"] == "pass"
 assert upgrade["provided"] is True
 assert upgrade["previousPackageVersion"] == "0.0.0"
