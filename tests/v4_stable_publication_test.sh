@@ -888,8 +888,15 @@ assert f"--release-version {report['releaseVersion']}" in release_notes_item["re
 assert release_notes_item["nextCommand"] == release_notes_item["rerunCommand"]
 assert len(report["releaseNotesProof"]["topicMatrix"]) == 7
 notes_kit = report["stablePublicationReleaseNotesAuthoringKit"]
+assert notes_kit["schemaVersion"] == 2
 assert notes_kit["draftOnly"] is True
 assert notes_kit["directory"] == "stable-publication-release-notes"
+assert notes_kit["releaseTag"] == f"v{report['releaseVersion']}"
+assert notes_kit["releaseUrl"].endswith(f"/releases/tag/v{report['releaseVersion']}")
+assert notes_kit["publicReleaseEditCommand"] == (
+    f"gh release edit v{report['releaseVersion']} --repo jlekerli-source/ShipGuard "
+    "--notes-file stable-publication-release-notes/draft-release-notes.md"
+)
 assert set(notes_kit["missingTopicIds"]) == missing
 assert {
     "stable-publication-release-notes/README.md",
@@ -907,11 +914,14 @@ grep -q 'Release Notes Authoring Kit' "$tmp_dir/weak-notes/v4-stable-publication
 grep -q 'Release Notes Closure Kit' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'post-release-consumer-proof' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'Public release edit required: `True`' "$tmp_dir/weak-notes/v4-stable-publication.md"
+grep -q 'gh release edit' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'stable-publication-release-notes/draft-release-notes.md' "$tmp_dir/weak-notes/v4-stable-publication.md"
 test -f "$tmp_dir/weak-notes/stable-publication-release-notes/README.md"
 test -f "$tmp_dir/weak-notes/stable-publication-release-notes/release-notes-checklist.json"
 test -f "$tmp_dir/weak-notes/stable-publication-release-notes/draft-release-notes.md"
 grep -q 'Post-release consumer proof' "$tmp_dir/weak-notes/stable-publication-release-notes/draft-release-notes.md"
+grep -q 'gh release edit' "$tmp_dir/weak-notes/stable-publication-release-notes/README.md"
+grep -q 'gh release edit' "$tmp_dir/weak-notes/stable-publication-release-notes/draft-release-notes.md"
 grep -q '"draftOnly": true' "$tmp_dir/weak-notes/stable-publication-release-notes/release-notes-checklist.json"
 
 python3 - "$release_endpoint_file" "$version" "$tmp_dir/downloaded" "$release_commit" <<'PY'

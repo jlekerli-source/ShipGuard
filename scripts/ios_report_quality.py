@@ -4931,6 +4931,21 @@ def stable_publication_evidence_packet_issues(
                 evidence=f"{path_name} release-notes authoring kit has no stable-publication rerun command",
                 recommendation="Include the command to rerun stable-publication after editing public release notes.",
             )
+        edit_command = str(notes_kit.get("publicReleaseEditCommand") or "")
+        requires_edit_command = int(notes_kit.get("schemaVersion") or 1) >= 2
+        review_notes = notes_kit.get("status") != "pass" or bool(kit_missing_topics)
+        if requires_edit_command and review_notes and (
+            "gh release edit" not in edit_command
+            or "--notes-file" not in edit_command
+            or "stable-publication-release-notes/draft-release-notes.md" not in edit_command
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-release-notes-authoring-kit-edit-command-missing",
+                evidence=f"{path_name} release-notes authoring kit does not include a copy-ready GitHub release edit command",
+                recommendation="Include publicReleaseEditCommand with gh release edit, --notes-file, and the generated draft-release-notes path.",
+            )
     if "Release Notes Authoring Kit" not in markdown:
         add_issue(
             issues,
@@ -4938,6 +4953,19 @@ def stable_publication_evidence_packet_issues(
             rule_id="stable-publication-release-notes-authoring-kit-markdown-missing",
             evidence=f"{path_name} Markdown does not render the stable-publication release-notes authoring kit",
             recommendation="Render the generated release-notes authoring kit so maintainers can find the checklist and draft without opening JSON.",
+        )
+    elif (
+        isinstance(notes_kit, dict)
+        and int(notes_kit.get("schemaVersion") or 1) >= 2
+        and notes_kit.get("status") != "pass"
+        and "gh release edit" not in markdown
+    ):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-release-notes-authoring-kit-edit-command-markdown-missing",
+            evidence=f"{path_name} Markdown renders the release-notes kit but hides the GitHub release edit command",
+            recommendation="Render publicReleaseEditCommand in the Release Notes Authoring Kit section.",
         )
     questions_text = " ".join(str(item) for item in report.get("reportQualityQuestions") or [])
     relay_required = stable_publication_launch_relay_question(questions_text) or isinstance(
@@ -10200,10 +10228,13 @@ def synthetic_stable_publication_report_fields() -> dict[str, Any]:
             "nextCommandTemplate": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --external-adoption-evidence stable-publication-evidence-kit/external-adoption-evidence.json --security-review-evidence stable-publication-evidence-kit/security-review-evidence.json --shipguard-eval --shareable",
         },
         "stablePublicationReleaseNotesAuthoringKit": {
-            "schemaVersion": 1,
+            "schemaVersion": 2,
             "draftOnly": True,
             "directory": "stable-publication-release-notes",
+            "releaseTag": "v0.0.0",
+            "releaseUrl": "https://github.com/example/shipguard/releases/tag/v0.0.0",
             "missingTopicIds": [],
+            "publicReleaseEditCommand": "gh release edit v0.0.0 --repo example/shipguard --notes-file stable-publication-release-notes/draft-release-notes.md",
             "files": [
                 {"path": "stable-publication-release-notes/README.md", "purpose": "Synthetic release-notes README."},
                 {"path": "stable-publication-release-notes/release-notes-checklist.json", "purpose": "Synthetic checklist."},
@@ -10964,6 +10995,7 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "",
                 "- Directory: `stable-publication-release-notes`",
                 "- Draft-only: `True`",
+                "- Public release edit command: `gh release edit v0.0.0 --repo example/shipguard --notes-file stable-publication-release-notes/draft-release-notes.md`",
                 "- Missing topics: `none`",
                 "",
                 "## Launch Relay Drafts",

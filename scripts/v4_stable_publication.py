@@ -633,6 +633,24 @@ def stable_publication_rerun_command(args: argparse.Namespace) -> str:
     return " ".join(shlex.quote(str(part)) for part in command)
 
 
+def public_release_notes_edit_command(*, repo: str, tag: str) -> str:
+    repo = repo or "<owner/repo>"
+    tag = tag or "<tag>"
+    return " ".join(
+        shlex.quote(str(part))
+        for part in (
+            "gh",
+            "release",
+            "edit",
+            tag,
+            "--repo",
+            repo,
+            "--notes-file",
+            f"{RELEASE_NOTES_KIT_DIRNAME}/draft-release-notes.md",
+        )
+    )
+
+
 def resolve_release_candidate_report(raw: str | None) -> Path | None:
     if not raw:
         return None
@@ -2920,6 +2938,7 @@ def build_stable_publication_release_notes_authoring_kit(
     *,
     release_version: str,
     release_notes_proof: dict[str, Any],
+    metadata_proof: dict[str, Any],
 ) -> dict[str, Any]:
     missing_topic_ids = release_notes_proof.get("missingTopicIds")
     if not isinstance(missing_topic_ids, list):
@@ -2927,14 +2946,28 @@ def build_stable_publication_release_notes_authoring_kit(
     topic_matrix = release_notes_proof.get("topicMatrix")
     if not isinstance(topic_matrix, list):
         topic_matrix = []
+    release_tag = str(metadata_proof.get("tag") or launchkey.normalize_release_tag(release_version))
+    release_repo = str(metadata_proof.get("repo") or "<owner/repo>")
+    edit_command = public_release_notes_edit_command(repo=release_repo, tag=release_tag)
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "draftOnly": True,
         "directory": RELEASE_NOTES_KIT_DIRNAME,
         "releaseVersion": release_version,
+        "releaseTag": release_tag,
+        "releaseUrl": metadata_proof.get("releaseUrl") or "",
         "status": "pass" if release_notes_proof.get("status") == "pass" else "review",
         "missingTopicIds": missing_topic_ids,
         "topicMatrix": topic_matrix,
+        "publicReleaseEditCommand": edit_command,
+        "publicGitHubReleaseEditBoundary": {
+            "target": "public GitHub release body",
+            "releaseUrl": metadata_proof.get("releaseUrl") or "",
+            "requiresPublicReleaseEdit": True,
+            "shipguardDoesNotEditRelease": True,
+            "authoringKitIsDraftOnly": True,
+            "stableV4ClaimAllowed": False,
+        },
         "files": [
             {
                 "id": "checklist",
@@ -2955,6 +2988,7 @@ def build_stable_publication_release_notes_authoring_kit(
         "instructions": [
             "Use this as a release-notes authoring aid only; it is not proof that a GitHub release was published.",
             "Replace placeholders with the real release version, asset list, adoption summary, security review summary, and non-claims before publishing.",
+            "Review the generated draft, then run the publicReleaseEditCommand manually to update the public GitHub release body.",
             "Run stable-publication again against the public GitHub release metadata after editing the release notes.",
         ],
         "nextCommandTemplate": (
@@ -3285,6 +3319,7 @@ def build_stable_publication_closure_checklist(
                         "checklistPath": f"{RELEASE_NOTES_KIT_DIRNAME}/release-notes-checklist.json",
                         "draftPath": f"{RELEASE_NOTES_KIT_DIRNAME}/draft-release-notes.md",
                         "files": kit_files,
+                        "publicReleaseEditCommand": release_notes_authoring_kit.get("publicReleaseEditCommand") or "",
                     },
                     "publicGitHubReleaseEditBoundary": {
                         "target": "public GitHub release body",
@@ -3293,6 +3328,7 @@ def build_stable_publication_closure_checklist(
                         "shipguardDoesNotEditRelease": True,
                         "authoringKitIsDraftOnly": True,
                         "stableV4ClaimAllowed": False,
+                        "publicReleaseEditCommand": release_notes_authoring_kit.get("publicReleaseEditCommand") or "",
                         "instruction": "Edit the public GitHub release body with the missing stable-publication topics, then rerun stable-publication against public release metadata.",
                     },
                     "rerunCommand": rerun_command or item.get("nextCommand") or first_blocking.get("nextCommand") or "",
@@ -3681,6 +3717,7 @@ def write_stable_publication_release_notes_authoring_kit(
     )
 
     release_version = str(kit.get("releaseVersion") or report.get("releaseVersion") or "<version>")
+    edit_command = str(kit.get("publicReleaseEditCommand") or "")
     draft_lines = [
         f"# ShipGuard {release_version}",
         "",
@@ -3695,6 +3732,14 @@ def write_stable_publication_release_notes_authoring_kit(
         "- Independent adoption evidence: attach real independent public or private-redacted external adoption evidence; GitHub downloads do not count as adoption.",
         "- Final security review evidence: attach final security-review evidence covering CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy.",
         "- Non-claims: this release note does not claim OpenAI marketplace acceptance, private app validation, or external adoption beyond the attached evidence.",
+        "",
+        "## Publish Edited Notes",
+        "",
+        "Review this draft, then update the public GitHub release body manually:",
+        "",
+        "```bash",
+        edit_command,
+        "```",
         "",
         "## Proof Commands",
         "",
@@ -3720,6 +3765,9 @@ def write_stable_publication_release_notes_authoring_kit(
         "This directory is a draft-only authoring aid for the public GitHub release body.",
         "It does not publish the release and does not prove stable v4 by itself.",
         "",
+        f"- Release URL: `{kit.get('releaseUrl') or 'not-provided'}`",
+        f"- Release tag: `{kit.get('releaseTag') or 'not-provided'}`",
+        "",
         "## Files",
         "",
         "- `release-notes-checklist.json`: machine-readable topic matrix and missing topic list.",
@@ -3730,6 +3778,14 @@ def write_stable_publication_release_notes_authoring_kit(
         "- Replace placeholders with real public release facts before publishing.",
         "- Keep private app names, paths, screenshots, accounts, and token-like strings out of public notes.",
         "- Re-run `shipguard v4 stable-publication` against the public GitHub release after editing the release notes.",
+        "",
+        "## Edit Public Release Notes",
+        "",
+        "Review `draft-release-notes.md`, then run:",
+        "",
+        "```bash",
+        edit_command,
+        "```",
         "",
         "## Next Command",
         "",
@@ -4010,6 +4066,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     release_notes_authoring_kit = build_stable_publication_release_notes_authoring_kit(
         release_version=release_version,
         release_notes_proof=release_notes_proof,
+        metadata_proof=metadata_proof,
     )
     evidence_starter_kit = attach_release_notes_authoring_kit_to_starter(
         evidence_starter_kit,
@@ -4650,6 +4707,7 @@ def render_markdown(report: dict[str, Any]) -> str:
                     f"- Public release edit required: `{edit_boundary.get('requiresPublicReleaseEdit')}`",
                     f"- ShipGuard edits public release: `{not bool(edit_boundary.get('shipguardDoesNotEditRelease'))}`",
                     f"- Release URL: `{edit_boundary.get('releaseUrl') or 'not-provided'}`",
+                    f"- Public release edit command: `{edit_boundary.get('publicReleaseEditCommand') or 'not-provided'}`",
                     "",
                     "| Authoring file |",
                     "| --- |",
@@ -5073,6 +5131,8 @@ def render_markdown(report: dict[str, Any]) -> str:
                 "",
                 f"- Directory: `{release_notes_kit.get('directory')}`",
                 f"- Draft-only: `{release_notes_kit.get('draftOnly')}`",
+                f"- Release URL: `{release_notes_kit.get('releaseUrl') or 'not-provided'}`",
+                f"- Public release edit command: `{release_notes_kit.get('publicReleaseEditCommand') or 'not-provided'}`",
                 f"- Missing topics: `{', '.join(release_notes_kit.get('missingTopicIds') or []) or 'none'}`",
                 "",
                 "| File | Purpose |",

@@ -124,11 +124,11 @@ Every run also writes `stable-publication-release-notes/` inside the report dire
 
 This directory is a draft-only authoring aid, not proof that the public GitHub release was edited. It contains:
 
-- `README.md` with public-release-body rules and the rerun command
+- `README.md` with public-release-body rules, the exact manual `gh release edit ... --notes-file stable-publication-release-notes/draft-release-notes.md` command, and the rerun command
 - `release-notes-checklist.json` with the same topic matrix and missing topic IDs from `releaseNotesProof`
 - `draft-release-notes.md` with a copy-ready stable-publication section covering release assets, post-release consumer proof, independent adoption, final security review, and non-claims
 
-The report exposes the same artifact as `stablePublicationReleaseNotesAuthoringKit`, and Markdown renders it under `Release Notes Authoring Kit`. `ios report-quality` flags stable-publication reports that expose release-note gaps but do not give maintainers a draft/checklist path to fix the public release body.
+The report exposes the same artifact as `stablePublicationReleaseNotesAuthoringKit`, and Markdown renders it under `Release Notes Authoring Kit`. `ios report-quality` flags stable-publication reports that expose release-note gaps but do not give maintainers a draft/checklist path and public GitHub edit command to fix the public release body.
 
 The generated release-notes directory is an authoring attachment, not a separate source report. `ios report-quality` grades the root `v4-stable-publication.json` report and skips the generated checklist during recursive report discovery.
 
