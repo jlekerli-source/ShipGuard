@@ -1767,6 +1767,7 @@ def build_release_visibility_handoff(
     release_asset_coherence_proof: dict[str, Any],
     final_claim_packet: dict[str, Any],
     rerun_command: str,
+    release_create_command: str = "",
 ) -> dict[str, Any]:
     comparisons = (
         public_release_delta_proof.get("comparisons")
@@ -1811,6 +1812,10 @@ def build_release_visibility_handoff(
         or release_notes_proof.get("nextCommand")
         or rerun_command
     )
+    release_create_command = str(
+        release_create_command
+        or "gh release create <tag> dist/shipguard-v<version>.tar.gz --notes-file <release-notes.md>"
+    )
     actions = [
         {
             "id": "publish-new-github-release",
@@ -1821,11 +1826,7 @@ def build_release_visibility_handoff(
                 if needs_release
                 else "Selected public release, latest release, tag target, and manifest are aligned; local source deltas are reported separately."
             ),
-            "nextCommand": (
-                "gh release create <tag> dist/shipguard-v<version>.tar.gz --notes-file <release-notes.md>"
-                if needs_release
-                else "not-needed"
-            ),
+            "nextCommand": release_create_command if needs_release else "not-needed",
         },
         {
             "id": "update-release-notes",
@@ -2410,6 +2411,7 @@ def build_github_release_metadata_closure_kit(
     *,
     item: dict[str, Any],
     rerun_command: str,
+    notes_file: str | Path | None = None,
 ) -> dict[str, Any]:
     diagnostics = (
         item.get("githubReleaseMetadataDiagnostics")
@@ -2431,7 +2433,7 @@ def build_github_release_metadata_closure_kit(
             "--external-adoption-evidence <adoption-evidence-json-or-dir> "
             "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
         )
-    release_create = github_release_create_handoff(diagnostics)
+    release_create = github_release_create_handoff(diagnostics, notes_file=notes_file)
     return {
         "schemaVersion": 1,
         "title": "GitHub release metadata closure kit",
@@ -2485,7 +2487,10 @@ def build_github_release_metadata_closure_kit(
     }
 
 
-def github_release_create_handoff(diagnostics: dict[str, Any]) -> dict[str, Any]:
+def github_release_create_handoff(
+    diagnostics: dict[str, Any],
+    notes_file: str | Path | None = None,
+) -> dict[str, Any]:
     repo = str(diagnostics.get("repo") or "<owner/repo>")
     tag = str(diagnostics.get("tag") or "")
     version = str(diagnostics.get("version") or "").strip()
@@ -2506,7 +2511,7 @@ def github_release_create_handoff(diagnostics: dict[str, Any]) -> dict[str, Any]
             asset_args.append(f"dist/{name}")
         else:
             asset_args.append(f"<release-proof-assets-dir>/{name}")
-    notes_file = "<stable-publication-report-dir>/stable-publication-release-notes/draft-release-notes.md"
+    notes_file = str(notes_file or "<stable-publication-report-dir>/stable-publication-release-notes/draft-release-notes.md")
     title = f"ShipGuard {tag}"
     command_parts = [
         "gh",
@@ -3385,6 +3390,7 @@ def build_stable_publication_closure_checklist(
             if optional_key in item:
                 closure_item[optional_key] = item[optional_key]
         if evidence_id == "github-release-metadata":
+            generated_paths = release_notes_authoring_kit.get("generatedPaths") if isinstance(release_notes_authoring_kit.get("generatedPaths"), dict) else {}
             metadata_kit = build_github_release_metadata_closure_kit(
                 item=item,
                 rerun_command=rerun_command
@@ -3395,6 +3401,7 @@ def build_stable_publication_closure_checklist(
                     "--external-adoption-evidence <adoption-evidence-json-or-dir> "
                     "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
                 ),
+                notes_file=generated_paths.get("draftReleaseNotes") or None,
             )
             closure_item.update(
                 {
@@ -4251,6 +4258,17 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         public_release_delta_proof=public_release_delta_proof,
         rerun_command=stable_publication_rerun_command(args),
     )
+    generated_paths = release_notes_authoring_kit.get("generatedPaths") if isinstance(release_notes_authoring_kit.get("generatedPaths"), dict) else {}
+    release_create_command = ""
+    for item in closure_checklist.get("items", []):
+        if isinstance(item, dict) and item.get("id") == "github-release-metadata":
+            release_create_command = str(item.get("releaseCreateCommand") or "")
+            break
+    if not release_create_command:
+        release_create_command = github_release_create_handoff(
+            metadata_proof,
+            notes_file=generated_paths.get("draftReleaseNotes") or None,
+        )["command"]
     release_visibility_handoff = build_release_visibility_handoff(
         release_version=release_version,
         stable_v4_release=stable_v4_release,
@@ -4263,6 +4281,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         release_asset_coherence_proof=release_asset_coherence_proof,
         final_claim_packet=final_claim_packet,
         rerun_command=stable_publication_rerun_command(args),
+        release_create_command=release_create_command,
     )
 
     if blocked:

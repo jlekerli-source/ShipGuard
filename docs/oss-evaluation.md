@@ -6,6 +6,12 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.136 public-release catch-up pass targeted the next obvious maintainer actionability gap after the local release-candidate packet passed but the public GitHub release was still behind.
+
+- Finding: `releaseVisibilityHandoff` correctly chose `publish-new-github-release`, but its visible next command still used `<tag>`, `<version>`, and `<release-notes.md>` placeholders even though the metadata closure kit already generated the concrete `gh release create ...` command.
+- Product weakness: the final public-release decision table should be copy-ready; a maintainer should not have to reconcile a placeholder handoff with a more precise nested closure kit.
+- Native fix: the release visibility handoff now reuses the generated release-create command, including the report output draft release-notes path and required release-proof assets, while preserving the manual-publication boundary.
+
 The v3.195 release-lineage follow-up caught the adjacent pass-state bug after the active handoff was regenerated to the next buildable semantic target.
 
 - Finding: `v3.132.0` correctly passed lineage as the expected next release from `VERSION=3.131.0`, but the action text implied package scripts would already build `shipguard-v3.132.0.tar.gz` before the `VERSION` bump.

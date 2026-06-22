@@ -342,6 +342,9 @@ assert "jlekerli-source/ShipGuard" in kit["releaseCreateCommand"]
 for asset in metadata["requiredAssets"]:
     assert asset in kit["releaseCreateCommand"]
 assert item["releaseCreateCommand"] == kit["releaseCreateCommand"]
+assert actions["publish-new-github-release"]["nextCommand"] == kit["releaseCreateCommand"]
+assert "/stable-publication-release-notes/draft-release-notes.md" in actions["publish-new-github-release"]["nextCommand"]
+assert "<release-notes.md>" not in actions["publish-new-github-release"]["nextCommand"]
 create_boundary = kit["releaseCreateCommandBoundary"]
 assert create_boundary["manualApprovalRequired"] is True
 assert create_boundary["shipguardPublishesGitHubRelease"] is False
@@ -1077,6 +1080,10 @@ assert visibility["currentPublicReleaseCanBeAnnounced"] is False
 assert visibility["visibilityBoundary"]["unpublishedLocalCodeCountsAsReleased"] is False
 actions = {item["id"]: item for item in visibility["requiredActions"]}
 assert actions["publish-new-github-release"]["required"] is True
+assert actions["publish-new-github-release"]["nextCommand"].startswith(f"gh release create v{report['releaseVersion']} ")
+assert "jlekerli-source/ShipGuard" in actions["publish-new-github-release"]["nextCommand"]
+assert "/stable-publication-release-notes/draft-release-notes.md" in actions["publish-new-github-release"]["nextCommand"]
+assert "<release-notes.md>" not in actions["publish-new-github-release"]["nextCommand"]
 assert actions["attach-launchkey-candidate-proof"]["required"] is False
 assert actions["keep-current-public-release-unchanged"]["status"] == "blocked"
 assert actions["keep-current-public-release-unchanged"]["nextCommand"] == "blocked-by-required-actions"

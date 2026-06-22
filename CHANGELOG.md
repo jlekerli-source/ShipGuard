@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Made public-release catch-up handoffs concrete: when stable-publication decides `publish-new-github-release`, `releaseVisibilityHandoff.requiredActions[].nextCommand` now reuses the generated `gh release create ...` command with the report's draft release-notes path and required release-proof assets instead of a placeholder.
 - Reduced package-release proof duplication: the package lane now verifies packaged focused test scripts are present, executable, and shell-syntax-valid instead of rerunning source-focused fixture suites that CI already executed before package proof.
 - Fixed stable-publication visibility routing after release-line QA: when public GitHub release metadata is missing or stale, `releaseVisibilityHandoff.primaryDecision` now points to `publish-new-github-release` before release-note edits.
 - Taught `shipguard next-goal` the already-bumped release path: when `--release` equals the current `VERSION`, the handoff now asks maintainers to build, publish, and consume the current tarball instead of asking for another version bump.

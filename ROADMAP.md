@@ -144,7 +144,7 @@ v3.132  v4 product release stabilization
 v3.133  root report-quality and bounded source-scan hardening
 v3.134  stable-publication publish-first visibility handoff
 v3.135  package-release duplicate proof pruning
-v3.136  InspectDeck executable next-command normalization
+v3.136  stable-publication concrete release-create handoff
 v3.137  LaunchKey published release-asset proof attachment
 v3.138  LaunchKey fresh-install receipt attachment
 v3.139  LaunchKey generated proof-directory report-quality exclusion
@@ -192,7 +192,9 @@ v3.194 makes next-goal release lineage explicit: generated handoffs now compare 
 
 v3.195 keeps that lineage honest for the normal next-release path: a passing next-goal lineage check no longer implies the current checkout already builds the post-bump tarball; it now names the pre-bump artifact and tells maintainers to bump `VERSION` before release packaging.
 
-Release-line note: local `VERSION` now advances to `3.135.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
+v3.136 public-release catch-up makes the stable-publication release visibility handoff copy-ready: when the primary decision is `publish-new-github-release`, the action row now points at the generated `gh release create ...` command with the report output draft release notes and required release-proof assets instead of a placeholder.
+
+Release-line note: local `VERSION` now advances to `3.136.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
 
 v3.135 trims package-release proof duplication: after source CI runs the focused fixture suites, `tests/package_release_test.sh` verifies those packaged test scripts are included, executable, and shell-syntax-valid instead of rerunning the same suites from the extracted tarball.
 
