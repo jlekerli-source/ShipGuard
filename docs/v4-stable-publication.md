@@ -131,7 +131,7 @@ This directory is a draft-only authoring aid, not proof that the public GitHub r
 - `release-notes-checklist.json` with the same topic matrix and missing topic IDs from `releaseNotesProof`
 - `draft-release-notes.md` with a copy-ready stable-publication section covering release assets, post-release consumer proof, independent adoption, final security review, and non-claims
 
-The report exposes the same artifact as `stablePublicationReleaseNotesAuthoringKit`, and Markdown renders it under `Release Notes Authoring Kit`. `ios report-quality` flags stable-publication reports that expose release-note gaps but do not give maintainers a draft/checklist path and public GitHub edit command to fix the public release body.
+The report exposes the same artifact as `stablePublicationReleaseNotesAuthoringKit`, including `generatedPaths` and `files[].generatedPath` for the generated README, checklist, and draft release notes. Markdown renders it under `Release Notes Authoring Kit`. `ios report-quality` flags stable-publication reports that expose release-note gaps but do not give maintainers a draft/checklist path and public GitHub edit command to fix the public release body.
 
 When release notes are the first blocker, the report's first-blocking gate, result UX, and closure checklist `nextCommand` point at the manual `gh release edit` command. The stable-publication rerun command stays available as `rerunCommand` for after the public release body has been edited.
 

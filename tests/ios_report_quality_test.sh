@@ -6447,6 +6447,7 @@ PY
 grep -q '"ruleId": "stable-publication-release-visibility-update-notes-command-missing"' "$tmp_dir/stable-publication-visibility-wrong-notes-command-quality/ios-report-quality.json"
 grep -q '"ruleId": "stable-publication-first-blocker-release-notes-command-wrong"' "$tmp_dir/stable-publication-visibility-wrong-notes-command-quality/ios-report-quality.json"
 grep -q '"ruleId": "stable-publication-release-notes-closure-next-command-missing"' "$tmp_dir/stable-publication-visibility-wrong-notes-command-quality/ios-report-quality.json"
+grep -q '"ruleId": "stable-publication-release-notes-generated-paths-missing"' "$tmp_dir/stable-publication-visibility-wrong-notes-command-quality/ios-report-quality.json"
 
 stable_publication_packet_fixture="fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publication-evid"
 ./bin/shipguard ios report-quality \

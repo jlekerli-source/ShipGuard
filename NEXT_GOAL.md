@@ -1,14 +1,14 @@
 # Next Goal
 
-- Generated: 2026-06-22T08:25:08Z
+- Generated: 2026-06-22T08:46:10Z
 - Current toolkit version: 3.131.0
-- Target release: v3.192.0
+- Target release: v3.193.0
 - Title: Stable V4 Publication Real Release Packet QA
 
 ## Slash Plan
 
 ```text
-/plan v3.192.0 Stable V4 Publication Real Release Packet QA for jlekerli-source/ShipGuard:
+/plan v3.193.0 Stable V4 Publication Real Release Packet QA for jlekerli-source/ShipGuard:
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
@@ -18,7 +18,7 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.192.0 Stable V4 Publication Real Release Packet QA for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.193.0 Stable V4 Publication Real Release Packet QA for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
@@ -119,12 +119,12 @@
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.192.0.
+1. Open or update the tracking issue for v3.193.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.192.0` and upload `dist/shipguard-v3.192.0.tar.gz`.
+6. Create release `v3.193.0` and upload `dist/shipguard-v3.193.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

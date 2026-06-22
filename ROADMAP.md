@@ -184,6 +184,8 @@ v3.190 makes stable-publication default asset downloads rerunnable: generated `-
 
 v3.191 makes release-notes edit commands path-safe: stable-publication now points `gh release edit --notes-file` at the generated draft under the report output directory, so the first blocker command works from a normal repo shell instead of assuming the maintainer has changed into the report directory.
 
+v3.192 makes the release-notes authoring kit self-locating: stable-publication now emits generated README/checklist/draft paths in `stablePublicationReleaseNotesAuthoringKit.generatedPaths` and `files[].generatedPath`, with shareable reports redacting the local output root.
+
 Every release proposal must answer:
 
 1. Which developer decision changes?

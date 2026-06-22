@@ -2988,15 +2988,24 @@ def build_stable_publication_release_notes_authoring_kit(
         topic_matrix = []
     release_tag = str(metadata_proof.get("tag") or launchkey.normalize_release_tag(release_version))
     release_repo = str(metadata_proof.get("repo") or "<owner/repo>")
+    kit_dir = out_dir / RELEASE_NOTES_KIT_DIRNAME
+    checklist_path = kit_dir / "release-notes-checklist.json"
+    draft_path = kit_dir / "draft-release-notes.md"
+    readme_path = kit_dir / "README.md"
     edit_command = public_release_notes_edit_command(
         repo=release_repo,
         tag=release_tag,
-        notes_file=out_dir / RELEASE_NOTES_KIT_DIRNAME / "draft-release-notes.md",
+        notes_file=draft_path,
     )
     return {
         "schemaVersion": 2,
         "draftOnly": True,
         "directory": RELEASE_NOTES_KIT_DIRNAME,
+        "generatedPaths": {
+            "checklist": checklist_path.as_posix(),
+            "draftReleaseNotes": draft_path.as_posix(),
+            "readme": readme_path.as_posix(),
+        },
         "releaseVersion": release_version,
         "releaseTag": release_tag,
         "releaseUrl": metadata_proof.get("releaseUrl") or "",
@@ -3016,16 +3025,19 @@ def build_stable_publication_release_notes_authoring_kit(
             {
                 "id": "checklist",
                 "path": f"{RELEASE_NOTES_KIT_DIRNAME}/release-notes-checklist.json",
+                "generatedPath": checklist_path.as_posix(),
                 "purpose": "Machine-readable checklist for the stable-publication release-notes topics.",
             },
             {
                 "id": "draft-release-notes",
                 "path": f"{RELEASE_NOTES_KIT_DIRNAME}/draft-release-notes.md",
+                "generatedPath": draft_path.as_posix(),
                 "purpose": "Draft-only release notes section that includes every required stable-publication proof topic.",
             },
             {
                 "id": "copy-brief",
                 "path": f"{RELEASE_NOTES_KIT_DIRNAME}/README.md",
+                "generatedPath": readme_path.as_posix(),
                 "purpose": "Human instructions for adapting the draft into the public GitHub release body.",
             },
         ],

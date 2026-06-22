@@ -890,6 +890,10 @@ notes_kit = report["stablePublicationReleaseNotesAuthoringKit"]
 assert notes_kit["schemaVersion"] == 2
 assert notes_kit["draftOnly"] is True
 assert notes_kit["directory"] == "stable-publication-release-notes"
+assert notes_kit["generatedPaths"]["draftReleaseNotes"].endswith("/stable-publication-release-notes/draft-release-notes.md")
+assert notes_kit["generatedPaths"]["checklist"].endswith("/stable-publication-release-notes/release-notes-checklist.json")
+assert notes_kit["generatedPaths"]["readme"].endswith("/stable-publication-release-notes/README.md")
+assert "<weak-notes>" in notes_kit["generatedPaths"]["draftReleaseNotes"]
 assert notes_kit["releaseTag"] == f"v{report['releaseVersion']}"
 assert notes_kit["releaseUrl"].endswith(f"/releases/tag/v{report['releaseVersion']}")
 notes_edit_command = notes_kit["publicReleaseEditCommand"]
@@ -917,6 +921,11 @@ assert {
     "stable-publication-release-notes/release-notes-checklist.json",
     "stable-publication-release-notes/draft-release-notes.md",
 } <= {item["path"] for item in notes_kit["files"]}
+assert {
+    "README.md",
+    "release-notes-checklist.json",
+    "draft-release-notes.md",
+} <= {item["generatedPath"].rsplit("/", 1)[-1] for item in notes_kit["files"]}
 relay = report["stablePublicationLaunchRelayDrafts"]
 assert relay["draftOnly"] is True
 assert relay["approvalRequired"] is True

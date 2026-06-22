@@ -6,6 +6,12 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.192 stable-publication loop followed the same real public-release QA path and found the next adjacent actionability issue: the edit command was now path-safe, but the authoring-kit metadata still made humans and scripts infer where the generated README, checklist, and draft lived.
+
+- Finding: the report had the right `gh release edit --notes-file` target, but no explicit generated output path fields for the authoring-kit files.
+- Product weakness: a maintainer should not have to reverse-engineer report output layout to open the generated draft or verify the command target.
+- Native fix: `stablePublicationReleaseNotesAuthoringKit.generatedPaths` and `files[].generatedPath` now expose generated README/checklist/draft paths, while shareable reports redact the local output root.
+
 The v3.191 stable-publication loop promoted the next copy/paste actionability gap from real public-release QA: the release-notes edit command pointed at `stable-publication-release-notes/draft-release-notes.md` as if the maintainer were already inside the report output directory.
 
 - Finding: the first blocker command was conceptually right but path-fragile.

@@ -4086,6 +4086,29 @@ def stable_publication_evidence_packet_issues(
                             evidence=f"{path_name} release-notes closure item does not list every generated authoring-kit path",
                             recommendation="Attach README, checklist, and draft release-notes paths to the release-notes closure item.",
                         )
+                    notes_kit_for_closure = (
+                        report.get("stablePublicationReleaseNotesAuthoringKit")
+                        if isinstance(report.get("stablePublicationReleaseNotesAuthoringKit"), dict)
+                        else {}
+                    )
+                    kit_edit_command = str(notes_kit_for_closure.get("publicReleaseEditCommand") or "")
+                    if "gh release edit" in kit_edit_command and "--notes-file" in kit_edit_command:
+                        generated_paths = notes_kit_for_closure.get("generatedPaths")
+                        generated_values = set(str(value) for value in generated_paths.values()) if isinstance(generated_paths, dict) else set()
+                        generated_files = notes_kit_for_closure.get("files")
+                        generated_values.update(
+                            str(file_item.get("generatedPath"))
+                            for file_item in (generated_files if isinstance(generated_files, list) else [])
+                            if isinstance(file_item, dict) and file_item.get("generatedPath")
+                        )
+                        if not all(any(value.endswith(expected) for value in generated_values) for expected in expected_note_paths):
+                            add_issue(
+                                issues,
+                                severity="review",
+                                rule_id="stable-publication-release-notes-generated-paths-missing",
+                                evidence=f"{path_name} release-notes authoring kit exposes an edit command but not generated output paths",
+                                recommendation="Expose generatedPaths and per-file generatedPath values for README, checklist, and draft release notes so copy/paste commands can be audited from the report.",
+                            )
                     edit_boundary = (
                         item.get("publicGitHubReleaseEditBoundary")
                         if isinstance(item.get("publicGitHubReleaseEditBoundary"), dict)
@@ -4100,11 +4123,6 @@ def stable_publication_evidence_packet_issues(
                             recommendation="State that ShipGuard generated a draft-only kit and the maintainer must edit the public GitHub release body before rerunning stable-publication.",
                         )
                     edit_command = str(edit_boundary.get("publicReleaseEditCommand") or "")
-                    notes_kit_for_closure = (
-                        report.get("stablePublicationReleaseNotesAuthoringKit")
-                        if isinstance(report.get("stablePublicationReleaseNotesAuthoringKit"), dict)
-                        else {}
-                    )
                     if int(notes_kit_for_closure.get("schemaVersion") or 1) >= 2 and (
                         not edit_command
                         or item.get("nextCommand") != edit_command
