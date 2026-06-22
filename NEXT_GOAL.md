@@ -1,46 +1,50 @@
 # Next Goal
 
-- Generated: 2026-06-22T10:16:11Z
+- Generated: 2026-06-22T11:33:46Z
 - Current toolkit version: 3.132.0
-- Target release: v3.133.0
-- Title: Stable V4 Publication Real Release Packet QA
+- Target release: v3.135.0
+- Title: InspectDeck Missing-Receipt Priority
 
 ## Version Lineage Check
 
-- Status: pass
+- Status: review
 - VERSION: 3.132.0
 - Expected next release from VERSION: v3.133.0
-- Planned target release: v3.133.0
+- Planned target release: v3.135.0
 - Current checkout package artifact before version bump: dist/shipguard-v3.132.0.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v3.133.0.tar.gz
-- Action: Before publishing v3.133.0, bump VERSION to 3.133.0, rebuild, and verify dist/shipguard-v3.133.0.tar.gz.
+- Expected package artifact after release bump: dist/shipguard-v3.135.0.tar.gz
+- Action: Before publishing v3.135.0, bump VERSION to 3.135.0 or regenerate next-goal for v3.133.0.
 
 ## Slash Plan
 
 ```text
-/plan v3.133.0 Stable V4 Publication Real Release Packet QA for jlekerli-source/ShipGuard:
-1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
+/plan v3.135.0 InspectDeck Missing-Receipt Priority for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Expose InspectDeck missing receipt priority so bare inspect runs show the value-gauntlet, full-audit, and release-proof queue while keeping one executable next command.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
-4. Push main, verify GitHub Actions, bump VERSION before release packaging, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
+4. Push main, verify GitHub Actions, resolve version lineage before any release publication, then generate the following goal.
 ```
 
 ## Slash Goal
 
 ```text
-/goal Implement v3.133.0 Stable V4 Publication Real Release Packet QA for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.135.0 InspectDeck Missing-Receipt Priority for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Expose InspectDeck missing receipt priority so bare inspect runs show the value-gauntlet, full-audit, and release-proof queue while keeping one executable next command, push main, verify GitHub Actions, resolve version lineage before publishing any release tarball, verify clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
+## Bounded Scope
+
+Expose InspectDeck missing receipt priority so bare inspect runs show the value-gauntlet, full-audit, and release-proof queue while keeping one executable next command.
+
 ## Completion Receipt
 
-- Completed scope: v3.132.0 buildable release-line bump prepared.
-- Evidence: VERSION now reports 3.132.0; package proof validates the rebuilt tarball path and next-goal lineage advances to v3.133.0.
+- Completed scope: InspectDeck missing-receipt priority queue added.
+- Evidence: scripts/shipguard_inspect.py emits missingReceiptPriority; docs/inspect.md documents it; tests/inspect_test.sh verifies all-receipts empty queue and bare-inspect value-gauntlet -> full-audit -> release-assets ordering.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.134.0 Root Report-Quality Source-Scan Hardening for jlekerli-source/ShipGuard:
+/plan v3.136.0 InspectDeck Executable Next-Command Normalization for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -50,13 +54,13 @@
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.134.0 Root Report-Quality Source-Scan Hardening for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.136.0 InspectDeck Executable Next-Command Normalization for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.134.0 --title "Root Report-Quality Source-Scan Hardening" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.136.0 --title "InspectDeck Executable Next-Command Normalization" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -156,12 +160,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.133.0.
+1. Open or update the tracking issue for v3.135.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Bump VERSION to 3.133.0, build `dist/shipguard-v3.133.0.tar.gz`, create release `v3.133.0`, and upload the rebuilt tarball.
+6. Resolve version lineage first: bump VERSION to 3.135.0 and rebuild the tarball, or regenerate next-goal for v3.133.0 before creating a GitHub release.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

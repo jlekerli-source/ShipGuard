@@ -233,6 +233,34 @@ def proof_inputs(value_path: Path | None, value_data: dict[str, Any], full_path:
     ]
 
 
+def missing_receipt_priority(inputs: list[dict[str, Any]]) -> list[dict[str, str]]:
+    commands = {
+        "value-gauntlet": "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet",
+        "full-audit": "./bin/shipguard full-audit --path . --out /tmp/shipguard-full-audit --profile quick --plan-only --shipguard-eval --shareable",
+        "release-assets": "./bin/shipguard release-proof build --out <dir> --release-url <url> --version <version> --tag <tag> --commit <sha> --ci-run-url <url>",
+    }
+    reasons = {
+        "value-gauntlet": "Generate this first so InspectDeck can rank the weakest ShipGuard surface before release proof.",
+        "full-audit": "Generate this after value-gauntlet so InspectDeck can summarize the ShipYard lane.",
+        "release-assets": "Attach release proof last so publication state is checked against runtime receipts.",
+    }
+    rows: list[dict[str, str]] = []
+    for item in inputs:
+        receipt = str(item.get("id") or "")
+        if item.get("found"):
+            continue
+        rows.append(
+            {
+                "id": receipt,
+                "status": str(item.get("status") or "missing"),
+                "source": f"{receipt}.missing",
+                "nextCommand": commands.get(receipt, ""),
+                "reason": reasons.get(receipt, "Generate the missing receipt and rerun inspect."),
+            }
+        )
+    return rows
+
+
 def command_template_or_default(candidate: str, default: str) -> str:
     text = candidate.strip()
     if not text:
@@ -369,6 +397,18 @@ def render_markdown(report: dict[str, Any]) -> str:
     )
     for item in report["proofInputs"]:
         lines.append(f"| {item['id']} | {item['provided']} | {item['found']} | {item['status']} |")
+    if report.get("missingReceiptPriority"):
+        lines.extend(
+            [
+                "",
+                "## Missing Receipt Priority",
+                "",
+                "| Receipt | Status | Next command |",
+                "| --- | --- | --- |",
+            ]
+        )
+        for item in report["missingReceiptPriority"]:
+            lines.append(f"| {item['id']} | {item['status']} | `{item['nextCommand']}` |")
     lowest = value.get("lowestValueSurface") or {}
     lines.extend(
         [
@@ -429,6 +469,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     plugin = plugin_state(root, shareable=args.shareable)
     release = release_state(args.release_assets, root, shareable=args.shareable)
     inputs = proof_inputs(value_path, value_data, full_path, full_data, release)
+    missing_receipts = missing_receipt_priority(inputs)
     next_action = choose_next_action(value, full, plugin, release)
     status = combined_status(inputs, repo, plugin, value, full)
     verdict_summary = (
@@ -454,6 +495,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "shareable": bool(args.shareable),
         "repoState": repo,
         "proofInputs": inputs,
+        "missingReceiptPriority": missing_receipts,
         "proofReceipts": {
             "valueGauntlet": value,
             "fullAudit": full,

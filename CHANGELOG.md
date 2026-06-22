@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added InspectDeck missing-receipt priority output: `shipguard inspect` now emits `missingReceiptPriority` in JSON and Markdown so bare inspect runs show the value-gauntlet -> full-audit -> release-proof queue while keeping `resultUX.nextCommand` focused on the first executable action.
 - Tightened report-quality command-field checks: source reports that put prose or Markdown in `priorityAction.nextCommand` now receive `priority-action-next-command-not-command`, matching the existing `resultUX.nextCommand` executable-command rule.
 - Added a manual GitHub release-create handoff to stable-publication metadata closure kits: when the public release metadata gate blocks, the JSON and Markdown now include a copy-ready `gh release create ...` starter with required release-proof assets plus an explicit boundary that ShipGuard does not publish the release and manual approval/package proof remain required.
 - Prepared the buildable `v3.132.0` release line: `VERSION` now names the post-bump package target and the next-goal handoff can advance without treating the older `v3.131.0` public release as current local package state.

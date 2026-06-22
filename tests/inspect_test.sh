@@ -114,6 +114,7 @@ grep -q '"resultUX":' "$tmp_dir/inspect/shipguard-inspect.json"
 grep -q '"proofSource":' "$tmp_dir/inspect/shipguard-inspect.json"
 grep -q '"nextCommand":' "$tmp_dir/inspect/shipguard-inspect.json"
 grep -q '"nextAction":' "$tmp_dir/inspect/shipguard-inspect.json"
+grep -q '"missingReceiptPriority": \[\]' "$tmp_dir/inspect/shipguard-inspect.json"
 grep -q '"source": "value-gauntlet.lowestValueSurfaceProbe.answer"' "$tmp_dir/inspect/shipguard-inspect.json"
 grep -q '"shipguardOnly": true' "$tmp_dir/inspect/shipguard-inspect.json"
 grep -q '"targetAppsReadOnly": true' "$tmp_dir/inspect/shipguard-inspect.json"
@@ -180,10 +181,18 @@ if result.get("proofSource") != "value-gauntlet.missing":
     raise SystemExit(f"resultUX should expose missing value-gauntlet proof source: {result!r}")
 if result.get("nextCommand") != next_action.get("command"):
     raise SystemExit(f"resultUX next command should mirror nextAction: {result!r} {next_action!r}")
+missing = data.get("missingReceiptPriority") or []
+ids = [item.get("id") for item in missing]
+expected = ["value-gauntlet", "full-audit", "release-assets"]
+if ids != expected:
+    raise SystemExit(f"missing receipts should stay prioritized {expected}: {missing!r}")
+if missing[0].get("nextCommand") != next_action.get("command"):
+    raise SystemExit(f"first missing receipt should mirror next action: {missing!r} {next_action!r}")
 PY
 
 grep -q 'value-gauntlet.missing' "$tmp_dir/missing-inputs/shipguard-inspect.md"
 grep -q './bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet' "$tmp_dir/missing-inputs/shipguard-inspect.md"
+grep -q 'Missing Receipt Priority' "$tmp_dir/missing-inputs/shipguard-inspect.md"
 
 python3 - <<'PY' "$tmp_dir/value/tool-value-gauntlet.json" "$tmp_dir/value/tool-value-gauntlet-prose.json"
 import json

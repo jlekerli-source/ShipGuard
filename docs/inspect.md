@@ -56,3 +56,5 @@ InspectDeck leads with:
 If a proof input is absent, InspectDeck marks it missing or not supplied instead of pretending the state is proven.
 
 When multiple inputs are absent, InspectDeck prioritizes the nearest missing proof receipt first: generate `value-gauntlet`, then `full-audit`, then release proof. That keeps a bare `shipguard inspect` run useful instead of jumping straight to release publishing work before the weaker ShipGuard evidence exists.
+
+The same order is exposed as `missingReceiptPriority` in JSON and as a Markdown table when anything is missing, so the top next action stays singular while the remaining proof queue is still visible.

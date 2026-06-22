@@ -198,6 +198,8 @@ v3.133 starts real stable-publication packet QA by making missing GitHub release
 
 v3.134 continues result-UX command-field hardening by making report-quality reject prose or Markdown in `priorityAction.nextCommand`, so copy-facing source-report actions stay executable while explanation stays in summary fields.
 
+v3.135 continues InspectDeck missing-receipt priority by exposing `missingReceiptPriority` in JSON and Markdown, keeping the first executable next action singular while showing the remaining value-gauntlet, full-audit, and release-proof queue.
+
 Every release proposal must answer:
 
 1. Which developer decision changes?
