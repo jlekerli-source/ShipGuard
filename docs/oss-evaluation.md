@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.174 read-only stable-v4 packet loop continued from release version coherence and tested whether a stable-v4 report could still hide mismatched or incomplete release asset names and SHA-256 values.
+
+- Finding: `v4 stable-publication` exposed version coherence and consumer digest freshness, but did not summarize one asset matrix across GitHub metadata, downloaded/supplied assets, `release-manifest.json`, `asset-digests.json`, and consumer artifact SHA-256.
+- Product weakness: a solo maintainer should not have to open the asset directory, manifest, digest matrix, and consumer report by hand to verify that the same tarball and required assets are being published.
+- Native fix: `releaseAssetCoherenceProof` now summarizes required, metadata, local, and digest asset names, missing local/digest assets, missing SHA-256 rows, manifest/digest/consumer SHA-256 values, comparisons, problems, criteria, and metadata-only/source-only/fixture boundaries.
+- Report-quality fix: `ios report-quality` now flags stable-publication reports that claim `stableV4Release=true` while hiding or failing release asset coherence, and it requires Markdown `Release Asset Coherence` rendering when the proof is present.
+- Fixture fix: focused stable-publication tests assert the passing asset matrix and missing-asset blocker behavior, and the guarded launch-relay fixture now carries synthetic asset coherence rows.
+
+Fresh stable-v4 QA still does not claim real stable v4. Asset coherence proves the supplied publication packet is internally consistent; it does not replace public release metadata, release-consume execution, independent adoption, or final security review.
+
 The v3.173 read-only stable-v4 packet loop continued from external evidence freshness and tested whether a stable-v4 report could still look complete while version metadata disagreed.
 
 - Finding: `v4 stable-publication` relied on public freshness and consumer proof, but did not expose one explicit version matrix across `VERSION`, requested release version, GitHub metadata, release manifest, package proof, consumer report, and tarball name.

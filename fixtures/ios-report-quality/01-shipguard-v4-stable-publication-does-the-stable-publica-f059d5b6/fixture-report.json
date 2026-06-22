@@ -140,6 +140,54 @@
       "versionMustMatchAcrossSourceMetadataManifestPackageAndConsumerProof": true
     }
   },
+  "releaseAssetCoherenceProof": {
+    "assetCoherenceBoundary": {
+      "assetDigestMatrixRequired": true,
+      "downloadedOrSuppliedAssetsRequired": true,
+      "fixtureProofCountsAsStableV4PublicationProof": false,
+      "metadataOnlyProofCountsAsAssetCoherenceProof": false,
+      "sourceOnlyProofCountsAsAssetCoherenceProof": false
+    },
+    "comparisons": {
+      "consumerArtifactShaMatchesDigestTarball": true,
+      "digestAssetsCoverRequired": true,
+      "expectedTarballInDigestAssets": true,
+      "expectedTarballInLocalAssets": true,
+      "expectedTarballInMetadataAssets": true,
+      "expectedTarballInRequiredAssets": true,
+      "localAssetsCoverRequired": true,
+      "manifestArtifactNameMatchesExpectedTarball": true,
+      "manifestArtifactShaMatchesDigestTarball": true
+    },
+    "consumerArtifactSha256": "abc123",
+    "digestAssetNames": [
+      "shipguard-v0.0.0.tar.gz"
+    ],
+    "digestTarballName": "shipguard-v0.0.0.tar.gz",
+    "digestTarballSha256": "abc123",
+    "expectedTarballName": "shipguard-v0.0.0.tar.gz",
+    "localAssetNames": [
+      "shipguard-v0.0.0.tar.gz"
+    ],
+    "manifestArtifactName": "shipguard-v0.0.0.tar.gz",
+    "manifestArtifactSha256": "abc123",
+    "metadataAssetNames": [
+      "shipguard-v0.0.0.tar.gz"
+    ],
+    "missingDigestAssetNames": [],
+    "missingLocalAssetNames": [],
+    "missingSha256AssetNames": [],
+    "problems": [],
+    "provided": true,
+    "releaseVersion": "0.0.0",
+    "requiredAssetNames": [
+      "shipguard-v0.0.0.tar.gz"
+    ],
+    "requiredForStableV4": true,
+    "schemaVersion": 1,
+    "status": "pass",
+    "summary": "Synthetic asset coherence fixture; release asset names and SHA-256 values agree across the public-safe test packet."
+  },
   "reportQualityQuestions": [
     "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?"
   ],
@@ -196,7 +244,7 @@
       "This synthetic fixture does not prove OpenAI marketplace acceptance.",
       "Fixture adoption or security records prove tooling only."
     ],
-    "passedEvidenceCount": 8,
+    "passedEvidenceCount": 9,
     "releaseVersion": "0.0.0",
     "requiredEvidence": [
       {
@@ -270,6 +318,26 @@
         "summary": "Synthetic public fixture version-coherence row."
       },
       {
+        "id": "release-asset-coherence",
+        "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+        "provided": true,
+        "realEvidenceRequired": true,
+        "receipt": "releaseAssetCoherenceProof",
+        "releaseAssetCoherenceDiagnostics": {
+          "comparisons": {
+            "consumerArtifactShaMatchesDigestTarball": true,
+            "digestAssetsCoverRequired": true,
+            "expectedTarballInLocalAssets": true,
+            "localAssetsCoverRequired": true,
+            "manifestArtifactShaMatchesDigestTarball": true
+          },
+          "status": "pass"
+        },
+        "requiredForStableV4": true,
+        "status": "pass",
+        "summary": "Synthetic public fixture asset-coherence row."
+      },
+      {
         "id": "independent-adoption-evidence",
         "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
         "provided": true,
@@ -294,7 +362,7 @@
         "templatePath": "templates/stable-publication/security-review-evidence.template.json"
       }
     ],
-    "requiredEvidenceCount": 8,
+    "requiredEvidenceCount": 9,
     "schemaVersion": 1,
     "stableV4Release": true,
     "status": "pass"
@@ -315,6 +383,7 @@
       "downloaded-release-assets",
       "post-release-consumer-proof",
       "release-version-coherence",
+      "release-asset-coherence",
       "independent-adoption-evidence",
       "final-security-review-evidence"
     ],
@@ -402,6 +471,11 @@
     {
       "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
       "receipt": "releaseVersionCoherenceProof",
+      "status": "pass"
+    },
+    {
+      "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+      "receipt": "releaseAssetCoherenceProof",
       "status": "pass"
     },
     {

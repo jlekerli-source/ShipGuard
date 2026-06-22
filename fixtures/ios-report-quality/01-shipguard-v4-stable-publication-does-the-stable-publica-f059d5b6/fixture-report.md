@@ -16,7 +16,7 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 ## Evidence Packet
 
 - Packet status: `pass`
-- Required evidence passed: `8/8`
+- Required evidence passed: `9/9`
 - First blocking gate: `none`
 
 | Evidence | Status |
@@ -27,6 +27,7 @@ No private source tree was scanned. The fixture exists to exercise report-qualit
 | `downloaded-release-assets` | `pass` |
 | `post-release-consumer-proof` | `pass` |
 | `release-version-coherence` | `pass` |
+| `release-asset-coherence` | `pass` |
 | `independent-adoption-evidence` | `pass` |
 | `final-security-review-evidence` | `pass` |
 
@@ -67,6 +68,32 @@ Freshness boundary:
 | `consumerReportVersionMatchesRequested` | `True` |
 
 Version coherence problems:
+
+- none
+
+## Release Asset Coherence
+
+- Status: `pass`
+- Expected tarball: `shipguard-v0.0.0.tar.gz`
+- Required assets: `1`
+- Local assets: `1`
+- Digest assets: `1`
+- Manifest artifact: `shipguard-v0.0.0.tar.gz`
+- Digest tarball: `shipguard-v0.0.0.tar.gz`
+- Manifest artifact SHA-256: `abc123`
+- Digest tarball SHA-256: `abc123`
+- Consumer artifact SHA-256: `abc123`
+- Source-only proof counts as asset coherence proof: `False`
+
+| Asset comparison | Status |
+| --- | --- |
+| `localAssetsCoverRequired` | `True` |
+| `digestAssetsCoverRequired` | `True` |
+| `expectedTarballInLocalAssets` | `True` |
+| `manifestArtifactShaMatchesDigestTarball` | `True` |
+| `consumerArtifactShaMatchesDigestTarball` | `True` |
+
+Asset coherence problems:
 
 - none
 

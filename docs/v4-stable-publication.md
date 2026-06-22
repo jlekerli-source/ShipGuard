@@ -76,6 +76,7 @@ The report returns `pass` only when every gate passes:
 - The post-release digest matrix covers required release assets, has SHA-256 values for present assets, and the release tarball digest matches the consumer artifact SHA-256.
 - Public release freshness proves the GitHub tag target, `release-manifest.json` commit, release tag/version, release metadata target, and publication timestamp describe the same release.
 - Release version coherence proves `VERSION`, the requested release version, GitHub metadata tag, `release-manifest.json`, release-consume package version, consumer report version, and versioned tarball name all describe the same release.
+- Release asset coherence proves required asset names and SHA-256 values agree across GitHub metadata, downloaded or supplied release assets, `release-manifest.json`, `asset-digests.json`, and post-release consumer proof.
 - External adoption evidence passes the stable-v4 gate with independent public or redacted external records, and the record `generatedAt` timestamp is no earlier than the release manifest timestamp.
 - Final security-review evidence passes the stable-v4 gate with CLI, plugin, GitHub Actions, release-proof, package-install, and redaction/privacy scope coverage, and the record `generatedAt` timestamp is no earlier than the release manifest timestamp.
 
@@ -244,6 +245,23 @@ The proof compares:
 - the expected versioned tarball name in metadata and digest assets
 
 Markdown renders this as `Release Version Coherence`. A stable-v4 claim cannot pass if any of those fields point at a different release.
+
+## Release Asset Coherence
+
+Stable publication emits `releaseAssetCoherenceProof` after version coherence and before external adoption/security evidence.
+
+The proof compares:
+
+- required release asset names
+- GitHub metadata asset names
+- downloaded or supplied local asset names
+- `asset-digests.json` asset rows
+- the expected versioned ShipGuard tarball name
+- the release manifest artifact name and SHA-256
+- the digest tarball row name and SHA-256
+- the consumer artifact SHA-256
+
+Markdown renders this as `Release Asset Coherence`. A stable-v4 claim cannot pass if the public asset packet is missing required assets, omits digest rows, lacks SHA-256 values, or points the manifest, digest matrix, and consumer report at different tarballs.
 
 ## External Evidence Freshness
 

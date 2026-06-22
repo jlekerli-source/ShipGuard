@@ -376,10 +376,11 @@ report = json.load(open(sys.argv[1], encoding="utf-8"))
 packet = report["stablePublicationEvidencePacket"]
 assert packet["status"] == "review"
 assert packet["stableV4Release"] is False
-assert packet["requiredEvidenceCount"] == 9
-assert packet["passedEvidenceCount"] < 9
+assert packet["requiredEvidenceCount"] == 10
+assert packet["passedEvidenceCount"] < 10
 assert "launchkey-candidate-packet" in packet["missingEvidenceIds"]
 assert "release-version-coherence" not in packet["missingEvidenceIds"]
+assert "release-asset-coherence" not in packet["missingEvidenceIds"]
 assert packet["firstBlockingGate"]["receipt"] == "releaseCandidatePacketProof"
 assert packet["firstBlockingGate"]["nextCommand"].startswith("./bin/shipguard v4 release-candidate")
 closure = report["stablePublicationClosureChecklist"]
@@ -579,6 +580,7 @@ assert packet["missingEvidenceIds"] == [
     "post-release-consumer-proof",
     "public-release-freshness",
     "release-version-coherence",
+    "release-asset-coherence",
 ]
 assert packet["firstBlockingGate"]["receipt"] == "publishedReleaseAssetProof"
 required_by_id = {item["id"]: item for item in packet["requiredEvidence"]}
@@ -603,6 +605,13 @@ version_diagnostics = version_required["releaseVersionCoherenceDiagnostics"]
 assert version_diagnostics["status"] == "review"
 assert version_diagnostics["comparisons"]["packageVersionMatchesRequested"] is False
 assert version_diagnostics["comparisons"]["consumerReportVersionMatchesRequested"] is False
+asset_coherence_required = required_by_id["release-asset-coherence"]
+asset_coherence_diagnostics = asset_coherence_required["releaseAssetCoherenceDiagnostics"]
+assert asset_coherence_diagnostics["status"] == "review"
+assert asset_coherence_diagnostics["comparisons"]["localAssetsCoverRequired"] is False
+assert asset_coherence_diagnostics["comparisons"]["digestAssetsCoverRequired"] is False
+assert asset_coherence_diagnostics["missingLocalAssetNames"]
+assert asset_coherence_diagnostics["missingDigestAssetNames"]
 closure = report["stablePublicationClosureChecklist"]
 assert [item["id"] for item in closure["items"]] == packet["missingEvidenceIds"]
 asset_item = closure["items"][0]
@@ -1097,6 +1106,16 @@ assert version_coherence["comparisons"]["manifestVersionMatchesRequested"] is Tr
 assert version_coherence["comparisons"]["packageVersionMatchesRequested"] is True
 assert version_coherence["comparisons"]["consumerReportVersionMatchesRequested"] is True
 assert version_coherence["expectedTarballName"] == f"shipguard-v{report['releaseVersion'].removeprefix('v')}.tar.gz"
+asset_coherence = report["releaseAssetCoherenceProof"]
+assert asset_coherence["status"] == "pass"
+assert asset_coherence["comparisons"]["localAssetsCoverRequired"] is True
+assert asset_coherence["comparisons"]["digestAssetsCoverRequired"] is True
+assert asset_coherence["comparisons"]["expectedTarballInLocalAssets"] is True
+assert asset_coherence["comparisons"]["manifestArtifactShaMatchesDigestTarball"] is True
+assert asset_coherence["comparisons"]["consumerArtifactShaMatchesDigestTarball"] is True
+assert asset_coherence["missingLocalAssetNames"] == []
+assert asset_coherence["missingDigestAssetNames"] == []
+assert asset_coherence["missingSha256AssetNames"] == []
 assert report["externalAdoptionEvidenceProof"]["stableV4GateStatus"] == "pass"
 assert report["securityReviewEvidenceProof"]["stableV4GateStatus"] == "pass"
 adoption_freshness = report["externalAdoptionEvidenceProof"]["evidencePacketFreshness"]
@@ -1117,8 +1136,8 @@ assert "value-gauntlet" in report["resultUX"]["nextCommand"]
 packet = report["stablePublicationEvidencePacket"]
 assert packet["status"] == "pass"
 assert packet["stableV4Release"] is True
-assert packet["requiredEvidenceCount"] == 9
-assert packet["passedEvidenceCount"] == 9
+assert packet["requiredEvidenceCount"] == 10
+assert packet["passedEvidenceCount"] == 10
 assert packet["missingEvidenceIds"] == []
 assert packet["firstBlockingGate"] is None
 closure = report["stablePublicationClosureChecklist"]
@@ -1136,6 +1155,7 @@ assert {
     "post-release-consumer-proof",
     "public-release-freshness",
     "release-version-coherence",
+    "release-asset-coherence",
     "independent-adoption-evidence",
     "final-security-review-evidence",
 } <= ids
@@ -1172,7 +1192,9 @@ grep -q 'Launch Relay Drafts' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Public posting allowed: `False`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'External Evidence Freshness' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release Version Coherence' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Release Asset Coherence' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Release version coherence: `pass`' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Release asset coherence: `pass`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'External adoption freshness: `pass`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Security review freshness: `pass`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'independent-adoption-evidence' "$tmp_dir/pass/v4-stable-publication.md"

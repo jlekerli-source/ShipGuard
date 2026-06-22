@@ -378,6 +378,28 @@ RELEASE_VERSION_COHERENCE_FAIL_CRITERIA = [
     "The release asset packet exposes a tarball for a different version.",
 ]
 
+RELEASE_ASSET_COHERENCE_REPAIR_CRITERIA = [
+    "Download or supply the exact public release asset packet for the requested tag.",
+    "Make sure GitHub metadata, the downloaded/supplied directory, `release-manifest.json`, and `asset-digests.json` all list every required release asset.",
+    "Rebuild and re-upload the release packet when the manifest tarball name or SHA-256 disagrees with the consumer digest matrix.",
+    "Rerun `shipguard v4 stable-publication` after repairing the uploaded assets or supplied downloaded asset directory.",
+]
+
+RELEASE_ASSET_COHERENCE_PASS_CRITERIA = [
+    "Every required GitHub release asset is present in metadata, local downloaded/supplied assets, and `asset-digests.json`.",
+    "The expected versioned ShipGuard tarball is present in metadata, local assets, and digest rows.",
+    "The release manifest artifact name and digest tarball row name match the expected versioned tarball.",
+    "The release manifest artifact SHA-256, digest tarball SHA-256, and consumer artifact SHA-256 agree.",
+]
+
+RELEASE_ASSET_COHERENCE_FAIL_CRITERIA = [
+    "The downloaded/supplied asset directory is missing required assets.",
+    "`asset-digests.json` omits required assets or SHA-256 values for present assets.",
+    "The release manifest artifact name or digest tarball row points at a different version.",
+    "The manifest artifact SHA-256, digest tarball SHA-256, or consumer artifact SHA-256 disagrees.",
+    "Source-only files, fixture assets, or metadata-only asset names are treated as proof.",
+]
+
 RELEASE_ASSET_REPAIR_CRITERIA = [
     "Use `shipguard v4 stable-publication --download-release-assets` to download the public GitHub release assets, or pass the already downloaded asset directory with `--release-assets`.",
     "Confirm the downloaded or supplied directory contains every required release asset listed by the GitHub release metadata, including the versioned ShipGuard tarball.",
@@ -1403,6 +1425,136 @@ def build_release_version_coherence_proof(
     }
 
 
+def digest_rows_from_matrix(path_raw: object) -> list[dict[str, Any]]:
+    if not path_raw:
+        return []
+    matrix = load_json(Path(str(path_raw)))
+    rows = matrix.get("assets") if isinstance(matrix.get("assets"), list) else []
+    return [row for row in rows if isinstance(row, dict)]
+
+
+def build_release_asset_coherence_proof(
+    *,
+    release_version: str,
+    metadata_proof: dict[str, Any],
+    published_asset_proof: dict[str, Any],
+    post_release_consumer_proof: dict[str, Any],
+    public_release_freshness_proof: dict[str, Any],
+    release_version_coherence_proof: dict[str, Any],
+) -> dict[str, Any]:
+    expected_tarball = requested_tarball_name(release_version)
+    required_assets = sorted(str(value) for value in metadata_proof.get("requiredAssets", []) if value)
+    metadata_assets = sorted(str(value) for value in metadata_proof.get("assetNames", []) if value)
+    local_assets = asset_names_from_dir(published_asset_proof.get("assetsDir") or "")
+    digest_rows = digest_rows_from_matrix(post_release_consumer_proof.get("assetDigestMatrixPath") or published_asset_proof.get("assetDigestMatrixPath"))
+    digest_assets = sorted(str(row.get("name") or "") for row in digest_rows if row.get("name"))
+    missing_sha = sorted(
+        str(row.get("name") or "")
+        for row in digest_rows
+        if row.get("status") == "present" and row.get("name") and not row.get("sha256")
+    )
+    digest_by_name = {str(row.get("name") or ""): str(row.get("sha256") or "") for row in digest_rows if row.get("name")}
+    digest_freshness = (
+        post_release_consumer_proof.get("consumerDigestFreshness")
+        if isinstance(post_release_consumer_proof.get("consumerDigestFreshness"), dict)
+        else {}
+    )
+    manifest_artifact_name = str(public_release_freshness_proof.get("artifactName") or "")
+    manifest_artifact_sha = str(public_release_freshness_proof.get("artifactSha256") or "")
+    digest_tarball_name = str(digest_freshness.get("releaseTarballName") or "")
+    digest_tarball_sha = str(digest_freshness.get("releaseTarballSha256") or digest_by_name.get(expected_tarball) or "")
+    consumer_artifact_sha = str(post_release_consumer_proof.get("artifactSha256") or published_asset_proof.get("artifactSha256") or "")
+    required_set = set(required_assets)
+
+    comparisons = {
+        "metadataAssetsCoverRequired": bool(required_set) and required_set.issubset(set(metadata_assets)),
+        "localAssetsCoverRequired": bool(required_set) and required_set.issubset(set(local_assets)),
+        "digestAssetsCoverRequired": bool(required_set) and required_set.issubset(set(digest_assets)),
+        "expectedTarballInRequiredAssets": expected_tarball in required_set,
+        "expectedTarballInMetadataAssets": expected_tarball in set(metadata_assets),
+        "expectedTarballInLocalAssets": expected_tarball in set(local_assets),
+        "expectedTarballInDigestAssets": expected_tarball in set(digest_assets),
+        "manifestArtifactNameMatchesExpectedTarball": manifest_artifact_name == expected_tarball,
+        "digestTarballNameMatchesExpectedTarball": digest_tarball_name == expected_tarball,
+        "allPresentDigestRowsHaveSha256": not missing_sha,
+        "manifestArtifactShaMatchesDigestTarball": bool(manifest_artifact_sha and digest_tarball_sha and manifest_artifact_sha == digest_tarball_sha),
+        "consumerArtifactShaMatchesDigestTarball": digest_freshness.get("releaseTarballDigestMatchesConsumerArtifact") is True,
+    }
+    labels = {
+        "metadataAssetsCoverRequired": "GitHub release metadata does not list every required stable-publication asset.",
+        "localAssetsCoverRequired": "Downloaded or supplied release assets do not contain every required stable-publication asset.",
+        "digestAssetsCoverRequired": "asset-digests.json does not list every required stable-publication asset.",
+        "expectedTarballInRequiredAssets": "Required assets do not include the expected versioned ShipGuard tarball.",
+        "expectedTarballInMetadataAssets": "GitHub release metadata does not include the expected versioned ShipGuard tarball.",
+        "expectedTarballInLocalAssets": "Downloaded or supplied release assets do not include the expected versioned ShipGuard tarball.",
+        "expectedTarballInDigestAssets": "asset-digests.json does not include the expected versioned ShipGuard tarball.",
+        "manifestArtifactNameMatchesExpectedTarball": "release-manifest.json artifact name does not match the expected versioned tarball.",
+        "digestTarballNameMatchesExpectedTarball": "asset-digests.json tarball row does not match the expected versioned tarball.",
+        "allPresentDigestRowsHaveSha256": "One or more present release assets lack SHA-256 values in asset-digests.json.",
+        "manifestArtifactShaMatchesDigestTarball": "release-manifest.json artifact SHA-256 does not match the digest tarball SHA-256.",
+        "consumerArtifactShaMatchesDigestTarball": "consumer-report artifact SHA-256 does not match the digest tarball SHA-256.",
+    }
+    problems = [labels[key] for key, passed in comparisons.items() if passed is not True]
+    if published_asset_proof.get("status") != "pass":
+        problems.append("Downloaded or supplied release assets must pass before asset coherence can pass.")
+    if post_release_consumer_proof.get("status") != "pass":
+        problems.append("Post-release consumer proof must pass before asset coherence can pass.")
+    if public_release_freshness_proof.get("status") != "pass":
+        problems.append("Public release freshness must pass before asset coherence can pass.")
+    if release_version_coherence_proof.get("status") != "pass":
+        problems.append("Release version coherence must pass before asset coherence can pass.")
+
+    return {
+        "schemaVersion": 1,
+        "status": "pass" if not problems else "review",
+        "provided": True,
+        "requiredForStableV4": True,
+        "summary": (
+            "Release asset names and SHA-256 values match across metadata, downloaded assets, manifest, digest matrix, and consumer proof."
+            if not problems
+            else "Release asset names or SHA-256 values are mismatched or incomplete."
+        ),
+        "releaseVersion": release_version,
+        "expectedTarballName": expected_tarball,
+        "requiredAssetNames": required_assets,
+        "metadataAssetNames": metadata_assets,
+        "localAssetNames": local_assets,
+        "digestAssetNames": digest_assets,
+        "missingLocalAssetNames": sorted(required_set - set(local_assets)),
+        "missingDigestAssetNames": sorted(required_set - set(digest_assets)),
+        "missingSha256AssetNames": missing_sha,
+        "manifestArtifactName": manifest_artifact_name,
+        "manifestArtifactSha256": manifest_artifact_sha,
+        "digestTarballName": digest_tarball_name,
+        "digestTarballSha256": digest_tarball_sha,
+        "consumerArtifactSha256": consumer_artifact_sha,
+        "comparisons": comparisons,
+        "problems": problems,
+        "repairCriteria": RELEASE_ASSET_COHERENCE_REPAIR_CRITERIA,
+        "passCriteria": RELEASE_ASSET_COHERENCE_PASS_CRITERIA,
+        "failCriteria": RELEASE_ASSET_COHERENCE_FAIL_CRITERIA,
+        "nextCommand": stable_publication_command(
+            argparse.Namespace(
+                github_release_repo=metadata_proof.get("repo") or "<owner/repo>",
+                release_version=release_version,
+                release_candidate_report="<v4-release-candidate-json-or-dir>",
+                release_assets=None,
+                external_adoption_evidence=[],
+                security_review_evidence=[],
+            ),
+            placeholders=True,
+        ),
+        "assetCoherenceBoundary": {
+            "downloadedOrSuppliedAssetsRequired": True,
+            "assetDigestMatrixRequired": True,
+            "manifestArtifactMustMatchDigestTarball": True,
+            "sourceOnlyProofCountsAsAssetCoherenceProof": False,
+            "fixtureProofCountsAsStableV4PublicationProof": False,
+            "metadataOnlyProofCountsAsAssetCoherenceProof": False,
+        },
+    }
+
+
 def first_blocking_gate(gates: list[tuple[str, dict[str, Any], str]]) -> tuple[str, dict[str, Any], str] | None:
     for receipt, proof, command in gates:
         if proof.get("status") == "pass":
@@ -1420,6 +1572,7 @@ def evidence_id_for_receipt(receipt: str) -> str:
         "postReleaseConsumerProof": "post-release-consumer-proof",
         "publicReleaseFreshnessProof": "public-release-freshness",
         "releaseVersionCoherenceProof": "release-version-coherence",
+        "releaseAssetCoherenceProof": "release-asset-coherence",
         "externalAdoptionEvidenceStableGate": "independent-adoption-evidence",
         "securityReviewEvidenceStableGate": "final-security-review-evidence",
     }
@@ -1435,6 +1588,7 @@ def proof_boundary_for_evidence_id(evidence_id: str) -> str:
         "post-release-consumer-proof": "Post-release consumer proof must come from release-consume verification of the downloaded or supplied assets.",
         "public-release-freshness": "Public release freshness must prove the GitHub tag target, release manifest commit, release metadata, and downloaded/supplied assets all describe the same release.",
         "release-version-coherence": "VERSION, requested release version, public tag, release manifest, package proof, and consumer proof must all name the same release.",
+        "release-asset-coherence": "Release asset names and SHA-256 values must match across GitHub metadata, downloaded/supplied assets, release manifest, digest matrix, and consumer proof.",
         "independent-adoption-evidence": "Independent adoption evidence must be real public or private-redacted evidence; GitHub download counts and maintainer-only runs do not count.",
         "final-security-review-evidence": "Final security review evidence must cover CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy with no open critical or high findings.",
     }
@@ -2004,6 +2158,30 @@ def release_version_coherence_diagnostics_for_closure(proof: dict[str, Any]) -> 
     }
 
 
+def release_asset_coherence_diagnostics_for_closure(proof: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "status": proof.get("status"),
+        "summary": proof.get("summary") or "",
+        "releaseVersion": proof.get("releaseVersion") or "",
+        "expectedTarballName": proof.get("expectedTarballName") or "",
+        "requiredAssetNames": proof.get("requiredAssetNames") if isinstance(proof.get("requiredAssetNames"), list) else [],
+        "metadataAssetNames": proof.get("metadataAssetNames") if isinstance(proof.get("metadataAssetNames"), list) else [],
+        "localAssetNames": proof.get("localAssetNames") if isinstance(proof.get("localAssetNames"), list) else [],
+        "digestAssetNames": proof.get("digestAssetNames") if isinstance(proof.get("digestAssetNames"), list) else [],
+        "missingLocalAssetNames": proof.get("missingLocalAssetNames") if isinstance(proof.get("missingLocalAssetNames"), list) else [],
+        "missingDigestAssetNames": proof.get("missingDigestAssetNames") if isinstance(proof.get("missingDigestAssetNames"), list) else [],
+        "missingSha256AssetNames": proof.get("missingSha256AssetNames") if isinstance(proof.get("missingSha256AssetNames"), list) else [],
+        "manifestArtifactName": proof.get("manifestArtifactName") or "",
+        "manifestArtifactSha256": proof.get("manifestArtifactSha256") or "",
+        "digestTarballName": proof.get("digestTarballName") or "",
+        "digestTarballSha256": proof.get("digestTarballSha256") or "",
+        "consumerArtifactSha256": proof.get("consumerArtifactSha256") or "",
+        "comparisons": proof.get("comparisons") if isinstance(proof.get("comparisons"), dict) else {},
+        "problems": proof.get("problems") if isinstance(proof.get("problems"), list) else [],
+        "nextCommand": proof.get("nextCommand") or "",
+    }
+
+
 def build_public_release_freshness_closure_kit(
     *,
     item: dict[str, Any],
@@ -2427,6 +2605,8 @@ def build_stable_publication_evidence_packet(
             item["releaseFreshnessDiagnostics"] = release_freshness_diagnostics_for_closure(proof)
         if evidence_id == "release-version-coherence":
             item["releaseVersionCoherenceDiagnostics"] = release_version_coherence_diagnostics_for_closure(proof)
+        if evidence_id == "release-asset-coherence":
+            item["releaseAssetCoherenceDiagnostics"] = release_asset_coherence_diagnostics_for_closure(proof)
         if evidence_id in {"independent-adoption-evidence", "final-security-review-evidence"}:
             item["evidenceDiagnostics"] = evidence_diagnostics_for_closure(proof)
         required_evidence.append(item)
@@ -2458,6 +2638,7 @@ def build_stable_publication_evidence_packet(
             "Run LaunchKey release-candidate proof with package install, upgrade, rollback, release assets, adoption, and security receipts.",
             "Publish the GitHub release with stable-v4 release notes and required release-proof assets.",
             "Confirm the VERSION file, requested release version, GitHub tag, release manifest, package proof, and consumer report name the same release.",
+            "Confirm required release assets and SHA-256 values match across metadata, downloaded assets, release manifest, digest matrix, and consumer proof.",
             "Run stable-publication against the published release metadata, downloaded assets, independent adoption evidence, and final security review evidence.",
             "Use a passing stable-publication report as the only local permission to claim ShipGuard v4 is stable.",
         ],
@@ -2735,6 +2916,36 @@ def build_stable_publication_closure_checklist(
                 }
             )
             closure_item["nextCommand"] = closure_item["versionCoherenceRerunCommand"]
+        if evidence_id == "release-asset-coherence":
+            diagnostics = (
+                item.get("releaseAssetCoherenceDiagnostics")
+                if isinstance(item.get("releaseAssetCoherenceDiagnostics"), dict)
+                else {}
+            )
+            closure_item.update(
+                {
+                    "expectedTarballName": diagnostics.get("expectedTarballName") or "",
+                    "requiredAssetNames": diagnostics.get("requiredAssetNames") if isinstance(diagnostics.get("requiredAssetNames"), list) else [],
+                    "metadataAssetNames": diagnostics.get("metadataAssetNames") if isinstance(diagnostics.get("metadataAssetNames"), list) else [],
+                    "localAssetNames": diagnostics.get("localAssetNames") if isinstance(diagnostics.get("localAssetNames"), list) else [],
+                    "digestAssetNames": diagnostics.get("digestAssetNames") if isinstance(diagnostics.get("digestAssetNames"), list) else [],
+                    "missingLocalAssetNames": diagnostics.get("missingLocalAssetNames") if isinstance(diagnostics.get("missingLocalAssetNames"), list) else [],
+                    "missingDigestAssetNames": diagnostics.get("missingDigestAssetNames") if isinstance(diagnostics.get("missingDigestAssetNames"), list) else [],
+                    "missingSha256AssetNames": diagnostics.get("missingSha256AssetNames") if isinstance(diagnostics.get("missingSha256AssetNames"), list) else [],
+                    "manifestArtifactName": diagnostics.get("manifestArtifactName") or "",
+                    "digestTarballName": diagnostics.get("digestTarballName") or "",
+                    "manifestArtifactSha256": diagnostics.get("manifestArtifactSha256") or "",
+                    "digestTarballSha256": diagnostics.get("digestTarballSha256") or "",
+                    "consumerArtifactSha256": diagnostics.get("consumerArtifactSha256") or "",
+                    "comparisons": diagnostics.get("comparisons") if isinstance(diagnostics.get("comparisons"), dict) else {},
+                    "problems": diagnostics.get("problems") if isinstance(diagnostics.get("problems"), list) else [],
+                    "repairCriteria": RELEASE_ASSET_COHERENCE_REPAIR_CRITERIA,
+                    "passCriteria": RELEASE_ASSET_COHERENCE_PASS_CRITERIA,
+                    "failCriteria": RELEASE_ASSET_COHERENCE_FAIL_CRITERIA,
+                    "assetCoherenceRerunCommand": rerun_command or item.get("nextCommand") or first_blocking.get("nextCommand") or "",
+                }
+            )
+            closure_item["nextCommand"] = closure_item["assetCoherenceRerunCommand"]
         if evidence_id in {"independent-adoption-evidence", "final-security-review-evidence"}:
             template = templates_by_id.get(evidence_id, {})
             starter_file = starter_files_by_id.get(evidence_id, {})
@@ -3189,6 +3400,14 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         published_asset_proof=published_asset_proof,
         public_release_freshness_proof=public_release_freshness_proof,
     )
+    release_asset_coherence_proof = build_release_asset_coherence_proof(
+        release_version=release_version,
+        metadata_proof=metadata_proof,
+        published_asset_proof=published_asset_proof,
+        post_release_consumer_proof=post_release_consumer_proof,
+        public_release_freshness_proof=public_release_freshness_proof,
+        release_version_coherence_proof=release_version_coherence_proof,
+    )
     adoption_proof = attach_external_evidence_freshness(
         launchkey.build_external_adoption_evidence_proof(args),
         evidence_id="independent-adoption-evidence",
@@ -3218,6 +3437,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ("postReleaseConsumerProof", post_release_consumer_proof, published_asset_proof.get("consumeCommand", "")),
         ("publicReleaseFreshnessProof", public_release_freshness_proof, stable_publication_rerun_command(args)),
         ("releaseVersionCoherenceProof", release_version_coherence_proof, stable_publication_rerun_command(args)),
+        ("releaseAssetCoherenceProof", release_asset_coherence_proof, stable_publication_rerun_command(args)),
         ("externalAdoptionEvidenceStableGate", adoption_gate_proof, adoption_proof.get("nextCommand", "")),
         ("securityReviewEvidenceStableGate", security_gate_proof, security_proof.get("nextCommand", "")),
     ]
@@ -3306,6 +3526,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "postReleaseConsumerProof": post_release_consumer_proof,
         "publicReleaseFreshnessProof": public_release_freshness_proof,
         "releaseVersionCoherenceProof": release_version_coherence_proof,
+        "releaseAssetCoherenceProof": release_asset_coherence_proof,
         "externalAdoptionEvidenceProof": adoption_proof,
         "securityReviewEvidenceProof": security_proof,
         "stablePublicationGates": [
@@ -3340,6 +3561,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the post-release consumer closure row expose release-consume paths, missing proof artifacts, digest/replay/attestation statuses, repair/pass criteria, release-consume rerun, full stable-publication rerun, and source-only/fixture-proof boundaries?",
             "Does the public release freshness row prove the GitHub tag target, release manifest commit, release metadata target, and publication timestamp describe the same release?",
             "Does the release version coherence row prove VERSION, GitHub metadata, release manifest, package proof, and consumer report all name the same release version?",
+            "Does the release asset coherence row prove required asset names and SHA-256 values match across metadata, local assets, manifest, digest matrix, and consumer proof?",
             "Do independent adoption and final security-review evidence records prove generatedAt freshness against the release manifest instead of reusing stale packet evidence?",
             "Do independent adoption and final security-review closure rows expose starter paths, required fields, redaction/privacy boundaries, pass/fail criteria, current diagnostics, and exact stable-publication rerun commands?",
             "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?",
@@ -3466,6 +3688,51 @@ def render_markdown(report: dict[str, Any]) -> str:
         else:
             lines.append("| `not-provided` | `not-provided` |")
         lines.extend(["", "Version coherence problems:", ""])
+        if problems:
+            for problem in problems:
+                lines.append(f"- {problem}")
+        else:
+            lines.append("- none")
+    asset_coherence = (
+        report.get("releaseAssetCoherenceProof")
+        if isinstance(report.get("releaseAssetCoherenceProof"), dict)
+        else {}
+    )
+    if asset_coherence:
+        comparisons = asset_coherence.get("comparisons") if isinstance(asset_coherence.get("comparisons"), dict) else {}
+        problems = asset_coherence.get("problems") if isinstance(asset_coherence.get("problems"), list) else []
+        boundary = (
+            asset_coherence.get("assetCoherenceBoundary")
+            if isinstance(asset_coherence.get("assetCoherenceBoundary"), dict)
+            else {}
+        )
+        lines.extend(
+            [
+                "",
+                "## Release Asset Coherence",
+                "",
+                f"- Status: `{asset_coherence.get('status')}`",
+                f"- Expected tarball: `{asset_coherence.get('expectedTarballName') or 'not-provided'}`",
+                f"- Required assets: `{len(asset_coherence.get('requiredAssetNames') or [])}`",
+                f"- Local assets: `{len(asset_coherence.get('localAssetNames') or [])}`",
+                f"- Digest assets: `{len(asset_coherence.get('digestAssetNames') or [])}`",
+                f"- Manifest artifact: `{asset_coherence.get('manifestArtifactName') or 'not-provided'}`",
+                f"- Digest tarball: `{asset_coherence.get('digestTarballName') or 'not-provided'}`",
+                f"- Manifest artifact SHA-256: `{asset_coherence.get('manifestArtifactSha256') or 'not-provided'}`",
+                f"- Digest tarball SHA-256: `{asset_coherence.get('digestTarballSha256') or 'not-provided'}`",
+                f"- Consumer artifact SHA-256: `{asset_coherence.get('consumerArtifactSha256') or 'not-provided'}`",
+                f"- Source-only proof counts as asset coherence proof: `{boundary.get('sourceOnlyProofCountsAsAssetCoherenceProof')}`",
+                "",
+                "| Asset comparison | Status |",
+                "| --- | --- |",
+            ]
+        )
+        if comparisons:
+            for key, value in comparisons.items():
+                lines.append(f"| `{key}` | `{value}` |")
+        else:
+            lines.append("| `not-provided` | `not-provided` |")
+        lines.extend(["", "Asset coherence problems:", ""])
         if problems:
             for problem in problems:
                 lines.append(f"- {problem}")
@@ -4097,6 +4364,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"- Post-release consumer proof: `{report.get('postReleaseConsumerProof', {}).get('status')}`",
             f"- Public release freshness: `{report.get('publicReleaseFreshnessProof', {}).get('status')}`",
             f"- Release version coherence: `{report.get('releaseVersionCoherenceProof', {}).get('status')}`",
+            f"- Release asset coherence: `{report.get('releaseAssetCoherenceProof', {}).get('status')}`",
             f"- External adoption stable gate: `{report.get('externalAdoptionEvidenceProof', {}).get('stableV4GateStatus')}`",
             f"- External adoption freshness: `{(report.get('externalAdoptionEvidenceProof', {}).get('evidencePacketFreshness') or {}).get('status')}`",
             f"- Security review stable gate: `{report.get('securityReviewEvidenceProof', {}).get('stableV4GateStatus')}`",

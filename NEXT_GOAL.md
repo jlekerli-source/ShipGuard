@@ -1,15 +1,15 @@
 # Next Goal
 
-- Generated: 2026-06-21T23:34:36Z
+- Generated: 2026-06-22T00:01:36Z
 - Current toolkit version: 3.131.0
-- Target release: v3.174.0
-- Title: Stable V4 Publication Release Asset Version Coherence QA
+- Target release: v3.175.0
+- Title: Stable V4 Publication Public Evidence Closure QA
 
 ## Slash Plan
 
 ```text
-/plan v3.174.0 Stable V4 Publication Release Asset Version Coherence QA for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Add the next stable-publication report-quality guard after release version coherence: make downloaded or supplied release asset version and digest evidence harder to misread, without claiming stable v4 from source-only assets, stale tarballs, or mismatched asset names.
+/plan v3.175.0 Stable V4 Publication Public Evidence Closure QA for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add the next stable-publication report-quality guard after release asset coherence: make public adoption/security evidence closure more copy-ready and harder to overclaim, without faking adoption, security review, marketplace acceptance, or external launch proof.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -18,23 +18,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.174.0 Stable V4 Publication Release Asset Version Coherence QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add the next stable-publication report-quality guard after release version coherence: make downloaded or supplied release asset version and digest evidence harder to misread, without claiming stable v4 from source-only assets, stale tarballs, or mismatched asset names, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.175.0 Stable V4 Publication Public Evidence Closure QA for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add the next stable-publication report-quality guard after release asset coherence: make public adoption/security evidence closure more copy-ready and harder to overclaim, without faking adoption, security review, marketplace acceptance, or external launch proof, push main, verify GitHub Actions, publish the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Add the next stable-publication report-quality guard after release version coherence: make downloaded or supplied release asset version and digest evidence harder to misread, without claiming stable v4 from source-only assets, stale tarballs, or mismatched asset names.
+Add the next stable-publication report-quality guard after release asset coherence: make public adoption/security evidence closure more copy-ready and harder to overclaim, without faking adoption, security review, marketplace acceptance, or external launch proof.
 
 ## Completion Receipt
 
-- Completed scope: v3.173 added release version coherence proof to stable-publication reports: VERSION, requested version, GitHub metadata tag, release manifest version/tag, release-consume package version, consumer report version, expected tarball name, and source-only/fixture boundaries now appear in JSON, Markdown, closure diagnostics, plugin guidance, and report-quality rules.
-- Evidence: python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; python3 -m json.tool fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6/fixture-report.json; git diff --check; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3173-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3173-value-gauntlet; ./tests/next_goal_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict
+- Completed scope: v3.174 added release asset coherence proof to stable-publication reports: required asset names, metadata asset names, downloaded/supplied local assets, digest matrix rows, missing local/digest assets, missing SHA-256 rows, manifest artifact SHA-256, digest tarball SHA-256, consumer artifact SHA-256, comparisons, proof boundaries, Markdown rendering, plugin guidance, and report-quality rules now make the public asset packet harder to misread before stable-v4 claims.
+- Evidence: python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; python3 -m json.tool fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6/fixture-report.json; git diff --check; ./tests/v4_stable_publication_test.sh; ./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6 --out /tmp/shipguard-v3174-fixture-quality --shareable; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-v3174-docs-check; ./tests/self_audit_test.sh; ./tests/cli_smoke_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-v3174-value-gauntlet; ./tests/next_goal_test.sh; ./tests/package_release_test.sh; codex plugin marketplace add .; codex plugin add ios-shipguard@shipguard; ./bin/shipguard codex status --strict
 
 ## Following Slash Plan
 
 ```text
-/plan v3.175.0 Stable V4 Publication Public Evidence Closure QA for jlekerli-source/ShipGuard:
+/plan v3.176.0 Stable V4 Publication Final Claim Packet QA for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -44,13 +44,13 @@ Add the next stable-publication report-quality guard after release version coher
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.175.0 Stable V4 Publication Public Evidence Closure QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.176.0 Stable V4 Publication Final Claim Packet QA for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.175.0 --title "Stable V4 Publication Public Evidence Closure QA" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.176.0 --title "Stable V4 Publication Final Claim Packet QA" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -150,12 +150,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.174.0.
+1. Open or update the tracking issue for v3.175.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Create release `v3.174.0` and upload `dist/shipguard-v3.174.0.tar.gz`.
+6. Create release `v3.175.0` and upload `dist/shipguard-v3.175.0.tar.gz`.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

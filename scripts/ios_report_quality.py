@@ -3045,14 +3045,14 @@ def stable_publication_evidence_packet_issues(
     required_rows = required if isinstance(required, list) else []
     synthetic_fixture_report = isinstance(report.get("fixtureCandidate"), dict) or path_name == "fixture-report.json"
     freshness_expected = isinstance(report.get("publicReleaseFreshnessProof"), dict) or not synthetic_fixture_report
-    minimum_required_count = 9 if freshness_expected else 7
+    minimum_required_count = 10 if freshness_expected else 7
     if not isinstance(required, list) or len(required) < minimum_required_count:
         add_issue(
             issues,
             severity="review",
             rule_id="stable-publication-required-evidence-incomplete",
             evidence=f"{path_name} evidence packet does not list all required stable-publication evidence gates",
-            recommendation="List release metadata, release notes, LaunchKey candidate proof, downloaded assets, consumer proof, public release freshness, release version coherence, adoption evidence, and security review evidence.",
+            recommendation="List release metadata, release notes, LaunchKey candidate proof, downloaded assets, consumer proof, public release freshness, release version coherence, release asset coherence, adoption evidence, and security review evidence.",
         )
     else:
         required_ids = {str(item.get("id") or "") for item in required_rows if isinstance(item, dict)}
@@ -3068,6 +3068,7 @@ def stable_publication_evidence_packet_issues(
         if freshness_expected:
             expected.add("public-release-freshness")
             expected.add("release-version-coherence")
+            expected.add("release-asset-coherence")
         missing_ids = sorted(expected - required_ids)
         if missing_ids:
             add_issue(
@@ -4282,6 +4283,76 @@ def stable_publication_evidence_packet_issues(
                 rule_id="stable-publication-version-coherence-markdown-missing",
                 evidence=f"{path_name} has releaseVersionCoherenceProof but Markdown does not render it",
                 recommendation="Render the version coherence matrix in Markdown so mismatched versions cannot hide in JSON.",
+            )
+
+    asset_coherence = (
+        report.get("releaseAssetCoherenceProof")
+        if isinstance(report.get("releaseAssetCoherenceProof"), dict)
+        else {}
+    )
+    if report.get("stableV4Release") is True and not asset_coherence:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-asset-coherence-missing",
+            evidence=f"{path_name} claims stableV4Release=true but has no releaseAssetCoherenceProof",
+            recommendation="Compare required asset names and SHA-256 values across GitHub metadata, downloaded assets, release manifest, asset-digests.json, and consumer proof before allowing stable-v4 claims.",
+        )
+    if asset_coherence:
+        comparisons = (
+            asset_coherence.get("comparisons")
+            if isinstance(asset_coherence.get("comparisons"), dict)
+            else {}
+        )
+        if report.get("stableV4Release") is True and asset_coherence.get("status") != "pass":
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-asset-coherence-not-pass",
+                evidence=f"{path_name} claims stableV4Release=true but releaseAssetCoherenceProof is {asset_coherence.get('status')}",
+                recommendation="Block stable-v4 claims until release asset names and SHA-256 values agree across the published packet.",
+            )
+        for comparison_key in (
+            "localAssetsCoverRequired",
+            "digestAssetsCoverRequired",
+            "expectedTarballInLocalAssets",
+            "manifestArtifactShaMatchesDigestTarball",
+            "consumerArtifactShaMatchesDigestTarball",
+        ):
+            if comparison_key not in comparisons:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-asset-coherence-comparison-missing",
+                    evidence=f"{path_name} releaseAssetCoherenceProof omits comparison `{comparison_key}`",
+                    recommendation="Expose an asset coherence matrix covering required assets, local assets, digest rows, manifest artifact, and consumer artifact SHA-256.",
+                )
+                break
+        boundary = (
+            asset_coherence.get("assetCoherenceBoundary")
+            if isinstance(asset_coherence.get("assetCoherenceBoundary"), dict)
+            else {}
+        )
+        if (
+            boundary.get("downloadedOrSuppliedAssetsRequired") is not True
+            or boundary.get("assetDigestMatrixRequired") is not True
+            or boundary.get("sourceOnlyProofCountsAsAssetCoherenceProof") is not False
+            or boundary.get("metadataOnlyProofCountsAsAssetCoherenceProof") is not False
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-asset-coherence-boundary-missing",
+                evidence=f"{path_name} releaseAssetCoherenceProof does not expose the stable-v4 asset proof boundary",
+                recommendation="State that downloaded or supplied assets plus asset-digests.json are required and that source-only, metadata-only, or fixture proof cannot satisfy asset coherence.",
+            )
+        if "Release Asset Coherence" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-asset-coherence-markdown-missing",
+                evidence=f"{path_name} has releaseAssetCoherenceProof but Markdown does not render it",
+                recommendation="Render the asset coherence matrix in Markdown so mismatched release assets cannot hide in JSON.",
             )
 
     non_claims = packet.get("nonClaims")
@@ -9652,6 +9723,8 @@ def synthetic_stable_publication_report_fields() -> dict[str, Any]:
         ("downloaded-release-assets", "publishedReleaseAssetProof"),
         ("post-release-consumer-proof", "postReleaseConsumerProof"),
         ("public-release-freshness", "publicReleaseFreshnessProof"),
+        ("release-version-coherence", "releaseVersionCoherenceProof"),
+        ("release-asset-coherence", "releaseAssetCoherenceProof"),
         ("independent-adoption-evidence", "externalAdoptionEvidenceStableGate"),
         ("final-security-review-evidence", "securityReviewEvidenceStableGate"),
     ]
@@ -9826,6 +9899,59 @@ def synthetic_stable_publication_report_fields() -> dict[str, Any]:
                 "manifestGeneratedNoLaterThanPublishedAt": True,
             },
             "problems": [],
+        },
+        "releaseVersionCoherenceProof": {
+            "status": "pass",
+            "provided": True,
+            "requiredForStableV4": True,
+            "sourceVersion": "0.0.0",
+            "releaseVersion": "0.0.0",
+            "expectedTag": "v0.0.0",
+            "metadataTagName": "v0.0.0",
+            "manifestVersion": "0.0.0",
+            "packageVersion": "0.0.0",
+            "consumerReportVersion": "0.0.0",
+            "expectedTarballName": "shipguard-v0.0.0.tar.gz",
+            "manifestArtifactName": "shipguard-v0.0.0.tar.gz",
+            "comparisons": {
+                "sourceVersionMatchesRequested": True,
+                "metadataReturnedTagMatchesRequested": True,
+                "manifestVersionMatchesRequested": True,
+                "packageVersionMatchesRequested": True,
+                "consumerReportVersionMatchesRequested": True,
+            },
+            "versionCoherenceBoundary": {
+                "versionMustMatchAcrossSourceMetadataManifestPackageAndConsumerProof": True,
+                "sourceOnlyProofCountsAsVersionCoherenceProof": False,
+            },
+        },
+        "releaseAssetCoherenceProof": {
+            "status": "pass",
+            "provided": True,
+            "requiredForStableV4": True,
+            "expectedTarballName": "shipguard-v0.0.0.tar.gz",
+            "requiredAssetNames": ["shipguard-v0.0.0.tar.gz"],
+            "metadataAssetNames": ["shipguard-v0.0.0.tar.gz"],
+            "localAssetNames": ["shipguard-v0.0.0.tar.gz"],
+            "digestAssetNames": ["shipguard-v0.0.0.tar.gz"],
+            "manifestArtifactName": "shipguard-v0.0.0.tar.gz",
+            "digestTarballName": "shipguard-v0.0.0.tar.gz",
+            "manifestArtifactSha256": "abc123",
+            "digestTarballSha256": "abc123",
+            "consumerArtifactSha256": "abc123",
+            "comparisons": {
+                "localAssetsCoverRequired": True,
+                "digestAssetsCoverRequired": True,
+                "expectedTarballInLocalAssets": True,
+                "manifestArtifactShaMatchesDigestTarball": True,
+                "consumerArtifactShaMatchesDigestTarball": True,
+            },
+            "assetCoherenceBoundary": {
+                "downloadedOrSuppliedAssetsRequired": True,
+                "assetDigestMatrixRequired": True,
+                "sourceOnlyProofCountsAsAssetCoherenceProof": False,
+                "metadataOnlyProofCountsAsAssetCoherenceProof": False,
+            },
         },
         "scopeBoundary": {
             "shipguardOnly": True,
