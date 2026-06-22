@@ -177,6 +177,30 @@ Approval boundary:
 
 Public posting, publishing, submission, or account-visible external actions require explicit human approval for that exact launch run.
 
+## Public Release Delta
+
+- Status: `pass`
+- Source version: `0.0.0`
+- Selected release: `0.0.0`
+- Latest GitHub release: `0.0.0`
+- Package version: `0.0.0`
+- Unpublished local delta: `False`
+- Stable-v4 claim covers selected public release: `True`
+- Stable-v4 claim covers local checkout: `True`
+- Unpublished local code counts as released: `False`
+
+| Comparison | Value |
+| --- | --- |
+| `sourceVersionMatchesRequestedRelease` | `True` |
+| `selectedReleaseMatchesLatestGitHubRelease` | `True` |
+| `releaseManifestVersionMatchesRequestedRelease` | `True` |
+| `packageAssetsVersionMatchesRequestedRelease` | `True` |
+| `publicTagTargetMatchesReleaseManifestCommit` | `True` |
+| `releaseAssetCoherencePassed` | `True` |
+| `releaseVersionCoherencePassed` | `True` |
+| `localHeadMatchesSelectedPublicReleaseCommit` | `True` |
+| `localMainMatchesSelectedPublicReleaseCommit` | `True` |
+
 ## Final Stable V4 Claim Packet
 
 - Claim decision: `allowed`

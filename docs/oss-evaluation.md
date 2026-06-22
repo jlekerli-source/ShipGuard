@@ -6,6 +6,16 @@ This is the current usefulness and refinement evaluation for ShipGuard after the
 
 ## Current Stable V4 Release Packet QA
 
+The v3.177 read-only stable-v4 packet loop continued from the final claim packet and tested whether the report could still blur unpublished local work with the latest public release.
+
+- Finding: `v4 stable-publication` could prove a selected release packet, but did not explicitly show whether local `HEAD`/`main`, the selected release, the latest GitHub release, package assets, and claim scope were aligned.
+- Product weakness: a solo maintainer can easily say "current ShipGuard" when the public release still points at an older tag or when local `main` has moved beyond the released package.
+- Native fix: `githubLatestReleaseProof` and `publicReleaseDeltaProof` now expose latest release metadata, source/package/release versions, local/public commits, unpublished-local delta state, selected-release claim coverage, local-checkout claim coverage, and the boundary that unpublished local code does not count as released.
+- Report-quality fix: `ios report-quality` now flags full stable-publication reports that hide the public release delta, omit the alignment matrix, weaken the unpublished-code boundary, or allow stable-v4 claim wording without selected public-release coverage.
+- Fixture fix: focused stable-publication tests assert both aligned and stale public-release delta behavior, and the full stable-publication synthetic fixture carries the delta in JSON and Markdown.
+
+Fresh stable-v4 QA still does not claim real stable v4. Public release delta is claim-scope control; it does not replace public release metadata, downloaded assets, independent adoption, final security review, or post-release consumer proof.
+
 The v3.176 read-only stable-v4 packet loop continued from public evidence closure and tested whether the final report still left maintainers to invent announcement wording.
 
 - Finding: `v4 stable-publication` exposed evidence closure and launch drafts, but did not provide one final claim packet that says what wording is allowed or blocked now.

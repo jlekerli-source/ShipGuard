@@ -618,6 +618,47 @@
     "stableV4Release": true,
     "status": "ready-to-stage"
   },
+  "publicReleaseDeltaProof": {
+    "comparisons": {
+      "localHeadMatchesSelectedPublicReleaseCommit": true,
+      "localMainMatchesSelectedPublicReleaseCommit": true,
+      "packageAssetsVersionMatchesRequestedRelease": true,
+      "publicTagTargetMatchesReleaseManifestCommit": true,
+      "releaseAssetCoherencePassed": true,
+      "releaseManifestVersionMatchesRequestedRelease": true,
+      "releaseVersionCoherencePassed": true,
+      "selectedReleaseMatchesLatestGitHubRelease": true,
+      "sourceVersionMatchesRequestedRelease": true
+    },
+    "latestGitHubReleaseStatus": "pass",
+    "latestGitHubReleaseTag": "v0.0.0",
+    "latestGitHubReleaseVersion": "0.0.0",
+    "localHeadCommit": "0123456789abcdef0123456789abcdef01234567",
+    "localMainCommit": "0123456789abcdef0123456789abcdef01234567",
+    "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+    "packageVersion": "0.0.0",
+    "problems": [],
+    "releaseDeltaBoundary": {
+      "downloadedOrSuppliedAssetsAreRequiredForPackageTruth": true,
+      "latestPublicGitHubReleaseIsPublicationSource": true,
+      "localHeadIsNotPublicReleaseProof": true,
+      "localMainIsNotPublicReleaseProof": true,
+      "stableV4ClaimCoversSelectedReleaseOnly": true,
+      "unpublishedLocalCodeCountsAsReleased": false
+    },
+    "releaseManifestCommit": "0123456789abcdef0123456789abcdef01234567",
+    "releaseVersion": "0.0.0",
+    "schemaVersion": 1,
+    "selectedGitHubReleaseTag": "v0.0.0",
+    "selectedPublicReleaseCommit": "0123456789abcdef0123456789abcdef01234567",
+    "sourceVersion": "0.0.0",
+    "stableV4ClaimCoversLocalCheckout": true,
+    "stableV4ClaimCoversSelectedPublicRelease": true,
+    "stableV4Release": true,
+    "status": "pass",
+    "summary": "Local source, latest GitHub release, release manifest, package assets, and stable-v4 claim context are aligned.",
+    "unpublishedLocalDelta": false
+  },
   "finalStableV4ClaimPacket": {
     "allowedClaims": [
       "Stable-v4 publication proof passed.",

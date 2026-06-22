@@ -213,18 +213,20 @@ cp "$tmp_dir/proof-bundle/attestation/attestation-badge.json" "$tmp_dir/download
 
 api_root="$tmp_dir/github-api"
 release_endpoint_file="$api_root/repos/jlekerli-source/ShipGuard/releases/tags/v$version"
+latest_release_file="$api_root/repos/jlekerli-source/ShipGuard/releases/latest"
 tag_ref_file="$api_root/repos/jlekerli-source/ShipGuard/git/ref/tags/v$version"
-mkdir -p "$(dirname "$release_endpoint_file")" "$(dirname "$tag_ref_file")"
-python3 - "$release_endpoint_file" "$tag_ref_file" "$version" "$tmp_dir/downloaded" "$release_commit" <<'PY'
+mkdir -p "$(dirname "$release_endpoint_file")" "$(dirname "$latest_release_file")" "$(dirname "$tag_ref_file")"
+python3 - "$release_endpoint_file" "$latest_release_file" "$tag_ref_file" "$version" "$tmp_dir/downloaded" "$release_commit" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 target = Path(sys.argv[1])
-tag_ref = Path(sys.argv[2])
-version = sys.argv[3]
-downloaded = Path(sys.argv[4])
-release_commit = sys.argv[5]
+latest = Path(sys.argv[2])
+tag_ref = Path(sys.argv[3])
+version = sys.argv[4]
+downloaded = Path(sys.argv[5])
+release_commit = sys.argv[6]
 asset_names = [
     f"shipguard-v{version}.tar.gz",
     "release-manifest.json",
@@ -234,25 +236,22 @@ asset_names = [
     "attestation.json",
     "attestation-badge.json",
 ]
-target.write_text(
-    json.dumps(
+payload = {
+    "tag_name": f"v{version}",
+    "html_url": f"https://github.com/jlekerli-source/ShipGuard/releases/tag/v{version}",
+    "published_at": "2026-06-20T00:00:00Z",
+    "target_commitish": release_commit,
+    "body": "ShipGuard stable v4 publication proof. Includes stable-v4 publication boundaries, release proof, downloaded release asset verification, post-release consumer proof, independent adoption evidence, final security review evidence, and blocked claims/non-claims for marketplace acceptance and private app validation.",
+    "assets": [
         {
-            "tag_name": f"v{version}",
-            "html_url": f"https://github.com/jlekerli-source/ShipGuard/releases/tag/v{version}",
-            "published_at": "2026-06-20T00:00:00Z",
-            "target_commitish": release_commit,
-            "body": "ShipGuard stable v4 publication proof. Includes stable-v4 publication boundaries, release proof, downloaded release asset verification, post-release consumer proof, independent adoption evidence, final security review evidence, and blocked claims/non-claims for marketplace acceptance and private app validation.",
-            "assets": [
-                {
-                    "name": name,
-                    "browser_download_url": (downloaded / name).as_uri()
-                }
-                for name in asset_names
-            ]
+            "name": name,
+            "browser_download_url": (downloaded / name).as_uri()
         }
-    ),
-    encoding="utf-8",
-)
+        for name in asset_names
+    ],
+}
+target.write_text(json.dumps(payload), encoding="utf-8")
+latest.write_text(json.dumps(payload), encoding="utf-8")
 tag_ref.write_text(
     json.dumps(
         {
@@ -988,6 +987,16 @@ assert freshness["status"] == "review"
 assert freshness["tagTargetSha"] == "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 assert freshness["comparisons"]["tagTargetMatchesManifestCommit"] is False
 assert "public-release-freshness" in report["stablePublicationEvidencePacket"]["missingEvidenceIds"]
+delta = report["publicReleaseDeltaProof"]
+assert delta["status"] == "review"
+assert delta["latestGitHubReleaseStatus"] == "pass"
+assert delta["latestGitHubReleaseVersion"] == report["releaseVersion"].removeprefix("v")
+assert delta["selectedGitHubReleaseTag"] == f"v{report['releaseVersion']}"
+assert delta["latestGitHubReleaseTag"] == f"v{report['releaseVersion']}"
+assert delta["comparisons"]["selectedReleaseMatchesLatestGitHubRelease"] is True
+assert delta["comparisons"]["publicTagTargetMatchesReleaseManifestCommit"] is False
+assert delta["comparisons"]["localMainMatchesSelectedPublicReleaseCommit"] is True
+assert delta["releaseDeltaBoundary"]["unpublishedLocalCodeCountsAsReleased"] is False
 assert report["stablePublicationEvidencePacket"]["firstBlockingGate"]["receipt"] == "publicReleaseFreshnessProof"
 closure = report["stablePublicationClosureChecklist"]
 assert closure["items"][0]["id"] == "public-release-freshness"
@@ -1003,6 +1012,8 @@ assert len(kit["passCriteria"]) >= 5
 assert len(kit["failCriteria"]) >= 5
 PY
 grep -q 'Public Release Freshness Closure Kit' "$tmp_dir/stale-freshness/v4-stable-publication.md"
+grep -q 'Public Release Delta' "$tmp_dir/stale-freshness/v4-stable-publication.md"
+grep -q 'publicTagTargetMatchesReleaseManifestCommit' "$tmp_dir/stale-freshness/v4-stable-publication.md"
 grep -q 'tagTargetMatchesManifestCommit' "$tmp_dir/stale-freshness/v4-stable-publication.md"
 grep -q 'Source-only proof counts as freshness proof: `False`' "$tmp_dir/stale-freshness/v4-stable-publication.md"
 ./bin/shipguard ios report-quality \
@@ -1170,6 +1181,23 @@ assert {row["id"] for row in public_evidence["evidenceRows"]} == {
 assert all(row["freshnessStatus"] == "pass" for row in public_evidence["evidenceRows"])
 assert public_evidence["publicEvidenceBoundary"]["fixtureEvidenceCountsAsStableV4Evidence"] is False
 assert public_evidence["publicEvidenceBoundary"]["doesNotPostOrSubmitExternally"] is True
+delta = report["publicReleaseDeltaProof"]
+assert delta["status"] == "pass"
+assert delta["sourceVersion"] == report["version"]
+assert delta["releaseVersion"] == report["releaseVersion"]
+assert delta["latestGitHubReleaseVersion"] == report["releaseVersion"].removeprefix("v")
+assert delta["packageVersion"] == report["releaseVersion"].removeprefix("v")
+assert delta["unpublishedLocalDelta"] is False
+assert delta["stableV4ClaimCoversSelectedPublicRelease"] is True
+assert delta["stableV4ClaimCoversLocalCheckout"] is True
+assert delta["comparisons"]["selectedReleaseMatchesLatestGitHubRelease"] is True
+assert delta["comparisons"]["localHeadMatchesSelectedPublicReleaseCommit"] is True
+assert delta["comparisons"]["localMainMatchesSelectedPublicReleaseCommit"] is True
+assert delta["comparisons"]["releaseVersionCoherencePassed"] is True
+assert delta["comparisons"]["releaseAssetCoherencePassed"] is True
+assert delta["releaseDeltaBoundary"]["localHeadIsNotPublicReleaseProof"] is True
+assert delta["releaseDeltaBoundary"]["localMainIsNotPublicReleaseProof"] is True
+assert delta["releaseDeltaBoundary"]["unpublishedLocalCodeCountsAsReleased"] is False
 final_claim = report["finalStableV4ClaimPacket"]
 assert final_claim["status"] == "allowed"
 assert final_claim["claimDecision"] == "allowed"
@@ -1249,6 +1277,8 @@ grep -q 'Launch Relay Drafts' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Public posting allowed: `False`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'External Evidence Freshness' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Public Evidence Closure' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Public Release Delta' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'Unpublished local code counts as released: `False`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Final Stable V4 Claim Packet' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Claim decision: `allowed`' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'has passed stable-v4 publication proof' "$tmp_dir/pass/v4-stable-publication.md"

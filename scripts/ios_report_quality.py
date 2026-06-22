@@ -4423,6 +4423,77 @@ def stable_publication_evidence_packet_issues(
                 recommendation="Render the public evidence closure proof in Markdown so adoption/security status and non-claims are visible without opening JSON.",
             )
 
+    public_delta = (
+        report.get("publicReleaseDeltaProof")
+        if isinstance(report.get("publicReleaseDeltaProof"), dict)
+        else {}
+    )
+    public_delta_expected = (
+        report.get("stableV4Release") is True
+        or bool(public_evidence)
+        or isinstance(report.get("finalStableV4ClaimPacket"), dict)
+        or any("public release delta proof" in normalized_question_text(question) for question in report.get("reportQualityQuestions", []))
+    )
+    if public_delta_expected and not public_delta:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-public-release-delta-missing",
+            evidence=f"{path_name} has no publicReleaseDeltaProof",
+            recommendation="Expose whether local main, latest GitHub release, package assets, and stable-publication claims are aligned before announcement copy.",
+        )
+    elif public_delta:
+        comparisons = public_delta.get("comparisons") if isinstance(public_delta.get("comparisons"), dict) else {}
+        boundary = public_delta.get("releaseDeltaBoundary") if isinstance(public_delta.get("releaseDeltaBoundary"), dict) else {}
+        for comparison_key in (
+            "selectedReleaseMatchesLatestGitHubRelease",
+            "packageAssetsVersionMatchesRequestedRelease",
+            "localHeadMatchesSelectedPublicReleaseCommit",
+            "localMainMatchesSelectedPublicReleaseCommit",
+            "releaseVersionCoherencePassed",
+            "releaseAssetCoherencePassed",
+        ):
+            if comparison_key not in comparisons:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-public-release-delta-comparison-missing",
+                    evidence=f"{path_name} publicReleaseDeltaProof omits comparison `{comparison_key}`",
+                    recommendation="Expose a compact delta matrix for local source, latest GitHub release, package assets, and release claim scope.",
+                )
+                break
+        if (
+            boundary.get("latestPublicGitHubReleaseIsPublicationSource") is not True
+            or boundary.get("localHeadIsNotPublicReleaseProof") is not True
+            or boundary.get("localMainIsNotPublicReleaseProof") is not True
+            or boundary.get("unpublishedLocalCodeCountsAsReleased") is not False
+            or boundary.get("downloadedOrSuppliedAssetsAreRequiredForPackageTruth") is not True
+            or boundary.get("stableV4ClaimCoversSelectedReleaseOnly") is not True
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-public-release-delta-boundary-missing",
+                evidence=f"{path_name} publicReleaseDeltaProof does not make the unpublished-code/public-release boundary explicit",
+                recommendation="State that the latest public GitHub release and downloaded assets are publication truth, while local HEAD/main are not release proof.",
+            )
+        if report.get("stableV4Release") is True and public_delta.get("stableV4ClaimCoversSelectedPublicRelease") is not True:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-public-release-delta-claim-scope-mismatch",
+                evidence=f"{path_name} claims stableV4Release=true but publicReleaseDeltaProof does not cover the selected public release",
+                recommendation="Only allow stable-v4 claim wording when the selected public release, latest GitHub release, package assets, version coherence, and asset coherence align.",
+            )
+        if "Public Release Delta" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-public-release-delta-markdown-missing",
+                evidence=f"{path_name} has publicReleaseDeltaProof but Markdown does not render it",
+                recommendation="Render the public-release delta in Markdown so unpublished local work cannot be mistaken for released code.",
+            )
+
     final_claim = (
         report.get("finalStableV4ClaimPacket")
         if isinstance(report.get("finalStableV4ClaimPacket"), dict)
@@ -10028,6 +10099,46 @@ def synthetic_stable_publication_report_fields() -> dict[str, Any]:
                 "This packet does not authorize computer-use to perform account-visible actions.",
             ],
         },
+        "publicReleaseDeltaProof": {
+            "schemaVersion": 1,
+            "status": "pass",
+            "releaseVersion": "0.0.0",
+            "sourceVersion": "0.0.0",
+            "latestGitHubReleaseVersion": "0.0.0",
+            "selectedGitHubReleaseTag": "v0.0.0",
+            "latestGitHubReleaseTag": "v0.0.0",
+            "latestGitHubReleaseStatus": "pass",
+            "packageVersion": "0.0.0",
+            "localHeadCommit": "0123456789abcdef0123456789abcdef01234567",
+            "localMainCommit": "0123456789abcdef0123456789abcdef01234567",
+            "selectedPublicReleaseCommit": "0123456789abcdef0123456789abcdef01234567",
+            "releaseManifestCommit": "0123456789abcdef0123456789abcdef01234567",
+            "stableV4Release": True,
+            "stableV4ClaimCoversSelectedPublicRelease": True,
+            "stableV4ClaimCoversLocalCheckout": True,
+            "unpublishedLocalDelta": False,
+            "comparisons": {
+                "sourceVersionMatchesRequestedRelease": True,
+                "selectedReleaseMatchesLatestGitHubRelease": True,
+                "releaseManifestVersionMatchesRequestedRelease": True,
+                "packageAssetsVersionMatchesRequestedRelease": True,
+                "publicTagTargetMatchesReleaseManifestCommit": True,
+                "releaseAssetCoherencePassed": True,
+                "releaseVersionCoherencePassed": True,
+                "localHeadMatchesSelectedPublicReleaseCommit": True,
+                "localMainMatchesSelectedPublicReleaseCommit": True,
+            },
+            "problems": [],
+            "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+            "releaseDeltaBoundary": {
+                "latestPublicGitHubReleaseIsPublicationSource": True,
+                "localHeadIsNotPublicReleaseProof": True,
+                "localMainIsNotPublicReleaseProof": True,
+                "unpublishedLocalCodeCountsAsReleased": False,
+                "downloadedOrSuppliedAssetsAreRequiredForPackageTruth": True,
+                "stableV4ClaimCoversSelectedReleaseOnly": True,
+            },
+        },
         "finalStableV4ClaimPacket": {
             "schemaVersion": 1,
             "releaseVersion": "0.0.0",
@@ -10694,6 +10805,30 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "Approval boundary:",
                 "",
                 "Public posting, publishing, submission, or account-visible external actions require explicit human approval for that exact launch run.",
+                "",
+                "## Public Release Delta",
+                "",
+                "- Status: `pass`",
+                "- Source version: `0.0.0`",
+                "- Selected release: `0.0.0`",
+                "- Latest GitHub release: `0.0.0`",
+                "- Package version: `0.0.0`",
+                "- Unpublished local delta: `False`",
+                "- Stable-v4 claim covers selected public release: `True`",
+                "- Stable-v4 claim covers local checkout: `True`",
+                "- Unpublished local code counts as released: `False`",
+                "",
+                "| Comparison | Value |",
+                "| --- | --- |",
+                "| `sourceVersionMatchesRequestedRelease` | `True` |",
+                "| `selectedReleaseMatchesLatestGitHubRelease` | `True` |",
+                "| `releaseManifestVersionMatchesRequestedRelease` | `True` |",
+                "| `packageAssetsVersionMatchesRequestedRelease` | `True` |",
+                "| `publicTagTargetMatchesReleaseManifestCommit` | `True` |",
+                "| `releaseAssetCoherencePassed` | `True` |",
+                "| `releaseVersionCoherencePassed` | `True` |",
+                "| `localHeadMatchesSelectedPublicReleaseCommit` | `True` |",
+                "| `localMainMatchesSelectedPublicReleaseCommit` | `True` |",
                 "",
                 "## Final Stable V4 Claim Packet",
                 "",

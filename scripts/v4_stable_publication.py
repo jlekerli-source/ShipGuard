@@ -1004,6 +1004,68 @@ def build_github_release_metadata_proof(args: argparse.Namespace, version: str) 
     return proof
 
 
+def build_github_latest_release_proof(args: argparse.Namespace) -> dict[str, Any]:
+    proof: dict[str, Any] = {
+        "status": "not-provided",
+        "provided": bool(args.github_release_repo),
+        "repo": args.github_release_repo or "",
+        "tag": "",
+        "version": "",
+        "releaseUrl": "",
+        "publishedAt": "",
+        "targetCommitish": "",
+        "tagTargetSha": "",
+        "tagTargetProofStatus": "not-provided",
+        "summary": "Latest GitHub release metadata was not requested because no repository was selected.",
+    }
+    if not args.github_release_repo or "/" not in args.github_release_repo:
+        return proof
+
+    token = os.environ.get(args.github_token_env or "")
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "shipguard-stable-publication",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    endpoint = launchkey.join_api_url(args.github_api_url, f"/repos/{args.github_release_repo}/releases/latest")
+    proof["releaseEndpoint"] = endpoint
+    try:
+        release = launchkey.request_json(endpoint, headers)
+    except (RuntimeError, OSError, urllib.error.URLError, urllib.error.HTTPError) as exc:
+        proof.update(
+            {
+                "status": "blocked",
+                "summary": "Latest GitHub release metadata could not be loaded.",
+                "error": launchkey.short_output(str(exc), 500),
+            }
+        )
+        return proof
+
+    tag = str(release.get("tag_name") or release.get("tagName") or "")
+    tag_target_proof = build_github_tag_target_proof(args, tag) if tag else {}
+    proof.update(
+        {
+            "status": "pass" if tag else "review",
+            "provided": True,
+            "summary": "Latest GitHub release metadata loaded." if tag else "Latest GitHub release metadata has no tag.",
+            "tag": tag,
+            "version": normalize_version(tag),
+            "releaseUrl": release.get("html_url") or release.get("url") or "",
+            "publishedAt": release.get("published_at") or release.get("publishedAt") or "",
+            "targetCommitish": release.get("target_commitish") or release.get("targetCommitish") or "",
+            "isDraft": bool(release.get("draft") or release.get("isDraft")),
+            "isPrerelease": bool(release.get("prerelease") or release.get("isPrerelease")),
+            "tagTargetSha": tag_target_proof.get("tagTargetSha") or "",
+            "tagTargetProofStatus": tag_target_proof.get("status") or "not-provided",
+        }
+    )
+    if proof.get("isDraft") or proof.get("isPrerelease"):
+        proof["status"] = "review"
+        proof["summary"] = "Latest GitHub release is draft or prerelease."
+    return proof
+
+
 def analyze_release_notes(body: str) -> dict[str, Any]:
     text = str(body or "").strip()
     normalized = re_normalized(text)
@@ -1551,6 +1613,113 @@ def build_release_asset_coherence_proof(
             "sourceOnlyProofCountsAsAssetCoherenceProof": False,
             "fixtureProofCountsAsStableV4PublicationProof": False,
             "metadataOnlyProofCountsAsAssetCoherenceProof": False,
+        },
+    }
+
+
+def build_public_release_delta_proof(
+    *,
+    root: Path,
+    source_version: str,
+    release_version: str,
+    metadata_proof: dict[str, Any],
+    latest_release_proof: dict[str, Any],
+    published_asset_proof: dict[str, Any],
+    public_release_freshness_proof: dict[str, Any],
+    release_version_coherence_proof: dict[str, Any],
+    release_asset_coherence_proof: dict[str, Any],
+    stable_v4_release: bool,
+    rerun_command: str,
+) -> dict[str, Any]:
+    local_head = git_rev_parse(root, "HEAD")
+    local_main = git_rev_parse(root, "main^{commit}") or local_head
+    selected_tag = str(metadata_proof.get("tag") or launchkey.normalize_release_tag(release_version))
+    latest_tag = str(latest_release_proof.get("tag") or "")
+    manifest_commit = str(public_release_freshness_proof.get("manifestCommit") or "")
+    selected_release_commit = str(public_release_freshness_proof.get("tagTargetSha") or "")
+    package_version = str(published_asset_proof.get("version") or "")
+    freshness_comparisons = (
+        public_release_freshness_proof.get("comparisons")
+        if isinstance(public_release_freshness_proof.get("comparisons"), dict)
+        else {}
+    )
+    comparisons = {
+        "sourceVersionMatchesRequestedRelease": normalize_version(source_version) == normalize_version(release_version),
+        "selectedReleaseMatchesLatestGitHubRelease": latest_release_proof.get("status") == "pass" and latest_tag == selected_tag,
+        "releaseManifestVersionMatchesRequestedRelease": normalize_version(str(public_release_freshness_proof.get("manifestVersion") or "")) == normalize_version(release_version),
+        "packageAssetsVersionMatchesRequestedRelease": normalize_version(package_version) == normalize_version(release_version),
+        "publicTagTargetMatchesReleaseManifestCommit": freshness_comparisons.get("tagTargetMatchesManifestCommit") is True,
+        "releaseAssetCoherencePassed": release_asset_coherence_proof.get("status") == "pass",
+        "releaseVersionCoherencePassed": release_version_coherence_proof.get("status") == "pass",
+        "localHeadMatchesSelectedPublicReleaseCommit": sha_matches(local_head, manifest_commit) if local_head and manifest_commit else None,
+        "localMainMatchesSelectedPublicReleaseCommit": sha_matches(local_main, manifest_commit) if local_main and manifest_commit else None,
+    }
+    stable_claim_covers_public_release = (
+        stable_v4_release
+        and comparisons["selectedReleaseMatchesLatestGitHubRelease"] is True
+        and comparisons["releaseVersionCoherencePassed"] is True
+        and comparisons["releaseAssetCoherencePassed"] is True
+    )
+    stable_claim_covers_local_checkout = (
+        stable_claim_covers_public_release
+        and comparisons["localHeadMatchesSelectedPublicReleaseCommit"] is True
+        and comparisons["localMainMatchesSelectedPublicReleaseCommit"] is True
+    )
+    problems: list[str] = []
+    labels = {
+        "sourceVersionMatchesRequestedRelease": "VERSION does not match the requested publication version.",
+        "selectedReleaseMatchesLatestGitHubRelease": "The selected publication tag is not the latest public GitHub release.",
+        "releaseManifestVersionMatchesRequestedRelease": "release-manifest.json does not match the selected publication version.",
+        "packageAssetsVersionMatchesRequestedRelease": "Downloaded or supplied package assets do not match the selected publication version.",
+        "publicTagTargetMatchesReleaseManifestCommit": "The public tag target does not match the release manifest commit.",
+        "releaseAssetCoherencePassed": "Release asset coherence has not passed.",
+        "releaseVersionCoherencePassed": "Release version coherence has not passed.",
+    }
+    for key, label in labels.items():
+        if comparisons.get(key) is not True:
+            problems.append(label)
+    if comparisons["localHeadMatchesSelectedPublicReleaseCommit"] is False:
+        problems.append("Local HEAD contains code that is not the selected public release.")
+    if comparisons["localMainMatchesSelectedPublicReleaseCommit"] is False:
+        problems.append("Local main contains code that is not the selected public release.")
+    unpublished_delta = (
+        comparisons["localHeadMatchesSelectedPublicReleaseCommit"] is False
+        or comparisons["localMainMatchesSelectedPublicReleaseCommit"] is False
+    )
+    return {
+        "schemaVersion": 1,
+        "status": "pass" if not problems else "review",
+        "releaseVersion": release_version,
+        "sourceVersion": source_version,
+        "latestGitHubReleaseVersion": latest_release_proof.get("version") or "",
+        "selectedGitHubReleaseTag": selected_tag,
+        "latestGitHubReleaseTag": latest_tag,
+        "latestGitHubReleaseStatus": latest_release_proof.get("status") or "not-provided",
+        "latestGitHubReleaseUrl": latest_release_proof.get("releaseUrl") or "",
+        "packageVersion": package_version,
+        "localHeadCommit": local_head,
+        "localMainCommit": local_main,
+        "selectedPublicReleaseCommit": selected_release_commit,
+        "releaseManifestCommit": manifest_commit,
+        "stableV4Release": stable_v4_release,
+        "stableV4ClaimCoversSelectedPublicRelease": stable_claim_covers_public_release,
+        "stableV4ClaimCoversLocalCheckout": stable_claim_covers_local_checkout,
+        "unpublishedLocalDelta": unpublished_delta,
+        "summary": (
+            "Local source, latest GitHub release, release manifest, package assets, and stable-v4 claim context are aligned."
+            if not problems
+            else "Local source, latest GitHub release, package assets, or claim context are out of sync."
+        ),
+        "comparisons": comparisons,
+        "problems": problems,
+        "nextCommand": rerun_command,
+        "releaseDeltaBoundary": {
+            "latestPublicGitHubReleaseIsPublicationSource": True,
+            "localHeadIsNotPublicReleaseProof": True,
+            "localMainIsNotPublicReleaseProof": True,
+            "unpublishedLocalCodeCountsAsReleased": False,
+            "downloadedOrSuppliedAssetsAreRequiredForPackageTruth": True,
+            "stableV4ClaimCoversSelectedReleaseOnly": True,
         },
     }
 
@@ -3560,6 +3729,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         consumer_args.release_version = normalize_version(consumer_args.release_version)
 
     metadata_proof = build_github_release_metadata_proof(args, version)
+    latest_release_proof = build_github_latest_release_proof(args)
     release_notes_proof = build_release_notes_proof(metadata_proof)
     release_candidate_packet_proof = build_release_candidate_packet_proof(args)
     github_download_proof = launchkey.build_github_release_asset_download_proof(args, version)
@@ -3659,6 +3829,19 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         stable_v4_release=stable_v4_release,
         evidence_packet=evidence_packet,
     )
+    public_release_delta_proof = build_public_release_delta_proof(
+        root=root,
+        source_version=version,
+        release_version=release_version,
+        metadata_proof=metadata_proof,
+        latest_release_proof=latest_release_proof,
+        published_asset_proof=published_asset_proof,
+        public_release_freshness_proof=public_release_freshness_proof,
+        release_version_coherence_proof=release_version_coherence_proof,
+        release_asset_coherence_proof=release_asset_coherence_proof,
+        stable_v4_release=stable_v4_release,
+        rerun_command=stable_publication_rerun_command(args),
+    )
     final_claim_packet = build_final_stable_v4_claim_packet(
         release_version=release_version,
         stable_v4_release=stable_v4_release,
@@ -3712,8 +3895,10 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "stablePublicationEvidenceStarterKit": evidence_starter_kit,
         "stablePublicationReleaseNotesAuthoringKit": release_notes_authoring_kit,
         "stablePublicationLaunchRelayDrafts": launch_relay_drafts,
+        "publicReleaseDeltaProof": public_release_delta_proof,
         "finalStableV4ClaimPacket": final_claim_packet,
         "githubReleaseMetadataProof": metadata_proof,
+        "githubLatestReleaseProof": latest_release_proof,
         "releaseNotesProof": release_notes_proof,
         "releaseCandidatePacketProof": release_candidate_packet_proof,
         "githubReleaseAssetDownloadProof": github_download_proof,
@@ -3760,6 +3945,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "Does the release asset coherence row prove required asset names and SHA-256 values match across metadata, local assets, manifest, digest matrix, and consumer proof?",
             "Do independent adoption and final security-review evidence records prove generatedAt freshness against the release manifest instead of reusing stale packet evidence?",
             "Does the public evidence closure proof summarize adoption/security gate status, freshness, starter paths, copy-ready commands, and non-claims before stable-v4 publication?",
+            "Does the public release delta proof show whether local main, latest GitHub release, package assets, and stable-publication claims are aligned before announcement copy?",
             "Does the final stable-v4 claim packet give copy-ready allowed wording, blocked wording, evidence status rows, approval boundaries, and non-claims before any launch announcement?",
             "Do independent adoption and final security-review closure rows expose starter paths, required fields, redaction/privacy boundaries, pass/fail criteria, current diagnostics, and exact stable-publication rerun commands?",
             "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?",
@@ -3854,6 +4040,48 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.extend(["", "Public evidence non-claims:", ""])
         for claim in public_evidence.get("nonClaims", []):
             lines.append(f"- {claim}")
+    public_delta = (
+        report.get("publicReleaseDeltaProof")
+        if isinstance(report.get("publicReleaseDeltaProof"), dict)
+        else {}
+    )
+    if public_delta:
+        boundary = (
+            public_delta.get("releaseDeltaBoundary")
+            if isinstance(public_delta.get("releaseDeltaBoundary"), dict)
+            else {}
+        )
+        comparisons = (
+            public_delta.get("comparisons")
+            if isinstance(public_delta.get("comparisons"), dict)
+            else {}
+        )
+        lines.extend(
+            [
+                "",
+                "## Public Release Delta",
+                "",
+                f"- Status: `{public_delta.get('status')}`",
+                f"- Source version: `{public_delta.get('sourceVersion')}`",
+                f"- Selected release: `{public_delta.get('releaseVersion')}`",
+                f"- Latest GitHub release: `{public_delta.get('latestGitHubReleaseVersion') or 'not-provided'}`",
+                f"- Package version: `{public_delta.get('packageVersion') or 'not-provided'}`",
+                f"- Unpublished local delta: `{public_delta.get('unpublishedLocalDelta')}`",
+                f"- Stable-v4 claim covers selected public release: `{public_delta.get('stableV4ClaimCoversSelectedPublicRelease')}`",
+                f"- Stable-v4 claim covers local checkout: `{public_delta.get('stableV4ClaimCoversLocalCheckout')}`",
+                f"- Unpublished local code counts as released: `{boundary.get('unpublishedLocalCodeCountsAsReleased')}`",
+                "",
+                "| Comparison | Value |",
+                "| --- | --- |",
+            ]
+        )
+        for key, value in comparisons.items():
+            lines.append(f"| `{key}` | `{value}` |")
+        if public_delta.get("problems"):
+            lines.extend(["", "Release delta problems:", ""])
+            for problem in public_delta.get("problems", []):
+                lines.append(f"- {problem}")
+        lines.extend(["", "Next command:", "", "```bash", str(public_delta.get("nextCommand") or ""), "```"])
     final_claim = (
         report.get("finalStableV4ClaimPacket")
         if isinstance(report.get("finalStableV4ClaimPacket"), dict)

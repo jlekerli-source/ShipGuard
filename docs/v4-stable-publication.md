@@ -63,6 +63,9 @@ Outputs:
 - `stablePublicationEvidenceStarterKit` in JSON, rendered as `Evidence Starter Kit` in Markdown
 - `stablePublicationReleaseNotesAuthoringKit` in JSON, rendered as `Release Notes Authoring Kit` in Markdown
 - `stablePublicationLaunchRelayDrafts` in JSON, rendered as `Launch Relay Drafts` in Markdown
+- `githubLatestReleaseProof` in JSON for latest public GitHub release metadata
+- `publicReleaseDeltaProof` in JSON, rendered as `Public Release Delta` in Markdown
+- `finalStableV4ClaimPacket` in JSON, rendered as `Final Stable V4 Claim Packet` in Markdown
 
 ## Stable Gates
 
@@ -270,6 +273,26 @@ Stable publication emits `publicEvidenceClosureProof` as the copy-ready summary 
 The proof lists both evidence rows with gate status, freshness status, stable-v4 eligible record counts, fresh/stale record counts, starter paths, template copy commands, the full stable-publication rerun command, and non-claims. It is deliberately a summary of the adoption/security gates, not a new way to manufacture evidence.
 
 Markdown renders this as `Public Evidence Closure`. A stable-v4 claim cannot pass if adoption/security proof is missing, stale, fixture-only, source-only, based on GitHub downloads, or framed as marketplace acceptance or external launch proof.
+
+## Public Release Delta
+
+Stable publication emits `publicReleaseDeltaProof` to show whether the selected release, latest GitHub release, downloaded or supplied package assets, local `HEAD`, local `main`, release-manifest commit, and stable-v4 claim scope are aligned.
+
+This is claim context, not a new stable-publication gate. A published release can still be proven after local `main` moves on, but the report must make that delta visible so unpublished local code is not described as released.
+
+Markdown renders this as `Public Release Delta`.
+
+Important fields:
+
+- `latestGitHubReleaseVersion` and `latestGitHubReleaseTag`
+- `sourceVersion`, `releaseVersion`, and `packageVersion`
+- `localHeadCommit`, `localMainCommit`, `selectedPublicReleaseCommit`, and `releaseManifestCommit`
+- `unpublishedLocalDelta`
+- `stableV4ClaimCoversSelectedPublicRelease`
+- `stableV4ClaimCoversLocalCheckout`
+- `releaseDeltaBoundary.unpublishedLocalCodeCountsAsReleased = false`
+
+`ios report-quality` flags full stable-publication reports that hide this block, weaken the unpublished-code boundary, or allow stable-v4 claim wording when the selected public release is not covered.
 
 ## Final Stable V4 Claim Packet
 
