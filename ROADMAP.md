@@ -202,6 +202,8 @@ v3.135 continues InspectDeck missing-receipt priority by exposing `missingReceip
 
 v3.136 continues InspectDeck executable next-command normalization by falling back to a runnable full-audit command when a failed-stage receipt has a missing or unsafe `stageId`, instead of leaking malformed `--stage` commands into `resultUX.nextCommand`.
 
+v3.137 continues LaunchKey published release-asset proof attachment by adding a compact `releaseAssetProofAttachment` to `publishedReleaseAssetProof`, so release-consume paths, digest status, missing artifacts, next command, and source-only/fixture-proof boundaries travel with the candidate packet.
+
 Every release proposal must answer:
 
 1. Which developer decision changes?

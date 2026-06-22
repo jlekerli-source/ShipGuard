@@ -448,6 +448,7 @@ SHIPGUARD_GENERATED_AT="2026-06-19T00:00:00Z" \
 
 test -f "$tmp_dir/with-assets/v4-release-candidate.json"
 test -f "$tmp_dir/with-assets/v4-release-candidate.md"
+grep -q 'Release Asset Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
 test -f "$tmp_dir/with-assets-consume/consumer-report.json"
 test -f "$tmp_dir/with-assets-consume/asset-digests.json"
 test -x "$tmp_dir/fresh-prefix/bin/shipguard"
@@ -465,6 +466,7 @@ fresh = report["freshInstallPackageProof"]
 upgrade = report["upgradePackageProof"]
 rollback = report["rollbackPackageProof"]
 proof = report["publishedReleaseAssetProof"]
+attachment = proof["releaseAssetProofAttachment"]
 adoption = report["externalAdoptionEvidenceProof"]
 security = report["securityReviewEvidenceProof"]
 assert report["status"] == "pass"
@@ -529,6 +531,14 @@ assert proof["consumerReportPath"] == "<release-consume-out>/consumer-report.jso
 assert proof["assetDigestMatrixPath"] == "<release-consume-out>/asset-digests.json"
 assert proof["assetsDir"] == "<release-assets>"
 assert proof["consumeOut"] == "<release-consume-out>"
+assert attachment["status"] == "pass"
+assert attachment["downloadSource"] == "supplied-directory"
+assert attachment["consumerReportPath"] == "<release-consume-out>/consumer-report.json"
+assert attachment["assetDigestMatrixPath"] == "<release-consume-out>/asset-digests.json"
+assert attachment["missingProofArtifacts"] == []
+assert attachment["proofBoundary"]["releaseConsumeVerificationRequired"] is True
+assert attachment["proofBoundary"]["sourceOnlyProofCounts"] is False
+assert attachment["proofBoundary"]["fixtureProofCountsAsStableV4PublicationProof"] is False
 assert adoption["status"] == "pass"
 assert adoption["stableV4GateStatus"] == "pass"
 assert adoption["evidenceInputs"][0].startswith("<external-adoption-evidence>")
@@ -646,6 +656,7 @@ import sys
 report = json.load(open(sys.argv[1], encoding="utf-8"))
 download = report["githubReleaseAssetDownloadProof"]
 proof = report["publishedReleaseAssetProof"]
+attachment = proof["releaseAssetProofAttachment"]
 assert report["status"] == "pass"
 assert report["releaseReadiness"]["githubReleaseAssetDownloadProof"] == "pass"
 assert report["releaseReadiness"]["publishedReleaseAssetProof"] == "pass"
@@ -665,6 +676,11 @@ assert proof["assetsDir"] == "<downloaded-release-assets>"
 assert proof["consumerReportStatus"] == "pass"
 assert proof["replayStatus"] == "pass"
 assert proof["attestationStatus"] == "pass"
+assert attachment["status"] == "pass"
+assert attachment["downloadSource"] == "github-release-assets"
+assert attachment["consumerReportPath"] == "<release-consume-out>/consumer-report.json"
+assert attachment["assetDigestMatrixPath"] == "<release-consume-out>/asset-digests.json"
+assert attachment["missingProofArtifacts"] == []
 PY
 
 if grep -R -F -q "$api_root" "$tmp_dir/native-assets"; then
@@ -849,6 +865,10 @@ import sys
 report = json.load(open(sys.argv[1], encoding="utf-8"))
 assert report["readinessProof"]["releaseProofConsumption"]["status"] == "blocked"
 assert report["releaseProofConsumption"]["status"] == "blocked"
+attachment = report["publishedReleaseAssetProof"]["releaseAssetProofAttachment"]
+assert attachment["status"] == "blocked"
+assert attachment["missingProofArtifacts"] == ["consumer-report.json", "asset-digests.json"]
+assert attachment["proofBoundary"]["downloadedOrSuppliedReleaseAssetsRequired"] is True
 PY
 
 if ./bin/shipguard v4 release-candidate \

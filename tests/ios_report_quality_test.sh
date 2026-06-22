@@ -5376,6 +5376,54 @@ if any(
     raise SystemExit(f"generic Full Audit review question outranked release-stabilization signal: {ranked!r}")
 PY
 
+launchkey_asset_attachment_dir="$tmp_dir/launchkey-asset-attachment"
+mkdir -p "$launchkey_asset_attachment_dir"
+cat > "$launchkey_asset_attachment_dir/v4-release-candidate.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard v4 release-candidate",
+  "surface": "ShipGuard V4 Release Candidate Readiness",
+  "generatedAt": "2026-06-19T00:00:00Z",
+  "status": "pass",
+  "resultUX": {
+    "status": "pass",
+    "verdict": "PASS: Synthetic LaunchKey report completed.",
+    "proofSource": "synthetic release-readiness fixture",
+    "whyItMatters": "LaunchKey tracks stable-v4 proof gates.",
+    "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+    "nextActionSummary": "Attach this candidate to stable-publication."
+  },
+  "publishedReleaseAssetProof": {
+    "status": "pass",
+    "provided": true,
+    "requiredForStableV4": true,
+    "consumerReportPath": "release-consume/consumer-report.json",
+    "assetDigestMatrixPath": "release-consume/asset-digests.json"
+  }
+}
+JSON
+cat > "$launchkey_asset_attachment_dir/v4-release-candidate.md" <<'MD'
+# ShipGuard V4 Release Candidate Readiness
+
+## Result
+
+- Verdict: PASS: Synthetic LaunchKey report completed.
+- Proof source: synthetic release-readiness fixture
+- Why it matters: LaunchKey tracks stable-v4 proof gates.
+- Next command: `./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable`
+- Next action: Attach this candidate to stable-publication.
+
+## Published Release Asset Proof
+
+- Status: `pass`
+MD
+./bin/shipguard ios report-quality \
+  --reports "$launchkey_asset_attachment_dir" \
+  --out "$tmp_dir/launchkey-asset-attachment-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/launchkey-asset-attachment-quality/ios-report-quality.json"
+grep -q 'launchkey-release-asset-proof-attachment-missing' "$tmp_dir/launchkey-asset-attachment-quality/ios-report-quality.json"
+
 stable_publication_priority_dir="$tmp_dir/stable-publication-priority"
 mkdir -p "$stable_publication_priority_dir"
 cat > "$stable_publication_priority_dir/tool-value-gauntlet.json" <<'JSON'

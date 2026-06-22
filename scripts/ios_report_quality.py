@@ -1346,6 +1346,73 @@ def verify_pr_report_quality_issues(report: dict[str, Any], *, markdown: str, pa
     return issues
 
 
+def launchkey_release_asset_attachment_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
+    if str(report.get("tool") or "") != "shipguard v4 release-candidate":
+        return []
+    proof = report.get("publishedReleaseAssetProof")
+    if not isinstance(proof, dict) or not proof.get("provided"):
+        return []
+    issues: list[dict[str, str]] = []
+    attachment = proof.get("releaseAssetProofAttachment")
+    if not isinstance(attachment, dict) or not attachment:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-release-asset-proof-attachment-missing",
+            evidence=f"{path_name} publishedReleaseAssetProof participated but has no releaseAssetProofAttachment",
+            recommendation="Attach a compact releaseAssetProofAttachment with release-consume paths, digest status, next command, missing artifacts, and proof boundary.",
+        )
+        return issues
+    if attachment.get("status") != proof.get("status"):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-release-asset-proof-attachment-status-drift",
+            evidence=f"{path_name} releaseAssetProofAttachment.status does not mirror publishedReleaseAssetProof.status",
+            recommendation="Keep the attachment status aligned with the root release asset proof status.",
+        )
+    if not attachment.get("consumerReportPath") and "consumer-report.json" not in (attachment.get("missingProofArtifacts") or []):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-release-asset-proof-attachment-consumer-path-missing",
+            evidence=f"{path_name} releaseAssetProofAttachment hides consumer-report.json and does not list it as missing",
+            recommendation="Expose consumerReportPath when release-consume ran, or list consumer-report.json in missingProofArtifacts.",
+        )
+    if not attachment.get("assetDigestMatrixPath") and "asset-digests.json" not in (attachment.get("missingProofArtifacts") or []):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-release-asset-proof-attachment-digest-path-missing",
+            evidence=f"{path_name} releaseAssetProofAttachment hides asset-digests.json and does not list it as missing",
+            recommendation="Expose assetDigestMatrixPath when release-consume ran, or list asset-digests.json in missingProofArtifacts.",
+        )
+    boundary = attachment.get("proofBoundary") if isinstance(attachment.get("proofBoundary"), dict) else {}
+    if (
+        boundary.get("downloadedOrSuppliedReleaseAssetsRequired") is not True
+        or boundary.get("releaseConsumeVerificationRequired") is not True
+        or boundary.get("assetDigestMatrixRequired") is not True
+        or boundary.get("sourceOnlyProofCounts") is not False
+        or boundary.get("fixtureProofCountsAsStableV4PublicationProof") is not False
+    ):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-release-asset-proof-attachment-boundary-missing",
+            evidence=f"{path_name} releaseAssetProofAttachment weakens the release asset proof boundary",
+            recommendation="State that downloaded/supplied assets, release-consume, and asset-digests are required; source-only and fixture proof do not count for stable-v4 publication.",
+        )
+    if "Release Asset Proof Attachment" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="launchkey-release-asset-proof-attachment-markdown-missing",
+            evidence=f"{path_name} Markdown does not render the release asset proof attachment",
+            recommendation="Render the attachment under Published Release Asset Proof so maintainers can find consumer paths and digest status without opening JSON.",
+        )
+    return issues
+
+
 def task_contract_quickstart_replay_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     tool = str(report.get("tool") or "")
@@ -7678,6 +7745,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     issues.extend(finding_quality_issues(loaded))
     issues.extend(result_ux_quality_issues(loaded, path_name=path.name))
     issues.extend(verify_pr_report_quality_issues(loaded, markdown=markdown, path_name=path.name))
+    issues.extend(launchkey_release_asset_attachment_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_quickstart_replay_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_notification_scope_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_unsupported_claim_replay_issues(loaded, markdown=markdown, path_name=path.name))

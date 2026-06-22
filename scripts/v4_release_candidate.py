@@ -911,7 +911,7 @@ def build_published_release_asset_proof(
         "--out <consume-dir> --version <version>"
     )
     if github_release_asset_download_proof.get("requested") and github_release_asset_download_proof.get("status") != "pass":
-        return {
+        proof = {
             "status": "blocked",
             "provided": True,
             "requiredForStableV4": True,
@@ -922,6 +922,8 @@ def build_published_release_asset_proof(
             "downloadProofStatus": github_release_asset_download_proof.get("status"),
             "error": github_release_asset_download_proof.get("error", ""),
         }
+        attach_release_asset_proof_attachment(proof)
+        return proof
 
     effective_release_assets = (
         github_release_asset_download_proof.get("downloadDir")
@@ -975,10 +977,12 @@ def build_published_release_asset_proof(
     if not assets_dir.exists():
         proof["summary"] = "Downloaded release assets directory was not found."
         proof["error"] = f"release assets directory not found: {assets_dir}"
+        attach_release_asset_proof_attachment(proof)
         return proof
     if not (root / "bin" / "shipguard").exists():
         proof["summary"] = "ShipGuard CLI was not found in the inspected checkout."
         proof["error"] = "bin/shipguard not found"
+        attach_release_asset_proof_attachment(proof)
         return proof
 
     try:
@@ -995,6 +999,7 @@ def build_published_release_asset_proof(
         proof["exitCode"] = "timeout"
         proof["stdout"] = short_output(exc.stdout or "")
         proof["stderr"] = short_output(exc.stderr or "")
+        attach_release_asset_proof_attachment(proof)
         return proof
 
     consumer_report = load_json(consume_out / "consumer-report.json")
@@ -1024,7 +1029,48 @@ def build_published_release_asset_proof(
         proof["summary"] = "Supplied downloaded release assets passed consumer-side verification."
     else:
         proof["summary"] = "Supplied downloaded release assets did not pass consumer-side verification."
+    attach_release_asset_proof_attachment(proof)
     return proof
+
+
+def attach_release_asset_proof_attachment(proof: dict[str, Any]) -> None:
+    if not proof.get("provided"):
+        return
+    missing_artifacts = [
+        name
+        for field, name in (
+            ("consumerReportPath", "consumer-report.json"),
+            ("assetDigestMatrixPath", "asset-digests.json"),
+        )
+        if not proof.get(field)
+    ]
+    proof["releaseAssetProofAttachment"] = {
+        "status": proof.get("status"),
+        "downloadSource": proof.get("downloadSource"),
+        "downloadProofStatus": proof.get("downloadProofStatus"),
+        "assetsDir": proof.get("assetsDir", ""),
+        "consumeOut": proof.get("consumeOut", ""),
+        "consumerReportPath": proof.get("consumerReportPath", ""),
+        "assetDigestMatrixPath": proof.get("assetDigestMatrixPath", ""),
+        "artifactSha256": proof.get("artifactSha256", ""),
+        "consumerReportStatus": proof.get("consumerReportStatus", ""),
+        "replayStatus": proof.get("replayStatus", ""),
+        "attestationStatus": proof.get("attestationStatus", ""),
+        "publishedReplayCrosscheck": proof.get("publishedReplayCrosscheck", ""),
+        "publishedAttestationCrosscheck": proof.get("publishedAttestationCrosscheck", ""),
+        "publishedBadgeCrosscheck": proof.get("publishedBadgeCrosscheck", ""),
+        "assetCount": proof.get("assetCount"),
+        "missingProofArtifacts": missing_artifacts,
+        "consumeCommand": proof.get("consumeCommand"),
+        "nextCommand": proof.get("consumeCommand") or proof.get("nextCommand"),
+        "proofBoundary": {
+            "downloadedOrSuppliedReleaseAssetsRequired": True,
+            "releaseConsumeVerificationRequired": True,
+            "assetDigestMatrixRequired": True,
+            "sourceOnlyProofCounts": False,
+            "fixtureProofCountsAsStableV4PublicationProof": False,
+        },
+    }
 
 
 def collect_external_adoption_evidence_files(raw_paths: list[str]) -> tuple[list[Path], list[str]]:
@@ -2304,6 +2350,14 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append(f"- Attestation status: `{proof.get('attestationStatus')}`")
         if proof.get("artifactSha256"):
             lines.append(f"- Artifact SHA-256: `{proof.get('artifactSha256')}`")
+        attachment = proof.get("releaseAssetProofAttachment") if isinstance(proof.get("releaseAssetProofAttachment"), dict) else {}
+        if attachment:
+            lines.extend(["", "### Release Asset Proof Attachment", ""])
+            lines.append(f"- Status: `{attachment.get('status')}`")
+            lines.append(f"- Download source: `{attachment.get('downloadSource')}`")
+            lines.append(f"- Consumer report: `{attachment.get('consumerReportPath') or 'missing'}`")
+            lines.append(f"- Asset digest matrix: `{attachment.get('assetDigestMatrixPath') or 'missing'}`")
+            lines.append(f"- Missing proof artifacts: `{', '.join(attachment.get('missingProofArtifacts') or []) or 'none'}`")
     else:
         lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## External Adoption Packet", ""])
