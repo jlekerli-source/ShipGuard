@@ -602,10 +602,12 @@ def build_upgrade_package_proof(args: argparse.Namespace, version: str) -> dict[
     if not previous_tarball.is_file():
         proof["summary"] = "Previous release package tarball was not found."
         proof["error"] = f"previous release tarball not found: {previous_tarball}"
+        attach_upgrade_package_proof_attachment(proof)
         return proof
     if not candidate_tarball.is_file():
         proof["summary"] = "Candidate release package tarball was not found."
         proof["error"] = f"candidate release tarball not found: {candidate_tarball}"
+        attach_upgrade_package_proof_attachment(proof)
         return proof
     if not prepare_empty_work_paths(
         proof,
@@ -616,6 +618,7 @@ def build_upgrade_package_proof(args: argparse.Namespace, version: str) -> dict[
         "upgrade prefix",
         "upgrade work directory",
     ):
+        attach_upgrade_package_proof_attachment(proof)
         return proof
 
     previous_extracted, previous_extract_evidence = safe_extract_tarball(previous_tarball, previous_extract_dir)
@@ -624,6 +627,7 @@ def build_upgrade_package_proof(args: argparse.Namespace, version: str) -> dict[
     if not previous_extracted:
         attach_blocking_package_hygiene(proof, [previous_tarball, candidate_tarball], args)
         proof["summary"] = "Previous release package tarball could not be safely extracted."
+        attach_upgrade_package_proof_attachment(proof)
         return proof
     candidate_extracted, candidate_extract_evidence = safe_extract_tarball(candidate_tarball, candidate_extract_dir)
     proof["candidateExtractStatus"] = "pass" if candidate_extracted else "blocked"
@@ -631,6 +635,7 @@ def build_upgrade_package_proof(args: argparse.Namespace, version: str) -> dict[
     if not candidate_extracted:
         attach_blocking_package_hygiene(proof, [previous_tarball, candidate_tarball], args)
         proof["summary"] = "Candidate release package tarball could not be safely extracted."
+        attach_upgrade_package_proof_attachment(proof)
         return proof
 
     previous_root = find_package_root(previous_extract_dir, version)
@@ -638,10 +643,12 @@ def build_upgrade_package_proof(args: argparse.Namespace, version: str) -> dict[
     if previous_root is None:
         proof["summary"] = "Previous package did not contain scripts/install.sh."
         proof["error"] = "previous package root not found"
+        attach_upgrade_package_proof_attachment(proof)
         return proof
     if candidate_root is None:
         proof["summary"] = "Candidate package did not contain scripts/install.sh."
         proof["error"] = "candidate package root not found"
+        attach_upgrade_package_proof_attachment(proof)
         return proof
     previous_version = package_version(previous_root)
     proof["previousPackageRoot"] = previous_root.as_posix()
@@ -654,6 +661,7 @@ def build_upgrade_package_proof(args: argparse.Namespace, version: str) -> dict[
     proof["previousInstallResult"] = previous_install_result
     if previous_install_result["exitCode"] != 0:
         proof["summary"] = "Previous package install failed before the upgrade."
+        attach_upgrade_package_proof_attachment(proof)
         return proof
 
     installed_bin = upgrade_prefix / "bin" / "shipguard"
@@ -673,6 +681,7 @@ def build_upgrade_package_proof(args: argparse.Namespace, version: str) -> dict[
     proof["candidateInstallResult"] = candidate_install_result
     if candidate_install_result["exitCode"] != 0:
         proof["summary"] = "Candidate package install failed during upgrade."
+        attach_upgrade_package_proof_attachment(proof)
         return proof
 
     installed_root = upgrade_prefix / "lib" / "shipguard"
@@ -716,7 +725,59 @@ def build_upgrade_package_proof(args: argparse.Namespace, version: str) -> dict[
         proof["upgradedLegacyVersionMatches"] = upgraded_legacy_ok
         proof["validatePassed"] = validate_ok
         proof["installTreeClean"] = clean_ok
+    attach_upgrade_package_proof_attachment(proof)
     return proof
+
+
+def attach_upgrade_package_proof_attachment(proof: dict[str, Any]) -> None:
+    if not proof.get("provided"):
+        return
+    missing_artifacts = [
+        name
+        for field, name in (
+            ("previousVersionResult", "previous-shipguard-version"),
+            ("previousLegacyVersionResult", "previous-codex-maintainer-version"),
+            ("upgradedVersionResult", "upgraded-shipguard-version"),
+            ("upgradedLegacyVersionResult", "upgraded-codex-maintainer-version"),
+            ("validateResult", "shipguard-validate"),
+        )
+        if not isinstance(proof.get(field), dict)
+    ]
+    proof["upgradeProofAttachment"] = {
+        "status": proof.get("status"),
+        "previousTarball": proof.get("previousTarball", ""),
+        "candidateTarball": proof.get("candidateTarball", ""),
+        "upgradePrefix": proof.get("upgradePrefix", ""),
+        "workDir": proof.get("workDir", ""),
+        "previousPackageRoot": proof.get("previousPackageRoot", ""),
+        "candidatePackageRoot": proof.get("candidatePackageRoot", ""),
+        "installedRoot": proof.get("installedRoot", ""),
+        "previousPackageVersion": proof.get("previousPackageVersion", ""),
+        "candidatePackageVersion": proof.get("candidatePackageVersion", ""),
+        "previousInstalledVersion": proof.get("previousInstalledVersion", ""),
+        "previousInstalledLegacyVersion": proof.get("previousInstalledLegacyVersion", ""),
+        "upgradedVersion": proof.get("upgradedVersion", ""),
+        "upgradedLegacyVersion": proof.get("upgradedLegacyVersion", ""),
+        "previousVersionExitCode": (proof.get("previousVersionResult") or {}).get("exitCode") if isinstance(proof.get("previousVersionResult"), dict) else None,
+        "previousLegacyVersionExitCode": (proof.get("previousLegacyVersionResult") or {}).get("exitCode") if isinstance(proof.get("previousLegacyVersionResult"), dict) else None,
+        "upgradedVersionExitCode": (proof.get("upgradedVersionResult") or {}).get("exitCode") if isinstance(proof.get("upgradedVersionResult"), dict) else None,
+        "upgradedLegacyVersionExitCode": (proof.get("upgradedLegacyVersionResult") or {}).get("exitCode") if isinstance(proof.get("upgradedLegacyVersionResult"), dict) else None,
+        "validateExitCode": (proof.get("validateResult") or {}).get("exitCode") if isinstance(proof.get("validateResult"), dict) else None,
+        "forbiddenInstalledPathCount": proof.get("forbiddenInstalledPathCount"),
+        "forbiddenInstalledPaths": proof.get("forbiddenInstalledPaths", []),
+        "missingProofArtifacts": missing_artifacts,
+        "nextCommand": proof.get("nextCommand"),
+        "proofBoundary": {
+            "samePrefixUpgradeRequiredForStableV4": True,
+            "previousPackageInstallRequired": True,
+            "candidatePackageInstallRequired": True,
+            "versionChecksRequired": True,
+            "shipguardValidateRequired": True,
+            "cleanInstalledTreeRequired": True,
+            "sourceOnlyProofCounts": False,
+            "fixtureProofCountsAsStableV4PublicationProof": False,
+        },
+    }
 
 
 def build_rollback_package_proof(args: argparse.Namespace, version: str) -> dict[str, Any]:
@@ -762,6 +823,7 @@ def build_rollback_package_proof(args: argparse.Namespace, version: str) -> dict
     if not tarball.is_file():
         proof["summary"] = "Release package tarball was not found for rollback proof."
         proof["error"] = f"package tarball not found: {tarball}"
+        attach_rollback_package_proof_attachment(proof)
         return proof
     if not prepare_empty_work_paths(
         proof,
@@ -772,6 +834,7 @@ def build_rollback_package_proof(args: argparse.Namespace, version: str) -> dict
         "rollback prefix",
         "rollback work directory",
     ):
+        attach_rollback_package_proof_attachment(proof)
         return proof
 
     extracted, extract_evidence = safe_extract_tarball(tarball, extract_dir)
@@ -780,12 +843,14 @@ def build_rollback_package_proof(args: argparse.Namespace, version: str) -> dict
     if not extracted:
         attach_blocking_package_hygiene(proof, [tarball], args)
         proof["summary"] = "Release package tarball could not be safely extracted for rollback proof."
+        attach_rollback_package_proof_attachment(proof)
         return proof
 
     package_root = find_package_root(extract_dir, version)
     if package_root is None:
         proof["summary"] = "Extracted package did not contain scripts/install.sh for rollback proof."
         proof["error"] = "package root not found"
+        attach_rollback_package_proof_attachment(proof)
         return proof
     proof["packageRoot"] = package_root.as_posix()
 
@@ -794,6 +859,7 @@ def build_rollback_package_proof(args: argparse.Namespace, version: str) -> dict
     proof["installResult"] = install_result
     if install_result["exitCode"] != 0:
         proof["summary"] = "Package install failed before rollback cleanup."
+        attach_rollback_package_proof_attachment(proof)
         return proof
 
     installed_bin = rollback_prefix / "bin" / "shipguard"
@@ -827,7 +893,46 @@ def build_rollback_package_proof(args: argparse.Namespace, version: str) -> dict
         proof["summary"] = "Rollback cleanup proof did not pass every check."
         proof["versionMatches"] = version_ok
         proof["cleanupComplete"] = cleanup_ok
+    attach_rollback_package_proof_attachment(proof)
     return proof
+
+
+def attach_rollback_package_proof_attachment(proof: dict[str, Any]) -> None:
+    if not proof.get("provided"):
+        return
+    missing_artifacts = [
+        name
+        for field, name in (
+            ("versionResult", "shipguard-version"),
+            ("removedPaths", "removed-package-paths"),
+            ("remainingPaths", "remaining-package-paths"),
+        )
+        if field not in proof
+    ]
+    proof["rollbackProofAttachment"] = {
+        "status": proof.get("status"),
+        "packageTarball": proof.get("packageTarball", ""),
+        "rollbackPrefix": proof.get("rollbackPrefix", ""),
+        "workDir": proof.get("workDir", ""),
+        "packageRoot": proof.get("packageRoot", ""),
+        "installedRoot": proof.get("installedRoot", ""),
+        "installedVersion": proof.get("installedVersion", ""),
+        "versionExitCode": (proof.get("versionResult") or {}).get("exitCode") if isinstance(proof.get("versionResult"), dict) else None,
+        "removedPathCount": proof.get("removedPathCount"),
+        "removedPaths": proof.get("removedPaths", []),
+        "remainingPathCount": proof.get("remainingPathCount"),
+        "remainingPaths": proof.get("remainingPaths", []),
+        "missingProofArtifacts": missing_artifacts,
+        "nextCommand": proof.get("nextCommand"),
+        "proofBoundary": {
+            "rollbackCleanupRequiredForStableV4": True,
+            "temporaryPrefixInstallRequired": True,
+            "versionCheckRequired": True,
+            "knownPackageStateRemovalRequired": True,
+            "sourceOnlyProofCounts": False,
+            "fixtureProofCountsAsStableV4PublicationProof": False,
+        },
+    }
 
 
 def build_github_release_asset_download_proof(args: argparse.Namespace, version: str) -> dict[str, Any]:
@@ -2363,6 +2468,15 @@ def render_markdown(report: dict[str, Any]) -> str:
         if proof.get("upgradePrefix"):
             lines.append(f"- Upgrade prefix: `{proof.get('upgradePrefix')}`")
         append_package_hygiene_markdown(lines, proof)
+        attachment = proof.get("upgradeProofAttachment") if isinstance(proof.get("upgradeProofAttachment"), dict) else {}
+        if attachment:
+            lines.extend(["", "### Upgrade Proof Attachment", ""])
+            lines.append(f"- Status: `{attachment.get('status')}`")
+            lines.append(f"- Previous package version: `{attachment.get('previousPackageVersion') or 'missing'}`")
+            lines.append(f"- Upgraded version: `{attachment.get('upgradedVersion') or 'missing'}`")
+            lines.append(f"- Validation exit code: `{attachment.get('validateExitCode')}`")
+            lines.append(f"- Forbidden installed paths: `{attachment.get('forbiddenInstalledPathCount')}`")
+            lines.append(f"- Missing proof artifacts: `{', '.join(attachment.get('missingProofArtifacts') or []) or 'none'}`")
     else:
         lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## Uninstall", ""])
@@ -2380,6 +2494,15 @@ def render_markdown(report: dict[str, Any]) -> str:
         if proof.get("rollbackPrefix"):
             lines.append(f"- Rollback prefix: `{proof.get('rollbackPrefix')}`")
         append_package_hygiene_markdown(lines, proof)
+        attachment = proof.get("rollbackProofAttachment") if isinstance(proof.get("rollbackProofAttachment"), dict) else {}
+        if attachment:
+            lines.extend(["", "### Rollback Proof Attachment", ""])
+            lines.append(f"- Status: `{attachment.get('status')}`")
+            lines.append(f"- Installed version: `{attachment.get('installedVersion') or 'missing'}`")
+            lines.append(f"- Version exit code: `{attachment.get('versionExitCode')}`")
+            lines.append(f"- Removed paths: `{attachment.get('removedPathCount')}`")
+            lines.append(f"- Remaining paths: `{attachment.get('remainingPathCount')}`")
+            lines.append(f"- Missing proof artifacts: `{', '.join(attachment.get('missingProofArtifacts') or []) or 'none'}`")
     else:
         lines.append(f"- Next command: `{proof.get('nextCommand')}`")
     lines.extend(["", "## Release Proof Consumption", ""])

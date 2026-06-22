@@ -1496,6 +1496,98 @@ def launchkey_fresh_install_attachment_issues(report: dict[str, Any], *, markdow
     return issues
 
 
+def launchkey_upgrade_rollback_attachment_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
+    if str(report.get("tool") or "") != "shipguard v4 release-candidate":
+        return []
+    configs = [
+        {
+            "proofKey": "upgradePackageProof",
+            "attachmentKey": "upgradeProofAttachment",
+            "slug": "upgrade",
+            "title": "Upgrade Proof Attachment",
+            "exitField": "validateExitCode",
+            "missingArtifact": "shipguard-validate",
+            "boundary": [
+                "samePrefixUpgradeRequiredForStableV4",
+                "previousPackageInstallRequired",
+                "candidatePackageInstallRequired",
+                "versionChecksRequired",
+                "shipguardValidateRequired",
+                "cleanInstalledTreeRequired",
+            ],
+        },
+        {
+            "proofKey": "rollbackPackageProof",
+            "attachmentKey": "rollbackProofAttachment",
+            "slug": "rollback",
+            "title": "Rollback Proof Attachment",
+            "exitField": "versionExitCode",
+            "missingArtifact": "shipguard-version",
+            "boundary": [
+                "rollbackCleanupRequiredForStableV4",
+                "temporaryPrefixInstallRequired",
+                "versionCheckRequired",
+                "knownPackageStateRemovalRequired",
+            ],
+        },
+    ]
+    issues: list[dict[str, str]] = []
+    for config in configs:
+        proof = report.get(str(config["proofKey"]))
+        if not isinstance(proof, dict) or not proof.get("provided"):
+            continue
+        attachment = proof.get(str(config["attachmentKey"]))
+        slug = str(config["slug"])
+        if not isinstance(attachment, dict) or not attachment:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id=f"launchkey-{slug}-proof-attachment-missing",
+                evidence=f"{path_name} {config['proofKey']} participated but has no {config['attachmentKey']}",
+                recommendation=f"Attach a compact {config['attachmentKey']} with paths, version or validation exits, missing artifacts, next command, and proof boundary.",
+            )
+            continue
+        if attachment.get("status") != proof.get("status"):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id=f"launchkey-{slug}-proof-attachment-status-drift",
+                evidence=f"{path_name} {config['attachmentKey']}.status does not mirror {config['proofKey']}.status",
+                recommendation=f"Keep {config['attachmentKey']}.status aligned with the root {config['proofKey']} status.",
+            )
+        missing_artifacts = attachment.get("missingProofArtifacts") or []
+        if attachment.get(str(config["exitField"])) is None and config["missingArtifact"] not in missing_artifacts:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id=f"launchkey-{slug}-proof-attachment-exit-proof-missing",
+                evidence=f"{path_name} {config['attachmentKey']} hides {config['exitField']} and does not list {config['missingArtifact']} as missing",
+                recommendation=f"Expose {config['exitField']} when the proof ran, or list {config['missingArtifact']} in missingProofArtifacts.",
+            )
+        boundary = attachment.get("proofBoundary") if isinstance(attachment.get("proofBoundary"), dict) else {}
+        if (
+            any(boundary.get(key) is not True for key in config["boundary"])
+            or boundary.get("sourceOnlyProofCounts") is not False
+            or boundary.get("fixtureProofCountsAsStableV4PublicationProof") is not False
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id=f"launchkey-{slug}-proof-attachment-boundary-missing",
+                evidence=f"{path_name} {config['attachmentKey']} weakens the stable-v4 proof boundary",
+                recommendation="State the required package proof steps and that source-only or fixture proof does not count for stable-v4 publication.",
+            )
+        if str(config["title"]) not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id=f"launchkey-{slug}-proof-attachment-markdown-missing",
+                evidence=f"{path_name} Markdown does not render {config['title']}",
+                recommendation=f"Render {config['title']} so maintainers can inspect package proof without opening JSON.",
+            )
+    return issues
+
+
 def task_contract_quickstart_replay_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
     issues: list[dict[str, str]] = []
     tool = str(report.get("tool") or "")
@@ -7830,6 +7922,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     issues.extend(verify_pr_report_quality_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(launchkey_release_asset_attachment_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(launchkey_fresh_install_attachment_issues(loaded, markdown=markdown, path_name=path.name))
+    issues.extend(launchkey_upgrade_rollback_attachment_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_quickstart_replay_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_notification_scope_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(task_contract_unsupported_claim_replay_issues(loaded, markdown=markdown, path_name=path.name))

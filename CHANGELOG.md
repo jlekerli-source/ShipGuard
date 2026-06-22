@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added LaunchKey upgrade and rollback proof attachments: when `v4 release-candidate` verifies same-prefix upgrade or rollback cleanup, `upgradePackageProof.upgradeProofAttachment` and `rollbackPackageProof.rollbackProofAttachment` now carry package paths, version/validation exits, cleanup counts, missing artifacts, next command, and proof boundaries, and `ios report-quality` flags LaunchKey reports that hide them.
 - Added report-quality skipped generated-input disclosure: `ios report-quality` now records `skippedReportDiscovery` and renders `Skipped Generated Report Inputs` so LaunchKey package/install/upgrade/rollback/download/consume proof directories are visibly excluded instead of silently ignored.
 - Added LaunchKey fresh-install proof attachments: when `v4 release-candidate` verifies a package tarball, `freshInstallPackageProof.freshInstallProofAttachment` now carries install paths, version and validation exits, forbidden installed paths, missing artifacts, next command, and proof boundaries, and `ios report-quality` flags LaunchKey reports that hide the attachment.
 - Added LaunchKey published release-asset proof attachments: when `v4 release-candidate` verifies downloaded or supplied release assets, `publishedReleaseAssetProof.releaseAssetProofAttachment` now carries release-consume paths, digest status, missing artifacts, next command, and proof boundaries, and `ios report-quality` flags LaunchKey reports that hide the attachment.

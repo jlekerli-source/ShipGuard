@@ -1,25 +1,25 @@
 # Next Goal
 
-- Generated: 2026-06-22T12:26:58Z
+- Generated: 2026-06-22T12:40:22Z
 - Current toolkit version: 3.132.0
-- Target release: v3.139.0
-- Title: LaunchKey Generated Proof-Directory Report-Quality Exclusion
+- Target release: v3.140.0
+- Title: LaunchKey Upgrade And Rollback Receipt Attachment
 
 ## Version Lineage Check
 
 - Status: review
 - VERSION: 3.132.0
 - Expected next release from VERSION: v3.133.0
-- Planned target release: v3.139.0
+- Planned target release: v3.140.0
 - Current checkout package artifact before version bump: dist/shipguard-v3.132.0.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v3.139.0.tar.gz
-- Action: Before publishing v3.139.0, bump VERSION to 3.139.0 or regenerate next-goal for v3.133.0.
+- Expected package artifact after release bump: dist/shipguard-v3.140.0.tar.gz
+- Action: Before publishing v3.140.0, bump VERSION to 3.140.0 or regenerate next-goal for v3.133.0.
 
 ## Slash Plan
 
 ```text
-/plan v3.139.0 LaunchKey Generated Proof-Directory Report-Quality Exclusion for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make LaunchKey generated proof-directory exclusion auditable so report-quality still scores the root v4 candidate report while disclosing skipped package/install/upgrade/rollback/download/consume JSON evidence attachments.
+/plan v3.140.0 LaunchKey Upgrade And Rollback Receipt Attachment for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Attach compact upgrade and rollback proof from LaunchKey so same-prefix upgrade paths, version and validation exits, rollback cleanup counts, missing artifacts, next commands, and source-only/fixture boundaries travel with the v4 candidate packet.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, resolve version lineage before any release publication, then generate the following goal.
@@ -28,23 +28,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.139.0 LaunchKey Generated Proof-Directory Report-Quality Exclusion for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make LaunchKey generated proof-directory exclusion auditable so report-quality still scores the root v4 candidate report while disclosing skipped package/install/upgrade/rollback/download/consume JSON evidence attachments, push main, verify GitHub Actions, resolve version lineage before publishing any release tarball, verify clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.140.0 LaunchKey Upgrade And Rollback Receipt Attachment for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Attach compact upgrade and rollback proof from LaunchKey so same-prefix upgrade paths, version and validation exits, rollback cleanup counts, missing artifacts, next commands, and source-only/fixture boundaries travel with the v4 candidate packet, push main, verify GitHub Actions, resolve version lineage before publishing any release tarball, verify clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make LaunchKey generated proof-directory exclusion auditable so report-quality still scores the root v4 candidate report while disclosing skipped package/install/upgrade/rollback/download/consume JSON evidence attachments.
+Attach compact upgrade and rollback proof from LaunchKey so same-prefix upgrade paths, version and validation exits, rollback cleanup counts, missing artifacts, next commands, and source-only/fixture boundaries travel with the v4 candidate packet.
 
 ## Completion Receipt
 
-- Completed scope: LaunchKey generated proof-directory report-quality exclusion is now visible and test-covered.
-- Evidence: scripts/ios_report_quality.py emits skippedReportDiscovery and renders Skipped Generated Report Inputs; tests/ios_report_quality_test.sh proves generated proof JSON is skipped from scoring but disclosed; docs/v4-release-candidate.md documents the boundary.
+- Completed scope: LaunchKey upgrade and rollback proof attachments added.
+- Evidence: scripts/v4_release_candidate.py emits upgradePackageProof.upgradeProofAttachment and rollbackPackageProof.rollbackProofAttachment and renders them in Markdown; scripts/ios_report_quality.py flags LaunchKey reports that hide either attachment; tests/v4_release_candidate_test.sh and tests/ios_report_quality_test.sh prove pass and missing-attachment cases.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.140.0 LaunchKey Upgrade And Rollback Receipt Attachment for jlekerli-source/ShipGuard:
+/plan v3.141.0 LaunchKey Downloaded-Asset Blocking Proof Detail for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -54,13 +54,13 @@ Make LaunchKey generated proof-directory exclusion auditable so report-quality s
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.140.0 LaunchKey Upgrade And Rollback Receipt Attachment for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.141.0 LaunchKey Downloaded-Asset Blocking Proof Detail for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.140.0 --title "LaunchKey Upgrade And Rollback Receipt Attachment" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.141.0 --title "LaunchKey Downloaded-Asset Blocking Proof Detail" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -160,12 +160,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.139.0.
+1. Open or update the tracking issue for v3.140.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Resolve version lineage first: bump VERSION to 3.139.0 and rebuild the tarball, or regenerate next-goal for v3.133.0 before creating a GitHub release.
+6. Resolve version lineage first: bump VERSION to 3.140.0 and rebuild the tarball, or regenerate next-goal for v3.133.0 before creating a GitHub release.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

@@ -449,6 +449,8 @@ SHIPGUARD_GENERATED_AT="2026-06-19T00:00:00Z" \
 test -f "$tmp_dir/with-assets/v4-release-candidate.json"
 test -f "$tmp_dir/with-assets/v4-release-candidate.md"
 grep -q 'Fresh Install Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
+grep -q 'Upgrade Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
+grep -q 'Rollback Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
 grep -q 'Release Asset Proof Attachment' "$tmp_dir/with-assets/v4-release-candidate.md"
 test -f "$tmp_dir/with-assets-consume/consumer-report.json"
 test -f "$tmp_dir/with-assets-consume/asset-digests.json"
@@ -466,7 +468,9 @@ report = json.load(open(sys.argv[1], encoding="utf-8"))
 fresh = report["freshInstallPackageProof"]
 fresh_attachment = fresh["freshInstallProofAttachment"]
 upgrade = report["upgradePackageProof"]
+upgrade_attachment = upgrade["upgradeProofAttachment"]
 rollback = report["rollbackPackageProof"]
+rollback_attachment = rollback["rollbackProofAttachment"]
 proof = report["publishedReleaseAssetProof"]
 attachment = proof["releaseAssetProofAttachment"]
 adoption = report["externalAdoptionEvidenceProof"]
@@ -527,6 +531,19 @@ assert upgrade["previousVersionResult"]["exitCode"] == 0
 assert upgrade["upgradedVersionResult"]["exitCode"] == 0
 assert upgrade["upgradedLegacyVersionResult"]["exitCode"] == 0
 assert upgrade["validateResult"]["exitCode"] == 0
+assert upgrade_attachment["status"] == "pass"
+assert upgrade_attachment["previousTarball"] == "<previous-package-tarball>"
+assert upgrade_attachment["candidateTarball"] == "<package-tarball>"
+assert upgrade_attachment["upgradePrefix"] == "<upgrade-prefix>"
+assert upgrade_attachment["workDir"] == "<upgrade-work-dir>"
+assert upgrade_attachment["previousPackageVersion"] == "0.0.0"
+assert upgrade_attachment["upgradedVersion"] == report["version"]
+assert upgrade_attachment["upgradedLegacyVersion"] == report["version"]
+assert upgrade_attachment["validateExitCode"] == 0
+assert upgrade_attachment["forbiddenInstalledPathCount"] == 0
+assert upgrade_attachment["missingProofArtifacts"] == []
+assert upgrade_attachment["proofBoundary"]["samePrefixUpgradeRequiredForStableV4"] is True
+assert upgrade_attachment["proofBoundary"]["sourceOnlyProofCounts"] is False
 assert rollback["status"] == "pass"
 assert rollback["provided"] is True
 assert rollback["installedVersion"] == report["version"]
@@ -537,6 +554,17 @@ assert rollback["rollbackPrefix"] == "<rollback-prefix>"
 assert rollback["workDir"] == "<rollback-work-dir>"
 assert rollback["packageRoot"] == "<rollback-package-root>"
 assert rollback["installedRoot"] == "<rollback-installed-root>"
+assert rollback_attachment["status"] == "pass"
+assert rollback_attachment["packageTarball"] == "<package-tarball>"
+assert rollback_attachment["rollbackPrefix"] == "<rollback-prefix>"
+assert rollback_attachment["workDir"] == "<rollback-work-dir>"
+assert rollback_attachment["installedVersion"] == report["version"]
+assert rollback_attachment["versionExitCode"] == 0
+assert rollback_attachment["removedPathCount"] == 3
+assert rollback_attachment["remainingPathCount"] == 0
+assert rollback_attachment["missingProofArtifacts"] == []
+assert rollback_attachment["proofBoundary"]["rollbackCleanupRequiredForStableV4"] is True
+assert rollback_attachment["proofBoundary"]["sourceOnlyProofCounts"] is False
 assert proof["status"] == "pass"
 assert proof["provided"] is True
 assert proof["downloadSource"] == "supplied-directory"
