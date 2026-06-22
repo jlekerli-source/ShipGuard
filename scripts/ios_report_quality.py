@@ -5554,6 +5554,23 @@ def stable_publication_evidence_packet_issues(
                 evidence=f"{path_name} finalStableV4ClaimPacket is blocked without a next command",
                 recommendation="Carry the first blocker or stable-publication rerun command into the final claim packet.",
             )
+        allowed_claims = final_claim.get("allowedClaims") if isinstance(final_claim.get("allowedClaims"), list) else []
+        if expected_decision == "blocked" and allowed_claims:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-final-claim-allowed-claims-while-blocked",
+                evidence=f"{path_name} finalStableV4ClaimPacket is blocked but still lists allowed claims",
+                recommendation="Keep allowedClaims empty until stableV4Release is true; put progress context in copyReadyClaim or blockedClaims.",
+            )
+        if expected_decision == "allowed" and not allowed_claims:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-final-claim-allowed-claims-missing",
+                evidence=f"{path_name} finalStableV4ClaimPacket is allowed but lists no allowed claims",
+                recommendation="List the bounded stable-v4 statements that the passed report supports.",
+            )
         if (
             boundary.get("stablePublicationReportRequired") is not True
             or boundary.get("allRequiredEvidenceMustPass") is not True

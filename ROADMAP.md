@@ -226,6 +226,8 @@ v3.147 continues Full Audit copy-ready execution-command receipts by adding `exe
 
 v3.148 continues Tool Value Gauntlet stable-publication priority by adding `stablePublicationPriority` so the v4 blocker, proof packet, copy-ready stable-publication command, and source/fixture non-claims are visible without digging through the lowest-value probe internals.
 
+v3.149 continues Stable-publication final claim gate hardening by keeping `allowedClaims` empty on blocked `finalStableV4ClaimPacket` reports and making report-quality reject mixed blocked/allowed claim wording before any stable-v4 announcement.
+
 Every release proposal must answer:
 
 1. Which developer decision changes?

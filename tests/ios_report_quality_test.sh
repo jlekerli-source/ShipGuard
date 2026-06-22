@@ -6261,6 +6261,7 @@ PY
   --out "$tmp_dir/stable-publication-final-claim-delta-quality" \
   --shareable >/dev/null
 grep -q '"ruleId": "stable-publication-final-claim-release-delta-summary-missing"' "$tmp_dir/stable-publication-final-claim-delta-quality/ios-report-quality.json"
+grep -q '"ruleId": "stable-publication-final-claim-allowed-claims-while-blocked"' "$tmp_dir/stable-publication-final-claim-delta-quality/ios-report-quality.json"
 
 stable_publication_final_claim_table_dir="$tmp_dir/stable-publication-final-claim-table"
 mkdir -p "$stable_publication_final_claim_table_dir"

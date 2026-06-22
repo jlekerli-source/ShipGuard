@@ -542,6 +542,7 @@ assert final_claim["status"] == "blocked"
 assert final_claim["claimDecision"] == "blocked"
 assert final_claim["stableV4Release"] is False
 assert "Do not claim ShipGuard" in final_claim["copyReadyClaim"]
+assert final_claim["allowedClaims"] == []
 delta_summary = final_claim["publicReleaseDeltaSummary"]
 assert delta_summary["unpublishedLocalDelta"] is False
 assert delta_summary["stableV4ClaimCoversSelectedPublicRelease"] is False
@@ -1363,6 +1364,7 @@ assert final_claim["status"] == "allowed"
 assert final_claim["claimDecision"] == "allowed"
 assert final_claim["stableV4Release"] is True
 assert "has passed stable-v4 publication proof" in final_claim["copyReadyClaim"]
+assert final_claim["allowedClaims"]
 delta_summary = final_claim["publicReleaseDeltaSummary"]
 assert delta_summary["status"] == "pass"
 assert delta_summary["unpublishedLocalDelta"] is False

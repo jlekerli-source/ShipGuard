@@ -1,25 +1,25 @@
 # Next Goal
 
-- Generated: 2026-06-22T15:29:03Z
+- Generated: 2026-06-22T15:51:58Z
 - Current toolkit version: 3.132.0
-- Target release: v3.148.0
-- Title: Tool Value Gauntlet Stable-publication Priority
+- Target release: v3.149.0
+- Title: Stable-publication Final Claim Gate
 
 ## Version Lineage Check
 
 - Status: review
 - VERSION: 3.132.0
 - Expected next release from VERSION: v3.133.0
-- Planned target release: v3.148.0
+- Planned target release: v3.149.0
 - Current checkout package artifact before version bump: dist/shipguard-v3.132.0.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v3.148.0.tar.gz
-- Action: Before publishing v3.148.0, bump VERSION to 3.148.0 or regenerate next-goal for v3.133.0.
+- Expected package artifact after release bump: dist/shipguard-v3.149.0.tar.gz
+- Action: Before publishing v3.149.0, bump VERSION to 3.149.0 or regenerate next-goal for v3.133.0.
 
 ## Slash Plan
 
 ```text
-/plan v3.148.0 Tool Value Gauntlet Stable-publication Priority for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make Tool Value Gauntlet expose stable-publication priority directly in JSON and Markdown.
+/plan v3.149.0 Stable-publication Final Claim Gate for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Keep final stable-publication claim packets from mixing blocked and allowed wording.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, resolve version lineage before any release publication, then generate the following goal.
@@ -28,23 +28,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.148.0 Tool Value Gauntlet Stable-publication Priority for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make Tool Value Gauntlet expose stable-publication priority directly in JSON and Markdown, push main, verify GitHub Actions, resolve version lineage before publishing any release tarball, verify clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.149.0 Stable-publication Final Claim Gate for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Keep final stable-publication claim packets from mixing blocked and allowed wording, push main, verify GitHub Actions, resolve version lineage before publishing any release tarball, verify clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make Tool Value Gauntlet expose stable-publication priority directly in JSON and Markdown.
+Keep final stable-publication claim packets from mixing blocked and allowed wording.
 
 ## Completion Receipt
 
-- Completed scope: Tool Value Gauntlet stable-publication priority added.
-- Evidence: tool_value_gauntlet_test, ios_report_quality_test, fresh value-gauntlet render, and report-quality proof passed
+- Completed scope: Stable-publication final claim gate hardened.
+- Evidence: v4_stable_publication_test, ios_report_quality_test, tool_value_gauntlet_test, py_compile, diff check, and blocked stable-publication sample passed
 
 ## Following Slash Plan
 
 ```text
-/plan v3.149.0 Stable-publication Final Claim Gate for jlekerli-source/ShipGuard:
+/plan v3.150.0 Lean Review Selected-mode Bias Fixture for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -54,13 +54,13 @@ Make Tool Value Gauntlet expose stable-publication priority directly in JSON and
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.149.0 Stable-publication Final Claim Gate for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.150.0 Lean Review Selected-mode Bias Fixture for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.149.0 --title "Stable-publication Final Claim Gate" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.150.0 --title "Lean Review Selected-mode Bias Fixture" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -160,12 +160,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.148.0.
+1. Open or update the tracking issue for v3.149.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Resolve version lineage first: bump VERSION to 3.148.0 and rebuild the tarball, or regenerate next-goal for v3.133.0 before creating a GitHub release.
+6. Resolve version lineage first: bump VERSION to 3.149.0 and rebuild the tarball, or regenerate next-goal for v3.133.0 before creating a GitHub release.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

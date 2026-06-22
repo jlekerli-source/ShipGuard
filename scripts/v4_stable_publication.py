@@ -2237,11 +2237,7 @@ def build_final_stable_v4_claim_packet(
                 "Release metadata, release notes, downloaded assets, consumer proof, adoption evidence, and security evidence passed.",
             ]
             if stable_v4_release
-            else [
-                "Stable-v4 publication is still in review.",
-                f"{passed}/{total} stable-publication gates passed.",
-                f"First blocker: {first_blocker_id}.",
-            ]
+            else []
         ),
         "blockedClaims": [
             claim
