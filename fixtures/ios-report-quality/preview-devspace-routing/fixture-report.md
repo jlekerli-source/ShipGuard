@@ -41,6 +41,25 @@ Top signals:
 - Success condition: The report explains why learning-progress is the right profile for education and avoids utility-only advice.
 - Failure meaning: The design report remains an inventory, not an app-type-specific design QA recommendation.
 
+## Professional Design Principle Vocabulary
+
+- Source: ShipGuard native design QA vocabulary inspired by professional visual-design principles.
+
+| Principle | Review question |
+| --- | --- |
+| contrast | Can lesson status and primary actions be distinguished without decorative color dependence? |
+| hierarchy | Does the learning flow show lesson goal, current task, and next step in that order? |
+| alignment | Do lesson cards, progress labels, and controls share a deliberate grid? |
+| proximity | Are related learning controls grouped and recovery actions separated? |
+| repetition | Are cards, buttons, and success states reused across the learning flow? |
+| balance | Is progress feedback visually weighted without overwhelming the lesson content? |
+| white space | Does spacing give comprehension room without wasting mobile screen density? |
+| unity | Do color, type, symbols, copy, motion, and haptics feel like one education product? |
+| motion | Does motion clarify progress or recovery while respecting Reduce Motion? |
+| haptics | Are haptics milestone-aware, sparse, and left unclaimed until device proof exists? |
+| preview proof | Are visual claims backed by iPhone preview or Devspace evidence? |
+| app-type fit | Is the guidance tuned for education comprehension instead of generic utility polish? |
+
 ## Findings
 
 | Severity | Category | Rule | Finding | Recommendation | Proof |

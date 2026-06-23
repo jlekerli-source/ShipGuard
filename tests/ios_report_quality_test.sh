@@ -646,6 +646,31 @@ PY
   --shareable >/dev/null
 grep -q '"ruleId": "design-coherence-boundary-missing"' "$tmp_dir/broken-coherence-quality/ios-report-quality.json"
 
+broken_design_vocabulary="$tmp_dir/broken-design-vocabulary"
+cp -R "$shareable_reports/design" "$broken_design_vocabulary"
+python3 - <<'PY' "$broken_design_vocabulary/ios-design.json" "$broken_design_vocabulary/ios-design.md"
+import json
+import sys
+from pathlib import Path
+
+json_path = Path(sys.argv[1])
+data = json.loads(json_path.read_text(encoding="utf-8"))
+data.pop("professionalDesignPrincipleVocabulary", None)
+json_path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+markdown_path = Path(sys.argv[2])
+markdown = markdown_path.read_text(encoding="utf-8")
+start = markdown.find("## Professional Design Principle Vocabulary")
+end = markdown.find("\n## Findings", start)
+if start != -1 and end != -1:
+    markdown = markdown[:start] + markdown[end + 1:]
+markdown_path.write_text(markdown, encoding="utf-8")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$broken_design_vocabulary" \
+  --out "$tmp_dir/broken-design-vocabulary-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "design-principle-vocabulary-missing"' "$tmp_dir/broken-design-vocabulary-quality/ios-report-quality.json"
+
 actionability_fixture="fixtures/ios-report-quality/actionability"
 ./bin/shipguard ios report-quality \
   --reports "$actionability_fixture" \
@@ -1668,8 +1693,12 @@ grep -q '"guidanceProfile": "learning-progress"' "$materialized_design_candidate
 grep -q '"universalDefaultsRejected": true' "$materialized_design_candidate_dir/fixture-report.json"
 grep -q '"targetRemediationStatus": "not-authorized-from-this-run"' "$materialized_design_candidate_dir/fixture-report.json"
 grep -q '"expectedArtifact":' "$materialized_design_candidate_dir/fixture-report.json"
+grep -q '"professionalDesignPrincipleVocabulary":' "$materialized_design_candidate_dir/fixture-report.json"
+grep -q '"app-type fit"' "$materialized_design_candidate_dir/fixture-report.json"
 grep -q 'Design Tailoring Contract' "$materialized_design_candidate_dir/fixture-report.md"
 grep -q 'Design Coherence Boundary' "$materialized_design_candidate_dir/fixture-report.md"
+grep -q 'Professional Design Principle Vocabulary' "$materialized_design_candidate_dir/fixture-report.md"
+grep -q 'preview proof' "$materialized_design_candidate_dir/fixture-report.md"
 grep -q 'App work authorization' "$materialized_design_candidate_dir/fixture-report.md"
 grep -q 'Universal defaults rejected' "$materialized_design_candidate_dir/fixture-report.md"
 ./bin/shipguard ios report-quality \

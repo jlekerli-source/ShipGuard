@@ -840,6 +840,52 @@ def haptics_blueprint(app_type: str) -> dict[str, Any]:
     }
 
 
+def professional_design_principle_vocabulary(app_type: str) -> dict[str, Any]:
+    app_fit = {
+        "game": "Score principles against gameplay clarity, readable action, and expressive delight without hiding state.",
+        "kids": "Score principles against friendly clarity, safety, and low-reading-load interaction.",
+        "creative": "Score principles against expressive control, craft, and discoverable tools.",
+        "fitness": "Score principles against progress clarity, confidence, and calm completion feedback.",
+        "health": "Score principles against trust, legibility, and low-anxiety feedback.",
+        "commerce": "Score principles against purchase confidence, confirmation states, and reduced ambiguity.",
+        "finance": "Score principles against trust, precision, and conservative motion.",
+        "education": "Score principles against learning progress, comprehension, and encouraging feedback.",
+        "social": "Score principles against human tone, privacy, and low-noise relationship cues.",
+        "saas": "Score principles against dense workflow scanning, repeat use, and operational clarity.",
+    }.get(app_type, "Score principles against fast comprehension, low friction, and task clarity.")
+    return {
+        "source": "ShipGuard native design QA vocabulary inspired by professional visual-design principles.",
+        "requiredPrinciples": [
+            "contrast",
+            "hierarchy",
+            "alignment",
+            "proximity",
+            "repetition",
+            "balance",
+            "white space",
+            "unity",
+            "motion",
+            "haptics",
+            "preview proof",
+            "app-type fit",
+        ],
+        "checks": [
+            {"principle": "contrast", "question": "Can primary actions, text, and risk states be distinguished without relying on decoration?"},
+            {"principle": "hierarchy", "question": "Does the screen reveal what matters first, second, and next?"},
+            {"principle": "alignment", "question": "Do controls, labels, and content share a deliberate grid or edge logic?"},
+            {"principle": "proximity", "question": "Are related controls grouped and unrelated controls separated enough to scan?"},
+            {"principle": "repetition", "question": "Are buttons, cards, lists, and feedback patterns reused consistently?"},
+            {"principle": "balance", "question": "Is visual weight distributed intentionally across navigation, content, and actions?"},
+            {"principle": "white space", "question": "Does spacing create breathing room without wasting workflow density?"},
+            {"principle": "unity", "question": "Do color, type, iconography, motion, and copy feel like one product system?"},
+            {"principle": "motion", "question": "Does motion clarify state or feedback, respect Reduce Motion, and avoid decorative churn?"},
+            {"principle": "haptics", "question": "Are haptics low-frequency, semantic, and left unclaimed until device proof exists?"},
+            {"principle": "preview proof", "question": "Are visual claims backed by iPhone preview or Devspace evidence?"},
+            {"principle": "app-type fit", "question": app_fit},
+        ],
+    }
+
+
 def read_json_file(path: Path) -> dict[str, Any] | None:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -1016,6 +1062,7 @@ def build_report(
         },
         "designTailoring": tailoring,
         "designCoherenceBoundary": design_coherence_boundary_contract(app_type, dna, findings),
+        "professionalDesignPrincipleVocabulary": professional_design_principle_vocabulary(app_type["value"]),
         "designDNA": dna,
         "findings": findings,
         "motionBlueprint": motion_blueprint(app_type["value"]),
@@ -1070,6 +1117,7 @@ def render_markdown(report: dict[str, Any]) -> str:
     motion_gates = report["motionQualityGates"]
     haptics = report["hapticsBlueprint"]
     preview = report["previewEvidence"]
+    vocabulary = report["professionalDesignPrincipleVocabulary"]
     lines = [
         "# iOS Design QA Audit",
         "",
@@ -1212,6 +1260,20 @@ def render_markdown(report: dict[str, Any]) -> str:
     )
     if dna["copyTone"]["samples"]:
         lines.append("- Copy samples: " + "; ".join(f"`{item}`" for item in dna["copyTone"]["samples"][:5]))
+
+    lines.extend(
+        [
+            "",
+            "## Professional Design Principle Vocabulary",
+            "",
+            f"- Source: {vocabulary['source']}",
+            "",
+            "| Principle | Review question |",
+            "| --- | --- |",
+        ]
+    )
+    for item in vocabulary["checks"]:
+        lines.append(f"| {item['principle']} | {item['question']} |")
 
     lines.extend(["", "## Findings", ""])
     if report["findings"]:

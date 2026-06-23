@@ -304,6 +304,73 @@
     ],
     "status": "not-provided"
   },
+  "professionalDesignPrincipleVocabulary": {
+    "checks": [
+      {
+        "principle": "contrast",
+        "question": "Can lesson status and primary actions be distinguished without decorative color dependence?"
+      },
+      {
+        "principle": "hierarchy",
+        "question": "Does the learning flow show lesson goal, current task, and next step in that order?"
+      },
+      {
+        "principle": "alignment",
+        "question": "Do lesson cards, progress labels, and controls share a deliberate grid?"
+      },
+      {
+        "principle": "proximity",
+        "question": "Are related learning controls grouped and recovery actions separated?"
+      },
+      {
+        "principle": "repetition",
+        "question": "Are cards, buttons, and success states reused across the learning flow?"
+      },
+      {
+        "principle": "balance",
+        "question": "Is progress feedback visually weighted without overwhelming the lesson content?"
+      },
+      {
+        "principle": "white space",
+        "question": "Does spacing give comprehension room without wasting mobile screen density?"
+      },
+      {
+        "principle": "unity",
+        "question": "Do color, type, symbols, copy, motion, and haptics feel like one education product?"
+      },
+      {
+        "principle": "motion",
+        "question": "Does motion clarify progress or recovery while respecting Reduce Motion?"
+      },
+      {
+        "principle": "haptics",
+        "question": "Are haptics milestone-aware, sparse, and left unclaimed until device proof exists?"
+      },
+      {
+        "principle": "preview proof",
+        "question": "Are visual claims backed by iPhone preview or Devspace evidence?"
+      },
+      {
+        "principle": "app-type fit",
+        "question": "Is the guidance tuned for education comprehension instead of generic utility polish?"
+      }
+    ],
+    "requiredPrinciples": [
+      "contrast",
+      "hierarchy",
+      "alignment",
+      "proximity",
+      "repetition",
+      "balance",
+      "white space",
+      "unity",
+      "motion",
+      "haptics",
+      "preview proof",
+      "app-type fit"
+    ],
+    "source": "ShipGuard native design QA vocabulary inspired by professional visual-design principles."
+  },
   "reportQualityQuestions": [
     "Did preview and Devspace guidance make the iPhone visual proof path obvious?"
   ],

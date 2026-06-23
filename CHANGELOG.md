@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added native professional design-principle vocabulary to `shipguard ios design`: reports now render contrast, hierarchy, alignment, proximity, repetition, balance, white space, unity, motion, haptics, preview proof, and app-type fit checks, and report-quality blocks design reports that regress to generic make-it-prettier advice.
 - Promoted the stable-publication external evidence expiry-window fixture: report-quality now has a public synthetic fixture proving open-ended adoption and security-review records are blocked substitutes, generatedAt-only freshness is insufficient, and the fixture index reaches 9/9 coverage with no fake next-gap backlog.
 - Promoted the stable-publication external evidence review-scope mapping fixture: report-quality now has a public synthetic fixture proving broad final security-review wording and unmapped scanner output remain blocked substitutes, and the fixture index advances to the expiry-window boundary.
 - Promoted the stable-publication external evidence artifact digest/provenance fixture: report-quality now has a public synthetic fixture proving filename-only artifacts, local-only paths, missing source commands, and digest-free security notes remain blocked substitutes, and the fixture index advances to review-scope mapping.

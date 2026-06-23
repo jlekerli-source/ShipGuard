@@ -3641,6 +3641,87 @@ def design_app_type_tailoring_issues(
     return issues
 
 
+def design_principle_vocabulary_issues(
+    report: dict[str, Any], *, markdown: str, path_name: str
+) -> list[dict[str, str]]:
+    issues: list[dict[str, str]] = []
+    required = (
+        "contrast",
+        "hierarchy",
+        "alignment",
+        "proximity",
+        "repetition",
+        "balance",
+        "white space",
+        "unity",
+        "motion",
+        "haptics",
+        "preview proof",
+        "app-type fit",
+    )
+    vocabulary = report.get("professionalDesignPrincipleVocabulary")
+    if not isinstance(vocabulary, dict):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-principle-vocabulary-missing",
+            evidence=f"{path_name} has no professionalDesignPrincipleVocabulary",
+            recommendation="Add explicit professional design vocabulary so design QA uses concrete principles instead of generic make-it-prettier advice.",
+        )
+        return issues
+
+    principles = vocabulary.get("requiredPrinciples")
+    checks = vocabulary.get("checks")
+    principle_names = {
+        normalized_question_text(item.get("principle") or "")
+        for item in checks
+        if isinstance(item, dict)
+    } if isinstance(checks, list) else set()
+    declared = {
+        normalized_question_text(item)
+        for item in principles
+        if isinstance(item, str)
+    } if isinstance(principles, list) else set()
+    missing = [item for item in required if item not in principle_names or item not in declared]
+    if missing:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-principle-vocabulary-incomplete",
+            evidence=f"{path_name} is missing design principle vocabulary entries: {', '.join(missing)}",
+            recommendation="Include contrast, hierarchy, alignment, proximity, repetition, balance, white space, unity, motion, haptics, preview proof, and app-type fit.",
+        )
+    if not isinstance(checks, list) or any(
+        not isinstance(item, dict)
+        or not normalized_question_text(item.get("principle") or "")
+        or not normalized_question_text(item.get("question") or "")
+        for item in checks or []
+    ):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-principle-vocabulary-questions-missing",
+            evidence=f"{path_name} professionalDesignPrincipleVocabulary checks are not review-ready",
+            recommendation="Give every principle a concrete review question so the report is actionable.",
+        )
+
+    if issues:
+        return issues
+    markdown_lower = normalized_question_text(markdown)
+    markdown_visible = "professional design principle vocabulary" in markdown_lower and all(
+        item in markdown_lower for item in required
+    )
+    if not markdown_visible:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-principle-vocabulary-markdown-missing",
+            evidence=f"{path_name} has professionalDesignPrincipleVocabulary JSON but Markdown does not show the principle vocabulary",
+            recommendation="Render the professional design principles in Markdown so humans see the design QA lens.",
+        )
+    return issues
+
+
 def design_coherence_boundary_issues(
     report: dict[str, Any], *, markdown: str, path_name: str
 ) -> list[dict[str, str]]:
@@ -8883,6 +8964,7 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
         issues.extend(performance_proof_boundary_issues(loaded, markdown=markdown, path_name=path.name))
     if tool == "shipguard ios design":
         issues.extend(design_app_type_tailoring_issues(loaded, markdown=markdown, path_name=path.name))
+        issues.extend(design_principle_vocabulary_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(design_coherence_boundary_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(design_preview_routing_issues(loaded, markdown=markdown, path_name=path.name))
     if tool == "shipguard v4 stable-publication":
@@ -11965,6 +12047,40 @@ def synthetic_design_coherence_boundary() -> dict[str, Any]:
     }
 
 
+def synthetic_professional_design_principle_vocabulary() -> dict[str, Any]:
+    return {
+        "source": "ShipGuard native design QA vocabulary inspired by professional visual-design principles.",
+        "requiredPrinciples": [
+            "contrast",
+            "hierarchy",
+            "alignment",
+            "proximity",
+            "repetition",
+            "balance",
+            "white space",
+            "unity",
+            "motion",
+            "haptics",
+            "preview proof",
+            "app-type fit",
+        ],
+        "checks": [
+            {"principle": "contrast", "question": "Can lesson status and primary actions be distinguished without decorative color dependence?"},
+            {"principle": "hierarchy", "question": "Does the learning flow show lesson goal, current task, and next step in that order?"},
+            {"principle": "alignment", "question": "Do lesson cards, progress labels, and controls share a deliberate grid?"},
+            {"principle": "proximity", "question": "Are related learning controls grouped and recovery actions separated?"},
+            {"principle": "repetition", "question": "Are cards, buttons, and success states reused across the learning flow?"},
+            {"principle": "balance", "question": "Is progress feedback visually weighted without overwhelming the lesson content?"},
+            {"principle": "white space", "question": "Does spacing give comprehension room without wasting mobile screen density?"},
+            {"principle": "unity", "question": "Do color, type, symbols, copy, motion, and haptics feel like one education product?"},
+            {"principle": "motion", "question": "Does motion clarify progress or recovery while respecting Reduce Motion?"},
+            {"principle": "haptics", "question": "Are haptics milestone-aware, sparse, and left unclaimed until device proof exists?"},
+            {"principle": "preview proof", "question": "Are visual claims backed by iPhone preview or Devspace evidence?"},
+            {"principle": "app-type fit", "question": "Is the guidance tuned for education comprehension instead of generic utility polish?"},
+        ],
+    }
+
+
 def synthetic_design_report_fields() -> dict[str, Any]:
     return {
         "status": "review",
@@ -11987,6 +12103,7 @@ def synthetic_design_report_fields() -> dict[str, Any]:
         },
         "designTailoring": synthetic_design_tailoring("education"),
         "designCoherenceBoundary": synthetic_design_coherence_boundary(),
+        "professionalDesignPrincipleVocabulary": synthetic_professional_design_principle_vocabulary(),
         "designDNA": {
             "motion": {"withAnimationSignals": 4, "animationModifiers": 2, "repeatForeverSignals": 1, "timelineViewSignals": 0, "reduceMotionSignals": 2},
             "haptics": {"uikitFeedbackSignals": 1, "coreHapticsSignals": 0, "sensoryFeedbackSignals": 0},
@@ -13366,6 +13483,25 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "- Expected artifact: A same-flow screenshot or preview receipt plus one note mapping the learning-progress profile to source signals.",
                 "- Success condition: The report explains why learning-progress is the right profile for education and avoids utility-only advice.",
                 "- Failure meaning: The design report remains an inventory, not an app-type-specific design QA recommendation.",
+                "",
+                "## Professional Design Principle Vocabulary",
+                "",
+                "- Source: ShipGuard native design QA vocabulary inspired by professional visual-design principles.",
+                "",
+                "| Principle | Review question |",
+                "| --- | --- |",
+                "| contrast | Can lesson status and primary actions be distinguished without decorative color dependence? |",
+                "| hierarchy | Does the learning flow show lesson goal, current task, and next step in that order? |",
+                "| alignment | Do lesson cards, progress labels, and controls share a deliberate grid? |",
+                "| proximity | Are related learning controls grouped and recovery actions separated? |",
+                "| repetition | Are cards, buttons, and success states reused across the learning flow? |",
+                "| balance | Is progress feedback visually weighted without overwhelming the lesson content? |",
+                "| white space | Does spacing give comprehension room without wasting mobile screen density? |",
+                "| unity | Do color, type, symbols, copy, motion, and haptics feel like one education product? |",
+                "| motion | Does motion clarify progress or recovery while respecting Reduce Motion? |",
+                "| haptics | Are haptics milestone-aware, sparse, and left unclaimed until device proof exists? |",
+                "| preview proof | Are visual claims backed by iPhone preview or Devspace evidence? |",
+                "| app-type fit | Is the guidance tuned for education comprehension instead of generic utility polish? |",
                 "",
                 "## Findings",
                 "",
