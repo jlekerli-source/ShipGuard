@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "ShipGuard Expo Demo",
+    "slug": "shipguard-expo-demo",
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}

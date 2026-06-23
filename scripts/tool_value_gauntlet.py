@@ -56,6 +56,7 @@ COMMANDS: list[dict[str, str]] = [
     {"command": "shipguard v4 stable-publication", "surface": "ShipGuard V4 Stable Publication Proof", "family": "shipyard"},
     {"command": "shipguard pilot-bench", "surface": "ShipGuard PilotBench", "family": "shipyard"},
     {"command": "shipguard agent trace", "surface": "ShipGuard TraceBridge", "family": "agent"},
+    {"command": "shipguard expo readiness", "surface": "ShipGuard ExpoDeck", "family": "expo"},
     {"command": "shipguard ios doctor", "surface": "ShipGuard DockCheck", "family": "ios"},
     {"command": "shipguard ios inventory", "surface": "ShipGuard CargoScan", "family": "ios"},
     {"command": "shipguard ios plan", "surface": "ShipGuard BriefForge", "family": "ios"},

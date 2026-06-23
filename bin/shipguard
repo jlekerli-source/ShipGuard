@@ -51,6 +51,7 @@ Usage:
   shipguard v4 stable-publication --path <shipguard-repo> --out <dir> [--github-release-repo <owner/repo>] --release-version <version> --release-candidate-report <json-or-dir> [--release-assets <downloaded-assets-dir>|--download-release-assets] --external-adoption-evidence <json-or-dir> --security-review-evidence <json-or-dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard pilot-bench [--trace <trace.json-or-dir> ...] [--out <dir>] [--shareable] [--benchmark-v2] [--min-lift <points>] [--json|--markdown]
   shipguard agent trace --trace <trace.json-or-jsonl-or-dir> --out <dir> [--adapter auto|codex|claude|gemini|cursor|mcp|generic] [--task <shipguard-task.json-or-dir>] [--diff <patch.diff>] [--evidence <file> ...] [--xcodebuildmcp-evidence <file-or-dir> ...] [--expo-eas-evidence <file-or-dir> ...] [--verdict <shipguard-verdict.json-or-dir>] [--run-verify] [--budget-workers <n>] [--max-workers <n>] [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard expo readiness --path <repo> --out <dir> [--target-sdk <major>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard web audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard web plan --report <web-audit-json-or-dir> --out <dir> [--target <repo>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard backend audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
@@ -132,6 +133,7 @@ Commands:
   pilot-bench
               Score public-safe read-only task traces for PilotBench verdict usefulness.
   agent      Normalize Codex, Claude, Gemini, Cursor, and MCP traces into task, receipt, verdict, next-action, budget, XcodeBuildMCP evidence, and Expo/EAS assurance proof.
+  expo       Audit Expo SDK 56 readiness, Expo UI/native-module opportunities, EAS timing proof, and agent scaffolding.
   web         Web-focused first-audit and fix-plan reports for starter repos.
   backend     Backend-focused first-audit and fix-plan reports for starter repos.
   cli         CLI-focused first-audit and fix-plan reports for starter repos.
@@ -542,6 +544,13 @@ cmd_agent() {
   run_py "$tool_root/scripts/agent_trace.py" "$@"
 }
 
+cmd_expo() {
+  local subcommand="${1:-}"
+  [[ "$subcommand" == "readiness" ]] || fail "expo requires subcommand: readiness"
+  shift || true
+  run_py "$tool_root/scripts/expo_readiness.py" "$@"
+}
+
 cmd_prepare() {
   run_py "$tool_root/scripts/task_contract.py" prepare "$@"
 }
@@ -807,6 +816,9 @@ main() {
       ;;
     agent)
       cmd_agent "$@"
+      ;;
+    expo)
+      cmd_expo "$@"
       ;;
     web)
       cmd_profile web "$@"

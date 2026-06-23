@@ -1,0 +1,23 @@
+{
+  "candidateId": "professional-design-qa-value-gauntlet-question",
+  "duplicateCount": 1,
+  "expectedAssertions": [
+    "report-quality preserves the Professional Design QA value-gauntlet question in JSON and Markdown",
+    "report-quality treats the promoted fixture as public coverage for the fresh Value Gauntlet question",
+    "the fixture keeps scopeBoundary.shipguardOnly and targetAppsReadOnly explicit",
+    "shareable output contains no local absolute paths or private app identifiers"
+  ],
+  "fixtureType": "shipguard-professional-design-qa-fixture",
+  "priority": 1,
+  "privateDataPolicy": "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
+  "publicFixturePath": "fixtures/ios-report-quality/professional-design-qa-value-gauntlet-question",
+  "publicFixtureRecipe": "Create a minimal synthetic ShipGuard report pair that reproduces this report-quality question without private app code, local paths, screenshots, customer data, app names, or proprietary source snippets.",
+  "sourceQuestion": "Can ShipGuard improve professional-design-qa by proving this recommendation: Upgrade `.agents/skills/professional-design-qa/SKILL.md` with more concrete command routing, examples, proof language, and test/docs linkage if it remains the lowest-depth skill.",
+  "sourceReportCount": 1,
+  "sourceReportsRedacted": true,
+  "sourceTool": "shipguard value-gauntlet",
+  "validationCommands": [
+    "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/professional-design-qa-value-gauntlet-question --out <quality-dir> --shareable",
+    "./tests/ios_report_quality_test.sh"
+  ]
+}

@@ -207,6 +207,16 @@ SURFACES: list[dict[str, Any]] = [
         "aliases": ["external pilot verdict bench", "pilot verdict scoring"],
     },
     {
+        "id": "expo-readiness",
+        "command": "shipguard expo readiness",
+        "surfaceName": "ShipGuard ExpoDeck",
+        "codename": "expodeck",
+        "plainPurpose": "Audit Expo SDK 56 readiness, Expo UI opportunities, EAS build-timing proof gaps, native-module signals, and AI-agent scaffolding.",
+        "tone": "Expo-native, practical, and proof-boundary aware.",
+        "proofBoundary": "ExpoDeck is read-only source analysis; it recommends Expo Doctor, EAS, native build, and timing proof but does not run Expo commands or mutate the target app.",
+        "aliases": ["expo readiness", "sdk 56 audit", "eas readiness"],
+    },
+    {
         "id": "transcript",
         "command": "shipguard transcript",
         "surfaceName": "ShipGuard TraceVault",

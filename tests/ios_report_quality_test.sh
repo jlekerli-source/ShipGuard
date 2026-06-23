@@ -5311,6 +5311,7 @@ stable_publication_question = "Can ShipGuard prove stable-v4 publication with do
 product_release_question = "Should ShipGuard stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption?"
 proof_boundary_question = "Does every useful-looking surface have docs, tests, package proof, and a concrete proof boundary rather than only a branded name?"
 plugin_skill_question = "Do plugin skills and starter skills give Codex actionable routing and validation commands, not just vague advice?"
+professional_design_skill_question = "Can ShipGuard improve professional-design-qa by proving this recommendation: Upgrade `.agents/skills/professional-design-qa/SKILL.md` with more concrete command routing, examples, proof language, and test/docs linkage if it remains the lowest-depth skill."
 coverage = data.get("fixtureCoverage") or []
 if not any(item.get("question") == covered_question for item in coverage):
     raise SystemExit(f"expected value-gauntlet question to be covered by a promoted fixture: {coverage!r}")
@@ -5327,23 +5328,27 @@ for item in coverage:
         raise SystemExit(f"unexpected proof-boundary coverage path: {item!r}")
     if item.get("question") == plugin_skill_question and item.get("publicFixturePath") != "fixtures/ios-report-quality/plugin-skill-routing-value-gauntlet-question":
         raise SystemExit(f"unexpected plugin-skill routing coverage path: {item!r}")
+    if item.get("question") == professional_design_skill_question and item.get("publicFixturePath") != "fixtures/ios-report-quality/professional-design-qa-value-gauntlet-question":
+        raise SystemExit(f"unexpected professional-design skill coverage path: {item!r}")
 if not any(item.get("question") == product_release_question for item in coverage):
     raise SystemExit(f"expected product-release stabilization question to be covered by a promoted fixture: {coverage!r}")
 if not any(item.get("question") == proof_boundary_question for item in coverage):
     raise SystemExit(f"expected proof-boundary question to be covered by a promoted fixture: {coverage!r}")
 if not any(item.get("question") == plugin_skill_question for item in coverage):
     raise SystemExit(f"expected plugin-skill routing question to be covered by a promoted fixture: {coverage!r}")
+if not any(item.get("question") == professional_design_skill_question for item in coverage):
+    raise SystemExit(f"expected professional-design skill question to be covered by a promoted fixture: {coverage!r}")
 for candidate in data.get("fixtureCandidates") or []:
-    if candidate.get("sourceQuestion") in {covered_question, stable_publication_question, product_release_question, proof_boundary_question, plugin_skill_question}:
+    if candidate.get("sourceQuestion") in {covered_question, stable_publication_question, product_release_question, proof_boundary_question, plugin_skill_question, professional_design_skill_question}:
         raise SystemExit(f"covered value-gauntlet question should not create a duplicate fixture candidate: {candidate!r}")
 priority = data.get("priorityAction") or {}
 if priority.get("kind") != "all-actionability-covered":
     raise SystemExit(f"expected all-actionability-covered once fresh value-gauntlet questions are covered: {priority!r}")
-if priority.get("topCoveredQuestion") != stable_publication_question:
-    raise SystemExit(f"expected the top covered stable-publication question to remain visible: {priority!r}")
-if priority.get("topExistingFixturePath") != "fixtures/ios-report-quality/stable-publication-value-gauntlet-question":
+if priority.get("topCoveredQuestion") != professional_design_skill_question:
+    raise SystemExit(f"expected the top covered professional-design skill question to remain visible: {priority!r}")
+if priority.get("topExistingFixturePath") != "fixtures/ios-report-quality/professional-design-qa-value-gauntlet-question":
     raise SystemExit(f"unexpected existing fixture path: {priority!r}")
-if priority.get("coveredQuestionCount", 0) < 5:
+if priority.get("coveredQuestionCount", 0) < 6:
     raise SystemExit(f"expected all promoted value-gauntlet questions to count as covered: {priority!r}")
 PY
 
@@ -7410,6 +7415,46 @@ grep -q '"ruleId": "stable-publication-release-visibility-keep-current-command-n
 grep -q '"ruleId": "stable-publication-release-visibility-proof-after-action-missing"' "$tmp_dir/stable-publication-visibility-command-noise-quality/ios-report-quality.json"
 grep -q '"ruleId": "stable-publication-release-visibility-proof-after-action-markdown-missing"' "$tmp_dir/stable-publication-visibility-command-noise-quality/ios-report-quality.json"
 grep -q '"ruleId": "stable-publication-result-ux-internal-name-leak"' "$tmp_dir/stable-publication-visibility-command-noise-quality/ios-report-quality.json"
+python3 - <<'PY' "$repo_root/scripts/ios_report_quality.py"
+import importlib.util
+import pathlib
+import sys
+
+module_path = pathlib.Path(sys.argv[1])
+sys.path.insert(0, str(module_path.parent))
+spec = importlib.util.spec_from_file_location("ios_report_quality", module_path)
+module = importlib.util.module_from_spec(spec)
+assert spec and spec.loader
+spec.loader.exec_module(module)
+
+candidate = {
+    "sourceTool": "shipguard v4 stable-publication",
+    "sourceQuestion": "Does stable-publication release visibility handoff keep completed pass rows quiet and explain proof-after-action?",
+    "fixtureType": "shipguard-release-proof-quality-fixture",
+}
+report = module.synthetic_fixture_report(candidate)
+actions = report["releaseVisibilityHandoff"]["requiredActions"]
+for action in actions:
+    if action.get("required") is False and action.get("status") in {"pass", "not-required"}:
+        if action.get("nextCommand") != "not-needed":
+            raise SystemExit(f"completed optional action leaked command noise: {action!r}")
+        if action.get("nextCommandPurpose") != "not-needed":
+            raise SystemExit(f"completed optional action missing quiet purpose: {action!r}")
+        if action.get("proofCommandAfterCompletion") != "not-needed":
+            raise SystemExit(f"completed optional action missing proof-after-action quiet marker: {action!r}")
+keep_current = next(action for action in actions if action.get("id") == "keep-current-public-release-unchanged")
+if keep_current.get("nextCommandPurpose") != "final-claim-review":
+    raise SystemExit(f"keep-current action should explain why value-gauntlet is next: {keep_current!r}")
+markdown = module.synthetic_fixture_markdown(candidate)
+required_fragments = [
+    "| Action | Required | Status | Command purpose | Next command | Proof after action |",
+    "`not-needed` | `not-needed` | `not-needed`",
+    "`final-claim-review` | `./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>` | `not-needed`",
+]
+for fragment in required_fragments:
+    if fragment not in markdown:
+        raise SystemExit(f"missing stable-publication synthetic markdown fragment: {fragment}")
+PY
 
 stable_publication_launchkey_closure_fixture="fixtures/ios-report-quality/stable-publication-launchkey-candidate-closure"
 ./bin/shipguard ios report-quality \

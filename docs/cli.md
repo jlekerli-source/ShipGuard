@@ -114,6 +114,21 @@ When reviewer disposition is missing, `verify` also prints two labeled repair co
 
 See `task-contract.md` and `verify-first-quickstart.md`.
 
+## Expo Readiness
+
+Run a read-only Expo SDK 56 readiness audit:
+
+```bash
+./bin/shipguard expo readiness \
+  --path ../my-expo-app \
+  --out /tmp/shipguard-expo-readiness \
+  --shareable
+```
+
+ExpoDeck writes `expo-readiness.json` and `expo-readiness.md` with Expo SDK version signals, Expo UI opportunities, EAS timing-proof gaps, Expo Router pairing, AI-agent scaffolding, professional design-principle checks for AI-generated UI, next commands, and source-vs-runtime proof boundaries. It does not run `npx expo`, install packages, prebuild native projects, or claim build-speed wins or rendered visual quality without timing, screenshot, preview, or runtime evidence.
+
+See `expo-readiness.md`.
+
 ## GitHub Action First Run
 
 Use `action verify-pr` after copying `examples/workflows/verify-pr.yml` into another repository:

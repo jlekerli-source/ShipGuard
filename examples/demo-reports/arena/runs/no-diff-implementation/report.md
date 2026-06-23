@@ -1,7 +1,7 @@
 # Agent Autopsy Report
 
 - Generated: 2026-06-16T00:00:00Z
-- Tool version: 3.186.0
+- Tool version: 3.187.0
 - Verdict: analysis only; request a narrower repair pass
 - Total score: 6/12
 

@@ -1,0 +1,18 @@
+{
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^14.0.0",
+    "@gorhom/bottom-sheet": "^5.0.0",
+    "@react-navigation/native": "^7.0.0",
+    "expo": "~55.0.0",
+    "expo-router": "^6.0.0",
+    "react": "19.1.0",
+    "react-native": "0.83.0",
+    "react-native-pager-view": "^6.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0"
+  }
+}

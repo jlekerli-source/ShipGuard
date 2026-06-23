@@ -22,7 +22,8 @@ grep -q '"surface": "ShipGuard Tool Value Gauntlet"' "$tmp_dir/gauntlet/tool-val
 grep -q '"intent": "shipguard-product-qa"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"shipguardOnly": true' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"targetAppsReadOnly": true' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
-grep -q '"commandCount": 68' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"commandCount": 69' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"skillCount": 8' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"pluginCount": 1' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"actions":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"skills":' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -74,6 +75,7 @@ grep -q '"command": "shipguard v4 preview"' "$tmp_dir/gauntlet/tool-value-gauntl
 grep -q '"command": "shipguard v4 schema-freeze"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard v4 release-candidate"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"command": "shipguard v4 stable-publication"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"command": "shipguard expo readiness"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"name": "alarm-testing"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"path": ".agents/skills/alarm-testing/SKILL.md"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"name": "notification-permissions"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
@@ -82,6 +84,10 @@ grep -q '"name": "release-checklist"' "$tmp_dir/gauntlet/tool-value-gauntlet.jso
 grep -q '"path": ".agents/skills/release-checklist/SKILL.md"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"name": "bug-triage"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"path": ".agents/skills/bug-triage/SKILL.md"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"name": "expo-readiness"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"path": ".agents/skills/expo-readiness/SKILL.md"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"name": "professional-design-qa"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
+grep -q '"path": ".agents/skills/professional-design-qa/SKILL.md"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"name": "ui-polish"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 grep -q '"path": ".agents/skills/ui-polish/SKILL.md"' "$tmp_dir/gauntlet/tool-value-gauntlet.json"
 
@@ -89,8 +95,9 @@ grep -q '# ShipGuard Tool Value Gauntlet' "$tmp_dir/gauntlet/tool-value-gauntlet
 grep -q 'Priority Actions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Lowest-Value Surface Probe' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Stable Publication Priority' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
-grep -q 'Proof packet' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
-grep -q 'public-github-release-metadata' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Proof:' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'professional-design-qa' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Stable v4 should not be claimed' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Commands' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Skills' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Plugins' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
@@ -189,8 +196,8 @@ if probe.get("question") != "Which ShipGuard command, skill, plugin, or action h
 for key in ("surfaceType", "identifier", "name", "baseScore", "depthScore", "depthChecks", "recommendation", "proofGuidance", "reason"):
     if key not in answer:
         raise SystemExit(f"probe answer missing {key}: {answer!r}")
-if answer.get("surfaceType") != "product" or answer.get("identifier") != "shipguard v4-stable-release-publication":
-    raise SystemExit(f"passing v4 product-release stabilization receipts should escalate to stable v4 publication: {answer!r}")
+if answer.get("surfaceType") != "skill" or answer.get("identifier") != ".agents/skills/professional-design-qa/SKILL.md":
+    raise SystemExit(f"new shallow skills should be allowed to surface as the lowest-value upgrade target: {answer!r}")
 if "runtimeDiffFirstVerification" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"diff-first verification should no longer be missing: {answer!r}")
 if "runtimeIOSNotificationPermissionWorkflow" in answer.get("missingDepthSignals", []):
@@ -217,38 +224,17 @@ if "runtimeV4SchemaFreeze" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"v4 schema freeze should no longer be missing: {answer!r}")
 if "runtimeV4ReleaseCandidateReadiness" in answer.get("missingDepthSignals", []):
     raise SystemExit(f"v4 release-candidate readiness should no longer be missing: {answer!r}")
-if "runtimeV4StableReleasePublication" not in answer.get("missingDepthSignals", []):
-    raise SystemExit(f"stable v4 publication gap should be explicit: {answer!r}")
-if stable_priority.get("status") != "review" or stable_priority.get("priorityId") != "stable-v4-publication":
-    raise SystemExit(f"stable-publication priority should be explicit: {stable_priority!r}")
-if stable_priority.get("identifier") != "shipguard v4-stable-release-publication":
-    raise SystemExit(f"stable-publication priority should point at the lowest-value answer: {stable_priority!r}")
+if stable_priority.get("status") != "not-current-priority" or stable_priority.get("priorityId") != "none":
+    raise SystemExit(f"stable-publication priority should defer when a skill is the live lowest-value surface: {stable_priority!r}")
+if stable_priority.get("identifier") != ".agents/skills/professional-design-qa/SKILL.md":
+    raise SystemExit(f"stable-publication priority should name the current lowest-value surface: {stable_priority!r}")
 stable_next = stable_priority.get("nextCommand") or ""
 if "shipguard v4 stable-publication" not in stable_next or "--download-release-assets" not in stable_next:
     raise SystemExit(f"stable-publication priority needs a copy-ready stable-publication command: {stable_priority!r}")
-if stable_priority.get("firstBlocker") != "public-github-release-metadata":
-    raise SystemExit(f"stable-publication priority should name the first blocker: {stable_priority!r}")
-packet_ids = {item.get("id") for item in stable_priority.get("proofPacket") or []}
-expected_packet_ids = {
-    "github-release-metadata",
-    "release-notes",
-    "downloaded-release-assets",
-    "post-release-consumer-proof",
-    "independent-adoption-evidence",
-    "final-security-review-evidence",
-}
-if packet_ids != expected_packet_ids:
-    raise SystemExit(f"stable-publication priority should expose the proof packet: {stable_priority!r}")
-blocked_by = set(stable_priority.get("blockedBy") or [])
-expected_blockers = {
-    "public GitHub release metadata and release notes",
-    "downloaded release assets",
-    "post-release consumer proof",
-    "independent adoption evidence",
-    "final security review evidence",
-}
-if blocked_by != expected_blockers:
-    raise SystemExit(f"stable-publication priority should list the real blockers: {stable_priority!r}")
+if stable_priority.get("firstBlocker") != "none":
+    raise SystemExit(f"deferred stable-publication priority should not claim a live first blocker: {stable_priority!r}")
+if stable_priority.get("proofPacket") or stable_priority.get("blockedBy"):
+    raise SystemExit(f"deferred stable-publication priority should not claim active proof packet blockers: {stable_priority!r}")
 boundary = stable_priority.get("proofBoundary") or {}
 if boundary.get("sourceOnlyCountsAsStableV4Proof") is not False or boundary.get("fixtureProofCountsAsStableV4Proof") is not False:
     raise SystemExit(f"stable-publication priority must preserve source/fixture non-claims: {stable_priority!r}")
@@ -286,7 +272,7 @@ for item in negative.get("cases") or []:
         raise SystemExit(f"negative fixture should fail report scoring but pass fixture expectation: {item!r}")
 if command_family.get("status") != "pass":
     raise SystemExit(f"runtime command-family coverage should pass: {command_family!r}")
-if command_family.get("commandCount") != 68 or command_family.get("passedCommandCount") != 68:
+if command_family.get("commandCount") != 69 or command_family.get("passedCommandCount") != 69:
     raise SystemExit(f"expected all public command help paths to pass: {command_family!r}")
 for item in command_family.get("commands") or []:
     if item.get("status") != "pass" or item.get("missing"):
@@ -1095,9 +1081,12 @@ retired_phrases = (
 if any(any(phrase in question for phrase in retired_phrases) for question in data.get("reportQualityQuestions", [])):
     raise SystemExit(f"answered runtime receipt questions should be retired after implementation: {data.get('reportQualityQuestions')!r}")
 questions = data.get("reportQualityQuestions") or []
-expected_current_question = "Can ShipGuard prove stable-v4 publication with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof?"
+expected_current_question = "Can ShipGuard improve professional-design-qa by proving this recommendation: Upgrade `.agents/skills/professional-design-qa/SKILL.md` with more concrete command routing, examples, proof language, and test/docs linkage if it remains the lowest-depth skill."
+stable_v4_question = "Can ShipGuard prove stable-v4 publication with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof?"
 if not questions or questions[0] != expected_current_question:
-    raise SystemExit(f"expected current stable-v4 publication question first: {questions!r}")
+    raise SystemExit(f"expected current professional-design skill question first: {questions!r}")
+if stable_v4_question not in questions:
+    raise SystemExit(f"expected stable-v4 publication question to remain present: {questions!r}")
 if not any("v4 product release" in question.lower() or "rollback proof" in question.lower() for question in questions):
     raise SystemExit(f"expected v4 product release compatibility question: {questions!r}")
 PY

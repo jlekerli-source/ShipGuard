@@ -55,6 +55,7 @@ The rule is simple: a fun name is allowed only when its plain job and proof boun
 | `shipguard v4 stable-publication` | ShipGuard V4 Stable Publication Proof | Prove the actual stable-v4 claim from public release metadata, stable-v4 release notes, LaunchKey candidate proof, downloaded assets, post-release consumer proof, independent adoption evidence, and final security-review evidence. |
 | `shipguard pilot-bench` | ShipGuard PilotBench | Score public-safe read-only task traces and optional benchmark-v2 verdict lift against baseline agent output. |
 | `shipguard agent trace` / `shipguard codex trace` | ShipGuard TraceBridge | Connect prompts, tool calls, receipts, task verdicts, next actions, and worker budgets into one adapter timeline. |
+| `shipguard expo readiness` | ShipGuard ExpoDeck | Audit Expo SDK 56 readiness, Expo UI opportunities, EAS build-timing proof gaps, native-module signals, and AI-agent scaffolding. |
 | `shipguard ios doctor` | ShipGuard DockCheck | Inspect Xcode, SwiftPM, schemes, targets, and proof readiness. |
 | `shipguard ios inventory` | ShipGuard CargoScan | Map permissions, entitlements, StoreKit, widgets, intents, and runtime risk. |
 | `shipguard ios plan` | ShipGuard BriefForge | Turn inventory into a scoped Codex brief with blockers and proof route. |

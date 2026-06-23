@@ -16,6 +16,7 @@ Use this page as a map. Start with the smallest path that matches what you are t
 | Choose the right command | [Command Matrix](command-matrix.md) |
 | Look up every CLI option | [CLI reference](cli.md) |
 | Find code that may not need to exist | [ShipGuard Lean Deck](lean-audit.md), including selected-mode bias proof, diff review, hardware/host proof boundaries, debt ledger, behavior gates, and benchmark-honest gain report |
+| Audit Expo SDK 56 readiness | [Expo Readiness](expo-readiness.md) |
 
 ## First Useful Run
 
@@ -64,6 +65,7 @@ Open `/tmp/shipguard-verdict/shipguard-verdict.md`. The report shows whether the
 - [iOS ShipGuard](ios-shipguard.md)
 - [iOS Preview Bridge](ios-preview.md)
 - [ShipGuard Devspace](shipguard-devspace.md)
+- [Expo Readiness](expo-readiness.md)
 - [Codex Status](codex-status.md)
 - [Codex Marketplace Readiness](codex-marketplace-readiness.md)
 

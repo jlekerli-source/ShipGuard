@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added ShipGuard ExpoDeck: `shipguard expo readiness` now audits Expo SDK 56 readiness, Expo UI/native-module opportunities, Expo Router pairing, EAS timing-proof gaps, AI-agent scaffolding, and professional design-principle evidence for AI-generated UI without mutating target repos.
+- Added a Professional Design QA starter skill so Codex can critique AI-generated UI with concrete contrast, hierarchy, alignment, proximity, repetition, balance, white-space, and unity language while requiring screenshots, previews, or runtime proof for final visual claims.
+- Added Expo SDK 56 demo fixtures, ExpoDeck docs, package checks, CLI smoke coverage, and report-quality questions for the new Expo surface.
+- Cleaned stable-publication generated pass-row fixtures so completed release visibility rows keep `not-needed` command purpose and proof-after-action columns instead of leaking fallback maintenance commands.
 - Added stable-publication proof-after-action report-quality guards: `ios report-quality` now flags release visibility action rows or Markdown tables that hide command purpose or proof-after-action guidance.
 - Added stable-publication visibility handoff actionability: release visibility actions now expose command purpose and the proof command to run after completion, so manual GitHub release edits are not confused with local proof reruns.
 - Added stable-publication release-notes edit walkthrough: the generated release-notes authoring kit now includes `edit-walkthrough.md` with the manual `gh release edit` step, rerun proof command, and non-proof boundaries beside the draft notes.

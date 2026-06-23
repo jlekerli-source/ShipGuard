@@ -19,6 +19,8 @@ The iOS profile includes alarm, notification, release, bug-triage, and UI-polish
 | notification-permissions | `.agents/skills/notification-permissions/SKILL.md` | Notification, AlarmKit, fallback, and permission-truth checks. |
 | release-checklist | `.agents/skills/release-checklist/SKILL.md` | Release readiness, TestFlight handoff, and proof claims. |
 | bug-triage | `.agents/skills/bug-triage/SKILL.md` | Bug report classification before implementation. |
+| expo-readiness | `.agents/skills/expo-readiness/SKILL.md` | Expo SDK, EAS, Expo UI, professional design QA, native-module, and agent-scaffolding readiness. |
+| professional-design-qa | `.agents/skills/professional-design-qa/SKILL.md` | Reusable design-principle critique for AI-generated UI across Expo, React Native, SwiftUI, web, and mobile apps. |
 | ui-polish | `.agents/skills/ui-polish/SKILL.md` | UI/UX polish with accessibility, localization, and visual-proof boundaries. |
 
 ## Web
