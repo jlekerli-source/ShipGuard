@@ -3949,6 +3949,12 @@ def write_stable_publication_evidence_starter_kit(
         "- Redact private app names, private paths, screenshots, account data, and token-like strings before sharing.",
         "- Stable v4 is only claimable when `shipguard v4 stable-publication` returns `pass`.",
         "",
+        "## Before These Files Can Pass",
+        "",
+        "- `external-adoption-evidence.json`: set `status` to `pass`, keep `actorRelationship` as `independent`, use `evidenceClass` `public-external` or `private-redacted-external`, set `privateDataRedacted` to `true`, and fill `commands`, `artifacts`, `outcome`, and `nonClaims` with real external-user evidence.",
+        "- `security-review-evidence.json`: set `status` to `pass`, use `evidenceClass` `public-security-review` or `private-redacted-security-review`, set `privateDataRedacted` to `true`, cover `cli`, `plugin`, `github-actions`, `release-proof`, `package-install`, and `redaction-privacy`, and keep `criticalOpen` plus `highOpen` at `0`.",
+        "- Do not replace missing external evidence with private app runs, local maintainer reviews, fixture reports, generated starter files, stars, downloads, or vague testimonials.",
+        "",
     ]
     if release_notes_kit:
         missing_topics = ", ".join(str(item) for item in release_notes_kit.get("missingTopicIds", [])) or "none"

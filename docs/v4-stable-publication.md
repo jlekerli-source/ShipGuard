@@ -396,6 +396,7 @@ The report exposes the same information in `stablePublicationEvidenceStarterKit`
 `ios report-quality` flags stable-publication reports that do not write or render this starter kit, and flags schema-v2 starter kits that lose the release version or release-notes authoring-kit link, because the final publication gate should be actionable without making maintainers reverse-engineer JSON shapes from source code.
 
 Starter-kit files are intentionally not pass-ready. Fill them with real reviewed evidence, redact private details, and pass the completed files back with `--external-adoption-evidence` and `--security-review-evidence`.
+The generated README also lists the exact fields that must change before the adoption and security-review starter records can pass, including independent actor relationship, accepted evidence classes, required security scope coverage, `privateDataRedacted: true`, and the ban on substituting private app runs, fixture reports, generated starter files, stars, downloads, or vague testimonials for external evidence.
 
 ## Evidence Templates
 

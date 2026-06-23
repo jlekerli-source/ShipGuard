@@ -218,6 +218,8 @@ v3.178 adds public proof boundary wording polish: README and CLI docs now separa
 
 v3.179 adds stable-publication proof boundary quickstart docs: the v4 stable-publication guide now gives the exact proof order and evidence-class boundaries before the full command reference.
 
+v3.180 adds stable-publication evidence starter kit polish: generated evidence-kit READMEs now list the exact pass-readiness edits for adoption and security-review records, including accepted evidence classes, required redaction, required security scope, and non-substitute evidence boundaries.
+
 v3.186 continues that release-notes actionability cleanup by routing the same edit command through `stablePublicationEvidencePacket.firstBlockingGate.nextCommand`, release-notes closure `nextCommand`, and `resultUX.nextCommand`; `rerunCommand` remains the after-edit verifier.
 
 v3.187 cleans the stable-publication release visibility handoff so completed `pass`/not-required rows say `not-needed` instead of leaking fallback commands like test scripts into maintainer-facing next-action tables.

@@ -37,6 +37,7 @@ grep -q 'Final security-review proof needs review evidence that covers the CLI, 
 grep -q '## Proof Boundary Quickstart' docs/v4-stable-publication.md
 grep -q 'Do not claim stable v4 until `v4 stable-publication` returns `pass`.' docs/v4-stable-publication.md
 grep -q 'Stable Publication Proof Boundary Quickstart' docs/index.md
+grep -q 'ban on substituting private app runs, fixture reports, generated starter files, stars, downloads, or vague testimonials for external evidence' docs/v4-stable-publication.md
 
 mkdir -p "$tmp_dir/broken"
 cat > "$tmp_dir/broken/README.md" <<'MD'

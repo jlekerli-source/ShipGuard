@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added stable-publication evidence starter kit polish: generated evidence-kit READMEs now list the exact pass-readiness edits for adoption and security-review records, including accepted evidence classes, required redaction, required security scope, and non-substitute evidence boundaries.
 - Added stable-publication proof boundary quickstart docs: the v4 stable-publication guide now gives the exact proof order and evidence-class boundaries before the full command reference.
 - Added public proof boundary wording polish: README and CLI docs now separate public consumer replay, private-app/maintainer QA, independent adoption, and final security-review evidence so stable-publication claims cannot blur those proof classes.
 - Added reviewer outcome docs example polish: README and CLI examples now show the `--reviewer-note` reviewer-disposition path beside the no-note path so maintainers see the complete local outcome workflow.
