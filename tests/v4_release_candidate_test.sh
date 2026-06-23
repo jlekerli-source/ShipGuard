@@ -783,6 +783,27 @@ test -f "$tmp_dir/native-assets/release-consume/consumer-report.json"
 grep -q 'Download Proof Attachment' "$tmp_dir/native-assets/v4-release-candidate.md"
 grep -q 'Download Receipt Handoff' "$tmp_dir/native-assets/v4-release-candidate.md"
 
+SHIPGUARD_GENERATED_AT="2026-06-19T00:00:00Z" \
+  ./bin/shipguard v4 release-candidate \
+    --path . \
+    --package-tarball "$tmp_dir/proof-bundle/shipguard-v$version.tar.gz" \
+    --upgrade-from-tarball "$tmp_dir/shipguard-v$old_version.tar.gz" \
+    --fresh-install-prefix "$tmp_dir/native-fresh-prefix-rerun" \
+    --fresh-install-work-dir "$tmp_dir/native-fresh-work-rerun" \
+    --upgrade-prefix "$tmp_dir/native-upgrade-prefix-rerun" \
+    --upgrade-work-dir "$tmp_dir/native-upgrade-work-rerun" \
+    --rollback-prefix "$tmp_dir/native-rollback-prefix-rerun" \
+    --rollback-work-dir "$tmp_dir/native-rollback-work-rerun" \
+    --out "$tmp_dir/native-assets" \
+    --download-release-assets \
+    --github-release-repo jlekerli-source/ShipGuard \
+    --github-api-url "file://$api_root" \
+    --release-version "$version" \
+    --shipguard-eval \
+    --shareable
+
+grep -q '"githubReleaseAssetDownloadProof": "pass"' "$tmp_dir/native-assets/v4-release-candidate.json"
+
 python3 - "$tmp_dir/native-assets/v4-release-candidate.json" <<'PY'
 import json
 import sys

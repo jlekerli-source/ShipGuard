@@ -1013,6 +1013,7 @@ def build_github_release_asset_download_proof(args: argparse.Namespace, version:
             "nextCommand": command_template,
         }
 
+    owns_download_dir = not args.download_release_assets_dir and not args.release_assets
     download_dir = (
         Path(args.download_release_assets_dir).expanduser().resolve()
         if args.download_release_assets_dir
@@ -1049,6 +1050,8 @@ def build_github_release_asset_download_proof(args: argparse.Namespace, version:
         proof["error"] = f"download destination is not a directory: {download_dir}"
         attach_github_release_asset_download_blocking_proof(proof)
         return proof
+    if download_dir.exists() and any(download_dir.iterdir()) and owns_download_dir:
+        shutil.rmtree(download_dir)
     if download_dir.exists() and any(download_dir.iterdir()):
         proof["summary"] = "GitHub release download destination already exists and is not empty."
         proof["error"] = f"download destination must be empty: {download_dir}"

@@ -202,7 +202,7 @@ v3.139 routes missing public-release metadata through the top-level result UX: w
 
 v3.140 closes the public-release handoff proof gap: stable-publication release-create and release-asset upload handoffs now include a post-handoff proof receipt with the exact `gh release view ... --json tagName,isDraft,isPrerelease,targetCommitish,publishedAt,assets,url` command, stable-publication rerun command, success criteria, and non-claims so manual GitHub actions are verifiable instead of assumed.
 
-Release-line note: local `VERSION` now advances to `3.141.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
+Release-line note: local `VERSION` now advances to `3.142.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
 
 v3.135 trims package-release proof duplication: after source CI runs the focused fixture suites, `tests/package_release_test.sh` verifies those packaged test scripts are included, executable, and shell-syntax-valid instead of rerunning the same suites from the extracted tarball.
 
@@ -233,6 +233,8 @@ v3.141 also tightens LaunchKey download receipt handoffs so successful native Gi
 v3.142 adds LaunchKey download-blocking receipt handoff so failed native GitHub asset downloads keep the candidate report path, failure evidence, repair command, stable-publication command, and blocked-download non-proof boundary with the blocking receipt.
 
 v3.142 continues LaunchKey native GitHub release-asset download by adding `downloadProofAttachment` to successful native downloads so repo, tag, endpoint, destination, downloaded asset names, SHA-256 rows, rerun command, and source-only/fixture-proof boundaries travel with the candidate packet.
+
+v3.142 also makes LaunchKey native asset downloads rerunnable for ShipGuard-owned output: default `<out>/downloaded-release-assets` is refreshed before a new download, while explicit custom download directories and supplied release-asset directories remain caller-owned and still block when non-empty.
 
 v3.143 continues Stable-v4 external adoption evidence gating by adding `adoptionGateAttachment` to supplied adoption evidence so record counts, accepted classes, required fields, first invalid record diagnostics, next command, and source-only/fixture/download/marketplace boundaries travel with the candidate packet.
 
