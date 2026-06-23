@@ -1,25 +1,25 @@
 # Next Goal
 
-- Generated: 2026-06-23T20:26:37Z
-- Current toolkit version: 3.200.0
-- Target release: v3.201.0
-- Title: Stable-publication external evidence source-class report polish
+- Generated: 2026-06-23T20:52:46Z
+- Current toolkit version: 3.201.0
+- Target release: v3.202.0
+- Title: Stable-publication evidence source-class fixture promotion
 
 ## Version Lineage Check
 
 - Status: pass
-- VERSION: 3.200.0
-- Expected next release from VERSION: v3.201.0
-- Planned target release: v3.201.0
-- Current checkout package artifact before version bump: dist/shipguard-v3.200.0.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v3.201.0.tar.gz
-- Action: Before publishing v3.201.0, bump VERSION to 3.201.0, rebuild, and verify dist/shipguard-v3.201.0.tar.gz.
+- VERSION: 3.201.0
+- Expected next release from VERSION: v3.202.0
+- Planned target release: v3.202.0
+- Current checkout package artifact before version bump: dist/shipguard-v3.201.0.tar.gz
+- Expected package artifact after release bump: dist/shipguard-v3.202.0.tar.gz
+- Action: Before publishing v3.202.0, bump VERSION to 3.202.0, rebuild, and verify dist/shipguard-v3.202.0.tar.gz.
 
 ## Slash Plan
 
 ```text
-/plan v3.201.0 Stable-publication external evidence source-class report polish for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make stable-publication external evidence reports show accepted source classes, actor relationships, reviewer relationships, and rejected substitutes clearly so maintainers do not confuse private maintainer QA, download counts, stale records, or fixture records with independent adoption/security evidence.
+/plan v3.202.0 Stable-publication evidence source-class fixture promotion for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Promote a public report-quality fixture proving stable-publication source-class matrices stay visible, accepted classes and relationships are explicit, and rejected substitutes such as maintainer-only QA, download counts, fixture records, stale records, and vague self-review cannot be mistaken for adoption or security proof.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, bump VERSION before release packaging, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -28,23 +28,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.201.0 Stable-publication external evidence source-class report polish for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make stable-publication external evidence reports show accepted source classes, actor relationships, reviewer relationships, and rejected substitutes clearly so maintainers do not confuse private maintainer QA, download counts, stale records, or fixture records with independent adoption/security evidence, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.202.0 Stable-publication evidence source-class fixture promotion for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote a public report-quality fixture proving stable-publication source-class matrices stay visible, accepted classes and relationships are explicit, and rejected substitutes such as maintainer-only QA, download counts, fixture records, stale records, and vague self-review cannot be mistaken for adoption or security proof, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make stable-publication external evidence reports show accepted source classes, actor relationships, reviewer relationships, and rejected substitutes clearly so maintainers do not confuse private maintainer QA, download counts, stale records, or fixture records with independent adoption/security evidence.
+Promote a public report-quality fixture proving stable-publication source-class matrices stay visible, accepted classes and relationships are explicit, and rejected substitutes such as maintainer-only QA, download counts, fixture records, stale records, and vague self-review cannot be mistaken for adoption or security proof.
 
 ## Completion Receipt
 
-- Completed scope: v3.200.0 promoted a public report-quality fixture proving stale adoption/security evidence is rejected by generatedAt freshness against the release manifest.
-- Evidence: Commit 947d6dee pushed to main; GitHub Actions run 28054573405 completed success; local package tarball dist/shipguard-v3.200.0.tar.gz SHA-256 eae07dce609d955041d82e71767e3ea5c92dbb4ba8ed9ce6dabc0e62e875620a; ./bin/shipguard codex status --strict passed after local CLI refresh.
+- Completed scope: v3.201.0 added source-class matrices to stable-publication public evidence closure reports and report-quality now guards accepted classes, relationships, rejected substitutes, and Markdown visibility.
+- Evidence: Commit b6077d89 pushed to main; GitHub Actions run 28056084057 completed success; local package tarball dist/shipguard-v3.201.0.tar.gz SHA-256 6ddd4f98fddc5d55c6691c4002920a268d0b9c5b1ccf4a5ef0d7ffeb2f4234ba; ./bin/shipguard codex status --strict passed after local CLI refresh.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.202.0 Stable-publication evidence source-class fixture promotion for jlekerli-source/ShipGuard:
+/plan v3.203.0 Stable-publication external evidence source-class fixture polish for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -54,13 +54,13 @@ Make stable-publication external evidence reports show accepted source classes, 
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.202.0 Stable-publication evidence source-class fixture promotion for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.203.0 Stable-publication external evidence source-class fixture polish for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.202.0 --title "Stable-publication evidence source-class fixture promotion" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.203.0 --title "Stable-publication external evidence source-class fixture polish" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -160,12 +160,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.201.0.
+1. Open or update the tracking issue for v3.202.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Bump VERSION to 3.201.0, build `dist/shipguard-v3.201.0.tar.gz`, create release `v3.201.0`, and upload the rebuilt tarball.
+6. Bump VERSION to 3.202.0, build `dist/shipguard-v3.202.0.tar.gz`, create release `v3.202.0`, and upload the rebuilt tarball.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
