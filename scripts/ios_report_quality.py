@@ -229,6 +229,7 @@ SOURCE_REPORT_SKIP_NAMES = {
     "fixture-candidate.json",
     "fixture-candidates-index.json",
     "fixture-promotion-manifest.json",
+    "stable-publication-external-evidence-fixture-index.json",
 }
 SOURCE_REPORT_SKIP_DIR_NAMES = {
     "fresh-install-prefix",
@@ -9821,6 +9822,83 @@ def build_fixture_candidates(ranked_questions: list[dict[str, Any]]) -> list[dic
     return candidates
 
 
+def stable_publication_external_evidence_fixture_index(
+    existing_fixtures: dict[str, dict[str, Any]],
+    fixture_coverage: list[dict[str, Any]],
+) -> dict[str, Any]:
+    expected = [
+        {
+            "id": "independent-adoption-evidence",
+            "label": "Independent adoption evidence",
+            "publicFixturePath": "fixtures/ios-report-quality/stable-publication-adoption-evidence-checklist",
+            "rejectionProved": "weak adoption signals rejected",
+            "requiredProof": [
+                "independent actor",
+                "commands",
+                "artifacts",
+                "redaction",
+                "outcome",
+                "non-claims",
+            ],
+        },
+        {
+            "id": "final-security-review-evidence",
+            "label": "Final security-review evidence",
+            "publicFixturePath": "fixtures/ios-report-quality/stable-publication-security-review-evidence-checklist",
+            "rejectionProved": "vague security evidence rejected",
+            "requiredProof": [
+                "reviewed surfaces",
+                "severity thresholds",
+                "redaction",
+                "methodology",
+                "findings summary",
+                "non-claims",
+            ],
+        },
+    ]
+    by_path = {
+        str(item.get("publicFixturePath") or ""): item
+        for item in existing_fixtures.values()
+        if isinstance(item, dict)
+    }
+    covered_paths = {str(item.get("publicFixturePath") or "") for item in fixture_coverage if isinstance(item, dict)}
+    rows: list[dict[str, Any]] = []
+    for item in expected:
+        path = item["publicFixturePath"]
+        fixture = by_path.get(path) or {}
+        rows.append(
+            {
+                **item,
+                "status": "covered" if fixture else "missing",
+                "candidateId": fixture.get("candidateId") or Path(path).name,
+                "sourceQuestion": fixture.get("sourceQuestion") or "",
+                "coveredInCurrentRun": path in covered_paths,
+            }
+        )
+    missing = [row for row in rows if row["status"] != "covered"]
+    next_gap = {
+        "id": "external-evidence-freshness-fixture",
+        "summary": "Promote a fixture proving adoption/security records cannot predate the release manifest they support.",
+        "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-freshness",
+    }
+    return {
+        "schemaVersion": SCHEMA_VERSION,
+        "status": "pass" if not missing else "review",
+        "purpose": "Compact index of public stable-publication external-evidence fixture coverage.",
+        "coveredCount": len(rows) - len(missing),
+        "expectedCount": len(rows),
+        "rows": rows,
+        "remainingExternalEvidenceGaps": [next_gap],
+        "nextFixtureToPromote": missing[0] if missing else next_gap,
+        "nonClaims": [
+            "Fixture coverage proves report-quality behavior only.",
+            "Fixture coverage is not independent adoption evidence.",
+            "Fixture coverage is not final security-review evidence.",
+            "Fixture coverage does not prove stable-v4 publication.",
+        ],
+    }
+
+
 def build_report(inputs: list[str], *, shareable: bool = False, shipguard_eval: bool = False) -> dict[str, Any]:
     paths = report_json_files(inputs)
     promotion_manifest_paths = fixture_promotion_manifest_files(inputs)
@@ -9847,9 +9925,14 @@ def build_report(inputs: list[str], *, shareable: bool = False, shipguard_eval: 
     status = report_status(issues)
     actionability_questions = dedupe_question_rows(actionability_questions)
     ranked_questions = ranked_actionability_questions(graded)
+    existing_fixtures = existing_public_fixture_index(cwd)
     fixture_coverage = annotate_existing_fixture_coverage(
         ranked_questions,
-        existing_fixtures=existing_public_fixture_index(cwd),
+        existing_fixtures=existing_fixtures,
+    )
+    external_evidence_index = stable_publication_external_evidence_fixture_index(
+        existing_fixtures,
+        fixture_coverage,
     )
     fixture_candidates = build_fixture_candidates(ranked_questions)
     priority_action = build_priority_action(issues, ranked_questions)
@@ -9921,6 +10004,7 @@ def build_report(inputs: list[str], *, shareable: bool = False, shipguard_eval: 
         "actionabilityQuestions": actionability_questions[:30],
         "prioritizedActionabilityQuestions": ranked_questions[:30],
         "fixtureCoverage": fixture_coverage[:30],
+        "stablePublicationExternalEvidenceFixtureIndex": external_evidence_index,
         "fixtureCandidates": fixture_candidates,
         "priorityAction": priority_action,
         "nextActions": next_actions,
@@ -10039,6 +10123,34 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append("Covered questions keep their actionability evidence, but they do not create duplicate fixture candidates.")
     else:
         lines.append("No existing promoted fixtures matched the current actionability questions.")
+
+    external_index = report.get("stablePublicationExternalEvidenceFixtureIndex") or {}
+    if external_index:
+        lines.extend(["", "## Stable-Publication External Evidence Fixture Index", ""])
+        lines.append(f"- Status: `{external_index.get('status') or 'unknown'}`")
+        lines.append(
+            f"- Covered: {external_index.get('coveredCount', 0)}/{external_index.get('expectedCount', 0)}"
+        )
+        lines.extend(["", "| Evidence | Status | Fixture | Rejection Proved | Required Proof |", "| --- | --- | --- | --- | --- |"])
+        for item in external_index.get("rows") or []:
+            required = ", ".join(str(value) for value in item.get("requiredProof") or [])
+            lines.append(
+                f"| `{item.get('id') or 'unknown'}` | `{item.get('status') or 'unknown'}` | `{table_cell(item.get('publicFixturePath') or '-', 72)}` | {table_cell(item.get('rejectionProved') or '-')} | {table_cell(required, 120)} |"
+            )
+        next_fixture = external_index.get("nextFixtureToPromote") if isinstance(external_index.get("nextFixtureToPromote"), dict) else {}
+        if next_fixture:
+            lines.extend(["", "Next fixture to promote:"])
+            lines.append(f"- `{next_fixture.get('id') or next_fixture.get('candidateId') or 'unknown'}`")
+            if next_fixture.get("suggestedFixturePath"):
+                lines.append(f"- Suggested path: `{next_fixture['suggestedFixturePath']}`")
+            if next_fixture.get("summary"):
+                lines.append(f"- Summary: {next_fixture['summary']}")
+        gaps = external_index.get("remainingExternalEvidenceGaps") or []
+        if gaps:
+            lines.extend(["", "Remaining external-evidence gaps:"])
+            for gap in gaps:
+                if isinstance(gap, dict):
+                    lines.append(f"- `{gap.get('id') or 'unknown'}`: {gap.get('summary') or '-'}")
 
     lines.extend(["", "## Fixture Candidates", ""])
     fixture_candidates = report.get("fixtureCandidates") or []

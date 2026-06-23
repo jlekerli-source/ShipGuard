@@ -7718,6 +7718,30 @@ assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/stabl
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 
+python3 - <<'PY' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.json" fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.json
+import json
+import sys
+
+report = json.load(open(sys.argv[1], encoding="utf-8"))
+index = report.get("stablePublicationExternalEvidenceFixtureIndex") or {}
+assert index.get("coveredCount") == 2, index
+assert index.get("expectedCount") == 2, index
+rows = {item.get("id"): item for item in index.get("rows") or []}
+assert rows.get("independent-adoption-evidence", {}).get("status") == "covered", rows
+assert rows.get("final-security-review-evidence", {}).get("status") == "covered", rows
+assert index.get("nextFixtureToPromote", {}).get("id") == "external-evidence-freshness-fixture", index
+
+static = json.load(open(sys.argv[2], encoding="utf-8"))
+coverage_ids = {item.get("id") for item in static.get("coverage") or []}
+assert "independent-adoption-evidence" in coverage_ids, static
+assert "final-security-review-evidence" in coverage_ids, static
+gaps = static.get("remainingExternalEvidenceGaps") or []
+assert gaps and gaps[0].get("suggestedFixturePath", "").endswith("stable-publication-external-evidence-freshness"), gaps
+PY
+grep -q 'Stable-Publication External Evidence Fixture Index' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
+grep -q 'weak adoption signals rejected' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
+grep -q 'vague security evidence rejected' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
+
 stable_publication_missing_intake="$tmp_dir/stable-publication-missing-intake"
 mkdir -p "$stable_publication_missing_intake"
 python3 - <<'PY' "$stable_publication_launch_relay_fixture/fixture-report.json" "$stable_publication_launch_relay_fixture/fixture-report.md" "$stable_publication_missing_intake"

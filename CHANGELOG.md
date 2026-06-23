@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added a stable-publication external evidence fixture index: report-quality now summarizes adoption/security fixture coverage, weak-signal and vague-security rejection, remaining external-evidence gaps, and the next fixture to promote without scanning individual fixture directories.
 - Promoted the stable-publication security-review evidence checklist into a public report-quality fixture: vague security evidence is rejected, final security proof requires reviewed surfaces, severity thresholds, redaction, methodology, findings summary, and non-claims, and recursive fixture candidates stay suppressed.
 - Promoted the stable-publication adoption evidence checklist into a public report-quality fixture: weak adoption signals are rejected, independent adoption proof requires actor, commands, artifacts, redaction, outcome, and non-claims, and recursive fixture candidates stay suppressed.
 - Added a stable-publication adoption evidence checklist: generated adoption templates, starter kits, and reports now name accepted evidence classes, independent actor requirement, proof fields, artifact expectations, redaction boundaries, weak-signal exclusions, and the pass decision; report-quality flags missing or incomplete adoption checklists.

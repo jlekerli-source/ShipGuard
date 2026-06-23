@@ -250,6 +250,8 @@ v3.196 promotes the stable-publication adoption evidence checklist into a public
 
 v3.197 promotes the stable-publication security-review evidence checklist into a public report-quality fixture: vague security evidence is rejected, final security proof requires reviewed surfaces, severity thresholds, redaction, methodology, findings summary, and non-claims, and recursive fixture candidates stay suppressed without private app data.
 
+v3.198 adds a stable-publication external evidence fixture index: report-quality now summarizes adoption/security fixture coverage, weak-signal and vague-security rejection, remaining external-evidence gaps, and the next fixture to promote without scanning individual fixture directories.
+
 v3.136 public-release catch-up makes the stable-publication release visibility handoff copy-ready: when the primary decision is `publish-new-github-release`, the action row now points at the generated `gh release create ...` command with the report output draft release notes and required release-proof assets instead of a placeholder.
 
 v3.137 makes that public-release packet fully asset-path aware: when stable-publication has a supplied or downloaded release-assets directory, the generated `gh release create ...` handoff uses those concrete files instead of `<release-proof-assets-dir>` placeholders.
