@@ -1,6 +1,11 @@
 # Demo Reports
 
-The repository includes generated demo reports under `examples/demo-reports/`.
+The repository includes two public demo paths:
+
+- [Verify-First Quickstart](verify-first-quickstart.md): the shortest installable proof loop, using one task contract, one demo diff, and one structured receipt.
+- `examples/demo-reports/`: generated Arena, leaderboard, and transcript reports from public fixtures.
+
+Use the quickstart first when you want to understand what ShipGuard does for a normal PR. Use generated demo reports when you want to inspect report formats and benchmark fixtures.
 
 Regenerate them with:
 
@@ -10,6 +15,7 @@ Regenerate them with:
 
 The generated output includes:
 
+- the verify-first pass, review, and blocked demo path documented in `docs/verify-first-quickstart.md`
 - arena aggregate results
 - per-case autopsy reports
 - leaderboard JSON

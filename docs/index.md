@@ -9,6 +9,7 @@ Use this page as a map. Start with the smallest path that matches what you are t
 | Goal | Read |
 | --- | --- |
 | Understand the core idea | [Verify-First Quickstart](verify-first-quickstart.md) |
+| Inspect public demo outputs | [Demo Reports](demo-reports.md) |
 | Install ShipGuard and check a repo | [Install and Doctor](install-doctor.md) |
 | Audit the first PR workflow | [Verify-PR Action Audit](action-verify-pr.md) |
 | Add ShipGuard to your own project | [Use in your repo](use-in-your-repo.md) |

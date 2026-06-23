@@ -176,6 +176,8 @@ v3.157 makes the installer path prove the first useful consumer workflow from th
 
 v3.158 makes the Verify-PR first-run path more copyable: the report now includes a `firstRunInstallHandoff` with source and destination workflow paths, a `mkdir -p` copy command, validation-command edit step, static audit command, runtime artifact audit command, and proof boundary separating workflow setup from a real PR run.
 
+v3.159 makes the public demo path more obvious: the docs index separates the verify-first quickstart from generated demo reports, `docs/demo-reports.md` explains when to use each path, and the generated demo-report README now includes the copyable pass-path command plus review/blocked pointers.
+
 v3.186 continues that release-notes actionability cleanup by routing the same edit command through `stablePublicationEvidencePacket.firstBlockingGate.nextCommand`, release-notes closure `nextCommand`, and `resultUX.nextCommand`; `rerunCommand` remains the after-edit verifier.
 
 v3.187 cleans the stable-publication release visibility handoff so completed `pass`/not-required rows say `not-needed` instead of leaking fallback commands like test scripts into maintainer-facing next-action tables.

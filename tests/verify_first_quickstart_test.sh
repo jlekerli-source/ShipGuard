@@ -122,6 +122,11 @@ grep -q 'Set SHIPGUARD_VALIDATION_COMMAND to your real test command' examples/wo
 grep -q -- '--validation "$SHIPGUARD_VALIDATION_COMMAND"' examples/workflows/verify-pr.yml
 grep -q 'bash -lc "$SHIPGUARD_VALIDATION_COMMAND"' examples/workflows/verify-pr.yml
 grep -q 'command = sys.argv\[5\]' examples/workflows/verify-pr.yml
+grep -q 'Inspect public demo outputs' docs/index.md
+grep -q 'Verify-First Quickstart' docs/demo-reports.md
+grep -q 'pass, review, and blocked demo path' docs/demo-reports.md
+grep -q 'ShipGuard Proof Report: pass' examples/demo-reports/README.md
+grep -q 'docs/verify-first-quickstart.md' examples/demo-reports/README.md
 
 placeholder_count="$(grep -c 'replace-with-your-test-command' examples/workflows/verify-pr.yml)"
 if [[ "$placeholder_count" -ne 2 ]]; then

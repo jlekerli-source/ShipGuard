@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Promoted the public demo/docs quickstart path into the release line: the docs index now routes fresh users to the verify-first quickstart and demo reports separately, generated demo-report README output includes the copyable pass-path command plus review/blocked pointers, and `verify_first_quickstart_test.sh` keeps those public demo links and proof-report expectations from drifting.
 - Promoted the GitHub Action first-run proof path into the release line: `shipguard action verify-pr` now emits a first-run install handoff with a directory-safe workflow copy command, static audit command, runtime artifact audit command, and proof boundary so fresh maintainers can install the transparent PR workflow without guessing.
 - Promoted the one-command installer proof path into the release line: the packaged install proof now installs the extracted release tarball, runs the installed CLI through `validate`, `prepare`, and `verify` against public quickstart fixtures, and checks the resulting proof report so the tarball proves the first useful consumer path. Installed wrappers also disable Python bytecode writes so normal use does not dirty the installed toolkit tree.
 - Promoted guarded launch relay drafts into the release line: stable-publication now writes draft-only Product Hunt, r/ShipGuard, X, and Hacker News launch packets with explicit approval, no-public-posting, and no-computer-use-autopost boundaries, and focused tests verify those boundaries appear in the generated draft artifacts.
