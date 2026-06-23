@@ -1,4 +1,45 @@
 {
+  "artifactRedactionSummary": [
+    {
+      "blockedSubstitute": "private unredacted maintainer artifacts",
+      "evidence": "independent-adoption-evidence",
+      "passBoundary": "Adoption proof requires redacted/public command and artifact evidence with privateDataRedacted=true plus outcome and non-claims.",
+      "rejectedArtifactProof": [
+        "local absolute paths",
+        "private screenshots",
+        "tokens or account identifiers",
+        "unreviewed app-specific notes",
+        "missing artifact links"
+      ],
+      "requiredArtifactFields": [
+        "commands",
+        "artifacts",
+        "privateDataRedacted",
+        "outcome",
+        "nonClaims"
+      ]
+    },
+    {
+      "blockedSubstitute": "unredacted or provenance-free security notes",
+      "evidence": "final-security-review-evidence",
+      "passBoundary": "Security proof requires reviewed stable-v4 surfaces, methodology, redacted artifacts, findings summary, and no open critical/high findings.",
+      "rejectedArtifactProof": [
+        "vague self-review notes",
+        "local absolute paths",
+        "private screenshots",
+        "tokens or account identifiers",
+        "missing methodology"
+      ],
+      "requiredArtifactFields": [
+        "methodology",
+        "commands",
+        "artifacts",
+        "privateDataRedacted",
+        "findingsSummary",
+        "nonClaims"
+      ]
+    }
+  ],
   "coverage": [
     {
       "candidateId": "stable-publication-adoption-evidence-checklist",
@@ -89,29 +130,48 @@
       ],
       "sourceQuestion": "Does stable-publication keep external evidence relationship gates visible so maintainer-only adoption runs and unreviewed security notes cannot satisfy adoption or security proof?",
       "status": "covered"
+    },
+    {
+      "candidateId": "stable-publication-external-evidence-artifact-redaction",
+      "coveredInCurrentRun": false,
+      "id": "external-evidence-artifact-redaction-fixture",
+      "label": "External evidence artifact redaction",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-redaction",
+      "rejectionProved": "unredacted or provenance-free artifacts rejected as adoption/security proof",
+      "requiredProof": [
+        "required artifact fields",
+        "privateDataRedacted gate",
+        "accepted artifact proof",
+        "rejected artifact proof",
+        "blocked substitutes",
+        "Markdown visibility"
+      ],
+      "sourceQuestion": "Does stable-publication keep external evidence artifact redaction and provenance gates visible so private paths, screenshots, tokens, and unreviewed artifacts cannot satisfy adoption or security proof?",
+      "status": "covered"
     }
   ],
-  "coveredCount": 5,
+  "coveredCount": 6,
   "decisionSummary": {
     "coveredEvidenceClasses": [
       "independent-adoption-evidence",
       "final-security-review-evidence",
       "external-evidence-freshness-fixture",
       "external-evidence-source-class-fixture",
-      "external-evidence-relationship-gate-fixture"
+      "external-evidence-relationship-gate-fixture",
+      "external-evidence-artifact-redaction-fixture"
     ],
-    "nextPromotionTarget": "external-evidence-next-public-fixture",
+    "nextPromotionTarget": "external-evidence-next-real-qa-gap",
     "nonClaimSummary": "This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.",
     "remainingExternalEvidenceQuestions": [
-      "external-evidence-next-public-fixture"
+      "external-evidence-next-real-qa-gap"
     ],
-    "verdict": "Adoption, security-review, freshness, source-class, and relationship-gate fixture questions are covered; the next public fixture promotion remains."
+    "verdict": "Adoption, security-review, freshness, source-class, relationship-gate, and artifact-redaction fixture questions are covered; the next real QA gap remains."
   },
-  "expectedCount": 5,
+  "expectedCount": 6,
   "nextFixtureToPromote": {
-    "id": "external-evidence-next-public-fixture",
-    "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-relationship-gates",
-    "summary": "Promote the next stable-publication external-evidence public fixture found by real report QA without treating fixture coverage as adoption or security proof."
+    "id": "external-evidence-next-real-qa-gap",
+    "suggestedFixturePath": "fixtures/ios-report-quality/<next-stable-publication-external-evidence-fixture>",
+    "summary": "Use the next real or synthetic public-safe stable-publication report QA finding to promote a concrete public fixture."
   },
   "nonClaims": [
     "Fixture coverage proves report-quality behavior only.",
@@ -154,9 +214,119 @@
   ],
   "remainingExternalEvidenceGaps": [
     {
-      "id": "external-evidence-next-public-fixture",
-      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-relationship-gates",
-      "summary": "Promote the next stable-publication external-evidence public fixture found by real report QA without treating fixture coverage as adoption or security proof."
+      "id": "external-evidence-next-real-qa-gap",
+      "suggestedFixturePath": "fixtures/ios-report-quality/<next-stable-publication-external-evidence-fixture>",
+      "summary": "Use the next real or synthetic public-safe stable-publication report QA finding to promote a concrete public fixture."
+    }
+  ],
+  "rows": [
+    {
+      "candidateId": "stable-publication-adoption-evidence-checklist",
+      "coveredInCurrentRun": false,
+      "id": "independent-adoption-evidence",
+      "label": "Independent adoption evidence",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-adoption-evidence-checklist",
+      "rejectionProved": "weak adoption signals rejected",
+      "requiredProof": [
+        "independent actor",
+        "commands",
+        "artifacts",
+        "redaction",
+        "outcome",
+        "non-claims"
+      ],
+      "sourceQuestion": "Does stable-publication reject weak adoption signals and require independent actor, commands, artifacts, redaction, outcome, and non-claims before stable-v4 release?",
+      "status": "covered"
+    },
+    {
+      "candidateId": "stable-publication-security-review-evidence-checklist",
+      "coveredInCurrentRun": true,
+      "id": "final-security-review-evidence",
+      "label": "Final security-review evidence",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-security-review-evidence-checklist",
+      "rejectionProved": "vague security evidence rejected",
+      "requiredProof": [
+        "reviewed surfaces",
+        "severity thresholds",
+        "redaction",
+        "methodology",
+        "findings summary",
+        "non-claims"
+      ],
+      "sourceQuestion": "Does stable-publication reject vague security evidence and require reviewed surfaces, severity thresholds, redaction, methodology, findings summary, and non-claims before stable-v4 release?",
+      "status": "covered"
+    },
+    {
+      "candidateId": "stable-publication-external-evidence-freshness",
+      "coveredInCurrentRun": false,
+      "id": "external-evidence-freshness-fixture",
+      "label": "External evidence freshness",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-freshness",
+      "rejectionProved": "stale adoption/security evidence rejected",
+      "requiredProof": [
+        "release manifest generatedAt",
+        "evidence generatedAt",
+        "stale record count",
+        "freshness boundary",
+        "non-claims"
+      ],
+      "sourceQuestion": "Does stable-publication reject stale adoption and security-review evidence by comparing evidence generatedAt timestamps against the release manifest timestamp?",
+      "status": "covered"
+    },
+    {
+      "candidateId": "stable-publication-external-evidence-source-classes",
+      "coveredInCurrentRun": false,
+      "id": "external-evidence-source-class-fixture",
+      "label": "External evidence source classes",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
+      "rejectionProved": "weak substitutes rejected as adoption/security proof",
+      "requiredProof": [
+        "accepted evidence classes",
+        "actor/reviewer relationship fields",
+        "accepted relationships",
+        "rejected substitutes",
+        "pass boundaries",
+        "Markdown visibility"
+      ],
+      "sourceQuestion": "Does stable-publication keep accepted external evidence source classes, actor/reviewer relationships, and rejected substitutes visible so weak substitutes cannot be mistaken for adoption or security proof?",
+      "status": "covered"
+    },
+    {
+      "candidateId": "stable-publication-external-evidence-relationship-gates",
+      "coveredInCurrentRun": false,
+      "id": "external-evidence-relationship-gate-fixture",
+      "label": "External evidence relationship gates",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-relationship-gates",
+      "rejectionProved": "wrong actor/reviewer relationships rejected as adoption/security proof",
+      "requiredProof": [
+        "actorRelationship gate",
+        "reviewerRelationship gate",
+        "accepted relationships",
+        "rejected relationships",
+        "blocked substitutes",
+        "pass boundaries",
+        "Markdown visibility"
+      ],
+      "sourceQuestion": "Does stable-publication keep external evidence relationship gates visible so maintainer-only adoption runs and unreviewed security notes cannot satisfy adoption or security proof?",
+      "status": "covered"
+    },
+    {
+      "candidateId": "stable-publication-external-evidence-artifact-redaction",
+      "coveredInCurrentRun": false,
+      "id": "external-evidence-artifact-redaction-fixture",
+      "label": "External evidence artifact redaction",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-redaction",
+      "rejectionProved": "unredacted or provenance-free artifacts rejected as adoption/security proof",
+      "requiredProof": [
+        "required artifact fields",
+        "privateDataRedacted gate",
+        "accepted artifact proof",
+        "rejected artifact proof",
+        "blocked substitutes",
+        "Markdown visibility"
+      ],
+      "sourceQuestion": "Does stable-publication keep external evidence artifact redaction and provenance gates visible so private paths, screenshots, tokens, and unreviewed artifacts cannot satisfy adoption or security proof?",
+      "status": "covered"
     }
   ],
   "schemaVersion": 1,

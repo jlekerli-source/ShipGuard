@@ -264,6 +264,8 @@ v3.203 polishes the stable-publication external evidence source-class fixture in
 
 v3.204 promotes the stable-publication external evidence relationship-gate fixture: the public fixture now proves adoption/security relationship gates stay visible in JSON and Markdown, blocks maintainer-only adoption runs and vague self-review substitutes, and advances the external-evidence index to the next public fixture promotion.
 
+v3.205 promotes the stable-publication external evidence artifact-redaction fixture: the public fixture now proves artifact/provenance gates stay visible in JSON and Markdown, blocks unredacted paths, private screenshots, tokens, missing artifact links, and provenance-free notes as adoption/security substitutes, and advances the external-evidence index to the next real QA gap.
+
 v3.136 public-release catch-up makes the stable-publication release visibility handoff copy-ready: when the primary decision is `publish-new-github-release`, the action row now points at the generated `gh release create ...` command with the report output draft release notes and required release-proof assets instead of a placeholder.
 
 v3.137 makes that public-release packet fully asset-path aware: when stable-publication has a supplied or downloaded release-assets directory, the generated `gh release create ...` handoff uses those concrete files instead of `<release-proof-assets-dir>` placeholders.
