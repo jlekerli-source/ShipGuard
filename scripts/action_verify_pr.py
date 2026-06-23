@@ -453,6 +453,24 @@ def build_runtime_reviewer_handoff(runtime_artifact: dict[str, Any], *, artifact
     }
 
 
+def build_first_run_install_handoff(*, workflow_path: str) -> dict[str, Any]:
+    copy_command = "mkdir -p .github/workflows && cp examples/workflows/verify-pr.yml .github/workflows/shipguard-verify-pr.yml"
+    static_audit_command = f"shipguard action verify-pr --workflow {workflow_path} --out /tmp/shipguard-action-verify-pr --shareable"
+    artifact_audit_command = (
+        "gh run download <run-id> --name shipguard-verdict --dir /tmp/shipguard-verdict-artifact && "
+        f"shipguard action verify-pr --workflow {workflow_path} --artifact-dir /tmp/shipguard-verdict-artifact --out /tmp/shipguard-action-verify-pr --shareable"
+    )
+    return {
+        "sourceWorkflow": "examples/workflows/verify-pr.yml",
+        "destinationWorkflow": workflow_path,
+        "copyCommand": copy_command,
+        "configureCommand": f"edit SHIPGUARD_VALIDATION_COMMAND in {workflow_path}",
+        "staticAuditCommand": static_audit_command,
+        "runtimeArtifactCommand": artifact_audit_command,
+        "proofBoundary": "This installs the transparent workflow starter and audits wiring; it does not prove a real PR run until the uploaded shipguard-verdict artifact is downloaded and consumed.",
+    }
+
+
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
     root = Path(args.path).resolve()
     workflow = Path(args.workflow)
@@ -650,11 +668,9 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     blocked_count = sum(1 for item in findings if item["severity"] == "blocked")
     review_count = sum(1 for item in findings if item["severity"] == "review")
     status = "blocked" if blocked_count else "review" if review_count else "pass"
-    artifact_audit_command = (
-        "gh run download <run-id> --name shipguard-verdict --dir /tmp/shipguard-verdict-artifact && "
-        "shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --artifact-dir /tmp/shipguard-verdict-artifact --out /tmp/shipguard-action-verify-pr --shareable"
-    )
-    static_audit_command = "shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --out /tmp/shipguard-action-verify-pr --shareable"
+    first_run_handoff = build_first_run_install_handoff(workflow_path=".github/workflows/shipguard-verify-pr.yml")
+    artifact_audit_command = first_run_handoff["runtimeArtifactCommand"]
+    static_audit_command = first_run_handoff["staticAuditCommand"]
     runtime_reviewer_handoff = build_runtime_reviewer_handoff(runtime_artifact, artifact_audit_command=artifact_audit_command)
     if status == "pass" and runtime_artifact.get("provided"):
         next_command = str(runtime_reviewer_handoff.get("reviewerCommand") or "")
@@ -714,11 +730,12 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "runtimeArtifact": runtime_artifact,
         "runtimeReviewerHandoff": runtime_reviewer_handoff,
         "freshMaintainerFailureGuide": failure_guide,
+        "firstRunInstallHandoff": first_run_handoff,
         "firstRunProofPath": [
-            {"step": "Copy the transparent workflow starter.", "command": "cp examples/workflows/verify-pr.yml .github/workflows/shipguard-verify-pr.yml"},
-            {"step": "Replace the placeholder validation command.", "command": "edit SHIPGUARD_VALIDATION_COMMAND in .github/workflows/shipguard-verify-pr.yml"},
-            {"step": "Run the read-only setup audit.", "command": "shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --out /tmp/shipguard-action-verify-pr --shareable"},
-            {"step": "Open a tiny PR and inspect the uploaded proof.", "command": "gh run download <run-id> --name shipguard-verdict --dir /tmp/shipguard-verdict-artifact && shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --artifact-dir /tmp/shipguard-verdict-artifact --out /tmp/shipguard-action-verify-pr --shareable"},
+            {"step": "Copy the transparent workflow starter.", "command": first_run_handoff["copyCommand"]},
+            {"step": "Replace the placeholder validation command.", "command": first_run_handoff["configureCommand"]},
+            {"step": "Run the read-only setup audit.", "command": first_run_handoff["staticAuditCommand"]},
+            {"step": "Open a tiny PR and inspect the uploaded proof.", "command": first_run_handoff["runtimeArtifactCommand"]},
         ],
         "scopeBoundary": {
             "readOnly": True,
@@ -820,6 +837,15 @@ def render_markdown(report: dict[str, Any]) -> str:
             first_fix = phase.get("firstFix") if isinstance(phase.get("firstFix"), dict) else {}
             fix_text = first_fix.get("recommendation") or "No action required."
             lines.append(f"| {phase.get('title')} | `{phase.get('status')}` | {fix_text} |")
+    handoff = report.get("firstRunInstallHandoff") if isinstance(report.get("firstRunInstallHandoff"), dict) else {}
+    lines.extend(["", "## First-Run Install Handoff", ""])
+    lines.append(f"- Source workflow: `{handoff.get('sourceWorkflow')}`")
+    lines.append(f"- Destination workflow: `{handoff.get('destinationWorkflow')}`")
+    lines.append(f"- Copy command: `{handoff.get('copyCommand')}`")
+    lines.append(f"- Configure command: `{handoff.get('configureCommand')}`")
+    lines.append(f"- Static audit: `{handoff.get('staticAuditCommand')}`")
+    lines.append(f"- Runtime artifact audit: `{handoff.get('runtimeArtifactCommand')}`")
+    lines.append(f"- Proof boundary: {handoff.get('proofBoundary')}")
     lines.extend(["", "## First-Run Proof Path", ""])
     for item in report["firstRunProofPath"]:
         lines.append(f"- {item['step']} `{item['command']}`")

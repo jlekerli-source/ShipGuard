@@ -41,8 +41,12 @@ grep -q 'read-only workflow text inspection; no target validation command execut
 grep -q '"status": "pass"' "$tmp_dir/configured/action-verify-pr.json"
 grep -q '"placeholderValidationCommand": false' "$tmp_dir/configured/action-verify-pr.json"
 grep -q '"runtimeReviewerHandoff":' "$tmp_dir/configured/action-verify-pr.json"
+grep -q '"firstRunInstallHandoff":' "$tmp_dir/configured/action-verify-pr.json"
+grep -q 'mkdir -p .github/workflows && cp examples/workflows/verify-pr.yml .github/workflows/shipguard-verify-pr.yml' "$tmp_dir/configured/action-verify-pr.json"
 grep -q '"decision": "download-runtime-artifact"' "$tmp_dir/configured/action-verify-pr.json"
 grep -q 'Runtime Reviewer Handoff' "$tmp_dir/configured/action-verify-pr.md"
+grep -q 'First-Run Install Handoff' "$tmp_dir/configured/action-verify-pr.md"
+grep -q 'Proof boundary: This installs the transparent workflow starter and audits wiring' "$tmp_dir/configured/action-verify-pr.md"
 grep -q 'shipguard action verify-pr --workflow .github/workflows/shipguard-verify-pr.yml --artifact-dir /tmp/shipguard-verdict-artifact' "$tmp_dir/configured/action-verify-pr.md"
 grep -q 'open a tiny PR, then download and inspect the uploaded shipguard-verdict artifact' "$tmp_dir/configured/action-verify-pr.md"
 
