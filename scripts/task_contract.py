@@ -1576,10 +1576,18 @@ def build_diff_learning_handoff(
         "unknown": "Leave this verdict out of tuning decisions until a maintainer records a clearer outcome.",
         "not-recorded": "Ask the reviewer to rerun verify with --reviewer-disposition after deciding the packet.",
     }
+    disposition_labels = {
+        "accepted": "Accepted by maintainer",
+        "dismissed": "Dismissed by maintainer",
+        "follow-up": "Follow-up required",
+        "unknown": "Outcome unclear",
+        "not-recorded": "Reviewer outcome not recorded",
+    }
     reviewer_disposition_receipt = {
         "schemaVersion": 1,
         "status": "present" if reviewer_disposition else "missing",
         "disposition": disposition,
+        "outcomeLabel": disposition_labels[disposition],
         "note": reviewer_note,
         "trackedSignals": recurrence_candidates,
         "recommendedFollowUp": disposition_followups[disposition],
@@ -1608,6 +1616,7 @@ def build_diff_learning_handoff(
     reviewer_disposition_summary = {
         "status": reviewer_disposition_receipt["status"],
         "disposition": disposition,
+        "outcomeLabel": reviewer_disposition_receipt["outcomeLabel"],
         "trackedSignalCount": len(recurrence_candidates),
         "nextStep": reviewer_disposition_receipt["recommendedFollowUp"],
         "guard": "Do not tune recurring-signal rules from one local reviewer disposition.",
@@ -2276,6 +2285,8 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
         disposition = learning.get("reviewerDispositionReceipt") if isinstance(learning.get("reviewerDispositionReceipt"), dict) else {}
         if disposition:
             lines.append(f"- Reviewer disposition: `{disposition.get('disposition')}`")
+            if disposition.get("outcomeLabel"):
+                lines.append(f"- Reviewer outcome: {disposition.get('outcomeLabel')}")
             lines.append(f"- Reviewer follow-up: {disposition.get('recommendedFollowUp')}")
             repair_hint = disposition.get("repairHint") if isinstance(disposition.get("repairHint"), dict) else {}
             if repair_hint:

@@ -190,6 +190,8 @@ v3.164 adds a disposition summary guard: verify reports now surface reviewer dis
 
 v3.165 adds a no-disposition repair hint: missing reviewer-disposition receipts now carry a copy-ready rerun command, accepted values, and the local-outcome-only boundary so maintainers can close the loop without treating local feedback as adoption, benchmark, or security proof.
 
+v3.166 adds reviewer outcome copy polish: reviewer-disposition summaries and receipts now carry a human-readable outcome label, and Markdown renders it before follow-up guidance so maintainers can scan local outcomes without decoding enum values.
+
 v3.186 continues that release-notes actionability cleanup by routing the same edit command through `stablePublicationEvidencePacket.firstBlockingGate.nextCommand`, release-notes closure `nextCommand`, and `resultUX.nextCommand`; `rerunCommand` remains the after-edit verifier.
 
 v3.187 cleans the stable-publication release visibility handoff so completed `pass`/not-required rows say `not-needed` instead of leaking fallback commands like test scripts into maintainer-facing next-action tables.

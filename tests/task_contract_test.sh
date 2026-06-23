@@ -260,11 +260,13 @@ summary = learning["reviewerDispositionSummary"]
 disposition = learning["reviewerDispositionReceipt"]
 assert summary["status"] == "present"
 assert summary["disposition"] == "accepted"
+assert summary["outcomeLabel"] == "Accepted by maintainer"
 assert summary["trackedSignalCount"] == 0
 assert summary["nextStep"] == disposition["recommendedFollowUp"]
 assert "Do not tune" in summary["guard"]
 assert disposition["status"] == "present"
 assert disposition["disposition"] == "accepted"
+assert disposition["outcomeLabel"] == "Accepted by maintainer"
 assert disposition["note"] == "Maintainer accepted this proof packet."
 assert disposition["repairHint"] is None
 assert disposition["trackedSignals"] == []
@@ -291,6 +293,7 @@ grep -q 'Diff Learning Handoff' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'scope-evidence-claim-match' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Reviewer disposition summary: `accepted` / `present` / 0 tracked signal(s)' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Reviewer disposition: `accepted`' "$tmp_dir/verify-pass/shipguard-verdict.md"
+grep -q 'Reviewer outcome: Accepted by maintainer' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Reviewer follow-up: Keep this verdict as positive local outcome evidence' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Reviewer note: Maintainer accepted this proof packet.' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Track recurring signals: `False`' "$tmp_dir/verify-pass/shipguard-verdict.md"
@@ -360,10 +363,12 @@ summary = learning["reviewerDispositionSummary"]
 disposition = learning["reviewerDispositionReceipt"]
 assert summary["status"] == "missing"
 assert summary["disposition"] == "not-recorded"
+assert summary["outcomeLabel"] == "Reviewer outcome not recorded"
 assert summary["trackedSignalCount"] == 4
 assert summary["nextStep"] == disposition["recommendedFollowUp"]
 assert disposition["status"] == "missing"
 assert disposition["disposition"] == "not-recorded"
+assert disposition["outcomeLabel"] == "Reviewer outcome not recorded"
 assert disposition["recommendedFollowUp"].startswith("Ask the reviewer")
 repair = disposition["repairHint"]
 assert repair["command"].startswith("shipguard verify --task <task.json>")
