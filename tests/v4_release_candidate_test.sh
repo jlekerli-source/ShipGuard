@@ -205,6 +205,10 @@ assert "none of the records are stable-v4 eligible" in proof["summary"]
 assert attachment["status"] == "pass"
 assert attachment["stableV4GateStatus"] == "review"
 assert attachment["stableV4EligibleEvidenceCount"] == 0
+assert attachment["stableV4IneligibleEvidenceCount"] == 1
+assert attachment["firstStableV4IneligibleRecord"]["path"] == "<external-adoption-evidence>/synthetic-adoption.json"
+assert "not stable-v4 eligible" in attachment["firstStableV4IneligibleRecord"]["reason"]
+assert attachment["firstStableV4IneligibleRecord"]["fixtureSynthetic"] is True
 assert "public-external" in attachment["acceptedEvidenceClasses"]
 assert "private-redacted-external" in attachment["acceptedEvidenceClasses"]
 assert "actorRelationship" in attachment["requiredFields"]
@@ -265,6 +269,8 @@ assert proof["stableV4EligibleEvidenceCount"] == 1
 assert proof["records"][0]["stableV4Eligible"] is True
 assert attachment["stableV4GateStatus"] == "pass"
 assert attachment["stableV4EligibleEvidenceCount"] == 1
+assert attachment["stableV4IneligibleEvidenceCount"] == 0
+assert attachment["firstStableV4IneligibleRecord"] == {}
 assert attachment["invalidRecordCount"] == 0
 assert attachment["proofBoundary"]["sourceOnlyProofCounts"] is False
 PY

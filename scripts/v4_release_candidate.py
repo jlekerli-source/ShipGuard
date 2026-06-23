@@ -1644,7 +1644,13 @@ def build_external_adoption_evidence_proof(args: argparse.Namespace) -> dict[str
 def attach_external_adoption_gate_attachment(proof: dict[str, Any]) -> None:
     records = [record for record in proof.get("records", []) if isinstance(record, dict)]
     invalid_records = [record for record in records if record.get("status") != "pass"]
+    ineligible_records = [
+        record
+        for record in records
+        if record.get("status") == "pass" and not record.get("stableV4Eligible")
+    ]
     first_invalid = invalid_records[0] if invalid_records else {}
+    first_ineligible = ineligible_records[0] if ineligible_records else {}
     proof["adoptionGateAttachment"] = {
         "status": proof.get("status"),
         "stableV4GateStatus": proof.get("stableV4GateStatus"),
@@ -1652,6 +1658,7 @@ def attach_external_adoption_gate_attachment(proof: dict[str, Any]) -> None:
         "validRecordCount": proof.get("validRecordCount", 0),
         "invalidRecordCount": proof.get("invalidRecordCount", 0),
         "stableV4EligibleEvidenceCount": proof.get("stableV4EligibleEvidenceCount", 0),
+        "stableV4IneligibleEvidenceCount": len(ineligible_records),
         "acceptedEvidenceClasses": ["public-external", "private-redacted-external"],
         "requiredFields": [
             "schemaVersion",
@@ -1672,6 +1679,13 @@ def attach_external_adoption_gate_attachment(proof: dict[str, Any]) -> None:
             "missingFields": first_invalid.get("missingFields", []),
             "errors": first_invalid.get("errors", []),
         } if first_invalid else {},
+        "firstStableV4IneligibleRecord": {
+            "path": first_ineligible.get("path", ""),
+            "reason": first_ineligible.get("stableV4Reason", ""),
+            "evidenceClass": first_ineligible.get("evidenceClass", ""),
+            "actorRelationship": first_ineligible.get("actorRelationship", ""),
+            "fixtureSynthetic": first_ineligible.get("fixtureSynthetic"),
+        } if first_ineligible else {},
         "nextCommand": proof.get("nextCommand"),
         "nextAction": proof.get("nextAction", ""),
         "proofBoundary": {
@@ -3006,7 +3020,15 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- Accepted classes: `{', '.join(attachment.get('acceptedEvidenceClasses') or [])}`")
             lines.append(f"- Required fields: `{', '.join(attachment.get('requiredFields') or [])}`")
             lines.append(f"- Stable-v4 eligible records: `{attachment.get('stableV4EligibleEvidenceCount')}`")
+            lines.append(f"- Stable-v4 ineligible records: `{attachment.get('stableV4IneligibleEvidenceCount')}`")
             lines.append(f"- Invalid records: `{attachment.get('invalidRecordCount')}`")
+            first_ineligible = (
+                attachment.get("firstStableV4IneligibleRecord")
+                if isinstance(attachment.get("firstStableV4IneligibleRecord"), dict)
+                else {}
+            )
+            if first_ineligible:
+                lines.append(f"- First stable-v4 ineligible reason: {first_ineligible.get('reason')}")
             lines.append(f"- Next command: `{attachment.get('nextCommand')}`")
     else:
         lines.append(f"- Next command: `{proof.get('nextCommand')}`")
