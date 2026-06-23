@@ -262,6 +262,7 @@ assert summary["status"] == "present"
 assert summary["disposition"] == "accepted"
 assert summary["outcomeLabel"] == "Accepted by maintainer"
 assert summary["noteStatus"] == "present"
+assert summary["noteGuidance"].startswith("Optional for a clean accepted packet")
 assert summary["trackedSignalCount"] == 0
 assert summary["nextStep"] == disposition["recommendedFollowUp"]
 assert "Do not tune" in summary["guard"]
@@ -293,6 +294,7 @@ grep -q 'Behavior Categories' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Diff Learning Handoff' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'scope-evidence-claim-match' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Reviewer disposition summary: `accepted` / Accepted by maintainer / `present` / 0 tracked signal(s) / note `present`' "$tmp_dir/verify-pass/shipguard-verdict.md"
+grep -q 'Reviewer note guidance: Optional for a clean accepted packet; add a note only when the reason would not be obvious later.' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Reviewer disposition: `accepted`' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Reviewer outcome: Accepted by maintainer' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Reviewer follow-up: Keep this verdict as positive local outcome evidence' "$tmp_dir/verify-pass/shipguard-verdict.md"
@@ -366,6 +368,7 @@ assert summary["status"] == "missing"
 assert summary["disposition"] == "not-recorded"
 assert summary["outcomeLabel"] == "Reviewer outcome not recorded"
 assert summary["noteStatus"] == "missing"
+assert summary["noteGuidance"] == "Add a short reviewer note before using this local outcome for recurring-signal tuning."
 assert summary["trackedSignalCount"] == 4
 assert summary["nextStep"] == disposition["recommendedFollowUp"]
 assert summary["repairCommand"].startswith("shipguard verify --task <task.json>")

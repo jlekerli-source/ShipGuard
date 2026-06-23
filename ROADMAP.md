@@ -204,6 +204,8 @@ v3.171 adds reviewer outcome repair-note polish: missing reviewer-disposition re
 
 v3.172 adds reviewer outcome note-summary polish: reviewer-disposition summaries now expose whether a maintainer note is present in JSON and Markdown so local feedback packets are easier to scan before recurring-signal tuning.
 
+v3.173 adds reviewer outcome note-guidance polish: reviewer-disposition summaries now include note guidance in JSON and Markdown so maintainers know when a reviewer note is optional versus needed before local recurring-signal tuning.
+
 v3.186 continues that release-notes actionability cleanup by routing the same edit command through `stablePublicationEvidencePacket.firstBlockingGate.nextCommand`, release-notes closure `nextCommand`, and `resultUX.nextCommand`; `rerunCommand` remains the after-edit verifier.
 
 v3.187 cleans the stable-publication release visibility handoff so completed `pass`/not-required rows say `not-needed` instead of leaking fallback commands like test scripts into maintainer-facing next-action tables.

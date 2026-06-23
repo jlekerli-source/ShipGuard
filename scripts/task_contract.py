@@ -1587,6 +1587,11 @@ def build_diff_learning_handoff(
         "unknown": "Outcome unclear",
         "not-recorded": "Reviewer outcome not recorded",
     }
+    note_guidance = (
+        "Optional for a clean accepted packet; add a note only when the reason would not be obvious later."
+        if disposition == "accepted" and not recurrence_candidates
+        else "Add a short reviewer note before using this local outcome for recurring-signal tuning."
+    )
     evidence_args = evidence_paths or [""]
     evidence_count = len(evidence_args)
     repair_command = (
@@ -1629,6 +1634,7 @@ def build_diff_learning_handoff(
         "disposition": disposition,
         "outcomeLabel": reviewer_disposition_receipt["outcomeLabel"],
         "noteStatus": "present" if reviewer_note else "missing",
+        "noteGuidance": note_guidance,
         "trackedSignalCount": len(recurrence_candidates),
         "nextStep": reviewer_disposition_receipt["recommendedFollowUp"],
         "repairCommand": (reviewer_disposition_receipt["repairHint"] or {}).get("command"),
@@ -2305,6 +2311,8 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
                 lines.append(f"- Reviewer disposition summary repair: `{summary.get('repairCommand')}`")
             if summary.get("repairNoteTemplate"):
                 lines.append(f"- Reviewer disposition note option: `{summary.get('repairNoteTemplate')}`")
+            if summary.get("noteGuidance"):
+                lines.append(f"- Reviewer note guidance: {summary.get('noteGuidance')}")
         disposition = learning.get("reviewerDispositionReceipt") if isinstance(learning.get("reviewerDispositionReceipt"), dict) else {}
         if disposition:
             lines.append(f"- Reviewer disposition: `{disposition.get('disposition')}`")
