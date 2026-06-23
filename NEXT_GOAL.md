@@ -1,25 +1,25 @@
 # Next Goal
 
-- Generated: 2026-06-23T16:37:44Z
-- Current toolkit version: 3.189.0
-- Target release: v3.190.0
-- Title: Stable-publication result UX labels
+- Generated: 2026-06-23T16:56:56Z
+- Current toolkit version: 3.190.0
+- Target release: v3.191.0
+- Title: Stable-publication public proof starter
 
 ## Version Lineage Check
 
 - Status: pass
-- VERSION: 3.189.0
-- Expected next release from VERSION: v3.190.0
-- Planned target release: v3.190.0
-- Current checkout package artifact before version bump: dist/shipguard-v3.189.0.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v3.190.0.tar.gz
-- Action: Before publishing v3.190.0, bump VERSION to 3.190.0, rebuild, and verify dist/shipguard-v3.190.0.tar.gz.
+- VERSION: 3.190.0
+- Expected next release from VERSION: v3.191.0
+- Planned target release: v3.191.0
+- Current checkout package artifact before version bump: dist/shipguard-v3.190.0.tar.gz
+- Expected package artifact after release bump: dist/shipguard-v3.191.0.tar.gz
+- Action: Before publishing v3.191.0, bump VERSION to 3.191.0, rebuild, and verify dist/shipguard-v3.191.0.tar.gz.
 
 ## Slash Plan
 
 ```text
-/plan v3.190.0 Stable-publication result UX labels for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Humanize stable-publication result UX labels so top proof source, first blocker, and next action use reader-facing evidence names instead of leaking internal JSON paths or implementation names.
+/plan v3.191.0 Stable-publication public proof starter for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add a bounded public-proof starter path for stable-v4 publication so maintainers can move from Value Gauntlet's stable-publication priority to concrete GitHub release metadata, release assets, release-consume, adoption, and security evidence collection without hunting through nested reports.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, bump VERSION before release packaging, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -28,23 +28,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.190.0 Stable-publication result UX labels for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Humanize stable-publication result UX labels so top proof source, first blocker, and next action use reader-facing evidence names instead of leaking internal JSON paths or implementation names, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.191.0 Stable-publication public proof starter for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add a bounded public-proof starter path for stable-v4 publication so maintainers can move from Value Gauntlet's stable-publication priority to concrete GitHub release metadata, release assets, release-consume, adoption, and security evidence collection without hunting through nested reports, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Humanize stable-publication result UX labels so top proof source, first blocker, and next action use reader-facing evidence names instead of leaking internal JSON paths or implementation names.
+Add a bounded public-proof starter path for stable-v4 publication so maintainers can move from Value Gauntlet's stable-publication priority to concrete GitHub release metadata, release assets, release-consume, adoption, and security evidence collection without hunting through nested reports.
 
 ## Completion Receipt
 
-- Completed scope: v3.189.0 added ExpoDeck runtime evidence adapters: shipguard expo readiness --runtime-evidence now reads supplied Expo Doctor, EAS timing, preview, screenshot, simulator/device, or native runtime proof artifacts and labels them separately from source heuristics without running Expo commands.
-- Evidence: Commit bdb16934 pushed to main; GitHub Actions run 28041151383 completed success; local package tarball dist/shipguard-v3.189.0.tar.gz SHA-256 03095bd17f21c7147705187bae55f86613503452b356a3c60c9afd57bb846666; ./bin/shipguard codex status --strict passed.
+- Completed scope: v3.190.0 routed Tool Value Gauntlet result UX to the stable-publication priority command: when stable-v4 publication is the lowest-depth surface, resultUX.nextCommand points at shipguard v4 stable-publication instead of looping back to value-gauntlet.
+- Evidence: Commit 4aa9377a pushed to main; GitHub Actions run 28042308704 completed success; local package tarball dist/shipguard-v3.190.0.tar.gz SHA-256 46ffe7e26b78b53b519f2aec14c5b0e6187e11902587734ac86c9aca380847c1; ./bin/shipguard codex status --strict passed.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.191.0 Stable-publication asset download rerun safety for jlekerli-source/ShipGuard:
+/plan v3.192.0 Stable-publication consumer proof quickstart for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -54,13 +54,13 @@ Humanize stable-publication result UX labels so top proof source, first blocker,
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.191.0 Stable-publication asset download rerun safety for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.192.0 Stable-publication consumer proof quickstart for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.191.0 --title "Stable-publication asset download rerun safety" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.192.0 --title "Stable-publication consumer proof quickstart" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -160,12 +160,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.190.0.
+1. Open or update the tracking issue for v3.191.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Bump VERSION to 3.190.0, build `dist/shipguard-v3.190.0.tar.gz`, create release `v3.190.0`, and upload the rebuilt tarball.
+6. Bump VERSION to 3.191.0, build `dist/shipguard-v3.191.0.tar.gz`, create release `v3.191.0`, and upload the rebuilt tarball.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
