@@ -140,6 +140,8 @@ grep -q 'V4 Preview Stabilization Receipts' "$tmp_dir/gauntlet/tool-value-gauntl
 grep -q 'V4 Schema Freeze Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'V4 Release Candidate Readiness Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'V4 Product Release Stabilization Receipts' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Public proof starter' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'stable-publication-evidence-kit' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q '## Result' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Report Quality Questions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'ShipGuard PilotBench' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
@@ -236,6 +238,16 @@ if stable_priority.get("identifier") != "shipguard v4-stable-release-publication
 stable_next = stable_priority.get("nextCommand") or ""
 if "shipguard v4 stable-publication" not in stable_next or "--download-release-assets" not in stable_next:
     raise SystemExit(f"stable-publication priority needs a copy-ready stable-publication command: {stable_priority!r}")
+starter = stable_priority.get("publicProofStarter") or {}
+if starter.get("directory") != "<stable-publication-out>/stable-publication-evidence-kit":
+    raise SystemExit(f"stable-publication priority should expose the starter-kit directory: {stable_priority!r}")
+starter_files = set(starter.get("files") or [])
+if {"README.md", "public-proof-walkthrough.md", "external-adoption-evidence.json", "security-review-evidence.json"} - starter_files:
+    raise SystemExit(f"stable-publication priority should expose starter-kit files: {stable_priority!r}")
+if starter.get("createdBy") != stable_next:
+    raise SystemExit(f"starter command should match stable-publication next command: {stable_priority!r}")
+if "not stable-v4 proof" not in starter.get("boundary", ""):
+    raise SystemExit(f"starter boundary should block starter files as proof: {stable_priority!r}")
 if stable_priority.get("firstBlocker") != "public-github-release-metadata":
     raise SystemExit(f"stable-publication priority should name the first blocker: {stable_priority!r}")
 packet_ids = {item.get("id") for item in stable_priority.get("proofPacket") or []}

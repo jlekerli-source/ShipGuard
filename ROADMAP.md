@@ -236,7 +236,7 @@ v3.189 adds ExpoDeck runtime evidence adapters: `shipguard expo readiness --runt
 
 v3.190 routes Tool Value Gauntlet result UX to the stable-publication priority command: when stable-v4 publication is the lowest-depth surface, `resultUX.nextCommand` points at `shipguard v4 stable-publication` instead of looping back to value-gauntlet.
 
-v3.191 makes release-notes edit commands path-safe: stable-publication now points `gh release edit --notes-file` at the generated draft under the report output directory, so the first blocker command works from a normal repo shell instead of assuming the maintainer has changed into the report directory.
+v3.191 adds Value Gauntlet stable-publication public-proof starter routing: `stablePublicationPriority` now names the generated evidence-kit directory, files, creation command, and non-proof boundary so maintainers can start public proof collection without digging through stable-publication internals.
 
 v3.192 makes the release-notes authoring kit self-locating: stable-publication now emits generated README/checklist/draft paths in `stablePublicationReleaseNotesAuthoringKit.generatedPaths` and `files[].generatedPath`, with shareable reports redacting the local output root.
 

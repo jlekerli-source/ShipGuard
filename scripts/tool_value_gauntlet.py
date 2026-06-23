@@ -5078,6 +5078,18 @@ def stable_publication_priority(probe: dict[str, Any]) -> dict[str, Any]:
         "firstBlocker": first_blocker,
         "whyItMatters": "Stable v4 should not be claimed until public release assets, release notes, post-release consumer proof, independent adoption evidence, and final security review pass together.",
         "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-out> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable",
+        "publicProofStarter": {
+            "directory": "<stable-publication-out>/stable-publication-evidence-kit",
+            "createdBy": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-out> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable",
+            "files": [
+                "README.md",
+                "stable-publication-checklist.json",
+                "public-proof-walkthrough.md",
+                "external-adoption-evidence.json",
+                "security-review-evidence.json",
+            ],
+            "boundary": "Generated starter files organize collection only; unchanged starter files are not stable-v4 proof.",
+        },
         "proofPacket": proof_packet if is_stable_gap else [],
         "blockedBy": [
             "public GitHub release metadata and release notes",
@@ -5346,6 +5358,11 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append(f"- Why it matters: {stable_priority['whyItMatters']}")
     if stable_priority.get("nextCommand"):
         lines.append(f"- Next command: `{stable_priority['nextCommand']}`")
+    starter = stable_priority.get("publicProofStarter") if isinstance(stable_priority.get("publicProofStarter"), dict) else {}
+    if starter:
+        lines.append(f"- Public proof starter: `{starter.get('directory')}`")
+        lines.append(f"- Starter files: {', '.join(starter.get('files') or [])}")
+        lines.append(f"- Starter boundary: {starter.get('boundary')}")
     if stable_priority.get("firstBlocker"):
         lines.append(f"- First blocker: `{stable_priority['firstBlocker']}`")
     proof_packet = stable_priority.get("proofPacket") if isinstance(stable_priority.get("proofPacket"), list) else []
