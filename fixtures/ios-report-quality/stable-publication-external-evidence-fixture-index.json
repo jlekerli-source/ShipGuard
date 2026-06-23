@@ -1,4 +1,45 @@
 {
+  "artifactDigestProvenanceSummary": [
+    {
+      "blockedSubstitute": "artifact names without digest or public/source provenance",
+      "evidence": "independent-adoption-evidence",
+      "passBoundary": "Adoption proof artifacts must include a digest or public/source provenance plus redaction and outcome fields.",
+      "rejectedArtifactProof": [
+        "filename only",
+        "local absolute path only",
+        "private screenshot without digest",
+        "missing source command",
+        "missing capturedAt"
+      ],
+      "requiredArtifactProof": [
+        "artifactName",
+        "sha256 or digest",
+        "sourceUrl or sourceCommand",
+        "privateDataRedacted",
+        "capturedAt"
+      ]
+    },
+    {
+      "blockedSubstitute": "security notes that name artifacts but omit digest or review-source provenance",
+      "evidence": "final-security-review-evidence",
+      "passBoundary": "Security proof artifacts must include digest or review-source provenance plus methodology, redaction, and findings summary.",
+      "rejectedArtifactProof": [
+        "filename only",
+        "vague self-review note",
+        "private screenshot without digest",
+        "missing methodology",
+        "missing review source"
+      ],
+      "requiredArtifactProof": [
+        "artifactName",
+        "sha256 or digest",
+        "reviewSource",
+        "methodology",
+        "privateDataRedacted",
+        "capturedAt"
+      ]
+    }
+  ],
   "artifactRedactionSummary": [
     {
       "blockedSubstitute": "private unredacted maintainer artifacts",
@@ -61,7 +102,7 @@
     },
     {
       "candidateId": "stable-publication-security-review-evidence-checklist",
-      "coveredInCurrentRun": true,
+      "coveredInCurrentRun": false,
       "id": "final-security-review-evidence",
       "label": "Final security-review evidence",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-security-review-evidence-checklist",
@@ -148,9 +189,27 @@
       ],
       "sourceQuestion": "Does stable-publication keep external evidence artifact redaction and provenance gates visible so private paths, screenshots, tokens, and unreviewed artifacts cannot satisfy adoption or security proof?",
       "status": "covered"
+    },
+    {
+      "candidateId": "stable-publication-external-evidence-artifact-digest-provenance",
+      "coveredInCurrentRun": false,
+      "id": "external-evidence-artifact-digest-provenance-fixture",
+      "label": "External evidence artifact digest provenance",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance",
+      "rejectionProved": "filename-only artifacts rejected as adoption/security proof",
+      "requiredProof": [
+        "artifact digest",
+        "source provenance",
+        "capturedAt",
+        "privateDataRedacted gate",
+        "blocked substitutes",
+        "Markdown visibility"
+      ],
+      "sourceQuestion": "Does stable-publication require external adoption and security-review artifacts to include digest or public/source provenance instead of only naming artifact files?",
+      "status": "covered"
     }
   ],
-  "coveredCount": 6,
+  "coveredCount": 7,
   "decisionSummary": {
     "coveredEvidenceClasses": [
       "independent-adoption-evidence",
@@ -158,31 +217,25 @@
       "external-evidence-freshness-fixture",
       "external-evidence-source-class-fixture",
       "external-evidence-relationship-gate-fixture",
-      "external-evidence-artifact-redaction-fixture"
+      "external-evidence-artifact-redaction-fixture",
+      "external-evidence-artifact-digest-provenance-fixture"
     ],
-    "nextPromotionTarget": "external-evidence-artifact-digest-provenance-candidate",
+    "nextPromotionTarget": "external-evidence-review-scope-mapping-candidate",
     "nonClaimSummary": "This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.",
     "remainingExternalEvidenceQuestions": [
-      "external-evidence-artifact-digest-provenance-candidate"
+      "external-evidence-review-scope-mapping-candidate"
     ],
-    "verdict": "Adoption, security-review, freshness, source-class, relationship-gate, and artifact-redaction fixture questions are covered; the next real QA gap remains."
+    "verdict": "Adoption, security-review, freshness, source-class, relationship-gate, artifact-redaction, and artifact digest/provenance fixture questions are covered; the next real QA gap remains."
   },
-  "expectedCount": 6,
+  "expectedCount": 7,
   "nextFixtureToPromote": {
-    "id": "external-evidence-artifact-digest-provenance-candidate",
-    "promotionBoundary": "Promote only a public synthetic fixture; do not copy private app artifacts, paths, screenshots, tokens, or account data.",
+    "id": "external-evidence-review-scope-mapping-candidate",
+    "promotionBoundary": "Promote only public-safe scope-mapping behavior; do not include private app source or proprietary review text.",
     "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
-    "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance",
-    "summary": "Check whether adoption/security artifact proof shows digest or source provenance instead of only naming artifact files."
+    "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping",
+    "summary": "Check whether final security-review evidence maps reviewed surfaces to the stable-v4 release scope instead of using broad review wording."
   },
   "nextGapCandidateBacklog": [
-    {
-      "id": "external-evidence-artifact-digest-provenance-candidate",
-      "promotionBoundary": "Promote only a public synthetic fixture; do not copy private app artifacts, paths, screenshots, tokens, or account data.",
-      "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
-      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance",
-      "summary": "Check whether adoption/security artifact proof shows digest or source provenance instead of only naming artifact files."
-    },
     {
       "id": "external-evidence-review-scope-mapping-candidate",
       "promotionBoundary": "Promote only public-safe scope-mapping behavior; do not include private app source or proprietary review text.",
@@ -239,11 +292,11 @@
   ],
   "remainingExternalEvidenceGaps": [
     {
-      "id": "external-evidence-artifact-digest-provenance-candidate",
-      "promotionBoundary": "Promote only a public synthetic fixture; do not copy private app artifacts, paths, screenshots, tokens, or account data.",
+      "id": "external-evidence-review-scope-mapping-candidate",
+      "promotionBoundary": "Promote only public-safe scope-mapping behavior; do not include private app source or proprietary review text.",
       "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
-      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance",
-      "summary": "Check whether adoption/security artifact proof shows digest or source provenance instead of only naming artifact files."
+      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping",
+      "summary": "Check whether final security-review evidence maps reviewed surfaces to the stable-v4 release scope instead of using broad review wording."
     }
   ],
   "rows": [
@@ -267,7 +320,7 @@
     },
     {
       "candidateId": "stable-publication-security-review-evidence-checklist",
-      "coveredInCurrentRun": true,
+      "coveredInCurrentRun": false,
       "id": "final-security-review-evidence",
       "label": "Final security-review evidence",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-security-review-evidence-checklist",
@@ -353,6 +406,24 @@
         "Markdown visibility"
       ],
       "sourceQuestion": "Does stable-publication keep external evidence artifact redaction and provenance gates visible so private paths, screenshots, tokens, and unreviewed artifacts cannot satisfy adoption or security proof?",
+      "status": "covered"
+    },
+    {
+      "candidateId": "stable-publication-external-evidence-artifact-digest-provenance",
+      "coveredInCurrentRun": false,
+      "id": "external-evidence-artifact-digest-provenance-fixture",
+      "label": "External evidence artifact digest provenance",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance",
+      "rejectionProved": "filename-only artifacts rejected as adoption/security proof",
+      "requiredProof": [
+        "artifact digest",
+        "source provenance",
+        "capturedAt",
+        "privateDataRedacted gate",
+        "blocked substitutes",
+        "Markdown visibility"
+      ],
+      "sourceQuestion": "Does stable-publication require external adoption and security-review artifacts to include digest or public/source provenance instead of only naming artifact files?",
       "status": "covered"
     }
   ],

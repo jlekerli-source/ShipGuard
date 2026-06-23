@@ -1,13 +1,13 @@
 # Stable-Publication External Evidence Fixture Index
 
 - Status: `pass`
-- Covered: 6/6
+- Covered: 7/7
 
 Decision summary:
-- Verdict: Adoption, security-review, freshness, source-class, relationship-gate, and artifact-redaction fixture questions are covered; the next real QA gap remains.
-- Covered evidence classes: independent-adoption-evidence, final-security-review-evidence, external-evidence-freshness-fixture, external-evidence-source-class-fixture, external-evidence-relationship-gate-fixture, external-evidence-artifact-redaction-fixture
-- Remaining questions: external-evidence-artifact-digest-provenance-candidate
-- Next promotion target: `external-evidence-artifact-digest-provenance-candidate`
+- Verdict: Adoption, security-review, freshness, source-class, relationship-gate, artifact-redaction, and artifact digest/provenance fixture questions are covered; the next real QA gap remains.
+- Covered evidence classes: independent-adoption-evidence, final-security-review-evidence, external-evidence-freshness-fixture, external-evidence-source-class-fixture, external-evidence-relationship-gate-fixture, external-evidence-artifact-redaction-fixture, external-evidence-artifact-digest-provenance-fixture
+- Remaining questions: external-evidence-review-scope-mapping-candidate
+- Next promotion target: `external-evidence-review-scope-mapping-candidate`
 - Non-claim: This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.
 
 | Evidence | Status | Fixture | Rejection Proved | Required Proof |
@@ -18,6 +18,7 @@ Decision summary:
 | `external-evidence-source-class-fixture` | `covered` | `fixtures/ios-report-quality/stable-publication-external-evidence-source...` | weak substitutes rejected as adoption/security proof | accepted evidence classes, actor/reviewer relationship fields, accepted relationships, rejected substitutes, pass bound... |
 | `external-evidence-relationship-gate-fixture` | `covered` | `fixtures/ios-report-quality/stable-publication-external-evidence-relati...` | wrong actor/reviewer relationships rejected as adoption/security proof | actorRelationship gate, reviewerRelationship gate, accepted relationships, rejected relationships, blocked substitutes,... |
 | `external-evidence-artifact-redaction-fixture` | `covered` | `fixtures/ios-report-quality/stable-publication-external-evidence-artifa...` | unredacted or provenance-free artifacts rejected as adoption/security proof | required artifact fields, privateDataRedacted gate, accepted artifact proof, rejected artifact proof, blocked substitut... |
+| `external-evidence-artifact-digest-provenance-fixture` | `covered` | `fixtures/ios-report-quality/stable-publication-external-evidence-artifa...` | filename-only artifacts rejected as adoption/security proof | artifact digest, source provenance, capturedAt, privateDataRedacted gate, blocked substitutes, Markdown visibility |
 
 Source-class summary:
 
@@ -40,20 +41,26 @@ Artifact-redaction summary:
 | `independent-adoption-evidence` | commands, artifacts, privateDataRedacted, outcome, nonClaims | local absolute paths, private screenshots, tokens or account identifiers, unreviewed app-specific notes, missing artifa... | private unredacted maintainer artifacts | Adoption proof requires redacted/public command and artifact evidence with privateDataRedacted=true plus outcome and non-claims. |
 | `final-security-review-evidence` | methodology, commands, artifacts, privateDataRedacted, findingsSummary, nonClaims | vague self-review notes, local absolute paths, private screenshots, tokens or account identifiers, missing methodology | unredacted or provenance-free security notes | Security proof requires reviewed stable-v4 surfaces, methodology, redacted artifacts, findings summary, and no open critical/high... |
 
+Artifact digest/provenance summary:
+
+| Evidence | Required artifact proof | Rejected artifact proof | Blocked substitute | Pass boundary |
+| --- | --- | --- | --- | --- |
+| `independent-adoption-evidence` | artifactName, sha256 or digest, sourceUrl or sourceCommand, privateDataRedacted, captured... | filename only, local absolute path only, private screenshot without digest, missing source command, missing capturedAt | artifact names without digest or public/source provenance | Adoption proof artifacts must include a digest or public/source provenance plus redaction and outcome fields. |
+| `final-security-review-evidence` | artifactName, sha256 or digest, reviewSource, methodology, privateDataRedacted, capturedAt | filename only, vague self-review note, private screenshot without digest, missing methodology, missing review source | security notes that name artifacts but omit digest or review-source provenance | Security proof artifacts must include digest or review-source provenance plus methodology, redaction, and findings summary. |
+
 Next fixture to promote:
-- `external-evidence-artifact-digest-provenance-candidate`
-- Suggested path: `fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance`
-- Summary: Check whether adoption/security artifact proof shows digest or source provenance instead of only naming artifact files.
+- `external-evidence-review-scope-mapping-candidate`
+- Suggested path: `fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping`
+- Summary: Check whether final security-review evidence maps reviewed surfaces to the stable-v4 release scope instead of using broad review wording.
 - QA command: `./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>`
-- Boundary: Promote only a public synthetic fixture; do not copy private app artifacts, paths, screenshots, tokens, or account data.
+- Boundary: Promote only public-safe scope-mapping behavior; do not include private app source or proprietary review text.
 
 Next-gap candidate backlog:
 
 | Candidate | Suggested fixture | Summary |
 | --- | --- | --- |
-| `external-evidence-artifact-digest-provenance-candidate` | `fixtures/ios-report-quality/stable-publication-external-evidence-artifact-diges...` | Check whether adoption/security artifact proof shows digest or source provenance instead of only naming artifact files. |
 | `external-evidence-review-scope-mapping-candidate` | `fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-m...` | Check whether final security-review evidence maps reviewed surfaces to the stable-v4 release scope instead of using broad review wording. |
 | `external-evidence-evidence-expiry-window-candidate` | `fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window` | Check whether external evidence has an explicit age/expiry boundary beyond generatedAt freshness against the release manifest. |
 
 Remaining external-evidence gaps:
-- `external-evidence-artifact-digest-provenance-candidate`: Check whether adoption/security artifact proof shows digest or source provenance instead of only naming artifact files.
+- `external-evidence-review-scope-mapping-candidate`: Check whether final security-review evidence maps reviewed surfaces to the stable-v4 release scope instead of using broad review wording.

@@ -9983,6 +9983,34 @@ def stable_publication_external_evidence_fixture_index(
             "passBoundary": "Security proof requires reviewed stable-v4 surfaces, methodology, redacted artifacts, findings summary, and no open critical/high findings.",
         },
     ]
+    artifact_digest_provenance_summary = [
+        {
+            "evidence": "independent-adoption-evidence",
+            "requiredArtifactProof": ["artifactName", "sha256 or digest", "sourceUrl or sourceCommand", "privateDataRedacted", "capturedAt"],
+            "rejectedArtifactProof": [
+                "filename only",
+                "local absolute path only",
+                "private screenshot without digest",
+                "missing source command",
+                "missing capturedAt",
+            ],
+            "blockedSubstitute": "artifact names without digest or public/source provenance",
+            "passBoundary": "Adoption proof artifacts must include a digest or public/source provenance plus redaction and outcome fields.",
+        },
+        {
+            "evidence": "final-security-review-evidence",
+            "requiredArtifactProof": ["artifactName", "sha256 or digest", "reviewSource", "methodology", "privateDataRedacted", "capturedAt"],
+            "rejectedArtifactProof": [
+                "filename only",
+                "vague self-review note",
+                "private screenshot without digest",
+                "missing methodology",
+                "missing review source",
+            ],
+            "blockedSubstitute": "security notes that name artifacts but omit digest or review-source provenance",
+            "passBoundary": "Security proof artifacts must include digest or review-source provenance plus methodology, redaction, and findings summary.",
+        },
+    ]
     expected = [
         {
             "id": "independent-adoption-evidence",
@@ -10068,6 +10096,20 @@ def stable_publication_external_evidence_fixture_index(
                 "Markdown visibility",
             ],
         },
+        {
+            "id": "external-evidence-artifact-digest-provenance-fixture",
+            "label": "External evidence artifact digest provenance",
+            "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance",
+            "rejectionProved": "filename-only artifacts rejected as adoption/security proof",
+            "requiredProof": [
+                "artifact digest",
+                "source provenance",
+                "capturedAt",
+                "privateDataRedacted gate",
+                "blocked substitutes",
+                "Markdown visibility",
+            ],
+        },
     ]
     by_path = {
         str(item.get("publicFixturePath") or ""): item
@@ -10090,13 +10132,6 @@ def stable_publication_external_evidence_fixture_index(
         )
     missing = [row for row in rows if row["status"] != "covered"]
     next_gap_candidates = [
-        {
-            "id": "external-evidence-artifact-digest-provenance-candidate",
-            "summary": "Check whether adoption/security artifact proof shows digest or source provenance instead of only naming artifact files.",
-            "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance",
-            "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
-            "promotionBoundary": "Promote only a public synthetic fixture; do not copy private app artifacts, paths, screenshots, tokens, or account data.",
-        },
         {
             "id": "external-evidence-review-scope-mapping-candidate",
             "summary": "Check whether final security-review evidence maps reviewed surfaces to the stable-v4 release scope instead of using broad review wording.",
@@ -10129,7 +10164,7 @@ def stable_publication_external_evidence_fixture_index(
         "coveredCount": len(rows) - len(missing),
         "expectedCount": len(rows),
         "decisionSummary": {
-            "verdict": "Adoption, security-review, freshness, source-class, relationship-gate, and artifact-redaction fixture questions are covered; the next real QA gap remains."
+            "verdict": "Adoption, security-review, freshness, source-class, relationship-gate, artifact-redaction, and artifact digest/provenance fixture questions are covered; the next real QA gap remains."
             if not missing
             else "Stable-publication external evidence fixture coverage is incomplete.",
             "coveredEvidenceClasses": covered_classes,
@@ -10140,6 +10175,7 @@ def stable_publication_external_evidence_fixture_index(
         "sourceClassPolishSummary": source_class_polish_summary,
         "relationshipGateSummary": relationship_gate_summary,
         "artifactRedactionSummary": artifact_redaction_summary,
+        "artifactDigestProvenanceSummary": artifact_digest_provenance_summary,
         "rows": rows,
         "coverage": rows,
         "remainingExternalEvidenceGaps": [next_gap],
@@ -10450,6 +10486,23 @@ def render_markdown(report: dict[str, Any]) -> str:
                 rejected = ", ".join(str(value) for value in item.get("rejectedArtifactProof") or [])
                 lines.append(
                     f"| `{item.get('evidence') or 'unknown'}` | {table_cell(fields or '-', 90)} | {table_cell(rejected or '-', 120)} | {table_cell(item.get('blockedSubstitute') or '-', 80)} | {table_cell(item.get('passBoundary') or '-', 130)} |"
+                )
+        digest_summary = external_index.get("artifactDigestProvenanceSummary") or []
+        if digest_summary:
+            lines.extend(
+                [
+                    "",
+                    "Artifact digest/provenance summary:",
+                    "",
+                    "| Evidence | Required artifact proof | Rejected artifact proof | Blocked substitute | Pass boundary |",
+                    "| --- | --- | --- | --- | --- |",
+                ]
+            )
+            for item in digest_summary:
+                required = ", ".join(str(value) for value in item.get("requiredArtifactProof") or [])
+                rejected = ", ".join(str(value) for value in item.get("rejectedArtifactProof") or [])
+                lines.append(
+                    f"| `{item.get('evidence') or 'unknown'}` | {table_cell(required or '-', 90)} | {table_cell(rejected or '-', 120)} | {table_cell(item.get('blockedSubstitute') or '-', 80)} | {table_cell(item.get('passBoundary') or '-', 130)} |"
                 )
         next_fixture = external_index.get("nextFixtureToPromote") if isinstance(external_index.get("nextFixtureToPromote"), dict) else {}
         if next_fixture:
