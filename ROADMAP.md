@@ -158,7 +158,7 @@ v3.146  Full Audit NEXT_GOAL-backed slash handoff
 v3.147  Full Audit copy-ready execution-command receipts
 v3.148  Tool Value Gauntlet stable-publication priority
 v3.149  Stable-publication final claim gate
-v3.150  Lean Review selected-mode bias fixture
+v3.150  Lean Review selected-mode bias fixture and negative report-quality guard
 v3.151  Lean Debt marker-visibility fixture
 v3.152  Lean Debt benchmark-savings honesty fixture
 v3.153  Lean Debt rot-risk visibility fixture
@@ -202,7 +202,7 @@ v3.139 routes missing public-release metadata through the top-level result UX: w
 
 v3.140 closes the public-release handoff proof gap: stable-publication release-create and release-asset upload handoffs now include a post-handoff proof receipt with the exact `gh release view ... --json tagName,isDraft,isPrerelease,targetCommitish,publishedAt,assets,url` command, stable-publication rerun command, success criteria, and non-claims so manual GitHub actions are verifiable instead of assumed.
 
-Release-line note: local `VERSION` now advances to `3.149.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
+Release-line note: local `VERSION` now advances to `3.150.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
 
 v3.135 trims package-release proof duplication: after source CI runs the focused fixture suites, `tests/package_release_test.sh` verifies those packaged test scripts are included, executable, and shell-syntax-valid instead of rerunning the same suites from the extracted tarball.
 
