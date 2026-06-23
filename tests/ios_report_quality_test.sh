@@ -7388,6 +7388,8 @@ for action in report["releaseVisibilityHandoff"]["requiredActions"]:
         action["required"] = False
         action["status"] = "pass"
         action["nextCommand"] = "./tests/v4_release_candidate_test.sh"
+        action.pop("nextCommandPurpose", None)
+        action.pop("proofCommandAfterCompletion", None)
     if action.get("id") == "keep-current-public-release-unchanged":
         action["required"] = False
         action["status"] = "blocked"
@@ -7396,7 +7398,8 @@ report.setdefault("resultUX", {})["nextActionSummary"] = "Work the stablePublica
 report.setdefault("resultUX", {})["priorityAction"] = report["resultUX"]["nextActionSummary"]
 report.setdefault("resultUX", {})["proofSource"] = "releaseNotesProof"
 (target / "v4-stable-publication.json").write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
-(target / "v4-stable-publication.md").write_text(source_md.read_text(encoding="utf-8"), encoding="utf-8")
+markdown = source_md.read_text(encoding="utf-8").replace("Command purpose", "Hidden purpose").replace("Proof after action", "Hidden proof")
+(target / "v4-stable-publication.md").write_text(markdown, encoding="utf-8")
 PY
 ./bin/shipguard ios report-quality \
   --reports "$stable_publication_visibility_command_noise" \
@@ -7404,6 +7407,8 @@ PY
   --shareable >/dev/null
 grep -q '"ruleId": "stable-publication-release-visibility-completed-action-command-noise"' "$tmp_dir/stable-publication-visibility-command-noise-quality/ios-report-quality.json"
 grep -q '"ruleId": "stable-publication-release-visibility-keep-current-command-noise"' "$tmp_dir/stable-publication-visibility-command-noise-quality/ios-report-quality.json"
+grep -q '"ruleId": "stable-publication-release-visibility-proof-after-action-missing"' "$tmp_dir/stable-publication-visibility-command-noise-quality/ios-report-quality.json"
+grep -q '"ruleId": "stable-publication-release-visibility-proof-after-action-markdown-missing"' "$tmp_dir/stable-publication-visibility-command-noise-quality/ios-report-quality.json"
 grep -q '"ruleId": "stable-publication-result-ux-internal-name-leak"' "$tmp_dir/stable-publication-visibility-command-noise-quality/ios-report-quality.json"
 
 stable_publication_launchkey_closure_fixture="fixtures/ios-report-quality/stable-publication-launchkey-candidate-closure"

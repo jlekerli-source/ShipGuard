@@ -5552,6 +5552,16 @@ def stable_publication_evidence_packet_issues(
                     evidence=f"{path_name} releaseVisibilityHandoff keep-current row is blocked but still suggests `{action.get('nextCommand')}`",
                     recommendation="Set keep-current-public-release-unchanged.nextCommand to `blocked-by-required-actions` while earlier publication gates remain required.",
                 )
+            if isinstance(action, dict) and (
+                not action.get("nextCommandPurpose") or not action.get("proofCommandAfterCompletion")
+            ):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-release-visibility-proof-after-action-missing",
+                    evidence=f"{path_name} releaseVisibilityHandoff action `{action.get('id')}` hides command purpose or proof-after-action guidance",
+                    recommendation="Add nextCommandPurpose and proofCommandAfterCompletion to every release visibility action row.",
+                )
         notes_kit_for_visibility = (
             report.get("stablePublicationReleaseNotesAuthoringKit")
             if isinstance(report.get("stablePublicationReleaseNotesAuthoringKit"), dict)
@@ -5637,6 +5647,14 @@ def stable_publication_evidence_packet_issues(
                 rule_id="stable-publication-release-visibility-markdown-missing",
                 evidence=f"{path_name} has releaseVisibilityHandoff but Markdown does not render it",
                 recommendation="Render the release visibility handoff in Markdown so maintainers can choose the next public-release action without opening JSON.",
+            )
+        elif "Command purpose" not in markdown or "Proof after action" not in markdown:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-release-visibility-proof-after-action-markdown-missing",
+                evidence=f"{path_name} Markdown renders releaseVisibilityHandoff but hides command purpose or proof-after-action guidance",
+                recommendation="Render nextCommandPurpose and proofCommandAfterCompletion in the Release Visibility Handoff table.",
             )
         elif (
             int(notes_kit_for_visibility.get("schemaVersion") or 1) >= 2

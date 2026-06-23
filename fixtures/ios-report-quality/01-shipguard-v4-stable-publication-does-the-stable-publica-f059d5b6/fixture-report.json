@@ -411,6 +411,8 @@
       {
         "id": "publish-new-github-release",
         "nextCommand": "not-needed",
+        "nextCommandPurpose": "not-needed",
+        "proofCommandAfterCompletion": "not-needed",
         "reason": "Synthetic release is aligned.",
         "required": false,
         "status": "pass"
@@ -418,6 +420,8 @@
       {
         "id": "update-release-notes",
         "nextCommand": "not-needed",
+        "nextCommandPurpose": "not-needed",
+        "proofCommandAfterCompletion": "not-needed",
         "reason": "Synthetic release notes passed.",
         "required": false,
         "status": "pass"
@@ -425,6 +429,8 @@
       {
         "id": "attach-launchkey-candidate-proof",
         "nextCommand": "not-needed",
+        "nextCommandPurpose": "not-needed",
+        "proofCommandAfterCompletion": "not-needed",
         "reason": "Synthetic LaunchKey candidate proof passed.",
         "required": false,
         "status": "pass"
@@ -432,6 +438,8 @@
       {
         "id": "update-release-assets",
         "nextCommand": "not-needed",
+        "nextCommandPurpose": "not-needed",
+        "proofCommandAfterCompletion": "not-needed",
         "reason": "Synthetic assets passed.",
         "required": false,
         "status": "pass"
@@ -439,6 +447,8 @@
       {
         "id": "attach-adoption-security-evidence",
         "nextCommand": "not-needed",
+        "nextCommandPurpose": "not-needed",
+        "proofCommandAfterCompletion": "not-needed",
         "reason": "Synthetic evidence closure passed.",
         "required": false,
         "status": "pass"
@@ -446,6 +456,8 @@
       {
         "id": "keep-current-public-release-unchanged",
         "nextCommand": "./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>",
+        "nextCommandPurpose": "final-claim-review",
+        "proofCommandAfterCompletion": "not-needed",
         "reason": "The current public release can remain the announcement target.",
         "required": true,
         "status": "pass"
