@@ -2279,7 +2279,7 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
         summary = learning.get("reviewerDispositionSummary") if isinstance(learning.get("reviewerDispositionSummary"), dict) else {}
         if summary:
             lines.append(
-                f"- Reviewer disposition summary: `{summary.get('disposition')}` / `{summary.get('status')}` / "
+                f"- Reviewer disposition summary: `{summary.get('disposition')}` / {summary.get('outcomeLabel')} / `{summary.get('status')}` / "
                 f"{summary.get('trackedSignalCount')} tracked signal(s)"
             )
         disposition = learning.get("reviewerDispositionReceipt") if isinstance(learning.get("reviewerDispositionReceipt"), dict) else {}

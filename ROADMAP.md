@@ -192,6 +192,8 @@ v3.165 adds a no-disposition repair hint: missing reviewer-disposition receipts 
 
 v3.166 adds reviewer outcome copy polish: reviewer-disposition summaries and receipts now carry a human-readable outcome label, and Markdown renders it before follow-up guidance so maintainers can scan local outcomes without decoding enum values.
 
+v3.167 adds reviewer outcome summary Markdown polish: the compact reviewer-disposition summary line now includes the readable outcome label before status and tracked-signal count.
+
 v3.186 continues that release-notes actionability cleanup by routing the same edit command through `stablePublicationEvidencePacket.firstBlockingGate.nextCommand`, release-notes closure `nextCommand`, and `resultUX.nextCommand`; `rerunCommand` remains the after-edit verifier.
 
 v3.187 cleans the stable-publication release visibility handoff so completed `pass`/not-required rows say `not-needed` instead of leaking fallback commands like test scripts into maintainer-facing next-action tables.

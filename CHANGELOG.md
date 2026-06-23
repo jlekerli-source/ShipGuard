@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added reviewer outcome summary Markdown polish to `shipguard verify`: the compact reviewer-disposition summary line now includes the readable outcome label before status and tracked-signal count.
 - Added reviewer outcome copy polish to `shipguard verify`: reviewer-disposition summaries and receipts now carry a human-readable `outcomeLabel`, and Markdown renders it before follow-up guidance.
 - Added a no-disposition repair hint to `shipguard verify`: missing reviewer-disposition receipts now carry a copy-ready rerun command, accepted values, and the local-outcome-only boundary in JSON and Markdown.
 - Added a reviewer-disposition summary guard to `shipguard verify`: diff-learning handoffs now expose disposition status, tracked-signal count, next step, and the one-verdict no-tuning guard without requiring maintainers to parse the nested receipt.
