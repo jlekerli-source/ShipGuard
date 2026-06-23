@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Promoted the stable-publication external evidence freshness fixture: report-quality now has a public synthetic fixture proving stale adoption/security records are rejected when their `generatedAt` timestamps predate the release manifest, and the external evidence fixture index advances the next gap to source-class clarity.
 - Added stable-publication fixture coverage report polish: the external evidence fixture index now renders a concise decision summary with covered evidence classes, remaining external-evidence questions, the next promotion target, and non-claim boundaries before the detailed table.
 - Added a stable-publication external evidence fixture index: report-quality now summarizes adoption/security fixture coverage, weak-signal and vague-security rejection, remaining external-evidence gaps, and the next fixture to promote without scanning individual fixture directories.
 - Promoted the stable-publication security-review evidence checklist into a public report-quality fixture: vague security evidence is rejected, final security proof requires reviewed surfaces, severity thresholds, redaction, methodology, findings summary, and non-claims, and recursive fixture candidates stay suppressed.

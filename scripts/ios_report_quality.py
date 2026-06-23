@@ -9855,6 +9855,19 @@ def stable_publication_external_evidence_fixture_index(
                 "non-claims",
             ],
         },
+        {
+            "id": "external-evidence-freshness-fixture",
+            "label": "External evidence freshness",
+            "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-freshness",
+            "rejectionProved": "stale adoption/security evidence rejected",
+            "requiredProof": [
+                "release manifest generatedAt",
+                "evidence generatedAt",
+                "stale record count",
+                "freshness boundary",
+                "non-claims",
+            ],
+        },
     ]
     by_path = {
         str(item.get("publicFixturePath") or ""): item
@@ -9877,9 +9890,9 @@ def stable_publication_external_evidence_fixture_index(
         )
     missing = [row for row in rows if row["status"] != "covered"]
     next_gap = {
-        "id": "external-evidence-freshness-fixture",
-        "summary": "Promote a fixture proving adoption/security records cannot predate the release manifest they support.",
-        "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-freshness",
+        "id": "external-evidence-source-class-fixture",
+        "summary": "Promote a fixture proving accepted external evidence source classes, actor relationships, and rejected substitutes are visible in the report.",
+        "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
     }
     next_target = missing[0] if missing else next_gap
     covered_classes = [row["id"] for row in rows if row["status"] == "covered"]
@@ -9897,7 +9910,7 @@ def stable_publication_external_evidence_fixture_index(
         "coveredCount": len(rows) - len(missing),
         "expectedCount": len(rows),
         "decisionSummary": {
-            "verdict": "Adoption and security-review fixture questions are covered; freshness remains the next promotion target."
+            "verdict": "Adoption, security-review, and external evidence freshness fixture questions are covered; source-class clarity remains the next promotion target."
             if not missing
             else "Stable-publication external evidence fixture coverage is incomplete.",
             "coveredEvidenceClasses": covered_classes,

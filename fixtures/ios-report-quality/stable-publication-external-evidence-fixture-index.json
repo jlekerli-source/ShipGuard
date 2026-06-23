@@ -1,23 +1,10 @@
 {
-  "schemaVersion": 1,
-  "status": "pass",
-  "tool": "shipguard ios report-quality",
-  "purpose": "Compact public index of stable-publication external evidence fixture coverage.",
-  "decisionSummary": {
-    "verdict": "Adoption and security-review fixture questions are covered; freshness remains the next promotion target.",
-    "coveredEvidenceClasses": [
-      "independent-adoption-evidence",
-      "final-security-review-evidence"
-    ],
-    "remainingExternalEvidenceQuestions": [
-      "external-evidence-freshness-fixture"
-    ],
-    "nextPromotionTarget": "external-evidence-freshness-fixture",
-    "nonClaimSummary": "This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof."
-  },
   "coverage": [
     {
+      "candidateId": "stable-publication-adoption-evidence-checklist",
+      "coveredInCurrentRun": false,
       "id": "independent-adoption-evidence",
+      "label": "Independent adoption evidence",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-adoption-evidence-checklist",
       "rejectionProved": "weak adoption signals rejected",
       "requiredProof": [
@@ -27,10 +14,15 @@
         "redaction",
         "outcome",
         "non-claims"
-      ]
+      ],
+      "sourceQuestion": "Does stable-publication reject weak adoption signals and require independent actor, commands, artifacts, redaction, outcome, and non-claims before stable-v4 release?",
+      "status": "covered"
     },
     {
+      "candidateId": "stable-publication-security-review-evidence-checklist",
+      "coveredInCurrentRun": true,
       "id": "final-security-review-evidence",
+      "label": "Final security-review evidence",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-security-review-evidence-checklist",
       "rejectionProved": "vague security evidence rejected",
       "requiredProof": [
@@ -40,20 +32,62 @@
         "methodology",
         "findings summary",
         "non-claims"
-      ]
-    }
-  ],
-  "remainingExternalEvidenceGaps": [
+      ],
+      "sourceQuestion": "Does stable-publication reject vague security evidence and require reviewed surfaces, severity thresholds, redaction, methodology, findings summary, and non-claims before stable-v4 release?",
+      "status": "covered"
+    },
     {
+      "candidateId": "stable-publication-external-evidence-freshness",
+      "coveredInCurrentRun": false,
       "id": "external-evidence-freshness-fixture",
-      "summary": "Promote a fixture proving adoption/security records cannot predate the release manifest they support.",
-      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-freshness"
+      "label": "External evidence freshness",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-freshness",
+      "rejectionProved": "stale adoption/security evidence rejected",
+      "requiredProof": [
+        "release manifest generatedAt",
+        "evidence generatedAt",
+        "stale record count",
+        "freshness boundary",
+        "non-claims"
+      ],
+      "sourceQuestion": "Does stable-publication reject stale adoption and security-review evidence by comparing evidence generatedAt timestamps against the release manifest timestamp?",
+      "status": "covered"
     }
   ],
+  "coveredCount": 3,
+  "decisionSummary": {
+    "coveredEvidenceClasses": [
+      "independent-adoption-evidence",
+      "final-security-review-evidence",
+      "external-evidence-freshness-fixture"
+    ],
+    "nextPromotionTarget": "external-evidence-source-class-fixture",
+    "nonClaimSummary": "This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.",
+    "remainingExternalEvidenceQuestions": [
+      "external-evidence-source-class-fixture"
+    ],
+    "verdict": "Adoption, security-review, and external evidence freshness fixture questions are covered; source-class clarity remains the next promotion target."
+  },
+  "expectedCount": 3,
+  "nextFixtureToPromote": {
+    "id": "external-evidence-source-class-fixture",
+    "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
+    "summary": "Promote a fixture proving accepted external evidence source classes, actor relationships, and rejected substitutes are visible in the report."
+  },
   "nonClaims": [
     "Fixture coverage proves report-quality behavior only.",
     "Fixture coverage is not independent adoption evidence.",
     "Fixture coverage is not final security-review evidence.",
     "Fixture coverage does not prove stable-v4 publication."
-  ]
+  ],
+  "purpose": "Compact index of public stable-publication external-evidence fixture coverage.",
+  "remainingExternalEvidenceGaps": [
+    {
+      "id": "external-evidence-source-class-fixture",
+      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
+      "summary": "Promote a fixture proving accepted external evidence source classes, actor relationships, and rejected substitutes are visible in the report."
+    }
+  ],
+  "schemaVersion": 1,
+  "status": "pass"
 }

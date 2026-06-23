@@ -1,25 +1,29 @@
 # Stable-Publication External Evidence Fixture Index
 
-Compact public index for stable-publication external evidence report-quality fixtures.
+Compact index of public stable-publication external-evidence fixture coverage.
+
+Status: `pass`
+Covered: `3/3`
 
 ## Decision Summary
 
-- Verdict: Adoption and security-review fixture questions are covered; freshness remains the next promotion target.
-- Covered evidence classes: `independent-adoption-evidence`, `final-security-review-evidence`
-- Remaining questions: `external-evidence-freshness-fixture`
-- Next promotion target: `external-evidence-freshness-fixture`
+- Verdict: Adoption, security-review, and external evidence freshness fixture questions are covered; source-class clarity remains the next promotion target.
+- Covered evidence classes: independent-adoption-evidence, final-security-review-evidence, external-evidence-freshness-fixture
+- Remaining questions: external-evidence-source-class-fixture
+- Next promotion target: `external-evidence-source-class-fixture`
 - Non-claim: This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.
 
 ## Coverage
 
-| Evidence | Fixture | Rejection Proved | Required Proof |
-| --- | --- | --- | --- |
-| `independent-adoption-evidence` | `fixtures/ios-report-quality/stable-publication-adoption-evidence-checklist` | weak adoption signals rejected | independent actor, commands, artifacts, redaction, outcome, non-claims |
-| `final-security-review-evidence` | `fixtures/ios-report-quality/stable-publication-security-review-evidence-checklist` | vague security evidence rejected | reviewed surfaces, severity thresholds, redaction, methodology, findings summary, non-claims |
+| Evidence | Status | Fixture | Rejection Proved | Required Proof |
+| --- | --- | --- | --- | --- |
+| `independent-adoption-evidence` | `covered` | `fixtures/ios-report-quality/stable-publication-adoption-evidence-checklist` | weak adoption signals rejected | independent actor, commands, artifacts, redaction, outcome, non-claims |
+| `final-security-review-evidence` | `covered` | `fixtures/ios-report-quality/stable-publication-security-review-evidence-checklist` | vague security evidence rejected | reviewed surfaces, severity thresholds, redaction, methodology, findings summary, non-claims |
+| `external-evidence-freshness-fixture` | `covered` | `fixtures/ios-report-quality/stable-publication-external-evidence-freshness` | stale adoption/security evidence rejected | release manifest generatedAt, evidence generatedAt, stale record count, freshness boundary, non-claims |
 
-## Remaining Gap
+## Remaining Gaps
 
-- `external-evidence-freshness-fixture`: promote a fixture proving adoption/security records cannot predate the release manifest they support.
+- `external-evidence-source-class-fixture`: Promote a fixture proving accepted external evidence source classes, actor relationships, and rejected substitutes are visible in the report. Suggested path: `fixtures/ios-report-quality/stable-publication-external-evidence-source-classes`
 
 ## Non-Claims
 

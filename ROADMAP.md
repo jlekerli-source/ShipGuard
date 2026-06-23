@@ -254,6 +254,8 @@ v3.198 adds a stable-publication external evidence fixture index: report-quality
 
 v3.199 polishes stable-publication fixture coverage reports: the external evidence fixture index now renders a concise decision summary with covered evidence classes, remaining external-evidence questions, the next promotion target, and non-claim boundaries before the detailed table.
 
+v3.200 promotes the stable-publication external evidence freshness fixture: stale adoption/security records are rejected when their `generatedAt` timestamps predate the release manifest, the public fixture proves that behavior without private app data, and the fixture index advances the next promotion target to external evidence source-class clarity.
+
 v3.136 public-release catch-up makes the stable-publication release visibility handoff copy-ready: when the primary decision is `publish-new-github-release`, the action row now points at the generated `gh release create ...` command with the report output draft release notes and required release-proof assets instead of a placeholder.
 
 v3.137 makes that public-release packet fully asset-path aware: when stable-publication has a supplied or downloaded release-assets directory, the generated `gh release create ...` handoff uses those concrete files instead of `<release-proof-assets-dir>` placeholders.
