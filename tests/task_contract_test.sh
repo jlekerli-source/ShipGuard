@@ -366,6 +366,7 @@ assert summary["disposition"] == "not-recorded"
 assert summary["outcomeLabel"] == "Reviewer outcome not recorded"
 assert summary["trackedSignalCount"] == 4
 assert summary["nextStep"] == disposition["recommendedFollowUp"]
+assert summary["repairCommand"].startswith("shipguard verify --task <task.json>")
 assert disposition["status"] == "missing"
 assert disposition["disposition"] == "not-recorded"
 assert disposition["outcomeLabel"] == "Reviewer outcome not recorded"
@@ -415,6 +416,7 @@ assert any("not a merge" in item for item in replay["nonClaims"])
 assert "does not prove" in replay["proofBoundary"]
 assert "structured proof" in replay["proofBoundary"]
 PY
+grep -q 'Reviewer disposition summary repair: `shipguard verify --task <task.json> --diff <change.diff> --evidence <validation-receipt.json> --reviewer-disposition accepted --out <verdict-dir>`' "$tmp_dir/verify-blocked/shipguard-verdict.md"
 grep -q 'Reviewer repair hint: `shipguard verify --task <task.json> --diff <change.diff> --evidence <validation-receipt.json> --reviewer-disposition accepted --out <verdict-dir>`' "$tmp_dir/verify-blocked/shipguard-verdict.md"
 
 printf 'all tests passed, but command failed\n' > "$tmp_dir/logs/failing-swift-test.log"

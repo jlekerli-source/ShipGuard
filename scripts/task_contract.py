@@ -1619,6 +1619,7 @@ def build_diff_learning_handoff(
         "outcomeLabel": reviewer_disposition_receipt["outcomeLabel"],
         "trackedSignalCount": len(recurrence_candidates),
         "nextStep": reviewer_disposition_receipt["recommendedFollowUp"],
+        "repairCommand": (reviewer_disposition_receipt["repairHint"] or {}).get("command"),
         "guard": "Do not tune recurring-signal rules from one local reviewer disposition.",
     }
     recurring_signal_tuning = {
@@ -2282,6 +2283,8 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
                 f"- Reviewer disposition summary: `{summary.get('disposition')}` / {summary.get('outcomeLabel')} / `{summary.get('status')}` / "
                 f"{summary.get('trackedSignalCount')} tracked signal(s)"
             )
+            if summary.get("repairCommand"):
+                lines.append(f"- Reviewer disposition summary repair: `{summary.get('repairCommand')}`")
         disposition = learning.get("reviewerDispositionReceipt") if isinstance(learning.get("reviewerDispositionReceipt"), dict) else {}
         if disposition:
             lines.append(f"- Reviewer disposition: `{disposition.get('disposition')}`")
