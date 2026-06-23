@@ -525,6 +525,8 @@ test -f "$tmp_dir/blocked/stable-publication-launch-relay/hacker-news-draft.md"
 grep -q '"publicPostingAllowed": false' "$tmp_dir/blocked/stable-publication-launch-relay/launch-relay-checklist.json"
 grep -q '"computerUseMayPost": false' "$tmp_dir/blocked/stable-publication-launch-relay/launch-relay-checklist.json"
 grep -q 'Stable Publication Launch Relay' "$tmp_dir/blocked/stable-publication-launch-relay/README.md"
+grep -q 'Public posting, publishing, submission, scheduling' "$tmp_dir/blocked/stable-publication-launch-relay/README.md"
+grep -q 'Approval boundary: draft only' "$tmp_dir/blocked/stable-publication-launch-relay/product-hunt-draft.md"
 
 if ./bin/shipguard v4 stable-publication \
   --path . \
