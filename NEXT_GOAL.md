@@ -1,24 +1,24 @@
 # Next Goal
 
-- Generated: 2026-06-23T09:24:28Z
-- Current toolkit version: 3.176.0
-- Target release: v3.177.0
-- Title: Diff-first reviewer outcome docs example polish
+- Generated: 2026-06-23T09:37:33Z
+- Current toolkit version: 3.177.0
+- Target release: v3.178.0
+- Title: Public proof boundary wording polish
 
 ## Version Lineage Check
 
 - Status: pass
-- VERSION: 3.176.0
-- Expected next release from VERSION: v3.177.0
-- Planned target release: v3.177.0
-- Current checkout package artifact before version bump: dist/shipguard-v3.176.0.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v3.177.0.tar.gz
-- Action: Before publishing v3.177.0, bump VERSION to 3.177.0, rebuild, and verify dist/shipguard-v3.177.0.tar.gz.
+- VERSION: 3.177.0
+- Expected next release from VERSION: v3.178.0
+- Planned target release: v3.178.0
+- Current checkout package artifact before version bump: dist/shipguard-v3.177.0.tar.gz
+- Expected package artifact after release bump: dist/shipguard-v3.178.0.tar.gz
+- Action: Before publishing v3.178.0, bump VERSION to 3.178.0, rebuild, and verify dist/shipguard-v3.178.0.tar.gz.
 
 ## Slash Plan
 
 ```text
-/plan v3.177.0 Diff-first reviewer outcome docs example polish for jlekerli-source/ShipGuard:
+/plan v3.178.0 Public proof boundary wording polish for jlekerli-source/ShipGuard:
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
@@ -28,7 +28,7 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.177.0 Diff-first reviewer outcome docs example polish for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.178.0 Public proof boundary wording polish for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
@@ -129,12 +129,12 @@
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.177.0.
+1. Open or update the tracking issue for v3.178.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Bump VERSION to 3.177.0, build `dist/shipguard-v3.177.0.tar.gz`, create release `v3.177.0`, and upload the rebuilt tarball.
+6. Bump VERSION to 3.178.0, build `dist/shipguard-v3.178.0.tar.gz`, create release `v3.178.0`, and upload the rebuilt tarball.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
