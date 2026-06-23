@@ -1587,6 +1587,24 @@ PREFIX="$install_prefix" "$package_root/scripts/install.sh" >/dev/null
 test "$("$install_prefix/bin/shipguard" version)" = "$version"
 test "$("$install_prefix/bin/codex-maintainer" version)" = "$version"
 "$install_prefix/bin/shipguard" validate >/dev/null
+(
+  cd "$package_root"
+  "$install_prefix/bin/shipguard" prepare \
+    "Add notification permission copy" \
+    --path fixtures/demo-ios-repo \
+    --out "$tmp_dir/package-task" \
+    --profile ios \
+    --validation "swift test" \
+    --shareable >/dev/null
+  "$install_prefix/bin/shipguard" verify \
+    --task "$tmp_dir/package-task/shipguard-task.json" \
+    --diff examples/verify-first/diffs/scoped-permission.diff \
+    --evidence examples/verify-first/receipts/swift-test-receipt.json \
+    --claim "Implemented scoped notification permission copy." \
+    --out "$tmp_dir/package-verdict" >"$tmp_dir/package-verify.out"
+)
+grep -q 'ShipGuard Proof Report: pass. Validation 1/1 covered; claims 1/1 accepted;' "$tmp_dir/package-verify.out"
+grep -q 'Status: `pass`' "$tmp_dir/package-verdict/shipguard-verdict.md"
 if find "$install_prefix/lib/shipguard" \
   \( -name '.git' -o -name 'dist' -o -name '.DS_Store' -o -name '._*' -o -name '.cache' -o -name 'DerivedData' -o -name '__pycache__' -o -name '*.pyc' \) \
   -print -quit | grep -q .; then

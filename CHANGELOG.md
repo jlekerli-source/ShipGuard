@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Promoted the one-command installer proof path into the release line: the packaged install proof now installs the extracted release tarball, runs the installed CLI through `validate`, `prepare`, and `verify` against public quickstart fixtures, and checks the resulting proof report so the tarball proves the first useful consumer path. Installed wrappers also disable Python bytecode writes so normal use does not dirty the installed toolkit tree.
 - Promoted guarded launch relay drafts into the release line: stable-publication now writes draft-only Product Hunt, r/ShipGuard, X, and Hacker News launch packets with explicit approval, no-public-posting, and no-computer-use-autopost boundaries, and focused tests verify those boundaries appear in the generated draft artifacts.
 - Promoted the verify-first launch quickstart into the release line: the public README, docs, demo diff, structured receipt, PR workflow example, `quickstartReplay` reports, and `verify_first_quickstart_test.sh` now present `shipguard prepare` -> `shipguard verify` as the first consumer-facing ShipGuard path, with exact proof-report counts instead of vague launch copy.
 - Promoted the Lean Review selected-mode bias fixture into the release line: the public synthetic fixture now stays under `ios_report_quality_test.sh`, proves `modeBiasReview` for `lite`/`full`/`ultra`, rejects mismatched selected-mode/top-action reports, and keeps recursive fixture candidates out of promoted fixture scoring.

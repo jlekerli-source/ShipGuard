@@ -18,6 +18,8 @@ printf '%s\n' "$install_output" | grep -q "PATH hint: export PATH=\"$install_pre
 printf '%s\n' "$install_output" | grep -q "Next action: run \"$install_prefix/bin/shipguard\" validate"
 printf '%s\n' "$install_output" | grep -q -- "- \"$install_prefix/bin/shipguard\" prepare"
 printf '%s\n' "$install_output" | grep -q -- "- \"$install_prefix/bin/shipguard\" verify"
+grep -q 'PYTHONDONTWRITEBYTECODE=1' "$install_prefix/bin/shipguard"
+grep -q 'PYTHONDONTWRITEBYTECODE=1' "$install_prefix/bin/codex-maintainer"
 
 test "$("$install_prefix/bin/shipguard" version)" = "$(./bin/shipguard version)"
 "$install_prefix/bin/shipguard" doctor --help >/dev/null

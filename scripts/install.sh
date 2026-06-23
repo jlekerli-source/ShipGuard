@@ -28,12 +28,14 @@ find "$lib_dir" -type f -name '*.pyc' -delete
 mkdir -p "$bin_dir"
 cat > "$target" <<WRAPPER
 #!/usr/bin/env bash
+export PYTHONDONTWRITEBYTECODE=1
 exec "$lib_dir/bin/shipguard" "\$@"
 WRAPPER
 chmod +x "$target"
 
 cat > "$legacy_target" <<WRAPPER
 #!/usr/bin/env bash
+export PYTHONDONTWRITEBYTECODE=1
 exec "$lib_dir/bin/codex-maintainer" "\$@"
 WRAPPER
 chmod +x "$legacy_target"
