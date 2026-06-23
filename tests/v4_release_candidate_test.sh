@@ -825,7 +825,13 @@ assert download_handoff["downloadDir"] == "<downloaded-release-assets>"
 assert download_handoff["releaseEndpoint"] == "<github-release-endpoint>"
 assert "downloaded-asset-sha256" in download_handoff["proofArtifacts"]
 assert download_handoff["missingProofArtifacts"] == []
-assert "--release-candidate-report <v4-release-candidate-json-or-dir>" in download_handoff["stablePublicationCommand"]
+assert "--release-candidate-report <v4-release-candidate-json>" in download_handoff["stablePublicationCommand"]
+assert "--github-release-repo jlekerli-source/ShipGuard" in download_handoff["stablePublicationCommand"]
+assert f"--release-version {report['version']}" in download_handoff["stablePublicationCommand"]
+assert "--release-assets <downloaded-release-assets>" in download_handoff["stablePublicationCommand"]
+assert "--external-adoption-evidence <adoption-evidence-json-or-dir>" in download_handoff["stablePublicationCommand"]
+assert "--security-review-evidence <security-review-json-or-dir>" in download_handoff["stablePublicationCommand"]
+assert "--download-release-assets" not in download_handoff["stablePublicationCommand"]
 assert download_handoff["proofBoundary"]["attachCandidateReportToStablePublication"] is True
 assert download_handoff["proofBoundary"]["downloadDirectoryAloneCountsAsStableV4Proof"] is False
 assert download_handoff["proofBoundary"]["releaseConsumeStillRequiredForStableV4"] is True
@@ -1174,7 +1180,13 @@ assert blocking_handoff["failureEvidence"] == "missing --github-release-repo <ow
 assert "download-error" in blocking_handoff["proofArtifacts"]
 assert blocking_handoff["missingProofArtifacts"] == []
 assert "--download-release-assets" in blocking_handoff["repairCommand"]
-assert "--release-candidate-report <v4-release-candidate-json-or-dir>" in blocking_handoff["stablePublicationCommand"]
+assert "--release-candidate-report <v4-release-candidate-json>" in blocking_handoff["stablePublicationCommand"]
+assert "--github-release-repo <owner/repo>" in blocking_handoff["stablePublicationCommand"]
+assert f"--release-version {report['version']}" in blocking_handoff["stablePublicationCommand"]
+assert "--download-release-assets" in blocking_handoff["stablePublicationCommand"]
+assert "--external-adoption-evidence <adoption-evidence-json-or-dir>" in blocking_handoff["stablePublicationCommand"]
+assert "--security-review-evidence <security-review-json-or-dir>" in blocking_handoff["stablePublicationCommand"]
+assert "--release-assets" not in blocking_handoff["stablePublicationCommand"]
 assert blocking_handoff["proofBoundary"]["attachCandidateReportToStablePublication"] is True
 assert blocking_handoff["proofBoundary"]["blockedDownloadCountsAsStableV4Proof"] is False
 assert blocking_handoff["proofBoundary"]["releaseConsumeStillRequiredForStableV4"] is True

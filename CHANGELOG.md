@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Made LaunchKey native GitHub release-asset download handoffs runnable for stable-publication: successful download receipts now pass the concrete candidate report, repo, release version, downloaded asset directory, and adoption/security evidence placeholders; blocked download receipts now pass repo/version/download placeholders instead of a weak generic stable-publication command.
 - Added post-handoff proof receipts to stable-publication public release closure: release-create and release-asset upload handoffs now include the `gh release view ... --json tagName,isDraft,isPrerelease,targetCommitish,publishedAt,assets,url` verification command, the stable-publication rerun command, success criteria, and non-claims so manual GitHub actions do not become unproven release claims.
 - Routed missing public-release metadata to the concrete release-create command in stable-publication result UX: when the first blocker is the missing GitHub release, `resultUX.nextCommand` now matches the manual `gh release create ...` handoff instead of a generic stable-publication rerun.
 - Added stable-publication release-asset upload handoffs: when public release assets or asset coherence need repair and verified local asset files exist, the `update-release-assets` action now gives a concrete manual `gh release upload ... --clobber` command while keeping ShipGuard out of GitHub release mutation.

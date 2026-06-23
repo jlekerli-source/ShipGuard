@@ -1130,6 +1130,7 @@ def attach_github_release_asset_download_proof_attachment(proof: dict[str, Any])
         return
     downloaded_assets = [item for item in proof.get("downloadedAssets", []) if isinstance(item, dict)]
     proof_artifacts = ["github-release-metadata", "downloaded-release-assets", "downloaded-asset-sha256"]
+    stable_publication_command = stable_publication_handoff_command(proof, use_release_assets=True)
     proof["downloadProofAttachment"] = {
         "status": proof.get("status"),
         "repo": proof.get("repo", ""),
@@ -1163,7 +1164,7 @@ def attach_github_release_asset_download_proof_attachment(proof: dict[str, Any])
             "downloadDir": proof.get("downloadDir", ""),
             "proofArtifacts": proof_artifacts,
             "missingProofArtifacts": [],
-            "stablePublicationCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --release-candidate-report <v4-release-candidate-json-or-dir> --shipguard-eval --shareable",
+            "stablePublicationCommand": stable_publication_command,
             "proofBoundary": {
                 "attachCandidateReportToStablePublication": True,
                 "downloadDirectoryAloneCountsAsStableV4Proof": False,
@@ -1188,6 +1189,7 @@ def attach_github_release_asset_download_blocking_proof(proof: dict[str, Any]) -
     if not proof.get("requested") or proof.get("status") == "pass":
         return
     proof_artifacts = ["download-blocking-proof", "download-error", "launchkey-rerun-command"]
+    stable_publication_command = stable_publication_handoff_command(proof, use_release_assets=False)
     proof["downloadBlockingProof"] = {
         "status": proof.get("status"),
         "repo": proof.get("repo", ""),
@@ -1216,7 +1218,7 @@ def attach_github_release_asset_download_blocking_proof(proof: dict[str, Any]) -
             "proofArtifacts": proof_artifacts,
             "missingProofArtifacts": [],
             "repairCommand": proof.get("nextCommand"),
-            "stablePublicationCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --release-candidate-report <v4-release-candidate-json-or-dir> --shipguard-eval --shareable",
+            "stablePublicationCommand": stable_publication_command,
             "proofBoundary": {
                 "attachCandidateReportToStablePublication": True,
                 "blockedDownloadCountsAsStableV4Proof": False,
@@ -1234,6 +1236,42 @@ def attach_github_release_asset_download_blocking_proof(proof: dict[str, Any]) -
             "fixtureProofCountsAsStableV4PublicationProof": False,
         },
     }
+
+
+def stable_publication_handoff_command(proof: dict[str, Any], *, use_release_assets: bool) -> str:
+    repo = str(proof.get("repo") or "<owner/repo>")
+    version = str(proof.get("version") or "").strip()
+    candidate = str(proof.get("candidateReportPath") or "<v4-release-candidate-json-or-dir>")
+    parts = [
+        "./bin/shipguard",
+        "v4",
+        "stable-publication",
+        "--path",
+        ".",
+        "--out",
+        "<stable-publication-dir>",
+        "--github-release-repo",
+        repo,
+        "--release-version",
+        version or "<version>",
+        "--release-candidate-report",
+        candidate,
+    ]
+    if use_release_assets:
+        parts.extend(["--release-assets", str(proof.get("downloadDir") or "<downloaded-assets-dir>")])
+    else:
+        parts.append("--download-release-assets")
+    parts.extend(
+        [
+            "--external-adoption-evidence",
+            "<adoption-evidence-json-or-dir>",
+            "--security-review-evidence",
+            "<security-review-json-or-dir>",
+            "--shipguard-eval",
+            "--shareable",
+        ]
+    )
+    return " ".join(parts)
 
 
 def build_published_release_asset_proof(
