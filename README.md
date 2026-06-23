@@ -176,7 +176,16 @@ Start here:
 - [Release proof bundle](docs/release-proof.md)
 - [Stable publication proof](docs/v4-stable-publication.md)
 
-Stable publication requires public GitHub release metadata, downloaded or supplied public release assets, tag/manifest freshness, and post-release `release-consume` proof with digest coverage from those assets. It also includes a release visibility handoff so maintainers know whether to publish a new release, update notes/assets with concrete `gh` commands, attach LaunchKey candidate proof, attach external evidence, or keep the current public release unchanged. Source checkout proof, generated starter kits, fixture API responses, and synthetic fixtures only prove ShipGuard report quality.
+Stable publication requires public GitHub release metadata, downloaded or supplied public release assets, tag/manifest freshness, and post-release `release-consume` proof with digest coverage from those assets. It also includes a release visibility handoff so maintainers know whether to publish a new release, update notes/assets with concrete `gh` commands, attach LaunchKey candidate proof, attach external evidence, or keep the current public release unchanged.
+
+Proof boundaries stay separate:
+
+- Public release assets plus `release-consume` prove consumer replay.
+- Private app runs and maintainer reviews prove ShipGuard QA only.
+- Independent adoption needs an external user, repo, install, issue, PR, or marketplace signal.
+- Final security-review proof needs review evidence that covers the CLI, plugin, GitHub Action, release proof, package install, and redaction/privacy surfaces.
+
+Source checkout proof, generated starter kits, fixture API responses, and synthetic fixtures only prove ShipGuard report quality.
 
 For major ShipGuard milestones, `shipguard v4 stable-publication` can also write draft-only launch relay copy for Product Hunt, r/ShipGuard, X, and Hacker News. It does not post or submit anything; public actions require explicit approval for that exact launch run.
 

@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Verify transcript corpus
-        uses: jlekerli-source/ShipGuard/actions/transcript-corpus@v3.177.0
+        uses: jlekerli-source/ShipGuard/actions/transcript-corpus@v3.178.0
         with:
           source: ${{ inputs.source || 'fixtures/transcripts' }}
           require-report: true

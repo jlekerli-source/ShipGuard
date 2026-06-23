@@ -31,6 +31,9 @@ grep -q 'Record reviewer outcome with note' docs/cli.md
 grep -q 'reviewer outcome is still local feedback' docs/task-contract.md
 grep -q -- '--reviewer-note "Accepted after reviewing the proof packet."' README.md
 grep -q -- '--reviewer-note "Accepted after reviewing the proof packet."' docs/cli.md
+grep -q 'Private app runs and maintainer reviews prove ShipGuard QA only' README.md
+grep -q 'Independent adoption needs an external user, repo, install, issue, PR, or marketplace signal' docs/cli.md
+grep -q 'Final security-review proof needs review evidence that covers the CLI, plugin, GitHub Action, release proof, package install, and redaction/privacy surfaces' docs/cli.md
 
 mkdir -p "$tmp_dir/broken"
 cat > "$tmp_dir/broken/README.md" <<'MD'

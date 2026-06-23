@@ -209,7 +209,12 @@ The command is read-only. It scans `shipguard-v*.tar.gz` members without extract
 
 Use `v4 preview` to inspect the v4 stabilization contract, `v4 schema-freeze` to prove the schema contract is frozen, `v4 release-candidate` to prove install, upgrade, uninstall, release proof consumption, external adoption packet, final schema docs, and plugin refresh readiness, and `v4 stable-publication` to prove the actual published release from public GitHub release metadata, latest release context, release notes, downloaded assets, tag/manifest freshness, version/asset coherence, public release delta proof, independent adoption evidence, and final security-review evidence.
 
-For stable publication, `release-consume` must run against the published release assets. Fixture-backed or source-only receipts remain ShipGuard QA, not stable-v4 consumer proof:
+For stable publication, `release-consume` must run against the published release assets. Fixture-backed or source-only receipts remain ShipGuard QA, not stable-v4 consumer proof. Keep the evidence classes separate:
+
+- Public release assets plus `release-consume` prove consumer replay.
+- Private app runs and maintainer reviews prove ShipGuard QA only.
+- Independent adoption needs an external user, repo, install, issue, PR, or marketplace signal.
+- Final security-review proof needs review evidence that covers the CLI, plugin, GitHub Action, release proof, package install, and redaction/privacy surfaces.
 
 ```bash
 ./bin/shipguard v4 preview \
