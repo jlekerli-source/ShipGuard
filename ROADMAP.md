@@ -147,8 +147,8 @@ v3.135  package-release duplicate proof pruning
 v3.136  stable-publication concrete release-create handoff
 v3.137  stable-publication concrete release-asset paths
 v3.138  stable-publication release-asset upload handoff
-v3.139  stable-publication public release closure
-v3.140  LaunchKey upgrade and rollback receipt attachment
+v3.139  stable-publication result UX release-create routing
+v3.140  stable-publication public release closure
 v3.141  LaunchKey downloaded-asset blocking proof detail
 v3.142  LaunchKey native GitHub release-asset download
 v3.143  Stable-v4 external adoption evidence gate
@@ -198,7 +198,9 @@ v3.137 makes that public-release packet fully asset-path aware: when stable-publ
 
 v3.138 adds a stable-publication release-asset upload handoff: when public release assets or asset coherence need repair and the local release asset files are present, `update-release-assets` now points to a concrete manual `gh release upload ... --clobber` command instead of a generic rerun. The boundary remains explicit: ShipGuard prepares the command but does not mutate GitHub releases.
 
-Release-line note: local `VERSION` now advances to `3.138.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
+v3.139 routes missing public-release metadata through the top-level result UX: when `publish-new-github-release` is the first stable-publication action, `resultUX.nextCommand` now points at the same concrete manual `gh release create ...` handoff as the release visibility matrix.
+
+Release-line note: local `VERSION` now advances to `3.139.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
 
 v3.135 trims package-release proof duplication: after source CI runs the focused fixture suites, `tests/package_release_test.sh` verifies those packaged test scripts are included, executable, and shell-syntax-valid instead of rerunning the same suites from the extracted tarball.
 
@@ -221,10 +223,6 @@ v3.136 also continues InspectDeck release-proof badge detail by keeping supplied
 v3.137 continues InspectDeck release-proof path handoff by exposing release-assets, manifest, and badge paths plus a rerun template and no-mutation boundary in release-state reports.
 
 v3.137 continues LaunchKey published release-asset proof attachment by adding a compact `releaseAssetProofAttachment` to `publishedReleaseAssetProof`, so release-consume paths, digest status, missing artifacts, next command, and source-only/fixture-proof boundaries travel with the candidate packet.
-
-v3.140 adds LaunchKey release-asset receipt handoff so verified downloaded or supplied release assets point stable-publication at the containing candidate report, name release-consume proof artifacts, and make clear a release-assets directory alone is not stable-v4 proof.
-
-v3.140 continues LaunchKey upgrade and rollback receipt attachment by adding compact `upgradeProofAttachment` and `rollbackProofAttachment` blocks so same-prefix upgrade and rollback cleanup proof travel with the candidate packet.
 
 v3.141 continues LaunchKey downloaded-asset blocking proof detail by adding `downloadBlockingProof` to failed native GitHub release-asset downloads so repo, tag, endpoint, destination, error, rerun command, and proof boundaries are visible.
 

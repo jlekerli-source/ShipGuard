@@ -137,6 +137,8 @@ The report exposes the same artifact as `stablePublicationReleaseNotesAuthoringK
 
 When release notes are the first blocker, the report's first-blocking gate, result UX, and closure checklist `nextCommand` point at the manual `gh release edit` command. The stable-publication rerun command stays available as `rerunCommand` for after the public release body has been edited.
 
+When public GitHub release metadata is missing and `publish-new-github-release` is the first required visibility action, result UX points at the manual `gh release create ...` handoff. The command is still a handoff only: ShipGuard does not create the release.
+
 In `Release Visibility Handoff`, completed action rows use `nextCommand: not-needed`. The blocked `keep-current-public-release-unchanged` row uses `blocked-by-required-actions` until earlier gates pass. Only required review/blocker rows carry runnable commands, so a passed asset or publication action does not send maintainers into a fallback test or rerun lane.
 
 The generated release-notes directory is an authoring attachment, not a separate source report. `ios report-quality` grades the root `v4-stable-publication.json` report and skips the generated checklist during recursive report discovery.

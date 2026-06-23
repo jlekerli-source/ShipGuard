@@ -1672,3 +1672,4 @@ Status: started.
 - Moved legacy command-wrapper guidance out of primary README and CLI flow into `docs/compatibility.md`.
 - Keep Agents SDK deferred unless ShipGuard becomes a runnable agent service with a concrete eval target.
 - Added the stable-publication asset-repair handoff after release-publication QA showed `update-release-assets` could still send maintainers to a generic rerun. When verified local release assets exist, the report now gives a manual `gh release upload ... --clobber` command while preserving the no-mutation boundary.
+- Added stable-publication result UX release-create routing after the v3.138 public-release probe showed the first blocker was missing GitHub metadata but the top next command still pointed at a generic rerun. Missing-release metadata now routes the top next command to the manual `gh release create ...` handoff.

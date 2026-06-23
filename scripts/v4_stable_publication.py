@@ -4392,6 +4392,29 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         priority_action = "Use the stable-publication report as release proof input, then move the next ShipGuard roadmap goal forward."
         proof_source = "release metadata, release notes, LaunchKey report, release-consume, adoption evidence, and security evidence"
 
+    visibility_primary = str(release_visibility_handoff.get("primaryDecision") or "")
+    visibility_actions = (
+        release_visibility_handoff.get("requiredActions")
+        if isinstance(release_visibility_handoff.get("requiredActions"), list)
+        else []
+    )
+    visibility_action = next(
+        (
+            item
+            for item in visibility_actions
+            if isinstance(item, dict)
+            and item.get("id") == visibility_primary
+            and item.get("required") is True
+            and str(item.get("nextCommand") or "") not in {"", "not-needed", "blocked-by-required-actions"}
+        ),
+        None,
+    )
+    if blocked and receipt == "githubReleaseMetadataProof" and isinstance(visibility_action, dict):
+        next_command = str(visibility_action.get("nextCommand") or next_command)
+        priority_action = (
+            f"Use the release visibility handoff action `{visibility_primary}` before rerunning stable-publication."
+        )
+
     result_ux = build_result_ux(
         status=status,
         summary=summary,
