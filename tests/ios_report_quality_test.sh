@@ -6139,6 +6139,32 @@ cat > "$stable_publication_priority_dir/tool-value-gauntlet.json" <<'JSON'
       ]
     }
   },
+  "stablePublicationPriority": {
+    "status": "review",
+    "priorityId": "stable-v4-publication",
+    "identifier": "shipguard v4-stable-release-publication",
+    "firstBlocker": "public-github-release-metadata",
+    "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-out> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable",
+    "proofPacket": [
+      {"id": "github-release-metadata", "required": true, "proof": "gh release view for the requested public tag, not local main"},
+      {"id": "release-notes", "required": true, "proof": "public release notes naming assets, consumer proof, adoption evidence, security review, and non-claims"},
+      {"id": "downloaded-release-assets", "required": true, "proof": "release assets downloaded from the public GitHub release or supplied from a verified release-assets directory"},
+      {"id": "post-release-consumer-proof", "required": true, "proof": "shipguard release-consume verification against the public release assets"},
+      {"id": "independent-adoption-evidence", "required": true, "proof": "fresh, redacted external adoption evidence generated after the release manifest"},
+      {"id": "final-security-review-evidence", "required": true, "proof": "fresh final security review evidence with no open critical or high findings"}
+    ],
+    "blockedBy": [
+      "public GitHub release metadata and release notes",
+      "downloaded release assets",
+      "post-release consumer proof",
+      "independent adoption evidence",
+      "final security review evidence"
+    ],
+    "proofBoundary": {
+      "sourceOnlyCountsAsStableV4Proof": false,
+      "fixtureProofCountsAsStableV4Proof": false
+    }
+  },
   "reportQualityQuestions": [
     "Should ShipGuard stabilize the v4 product release with external adoption evidence, final security review, rollback proof, package proof, and release proof consumption?"
   ]
@@ -6154,6 +6180,21 @@ cat > "$stable_publication_priority_dir/tool-value-gauntlet.md" <<'MD'
 - Why it matters: The lowest-value surface should drive the next ShipGuard improvement.
 - Next command: `./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet`
 - Next action: Prepare and verify the real stable-v4 public release packet with downloaded GitHub release assets, independent adoption evidence, final security review evidence, release notes, and post-release consumer proof.
+
+## Stable Publication Priority
+
+- Status: review
+- Priority: `stable-v4-publication`
+- Surface: `shipguard v4-stable-release-publication`
+- Next command: `./bin/shipguard v4 stable-publication --path . --out <stable-publication-out> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable`
+- First blocker: `public-github-release-metadata`
+- Proof packet:
+  - `github-release-metadata`: gh release view for the requested public tag, not local main
+  - `release-notes`: public release notes naming assets, consumer proof, adoption evidence, security review, and non-claims
+  - `downloaded-release-assets`: release assets downloaded from the public GitHub release or supplied from a verified release-assets directory
+  - `post-release-consumer-proof`: shipguard release-consume verification against the public release assets
+  - `independent-adoption-evidence`: fresh, redacted external adoption evidence generated after the release manifest
+  - `final-security-review-evidence`: fresh final security review evidence with no open critical or high findings
 MD
 ./bin/shipguard ios report-quality \
   --reports "$stable_publication_priority_dir" \
@@ -6188,6 +6229,47 @@ if not ranked or ranked[0].get("question") != covered or not ranked[0].get("exis
 if len(ranked) < 2 or ranked[1].get("question") != product_release or not ranked[1].get("existingFixture"):
     raise SystemExit(f"covered product-release question should follow stable-v4 item with existing fixture metadata: {ranked!r}")
 PY
+
+weak_stable_priority_dir="$tmp_dir/weak-stable-publication-priority"
+mkdir -p "$weak_stable_priority_dir"
+cat > "$weak_stable_priority_dir/tool-value-gauntlet.json" <<'JSON'
+{
+  "schemaVersion": 1,
+  "tool": "shipguard value-gauntlet",
+  "surface": "ShipGuard Tool Value Gauntlet",
+  "generatedAt": "2026-06-20T00:00:00Z",
+  "status": "pass",
+  "lowestValueSurfaceProbe": {
+    "answer": {
+      "identifier": "shipguard v4-stable-release-publication",
+      "name": "v4 Stable Release Publication",
+      "recommendation": "Prepare the real stable-v4 public release packet.",
+      "missingDepthSignals": ["runtimeV4StableReleasePublication"]
+    }
+  },
+  "stablePublicationPriority": {
+    "status": "review",
+    "priorityId": "stable-v4-publication",
+    "identifier": "shipguard v4-stable-release-publication",
+    "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-out>"
+  }
+}
+JSON
+cat > "$weak_stable_priority_dir/tool-value-gauntlet.md" <<'MD'
+# ShipGuard Tool Value Gauntlet
+
+## Stable Publication Priority
+
+- Status: review
+- Priority: `stable-v4-publication`
+MD
+./bin/shipguard ios report-quality \
+  --reports "$weak_stable_priority_dir" \
+  --out "$tmp_dir/weak-stable-publication-priority-quality" \
+  --shareable >/dev/null
+grep -q '"status": "review"' "$tmp_dir/weak-stable-publication-priority-quality/ios-report-quality.json"
+grep -q 'stable-publication-priority-proof-packet-missing' "$tmp_dir/weak-stable-publication-priority-quality/ios-report-quality.json"
+grep -q 'stable-publication-priority-markdown-missing' "$tmp_dir/weak-stable-publication-priority-quality/ios-report-quality.json"
 
 stable_publication_packet_dir="$tmp_dir/stable-publication-packet"
 mkdir -p "$stable_publication_packet_dir"

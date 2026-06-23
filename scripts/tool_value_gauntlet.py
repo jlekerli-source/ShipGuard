@@ -5058,6 +5058,15 @@ def stable_publication_priority(probe: dict[str, Any]) -> dict[str, Any]:
     answer = probe.get("answer") if isinstance(probe, dict) and isinstance(probe.get("answer"), dict) else {}
     missing = {str(item) for item in answer.get("missingDepthSignals", [])} if isinstance(answer.get("missingDepthSignals"), list) else set()
     is_stable_gap = answer.get("identifier") == "shipguard v4-stable-release-publication" or "runtimeV4StableReleasePublication" in missing
+    first_blocker = "public-github-release-metadata" if is_stable_gap else "none"
+    proof_packet = [
+        {"id": "github-release-metadata", "required": True, "proof": "gh release view for the requested public tag, not local main"},
+        {"id": "release-notes", "required": True, "proof": "public release notes naming assets, consumer proof, adoption evidence, security review, and non-claims"},
+        {"id": "downloaded-release-assets", "required": True, "proof": "release assets downloaded from the public GitHub release or supplied from a verified release-assets directory"},
+        {"id": "post-release-consumer-proof", "required": True, "proof": "shipguard release-consume verification against the public release assets"},
+        {"id": "independent-adoption-evidence", "required": True, "proof": "fresh, redacted external adoption evidence generated after the release manifest"},
+        {"id": "final-security-review-evidence", "required": True, "proof": "fresh final security review evidence with no open critical or high findings"},
+    ]
     return {
         "status": "review" if is_stable_gap else "not-current-priority",
         "priorityId": "stable-v4-publication" if is_stable_gap else "none",
@@ -5065,8 +5074,10 @@ def stable_publication_priority(probe: dict[str, Any]) -> dict[str, Any]:
         "surface": answer.get("name") or "",
         "identifier": answer.get("identifier") or "",
         "missingDepthSignal": "runtimeV4StableReleasePublication" if is_stable_gap else "",
+        "firstBlocker": first_blocker,
         "whyItMatters": "Stable v4 should not be claimed until public release assets, release notes, post-release consumer proof, independent adoption evidence, and final security review pass together.",
         "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-out> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable",
+        "proofPacket": proof_packet if is_stable_gap else [],
         "blockedBy": [
             "public GitHub release metadata and release notes",
             "downloaded release assets",
@@ -5334,6 +5345,13 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append(f"- Why it matters: {stable_priority['whyItMatters']}")
     if stable_priority.get("nextCommand"):
         lines.append(f"- Next command: `{stable_priority['nextCommand']}`")
+    if stable_priority.get("firstBlocker"):
+        lines.append(f"- First blocker: `{stable_priority['firstBlocker']}`")
+    proof_packet = stable_priority.get("proofPacket") if isinstance(stable_priority.get("proofPacket"), list) else []
+    if proof_packet:
+        lines.append("- Proof packet:")
+        for item in proof_packet:
+            lines.append(f"  - `{item.get('id')}`: {item.get('proof')}")
     blocked_by = stable_priority.get("blockedBy") if isinstance(stable_priority.get("blockedBy"), list) else []
     if blocked_by:
         lines.append(f"- Blocked by: {', '.join(str(item) for item in blocked_by)}")

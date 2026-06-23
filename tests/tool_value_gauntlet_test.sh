@@ -89,6 +89,8 @@ grep -q '# ShipGuard Tool Value Gauntlet' "$tmp_dir/gauntlet/tool-value-gauntlet
 grep -q 'Priority Actions' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Lowest-Value Surface Probe' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Stable Publication Priority' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'Proof packet' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
+grep -q 'public-github-release-metadata' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Commands' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Skills' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
 grep -q 'Plugins' "$tmp_dir/gauntlet/tool-value-gauntlet.md"
@@ -224,6 +226,19 @@ if stable_priority.get("identifier") != "shipguard v4-stable-release-publication
 stable_next = stable_priority.get("nextCommand") or ""
 if "shipguard v4 stable-publication" not in stable_next or "--download-release-assets" not in stable_next:
     raise SystemExit(f"stable-publication priority needs a copy-ready stable-publication command: {stable_priority!r}")
+if stable_priority.get("firstBlocker") != "public-github-release-metadata":
+    raise SystemExit(f"stable-publication priority should name the first blocker: {stable_priority!r}")
+packet_ids = {item.get("id") for item in stable_priority.get("proofPacket") or []}
+expected_packet_ids = {
+    "github-release-metadata",
+    "release-notes",
+    "downloaded-release-assets",
+    "post-release-consumer-proof",
+    "independent-adoption-evidence",
+    "final-security-review-evidence",
+}
+if packet_ids != expected_packet_ids:
+    raise SystemExit(f"stable-publication priority should expose the proof packet: {stable_priority!r}")
 blocked_by = set(stable_priority.get("blockedBy") or [])
 expected_blockers = {
     "public GitHub release metadata and release notes",

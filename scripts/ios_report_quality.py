@@ -462,6 +462,84 @@ def value_gauntlet_actionability_question(answer: dict[str, Any]) -> str | None:
     return f"Can ShipGuard turn {name} into a concrete fixture-backed improvement instead of leaving it as a vague priority?"
 
 
+def value_gauntlet_stable_publication_priority_issues(report: dict[str, Any], *, markdown: str, path_name: str) -> list[dict[str, str]]:
+    answer = value_gauntlet_probe_answer(report)
+    missing = answer.get("missingDepthSignals")
+    missing_signals = {str(item) for item in missing} if isinstance(missing, list) else set()
+    is_stable_gap = answer.get("identifier") == "shipguard v4-stable-release-publication" or "runtimeV4StableReleasePublication" in missing_signals
+    if not is_stable_gap:
+        return []
+    issues: list[dict[str, str]] = []
+    priority = report.get("stablePublicationPriority") if isinstance(report.get("stablePublicationPriority"), dict) else {}
+    if priority.get("status") != "review" or priority.get("priorityId") != "stable-v4-publication":
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-priority-status-missing",
+            evidence=f"{path_name} stablePublicationPriority does not mark stable-v4 publication as review",
+            recommendation="Expose stablePublicationPriority.status=review and priorityId=stable-v4-publication when the lowest-value surface is stable publication.",
+        )
+    if not is_command_shaped(priority.get("nextCommand")) or "shipguard v4 stable-publication" not in str(priority.get("nextCommand") or ""):
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-priority-command-missing",
+            evidence=f"{path_name} stablePublicationPriority has no copy-ready stable-publication command",
+            recommendation="Add a concrete stable-publication command with release assets, adoption evidence, and security evidence placeholders.",
+        )
+    expected_blockers = {
+        "public GitHub release metadata and release notes",
+        "downloaded release assets",
+        "post-release consumer proof",
+        "independent adoption evidence",
+        "final security review evidence",
+    }
+    if set(priority.get("blockedBy") or []) != expected_blockers:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-priority-blockers-missing",
+            evidence=f"{path_name} stablePublicationPriority does not list the stable-v4 proof blockers",
+            recommendation="List release metadata, assets, consumer proof, adoption evidence, and security review as blockers.",
+        )
+    packet = priority.get("proofPacket") if isinstance(priority.get("proofPacket"), list) else []
+    packet_ids = {str(item.get("id") or "") for item in packet if isinstance(item, dict)}
+    expected_packet_ids = {
+        "github-release-metadata",
+        "release-notes",
+        "downloaded-release-assets",
+        "post-release-consumer-proof",
+        "independent-adoption-evidence",
+        "final-security-review-evidence",
+    }
+    if priority.get("firstBlocker") != "public-github-release-metadata" or packet_ids != expected_packet_ids:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-priority-proof-packet-missing",
+            evidence=f"{path_name} stablePublicationPriority does not expose the first blocker and full proof packet",
+            recommendation="Add firstBlocker plus proofPacket rows for release metadata, notes, assets, consumer proof, adoption evidence, and security review.",
+        )
+    boundary = priority.get("proofBoundary") if isinstance(priority.get("proofBoundary"), dict) else {}
+    if boundary.get("sourceOnlyCountsAsStableV4Proof") is not False or boundary.get("fixtureProofCountsAsStableV4Proof") is not False:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-priority-nonclaims-missing",
+            evidence=f"{path_name} stablePublicationPriority proofBoundary does not block source/fixture overclaims",
+            recommendation="Keep source-only and fixture-backed reports from counting as stable-v4 proof.",
+        )
+    if "Stable Publication Priority" not in markdown or "Proof packet" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-priority-markdown-missing",
+            evidence=f"{path_name} Markdown does not show the stable-publication proof packet",
+            recommendation="Render Stable Publication Priority, first blocker, proof packet, blockers, and non-claims in Markdown.",
+        )
+    return issues
+
+
 def report_questions(report: dict[str, Any], *, report_path: str, tool: str) -> list[dict[str, Any]]:
     questions = report.get("reportQualityQuestions")
     source_questions = questions if isinstance(questions, list) else []
@@ -8530,6 +8608,8 @@ def grade_report(path: Path, *, input_paths: list[Path], shareable: bool, cwd: P
     issues.extend(full_audit_slash_handoff_issues(loaded, path_name=path.name))
     issues.extend(full_audit_execution_command_issues(loaded, markdown=markdown, path_name=path.name))
     issues.extend(full_audit_release_packet_plan_issues(loaded, markdown=markdown, path_name=path.name))
+    if tool == "shipguard value-gauntlet":
+        issues.extend(value_gauntlet_stable_publication_priority_issues(loaded, markdown=markdown, path_name=path.name))
     if tool == "shipguard ios performance":
         issues.extend(performance_runtime_evidence_boundary_issues(loaded, markdown=markdown, path_name=path.name))
         issues.extend(performance_evidence_promotion_issues(loaded, markdown=markdown, path_name=path.name))
