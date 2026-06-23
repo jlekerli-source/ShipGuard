@@ -207,9 +207,27 @@
       ],
       "sourceQuestion": "Does stable-publication require external adoption and security-review artifacts to include digest or public/source provenance instead of only naming artifact files?",
       "status": "covered"
+    },
+    {
+      "candidateId": "stable-publication-external-evidence-review-scope-mapping",
+      "coveredInCurrentRun": false,
+      "id": "external-evidence-review-scope-mapping-fixture",
+      "label": "External evidence review-scope mapping",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping",
+      "rejectionProved": "broad security-review wording rejected as final security proof",
+      "requiredProof": [
+        "required review surfaces",
+        "stable-v4 scope mapping",
+        "methodology per surface",
+        "evidence artifact per surface",
+        "blocked substitutes",
+        "Markdown visibility"
+      ],
+      "sourceQuestion": "Does stable-publication require final security-review evidence to map reviewed surfaces to the stable-v4 release scope instead of using broad review wording?",
+      "status": "covered"
     }
   ],
-  "coveredCount": 7,
+  "coveredCount": 8,
   "decisionSummary": {
     "coveredEvidenceClasses": [
       "independent-adoption-evidence",
@@ -218,31 +236,25 @@
       "external-evidence-source-class-fixture",
       "external-evidence-relationship-gate-fixture",
       "external-evidence-artifact-redaction-fixture",
-      "external-evidence-artifact-digest-provenance-fixture"
+      "external-evidence-artifact-digest-provenance-fixture",
+      "external-evidence-review-scope-mapping-fixture"
     ],
-    "nextPromotionTarget": "external-evidence-review-scope-mapping-candidate",
+    "nextPromotionTarget": "external-evidence-evidence-expiry-window-candidate",
     "nonClaimSummary": "This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.",
     "remainingExternalEvidenceQuestions": [
-      "external-evidence-review-scope-mapping-candidate"
+      "external-evidence-evidence-expiry-window-candidate"
     ],
-    "verdict": "Adoption, security-review, freshness, source-class, relationship-gate, artifact-redaction, and artifact digest/provenance fixture questions are covered; the next real QA gap remains."
+    "verdict": "Adoption, security-review, freshness, source-class, relationship-gate, artifact-redaction, artifact digest/provenance, and review-scope mapping fixture questions are covered; the next real QA gap remains."
   },
-  "expectedCount": 7,
+  "expectedCount": 8,
   "nextFixtureToPromote": {
-    "id": "external-evidence-review-scope-mapping-candidate",
-    "promotionBoundary": "Promote only public-safe scope-mapping behavior; do not include private app source or proprietary review text.",
+    "id": "external-evidence-evidence-expiry-window-candidate",
+    "promotionBoundary": "Promote only public-safe expiry behavior; do not treat the fixture as adoption, security-review, or stable-v4 proof.",
     "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
-    "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping",
-    "summary": "Check whether final security-review evidence maps reviewed surfaces to the stable-v4 release scope instead of using broad review wording."
+    "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window",
+    "summary": "Check whether external evidence has an explicit age/expiry boundary beyond generatedAt freshness against the release manifest."
   },
   "nextGapCandidateBacklog": [
-    {
-      "id": "external-evidence-review-scope-mapping-candidate",
-      "promotionBoundary": "Promote only public-safe scope-mapping behavior; do not include private app source or proprietary review text.",
-      "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
-      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping",
-      "summary": "Check whether final security-review evidence maps reviewed surfaces to the stable-v4 release scope instead of using broad review wording."
-    },
     {
       "id": "external-evidence-evidence-expiry-window-candidate",
       "promotionBoundary": "Promote only public-safe expiry behavior; do not treat the fixture as adoption, security-review, or stable-v4 proof.",
@@ -292,11 +304,40 @@
   ],
   "remainingExternalEvidenceGaps": [
     {
-      "id": "external-evidence-review-scope-mapping-candidate",
-      "promotionBoundary": "Promote only public-safe scope-mapping behavior; do not include private app source or proprietary review text.",
+      "id": "external-evidence-evidence-expiry-window-candidate",
+      "promotionBoundary": "Promote only public-safe expiry behavior; do not treat the fixture as adoption, security-review, or stable-v4 proof.",
       "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
-      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping",
-      "summary": "Check whether final security-review evidence maps reviewed surfaces to the stable-v4 release scope instead of using broad review wording."
+      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window",
+      "summary": "Check whether external evidence has an explicit age/expiry boundary beyond generatedAt freshness against the release manifest."
+    }
+  ],
+  "reviewScopeMappingSummary": [
+    {
+      "blockedSubstitute": "generic final security review notes without stable-v4 surface mapping",
+      "evidence": "final-security-review-evidence",
+      "passBoundary": "Final security-review proof must map each reviewed surface to the stable-v4 release scope and evidence artifact.",
+      "rejectedReviewProof": [
+        "broad reviewed everything wording",
+        "missing surface list",
+        "missing release scope mapping",
+        "unmapped scanner output",
+        "methodology without covered surfaces"
+      ],
+      "requiredMappingFields": [
+        "surface",
+        "releaseScope",
+        "methodology",
+        "evidenceArtifact",
+        "findingStatus"
+      ],
+      "requiredScope": [
+        "cli",
+        "plugin",
+        "github-actions",
+        "release-proof",
+        "package-install",
+        "redaction-privacy"
+      ]
     }
   ],
   "rows": [
@@ -424,6 +465,24 @@
         "Markdown visibility"
       ],
       "sourceQuestion": "Does stable-publication require external adoption and security-review artifacts to include digest or public/source provenance instead of only naming artifact files?",
+      "status": "covered"
+    },
+    {
+      "candidateId": "stable-publication-external-evidence-review-scope-mapping",
+      "coveredInCurrentRun": false,
+      "id": "external-evidence-review-scope-mapping-fixture",
+      "label": "External evidence review-scope mapping",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping",
+      "rejectionProved": "broad security-review wording rejected as final security proof",
+      "requiredProof": [
+        "required review surfaces",
+        "stable-v4 scope mapping",
+        "methodology per surface",
+        "evidence artifact per surface",
+        "blocked substitutes",
+        "Markdown visibility"
+      ],
+      "sourceQuestion": "Does stable-publication require final security-review evidence to map reviewed surfaces to the stable-v4 release scope instead of using broad review wording?",
       "status": "covered"
     }
   ],

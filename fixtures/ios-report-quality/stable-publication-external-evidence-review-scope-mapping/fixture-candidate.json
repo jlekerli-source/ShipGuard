@@ -1,0 +1,65 @@
+{
+  "candidateId": "stable-publication-external-evidence-review-scope-mapping",
+  "duplicateCount": 1,
+  "expectedAssertions": [
+    "report-quality preserves the review-scope mapping actionability question in JSON and Markdown",
+    "report-quality emits a review-existing-fixture action for the promoted public fixture",
+    "stablePublicationExternalEvidenceReviewScopeMappingProof lists stable-v4 surface mapping gates",
+    "Markdown renders External Evidence Review Scope Mapping with broad-review and unmapped-output rejects",
+    "shareable output contains no local absolute paths or private app identifiers"
+  ],
+  "fixtureType": "shipguard-release-proof-quality-fixture",
+  "materialization": {
+    "files": [
+      "README.md",
+      "fixture-candidate.json",
+      "fixture-report.json",
+      "fixture-report.md"
+    ],
+    "safeSyntheticOnly": true,
+    "writeCommand": "./bin/shipguard ios report-quality --reports <report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>"
+  },
+  "priority": 1,
+  "privateDataPolicy": "This materialized starter is synthetic. Use source reports only to choose report shape; do not copy private app code, local paths, screenshots, app-specific identifiers, or proprietary text.",
+  "promotion": {
+    "candidateId": "stable-publication-external-evidence-review-scope-mapping",
+    "copyCommands": [
+      "mkdir -p fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping",
+      "cp <materialized-candidate-dir>/README.md fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping/README.md",
+      "cp <materialized-candidate-dir>/fixture-candidate.json fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping/fixture-candidate.json",
+      "cp <materialized-candidate-dir>/fixture-report.json fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping/fixture-report.json",
+      "cp <materialized-candidate-dir>/fixture-report.md fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping/fixture-report.md"
+    ],
+    "files": [
+      "README.md",
+      "fixture-candidate.json",
+      "fixture-report.json",
+      "fixture-report.md"
+    ],
+    "promotionPolicy": "Promotion is explicit maintainer work. ShipGuard writes starter files only to the requested output directory and does not auto-copy them into the repository.",
+    "reviewChecklist": [
+      "Confirm the fixture is synthetic and public-safe.",
+      "Confirm no private app code, screenshots, local paths, tokens, app identifiers, or proprietary text were copied.",
+      "Confirm scopeBoundary.shipguardOnly and targetAppsReadOnly remain explicit.",
+      "Confirm scoring the promoted fixture does not emit recursive fixtureCandidates.",
+      "Register the fixture in validation only after the report-quality check passes."
+    ],
+    "sourceDirectory": "<materialized-fixture-output>/stable-publication-external-evidence-review-scope-mapping",
+    "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping",
+    "validationCommands": [
+      "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping --out <quality-dir> --shareable",
+      "./tests/ios_report_quality_test.sh",
+      "./bin/shipguard validate"
+    ]
+  },
+  "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping",
+  "publicFixtureRecipe": "Create a minimal synthetic ShipGuard report pair that proves final security-review evidence maps reviewed surfaces to the stable-v4 release scope instead of relying on broad review wording.",
+  "sourceQuestion": "Does stable-publication require final security-review evidence to map reviewed surfaces to the stable-v4 release scope instead of using broad review wording?",
+  "sourceReportCount": 1,
+  "sourceReportsRedacted": true,
+  "sourceTool": "shipguard v4 stable-publication",
+  "validationCommands": [
+    "./bin/shipguard ios report-quality --reports fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping --out <quality-dir> --shareable",
+    "./tests/ios_report_quality_test.sh"
+  ]
+}

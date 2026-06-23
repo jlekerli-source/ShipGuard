@@ -7882,16 +7882,50 @@ assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/stabl
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 
+stable_publication_review_scope_fixture="fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping"
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_review_scope_fixture" \
+  --out "$tmp_dir/stable-publication-review-scope-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/stable-publication-review-scope-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/stable-publication-review-scope-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping"' "$tmp_dir/stable-publication-review-scope-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/stable-publication-review-scope-fixture-quality/ios-report-quality.json"
+grep -q 'External Evidence Review Scope Mapping' "$stable_publication_review_scope_fixture/fixture-report.md"
+grep -q 'broad reviewed everything wording' "$stable_publication_review_scope_fixture/fixture-report.md"
+grep -q 'generic final security review notes without stable-v4 surface mapping' "$stable_publication_review_scope_fixture/fixture-report.md"
+grep -q '"stablePublicationExternalEvidenceReviewScopeMappingProof":' "$stable_publication_review_scope_fixture/fixture-report.json"
+grep -q '"requiredMappingFields":' "$stable_publication_review_scope_fixture/fixture-report.json"
+grep -q '"release-proof"' "$stable_publication_review_scope_fixture/fixture-report.json"
+python3 - <<'PY' "$tmp_dir/stable-publication-review-scope-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard v4 stable-publication", item
+assert item.get("fixtureType") == "shipguard-release-proof-quality-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping", item
+assert "review" in item.get("question", ""), item
+assert "scope" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
+
 python3 - <<'PY' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.json" fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.json
 import json
 import sys
 
 report = json.load(open(sys.argv[1], encoding="utf-8"))
 index = report.get("stablePublicationExternalEvidenceFixtureIndex") or {}
-assert index.get("coveredCount") == 7, index
-assert index.get("expectedCount") == 7, index
+assert index.get("coveredCount") == 8, index
+assert index.get("expectedCount") == 8, index
 summary = index.get("decisionSummary") or {}
-assert "artifact digest/provenance fixture questions are covered" in summary.get("verdict", ""), summary
+assert "review-scope mapping fixture questions are covered" in summary.get("verdict", ""), summary
 assert summary.get("coveredEvidenceClasses") == [
     "independent-adoption-evidence",
     "final-security-review-evidence",
@@ -7900,9 +7934,10 @@ assert summary.get("coveredEvidenceClasses") == [
     "external-evidence-relationship-gate-fixture",
     "external-evidence-artifact-redaction-fixture",
     "external-evidence-artifact-digest-provenance-fixture",
+    "external-evidence-review-scope-mapping-fixture",
 ], summary
-assert summary.get("remainingExternalEvidenceQuestions") == ["external-evidence-review-scope-mapping-candidate"], summary
-assert summary.get("nextPromotionTarget") == "external-evidence-review-scope-mapping-candidate", summary
+assert summary.get("remainingExternalEvidenceQuestions") == ["external-evidence-evidence-expiry-window-candidate"], summary
+assert summary.get("nextPromotionTarget") == "external-evidence-evidence-expiry-window-candidate", summary
 assert "not adoption" in summary.get("nonClaimSummary", ""), summary
 rows = {item.get("id"): item for item in index.get("rows") or []}
 assert rows.get("independent-adoption-evidence", {}).get("status") == "covered", rows
@@ -7912,9 +7947,10 @@ assert rows.get("external-evidence-source-class-fixture", {}).get("status") == "
 assert rows.get("external-evidence-relationship-gate-fixture", {}).get("status") == "covered", rows
 assert rows.get("external-evidence-artifact-redaction-fixture", {}).get("status") == "covered", rows
 assert rows.get("external-evidence-artifact-digest-provenance-fixture", {}).get("status") == "covered", rows
+assert rows.get("external-evidence-review-scope-mapping-fixture", {}).get("status") == "covered", rows
 next_fixture = index.get("nextFixtureToPromote", {})
-assert next_fixture.get("id") == "external-evidence-review-scope-mapping-candidate", next_fixture
-assert next_fixture.get("suggestedFixturePath") == "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping", next_fixture
+assert next_fixture.get("id") == "external-evidence-evidence-expiry-window-candidate", next_fixture
+assert next_fixture.get("suggestedFixturePath") == "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window", next_fixture
 assert "--write-fixture-candidates" in next_fixture.get("qaCommand", ""), next_fixture
 source_summary = {item.get("evidence"): item for item in index.get("sourceClassPolishSummary") or []}
 adoption = source_summary.get("independent-adoption-evidence") or {}
@@ -7940,10 +7976,16 @@ assert "sha256 or digest" in digest_summary.get("independent-adoption-evidence",
 assert "filename only" in digest_summary.get("independent-adoption-evidence", {}).get("rejectedArtifactProof", []), digest_summary
 assert "sha256 or digest" in digest_summary.get("final-security-review-evidence", {}).get("requiredArtifactProof", []), digest_summary
 assert "review-source provenance" in digest_summary.get("final-security-review-evidence", {}).get("blockedSubstitute", ""), digest_summary
+review_scope_summary = {item.get("evidence"): item for item in index.get("reviewScopeMappingSummary") or []}
+security_review_scope = review_scope_summary.get("final-security-review-evidence") or {}
+assert "release-proof" in security_review_scope.get("requiredScope", []), review_scope_summary
+assert "releaseScope" in security_review_scope.get("requiredMappingFields", []), review_scope_summary
+assert "broad reviewed everything wording" in security_review_scope.get("rejectedReviewProof", []), review_scope_summary
+assert "stable-v4 surface mapping" in security_review_scope.get("blockedSubstitute", ""), review_scope_summary
 
 static = json.load(open(sys.argv[2], encoding="utf-8"))
 static_summary = static.get("decisionSummary") or {}
-assert static_summary.get("nextPromotionTarget") == "external-evidence-review-scope-mapping-candidate", static_summary
+assert static_summary.get("nextPromotionTarget") == "external-evidence-evidence-expiry-window-candidate", static_summary
 coverage_ids = {item.get("id") for item in static.get("coverage") or []}
 assert "independent-adoption-evidence" in coverage_ids, static
 assert "final-security-review-evidence" in coverage_ids, static
@@ -7952,13 +7994,11 @@ assert "external-evidence-source-class-fixture" in coverage_ids, static
 assert "external-evidence-relationship-gate-fixture" in coverage_ids, static
 assert "external-evidence-artifact-redaction-fixture" in coverage_ids, static
 assert "external-evidence-artifact-digest-provenance-fixture" in coverage_ids, static
+assert "external-evidence-review-scope-mapping-fixture" in coverage_ids, static
 gaps = static.get("remainingExternalEvidenceGaps") or []
-assert gaps and gaps[0].get("suggestedFixturePath") == "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping", gaps
+assert gaps and gaps[0].get("suggestedFixturePath") == "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window", gaps
 backlog = static.get("nextGapCandidateBacklog") or []
-assert [item.get("id") for item in backlog[:2]] == [
-    "external-evidence-review-scope-mapping-candidate",
-    "external-evidence-evidence-expiry-window-candidate",
-], backlog
+assert [item.get("id") for item in backlog[:1]] == ["external-evidence-evidence-expiry-window-candidate"], backlog
 assert "--write-fixture-candidates" in backlog[0].get("qaCommand", ""), backlog
 static_source_summary = {item.get("evidence"): item for item in static.get("sourceClassPolishSummary") or []}
 assert static_source_summary.get("independent-adoption-evidence", {}).get("requiredRelationshipField") == "actorRelationship", static_source_summary
@@ -7972,6 +8012,11 @@ assert "privateDataRedacted" in static_artifact_summary.get("final-security-revi
 static_digest_summary = {item.get("evidence"): item for item in static.get("artifactDigestProvenanceSummary") or []}
 assert "sha256 or digest" in static_digest_summary.get("independent-adoption-evidence", {}).get("requiredArtifactProof", []), static_digest_summary
 assert "sha256 or digest" in static_digest_summary.get("final-security-review-evidence", {}).get("requiredArtifactProof", []), static_digest_summary
+static_review_scope_summary = {item.get("evidence"): item for item in static.get("reviewScopeMappingSummary") or []}
+static_security_review_scope = static_review_scope_summary.get("final-security-review-evidence") or {}
+assert "release-proof" in static_security_review_scope.get("requiredScope", []), static_review_scope_summary
+assert "releaseScope" in static_security_review_scope.get("requiredMappingFields", []), static_review_scope_summary
+assert "broad reviewed everything wording" in static_security_review_scope.get("rejectedReviewProof", []), static_review_scope_summary
 PY
 grep -q 'Stable-Publication External Evidence Fixture Index' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'Decision summary' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
@@ -7979,10 +8024,11 @@ grep -q 'Source-class summary' "$tmp_dir/stable-publication-security-fixture-qua
 grep -q 'Relationship-gate summary' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'Artifact-redaction summary' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'Artifact digest/provenance summary' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
+grep -q 'Review-scope mapping summary' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'private-redacted-security-review' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
-grep -q 'Next promotion target: `external-evidence-review-scope-mapping-candidate`' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
+grep -q 'Next promotion target: `external-evidence-evidence-expiry-window-candidate`' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'Next-gap candidate backlog' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
-grep -q 'stable-publication-external-evidence-review-scope-mapping' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
+grep -q 'stable-publication-external-evidence-expiry-window' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'weak adoption signals rejected' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'vague security evidence rejected' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'stale adoption/security evidence rejected' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
@@ -7990,6 +8036,7 @@ grep -q 'weak substitutes rejected as adoption/security proof' fixtures/ios-repo
 grep -q 'wrong actor/reviewer relationships rejected as adoption/security proof' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'unredacted or provenance-free artifacts rejected as adoption/security proof' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'filename-only artifacts rejected as adoption/security proof' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
+grep -q 'broad security-review wording rejected as final security proof' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'not adoption, final security-review, or stable-v4 publication proof' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 
 stable_publication_missing_intake="$tmp_dir/stable-publication-missing-intake"
