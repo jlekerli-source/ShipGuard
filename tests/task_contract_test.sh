@@ -374,6 +374,7 @@ assert disposition["recommendedFollowUp"].startswith("Ask the reviewer")
 repair = disposition["repairHint"]
 assert repair["command"].startswith("shipguard verify --task <task.json>")
 assert "--reviewer-disposition accepted" in repair["command"]
+assert repair["evidenceCount"] == 1
 assert repair["acceptedValues"] == ["accepted", "dismissed", "follow-up", "unknown"]
 assert "local reviewer outcome" in repair["boundary"]
 assert disposition["trackedSignals"] == [
@@ -434,12 +435,43 @@ import sys
 
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 command = data["diffLearningHandoff"]["reviewerDispositionSummary"]["repairCommand"]
+summary = data["diffLearningHandoff"]["reviewerDispositionSummary"]
+repair = data["diffLearningHandoff"]["reviewerDispositionReceipt"]["repairHint"]
 assert command == (
     "shipguard verify --task prepare/shipguard-task.json --diff good.diff "
     "--evidence logs/swift-test-receipt.json --reviewer-disposition accepted --out verify-relative-repair"
 )
+assert summary["repairEvidenceCount"] == 1
+assert repair["evidenceCount"] == 1
 PY
 grep -q 'Reviewer disposition summary repair: `shipguard verify --task prepare/shipguard-task.json --diff good.diff --evidence logs/swift-test-receipt.json --reviewer-disposition accepted --out verify-relative-repair`' "$tmp_dir/verify-relative-repair/shipguard-verdict.md"
+
+cp "$tmp_dir/logs/swift-test-receipt.json" "$tmp_dir/logs/permission-receipt.json"
+(
+  cd "$tmp_dir"
+  "$repo_root/bin/shipguard" verify \
+    --task prepare/shipguard-task.json \
+    --diff good.diff \
+    --evidence logs/swift-test-receipt.json \
+    --evidence logs/permission-receipt.json \
+    --claim "Notification flow is fully verified." \
+    --out verify-relative-repair-multi >/dev/null
+)
+python3 - <<'PY' "$tmp_dir/verify-relative-repair-multi/shipguard-verdict.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+summary = data["diffLearningHandoff"]["reviewerDispositionSummary"]
+repair = data["diffLearningHandoff"]["reviewerDispositionReceipt"]["repairHint"]
+assert summary["repairEvidenceCount"] == 2
+assert repair["evidenceCount"] == 2
+assert repair["command"] == (
+    "shipguard verify --task prepare/shipguard-task.json --diff good.diff "
+    "--evidence logs/swift-test-receipt.json --evidence logs/permission-receipt.json "
+    "--reviewer-disposition accepted --out verify-relative-repair-multi"
+)
+PY
 
 printf 'all tests passed, but command failed\n' > "$tmp_dir/logs/failing-swift-test.log"
 failing_log_sha="$(shasum -a 256 "$tmp_dir/logs/failing-swift-test.log" | awk '{print $1}')"

@@ -1588,6 +1588,7 @@ def build_diff_learning_handoff(
         "not-recorded": "Reviewer outcome not recorded",
     }
     evidence_args = evidence_paths or [""]
+    evidence_count = len(evidence_args)
     repair_command = (
         f"shipguard verify --task {safe_command_arg(task_path, '<task.json>')} "
         f"--diff {safe_command_arg(diff_path, '<change.diff>')} "
@@ -1605,6 +1606,7 @@ def build_diff_learning_handoff(
         "repairHint": (
             {
                 "command": repair_command,
+                "evidenceCount": evidence_count,
                 "acceptedValues": ["accepted", "dismissed", "follow-up", "unknown"],
                 "when": "Run after the maintainer decides whether this proof packet was accepted, dismissed, or needs follow-up.",
                 "boundary": "This records local reviewer outcome only; it is not adoption, benchmark, or security-review evidence.",
@@ -1628,6 +1630,7 @@ def build_diff_learning_handoff(
         "trackedSignalCount": len(recurrence_candidates),
         "nextStep": reviewer_disposition_receipt["recommendedFollowUp"],
         "repairCommand": (reviewer_disposition_receipt["repairHint"] or {}).get("command"),
+        "repairEvidenceCount": (reviewer_disposition_receipt["repairHint"] or {}).get("evidenceCount"),
         "guard": "Do not tune recurring-signal rules from one local reviewer disposition.",
     }
     recurring_signal_tuning = {
