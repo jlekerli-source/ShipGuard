@@ -1,24 +1,24 @@
 # Next Goal
 
-- Generated: 2026-06-23T06:25:16Z
-- Current toolkit version: 3.162.0
-- Target release: v3.162.0
-- Title: Diff-first reviewer disposition receipt
+- Generated: 2026-06-23T06:36:37Z
+- Current toolkit version: 3.163.0
+- Target release: v3.163.0
+- Title: Diff-first disposition follow-up routing
 
 ## Version Lineage Check
 
 - Status: pass
-- VERSION: 3.162.0
-- Expected next release from VERSION: v3.163.0
-- Planned target release: v3.162.0
-- Current checkout package artifact: dist/shipguard-v3.162.0.tar.gz
-- Release package artifact to build: dist/shipguard-v3.162.0.tar.gz
-- Action: VERSION already names v3.162.0; build, verify, publish, and consume dist/shipguard-v3.162.0.tar.gz before generating the next goal.
+- VERSION: 3.163.0
+- Expected next release from VERSION: v3.164.0
+- Planned target release: v3.163.0
+- Current checkout package artifact: dist/shipguard-v3.163.0.tar.gz
+- Release package artifact to build: dist/shipguard-v3.163.0.tar.gz
+- Action: VERSION already names v3.163.0; build, verify, publish, and consume dist/shipguard-v3.163.0.tar.gz before generating the next goal.
 
 ## Slash Plan
 
 ```text
-/plan v3.162.0 Diff-first reviewer disposition receipt for jlekerli-source/ShipGuard:
+/plan v3.163.0 Diff-first disposition follow-up routing for jlekerli-source/ShipGuard:
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
@@ -28,19 +28,19 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.162.0 Diff-first reviewer disposition receipt for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.163.0 Diff-first disposition follow-up routing for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Completion Receipt
 
-- Completed scope: v3.162 added reviewer-disposition receipts to shipguard verify: maintainers can pass --reviewer-disposition accepted|dismissed|follow-up|unknown and optional --reviewer-note, and the diffLearningHandoff now records that local outcome in JSON and Markdown while preserving the boundary that one private review is not adoption, benchmark, or security proof.
-- Evidence: Commit 9567b18501910a4138b5106011839ae733e5729d pushed to main. Local proof passed: git diff --check; python3 -m py_compile scripts/task_contract.py; ./tests/task_contract_test.sh; ./tests/verify_first_quickstart_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3.162; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/package_release_test.sh; env PREFIX="/Users/omarat-turkmani/.local" ./scripts/install.sh; ./bin/shipguard codex status --strict. GitHub Actions passed: https://github.com/jlekerli-source/ShipGuard/actions/runs/28006582806. Release proof built at /tmp/shipguard-v3.162.0-proof; public asset consumer proof passed at /tmp/shipguard-v3.162.0-consume; tarball SHA-256 e1d0da49a8585799844639dc61d462f0fd328ce2aa80020e06f2c4df1ada3126 matched proof, asset copy, and dist/shipguard-v3.162.0.tar.gz. v4 release candidate passed at /tmp/shipguard-v3.162.0-candidate. Stable-publication remained honestly blocked with exit 1 at /tmp/shipguard-v3.162.0-stable-publication: status review until public GitHub release metadata exists.
+- Completed scope: v3.163 made reviewer-disposition receipts actionable: accepted, dismissed, follow-up, unknown, and not-recorded outcomes now each emit recommendedFollowUp in JSON and Markdown, so local tuning evidence routes to a concrete next step instead of stopping at a label.
+- Evidence: Commit 76be9a9119e086516d441ba07d21a112dc6cb681 pushed to main. Local proof passed: git diff --check; python3 -m py_compile scripts/task_contract.py; ./tests/task_contract_test.sh; ./tests/verify_first_quickstart_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3.163; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/package_release_test.sh; env PREFIX="/Users/omarat-turkmani/.local" ./scripts/install.sh; ./bin/shipguard codex status --strict. GitHub Actions passed: https://github.com/jlekerli-source/ShipGuard/actions/runs/28007097587. Release proof built at /tmp/shipguard-v3.163.0-proof; public asset consumer proof passed at /tmp/shipguard-v3.163.0-consume; tarball SHA-256 6767dcaec291659a683f747bcafebf0f6c49191ae03ec4bafc9a95e2fc39daeb matched proof, asset copy, and dist/shipguard-v3.163.0.tar.gz. v4 release candidate passed at /tmp/shipguard-v3.163.0-candidate. Stable-publication remained honestly blocked with exit 1 at /tmp/shipguard-v3.163.0-stable-publication: status review until public GitHub release metadata exists.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.163.0 Diff-first disposition follow-up routing for jlekerli-source/ShipGuard:
+/plan v3.164.0 Diff-first disposition summary guard for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -50,13 +50,13 @@
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.163.0 Diff-first disposition follow-up routing for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.164.0 Diff-first disposition summary guard for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.163.0 --title "Diff-first disposition follow-up routing" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.164.0 --title "Diff-first disposition summary guard" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -156,12 +156,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.162.0.
+1. Open or update the tracking issue for v3.163.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Build `dist/shipguard-v3.162.0.tar.gz`, create release `v3.162.0`, upload the rebuilt tarball, and consume release proof.
+6. Build `dist/shipguard-v3.163.0.tar.gz`, create release `v3.163.0`, upload the rebuilt tarball, and consume release proof.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
