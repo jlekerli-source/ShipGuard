@@ -266,6 +266,7 @@ assert "Do not tune" in summary["guard"]
 assert disposition["status"] == "present"
 assert disposition["disposition"] == "accepted"
 assert disposition["note"] == "Maintainer accepted this proof packet."
+assert disposition["repairHint"] is None
 assert disposition["trackedSignals"] == []
 assert disposition["recommendedFollowUp"].startswith("Keep this verdict as positive")
 assert "not adoption evidence" in disposition["proofBoundary"]
@@ -364,6 +365,11 @@ assert summary["nextStep"] == disposition["recommendedFollowUp"]
 assert disposition["status"] == "missing"
 assert disposition["disposition"] == "not-recorded"
 assert disposition["recommendedFollowUp"].startswith("Ask the reviewer")
+repair = disposition["repairHint"]
+assert repair["command"].startswith("shipguard verify --task <task.json>")
+assert "--reviewer-disposition accepted" in repair["command"]
+assert repair["acceptedValues"] == ["accepted", "dismissed", "follow-up", "unknown"]
+assert "local reviewer outcome" in repair["boundary"]
 assert disposition["trackedSignals"] == [
     "protected-boundary-crossing",
     "out-of-scope-diff",
@@ -404,6 +410,7 @@ assert any("not a merge" in item for item in replay["nonClaims"])
 assert "does not prove" in replay["proofBoundary"]
 assert "structured proof" in replay["proofBoundary"]
 PY
+grep -q 'Reviewer repair hint: `shipguard verify --task <task.json> --diff <change.diff> --evidence <validation-receipt.json> --reviewer-disposition accepted --out <verdict-dir>`' "$tmp_dir/verify-blocked/shipguard-verdict.md"
 
 printf 'all tests passed, but command failed\n' > "$tmp_dir/logs/failing-swift-test.log"
 failing_log_sha="$(shasum -a 256 "$tmp_dir/logs/failing-swift-test.log" | awk '{print $1}')"

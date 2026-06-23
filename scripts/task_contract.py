@@ -1583,6 +1583,19 @@ def build_diff_learning_handoff(
         "note": reviewer_note,
         "trackedSignals": recurrence_candidates,
         "recommendedFollowUp": disposition_followups[disposition],
+        "repairHint": (
+            {
+                "command": (
+                    "shipguard verify --task <task.json> --diff <change.diff> --evidence "
+                    "<validation-receipt.json> --reviewer-disposition accepted --out <verdict-dir>"
+                ),
+                "acceptedValues": ["accepted", "dismissed", "follow-up", "unknown"],
+                "when": "Run after the maintainer decides whether this proof packet was accepted, dismissed, or needs follow-up.",
+                "boundary": "This records local reviewer outcome only; it is not adoption, benchmark, or security-review evidence.",
+            }
+            if not reviewer_disposition
+            else None
+        ),
         "localOutcomeUse": (
             "Use this with later reviewed verdicts to count accepted blockers, dismissed warnings, "
             "and follow-up fixes before tuning ShipGuard rules."
@@ -2264,6 +2277,9 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
         if disposition:
             lines.append(f"- Reviewer disposition: `{disposition.get('disposition')}`")
             lines.append(f"- Reviewer follow-up: {disposition.get('recommendedFollowUp')}")
+            repair_hint = disposition.get("repairHint") if isinstance(disposition.get("repairHint"), dict) else {}
+            if repair_hint:
+                lines.append(f"- Reviewer repair hint: `{repair_hint.get('command')}`")
             if disposition.get("note"):
                 lines.append(f"- Reviewer note: {disposition.get('note')}")
         recurrence = learning.get("recurringSignalTuning") if isinstance(learning.get("recurringSignalTuning"), dict) else {}
