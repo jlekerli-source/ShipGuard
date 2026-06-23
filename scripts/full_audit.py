@@ -284,10 +284,17 @@ def slash_handoff_proof(source: dict[str, Any], plan: str, goal: str) -> dict[st
     copy_ready_goal = goal.strip().startswith("/goal ")
     stale_v3132_absent = "v3.132.0 v4 Product Release Stabilization" not in f"{plan}\n{goal}"
     loaded = source.get("status") == "loaded" and source.get("sourcePath") == "NEXT_GOAL.md"
+    selected_section = str(source.get("section") or "")
+    completion_present = bool(source.get("completionReceiptPresent"))
+    freshness = "fresh-following-handoff" if selected_section == "following" and completion_present else "active-handoff"
+    if selected_section == "fallback":
+        freshness = "fallback-regenerate-required"
+    elif selected_section == "following" and not completion_present:
+        freshness = "following-without-completion-receipt"
     return {
         "status": "pass" if loaded and copy_ready_plan and copy_ready_goal and stale_v3132_absent else "review",
         "sourcePath": source.get("sourcePath", ""),
-        "selectedSection": source.get("section", ""),
+        "selectedSection": selected_section,
         "planHeading": source.get("planHeading", ""),
         "goalHeading": source.get("goalHeading", ""),
         "nextGoalGeneratedAt": source.get("generatedAt", ""),
@@ -295,7 +302,9 @@ def slash_handoff_proof(source: dict[str, Any], plan: str, goal: str) -> dict[st
         "activeTitle": source.get("activeTitle", ""),
         "versionLineageStatus": source.get("versionLineageStatus", ""),
         "versionLineageAction": source.get("versionLineageAction", ""),
-        "completionReceiptPresent": bool(source.get("completionReceiptPresent")),
+        "completionReceiptPresent": completion_present,
+        "handoffFreshness": freshness,
+        "regenerateCommand": "./bin/shipguard next-goal --out NEXT_GOAL.md",
         "copyReadyPlan": copy_ready_plan,
         "copyReadyGoal": copy_ready_goal,
         "staleHardcodedV3132Absent": stale_v3132_absent,
@@ -925,6 +934,8 @@ def render_markdown(report: dict[str, Any]) -> str:
                 f"- Active title: `{proof.get('activeTitle') or 'unknown'}`",
                 f"- Version lineage: `{proof.get('versionLineageStatus') or 'unknown'}`",
                 f"- Completion receipt present: {str(bool(proof.get('completionReceiptPresent'))).lower()}",
+                f"- Handoff freshness: `{proof.get('handoffFreshness') or 'unknown'}`",
+                f"- Regenerate command: `{proof.get('regenerateCommand') or './bin/shipguard next-goal --out NEXT_GOAL.md'}`",
                 f"- Copy-ready plan/goal: {str(bool(proof.get('copyReadyPlan'))).lower()}/{str(bool(proof.get('copyReadyGoal'))).lower()}",
                 f"- Stale v3.132 handoff absent: {str(bool(proof.get('staleHardcodedV3132Absent'))).lower()}",
             ]

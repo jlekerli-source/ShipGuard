@@ -109,7 +109,9 @@
     "staleHardcodedV3132Absent": true,
     "status": "pass",
     "versionLineageAction": "Synthetic fixture; no release publication.",
-    "versionLineageStatus": "review"
+    "versionLineageStatus": "review",
+    "handoffFreshness": "fresh-following-handoff",
+    "regenerateCommand": "./bin/shipguard next-goal --out NEXT_GOAL.md"
   },
   "slashPlan": "/plan Promote the Full Audit slash-handoff freshness fixture, validate report-quality coverage, update docs and package proof, then generate the next goal.",
   "status": "pass",

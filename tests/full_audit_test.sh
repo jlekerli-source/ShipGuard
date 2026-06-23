@@ -122,6 +122,12 @@ if proof.get("selectedSection") == "following" and proof.get("completionReceiptP
     raise SystemExit(proof)
 if proof.get("selectedSection") == "active" and proof.get("completionReceiptPresent") is not False:
     raise SystemExit(proof)
+if proof.get("handoffFreshness") not in {"active-handoff", "fresh-following-handoff", "following-without-completion-receipt"}:
+    raise SystemExit(proof)
+if proof.get("selectedSection") == "following" and proof.get("completionReceiptPresent") is True and proof.get("handoffFreshness") != "fresh-following-handoff":
+    raise SystemExit(proof)
+if "shipguard next-goal" not in proof.get("regenerateCommand", ""):
+    raise SystemExit(proof)
 if proof.get("versionLineageStatus") not in {"pass", "review"}:
     raise SystemExit(proof)
 for key in ["nextGoalFileRequired", "fallbackIsReviewOnly", "doesNotMarkGoalComplete", "doesNotPublishRelease"]:
@@ -155,6 +161,8 @@ grep -q 'Source path: `NEXT_GOAL.md`' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Slash Handoff Proof' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -Eq 'Selected section: `(active|following)`' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -Eq 'Completion receipt present: (true|false)' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Handoff freshness:' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Regenerate command: `./bin/shipguard next-goal --out NEXT_GOAL.md`' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Copy-ready plan/goal: true/true' "$tmp_dir/plan/shipguard-full-audit.md"
 if grep -q 'v3.132.0 v4 Product Release Stabilization' "$tmp_dir/plan/shipguard-full-audit.md"; then
   echo "full-audit output should not carry stale v3.132 slash handoff text" >&2

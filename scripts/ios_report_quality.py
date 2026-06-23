@@ -2664,6 +2664,8 @@ def full_audit_slash_handoff_issues(report: dict[str, Any], *, path_name: str) -
                 or proof.get("copyReadyPlan") is not True
                 or proof.get("copyReadyGoal") is not True
                 or proof.get("staleHardcodedV3132Absent") is not True
+                or proof.get("handoffFreshness") not in {"active-handoff", "fresh-following-handoff", "following-without-completion-receipt"}
+                or "shipguard next-goal" not in str(proof.get("regenerateCommand") or "")
                 or boundary.get("nextGoalFileRequired") is not True
                 or boundary.get("fallbackIsReviewOnly") is not True
                 or boundary.get("doesNotMarkGoalComplete") is not True

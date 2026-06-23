@@ -92,6 +92,7 @@
         "copyReadyGoal": true,
         "copyReadyPlan": true,
         "goalHeading": "Following Slash Goal",
+        "handoffFreshness": "fresh-following-handoff",
         "nextGoalGeneratedAt": "2026-06-20T00:00:00Z",
         "planHeading": "Following Slash Plan",
         "proofBoundary": {
@@ -100,6 +101,7 @@
             "fallbackIsReviewOnly": true,
             "nextGoalFileRequired": true
         },
+        "regenerateCommand": "./bin/shipguard next-goal --out NEXT_GOAL.md",
         "selectedSection": "following",
         "sourcePath": "NEXT_GOAL.md",
         "staleHardcodedV3132Absent": true,

@@ -202,7 +202,7 @@ v3.139 routes missing public-release metadata through the top-level result UX: w
 
 v3.140 closes the public-release handoff proof gap: stable-publication release-create and release-asset upload handoffs now include a post-handoff proof receipt with the exact `gh release view ... --json tagName,isDraft,isPrerelease,targetCommitish,publishedAt,assets,url` command, stable-publication rerun command, success criteria, and non-claims so manual GitHub actions are verifiable instead of assumed.
 
-Release-line note: local `VERSION` now advances to `3.145.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
+Release-line note: local `VERSION` now advances to `3.146.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
 
 v3.135 trims package-release proof duplication: after source CI runs the focused fixture suites, `tests/package_release_test.sh` verifies those packaged test scripts are included, executable, and shell-syntax-valid instead of rerunning the same suites from the extracted tarball.
 
@@ -246,7 +246,7 @@ v3.144 also makes final security-review gate failures more actionable by showing
 
 v3.145 continues Full Audit release-packet plan honesty by adding `stableV4EvidenceRealityCheck` to `releasePacketPlan`, so public asset consumer proof, independent adoption evidence, and final security-review evidence stay separate from local maintainer runs before anyone treats a plan as stable-v4 proof.
 
-v3.146 continues Full Audit NEXT_GOAL-backed slash handoff proof by adding `slashHandoffProof` so selected section, completion receipt presence, version-lineage status, copy-ready slash commands, stale-handoff rejection, and no-publication boundaries are visible beside the copied `/plan` and `/goal`.
+v3.146 continues Full Audit NEXT_GOAL-backed slash handoff proof by adding handoff freshness and a copy-ready regeneration command to `slashHandoffProof`, so maintainers can see whether Full Audit used the active or fresh following `NEXT_GOAL.md` section and how to repair a stale handoff.
 
 v3.147 continues Full Audit copy-ready execution-command receipts by adding `executionCommandReceipt` so execute/resume commands, per-stage command rows, empty/manual stage fallbacks, and no-push/no-publish boundaries are visible in JSON and Markdown.
 
