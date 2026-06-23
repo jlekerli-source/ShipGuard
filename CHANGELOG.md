@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added stable-v4 ineligible security-review diagnostics to LaunchKey security gate attachments: structurally valid but non-eligible security records now expose an ineligible count plus the first ineligible record path, reason, class, reviewer relationship, missing stable scope, open critical/high counts, and fixture flag in JSON and Markdown.
 - Added stable-v4 ineligible adoption diagnostics to LaunchKey adoption gate attachments: structurally valid but non-eligible adoption records now expose an ineligible count plus the first ineligible record path, reason, class, actor relationship, and fixture flag in JSON and Markdown.
 - Made native GitHub release-asset downloads rerunnable for ShipGuard-owned output directories: default `<out>/downloaded-release-assets` is refreshed on rerun, while explicit download or supplied asset directories remain caller-owned and protected.
 - Made LaunchKey native GitHub release-asset download handoffs runnable for stable-publication: successful download receipts now pass the concrete candidate report, repo, release version, downloaded asset directory, and adoption/security evidence placeholders; blocked download receipts now pass repo/version/download placeholders instead of a weak generic stable-publication command.

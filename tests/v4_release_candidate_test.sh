@@ -351,6 +351,11 @@ assert "none of the records are stable-v4 eligible" in proof["summary"]
 assert attachment["status"] == "pass"
 assert attachment["stableV4GateStatus"] == "review"
 assert attachment["stableV4EligibleEvidenceCount"] == 0
+assert attachment["stableV4IneligibleEvidenceCount"] == 1
+assert attachment["firstStableV4IneligibleRecord"]["path"] == "<security-review-evidence>/synthetic-security.json"
+assert "not stable-v4 eligible" in attachment["firstStableV4IneligibleRecord"]["reason"]
+assert attachment["firstStableV4IneligibleRecord"]["reviewerRelationship"] == "maintainer-security-review"
+assert attachment["firstStableV4IneligibleRecord"]["fixtureSynthetic"] is True
 assert "public-security-review" in attachment["acceptedEvidenceClasses"]
 assert "private-redacted-security-review" in attachment["acceptedEvidenceClasses"]
 assert "maintainer-security-review" in attachment["acceptedReviewerRelationships"]
@@ -437,6 +442,8 @@ assert proof["records"][0]["criticalOpen"] == 0
 assert proof["records"][0]["highOpen"] == 0
 assert attachment["stableV4GateStatus"] == "pass"
 assert attachment["stableV4EligibleEvidenceCount"] == 1
+assert attachment["stableV4IneligibleEvidenceCount"] == 0
+assert attachment["firstStableV4IneligibleRecord"] == {}
 assert attachment["invalidRecordCount"] == 0
 assert attachment["proofBoundary"]["sourceOnlyProofCounts"] is False
 PY

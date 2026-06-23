@@ -1930,7 +1930,13 @@ def build_security_review_evidence_proof(args: argparse.Namespace) -> dict[str, 
 def attach_security_review_gate_attachment(proof: dict[str, Any]) -> None:
     records = [record for record in proof.get("records", []) if isinstance(record, dict)]
     invalid_records = [record for record in records if record.get("status") != "pass"]
+    ineligible_records = [
+        record
+        for record in records
+        if record.get("status") == "pass" and not record.get("stableV4Eligible")
+    ]
     first_invalid = invalid_records[0] if invalid_records else {}
+    first_ineligible = ineligible_records[0] if ineligible_records else {}
     proof["securityReviewGateAttachment"] = {
         "status": proof.get("status"),
         "stableV4GateStatus": proof.get("stableV4GateStatus"),
@@ -1938,6 +1944,7 @@ def attach_security_review_gate_attachment(proof: dict[str, Any]) -> None:
         "validRecordCount": proof.get("validRecordCount", 0),
         "invalidRecordCount": proof.get("invalidRecordCount", 0),
         "stableV4EligibleEvidenceCount": proof.get("stableV4EligibleEvidenceCount", 0),
+        "stableV4IneligibleEvidenceCount": len(ineligible_records),
         "acceptedEvidenceClasses": ["public-security-review", "private-redacted-security-review"],
         "acceptedReviewerRelationships": ["independent", "maintainer-security-review"],
         "requiredScope": sorted(SECURITY_SCOPE_REQUIRED),
@@ -1963,6 +1970,16 @@ def attach_security_review_gate_attachment(proof: dict[str, Any]) -> None:
             "missingStableScope": first_invalid.get("missingStableScope", []),
             "errors": first_invalid.get("errors", []),
         } if first_invalid else {},
+        "firstStableV4IneligibleRecord": {
+            "path": first_ineligible.get("path", ""),
+            "reason": first_ineligible.get("stableV4Reason", ""),
+            "evidenceClass": first_ineligible.get("evidenceClass", ""),
+            "reviewerRelationship": first_ineligible.get("reviewerRelationship", ""),
+            "missingStableScope": first_ineligible.get("missingStableScope", []),
+            "criticalOpen": first_ineligible.get("criticalOpen"),
+            "highOpen": first_ineligible.get("highOpen"),
+            "fixtureSynthetic": first_ineligible.get("fixtureSynthetic"),
+        } if first_ineligible else {},
         "nextCommand": proof.get("nextCommand"),
         "nextAction": proof.get("nextAction", ""),
         "proofBoundary": {
@@ -3052,7 +3069,15 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(f"- Accepted reviewers: `{', '.join(attachment.get('acceptedReviewerRelationships') or [])}`")
             lines.append(f"- Required scope: `{', '.join(attachment.get('requiredScope') or [])}`")
             lines.append(f"- Stable-v4 eligible records: `{attachment.get('stableV4EligibleEvidenceCount')}`")
+            lines.append(f"- Stable-v4 ineligible records: `{attachment.get('stableV4IneligibleEvidenceCount')}`")
             lines.append(f"- Invalid records: `{attachment.get('invalidRecordCount')}`")
+            first_ineligible = (
+                attachment.get("firstStableV4IneligibleRecord")
+                if isinstance(attachment.get("firstStableV4IneligibleRecord"), dict)
+                else {}
+            )
+            if first_ineligible:
+                lines.append(f"- First stable-v4 ineligible reason: {first_ineligible.get('reason')}")
             lines.append(f"- Next command: `{attachment.get('nextCommand')}`")
     else:
         lines.append(f"- Next command: `{proof.get('nextCommand')}`")
