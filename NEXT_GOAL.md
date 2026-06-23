@@ -1,25 +1,25 @@
 # Next Goal
 
-- Generated: 2026-06-23T21:33:53Z
-- Current toolkit version: 3.203.0
-- Target release: v3.204.0
-- Title: Stable-publication external evidence source-class fixture next-gap promotion
+- Generated: 2026-06-23T21:56:08Z
+- Current toolkit version: 3.204.0
+- Target release: v3.205.0
+- Title: Stable-publication external evidence next public fixture
 
 ## Version Lineage Check
 
 - Status: pass
-- VERSION: 3.203.0
-- Expected next release from VERSION: v3.204.0
-- Planned target release: v3.204.0
-- Current checkout package artifact before version bump: dist/shipguard-v3.203.0.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v3.204.0.tar.gz
-- Action: Before publishing v3.204.0, bump VERSION to 3.204.0, rebuild, and verify dist/shipguard-v3.204.0.tar.gz.
+- VERSION: 3.204.0
+- Expected next release from VERSION: v3.205.0
+- Planned target release: v3.205.0
+- Current checkout package artifact before version bump: dist/shipguard-v3.204.0.tar.gz
+- Expected package artifact after release bump: dist/shipguard-v3.205.0.tar.gz
+- Action: Before publishing v3.205.0, bump VERSION to 3.205.0, rebuild, and verify dist/shipguard-v3.205.0.tar.gz.
 
 ## Slash Plan
 
 ```text
-/plan v3.204.0 Stable-publication external evidence source-class fixture next-gap promotion for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Promote the next stable-publication external-evidence report-quality gap found by real or synthetic public-safe QA, without treating fixture coverage as adoption evidence, final security-review evidence, or stable-v4 publication proof.
+/plan v3.205.0 Stable-publication external evidence next public fixture for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Promote the next public stable-publication external-evidence fixture found by real or synthetic public-safe report QA, keeping adoption evidence, final security-review evidence, and stable-v4 publication proof separate from fixture coverage.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, bump VERSION before release packaging, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -28,23 +28,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.204.0 Stable-publication external evidence source-class fixture next-gap promotion for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next stable-publication external-evidence report-quality gap found by real or synthetic public-safe QA, without treating fixture coverage as adoption evidence, final security-review evidence, or stable-v4 publication proof, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.205.0 Stable-publication external evidence next public fixture for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Promote the next public stable-publication external-evidence fixture found by real or synthetic public-safe report QA, keeping adoption evidence, final security-review evidence, and stable-v4 publication proof separate from fixture coverage, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Promote the next stable-publication external-evidence report-quality gap found by real or synthetic public-safe QA, without treating fixture coverage as adoption evidence, final security-review evidence, or stable-v4 publication proof.
+Promote the next public stable-publication external-evidence fixture found by real or synthetic public-safe report QA, keeping adoption evidence, final security-review evidence, and stable-v4 publication proof separate from fixture coverage.
 
 ## Completion Receipt
 
-- Completed scope: v3.203.0 polished the stable-publication external evidence source-class fixture index so accepted source classes, actor/reviewer relationship fields, accepted relationships, rejected substitutes, and pass boundaries are visible in one compact summary instead of nested JSON.
-- Evidence: Commit c170b46e pushed to main; GitHub Actions run 28058432667 completed success; local package tarball dist/shipguard-v3.203.0.tar.gz SHA-256 d1ed827231ab1c04e1da4ff1cbf4ff3001c6bfefc5bdcda9094f395176d8546d; ./bin/shipguard codex status --strict passed after local CLI refresh.
+- Completed scope: v3.204.0 promoted a public relationship-gate fixture proving stable-publication reports keep actorRelationship and reviewerRelationship gates, rejected relationships, blocked substitutes, pass boundaries, and Markdown visibility regression-covered.
+- Evidence: Commit e92396b7 pushed to main; GitHub Actions run 28059628167 completed success; local package tarball dist/shipguard-v3.204.0.tar.gz SHA-256 46a2adb7eda4847bc944a91bfc8c7933f3ad5588409cc97b7b5e69b6c39441f1; ./bin/shipguard codex status --strict passed after local CLI refresh; ./tests/package_release_test.sh passed after final fixture boundary wording.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.205.0 Stable-publication external evidence next public fixture for jlekerli-source/ShipGuard:
+/plan v3.206.0 Stable-publication external evidence next-gap index polish for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -54,13 +54,13 @@ Promote the next stable-publication external-evidence report-quality gap found b
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.205.0 Stable-publication external evidence next public fixture for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.206.0 Stable-publication external evidence next-gap index polish for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.205.0 --title "Stable-publication external evidence next public fixture" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.206.0 --title "Stable-publication external evidence next-gap index polish" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -160,12 +160,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.204.0.
+1. Open or update the tracking issue for v3.205.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Bump VERSION to 3.204.0, build `dist/shipguard-v3.204.0.tar.gz`, create release `v3.204.0`, and upload the rebuilt tarball.
+6. Bump VERSION to 3.205.0, build `dist/shipguard-v3.205.0.tar.gz`, create release `v3.205.0`, and upload the rebuilt tarball.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
