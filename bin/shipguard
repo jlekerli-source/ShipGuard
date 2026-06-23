@@ -16,7 +16,7 @@ Usage:
   shipguard validate [path]
   shipguard doctor [ios|web|backend|cli] [path]
   shipguard prepare "task goal" --out <dir> [--path <repo>] [--profile auto|ios|web|backend|cli] [--allowed <glob> ...] [--forbidden <glob> ...] [--validation <cmd> ...] [--claim <text> ...] [--shipguard-eval] [--shareable] [--json|--markdown]
-  shipguard verify --task <shipguard-task.json-or-dir> --out <dir> [--diff <patch.diff>] [--evidence <file> ...] [--claim <text> ...] [--json|--markdown]
+  shipguard verify --task <shipguard-task.json-or-dir> --out <dir> [--diff <patch.diff>] [--evidence <file> ...] [--claim <text> ...] [--reviewer-disposition accepted|dismissed|follow-up|unknown] [--json|--markdown]
   shipguard policy init [target] [--force]
   shipguard policy show [policy.conf]
   shipguard score <run.md>

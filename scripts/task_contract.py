@@ -579,6 +579,13 @@ def parse_args() -> argparse.Namespace:
     verify.add_argument("--diff", help="Unified diff/patch file")
     verify.add_argument("--evidence", action="append", default=[], help="Evidence receipt/log file")
     verify.add_argument("--claim", action="append", default=[], help="Agent claim to verify")
+    verify.add_argument(
+        "--reviewer-disposition",
+        choices=("accepted", "dismissed", "follow-up", "unknown"),
+        default="",
+        help="Optional maintainer outcome for local recurring-signal tuning.",
+    )
+    verify.add_argument("--reviewer-note", default="", help="Optional short note for --reviewer-disposition.")
     verify.add_argument("--json", action="store_true", help="Print JSON to stdout")
     verify.add_argument("--markdown", action="store_true", help="Print Markdown to stdout")
     return parser.parse_args()
@@ -1535,6 +1542,8 @@ def build_diff_learning_handoff(
     status: str,
     diff_first: dict[str, Any],
     next_action: dict[str, Any],
+    reviewer_disposition: str = "",
+    reviewer_note: str = "",
 ) -> dict[str, Any]:
     scope = diff_first.get("protectedBoundaryCrossings") or {}
     coverage = diff_first.get("validationCoverage") or {}
@@ -1559,6 +1568,22 @@ def build_diff_learning_handoff(
         signals.append("scope-evidence-claim-match")
 
     recurrence_candidates = [signal for signal in signals if signal != "scope-evidence-claim-match"]
+    disposition = reviewer_disposition or "not-recorded"
+    reviewer_disposition_receipt = {
+        "schemaVersion": 1,
+        "status": "present" if reviewer_disposition else "missing",
+        "disposition": disposition,
+        "note": reviewer_note,
+        "trackedSignals": recurrence_candidates,
+        "localOutcomeUse": (
+            "Use this with later reviewed verdicts to count accepted blockers, dismissed warnings, "
+            "and follow-up fixes before tuning ShipGuard rules."
+        ),
+        "proofBoundary": (
+            "Reviewer disposition is local maintainer feedback. It is not adoption evidence, "
+            "external benchmark proof, or a reason to weaken a rule from one verdict."
+        ),
+    }
     recurring_signal_tuning = {
         "schemaVersion": 1,
         "shouldTrackLocally": bool(recurrence_candidates),
@@ -1576,6 +1601,7 @@ def build_diff_learning_handoff(
             "Recurring-signal tuning needs local reviewed outcomes. This packet suggests what to count; "
             "it does not prove a false positive, recurring mistake, or accepted ownership mapping by itself."
         ),
+        "reviewerDispositionReceipt": reviewer_disposition_receipt,
     }
 
     if status == "pass":
@@ -1604,6 +1630,7 @@ def build_diff_learning_handoff(
         ],
         "behaviorCategories": [item.get("category") for item in changed_categories],
         "learningSignals": signals,
+        "reviewerDispositionReceipt": reviewer_disposition_receipt,
         "recurringSignalTuning": recurring_signal_tuning,
         "nextTuningAction": {
             "command": next_action.get("command"),
@@ -1840,6 +1867,8 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         status=status,
         diff_first=diff_first,
         next_action=next_action,
+        reviewer_disposition=args.reviewer_disposition,
+        reviewer_note=args.reviewer_note,
     )
     diff_first["learningHandoff"] = diff_learning_handoff
     proof_report = build_proof_report(
@@ -2209,6 +2238,11 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
         lines.append(f"- Primary lesson: {learning.get('primaryLesson')}")
         signals = ", ".join(f"`{item}`" for item in learning.get("learningSignals") or [])
         lines.append(f"- Learning signals: {signals}")
+        disposition = learning.get("reviewerDispositionReceipt") if isinstance(learning.get("reviewerDispositionReceipt"), dict) else {}
+        if disposition:
+            lines.append(f"- Reviewer disposition: `{disposition.get('disposition')}`")
+            if disposition.get("note"):
+                lines.append(f"- Reviewer note: {disposition.get('note')}")
         recurrence = learning.get("recurringSignalTuning") if isinstance(learning.get("recurringSignalTuning"), dict) else {}
         if recurrence:
             recurring_keys = ", ".join(f"`{item}`" for item in recurrence.get("signalKeys") or [])

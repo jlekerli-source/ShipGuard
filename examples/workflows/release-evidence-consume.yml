@@ -10,7 +10,7 @@ on:
       release-tag:
         description: Release tag to verify and export.
         required: true
-        default: v3.161.0
+        default: v3.162.0
 
 permissions:
   contents: read
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build release evidence bundle
-        uses: jlekerli-source/ShipGuard/actions/release-evidence@v3.161.0
+        uses: jlekerli-source/ShipGuard/actions/release-evidence@v3.162.0
         with:
           run: bundle
           repo: jlekerli-source/ShipGuard
@@ -35,7 +35,7 @@ jobs:
     needs: build-release-evidence
     steps:
       - name: Verify release evidence artifact
-        uses: jlekerli-source/ShipGuard/actions/release-evidence-verify@v3.161.0
+        uses: jlekerli-source/ShipGuard/actions/release-evidence-verify@v3.162.0
         with:
           download-artifact: true
           source-artifact-name: shipguard-release-evidence
