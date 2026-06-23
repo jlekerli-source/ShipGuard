@@ -131,6 +131,7 @@ Common flow:
 ```bash
 shipguard prepare "Fix the checkout empty state" --path . --out /tmp/task --profile ios
 shipguard verify --task /tmp/task/shipguard-task.json --diff /tmp/change.diff --evidence /tmp/test-receipt.json --reviewer-disposition accepted --out /tmp/verdict
+shipguard verify --task /tmp/task/shipguard-task.json --diff /tmp/change.diff --evidence /tmp/test-receipt.json --reviewer-disposition accepted --reviewer-note "Accepted after reviewing the proof packet." --out /tmp/verdict
 ```
 
 Full reference: [CLI](docs/cli.md) and [Command Matrix](docs/command-matrix.md).

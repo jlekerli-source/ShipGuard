@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added reviewer outcome docs example polish: README and CLI examples now show the `--reviewer-note` reviewer-disposition path beside the no-note path so maintainers see the complete local outcome workflow.
 - Added reviewer outcome label docs polish: `docs/cli.md` and `docs/task-contract.md` now explain the no-note versus with-note reviewer-disposition repair commands and restate that reviewer outcomes are local feedback, not public adoption or security-review proof.
 - Added reviewer outcome command-label polish to `shipguard verify`: reviewer-disposition repair hints now include explicit command labels in JSON and Markdown so maintainers can distinguish the no-note and with-note repair paths at a glance.
 - Added reviewer outcome note-command polish to `shipguard verify`: missing reviewer-disposition repair hints now include a full copyable `--reviewer-note` command in JSON and Markdown, preserving safe relative paths and multiple evidence receipts.

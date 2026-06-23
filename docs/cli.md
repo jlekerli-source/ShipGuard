@@ -395,6 +395,7 @@ Run iOS-specific topology, inventory, planning, proof, preview, and privacy help
 ./bin/shipguard ios devspace-check --path . --preview-out /tmp/ios-shipguard-preview --out /tmp/ios-shipguard-devspace-check
 ./bin/shipguard prepare "Add provisional notification onboarding flow" --path ../my-ios-app --out /tmp/shipguard-task --profile ios --shareable
 ./bin/shipguard verify --task /tmp/shipguard-task/shipguard-task.json --diff /tmp/change.diff --evidence /tmp/validation-receipt.json --reviewer-disposition accepted --out /tmp/shipguard-verdict
+./bin/shipguard verify --task /tmp/shipguard-task/shipguard-task.json --diff /tmp/change.diff --evidence /tmp/validation-receipt.json --reviewer-disposition accepted --reviewer-note "Accepted after reviewing the proof packet." --out /tmp/shipguard-verdict
 ```
 
 `ios doctor` writes `ios-doctor.json` and `ios-doctor.md` with a privacy-safe `<target-repo>` root, stable `schemaVersion`/`generatedAt` metadata, target topology, and structured findings. That makes DockCheck usable as first evidence for `ios inventory`, `ios report-quality`, and release/package proof without exposing local checkout paths.
