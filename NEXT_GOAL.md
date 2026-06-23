@@ -1,24 +1,24 @@
 # Next Goal
 
-- Generated: 2026-06-23T03:20:53Z
-- Current toolkit version: 3.149.0
-- Target release: v3.149.0
-- Title: Stable-Publication Final Claim Gate Hardening
+- Generated: 2026-06-23T03:36:41Z
+- Current toolkit version: 3.150.0
+- Target release: v3.150.0
+- Title: Lean Review selected-mode bias fixture
 
 ## Version Lineage Check
 
 - Status: pass
-- VERSION: 3.149.0
-- Expected next release from VERSION: v3.150.0
-- Planned target release: v3.149.0
-- Current checkout package artifact: dist/shipguard-v3.149.0.tar.gz
-- Release package artifact to build: dist/shipguard-v3.149.0.tar.gz
-- Action: VERSION already names v3.149.0; build, verify, publish, and consume dist/shipguard-v3.149.0.tar.gz before generating the next goal.
+- VERSION: 3.150.0
+- Expected next release from VERSION: v3.151.0
+- Planned target release: v3.150.0
+- Current checkout package artifact: dist/shipguard-v3.150.0.tar.gz
+- Release package artifact to build: dist/shipguard-v3.150.0.tar.gz
+- Action: VERSION already names v3.150.0; build, verify, publish, and consume dist/shipguard-v3.150.0.tar.gz before generating the next goal.
 
 ## Slash Plan
 
 ```text
-/plan v3.149.0 Stable-Publication Final Claim Gate Hardening for jlekerli-source/ShipGuard:
+/plan v3.150.0 Lean Review selected-mode bias fixture for jlekerli-source/ShipGuard:
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
@@ -28,19 +28,19 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.149.0 Stable-Publication Final Claim Gate Hardening for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.150.0 Lean Review selected-mode bias fixture for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Completion Receipt
 
-- Completed scope: Final stable-v4 claim packets now carry claimPublicationReadiness with publishable status, first blocker, next command, required evidence counts, explicit human approval, and computer-use posting boundaries; Markdown renders the readiness rows; report-quality rejects weak or inconsistent final claim packets.
-- Evidence: python3 -m py_compile scripts/v4_stable_publication.py scripts/ios_report_quality.py; ./tests/v4_stable_publication_test.sh; ./tests/ios_report_quality_test.sh; action example tests; git diff --check; ./tests/next_goal_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3.149; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; env PREFIX="/Users/omarat-turkmani/.local" ./scripts/install.sh; ./bin/shipguard codex status --strict; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet-v3.149; ./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet-v3.149 --out /tmp/shipguard-value-quality-v3.149 --shareable; GitHub Actions Validate workflow bundle https://github.com/jlekerli-source/ShipGuard/actions/runs/27999667599; release-proof build /tmp/shipguard-v3.149.0-proof; release-consume verify /tmp/shipguard-v3.149.0-consume; SHA-256 762389fab2f1ef3eb15972bc5166ad085a07d48dcb115361a0bfdf30997be184; v4 release-candidate /tmp/shipguard-v3.149.0-candidate; v4 stable-publication /tmp/shipguard-v3.149.0-stable-publication exited 1 with expected blocked claim, first blocker github-release-metadata, stableV4ClaimMayBePublished false, computerUseMayPost false.
+- Completed scope: Lean Review selected-mode bias fixture is now the v3.150 release-line target: public fixture coverage stays in ios_report_quality_test.sh, modeBiasReview proves lite/full/ultra selected-mode priority behavior, broken selected-mode/top-action reports are rejected, and promoted fixture scoring avoids recursive fixture candidates.
+- Evidence: python3 -m py_compile scripts/lean_review.py scripts/ios_report_quality.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; git diff --check; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3.150; action example tests; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; env PREFIX="/Users/omarat-turkmani/.local" ./scripts/install.sh; ./bin/shipguard codex status --strict; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet-v3.150; ./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet-v3.150 --out /tmp/shipguard-value-quality-v3.150 --shareable; GitHub Actions Validate workflow bundle https://github.com/jlekerli-source/ShipGuard/actions/runs/28000241626; release-proof build /tmp/shipguard-v3.150.0-proof; release-consume verify /tmp/shipguard-v3.150.0-consume; SHA-256 083777c94bbdee469b83416b6d7f239085b5088588c0acea6ca8bf6304263e63; v4 release-candidate /tmp/shipguard-v3.150.0-candidate; v4 stable-publication /tmp/shipguard-v3.150.0-stable-publication exited 1 with expected blocked claim, first blocker github-release-metadata, stableV4ClaimMayBePublished false, computerUseMayPost false.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.150.0 Lean Review selected-mode bias fixture for jlekerli-source/ShipGuard:
+/plan v3.151.0 Lean Debt marker-visibility fixture for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -50,13 +50,13 @@
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.150.0 Lean Review selected-mode bias fixture for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.151.0 Lean Debt marker-visibility fixture for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.150.0 --title "Lean Review selected-mode bias fixture" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.151.0 --title "Lean Debt marker-visibility fixture" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -156,12 +156,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.149.0.
+1. Open or update the tracking issue for v3.150.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Build `dist/shipguard-v3.149.0.tar.gz`, create release `v3.149.0`, upload the rebuilt tarball, and consume release proof.
+6. Build `dist/shipguard-v3.150.0.tar.gz`, create release `v3.150.0`, upload the rebuilt tarball, and consume release proof.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
