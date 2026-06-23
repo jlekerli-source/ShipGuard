@@ -1592,6 +1592,13 @@ def build_diff_learning_handoff(
             "external benchmark proof, or a reason to weaken a rule from one verdict."
         ),
     }
+    reviewer_disposition_summary = {
+        "status": reviewer_disposition_receipt["status"],
+        "disposition": disposition,
+        "trackedSignalCount": len(recurrence_candidates),
+        "nextStep": reviewer_disposition_receipt["recommendedFollowUp"],
+        "guard": "Do not tune recurring-signal rules from one local reviewer disposition.",
+    }
     recurring_signal_tuning = {
         "schemaVersion": 1,
         "shouldTrackLocally": bool(recurrence_candidates),
@@ -1638,6 +1645,7 @@ def build_diff_learning_handoff(
         ],
         "behaviorCategories": [item.get("category") for item in changed_categories],
         "learningSignals": signals,
+        "reviewerDispositionSummary": reviewer_disposition_summary,
         "reviewerDispositionReceipt": reviewer_disposition_receipt,
         "recurringSignalTuning": recurring_signal_tuning,
         "nextTuningAction": {
@@ -2246,6 +2254,12 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
         lines.append(f"- Primary lesson: {learning.get('primaryLesson')}")
         signals = ", ".join(f"`{item}`" for item in learning.get("learningSignals") or [])
         lines.append(f"- Learning signals: {signals}")
+        summary = learning.get("reviewerDispositionSummary") if isinstance(learning.get("reviewerDispositionSummary"), dict) else {}
+        if summary:
+            lines.append(
+                f"- Reviewer disposition summary: `{summary.get('disposition')}` / `{summary.get('status')}` / "
+                f"{summary.get('trackedSignalCount')} tracked signal(s)"
+            )
         disposition = learning.get("reviewerDispositionReceipt") if isinstance(learning.get("reviewerDispositionReceipt"), dict) else {}
         if disposition:
             lines.append(f"- Reviewer disposition: `{disposition.get('disposition')}`")

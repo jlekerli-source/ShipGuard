@@ -256,7 +256,13 @@ assert learning["primaryLesson"].startswith("This exact diff matched")
 assert learning["changedFileSignals"][0]["path"] == "Sources/DemoShipGuardApp/DemoPermissions.swift"
 assert learning["learningSignals"] == ["scope-evidence-claim-match"]
 recurrence = learning["recurringSignalTuning"]
+summary = learning["reviewerDispositionSummary"]
 disposition = learning["reviewerDispositionReceipt"]
+assert summary["status"] == "present"
+assert summary["disposition"] == "accepted"
+assert summary["trackedSignalCount"] == 0
+assert summary["nextStep"] == disposition["recommendedFollowUp"]
+assert "Do not tune" in summary["guard"]
 assert disposition["status"] == "present"
 assert disposition["disposition"] == "accepted"
 assert disposition["note"] == "Maintainer accepted this proof packet."
@@ -282,6 +288,7 @@ grep -q 'Merge allowed: True' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Behavior Categories' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Diff Learning Handoff' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'scope-evidence-claim-match' "$tmp_dir/verify-pass/shipguard-verdict.md"
+grep -q 'Reviewer disposition summary: `accepted` / `present` / 0 tracked signal(s)' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Reviewer disposition: `accepted`' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Reviewer follow-up: Keep this verdict as positive local outcome evidence' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Reviewer note: Maintainer accepted this proof packet.' "$tmp_dir/verify-pass/shipguard-verdict.md"
@@ -348,7 +355,12 @@ assert "missing-validation-coverage" in learning["learningSignals"]
 assert "unsupported-completion-claim" in learning["learningSignals"]
 assert learning["changedFileSignals"][0]["forbidden"] is True
 recurrence = learning["recurringSignalTuning"]
+summary = learning["reviewerDispositionSummary"]
 disposition = learning["reviewerDispositionReceipt"]
+assert summary["status"] == "missing"
+assert summary["disposition"] == "not-recorded"
+assert summary["trackedSignalCount"] == 4
+assert summary["nextStep"] == disposition["recommendedFollowUp"]
 assert disposition["status"] == "missing"
 assert disposition["disposition"] == "not-recorded"
 assert disposition["recommendedFollowUp"].startswith("Ask the reviewer")

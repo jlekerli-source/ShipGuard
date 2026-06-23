@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added a reviewer-disposition summary guard to `shipguard verify`: diff-learning handoffs now expose disposition status, tracked-signal count, next step, and the one-verdict no-tuning guard without requiring maintainers to parse the nested receipt.
 - Added reviewer-disposition follow-up routing: verifier reports now turn `accepted`, `dismissed`, `follow-up`, `unknown`, and missing reviewer outcomes into explicit next guidance inside the same diff-learning receipt.
 - Added reviewer-disposition receipts to the diff-first learning handoff: `shipguard verify` accepts `--reviewer-disposition accepted|dismissed|follow-up|unknown` plus an optional note, records the maintainer outcome in JSON/Markdown, and keeps the boundary clear that one local disposition is not external adoption or benchmark proof.
 - Added recurring-signal tuning guidance to the diff-first learning handoff: `shipguard verify` now names which current-verdict signals should be counted locally, the recurrence rule, candidate local metrics, and the boundary that one verdict does not prove a false positive or accepted mapping.
