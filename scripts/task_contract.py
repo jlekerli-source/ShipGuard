@@ -1628,6 +1628,7 @@ def build_diff_learning_handoff(
         "status": reviewer_disposition_receipt["status"],
         "disposition": disposition,
         "outcomeLabel": reviewer_disposition_receipt["outcomeLabel"],
+        "noteStatus": "present" if reviewer_note else "missing",
         "trackedSignalCount": len(recurrence_candidates),
         "nextStep": reviewer_disposition_receipt["recommendedFollowUp"],
         "repairCommand": (reviewer_disposition_receipt["repairHint"] or {}).get("command"),
@@ -2298,7 +2299,7 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
         if summary:
             lines.append(
                 f"- Reviewer disposition summary: `{summary.get('disposition')}` / {summary.get('outcomeLabel')} / `{summary.get('status')}` / "
-                f"{summary.get('trackedSignalCount')} tracked signal(s)"
+                f"{summary.get('trackedSignalCount')} tracked signal(s) / note `{summary.get('noteStatus', 'missing')}`"
             )
             if summary.get("repairCommand"):
                 lines.append(f"- Reviewer disposition summary repair: `{summary.get('repairCommand')}`")

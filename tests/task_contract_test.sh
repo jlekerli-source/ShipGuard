@@ -261,6 +261,7 @@ disposition = learning["reviewerDispositionReceipt"]
 assert summary["status"] == "present"
 assert summary["disposition"] == "accepted"
 assert summary["outcomeLabel"] == "Accepted by maintainer"
+assert summary["noteStatus"] == "present"
 assert summary["trackedSignalCount"] == 0
 assert summary["nextStep"] == disposition["recommendedFollowUp"]
 assert "Do not tune" in summary["guard"]
@@ -291,7 +292,7 @@ grep -q 'Merge allowed: True' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Behavior Categories' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Diff Learning Handoff' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'scope-evidence-claim-match' "$tmp_dir/verify-pass/shipguard-verdict.md"
-grep -q 'Reviewer disposition summary: `accepted` / Accepted by maintainer / `present` / 0 tracked signal(s)' "$tmp_dir/verify-pass/shipguard-verdict.md"
+grep -q 'Reviewer disposition summary: `accepted` / Accepted by maintainer / `present` / 0 tracked signal(s) / note `present`' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Reviewer disposition: `accepted`' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Reviewer outcome: Accepted by maintainer' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Reviewer follow-up: Keep this verdict as positive local outcome evidence' "$tmp_dir/verify-pass/shipguard-verdict.md"
@@ -364,6 +365,7 @@ disposition = learning["reviewerDispositionReceipt"]
 assert summary["status"] == "missing"
 assert summary["disposition"] == "not-recorded"
 assert summary["outcomeLabel"] == "Reviewer outcome not recorded"
+assert summary["noteStatus"] == "missing"
 assert summary["trackedSignalCount"] == 4
 assert summary["nextStep"] == disposition["recommendedFollowUp"]
 assert summary["repairCommand"].startswith("shipguard verify --task <task.json>")

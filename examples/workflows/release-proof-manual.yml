@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release-tag:
-        description: Release tag to prove, such as v3.171.0.
+        description: Release tag to prove, such as v3.172.0.
         required: true
         type: string
       release-url:
@@ -29,7 +29,7 @@ jobs:
 
       - name: Build ShipGuard release proof
         id: release-proof
-        uses: jlekerli-source/ShipGuard/actions/release-proof@v3.171.0
+        uses: jlekerli-source/ShipGuard/actions/release-proof@v3.172.0
         with:
           tag: ${{ inputs.release-tag }}
           release-url: ${{ inputs.release-url }}
