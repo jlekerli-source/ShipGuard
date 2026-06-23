@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added reviewer outcome note-command polish to `shipguard verify`: missing reviewer-disposition repair hints now include a full copyable `--reviewer-note` command in JSON and Markdown, preserving safe relative paths and multiple evidence receipts.
 - Added reviewer outcome note-guidance polish to `shipguard verify`: reviewer-disposition summaries now include note guidance in JSON and Markdown so maintainers know when a reviewer note is optional versus needed before local recurring-signal tuning.
 - Added reviewer outcome note-summary polish to `shipguard verify`: reviewer-disposition summaries now expose whether a maintainer note is present in JSON and Markdown so reviewers can spot unannotated local outcomes without opening the nested receipt.
 - Added reviewer outcome repair-note polish to `shipguard verify`: missing reviewer-disposition repair hints now include a copyable `--reviewer-note` template and Markdown renders the optional note flag beside the repair command.

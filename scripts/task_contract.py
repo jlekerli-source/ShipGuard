@@ -1600,6 +1600,10 @@ def build_diff_learning_handoff(
         f"{' '.join('--evidence ' + safe_command_arg(path, '<validation-receipt.json>') for path in evidence_args)} "
         f"--reviewer-disposition accepted --out {safe_command_arg(out_dir, '<verdict-dir>')}"
     )
+    note_command = repair_command.replace(
+        " --reviewer-disposition accepted ",
+        " --reviewer-disposition accepted --reviewer-note '<short maintainer decision note>' ",
+    )
     reviewer_disposition_receipt = {
         "schemaVersion": 1,
         "status": "present" if reviewer_disposition else "missing",
@@ -1611,6 +1615,7 @@ def build_diff_learning_handoff(
         "repairHint": (
             {
                 "command": repair_command,
+                "noteCommand": note_command,
                 "evidenceCount": evidence_count,
                 "noteTemplate": "--reviewer-note '<short maintainer decision note>'",
                 "acceptedValues": ["accepted", "dismissed", "follow-up", "unknown"],
@@ -1638,6 +1643,7 @@ def build_diff_learning_handoff(
         "trackedSignalCount": len(recurrence_candidates),
         "nextStep": reviewer_disposition_receipt["recommendedFollowUp"],
         "repairCommand": (reviewer_disposition_receipt["repairHint"] or {}).get("command"),
+        "repairNoteCommand": (reviewer_disposition_receipt["repairHint"] or {}).get("noteCommand"),
         "repairEvidenceCount": (reviewer_disposition_receipt["repairHint"] or {}).get("evidenceCount"),
         "repairNoteTemplate": (reviewer_disposition_receipt["repairHint"] or {}).get("noteTemplate"),
         "guard": "Do not tune recurring-signal rules from one local reviewer disposition.",
@@ -2311,6 +2317,8 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
                 lines.append(f"- Reviewer disposition summary repair: `{summary.get('repairCommand')}`")
             if summary.get("repairNoteTemplate"):
                 lines.append(f"- Reviewer disposition note option: `{summary.get('repairNoteTemplate')}`")
+            if summary.get("repairNoteCommand"):
+                lines.append(f"- Reviewer disposition repair with note: `{summary.get('repairNoteCommand')}`")
             if summary.get("noteGuidance"):
                 lines.append(f"- Reviewer note guidance: {summary.get('noteGuidance')}")
         disposition = learning.get("reviewerDispositionReceipt") if isinstance(learning.get("reviewerDispositionReceipt"), dict) else {}
