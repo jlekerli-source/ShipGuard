@@ -419,6 +419,28 @@ PY
 grep -q 'Reviewer disposition summary repair: `shipguard verify --task <task.json> --diff <change.diff> --evidence <validation-receipt.json> --reviewer-disposition accepted --out <verdict-dir>`' "$tmp_dir/verify-blocked/shipguard-verdict.md"
 grep -q 'Reviewer repair hint: `shipguard verify --task <task.json> --diff <change.diff> --evidence <validation-receipt.json> --reviewer-disposition accepted --out <verdict-dir>`' "$tmp_dir/verify-blocked/shipguard-verdict.md"
 
+(
+  cd "$tmp_dir"
+  "$repo_root/bin/shipguard" verify \
+    --task prepare/shipguard-task.json \
+    --diff good.diff \
+    --evidence logs/swift-test-receipt.json \
+    --claim "Notification flow is fully verified." \
+    --out verify-relative-repair >/dev/null
+)
+python3 - <<'PY' "$tmp_dir/verify-relative-repair/shipguard-verdict.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+command = data["diffLearningHandoff"]["reviewerDispositionSummary"]["repairCommand"]
+assert command == (
+    "shipguard verify --task prepare/shipguard-task.json --diff good.diff "
+    "--evidence logs/swift-test-receipt.json --reviewer-disposition accepted --out verify-relative-repair"
+)
+PY
+grep -q 'Reviewer disposition summary repair: `shipguard verify --task prepare/shipguard-task.json --diff good.diff --evidence logs/swift-test-receipt.json --reviewer-disposition accepted --out verify-relative-repair`' "$tmp_dir/verify-relative-repair/shipguard-verdict.md"
+
 printf 'all tests passed, but command failed\n' > "$tmp_dir/logs/failing-swift-test.log"
 failing_log_sha="$(shasum -a 256 "$tmp_dir/logs/failing-swift-test.log" | awk '{print $1}')"
 failing_log_bytes="$(wc -c < "$tmp_dir/logs/failing-swift-test.log" | tr -d ' ')"

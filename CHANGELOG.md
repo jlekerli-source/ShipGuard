@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added reviewer outcome repair-command polish to `shipguard verify`: missing reviewer-disposition repair commands now use copy-ready relative task, diff, evidence, and output paths when those inputs are safe to show, while absolute local paths remain placeholders.
 - Added reviewer outcome missing-summary polish to `shipguard verify`: missing reviewer-disposition summaries now carry and render the copy-ready repair command before the detailed receipt.
 - Added reviewer outcome summary Markdown polish to `shipguard verify`: the compact reviewer-disposition summary line now includes the readable outcome label before status and tracked-signal count.
 - Added reviewer outcome copy polish to `shipguard verify`: reviewer-disposition summaries and receipts now carry a human-readable `outcomeLabel`, and Markdown renders it before follow-up guidance.

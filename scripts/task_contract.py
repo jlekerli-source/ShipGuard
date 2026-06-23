@@ -1544,6 +1544,10 @@ def build_diff_learning_handoff(
     next_action: dict[str, Any],
     reviewer_disposition: str = "",
     reviewer_note: str = "",
+    task_path: str = "",
+    diff_path: str = "",
+    evidence_paths: list[str] | None = None,
+    out_dir: str = "",
 ) -> dict[str, Any]:
     scope = diff_first.get("protectedBoundaryCrossings") or {}
     coverage = diff_first.get("validationCoverage") or {}
@@ -1583,6 +1587,13 @@ def build_diff_learning_handoff(
         "unknown": "Outcome unclear",
         "not-recorded": "Reviewer outcome not recorded",
     }
+    evidence_args = evidence_paths or [""]
+    repair_command = (
+        f"shipguard verify --task {safe_command_arg(task_path, '<task.json>')} "
+        f"--diff {safe_command_arg(diff_path, '<change.diff>')} "
+        f"{' '.join('--evidence ' + safe_command_arg(path, '<validation-receipt.json>') for path in evidence_args)} "
+        f"--reviewer-disposition accepted --out {safe_command_arg(out_dir, '<verdict-dir>')}"
+    )
     reviewer_disposition_receipt = {
         "schemaVersion": 1,
         "status": "present" if reviewer_disposition else "missing",
@@ -1593,10 +1604,7 @@ def build_diff_learning_handoff(
         "recommendedFollowUp": disposition_followups[disposition],
         "repairHint": (
             {
-                "command": (
-                    "shipguard verify --task <task.json> --diff <change.diff> --evidence "
-                    "<validation-receipt.json> --reviewer-disposition accepted --out <verdict-dir>"
-                ),
+                "command": repair_command,
                 "acceptedValues": ["accepted", "dismissed", "follow-up", "unknown"],
                 "when": "Run after the maintainer decides whether this proof packet was accepted, dismissed, or needs follow-up.",
                 "boundary": "This records local reviewer outcome only; it is not adoption, benchmark, or security-review evidence.",
@@ -1908,6 +1916,10 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         next_action=next_action,
         reviewer_disposition=args.reviewer_disposition,
         reviewer_note=args.reviewer_note,
+        task_path=str(task_path),
+        diff_path=args.diff or "",
+        evidence_paths=[str(item) for item in args.evidence],
+        out_dir=args.out,
     )
     diff_first["learningHandoff"] = diff_learning_handoff
     proof_report = build_proof_report(
