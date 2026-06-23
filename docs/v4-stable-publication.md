@@ -388,6 +388,13 @@ This directory is a convenience artifact, not proof. It contains:
 - `external-adoption-evidence.json` copied from the draft-only adoption template
 - `security-review-evidence.json` copied from the draft-only security-review template
 
+The generated README and checklist also include an evidence ladder:
+
+- public consumer proof can be produced by the maintainer from public release assets, but proves consumability rather than adoption
+- private maintainer QA from Ringly, Ilmify, or other maintainer apps can expose ShipGuard product gaps, but does not count as independent adoption
+- independent adoption evidence requires a non-maintainer user, repo, issue, PR, or redacted external install report
+- final security-review evidence requires a review record for ShipGuard's CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy surfaces with no open critical/high findings
+
 The report exposes the same information in `stablePublicationEvidenceStarterKit`. In schema v2, the starter kit also carries:
 
 - `releaseVersion`, so the local starter files stay tied to the public release packet being closed
