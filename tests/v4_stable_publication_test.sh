@@ -999,6 +999,9 @@ assert release_notes_item["rerunCommand"] != release_notes_item["nextCommand"]
 visibility_actions = {item["id"]: item for item in report["releaseVisibilityHandoff"]["requiredActions"]}
 assert visibility_actions["update-release-notes"]["required"] is True
 assert visibility_actions["update-release-notes"]["nextCommand"] == notes_kit["publicReleaseEditCommand"]
+assert visibility_actions["update-release-notes"]["nextCommandPurpose"] == "manual-github-release-notes-edit"
+assert visibility_actions["update-release-notes"]["proofCommandAfterCompletion"] != visibility_actions["update-release-notes"]["nextCommand"]
+assert visibility_actions["update-release-notes"]["proofCommandAfterCompletion"].startswith("./bin/shipguard v4 stable-publication ")
 assert visibility_actions["publish-new-github-release"]["nextCommand"] == "not-needed"
 assert visibility_actions["update-release-assets"]["nextCommand"] == "not-needed"
 assert visibility_actions["keep-current-public-release-unchanged"]["nextCommand"] == "blocked-by-required-actions"
@@ -1023,6 +1026,9 @@ PY
 grep -q 'Release Notes Proof' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'Release Notes Authoring Kit' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'Release Notes Closure Kit' "$tmp_dir/weak-notes/v4-stable-publication.md"
+grep -q 'Command purpose' "$tmp_dir/weak-notes/v4-stable-publication.md"
+grep -q 'Proof after action' "$tmp_dir/weak-notes/v4-stable-publication.md"
+grep -q 'update-release-notes.*manual-github-release-notes-edit' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'update-release-notes.*gh release edit' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'post-release-consumer-proof' "$tmp_dir/weak-notes/v4-stable-publication.md"
 grep -q 'Public release edit required: `True`' "$tmp_dir/weak-notes/v4-stable-publication.md"

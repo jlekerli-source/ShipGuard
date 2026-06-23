@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added stable-publication visibility handoff actionability: release visibility actions now expose command purpose and the proof command to run after completion, so manual GitHub release edits are not confused with local proof reruns.
 - Added stable-publication release-notes edit walkthrough: the generated release-notes authoring kit now includes `edit-walkthrough.md` with the manual `gh release edit` step, rerun proof command, and non-proof boundaries beside the draft notes.
 - Added stable-publication public proof walkthrough: the generated evidence starter kit now includes `public-proof-walkthrough.md`, separating maintainer-producible public consumer proof, private maintainer QA, independent adoption evidence, and final security-review evidence in a copyable order.
 - Added stable-publication evidence ladder report polish: the main stable-publication Markdown report now renders the consumer/maintainer/adoption/security evidence ladder, and report-quality flags reports that hide it.

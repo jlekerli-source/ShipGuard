@@ -1846,6 +1846,8 @@ def build_release_visibility_handoff(
             "id": "publish-new-github-release",
             "required": needs_release,
             "status": "review" if needs_release else "pass",
+            "nextCommandPurpose": "manual-github-release-create" if needs_release else "not-needed",
+            "proofCommandAfterCompletion": rerun_command if needs_release else "not-needed",
             "reason": (
                 "The selected release is not the latest public release or its tag target does not match the release manifest commit."
                 if needs_release
@@ -1857,6 +1859,8 @@ def build_release_visibility_handoff(
             "id": "update-release-notes",
             "required": needs_notes,
             "status": "review" if needs_notes else "pass",
+            "nextCommandPurpose": "manual-github-release-notes-edit" if needs_notes else "not-needed",
+            "proofCommandAfterCompletion": rerun_command if needs_notes else "not-needed",
             "reason": release_notes_proof.get("summary") or "Release notes proof status decides this action.",
             "nextCommand": release_notes_edit_command if needs_notes else "not-needed",
         },
@@ -1864,6 +1868,8 @@ def build_release_visibility_handoff(
             "id": "attach-launchkey-candidate-proof",
             "required": needs_candidate,
             "status": "review" if needs_candidate else "pass",
+            "nextCommandPurpose": "local-candidate-proof" if needs_candidate else "not-needed",
+            "proofCommandAfterCompletion": rerun_command if needs_candidate else "not-needed",
             "reason": release_candidate_packet_proof.get("summary") or "LaunchKey candidate packet proof status decides this action.",
             "nextCommand": str(release_candidate_packet_proof.get("nextCommand") or rerun_command) if needs_candidate else "not-needed",
         },
@@ -1871,6 +1877,8 @@ def build_release_visibility_handoff(
             "id": "update-release-assets",
             "required": needs_assets,
             "status": "review" if needs_assets else "pass",
+            "nextCommandPurpose": "manual-github-release-asset-update" if needs_assets else "not-needed",
+            "proofCommandAfterCompletion": rerun_command if needs_assets else "not-needed",
             "reason": (
                 "Downloaded or supplied release assets, package version, or SHA-256 coherence still needs repair."
                 if needs_assets
@@ -1882,6 +1890,8 @@ def build_release_visibility_handoff(
             "id": "attach-adoption-security-evidence",
             "required": needs_evidence,
             "status": "review" if needs_evidence else "pass",
+            "nextCommandPurpose": "evidence-recording" if needs_evidence else "not-needed",
+            "proofCommandAfterCompletion": rerun_command if needs_evidence else "not-needed",
             "reason": public_evidence_closure_proof.get("summary") or "Adoption/security evidence closure status decides this action.",
             "nextCommand": str(public_evidence_closure_proof.get("rerunCommand") or rerun_command) if needs_evidence else "not-needed",
         },
@@ -1889,6 +1899,12 @@ def build_release_visibility_handoff(
             "id": "keep-current-public-release-unchanged",
             "required": not any([needs_release, needs_notes, needs_candidate, needs_assets, needs_evidence]),
             "status": "pass" if not any([needs_release, needs_notes, needs_candidate, needs_assets, needs_evidence]) else "blocked",
+            "nextCommandPurpose": "final-claim-review"
+            if not any([needs_release, needs_notes, needs_candidate, needs_assets, needs_evidence])
+            else "blocked-by-required-actions",
+            "proofCommandAfterCompletion": "not-needed"
+            if not any([needs_release, needs_notes, needs_candidate, needs_assets, needs_evidence])
+            else rerun_command,
             "reason": (
                 "The current public release can remain the announcement target."
                 if not any([needs_release, needs_notes, needs_candidate, needs_assets, needs_evidence])
@@ -4907,15 +4923,17 @@ def render_markdown(report: dict[str, Any]) -> str:
                 f"- Local main can be announced: `{visibility.get('localMainCanBeAnnounced')}`",
                 f"- Unpublished local code counts as released: `{boundary.get('unpublishedLocalCodeCountsAsReleased')}`",
                 "",
-                "| Action | Required | Status | Next command |",
-                "| --- | ---: | --- | --- |",
+                "| Action | Required | Status | Command purpose | Next command | Proof after action |",
+                "| --- | ---: | --- | --- | --- | --- |",
             ]
         )
         for action in visibility.get("requiredActions", []):
             if isinstance(action, dict):
                 lines.append(
                     f"| `{action.get('id')}` | `{action.get('required')}` | "
-                    f"`{action.get('status')}` | `{action.get('nextCommand') or 'not-provided'}` |"
+                    f"`{action.get('status')}` | `{action.get('nextCommandPurpose') or 'not-provided'}` | "
+                    f"`{action.get('nextCommand') or 'not-provided'}` | "
+                    f"`{action.get('proofCommandAfterCompletion') or 'not-provided'}` |"
                 )
         lines.extend(["", "Next command:", "", "```bash", str(visibility.get("nextCommand") or ""), "```"])
     final_claim = (
