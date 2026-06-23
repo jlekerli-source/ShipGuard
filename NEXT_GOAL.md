@@ -1,25 +1,25 @@
 # Next Goal
 
-- Generated: 2026-06-23T17:52:41Z
-- Current toolkit version: 3.193.0
-- Target release: v3.194.0
-- Title: Stable-publication security evidence checklist
+- Generated: 2026-06-23T18:14:12Z
+- Current toolkit version: 3.194.0
+- Target release: v3.195.0
+- Title: Stable-publication adoption evidence checklist
 
 ## Version Lineage Check
 
 - Status: pass
-- VERSION: 3.193.0
-- Expected next release from VERSION: v3.194.0
-- Planned target release: v3.194.0
-- Current checkout package artifact before version bump: dist/shipguard-v3.193.0.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v3.194.0.tar.gz
-- Action: Before publishing v3.194.0, bump VERSION to 3.194.0, rebuild, and verify dist/shipguard-v3.194.0.tar.gz.
+- VERSION: 3.194.0
+- Expected next release from VERSION: v3.195.0
+- Planned target release: v3.195.0
+- Current checkout package artifact before version bump: dist/shipguard-v3.194.0.tar.gz
+- Expected package artifact after release bump: dist/shipguard-v3.195.0.tar.gz
+- Action: Before publishing v3.195.0, bump VERSION to 3.195.0, rebuild, and verify dist/shipguard-v3.195.0.tar.gz.
 
 ## Slash Plan
 
 ```text
-/plan v3.194.0 Stable-publication security evidence checklist for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Make the stable-publication final security-review evidence path more action-ready by adding a concise reviewer-facing checklist for required review surfaces, severity thresholds, redaction boundaries, and pass/fail evidence fields, then ensure report-quality flags security evidence records that are too vague to support a stable-v4 claim.
+/plan v3.195.0 Stable-publication adoption evidence checklist for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Make the stable-publication independent adoption evidence path more action-ready by adding a concise adopter-facing checklist for accepted evidence classes, actor relationship, artifact/command proof, redaction boundaries, weak-signal exclusions, and pass/fail fields, then ensure report-quality flags adoption evidence records that are too vague to support a stable-v4 claim.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, bump VERSION before release packaging, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -28,23 +28,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.194.0 Stable-publication security evidence checklist for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make the stable-publication final security-review evidence path more action-ready by adding a concise reviewer-facing checklist for required review surfaces, severity thresholds, redaction boundaries, and pass/fail evidence fields, then ensure report-quality flags security evidence records that are too vague to support a stable-v4 claim, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.195.0 Stable-publication adoption evidence checklist for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Make the stable-publication independent adoption evidence path more action-ready by adding a concise adopter-facing checklist for accepted evidence classes, actor relationship, artifact/command proof, redaction boundaries, weak-signal exclusions, and pass/fail fields, then ensure report-quality flags adoption evidence records that are too vague to support a stable-v4 claim, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Make the stable-publication final security-review evidence path more action-ready by adding a concise reviewer-facing checklist for required review surfaces, severity thresholds, redaction boundaries, and pass/fail evidence fields, then ensure report-quality flags security evidence records that are too vague to support a stable-v4 claim.
+Make the stable-publication independent adoption evidence path more action-ready by adding a concise adopter-facing checklist for accepted evidence classes, actor relationship, artifact/command proof, redaction boundaries, weak-signal exclusions, and pass/fail fields, then ensure report-quality flags adoption evidence records that are too vague to support a stable-v4 claim.
 
 ## Completion Receipt
 
-- Completed scope: v3.193.0 added a stable-publication external evidence intake guard: generated evidence kits now separate draft adoption/security starter records from pass-eligible evidence with accepted classes, required fields, and redaction boundaries, while report-quality flags missing or incomplete intake contracts.
-- Evidence: Commit 93ef0643 pushed to main; GitHub Actions run 28045657545 completed success; local package tarball dist/shipguard-v3.193.0.tar.gz SHA-256 32525bb6750bacd70ab658fbffe1ffbb8fb546936257f142382964ca2a6f0c6d; ./bin/shipguard codex status --strict passed.
+- Completed scope: v3.194.0 added a stable-publication security-review evidence checklist: generated evidence templates, starter kits, and reports now name required review surfaces, critical/high severity thresholds, required fields, redaction boundaries, and the pass decision, while report-quality flags missing or incomplete security checklists.
+- Evidence: Commit 7af99c1b pushed to main; GitHub Actions run 28046866855 completed success; local package tarball dist/shipguard-v3.194.0.tar.gz SHA-256 f4fc1c34fa3601d5d8e8987a2c7c9021ff5e1f590a78d9865c30017b0d0b0c0a; ./bin/shipguard codex status --strict passed.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.195.0 Stable-publication adoption evidence checklist for jlekerli-source/ShipGuard:
+/plan v3.196.0 Stable-publication adoption fixture promotion for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -54,13 +54,13 @@ Make the stable-publication final security-review evidence path more action-read
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.195.0 Stable-publication adoption evidence checklist for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.196.0 Stable-publication adoption fixture promotion for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.195.0 --title "Stable-publication adoption evidence checklist" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.196.0 --title "Stable-publication adoption fixture promotion" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -160,12 +160,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.194.0.
+1. Open or update the tracking issue for v3.195.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Bump VERSION to 3.194.0, build `dist/shipguard-v3.194.0.tar.gz`, create release `v3.194.0`, and upload the rebuilt tarball.
+6. Bump VERSION to 3.195.0, build `dist/shipguard-v3.195.0.tar.gz`, create release `v3.195.0`, and upload the rebuilt tarball.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
