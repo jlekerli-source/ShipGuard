@@ -180,6 +180,8 @@ v3.159 makes the public demo path more obvious: the docs index separates the ver
 
 v3.160 starts the diff-first learning track by adding `diffLearningHandoff` to `shipguard verify`: each verdict now summarizes changed-file signals, behavior categories, scope/evidence/claim learning signals, the next tuning action, and the boundary that this is a current-verdict handoff rather than persistent project memory or future-diff approval.
 
+v3.161 adds recurring-signal tuning guidance to that handoff: verify reports now say which signals should be counted locally, what recurrence means, which lightweight metrics to capture, and why a single verdict is not enough to tune rules or claim a false positive.
+
 v3.186 continues that release-notes actionability cleanup by routing the same edit command through `stablePublicationEvidencePacket.firstBlockingGate.nextCommand`, release-notes closure `nextCommand`, and `resultUX.nextCommand`; `rerunCommand` remains the after-edit verifier.
 
 v3.187 cleans the stable-publication release visibility handoff so completed `pass`/not-required rows say `not-needed` instead of leaking fallback commands like test scripts into maintainer-facing next-action tables.

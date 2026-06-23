@@ -253,6 +253,12 @@ assert learning["status"] == "pass"
 assert learning["primaryLesson"].startswith("This exact diff matched")
 assert learning["changedFileSignals"][0]["path"] == "Sources/DemoShipGuardApp/DemoPermissions.swift"
 assert learning["learningSignals"] == ["scope-evidence-claim-match"]
+recurrence = learning["recurringSignalTuning"]
+assert recurrence["shouldTrackLocally"] is False
+assert recurrence["signalKeys"] == []
+assert recurrence["doNotTuneFromSingleVerdict"] is True
+assert "two or more reviewed verify verdicts" in recurrence["recurrenceRule"]
+assert "does not prove a false positive" in recurrence["proofBoundary"]
 assert learning["nextTuningAction"]["expectedArtifact"] == "review-ready proof packet"
 assert "not persistent project memory" in learning["proofBoundary"]
 assert analysis["learningHandoff"] == learning
@@ -266,6 +272,8 @@ grep -q 'Merge allowed: True' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Behavior Categories' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Diff Learning Handoff' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'scope-evidence-claim-match' "$tmp_dir/verify-pass/shipguard-verdict.md"
+grep -q 'Track recurring signals: `False`' "$tmp_dir/verify-pass/shipguard-verdict.md"
+grep -q 'Recurring signal keys: `none`' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Validation Coverage' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Claim Decisions' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Quickstart Replay' "$tmp_dir/verify-pass/shipguard-verdict.md"
@@ -326,6 +334,16 @@ assert "out-of-scope-diff" in learning["learningSignals"]
 assert "missing-validation-coverage" in learning["learningSignals"]
 assert "unsupported-completion-claim" in learning["learningSignals"]
 assert learning["changedFileSignals"][0]["forbidden"] is True
+recurrence = learning["recurringSignalTuning"]
+assert recurrence["shouldTrackLocally"] is True
+assert recurrence["signalKeys"] == [
+    "protected-boundary-crossing",
+    "out-of-scope-diff",
+    "missing-validation-coverage",
+    "unsupported-completion-claim",
+]
+assert "reviewerDisposition" in recurrence["localMetricCandidates"]
+assert recurrence["doNotTuneFromSingleVerdict"] is True
 assert "not persistent project memory" in learning["proofBoundary"]
 assert analysis["learningHandoff"] == learning
 assert data["nextAction"]["owner"] == "developer"

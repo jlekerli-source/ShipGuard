@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added recurring-signal tuning guidance to the diff-first learning handoff: `shipguard verify` now names which current-verdict signals should be counted locally, the recurrence rule, candidate local metrics, and the boundary that one verdict does not prove a false positive or accepted mapping.
 - Added a diff-first learning handoff to `shipguard verify`: verdict JSON and Markdown now summarize what the exact diff teaches, including changed-file signals, behavior categories, scope/evidence/claim learning signals, the next tuning action, and a boundary that the handoff is not persistent project memory or future-diff approval.
 - Promoted the public demo/docs quickstart path into the release line: the docs index now routes fresh users to the verify-first quickstart and demo reports separately, generated demo-report README output includes the copyable pass-path command plus review/blocked pointers, and `verify_first_quickstart_test.sh` keeps those public demo links and proof-report expectations from drifting.
 - Promoted the GitHub Action first-run proof path into the release line: `shipguard action verify-pr` now emits a first-run install handoff with a directory-safe workflow copy command, static audit command, runtime artifact audit command, and proof boundary so fresh maintainers can install the transparent PR workflow without guessing.

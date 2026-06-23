@@ -1558,6 +1558,26 @@ def build_diff_learning_handoff(
     if not signals and status == "pass":
         signals.append("scope-evidence-claim-match")
 
+    recurrence_candidates = [signal for signal in signals if signal != "scope-evidence-claim-match"]
+    recurring_signal_tuning = {
+        "schemaVersion": 1,
+        "shouldTrackLocally": bool(recurrence_candidates),
+        "signalKeys": recurrence_candidates,
+        "recurrenceRule": "Treat a signal as recurring only after it appears in two or more reviewed verify verdicts for the same repo or task family.",
+        "localMetricCandidates": [
+            "signalKey",
+            "verdictStatus",
+            "changedFileCategory",
+            "nextActionCommand",
+            "reviewerDisposition",
+        ],
+        "doNotTuneFromSingleVerdict": True,
+        "proofBoundary": (
+            "Recurring-signal tuning needs local reviewed outcomes. This packet suggests what to count; "
+            "it does not prove a false positive, recurring mistake, or accepted ownership mapping by itself."
+        ),
+    }
+
     if status == "pass":
         lesson = "This exact diff matched the task scope, attached proof, and completion claim."
     elif status == "blocked":
@@ -1584,6 +1604,7 @@ def build_diff_learning_handoff(
         ],
         "behaviorCategories": [item.get("category") for item in changed_categories],
         "learningSignals": signals,
+        "recurringSignalTuning": recurring_signal_tuning,
         "nextTuningAction": {
             "command": next_action.get("command"),
             "expectedArtifact": next_action.get("expectedArtifact"),
@@ -2188,6 +2209,12 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
         lines.append(f"- Primary lesson: {learning.get('primaryLesson')}")
         signals = ", ".join(f"`{item}`" for item in learning.get("learningSignals") or [])
         lines.append(f"- Learning signals: {signals}")
+        recurrence = learning.get("recurringSignalTuning") if isinstance(learning.get("recurringSignalTuning"), dict) else {}
+        if recurrence:
+            recurring_keys = ", ".join(f"`{item}`" for item in recurrence.get("signalKeys") or [])
+            lines.append(f"- Track recurring signals: `{recurrence.get('shouldTrackLocally')}`")
+            lines.append(f"- Recurring signal keys: {recurring_keys or '`none`'}")
+            lines.append(f"- Recurrence rule: {recurrence.get('recurrenceRule')}")
         next_tuning = learning.get("nextTuningAction") if isinstance(learning.get("nextTuningAction"), dict) else {}
         lines.append(f"- Next tuning action: `{next_tuning.get('command')}`")
         lines.append(f"- Boundary: {learning.get('proofBoundary')}")
