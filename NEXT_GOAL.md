@@ -1,24 +1,24 @@
 # Next Goal
 
-- Generated: 2026-06-23T05:20:00Z
-- Current toolkit version: 3.157.0
-- Target release: v3.157.0
-- Title: One-command installer proof path
+- Generated: 2026-06-23T05:31:17Z
+- Current toolkit version: 3.158.0
+- Target release: v3.158.0
+- Title: GitHub Action first-run proof path
 
 ## Version Lineage Check
 
 - Status: pass
-- VERSION: 3.157.0
-- Expected next release from VERSION: v3.158.0
-- Planned target release: v3.157.0
-- Current checkout package artifact: dist/shipguard-v3.157.0.tar.gz
-- Release package artifact to build: dist/shipguard-v3.157.0.tar.gz
-- Action: VERSION already names v3.157.0; build, verify, publish, and consume dist/shipguard-v3.157.0.tar.gz before generating the next goal.
+- VERSION: 3.158.0
+- Expected next release from VERSION: v3.159.0
+- Planned target release: v3.158.0
+- Current checkout package artifact: dist/shipguard-v3.158.0.tar.gz
+- Release package artifact to build: dist/shipguard-v3.158.0.tar.gz
+- Action: VERSION already names v3.158.0; build, verify, publish, and consume dist/shipguard-v3.158.0.tar.gz before generating the next goal.
 
 ## Slash Plan
 
 ```text
-/plan v3.157.0 One-command installer proof path for jlekerli-source/ShipGuard:
+/plan v3.158.0 GitHub Action first-run proof path for jlekerli-source/ShipGuard:
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
@@ -28,19 +28,19 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.157.0 One-command installer proof path for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.158.0 GitHub Action first-run proof path for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Completion Receipt
 
-- Completed scope: One-command installer proof is now the v3.157 release-line target: the release package install proof installs the extracted tarball into a fresh prefix, runs the installed CLI through validate, prepare, and verify against public verify-first quickstart fixtures, checks the passing proof report, and keeps the installed toolkit tree clean after normal use by disabling Python bytecode writes in installed wrappers.
-- Evidence: Commit 6af612613511c2e115a0b9ecba6479e4176e1ec5 pushed to main. Local proof passed: git diff --check; ./tests/install_doctor_test.sh; ./tests/package_release_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3.157; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; env PREFIX="/Users/omarat-turkmani/.local" ./scripts/install.sh && ./bin/shipguard codex status --strict. GitHub Actions passed: https://github.com/jlekerli-source/ShipGuard/actions/runs/28003937732. Release proof built at /tmp/shipguard-v3.157.0-proof; public asset consumer proof passed at /tmp/shipguard-v3.157.0-consume; tarball SHA-256 e00f89cb10dbb599d4357b93a6eee7636efb46ea630bf969c3a48d9e7ddb400d matched proof, asset copy, and dist/shipguard-v3.157.0.tar.gz. v4 release candidate passed at /tmp/shipguard-v3.157.0-candidate with fresh install, upgrade, and rollback proofs pass. Stable-publication remained honestly blocked with exit 1 at /tmp/shipguard-v3.157.0-stable-publication: status review, first blocker github-release-metadata, stableV4ClaimMayBePublished not true.
+- Completed scope: GitHub Action first-run proof is now the v3.158 release-line target: shipguard action verify-pr emits a firstRunInstallHandoff with source/destination workflow paths, a directory-safe mkdir/cp command, validation-command edit step, static audit command, runtime artifact audit command, and proof boundary separating workflow setup from a real PR run. Docs now show the safe copy command and focused tests pin the JSON/Markdown handoff.
+- Evidence: Commit a7e96e6706c0416da0974710875eac94f5827c81 pushed to main. Local proof passed: git diff --check; ./tests/action_verify_pr_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3.158; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; ./tests/package_release_test.sh; env PREFIX="/Users/omarat-turkmani/.local" ./scripts/install.sh && ./bin/shipguard codex status --strict. GitHub Actions passed: https://github.com/jlekerli-source/ShipGuard/actions/runs/28004394020. Release proof built at /tmp/shipguard-v3.158.0-proof; public asset consumer proof passed at /tmp/shipguard-v3.158.0-consume; tarball SHA-256 fac3edbdd72491b1ec1e25c47609d51fa3d1cdeb83e8e31983e922ecc9ae0df6 matched proof, asset copy, and dist/shipguard-v3.158.0.tar.gz. v4 release candidate passed at /tmp/shipguard-v3.158.0-candidate with fresh install, upgrade, and rollback proofs pass. Stable-publication remained honestly blocked with exit 1 at /tmp/shipguard-v3.158.0-stable-publication: status review, first blocker github-release-metadata, stableV4ClaimMayBePublished not true.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.158.0 GitHub Action first-run proof path for jlekerli-source/ShipGuard:
+/plan v3.159.0 Demo project and docs-site quickstart polish for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -50,13 +50,13 @@
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.158.0 GitHub Action first-run proof path for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.159.0 Demo project and docs-site quickstart polish for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.158.0 --title "GitHub Action first-run proof path" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.159.0 --title "Demo project and docs-site quickstart polish" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -156,12 +156,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.157.0.
+1. Open or update the tracking issue for v3.158.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Build `dist/shipguard-v3.157.0.tar.gz`, create release `v3.157.0`, upload the rebuilt tarball, and consume release proof.
+6. Build `dist/shipguard-v3.158.0.tar.gz`, create release `v3.158.0`, upload the rebuilt tarball, and consume release proof.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
