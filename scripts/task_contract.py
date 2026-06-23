@@ -1615,7 +1615,9 @@ def build_diff_learning_handoff(
         "repairHint": (
             {
                 "command": repair_command,
+                "commandLabel": "Record reviewer outcome without note",
                 "noteCommand": note_command,
+                "noteCommandLabel": "Record reviewer outcome with note",
                 "evidenceCount": evidence_count,
                 "noteTemplate": "--reviewer-note '<short maintainer decision note>'",
                 "acceptedValues": ["accepted", "dismissed", "follow-up", "unknown"],
@@ -1643,7 +1645,9 @@ def build_diff_learning_handoff(
         "trackedSignalCount": len(recurrence_candidates),
         "nextStep": reviewer_disposition_receipt["recommendedFollowUp"],
         "repairCommand": (reviewer_disposition_receipt["repairHint"] or {}).get("command"),
+        "repairCommandLabel": (reviewer_disposition_receipt["repairHint"] or {}).get("commandLabel"),
         "repairNoteCommand": (reviewer_disposition_receipt["repairHint"] or {}).get("noteCommand"),
+        "repairNoteCommandLabel": (reviewer_disposition_receipt["repairHint"] or {}).get("noteCommandLabel"),
         "repairEvidenceCount": (reviewer_disposition_receipt["repairHint"] or {}).get("evidenceCount"),
         "repairNoteTemplate": (reviewer_disposition_receipt["repairHint"] or {}).get("noteTemplate"),
         "guard": "Do not tune recurring-signal rules from one local reviewer disposition.",
@@ -2314,11 +2318,13 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
                 f"{summary.get('trackedSignalCount')} tracked signal(s) / note `{summary.get('noteStatus', 'missing')}`"
             )
             if summary.get("repairCommand"):
-                lines.append(f"- Reviewer disposition summary repair: `{summary.get('repairCommand')}`")
+                label = summary.get("repairCommandLabel") or "Record reviewer outcome without note"
+                lines.append(f"- {label}: `{summary.get('repairCommand')}`")
             if summary.get("repairNoteTemplate"):
                 lines.append(f"- Reviewer disposition note option: `{summary.get('repairNoteTemplate')}`")
             if summary.get("repairNoteCommand"):
-                lines.append(f"- Reviewer disposition repair with note: `{summary.get('repairNoteCommand')}`")
+                label = summary.get("repairNoteCommandLabel") or "Record reviewer outcome with note"
+                lines.append(f"- {label}: `{summary.get('repairNoteCommand')}`")
             if summary.get("noteGuidance"):
                 lines.append(f"- Reviewer note guidance: {summary.get('noteGuidance')}")
         disposition = learning.get("reviewerDispositionReceipt") if isinstance(learning.get("reviewerDispositionReceipt"), dict) else {}

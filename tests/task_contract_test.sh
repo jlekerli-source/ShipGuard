@@ -372,14 +372,17 @@ assert summary["noteGuidance"] == "Add a short reviewer note before using this l
 assert summary["trackedSignalCount"] == 4
 assert summary["nextStep"] == disposition["recommendedFollowUp"]
 assert summary["repairCommand"].startswith("shipguard verify --task <task.json>")
+assert summary["repairCommandLabel"] == "Record reviewer outcome without note"
 assert disposition["status"] == "missing"
 assert disposition["disposition"] == "not-recorded"
 assert disposition["outcomeLabel"] == "Reviewer outcome not recorded"
 assert disposition["recommendedFollowUp"].startswith("Ask the reviewer")
 repair = disposition["repairHint"]
 assert repair["command"].startswith("shipguard verify --task <task.json>")
+assert repair["commandLabel"] == "Record reviewer outcome without note"
 assert "--reviewer-disposition accepted" in repair["command"]
 assert repair["noteCommand"].startswith("shipguard verify --task <task.json>")
+assert repair["noteCommandLabel"] == "Record reviewer outcome with note"
 assert "--reviewer-note '<short maintainer decision note>'" in repair["noteCommand"]
 assert repair["evidenceCount"] == 1
 assert repair["noteTemplate"] == "--reviewer-note '<short maintainer decision note>'"
@@ -425,9 +428,9 @@ assert any("not a merge" in item for item in replay["nonClaims"])
 assert "does not prove" in replay["proofBoundary"]
 assert "structured proof" in replay["proofBoundary"]
 PY
-grep -q 'Reviewer disposition summary repair: `shipguard verify --task <task.json> --diff <change.diff> --evidence <validation-receipt.json> --reviewer-disposition accepted --out <verdict-dir>`' "$tmp_dir/verify-blocked/shipguard-verdict.md"
+grep -q 'Record reviewer outcome without note: `shipguard verify --task <task.json> --diff <change.diff> --evidence <validation-receipt.json> --reviewer-disposition accepted --out <verdict-dir>`' "$tmp_dir/verify-blocked/shipguard-verdict.md"
 grep -q "Reviewer disposition note option: \`--reviewer-note '<short maintainer decision note>'\`" "$tmp_dir/verify-blocked/shipguard-verdict.md"
-grep -q "Reviewer disposition repair with note: \`shipguard verify --task <task.json> --diff <change.diff> --evidence <validation-receipt.json> --reviewer-disposition accepted --reviewer-note '<short maintainer decision note>' --out <verdict-dir>\`" "$tmp_dir/verify-blocked/shipguard-verdict.md"
+grep -q "Record reviewer outcome with note: \`shipguard verify --task <task.json> --diff <change.diff> --evidence <validation-receipt.json> --reviewer-disposition accepted --reviewer-note '<short maintainer decision note>' --out <verdict-dir>\`" "$tmp_dir/verify-blocked/shipguard-verdict.md"
 grep -q 'Reviewer repair hint: `shipguard verify --task <task.json> --diff <change.diff> --evidence <validation-receipt.json> --reviewer-disposition accepted --out <verdict-dir>`' "$tmp_dir/verify-blocked/shipguard-verdict.md"
 
 (
@@ -451,18 +454,22 @@ assert command == (
     "shipguard verify --task prepare/shipguard-task.json --diff good.diff "
     "--evidence logs/swift-test-receipt.json --reviewer-disposition accepted --out verify-relative-repair"
 )
+assert summary["repairCommandLabel"] == "Record reviewer outcome without note"
 assert summary["repairNoteCommand"] == (
     "shipguard verify --task prepare/shipguard-task.json --diff good.diff "
     "--evidence logs/swift-test-receipt.json --reviewer-disposition accepted "
     "--reviewer-note '<short maintainer decision note>' --out verify-relative-repair"
 )
+assert summary["repairNoteCommandLabel"] == "Record reviewer outcome with note"
 assert summary["repairEvidenceCount"] == 1
 assert summary["repairNoteTemplate"] == "--reviewer-note '<short maintainer decision note>'"
 assert repair["evidenceCount"] == 1
+assert repair["commandLabel"] == summary["repairCommandLabel"]
 assert repair["noteCommand"] == summary["repairNoteCommand"]
+assert repair["noteCommandLabel"] == summary["repairNoteCommandLabel"]
 assert repair["noteTemplate"] == summary["repairNoteTemplate"]
 PY
-grep -q 'Reviewer disposition summary repair: `shipguard verify --task prepare/shipguard-task.json --diff good.diff --evidence logs/swift-test-receipt.json --reviewer-disposition accepted --out verify-relative-repair`' "$tmp_dir/verify-relative-repair/shipguard-verdict.md"
+grep -q 'Record reviewer outcome without note: `shipguard verify --task prepare/shipguard-task.json --diff good.diff --evidence logs/swift-test-receipt.json --reviewer-disposition accepted --out verify-relative-repair`' "$tmp_dir/verify-relative-repair/shipguard-verdict.md"
 
 cp "$tmp_dir/logs/swift-test-receipt.json" "$tmp_dir/logs/permission-receipt.json"
 (

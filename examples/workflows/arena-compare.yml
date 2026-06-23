@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Compare Arena results
-        uses: jlekerli-source/ShipGuard/actions/arena-compare@v3.174.0
+        uses: jlekerli-source/ShipGuard/actions/arena-compare@v3.175.0
         with:
           left-results: ${{ inputs.left-results }}
           right-results: ${{ inputs.right-results }}
