@@ -31,6 +31,113 @@
     "stableV4GateStatus": "pass",
     "status": "pass"
   },
+  "finalStableV4ClaimPacket": {
+    "allowedClaims": [
+      "Stable-v4 publication proof passed.",
+      "The attached report is the local proof source for the stable-v4 claim."
+    ],
+    "approvalBoundary": {
+      "computerUseMayPost": false,
+      "launchRelayStatus": "ready-to-stage",
+      "publicPostingRequiresExplicitApproval": true
+    },
+    "blockedClaims": [
+      "OpenAI marketplace acceptance is proven.",
+      "Public launch posts were published or submitted.",
+      "GitHub stars, forks, or downloads prove independent adoption."
+    ],
+    "claimBoundary": {
+      "allRequiredEvidenceMustPass": true,
+      "externalPostingClaimed": false,
+      "fixtureProofCountsAsStableV4": false,
+      "githubDownloadCountsCountAsAdoptionEvidence": false,
+      "marketplaceAcceptanceClaimed": false,
+      "sourceOnlyProofCountsAsStableV4": false,
+      "stablePublicationReportRequired": true
+    },
+    "claimDecision": "allowed",
+    "claimPublicationReadiness": {
+      "computerUseMayPost": false,
+      "explicitHumanApprovalRequiredForPosting": true,
+      "firstBlockingGateId": "none",
+      "nextCommand": "",
+      "requiredEvidencePassed": 10,
+      "requiredEvidenceTotal": 10,
+      "stableV4ClaimMayBePublished": true,
+      "status": "pass"
+    },
+    "copyReadyClaim": "ShipGuard 0.0.0 has passed stable-v4 publication proof.",
+    "evidenceSummary": [
+      {
+        "id": "github-release-metadata",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "release-notes",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "launchkey-candidate-packet",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "downloaded-release-assets",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "post-release-consumer-proof",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "public-release-freshness",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "release-version-coherence",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "release-asset-coherence",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "independent-adoption-evidence",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      },
+      {
+        "id": "final-security-review-evidence",
+        "nextCommand": "not-needed",
+        "requiredForStableV4": true,
+        "status": "pass"
+      }
+    ],
+    "firstBlockingGate": null,
+    "missingEvidenceIds": [],
+    "nextCommand": "./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>",
+    "publicEvidenceClosureStatus": "pass",
+    "releaseVersion": "0.0.0",
+    "schemaVersion": 1,
+    "stableV4Release": true,
+    "status": "allowed"
+  },
   "findings": [],
   "fixtureCandidate": {
     "candidateId": "01-shipguard-v4-stable-publication-does-the-stable-publica-f059d5b6",
@@ -98,96 +205,6 @@
   },
   "generatedAt": "2026-06-21T09:51:46Z",
   "intent": "shipguard-evaluation",
-  "releaseNotesProof": {
-    "missingTopicIds": []
-  },
-  "releaseVersionCoherenceProof": {
-    "comparisons": {
-      "consumerDigestAssetsContainRequestedTarball": true,
-      "consumerReportVersionMatchesRequested": true,
-      "manifestArtifactNameMatchesRequestedTarball": true,
-      "manifestTagMatchesRequested": true,
-      "manifestVersionMatchesRequested": true,
-      "metadataAssetsContainRequestedTarball": true,
-      "metadataRequiredAssetsContainRequestedTarball": true,
-      "metadataReturnedTagMatchesRequested": true,
-      "metadataTagMatchesRequested": true,
-      "metadataVersionMatchesRequested": true,
-      "packageVersionMatchesRequested": true,
-      "sourceVersionMatchesRequested": true
-    },
-    "consumerReportVersion": "0.0.0",
-    "expectedTag": "v0.0.0",
-    "expectedTarballName": "shipguard-v0.0.0.tar.gz",
-    "manifestArtifactName": "shipguard-v0.0.0.tar.gz",
-    "manifestTag": "v0.0.0",
-    "manifestVersion": "0.0.0",
-    "metadataTagName": "v0.0.0",
-    "normalizedReleaseVersion": "0.0.0",
-    "packageVersion": "0.0.0",
-    "problems": [],
-    "provided": true,
-    "releaseVersion": "0.0.0",
-    "requiredForStableV4": true,
-    "schemaVersion": 1,
-    "sourceVersion": "0.0.0",
-    "status": "pass",
-    "summary": "Synthetic version coherence fixture; all version fields name the same public-safe test release.",
-    "versionCoherenceBoundary": {
-      "fixtureApiProofCountsAsStableV4PublicationProof": false,
-      "githubMetadataReturnedTagNameMustMatchRequestedTag": true,
-      "sourceOnlyProofCountsAsVersionCoherenceProof": false,
-      "versionMustMatchAcrossSourceMetadataManifestPackageAndConsumerProof": true
-    }
-  },
-  "releaseAssetCoherenceProof": {
-    "assetCoherenceBoundary": {
-      "assetDigestMatrixRequired": true,
-      "downloadedOrSuppliedAssetsRequired": true,
-      "fixtureProofCountsAsStableV4PublicationProof": false,
-      "metadataOnlyProofCountsAsAssetCoherenceProof": false,
-      "sourceOnlyProofCountsAsAssetCoherenceProof": false
-    },
-    "comparisons": {
-      "consumerArtifactShaMatchesDigestTarball": true,
-      "digestAssetsCoverRequired": true,
-      "expectedTarballInDigestAssets": true,
-      "expectedTarballInLocalAssets": true,
-      "expectedTarballInMetadataAssets": true,
-      "expectedTarballInRequiredAssets": true,
-      "localAssetsCoverRequired": true,
-      "manifestArtifactNameMatchesExpectedTarball": true,
-      "manifestArtifactShaMatchesDigestTarball": true
-    },
-    "consumerArtifactSha256": "abc123",
-    "digestAssetNames": [
-      "shipguard-v0.0.0.tar.gz"
-    ],
-    "digestTarballName": "shipguard-v0.0.0.tar.gz",
-    "digestTarballSha256": "abc123",
-    "expectedTarballName": "shipguard-v0.0.0.tar.gz",
-    "localAssetNames": [
-      "shipguard-v0.0.0.tar.gz"
-    ],
-    "manifestArtifactName": "shipguard-v0.0.0.tar.gz",
-    "manifestArtifactSha256": "abc123",
-    "metadataAssetNames": [
-      "shipguard-v0.0.0.tar.gz"
-    ],
-    "missingDigestAssetNames": [],
-    "missingLocalAssetNames": [],
-    "missingSha256AssetNames": [],
-    "problems": [],
-    "provided": true,
-    "releaseVersion": "0.0.0",
-    "requiredAssetNames": [
-      "shipguard-v0.0.0.tar.gz"
-    ],
-    "requiredForStableV4": true,
-    "schemaVersion": 1,
-    "status": "pass",
-    "summary": "Synthetic asset coherence fixture; release asset names and SHA-256 values agree across the public-safe test packet."
-  },
   "publicEvidenceClosureProof": {
     "copyReadyCommands": [
       "cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json",
@@ -251,6 +268,205 @@
     "status": "pass",
     "summary": "Synthetic public evidence closure fixture; adoption and security rows are fresh and claim-bounded."
   },
+  "publicReleaseDeltaProof": {
+    "comparisons": {
+      "localHeadMatchesSelectedPublicReleaseCommit": true,
+      "localMainMatchesSelectedPublicReleaseCommit": true,
+      "packageAssetsVersionMatchesRequestedRelease": true,
+      "publicTagTargetMatchesReleaseManifestCommit": true,
+      "releaseAssetCoherencePassed": true,
+      "releaseManifestVersionMatchesRequestedRelease": true,
+      "releaseVersionCoherencePassed": true,
+      "selectedReleaseMatchesLatestGitHubRelease": true,
+      "sourceVersionMatchesRequestedRelease": true
+    },
+    "latestGitHubReleaseStatus": "pass",
+    "latestGitHubReleaseTag": "v0.0.0",
+    "latestGitHubReleaseVersion": "0.0.0",
+    "localHeadCommit": "0123456789abcdef0123456789abcdef01234567",
+    "localMainCommit": "0123456789abcdef0123456789abcdef01234567",
+    "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
+    "packageVersion": "0.0.0",
+    "problems": [],
+    "releaseDeltaBoundary": {
+      "downloadedOrSuppliedAssetsAreRequiredForPackageTruth": true,
+      "latestPublicGitHubReleaseIsPublicationSource": true,
+      "localHeadIsNotPublicReleaseProof": true,
+      "localMainIsNotPublicReleaseProof": true,
+      "stableV4ClaimCoversSelectedReleaseOnly": true,
+      "unpublishedLocalCodeCountsAsReleased": false
+    },
+    "releaseManifestCommit": "0123456789abcdef0123456789abcdef01234567",
+    "releaseVersion": "0.0.0",
+    "schemaVersion": 1,
+    "selectedGitHubReleaseTag": "v0.0.0",
+    "selectedPublicReleaseCommit": "0123456789abcdef0123456789abcdef01234567",
+    "sourceVersion": "0.0.0",
+    "stableV4ClaimCoversLocalCheckout": true,
+    "stableV4ClaimCoversSelectedPublicRelease": true,
+    "stableV4Release": true,
+    "status": "pass",
+    "summary": "Local source, latest GitHub release, release manifest, package assets, and stable-v4 claim context are aligned.",
+    "unpublishedLocalDelta": false
+  },
+  "releaseAssetCoherenceProof": {
+    "assetCoherenceBoundary": {
+      "assetDigestMatrixRequired": true,
+      "downloadedOrSuppliedAssetsRequired": true,
+      "fixtureProofCountsAsStableV4PublicationProof": false,
+      "metadataOnlyProofCountsAsAssetCoherenceProof": false,
+      "sourceOnlyProofCountsAsAssetCoherenceProof": false
+    },
+    "comparisons": {
+      "consumerArtifactShaMatchesDigestTarball": true,
+      "digestAssetsCoverRequired": true,
+      "expectedTarballInDigestAssets": true,
+      "expectedTarballInLocalAssets": true,
+      "expectedTarballInMetadataAssets": true,
+      "expectedTarballInRequiredAssets": true,
+      "localAssetsCoverRequired": true,
+      "manifestArtifactNameMatchesExpectedTarball": true,
+      "manifestArtifactShaMatchesDigestTarball": true
+    },
+    "consumerArtifactSha256": "abc123",
+    "digestAssetNames": [
+      "shipguard-v0.0.0.tar.gz"
+    ],
+    "digestTarballName": "shipguard-v0.0.0.tar.gz",
+    "digestTarballSha256": "abc123",
+    "expectedTarballName": "shipguard-v0.0.0.tar.gz",
+    "localAssetNames": [
+      "shipguard-v0.0.0.tar.gz"
+    ],
+    "manifestArtifactName": "shipguard-v0.0.0.tar.gz",
+    "manifestArtifactSha256": "abc123",
+    "metadataAssetNames": [
+      "shipguard-v0.0.0.tar.gz"
+    ],
+    "missingDigestAssetNames": [],
+    "missingLocalAssetNames": [],
+    "missingSha256AssetNames": [],
+    "problems": [],
+    "provided": true,
+    "releaseVersion": "0.0.0",
+    "requiredAssetNames": [
+      "shipguard-v0.0.0.tar.gz"
+    ],
+    "requiredForStableV4": true,
+    "schemaVersion": 1,
+    "status": "pass",
+    "summary": "Synthetic asset coherence fixture; release asset names and SHA-256 values agree across the public-safe test packet."
+  },
+  "releaseNotesProof": {
+    "missingTopicIds": []
+  },
+  "releaseVersionCoherenceProof": {
+    "comparisons": {
+      "consumerDigestAssetsContainRequestedTarball": true,
+      "consumerReportVersionMatchesRequested": true,
+      "manifestArtifactNameMatchesRequestedTarball": true,
+      "manifestTagMatchesRequested": true,
+      "manifestVersionMatchesRequested": true,
+      "metadataAssetsContainRequestedTarball": true,
+      "metadataRequiredAssetsContainRequestedTarball": true,
+      "metadataReturnedTagMatchesRequested": true,
+      "metadataTagMatchesRequested": true,
+      "metadataVersionMatchesRequested": true,
+      "packageVersionMatchesRequested": true,
+      "sourceVersionMatchesRequested": true
+    },
+    "consumerReportVersion": "0.0.0",
+    "expectedTag": "v0.0.0",
+    "expectedTarballName": "shipguard-v0.0.0.tar.gz",
+    "manifestArtifactName": "shipguard-v0.0.0.tar.gz",
+    "manifestTag": "v0.0.0",
+    "manifestVersion": "0.0.0",
+    "metadataTagName": "v0.0.0",
+    "normalizedReleaseVersion": "0.0.0",
+    "packageVersion": "0.0.0",
+    "problems": [],
+    "provided": true,
+    "releaseVersion": "0.0.0",
+    "requiredForStableV4": true,
+    "schemaVersion": 1,
+    "sourceVersion": "0.0.0",
+    "status": "pass",
+    "summary": "Synthetic version coherence fixture; all version fields name the same public-safe test release.",
+    "versionCoherenceBoundary": {
+      "fixtureApiProofCountsAsStableV4PublicationProof": false,
+      "githubMetadataReturnedTagNameMustMatchRequestedTag": true,
+      "sourceOnlyProofCountsAsVersionCoherenceProof": false,
+      "versionMustMatchAcrossSourceMetadataManifestPackageAndConsumerProof": true
+    }
+  },
+  "releaseVisibilityHandoff": {
+    "currentPublicReleaseCanBeAnnounced": true,
+    "latestGitHubReleaseTag": "v0.0.0",
+    "latestGitHubReleaseVersion": "0.0.0",
+    "localMainCanBeAnnounced": true,
+    "nextCommand": "./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>",
+    "primaryDecision": "announce-current-public-release",
+    "releaseVersion": "0.0.0",
+    "requiredActions": [
+      {
+        "id": "publish-new-github-release",
+        "nextCommand": "not-needed",
+        "reason": "Synthetic release is aligned.",
+        "required": false,
+        "status": "pass"
+      },
+      {
+        "id": "update-release-notes",
+        "nextCommand": "not-needed",
+        "reason": "Synthetic release notes passed.",
+        "required": false,
+        "status": "pass"
+      },
+      {
+        "id": "attach-launchkey-candidate-proof",
+        "nextCommand": "not-needed",
+        "reason": "Synthetic LaunchKey candidate proof passed.",
+        "required": false,
+        "status": "pass"
+      },
+      {
+        "id": "update-release-assets",
+        "nextCommand": "not-needed",
+        "reason": "Synthetic assets passed.",
+        "required": false,
+        "status": "pass"
+      },
+      {
+        "id": "attach-adoption-security-evidence",
+        "nextCommand": "not-needed",
+        "reason": "Synthetic evidence closure passed.",
+        "required": false,
+        "status": "pass"
+      },
+      {
+        "id": "keep-current-public-release-unchanged",
+        "nextCommand": "./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>",
+        "reason": "The current public release can remain the announcement target.",
+        "required": true,
+        "status": "pass"
+      }
+    ],
+    "schemaVersion": 1,
+    "selectedGitHubReleaseTag": "v0.0.0",
+    "stableV4Release": true,
+    "status": "pass",
+    "summary": "ShipGuard 0.0.0 can be announced from the current public release.",
+    "unpublishedLocalDelta": false,
+    "visibilityBoundary": {
+      "doesNotEditGitHubRelease": true,
+      "doesNotPostExternally": true,
+      "doesNotPublishRelease": true,
+      "latestPublicGitHubReleaseIsPublicationTruth": true,
+      "localHeadIsNotPublicationProof": true,
+      "localMainIsNotPublicationProof": true,
+      "unpublishedLocalCodeCountsAsReleased": false
+    }
+  },
   "reportQualityQuestions": [
     "Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?"
   ],
@@ -298,6 +514,34 @@
   "shareability": {
     "localAbsolutePathsIncluded": false,
     "mode": "shareable"
+  },
+  "stablePublicationClosureChecklist": {
+    "blockedEvidenceIds": [],
+    "blockerCount": 0,
+    "dependencyOrder": [
+      "github-release-metadata",
+      "release-notes",
+      "launchkey-candidate-packet",
+      "downloaded-release-assets",
+      "post-release-consumer-proof",
+      "release-version-coherence",
+      "release-asset-coherence",
+      "independent-adoption-evidence",
+      "final-security-review-evidence"
+    ],
+    "firstBlocker": null,
+    "items": [],
+    "nextCommand": "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet",
+    "noHiddenLowerOrderBlockers": true,
+    "nonClaims": [
+      "This checklist does not prove stable v4 by itself.",
+      "Every listed item must pass from real publication evidence before stable-v4 claims are allowed.",
+      "Do not skip later blockers merely because an earlier gate is still failing."
+    ],
+    "releaseVersion": "<version>",
+    "schemaVersion": 1,
+    "stableV4Release": true,
+    "status": "pass"
   },
   "stablePublicationEvidencePacket": {
     "firstBlockingGate": null,
@@ -429,34 +673,6 @@
     "schemaVersion": 1,
     "stableV4Release": true,
     "status": "pass"
-  },
-  "stablePublicationClosureChecklist": {
-    "schemaVersion": 1,
-    "releaseVersion": "<version>",
-    "status": "pass",
-    "stableV4Release": true,
-    "blockerCount": 0,
-    "blockedEvidenceIds": [],
-    "firstBlocker": null,
-    "items": [],
-    "dependencyOrder": [
-      "github-release-metadata",
-      "release-notes",
-      "launchkey-candidate-packet",
-      "downloaded-release-assets",
-      "post-release-consumer-proof",
-      "release-version-coherence",
-      "release-asset-coherence",
-      "independent-adoption-evidence",
-      "final-security-review-evidence"
-    ],
-    "noHiddenLowerOrderBlockers": true,
-    "nextCommand": "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet",
-    "nonClaims": [
-      "This checklist does not prove stable v4 by itself.",
-      "Every listed item must pass from real publication evidence before stable-v4 claims are allowed.",
-      "Do not skip later blockers merely because an earlier gate is still failing."
-    ]
   },
   "stablePublicationEvidenceStarterKit": {
     "directory": "stable-publication-evidence-kit",
@@ -617,212 +833,6 @@
     "schemaVersion": 1,
     "stableV4Release": true,
     "status": "ready-to-stage"
-  },
-  "publicReleaseDeltaProof": {
-    "comparisons": {
-      "localHeadMatchesSelectedPublicReleaseCommit": true,
-      "localMainMatchesSelectedPublicReleaseCommit": true,
-      "packageAssetsVersionMatchesRequestedRelease": true,
-      "publicTagTargetMatchesReleaseManifestCommit": true,
-      "releaseAssetCoherencePassed": true,
-      "releaseManifestVersionMatchesRequestedRelease": true,
-      "releaseVersionCoherencePassed": true,
-      "selectedReleaseMatchesLatestGitHubRelease": true,
-      "sourceVersionMatchesRequestedRelease": true
-    },
-    "latestGitHubReleaseStatus": "pass",
-    "latestGitHubReleaseTag": "v0.0.0",
-    "latestGitHubReleaseVersion": "0.0.0",
-    "localHeadCommit": "0123456789abcdef0123456789abcdef01234567",
-    "localMainCommit": "0123456789abcdef0123456789abcdef01234567",
-    "nextCommand": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --shipguard-eval --shareable",
-    "packageVersion": "0.0.0",
-    "problems": [],
-    "releaseDeltaBoundary": {
-      "downloadedOrSuppliedAssetsAreRequiredForPackageTruth": true,
-      "latestPublicGitHubReleaseIsPublicationSource": true,
-      "localHeadIsNotPublicReleaseProof": true,
-      "localMainIsNotPublicReleaseProof": true,
-      "stableV4ClaimCoversSelectedReleaseOnly": true,
-      "unpublishedLocalCodeCountsAsReleased": false
-    },
-    "releaseManifestCommit": "0123456789abcdef0123456789abcdef01234567",
-    "releaseVersion": "0.0.0",
-    "schemaVersion": 1,
-    "selectedGitHubReleaseTag": "v0.0.0",
-    "selectedPublicReleaseCommit": "0123456789abcdef0123456789abcdef01234567",
-    "sourceVersion": "0.0.0",
-    "stableV4ClaimCoversLocalCheckout": true,
-    "stableV4ClaimCoversSelectedPublicRelease": true,
-    "stableV4Release": true,
-    "status": "pass",
-    "summary": "Local source, latest GitHub release, release manifest, package assets, and stable-v4 claim context are aligned.",
-    "unpublishedLocalDelta": false
-  },
-  "releaseVisibilityHandoff": {
-    "currentPublicReleaseCanBeAnnounced": true,
-    "latestGitHubReleaseTag": "v0.0.0",
-    "latestGitHubReleaseVersion": "0.0.0",
-    "localMainCanBeAnnounced": true,
-    "nextCommand": "./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>",
-    "primaryDecision": "announce-current-public-release",
-    "releaseVersion": "0.0.0",
-    "requiredActions": [
-      {
-        "id": "publish-new-github-release",
-        "nextCommand": "not-needed",
-        "reason": "Synthetic release is aligned.",
-        "required": false,
-        "status": "pass"
-      },
-      {
-        "id": "update-release-notes",
-        "nextCommand": "not-needed",
-        "reason": "Synthetic release notes passed.",
-        "required": false,
-        "status": "pass"
-      },
-      {
-        "id": "attach-launchkey-candidate-proof",
-        "nextCommand": "not-needed",
-        "reason": "Synthetic LaunchKey candidate proof passed.",
-        "required": false,
-        "status": "pass"
-      },
-      {
-        "id": "update-release-assets",
-        "nextCommand": "not-needed",
-        "reason": "Synthetic assets passed.",
-        "required": false,
-        "status": "pass"
-      },
-      {
-        "id": "attach-adoption-security-evidence",
-        "nextCommand": "not-needed",
-        "reason": "Synthetic evidence closure passed.",
-        "required": false,
-        "status": "pass"
-      },
-      {
-        "id": "keep-current-public-release-unchanged",
-        "nextCommand": "./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>",
-        "reason": "The current public release can remain the announcement target.",
-        "required": true,
-        "status": "pass"
-      }
-    ],
-    "schemaVersion": 1,
-    "selectedGitHubReleaseTag": "v0.0.0",
-    "stableV4Release": true,
-    "status": "pass",
-    "summary": "ShipGuard 0.0.0 can be announced from the current public release.",
-    "unpublishedLocalDelta": false,
-    "visibilityBoundary": {
-      "doesNotEditGitHubRelease": true,
-      "doesNotPostExternally": true,
-      "doesNotPublishRelease": true,
-      "latestPublicGitHubReleaseIsPublicationTruth": true,
-      "localHeadIsNotPublicationProof": true,
-      "localMainIsNotPublicationProof": true,
-      "unpublishedLocalCodeCountsAsReleased": false
-    }
-  },
-  "finalStableV4ClaimPacket": {
-    "allowedClaims": [
-      "Stable-v4 publication proof passed.",
-      "The attached report is the local proof source for the stable-v4 claim."
-    ],
-    "approvalBoundary": {
-      "computerUseMayPost": false,
-      "launchRelayStatus": "ready-to-stage",
-      "publicPostingRequiresExplicitApproval": true
-    },
-    "blockedClaims": [
-      "OpenAI marketplace acceptance is proven.",
-      "Public launch posts were published or submitted.",
-      "GitHub stars, forks, or downloads prove independent adoption."
-    ],
-    "claimBoundary": {
-      "allRequiredEvidenceMustPass": true,
-      "externalPostingClaimed": false,
-      "fixtureProofCountsAsStableV4": false,
-      "githubDownloadCountsCountAsAdoptionEvidence": false,
-      "marketplaceAcceptanceClaimed": false,
-      "sourceOnlyProofCountsAsStableV4": false,
-      "stablePublicationReportRequired": true
-    },
-    "claimDecision": "allowed",
-    "copyReadyClaim": "ShipGuard 0.0.0 has passed stable-v4 publication proof.",
-    "evidenceSummary": [
-      {
-        "id": "github-release-metadata",
-        "nextCommand": "not-needed",
-        "requiredForStableV4": true,
-        "status": "pass"
-      },
-      {
-        "id": "release-notes",
-        "nextCommand": "not-needed",
-        "requiredForStableV4": true,
-        "status": "pass"
-      },
-      {
-        "id": "launchkey-candidate-packet",
-        "nextCommand": "not-needed",
-        "requiredForStableV4": true,
-        "status": "pass"
-      },
-      {
-        "id": "downloaded-release-assets",
-        "nextCommand": "not-needed",
-        "requiredForStableV4": true,
-        "status": "pass"
-      },
-      {
-        "id": "post-release-consumer-proof",
-        "nextCommand": "not-needed",
-        "requiredForStableV4": true,
-        "status": "pass"
-      },
-      {
-        "id": "public-release-freshness",
-        "nextCommand": "not-needed",
-        "requiredForStableV4": true,
-        "status": "pass"
-      },
-      {
-        "id": "release-version-coherence",
-        "nextCommand": "not-needed",
-        "requiredForStableV4": true,
-        "status": "pass"
-      },
-      {
-        "id": "release-asset-coherence",
-        "nextCommand": "not-needed",
-        "requiredForStableV4": true,
-        "status": "pass"
-      },
-      {
-        "id": "independent-adoption-evidence",
-        "nextCommand": "not-needed",
-        "requiredForStableV4": true,
-        "status": "pass"
-      },
-      {
-        "id": "final-security-review-evidence",
-        "nextCommand": "not-needed",
-        "requiredForStableV4": true,
-        "status": "pass"
-      }
-    ],
-    "firstBlockingGate": null,
-    "missingEvidenceIds": [],
-    "nextCommand": "./bin/shipguard value-gauntlet --path . --out <gauntlet-dir>",
-    "publicEvidenceClosureStatus": "pass",
-    "releaseVersion": "0.0.0",
-    "schemaVersion": 1,
-    "stableV4Release": true,
-    "status": "allowed"
   },
   "stablePublicationReleaseNotesAuthoringKit": {
     "directory": "stable-publication-release-notes",

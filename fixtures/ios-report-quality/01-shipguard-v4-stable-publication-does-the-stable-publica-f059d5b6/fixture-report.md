@@ -226,6 +226,8 @@ Public posting, publishing, submission, or account-visible external actions requ
 - Claim decision: `allowed`
 - Stable v4 release: `True`
 - Public evidence closure: `pass`
+- Claim may be published: `True`
+- First publication blocker: `none`
 - Public posting requires explicit approval: `True`
 - Computer-use may post: `False`
 - Source-only proof counts as stable v4: `False`

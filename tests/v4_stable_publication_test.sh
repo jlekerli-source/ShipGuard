@@ -566,6 +566,14 @@ final_claim = report["finalStableV4ClaimPacket"]
 assert final_claim["status"] == "blocked"
 assert final_claim["claimDecision"] == "blocked"
 assert final_claim["stableV4Release"] is False
+readiness = final_claim["claimPublicationReadiness"]
+assert readiness["status"] == "blocked"
+assert readiness["stableV4ClaimMayBePublished"] is False
+assert readiness["firstBlockingGateId"] == "independent-adoption-evidence"
+assert readiness["requiredEvidencePassed"] < readiness["requiredEvidenceTotal"]
+assert readiness["nextCommand"].startswith("./bin/shipguard ")
+assert readiness["explicitHumanApprovalRequiredForPosting"] is True
+assert readiness["computerUseMayPost"] is False
 assert "Do not claim ShipGuard" in final_claim["copyReadyClaim"]
 assert final_claim["allowedClaims"] == []
 delta_summary = final_claim["publicReleaseDeltaSummary"]
@@ -1400,6 +1408,14 @@ final_claim = report["finalStableV4ClaimPacket"]
 assert final_claim["status"] == "allowed"
 assert final_claim["claimDecision"] == "allowed"
 assert final_claim["stableV4Release"] is True
+readiness = final_claim["claimPublicationReadiness"]
+assert readiness["status"] == "pass"
+assert readiness["stableV4ClaimMayBePublished"] is True
+assert readiness["firstBlockingGateId"] == "none"
+assert readiness["requiredEvidencePassed"] == readiness["requiredEvidenceTotal"]
+assert readiness["nextCommand"] == ""
+assert readiness["explicitHumanApprovalRequiredForPosting"] is True
+assert readiness["computerUseMayPost"] is False
 assert "has passed stable-v4 publication proof" in final_claim["copyReadyClaim"]
 assert final_claim["allowedClaims"]
 delta_summary = final_claim["publicReleaseDeltaSummary"]

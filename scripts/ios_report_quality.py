@@ -5677,6 +5677,11 @@ def stable_publication_evidence_packet_issues(
     elif final_claim:
         boundary = final_claim.get("claimBoundary") if isinstance(final_claim.get("claimBoundary"), dict) else {}
         approval = final_claim.get("approvalBoundary") if isinstance(final_claim.get("approvalBoundary"), dict) else {}
+        readiness = (
+            final_claim.get("claimPublicationReadiness")
+            if isinstance(final_claim.get("claimPublicationReadiness"), dict)
+            else {}
+        )
         evidence_summary = final_claim.get("evidenceSummary") if isinstance(final_claim.get("evidenceSummary"), list) else []
         expected_decision = "allowed" if report.get("stableV4Release") is True else "blocked"
         if final_claim.get("claimDecision") != expected_decision or final_claim.get("stableV4Release") is not report.get("stableV4Release"):
@@ -5686,6 +5691,20 @@ def stable_publication_evidence_packet_issues(
                 rule_id="stable-publication-final-claim-decision-mismatch",
                 evidence=f"{path_name} finalStableV4ClaimPacket does not match stableV4Release={report.get('stableV4Release')}",
                 recommendation="Set the final claim decision from the stable-publication status so blocked reports cannot emit allowed v4 wording.",
+            )
+        if (
+            readiness.get("stableV4ClaimMayBePublished") is not (expected_decision == "allowed")
+            or readiness.get("explicitHumanApprovalRequiredForPosting") is not True
+            or readiness.get("computerUseMayPost") is not False
+            or (expected_decision == "blocked" and not readiness.get("firstBlockingGateId"))
+            or (expected_decision == "blocked" and not readiness.get("nextCommand"))
+        ):
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-final-claim-readiness-missing",
+                evidence=f"{path_name} finalStableV4ClaimPacket lacks a consistent claimPublicationReadiness gate",
+                recommendation="Expose claimPublicationReadiness with publishable status, first blocker, next command, and explicit human-approval/computer-use posting boundaries.",
             )
         if not final_claim.get("copyReadyClaim") or not isinstance(final_claim.get("blockedClaims"), list) or not final_claim.get("blockedClaims"):
             add_issue(
@@ -5779,7 +5798,7 @@ def stable_publication_evidence_packet_issues(
                     evidence=f"{path_name} renders final claim delta inside the evidence table",
                     recommendation="Render final claim evidence rows contiguously, then render the public-release delta summary after the table.",
                 )
-        if "Final Stable V4 Claim Packet" not in markdown or "Copy-ready claim" not in markdown:
+        if "Final Stable V4 Claim Packet" not in markdown or "Copy-ready claim" not in markdown or "Claim may be published" not in markdown:
             add_issue(
                 issues,
                 severity="review",

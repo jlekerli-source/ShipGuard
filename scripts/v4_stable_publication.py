@@ -2196,7 +2196,12 @@ def build_final_stable_v4_claim_packet(
     passed = int(evidence_packet.get("passedEvidenceCount") or 0)
     total = int(evidence_packet.get("requiredEvidenceCount") or len(required))
     first_blocker_id = str(first_blocker.get("id") or first_blocker.get("receipt") or "none")
-    next_command = str(first_blocker.get("nextCommand") or rerun_command)
+    first_blocker_next_command = str(first_blocker.get("nextCommand") or "").strip()
+    next_command = (
+        first_blocker_next_command
+        if first_blocker_next_command and first_blocker_next_command not in {"not-needed", "blocked-by-required-actions"}
+        else rerun_command
+    )
     claim_status = "allowed" if stable_v4_release else "blocked"
     delta_boundary = public_release_delta_proof.get("releaseDeltaBoundary") if isinstance(public_release_delta_proof.get("releaseDeltaBoundary"), dict) else {}
     public_delta_summary = {
@@ -2225,12 +2230,23 @@ def build_final_stable_v4_claim_packet(
         if stable_v4_release
         else f"Do not claim ShipGuard {release_version} as stable v4 yet. Stable-publication is {passed}/{total}; first blocker: {first_blocker_id}.{local_delta_note}"
     )
+    claim_publication_readiness = {
+        "status": "pass" if stable_v4_release else "blocked",
+        "stableV4ClaimMayBePublished": stable_v4_release,
+        "firstBlockingGateId": "none" if stable_v4_release else first_blocker_id,
+        "requiredEvidencePassed": passed,
+        "requiredEvidenceTotal": total,
+        "nextCommand": "" if stable_v4_release else next_command,
+        "explicitHumanApprovalRequiredForPosting": True,
+        "computerUseMayPost": False,
+    }
     return {
         "schemaVersion": 1,
         "releaseVersion": release_version,
         "status": claim_status,
         "stableV4Release": stable_v4_release,
         "claimDecision": claim_status,
+        "claimPublicationReadiness": claim_publication_readiness,
         "copyReadyClaim": copy_ready_claim,
         "allowedClaims": (
             [
@@ -4785,6 +4801,8 @@ def render_markdown(report: dict[str, Any]) -> str:
                 f"- Claim decision: `{final_claim.get('claimDecision')}`",
                 f"- Stable v4 release: `{final_claim.get('stableV4Release')}`",
                 f"- Public evidence closure: `{final_claim.get('publicEvidenceClosureStatus')}`",
+                f"- Claim may be published: `{(final_claim.get('claimPublicationReadiness') or {}).get('stableV4ClaimMayBePublished')}`",
+                f"- First publication blocker: `{(final_claim.get('claimPublicationReadiness') or {}).get('firstBlockingGateId')}`",
                 f"- Public posting requires explicit approval: `{approval.get('publicPostingRequiresExplicitApproval')}`",
                 f"- Computer-use may post: `{approval.get('computerUseMayPost')}`",
                 f"- Source-only proof counts as stable v4: `{boundary.get('sourceOnlyProofCountsAsStableV4')}`",
