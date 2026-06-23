@@ -260,6 +260,8 @@ v3.201 adds stable-publication external evidence source-class matrices: public e
 
 v3.202 promotes the stable-publication external evidence source-class fixture: the public fixture now proves source-class visibility in JSON and Markdown, keeps weak substitutes such as private maintainer QA, download counts, fixture records, stale records, and vague self-review from being mistaken for adoption/security proof, and advances the external-evidence index to source-class fixture polish.
 
+v3.203 polishes the stable-publication external evidence source-class fixture index: report-quality now shows accepted evidence classes, actor/reviewer relationship fields, accepted relationships, rejected substitutes, and pass boundaries in one compact source-class summary, then advances the remaining external-evidence target to the next gap promotion.
+
 v3.136 public-release catch-up makes the stable-publication release visibility handoff copy-ready: when the primary decision is `publish-new-github-release`, the action row now points at the generated `gh release create ...` command with the report output draft release notes and required release-proof assets instead of a placeholder.
 
 v3.137 makes that public-release packet fully asset-path aware: when stable-publication has a supplied or downloaded release-assets directory, the generated `gh release create ...` handoff uses those concrete files instead of `<release-proof-assets-dir>` placeholders.

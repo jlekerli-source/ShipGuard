@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Polished the stable-publication external evidence source-class fixture index: report-quality now renders a compact source-class summary with accepted evidence classes, actor/reviewer relationship fields, accepted relationships, rejected substitutes, and pass boundaries, then advances the remaining external-evidence target beyond source-class polish.
 - Promoted the stable-publication external evidence source-class fixture: report-quality now has a public synthetic fixture proving accepted source classes, actor/reviewer relationship fields, rejected substitutes, pass boundaries, and Markdown visibility stay regression-covered.
 - Added stable-publication external evidence source-class matrices: generated reports now show accepted adoption/security evidence classes, required actor/reviewer relationships, rejected substitutes, and pass boundaries in JSON and Markdown, and report-quality guards the v2 closure contract.
 - Promoted the stable-publication external evidence freshness fixture: report-quality now has a public synthetic fixture proving stale adoption/security records are rejected when their `generatedAt` timestamps predate the release manifest, and the external evidence fixture index advances the next gap to source-class clarity.

@@ -80,18 +80,18 @@
       "external-evidence-freshness-fixture",
       "external-evidence-source-class-fixture"
     ],
-    "nextPromotionTarget": "external-evidence-source-class-fixture-polish",
+    "nextPromotionTarget": "external-evidence-next-gap-promotion",
     "nonClaimSummary": "This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.",
     "remainingExternalEvidenceQuestions": [
-      "external-evidence-source-class-fixture-polish"
+      "external-evidence-next-gap-promotion"
     ],
-    "verdict": "Adoption, security-review, freshness, and source-class fixture questions are covered; source-class polish remains the next promotion target."
+    "verdict": "Adoption, security-review, freshness, and source-class fixture questions are covered; source-class summaries are visible and the next gap promotion remains."
   },
   "expectedCount": 4,
   "nextFixtureToPromote": {
-    "id": "external-evidence-source-class-fixture-polish",
+    "id": "external-evidence-next-gap-promotion",
     "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
-    "summary": "Polish the source-class fixture and index copy so maintainers can see the next useful evidence-quality refinement."
+    "summary": "Promote the next stable-publication external-evidence gap found by real report QA without treating fixtures as adoption or security proof."
   },
   "nonClaims": [
     "Fixture coverage proves report-quality behavior only.",
@@ -102,11 +102,55 @@
   "purpose": "Compact index of public stable-publication external-evidence fixture coverage.",
   "remainingExternalEvidenceGaps": [
     {
-      "id": "external-evidence-source-class-fixture-polish",
+      "id": "external-evidence-next-gap-promotion",
       "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
-      "summary": "Polish the source-class fixture and index copy so maintainers can see the next useful evidence-quality refinement."
+      "summary": "Promote the next stable-publication external-evidence gap found by real report QA without treating fixtures as adoption or security proof."
     }
   ],
   "schemaVersion": 1,
+  "sourceClassPolishSummary": [
+    {
+      "acceptedEvidenceClasses": [
+        "public-external",
+        "private-redacted-external"
+      ],
+      "acceptedRelationships": [
+        "independent"
+      ],
+      "evidence": "independent-adoption-evidence",
+      "passBoundary": "Requires redacted/public command and artifact evidence from an independent actor.",
+      "rejectedSubstitutes": [
+        "GitHub stars",
+        "GitHub forks",
+        "download counts",
+        "maintainer-only private app runs",
+        "fixtureSynthetic records",
+        "stale generatedAt records",
+        "unchanged starter templates"
+      ],
+      "requiredRelationshipField": "actorRelationship"
+    },
+    {
+      "acceptedEvidenceClasses": [
+        "public-security-review",
+        "private-redacted-security-review"
+      ],
+      "acceptedRelationships": [
+        "independent",
+        "maintainer-security-review"
+      ],
+      "evidence": "final-security-review-evidence",
+      "passBoundary": "Requires reviewed stable-v4 surfaces, methodology, findings summary, artifacts, redaction, and no open critical/high findings.",
+      "rejectedSubstitutes": [
+        "fixtureSynthetic records",
+        "stale generatedAt records",
+        "vague self-review notes",
+        "missing required surfaces",
+        "open critical/high findings",
+        "unchanged starter templates"
+      ],
+      "requiredRelationshipField": "reviewerRelationship"
+    }
+  ],
   "status": "pass"
 }

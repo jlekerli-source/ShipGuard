@@ -7,10 +7,10 @@ Covered: `4/4`
 
 ## Decision Summary
 
-- Verdict: Adoption, security-review, freshness, and source-class fixture questions are covered; source-class polish remains the next promotion target.
+- Verdict: Adoption, security-review, freshness, and source-class fixture questions are covered; source-class summaries are visible and the next gap promotion remains.
 - Covered evidence classes: independent-adoption-evidence, final-security-review-evidence, external-evidence-freshness-fixture, external-evidence-source-class-fixture
-- Remaining questions: external-evidence-source-class-fixture-polish
-- Next promotion target: `external-evidence-source-class-fixture-polish`
+- Remaining questions: external-evidence-next-gap-promotion
+- Next promotion target: `external-evidence-next-gap-promotion`
 - Non-claim: This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.
 
 ## Coverage
@@ -22,9 +22,16 @@ Covered: `4/4`
 | `external-evidence-freshness-fixture` | `covered` | `fixtures/ios-report-quality/stable-publication-external-evidence-freshness` | stale adoption/security evidence rejected | release manifest generatedAt, evidence generatedAt, stale record count, freshness boundary, non-claims |
 | `external-evidence-source-class-fixture` | `covered` | `fixtures/ios-report-quality/stable-publication-external-evidence-source-classes` | weak substitutes rejected as adoption/security proof | accepted evidence classes, actor/reviewer relationship fields, accepted relationships, rejected substitutes, pass boundaries, Markdown visibility |
 
+## Source-Class Summary
+
+| Evidence | Accepted Classes | Relationship Field | Accepted Relationships | Rejected Substitutes | Pass Boundary |
+| --- | --- | --- | --- | --- | --- |
+| `independent-adoption-evidence` | public-external, private-redacted-external | `actorRelationship` | independent | GitHub stars, GitHub forks, download counts, maintainer-only private app runs, fixtureSynthetic records, stale generatedAt records, unchanged starter templates | Requires redacted/public command and artifact evidence from an independent actor. |
+| `final-security-review-evidence` | public-security-review, private-redacted-security-review | `reviewerRelationship` | independent, maintainer-security-review | fixtureSynthetic records, stale generatedAt records, vague self-review notes, missing required surfaces, open critical/high findings, unchanged starter templates | Requires reviewed stable-v4 surfaces, methodology, findings summary, artifacts, redaction, and no open critical/high findings. |
+
 ## Remaining Gaps
 
-- `external-evidence-source-class-fixture-polish`: Polish the source-class fixture and index copy so maintainers can see the next useful evidence-quality refinement. Suggested path: `fixtures/ios-report-quality/stable-publication-external-evidence-source-classes`
+- `external-evidence-next-gap-promotion`: Promote the next stable-publication external-evidence gap found by real report QA without treating fixtures as adoption or security proof. Suggested path: `fixtures/ios-report-quality/stable-publication-external-evidence-source-classes`
 
 ## Non-Claims
 

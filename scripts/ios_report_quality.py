@@ -9897,6 +9897,39 @@ def stable_publication_external_evidence_fixture_index(
     existing_fixtures: dict[str, dict[str, Any]],
     fixture_coverage: list[dict[str, Any]],
 ) -> dict[str, Any]:
+    source_class_polish_summary = [
+        {
+            "evidence": "independent-adoption-evidence",
+            "acceptedEvidenceClasses": ["public-external", "private-redacted-external"],
+            "requiredRelationshipField": "actorRelationship",
+            "acceptedRelationships": ["independent"],
+            "rejectedSubstitutes": [
+                "GitHub stars",
+                "GitHub forks",
+                "download counts",
+                "maintainer-only private app runs",
+                "fixtureSynthetic records",
+                "stale generatedAt records",
+                "unchanged starter templates",
+            ],
+            "passBoundary": "Requires redacted/public command and artifact evidence from an independent actor.",
+        },
+        {
+            "evidence": "final-security-review-evidence",
+            "acceptedEvidenceClasses": ["public-security-review", "private-redacted-security-review"],
+            "requiredRelationshipField": "reviewerRelationship",
+            "acceptedRelationships": ["independent", "maintainer-security-review"],
+            "rejectedSubstitutes": [
+                "fixtureSynthetic records",
+                "stale generatedAt records",
+                "vague self-review notes",
+                "missing required surfaces",
+                "open critical/high findings",
+                "unchanged starter templates",
+            ],
+            "passBoundary": "Requires reviewed stable-v4 surfaces, methodology, findings summary, artifacts, redaction, and no open critical/high findings.",
+        },
+    ]
     expected = [
         {
             "id": "independent-adoption-evidence",
@@ -9975,8 +10008,8 @@ def stable_publication_external_evidence_fixture_index(
         )
     missing = [row for row in rows if row["status"] != "covered"]
     next_gap = {
-        "id": "external-evidence-source-class-fixture-polish",
-        "summary": "Polish the source-class fixture and index copy so maintainers can see the next useful evidence-quality refinement.",
+        "id": "external-evidence-next-gap-promotion",
+        "summary": "Promote the next stable-publication external-evidence gap found by real report QA without treating fixtures as adoption or security proof.",
         "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
     }
     next_target = missing[0] if missing else next_gap
@@ -9995,7 +10028,7 @@ def stable_publication_external_evidence_fixture_index(
         "coveredCount": len(rows) - len(missing),
         "expectedCount": len(rows),
         "decisionSummary": {
-            "verdict": "Adoption, security-review, freshness, and source-class fixture questions are covered; source-class polish remains the next promotion target."
+            "verdict": "Adoption, security-review, freshness, and source-class fixture questions are covered; source-class summaries are visible and the next gap promotion remains."
             if not missing
             else "Stable-publication external evidence fixture coverage is incomplete.",
             "coveredEvidenceClasses": covered_classes,
@@ -10003,6 +10036,7 @@ def stable_publication_external_evidence_fixture_index(
             "nextPromotionTarget": next_target.get("id") or next_target.get("candidateId") or "unknown",
             "nonClaimSummary": "This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.",
         },
+        "sourceClassPolishSummary": source_class_polish_summary,
         "rows": rows,
         "remainingExternalEvidenceGaps": [next_gap],
         "nextFixtureToPromote": next_target,
@@ -10260,6 +10294,24 @@ def render_markdown(report: dict[str, Any]) -> str:
             lines.append(
                 f"| `{item.get('id') or 'unknown'}` | `{item.get('status') or 'unknown'}` | `{table_cell(item.get('publicFixturePath') or '-', 72)}` | {table_cell(item.get('rejectionProved') or '-')} | {table_cell(required, 120)} |"
             )
+        source_summary = external_index.get("sourceClassPolishSummary") or []
+        if source_summary:
+            lines.extend(
+                [
+                    "",
+                    "Source-class summary:",
+                    "",
+                    "| Evidence | Accepted classes | Relationship field | Accepted relationships | Rejected substitutes | Pass boundary |",
+                    "| --- | --- | --- | --- | --- | --- |",
+                ]
+            )
+            for item in source_summary:
+                accepted = ", ".join(str(value) for value in item.get("acceptedEvidenceClasses") or [])
+                relationships = ", ".join(str(value) for value in item.get("acceptedRelationships") or [])
+                rejected = ", ".join(str(value) for value in item.get("rejectedSubstitutes") or [])
+                lines.append(
+                    f"| `{item.get('evidence') or 'unknown'}` | {table_cell(accepted, 90)} | `{item.get('requiredRelationshipField') or '-'}` | {table_cell(relationships or '-', 70)} | {table_cell(rejected, 130)} | {table_cell(item.get('passBoundary') or '-', 130)} |"
+                )
         next_fixture = external_index.get("nextFixtureToPromote") if isinstance(external_index.get("nextFixtureToPromote"), dict) else {}
         if next_fixture:
             lines.extend(["", "Next fixture to promote:"])
