@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Promoted the stable-publication adoption evidence checklist into a public report-quality fixture: weak adoption signals are rejected, independent adoption proof requires actor, commands, artifacts, redaction, outcome, and non-claims, and recursive fixture candidates stay suppressed.
 - Added a stable-publication adoption evidence checklist: generated adoption templates, starter kits, and reports now name accepted evidence classes, independent actor requirement, proof fields, artifact expectations, redaction boundaries, weak-signal exclusions, and the pass decision; report-quality flags missing or incomplete adoption checklists.
 - Added a stable-publication security-review evidence checklist: generated evidence templates, starter kits, and reports now name required review surfaces, critical/high severity thresholds, required fields, redaction boundaries, and the pass decision; report-quality flags missing or incomplete security checklists.
 - Added a stable-publication external evidence intake guard: generated evidence kits now carry a copy-ready intake checklist for adoption and security-review evidence classes, required fields, and redaction boundaries, and report-quality flags missing or incomplete intake contracts.

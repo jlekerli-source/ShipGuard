@@ -7656,6 +7656,37 @@ assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-sh
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 
+stable_publication_adoption_fixture="fixtures/ios-report-quality/stable-publication-adoption-evidence-checklist"
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_adoption_fixture" \
+  --out "$tmp_dir/stable-publication-adoption-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/stable-publication-adoption-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/stable-publication-adoption-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/stable-publication-adoption-evidence-checklist"' "$tmp_dir/stable-publication-adoption-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/stable-publication-adoption-fixture-quality/ios-report-quality.json"
+grep -q 'Adoption Weak Signal Rejection' "$stable_publication_adoption_fixture/fixture-report.md"
+grep -q 'actorRelationship `independent`, commands, artifacts, outcome, nonClaims' "$stable_publication_adoption_fixture/fixture-report.md"
+grep -q '"weakSignalExclusions":' "$stable_publication_adoption_fixture/fixture-report.json"
+grep -q '"missingFields":' "$stable_publication_adoption_fixture/fixture-report.json"
+python3 - <<'PY' "$tmp_dir/stable-publication-adoption-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard v4 stable-publication", item
+assert item.get("fixtureType") == "shipguard-release-proof-quality-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/stable-publication-adoption-evidence-checklist", item
+assert "weak adoption signals" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/stable-publication-adoption-evidence-checklist", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
+
 stable_publication_missing_intake="$tmp_dir/stable-publication-missing-intake"
 mkdir -p "$stable_publication_missing_intake"
 python3 - <<'PY' "$stable_publication_launch_relay_fixture/fixture-report.json" "$stable_publication_launch_relay_fixture/fixture-report.md" "$stable_publication_missing_intake"

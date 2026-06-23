@@ -246,6 +246,8 @@ v3.194 adds a stable-publication security-review evidence checklist: generated e
 
 v3.195 adds a stable-publication adoption evidence checklist: generated adoption templates, starter kits, and reports now name accepted evidence classes, independent actor requirement, proof fields, artifact expectations, redaction boundaries, weak-signal exclusions, and the pass decision, while report-quality flags missing or incomplete adoption checklists.
 
+v3.196 promotes the stable-publication adoption evidence checklist into a public report-quality fixture: weak adoption signals are rejected, independent adoption proof requires actor, commands, artifacts, redaction, outcome, and non-claims, and recursive fixture candidates stay suppressed without private app data.
+
 v3.136 public-release catch-up makes the stable-publication release visibility handoff copy-ready: when the primary decision is `publish-new-github-release`, the action row now points at the generated `gh release create ...` command with the report output draft release notes and required release-proof assets instead of a placeholder.
 
 v3.137 makes that public-release packet fully asset-path aware: when stable-publication has a supplied or downloaded release-assets directory, the generated `gh release create ...` handoff uses those concrete files instead of `<release-proof-assets-dir>` placeholders.
