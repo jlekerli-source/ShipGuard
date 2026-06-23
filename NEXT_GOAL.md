@@ -1,24 +1,24 @@
 # Next Goal
 
-- Generated: 2026-06-23T03:54:29Z
-- Current toolkit version: 3.151.0
-- Target release: v3.151.0
-- Title: Lean Debt marker-visibility fixture
+- Generated: 2026-06-23T04:07:26Z
+- Current toolkit version: 3.152.0
+- Target release: v3.152.0
+- Title: Lean Debt benchmark-savings honesty fixture
 
 ## Version Lineage Check
 
 - Status: pass
-- VERSION: 3.151.0
-- Expected next release from VERSION: v3.152.0
-- Planned target release: v3.151.0
-- Current checkout package artifact: dist/shipguard-v3.151.0.tar.gz
-- Release package artifact to build: dist/shipguard-v3.151.0.tar.gz
-- Action: VERSION already names v3.151.0; build, verify, publish, and consume dist/shipguard-v3.151.0.tar.gz before generating the next goal.
+- VERSION: 3.152.0
+- Expected next release from VERSION: v3.153.0
+- Planned target release: v3.152.0
+- Current checkout package artifact: dist/shipguard-v3.152.0.tar.gz
+- Release package artifact to build: dist/shipguard-v3.152.0.tar.gz
+- Action: VERSION already names v3.152.0; build, verify, publish, and consume dist/shipguard-v3.152.0.tar.gz before generating the next goal.
 
 ## Slash Plan
 
 ```text
-/plan v3.151.0 Lean Debt marker-visibility fixture for jlekerli-source/ShipGuard:
+/plan v3.152.0 Lean Debt benchmark-savings honesty fixture for jlekerli-source/ShipGuard:
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
@@ -28,19 +28,19 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.151.0 Lean Debt marker-visibility fixture for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.152.0 Lean Debt benchmark-savings honesty fixture for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Completion Receipt
 
-- Completed scope: Lean Debt marker-visibility fixture is now the v3.151 release-line target: public fixture coverage verifies markerVisibilityReview rows, ceiling and upgrade-trigger counts, tracked and needs-trigger statuses, Markdown rendering, negative missing/row/mismatch report-quality guards, and no recursive fixture candidates. This slice promoted the already-implemented behavior to VERSION 3.151.0 and refreshed release-consumption docs/examples.
-- Evidence: Commit a4a9712d18443bd97a3833dffde3dd0f39288945 pushed to main. Local proof passed: git diff --check; python3 -m py_compile scripts/lean_debt.py scripts/ios_report_quality.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3.151; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; action example test batch; env PREFIX="/Users/omarat-turkmani/.local" ./scripts/install.sh && ./bin/shipguard codex status --strict; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet-v3.151; ./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet-v3.151 --out /tmp/shipguard-value-quality-v3.151 --shareable. GitHub Actions passed: https://github.com/jlekerli-source/ShipGuard/actions/runs/28000838664. Release proof built at /tmp/shipguard-v3.151.0-proof; public asset consumer proof passed at /tmp/shipguard-v3.151.0-consume; tarball SHA-256 c3dc8176d4858c011c1af462389f32ca144d2e0071dee3d6707ab60d58daf964 matched proof, asset copy, and dist/shipguard-v3.151.0.tar.gz. v4 release candidate passed at /tmp/shipguard-v3.151.0-candidate. Stable-publication remained honestly blocked with exit 1 at /tmp/shipguard-v3.151.0-stable-publication: status review, stable publication 3/10, first blocker github-release-metadata, and external adoption/security template evidence is not valid stable-v4 proof.
+- Completed scope: Lean Debt benchmark-savings honesty fixture is now the v3.152 release-line target: standalone Lean Debt emits currentRepoBoundary.perRepoSavingsClaim=not-computed, evidenceType=shortcut-ledger-only, explicit no-claim text, and a lean gain benchmark route; ios report-quality covers the public fixture plus fake-savings, incomplete-boundary, and missing-Markdown negative guards. This slice promoted the already-implemented behavior to VERSION 3.152.0 and refreshed release-consumption docs/examples.
+- Evidence: Commit c2f653777588836543c256e5bd6b035854dc2376 pushed to main. Local proof passed: git diff --check; python3 -m py_compile scripts/lean_debt.py scripts/ios_report_quality.py; ./tests/lean_audit_test.sh; ./tests/ios_report_quality_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3.152; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; action example test batch; env PREFIX="/Users/omarat-turkmani/.local" ./scripts/install.sh && ./bin/shipguard codex status --strict; ./tests/package_release_test.sh; ./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet-v3.152; ./bin/shipguard ios report-quality --reports /tmp/shipguard-value-gauntlet-v3.152 --out /tmp/shipguard-value-quality-v3.152 --shareable. GitHub Actions passed: https://github.com/jlekerli-source/ShipGuard/actions/runs/28001303890. Release proof built at /tmp/shipguard-v3.152.0-proof; public asset consumer proof passed at /tmp/shipguard-v3.152.0-consume; tarball SHA-256 03909db50456bb46ee42fe8dce125c054e1a512a90976514dff7acbc883f79fd matched proof, asset copy, and dist/shipguard-v3.152.0.tar.gz. v4 release candidate passed at /tmp/shipguard-v3.152.0-candidate. Stable-publication remained honestly blocked with exit 1 at /tmp/shipguard-v3.152.0-stable-publication: status review, stable publication 2/10, first blocker github-release-metadata, stableV4ClaimMayBePublished false, computerUseMayPost false.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.152.0 Lean Debt benchmark-savings honesty fixture for jlekerli-source/ShipGuard:
+/plan v3.153.0 Lean Debt rot-risk visibility fixture for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -50,13 +50,13 @@
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.152.0 Lean Debt benchmark-savings honesty fixture for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.153.0 Lean Debt rot-risk visibility fixture for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.152.0 --title "Lean Debt benchmark-savings honesty fixture" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.153.0 --title "Lean Debt rot-risk visibility fixture" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -156,12 +156,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.151.0.
+1. Open or update the tracking issue for v3.152.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Build `dist/shipguard-v3.151.0.tar.gz`, create release `v3.151.0`, upload the rebuilt tarball, and consume release proof.
+6. Build `dist/shipguard-v3.152.0.tar.gz`, create release `v3.152.0`, upload the rebuilt tarball, and consume release proof.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
