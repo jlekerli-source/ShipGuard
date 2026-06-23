@@ -1,0 +1,456 @@
+# Synthetic Report-Quality Fixture
+
+## ShipGuard Evaluation Boundary
+
+This is a public synthetic ShipGuard fixture. It is not copied from a private app report.
+
+## Scan Scope
+
+No private source tree was scanned. The fixture exists to exercise report-quality behavior.
+
+## Fixture Intent
+
+- Type: `shipguard-release-proof-quality-fixture`
+- Source tool: `shipguard v4 stable-publication`
+- Source question: Does stable-publication require external adoption and final security-review evidence to carry an explicit expiry window beyond generatedAt freshness?
+
+# ShipGuard V4 Stable Publication Proof
+
+## External Evidence Freshness
+
+- Release manifest generatedAt: `2026-06-20T00:00:00Z`
+- External adoption freshness: `review`
+- Security review freshness: `review`
+- Stale adoption records: `1`
+- Stale security-review records: `1`
+- Freshness boundary: external evidence `generatedAt` must be no earlier than the release manifest timestamp; source-only, fixture, package, and download-count proof cannot refresh it.
+
+
+
+## Public Evidence Closure
+
+### External Evidence Source-Class Matrix
+
+| Evidence | Accepted classes | Relationship field | Accepted relationships | Rejected substitutes | Pass boundary |
+| --- | --- | --- | --- | --- | --- |
+| `independent-adoption-evidence` | public-external, private-redacted-external | `actorRelationship` | independent | GitHub stars, GitHub forks, download counts, maintainer-only private app runs, fixtureSynthetic records, stale generatedAt records, unchanged starter templates | Requires redacted/public command and artifact evidence from an independent actor. |
+| `final-security-review-evidence` | public-security-review, private-redacted-security-review | `reviewerRelationship` | independent, maintainer-security-review | fixtureSynthetic records, stale generatedAt records, vague self-review notes, missing required surfaces, open critical/high findings, unchanged starter templates | Requires reviewed stable-v4 surfaces, methodology, findings summary, artifacts, redaction, and no open critical/high findings. |
+
+Public evidence non-claims:
+
+- GitHub stars, forks, or download counts are not independent adoption evidence.
+- Maintainer-only private app QA is not independent adoption evidence.
+- Fixture records and stale records prove report-quality behavior only.
+- Vague self-review notes or open critical/high findings cannot satisfy final security-review proof.
+
+
+## External Evidence Expiry Window
+
+| Evidence | Required expiry fields | Rejected freshness proof | Blocked substitute | Pass boundary |
+| --- | --- | --- | --- | --- |
+| `independent-adoption-evidence` | generatedAt, validUntil or expiresAt, maxEvidenceAgeDays, releaseManifestGeneratedAt | generatedAt only, open-ended adoption record, stale validUntil, missing max evidence age, fixtureSynthetic refresh | fresh-looking adoption record without an explicit expiry window | Adoption proof must state an expiry window or max age in addition to generatedAt freshness. |
+| `final-security-review-evidence` | generatedAt, validUntil or expiresAt, maxEvidenceAgeDays, reviewedReleaseVersion | generatedAt only, open-ended security review, stale validUntil, missing reviewed release version, reused old review packet | security-review record without explicit expiry or reviewed-release boundary | Security proof must state the release version and expiry window for the review packet. |
+
+Expiry-window non-claims:
+
+- This fixture is not independent adoption evidence.
+- This fixture is not final security-review evidence.
+- This fixture is not stable-v4 publication proof.
+
+## Result
+
+- Verdict: REVIEW: 2 stable-v4 publication blocker(s) remain; first blocker: No downloaded release assets were supplied; stable v4 proof still needs consumer-side release asset verification.
+- Proof source: downloaded release assets
+- Why it matters: Stable-v4 publication must be proven from public release artifacts and external evidence, not inferred from fixture receipts.
+- Next command: `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --release-candidate-report <stable-publication-work>/candidate-pass.json --download-release-assets --external-adoption-evidence <stable-publication-work>/evidence/stable-adoption --security-review-evidence <stable-publication-work>/evidence/stable-security --shipguard-eval --shareable`
+- Next action: Work the Closure Checklist in order; first complete downloaded release assets before claiming stable-v4 publication.
+
+
+## Stable Publication Gates
+
+| Gate | Status |
+| --- | --- |
+| `githubReleaseMetadataProof` | `pass` |
+| `releaseNotesProof` | `pass` |
+| `releaseCandidatePacketProof` | `pass` |
+| `publishedReleaseAssetProof` | `not-provided` |
+| `postReleaseConsumerProof` | `not-provided` |
+| `externalAdoptionEvidenceStableGate` | `pass` |
+| `securityReviewEvidenceStableGate` | `pass` |
+
+## Evidence Packet
+
+- Packet status: `review`
+- Required evidence passed: `5/7`
+- First blocking gate: `publishedReleaseAssetProof`
+
+| Evidence | Status |
+| --- | --- |
+| `github-release-metadata` | `pass` |
+| `release-notes` | `pass` |
+| `launchkey-candidate-packet` | `pass` |
+| `downloaded-release-assets` | `not-provided` |
+| `post-release-consumer-proof` | `not-provided` |
+| `independent-adoption-evidence` | `pass` |
+| `final-security-review-evidence` | `pass` |
+
+## Closure Checklist
+
+- Checklist status: `review`
+- Remaining blockers: `2`
+- No hidden lower-order blockers: `True`
+
+| Rank | Evidence | Status | First | Next command | Proof boundary |
+| --- | --- | --- | --- | --- | --- |
+| `1` | `downloaded-release-assets` | `not-provided` | `True` | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --release-candidate-report <stable-publication-work>/candidate-pass.json --download-release-assets --external-adoption-evidence <stable-publication-work>/evidence/stable-adoption --security-review-evidence <stable-publication-work>/evidence/stable-security --shipguard-eval --shareable` | Release assets must be downloaded or supplied and verified from the publication packet, not assumed from source state. |
+| `2` | `post-release-consumer-proof` | `not-provided` | `False` | `./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>` | Post-release consumer proof must come from release-consume verification of the downloaded or supplied assets. |
+
+### Release Asset Closure Kit
+
+- Status: `not-provided`
+- Download source: `not-provided`
+- Download proof status: `not-provided`
+- Release version: `3.131.0`
+- Assets directory: `not-provided`
+- Required assets: `attestation-badge.json, attestation.json, proof-ledger.md, release-index.json, release-manifest.json, replay-report.json, shipguard-v3.131.0.tar.gz`
+- Metadata missing assets: `none`
+- Local downloaded assets: `none`
+- Missing local assets: `attestation-badge.json, attestation.json, proof-ledger.md, release-index.json, release-manifest.json, replay-report.json, shipguard-v3.131.0.tar.gz`
+- Consumer report status: `not-provided`
+- Asset digest matrix path: `not-provided`
+- Exit code: `not-provided`
+- Error: `none`
+- Downloaded or supplied assets required: `True`
+- GitHub metadata only counts as release-asset proof: `False`
+- Source-only proof counts as release-asset proof: `False`
+- Fixture proof counts as stable-v4 publication proof: `False`
+
+Repair criteria:
+
+- Use `shipguard v4 stable-publication --download-release-assets` to download the public GitHub release assets, or pass the already downloaded asset directory with `--release-assets`.
+- Confirm the downloaded or supplied directory contains every required release asset listed by the GitHub release metadata, including the versioned ShipGuard tarball.
+- Do not edit source files, fixture outputs, or generated report JSON to close this gate; repair the public release assets or the supplied downloaded asset directory.
+- After the assets are present, rerun `shipguard v4 stable-publication` so the downloaded-release-assets gate and the downstream post-release consumer gate are evaluated together.
+
+Pass criteria:
+
+- GitHub release metadata for the requested tag exists and is not draft-only or prerelease-only.
+- Every required stable-publication asset is present in the public GitHub release metadata.
+- The assets are downloaded by stable-publication or supplied through `--release-assets` from the exact published release packet.
+- The stable-publication report records `publishedReleaseAssetProof.status = pass`; source checkout files, local build output, and fixture assets do not count.
+
+Fail criteria:
+
+- No downloaded or supplied release-assets directory is available.
+- The release metadata is missing one or more required assets.
+- The downloaded or supplied directory does not contain every required release asset.
+- GitHub release asset download fails or points at a draft, prerelease, wrong tag, wrong repository, or wrong version.
+- Source-only package tests, LaunchKey fixtures, generated report directories, or local package builds are treated as published release assets.
+
+Rerun release asset proof:
+
+```bash
+./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --release-candidate-report <stable-publication-work>/candidate-pass.json --download-release-assets --external-adoption-evidence <stable-publication-work>/evidence/stable-adoption --security-review-evidence <stable-publication-work>/evidence/stable-security --shipguard-eval --shareable
+```
+
+Rerun the full stable-publication gate after release assets pass:
+
+```bash
+./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --release-candidate-report <stable-publication-work>/candidate-pass.json --download-release-assets --external-adoption-evidence <stable-publication-work>/evidence/stable-adoption --security-review-evidence <stable-publication-work>/evidence/stable-security --shipguard-eval --shareable
+```
+
+### Post-Release Consumer Closure Kit
+
+- Status: `not-provided`
+- Consumer report status: `not-provided`
+- Consumer report path: `not-provided`
+- Asset digest matrix path: `not-provided`
+- Missing proof artifacts: `consumer-report.json, asset-digests.json`
+- Download source: `not-provided`
+- Download proof status: `not-provided`
+- Release version: `not-provided`
+- Assets directory: `not-provided`
+- Consume output directory: `not-provided`
+- Exit code: `not-provided`
+- Error: `none`
+- Digest freshness status: `not-provided`
+- Required digest assets: `not-provided`
+- Missing required digest assets: `none`
+- Missing SHA-256 digest assets: `none`
+- Release tarball digest matches consumer artifact: `None`
+- Release-consume required: `True`
+- Asset digest matrix must cover required assets: `True`
+- Release tarball digest must match consumer artifact: `True`
+- Source-only proof counts as consumer proof: `False`
+- Fixture proof counts as stable-v4 publication proof: `False`
+
+| Consumer crosscheck | Status |
+| --- | --- |
+| Replay | `not-provided` |
+| Attestation | `not-provided` |
+| Published replay report | `not-provided` |
+| Published attestation | `not-provided` |
+| Published badge | `not-provided` |
+
+Repair criteria:
+
+- Download the published release assets with `shipguard v4 stable-publication --download-release-assets` or supply the exact downloaded asset directory with `--release-assets`.
+- Run `shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>` and keep both `consumer-report.json` and `asset-digests.json` with the stable-publication packet.
+- Repair missing or mismatched release assets, replay proof, attestation proof, badge proof, manifest, index, ledger, or tarball digest before rerunning stable-publication.
+- After `release-consume verify` passes, rerun `shipguard v4 stable-publication` with the same release metadata, LaunchKey, adoption, and security inputs so later gates remain visible.
+
+Pass criteria:
+
+- `shipguard release-consume verify` exits 0.
+- `consumer-report.json` exists and reports `status = pass`.
+- `asset-digests.json` exists and lists the downloaded release assets with SHA-256 and byte counts.
+- Replay and attestation status are `pass` or explicitly verified as matching published assets.
+- The stable-publication report records `postReleaseConsumerProof.status = pass` from the consumed release assets, not from source-only or fixture proof.
+
+Fail criteria:
+
+- No downloaded or supplied release-assets directory is available.
+- `release-consume verify` times out, exits non-zero, or cannot run from the current checkout.
+- `consumer-report.json` is missing, malformed, or reports a non-pass status.
+- `asset-digests.json` is missing, incomplete, or shows missing required release assets.
+- Replay, attestation, published crosscheck, version, or tarball SHA-256 proof is blocked or mismatched.
+- Source checkout tests, package fixtures, or draft release notes are treated as post-release consumer proof.
+
+Rerun release-consume proof:
+
+```bash
+./bin/shipguard release-consume verify --dir <downloaded-assets-dir> --out <consume-dir> --version <version>
+```
+
+Rerun the full stable-publication gate after consumer proof passes:
+
+```bash
+./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --github-release-repo jlekerli-source/ShipGuard --release-version 3.131.0 --release-candidate-report <stable-publication-work>/candidate-pass.json --download-release-assets --external-adoption-evidence <stable-publication-work>/evidence/stable-adoption --security-review-evidence <stable-publication-work>/evidence/stable-security --shipguard-eval --shareable
+```
+
+
+### Evidence Closure Kit: `independent-adoption-evidence`
+
+- Starter path: `stable-publication-evidence-kit/external-adoption-evidence.json`
+- Template path: `templates/stable-publication/external-adoption-evidence.template.json`
+- Accepted classes: public-external, private-redacted-external
+- Required fields: actorRelationship, privateDataRedacted, commands, artifacts, outcome, nonClaims
+- Current diagnostics: `review` because generatedAt predates the release manifest timestamp.
+- Rerun command: `./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --external-adoption-evidence <fresh-adoption-json-or-dir> --security-review-evidence <fresh-security-json-or-dir> --shipguard-eval --shareable`
+
+## Release Notes Proof
+
+- Notes digest: `1cc7b6c54184ecde88b9133805de4530eec2d81de91e139e41be86aa963e7d0f`
+- Missing topics: `none`
+
+| Topic | Status | Matched terms |
+| --- | --- | --- |
+| `stable-v4-claim` | `pass` | stable-v4, stable v4 |
+| `publication-proof-boundary` | `pass` | publication proof, release proof |
+| `downloaded-release-assets` | `pass` | downloaded release asset, release asset |
+| `post-release-consumer-proof` | `pass` | post-release consumer, consumer proof, release consume |
+| `independent-adoption-evidence` | `pass` | independent adoption, adoption evidence |
+| `final-security-review-evidence` | `pass` | final security, security review |
+| `non-claims-boundary` | `pass` | non-claim, blocked claim, blocked claims |
+
+## External Evidence Intake Checklist
+
+| Evidence | Accepted classes | Required fields | Redaction boundary |
+| --- | --- | --- | --- |
+| `independent-adoption-evidence` | public-external, private-redacted-external | actorRelationship, privateDataRedacted, commands, artifacts, outcome, nonClaims | privateDataRedacted must be `True` |
+| `final-security-review-evidence` | public-security-review, private-redacted-security-review | scope, methodology, findingsSummary, privateDataRedacted, nonClaims | privateDataRedacted must be `True` |
+
+## Adoption Evidence Checklist
+
+- Accepted evidence classes: public-external, private-redacted-external
+- Required actor relationship: `independent`
+- Required proof fields: commands, artifacts, outcome, nonClaims
+- Artifact expectations: install transcript or command log, generated ShipGuard report or validation output, public release asset URL, release tag, issue, PR, post, or redacted external receipt
+- Redaction boundaries: privateDataRedacted must be true, no private app source, no private app identifiers, no local absolute paths, no screenshots with private data, no tokens or account identifiers
+- Weak-signal exclusions: GitHub stars, GitHub forks, download counts, maintainer-only private app runs, generated starter files, vague testimonials without artifacts
+- Pass decision: Pass only when a non-maintainer actor supplies redacted/public command and artifact evidence for real ShipGuard use.
+
+## Security Review Evidence Checklist
+
+- Required review surfaces: cli, plugin, github-actions, release-proof, package-install, redaction-privacy
+- Severity threshold: `criticalOpen=0`, `highOpen=0`
+- Required evidence fields: reviewerRelationship, scope, methodology, commands, artifacts, findingsSummary, nonClaims
+- Redaction boundaries: privateDataRedacted must be true, no private app source, no private app identifiers, no local absolute paths, no screenshots with private data, no tokens or account identifiers
+- Pass decision: Pass only when every required surface is reviewed and criticalOpen plus highOpen are both 0.
+
+## Release Notes Authoring Kit
+
+- Directory: `stable-publication-release-notes`
+- Draft-only: `True`
+- Missing topics: `none`
+
+| File | Purpose |
+| --- | --- |
+| `stable-publication-release-notes/release-notes-checklist.json` | Machine-readable checklist for the stable-publication release-notes topics. |
+| `stable-publication-release-notes/draft-release-notes.md` | Draft-only release notes section that includes every required stable-publication proof topic. |
+| `stable-publication-release-notes/README.md` | Human instructions for adapting the draft into the public GitHub release body. |
+
+Next command template:
+
+```bash
+./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable
+```
+
+## Evidence Templates
+
+- Draft-only templates: `True`
+
+| Template | Exists | Copy command |
+| --- | --- | --- |
+| `independent-adoption-evidence` | `True` | `cp templates/stable-publication/external-adoption-evidence.template.json <evidence-dir>/external-adoption-evidence.json` |
+| `final-security-review-evidence` | `True` | `cp templates/stable-publication/security-review-evidence.template.json <evidence-dir>/security-review-evidence.json` |
+
+## Evidence Starter Kit
+
+- Directory: `stable-publication-evidence-kit`
+- Draft-only: `True`
+
+| File | Purpose |
+| --- | --- |
+| `stable-publication-evidence-kit/README.md` | Human checklist for collecting the real stable-v4 publication packet. |
+| `stable-publication-evidence-kit/stable-publication-checklist.json` | Machine-readable draft checklist with the seven required stable-publication gates. |
+| `stable-publication-evidence-kit/external-adoption-evidence.json` | Draft-only independent adoption evidence record. Fill with real external evidence before use. |
+| `stable-publication-evidence-kit/security-review-evidence.json` | Draft-only final security-review evidence record. Fill with real review evidence before use. |
+
+Next command template:
+
+```bash
+./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence stable-publication-evidence-kit/external-adoption-evidence.json --security-review-evidence stable-publication-evidence-kit/security-review-evidence.json --shipguard-eval --shareable
+```
+
+| Evidence class | Status | What it means |
+| --- | --- | --- |
+| `public-consumer-proof` | `can-be-produced-by-maintainer` | Install and verify ShipGuard from public release assets only; this proves public consumability, not adoption. |
+| `private-maintainer-qa` | `useful-but-not-adoption` | Private maintainer app runs may expose ShipGuard product gaps, but they do not satisfy independent adoption evidence. |
+| `independent-adoption-evidence` | `requires-external-actor` | A non-maintainer user, repo, issue, PR, or redacted external install report must supply the adoption record. |
+| `final-security-review-evidence` | `requires-review-record` | A security review record must cover the required ShipGuard surfaces and show no open critical or high findings. |
+
+## Launch Relay Drafts
+
+- Directory: `stable-publication-launch-relay`
+- Draft-only: `True`
+- Approval required: `True`
+- Public posting allowed: `False`
+- Computer-use may post: `False`
+- Status: `blocked-until-stable-publication-pass`
+
+| File | Purpose |
+| --- | --- |
+| `stable-publication-launch-relay/README.md` | Human launch-relay guardrails and approval boundary. |
+| `stable-publication-launch-relay/launch-relay-checklist.json` | Machine-readable draft-only launch checklist and posting policy. |
+| `stable-publication-launch-relay/product-hunt-draft.md` | Draft Product Hunt launch copy; not submitted by ShipGuard. |
+| `stable-publication-launch-relay/reddit-r-shipguard-draft.md` | Draft subreddit announcement; not posted by ShipGuard. |
+| `stable-publication-launch-relay/x-thread-draft.md` | Draft X thread; not posted by ShipGuard. |
+| `stable-publication-launch-relay/hacker-news-draft.md` | Draft Hacker News submission notes; not submitted by ShipGuard. |
+
+Approval boundary:
+
+Public posting, publishing, submission, or account-visible external actions require explicit human approval for that exact launch run.
+
+## Proof Summary
+
+- GitHub release metadata: `pass`
+- Release notes: `pass`
+- LaunchKey package packet: `pass`
+- Release assets: `not-provided`
+- Post-release consumer proof: `not-provided`
+- External adoption stable gate: `pass`
+- Security review stable gate: `pass`
+- Stable v4 release claim allowed: `False`
+
+## Blocked Claims
+
+- Do not claim stable v4 until this report status is pass.
+- Do not use synthetic fixture adoption or security evidence as independent stable-v4 evidence.
+- Do not treat GitHub release download counts as independent adoption evidence.
+- Do not include private app paths, screenshots, identifiers, or token-like text in shareable proof.
+- Do not publish, submit, post, schedule, or perform account-visible external launch actions without explicit human approval for that exact launch run.
+
+## Report Quality Questions
+
+- Can ShipGuard prove stable-v4 publication from real release metadata, release notes, downloaded assets, external adoption evidence, security evidence, and post-release consumer proof?
+- Does the stable-publication report block every stable-v4 claim until independent adoption and final security evidence are attached?
+- Does stable-publication reject vague security evidence and require reviewed surfaces, severity thresholds, redaction, methodology, findings summary, and non-claims before stable-v4 release?
+- Does the stable-publication closure checklist list every remaining blocker in dependency order with exact next commands instead of hiding lower-order blockers behind only the first failing gate?
+- Does the stable-publication report provide draft-only evidence templates for independent adoption and final security review without manufacturing proof?
+- Does the stable-publication report write a draft-only evidence starter kit so maintainers can collect the packet without reverse-engineering JSON shapes?
+- Does the LaunchKey candidate closure row expose the supplied candidate path, nested receipt, required proof areas, package-hygiene diagnostics, repair/pass criteria, nested rerun, full stable-publication rerun, and fixture-proof boundary?
+- Does the downloaded release-assets closure row expose required assets, metadata/local missing assets, download source/status, asset directory, repair/pass/fail criteria, download rerun, full stable-publication rerun, and metadata-only/source-only/fixture-proof boundaries?
+- Does the post-release consumer closure row expose release-consume paths, missing proof artifacts, digest/replay/attestation statuses, repair/pass criteria, release-consume rerun, full stable-publication rerun, and source-only/fixture-proof boundaries?
+- Do independent adoption and final security-review closure rows expose starter paths, required fields, redaction/privacy boundaries, pass/fail criteria, current diagnostics, and exact stable-publication rerun commands?
+- Does the stable-publication report prepare guarded launch relay drafts without posting, submitting, or bypassing explicit human approval?
+
+## Scope Boundary
+
+- `doesNotEditTargetApps`: `True`
+- `doesNotPostExternally`: `True`
+- `doesNotPublishRelease`: `True`
+- `privateAppsUsed`: `False`
+- `shareable`: `True`
+- `shipguardOnly`: `True`
+- `targetAppsReadOnly`: `True`
+
+
+## Security Review Evidence Rejection
+
+- Vague security evidence rejected: self-review notes, missing methodology, missing reviewed surfaces, missing findings summary, private-data leaks, and open critical/high findings.
+- Required final security evidence: reviewed surfaces, severity thresholds, redaction, methodology, findingsSummary, nonClaims, commands, and artifacts.
+- Stable-v4 release remains blocked until every required security surface is reviewed and criticalOpen plus highOpen are both `0`.
+- This fixture is synthetic and contains no private app data.
+
+### Evidence Closure Kit: `final-security-review-evidence`
+
+- Starter path: `stable-publication-evidence-kit/security-review-evidence.json`
+- Template path: `templates/stable-publication/security-review-evidence.template.json`
+- Required fields: `schemaVersion`, `evidenceType`, `evidenceClass`, `reviewerRelationship`, `generatedAt`, `status`, `privateDataRedacted`, `scope`, `methodology`, `commands`, `artifacts`, `findingsSummary`, `nonClaims`
+- Required scope: `cli`, `plugin`, `github-actions`, `release-proof`, `package-install`, `redaction-privacy`
+- Current diagnostics: vague security evidence rejected; reviewed surfaces incomplete; criticalOpen and highOpen must both be `0`; privateDataRedacted must be `true`.
+- Rerun command: `./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --external-adoption-evidence <adoption-evidence-json-or-dir> --security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable`
+
+## Public Release Delta
+
+- Status: `review`
+- Boundary: latest public GitHub release and downloaded assets are publication truth; local HEAD/main and fixture proof are not release proof.
+
+## Final Stable V4 Claim Packet
+
+- Claim may be published: `False`
+- Copy-ready claim: ShipGuard expiry-window fixture coverage is promoted; stable-v4 publication is still blocked until real evidence passes.
+
+| Evidence | Status |
+| --- | --- |
+| `github-release-metadata` | `pass` |
+| `release-notes` | `pass` |
+| `launchkey-candidate-packet` | `pass` |
+| `downloaded-release-assets` | `pass` |
+| `post-release-consumer-proof` | `pass` |
+| `independent-adoption-evidence` | `review` |
+| `final-security-review-evidence` | `review` |
+
+## Release Visibility Handoff
+
+| Action | Status | Next command | Command purpose | Proof after action |
+| --- | --- | --- | --- | --- |
+| `publish-new-github-release` | `review` | `gh release create v3.201.0 --repo jlekerli-source/ShipGuard <release-assets>` | Complete or verify this release visibility action. | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --shipguard-eval --shareable` |
+| `update-release-notes` | `review` | `gh release edit v3.201.0 --repo jlekerli-source/ShipGuard --notes-file <draft-release-notes.md>` | Complete or verify this release visibility action. | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --shipguard-eval --shareable` |
+| `attach-launchkey-candidate-proof` | `pass` | `not-needed` | Complete or verify this release visibility action. | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --shipguard-eval --shareable` |
+| `update-release-assets` | `review` | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --shipguard-eval --shareable` | Complete or verify this release visibility action. | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --shipguard-eval --shareable` |
+| `attach-adoption-security-evidence` | `review` | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --shipguard-eval --shareable` | Complete or verify this release visibility action. | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --shipguard-eval --shareable` |
+| `keep-current-public-release-unchanged` | `blocked` | `blocked-by-required-actions` | Complete or verify this release visibility action. | `./bin/shipguard v4 stable-publication --path . --out /tmp/shipguard-v4-stable-publication --shipguard-eval --shareable` |
+
+## External Evidence Review Scope Mapping
+
+| Evidence | Required Scope | Required Mapping Fields | Accepted Review Proof | Rejected Review Proof | Blocked Substitute | Pass Boundary |
+| --- | --- | --- | --- | --- | --- | --- |
+| `final-security-review-evidence` | cli, plugin, github-actions, release-proof, package-install, redaction-privacy | surface, releaseScope, methodology, evidenceArtifact, findingStatus | surface-by-surface stable-v4 scope matrix, security-review report with evidence artifact per surface, scanner or checklist output mapped to release-proof and package-install surfaces | broad reviewed everything wording, missing surface list, missing release scope mapping, unmapped scanner output, methodology without covered surfaces | generic final security review notes without stable-v4 surface mapping | Final security-review proof must map each reviewed surface to the stable-v4 release scope and evidence artifact. |
+
+Non-claims:
+
+- Review-scope mapping fixture coverage is not final security-review evidence.
+- Review-scope mapping fixture coverage is not independent adoption evidence.
+- Review-scope mapping fixture coverage does not prove stable-v4 publication.

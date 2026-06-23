@@ -7916,16 +7916,51 @@ assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/stabl
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 
+stable_publication_expiry_window_fixture="fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window"
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_expiry_window_fixture" \
+  --out "$tmp_dir/stable-publication-expiry-window-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/stable-publication-expiry-window-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/stable-publication-expiry-window-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window"' "$tmp_dir/stable-publication-expiry-window-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/stable-publication-expiry-window-fixture-quality/ios-report-quality.json"
+grep -q 'External Evidence Expiry Window' "$stable_publication_expiry_window_fixture/fixture-report.md"
+grep -q 'generatedAt only' "$stable_publication_expiry_window_fixture/fixture-report.md"
+grep -q 'fresh-looking adoption record without an explicit expiry window' "$stable_publication_expiry_window_fixture/fixture-report.md"
+grep -q 'security-review record without explicit expiry or reviewed-release boundary' "$stable_publication_expiry_window_fixture/fixture-report.md"
+grep -q '"stablePublicationExternalEvidenceExpiryWindowProof":' "$stable_publication_expiry_window_fixture/fixture-report.json"
+grep -q '"requiredExpiryFields":' "$stable_publication_expiry_window_fixture/fixture-report.json"
+grep -q '"validUntil or expiresAt"' "$stable_publication_expiry_window_fixture/fixture-report.json"
+python3 - <<'PY' "$tmp_dir/stable-publication-expiry-window-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard v4 stable-publication", item
+assert item.get("fixtureType") == "shipguard-release-proof-quality-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window", item
+assert "expiry" in item.get("question", ""), item
+assert "generatedAt" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
+
 python3 - <<'PY' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.json" fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.json
 import json
 import sys
 
 report = json.load(open(sys.argv[1], encoding="utf-8"))
 index = report.get("stablePublicationExternalEvidenceFixtureIndex") or {}
-assert index.get("coveredCount") == 8, index
-assert index.get("expectedCount") == 8, index
+assert index.get("coveredCount") == 9, index
+assert index.get("expectedCount") == 9, index
 summary = index.get("decisionSummary") or {}
-assert "review-scope mapping fixture questions are covered" in summary.get("verdict", ""), summary
+assert "expiry-window fixture questions are covered" in summary.get("verdict", ""), summary
 assert summary.get("coveredEvidenceClasses") == [
     "independent-adoption-evidence",
     "final-security-review-evidence",
@@ -7935,9 +7970,10 @@ assert summary.get("coveredEvidenceClasses") == [
     "external-evidence-artifact-redaction-fixture",
     "external-evidence-artifact-digest-provenance-fixture",
     "external-evidence-review-scope-mapping-fixture",
+    "external-evidence-expiry-window-fixture",
 ], summary
-assert summary.get("remainingExternalEvidenceQuestions") == ["external-evidence-evidence-expiry-window-candidate"], summary
-assert summary.get("nextPromotionTarget") == "external-evidence-evidence-expiry-window-candidate", summary
+assert summary.get("remainingExternalEvidenceQuestions") == [], summary
+assert summary.get("nextPromotionTarget") == "none", summary
 assert "not adoption" in summary.get("nonClaimSummary", ""), summary
 rows = {item.get("id"): item for item in index.get("rows") or []}
 assert rows.get("independent-adoption-evidence", {}).get("status") == "covered", rows
@@ -7948,10 +7984,9 @@ assert rows.get("external-evidence-relationship-gate-fixture", {}).get("status")
 assert rows.get("external-evidence-artifact-redaction-fixture", {}).get("status") == "covered", rows
 assert rows.get("external-evidence-artifact-digest-provenance-fixture", {}).get("status") == "covered", rows
 assert rows.get("external-evidence-review-scope-mapping-fixture", {}).get("status") == "covered", rows
+assert rows.get("external-evidence-expiry-window-fixture", {}).get("status") == "covered", rows
 next_fixture = index.get("nextFixtureToPromote", {})
-assert next_fixture.get("id") == "external-evidence-evidence-expiry-window-candidate", next_fixture
-assert next_fixture.get("suggestedFixturePath") == "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window", next_fixture
-assert "--write-fixture-candidates" in next_fixture.get("qaCommand", ""), next_fixture
+assert next_fixture == {}, next_fixture
 source_summary = {item.get("evidence"): item for item in index.get("sourceClassPolishSummary") or []}
 adoption = source_summary.get("independent-adoption-evidence") or {}
 security = source_summary.get("final-security-review-evidence") or {}
@@ -7982,10 +8017,17 @@ assert "release-proof" in security_review_scope.get("requiredScope", []), review
 assert "releaseScope" in security_review_scope.get("requiredMappingFields", []), review_scope_summary
 assert "broad reviewed everything wording" in security_review_scope.get("rejectedReviewProof", []), review_scope_summary
 assert "stable-v4 surface mapping" in security_review_scope.get("blockedSubstitute", ""), review_scope_summary
+expiry_window_summary = {item.get("evidence"): item for item in index.get("expiryWindowSummary") or []}
+adoption_expiry = expiry_window_summary.get("independent-adoption-evidence") or {}
+security_expiry = expiry_window_summary.get("final-security-review-evidence") or {}
+assert "validUntil or expiresAt" in adoption_expiry.get("requiredExpiryFields", []), expiry_window_summary
+assert "generatedAt only" in adoption_expiry.get("rejectedFreshnessProof", []), expiry_window_summary
+assert "reviewedReleaseVersion" in security_expiry.get("requiredExpiryFields", []), expiry_window_summary
+assert "open-ended security review" in security_expiry.get("rejectedFreshnessProof", []), expiry_window_summary
 
 static = json.load(open(sys.argv[2], encoding="utf-8"))
 static_summary = static.get("decisionSummary") or {}
-assert static_summary.get("nextPromotionTarget") == "external-evidence-evidence-expiry-window-candidate", static_summary
+assert static_summary.get("nextPromotionTarget") == "none", static_summary
 coverage_ids = {item.get("id") for item in static.get("coverage") or []}
 assert "independent-adoption-evidence" in coverage_ids, static
 assert "final-security-review-evidence" in coverage_ids, static
@@ -7995,11 +8037,11 @@ assert "external-evidence-relationship-gate-fixture" in coverage_ids, static
 assert "external-evidence-artifact-redaction-fixture" in coverage_ids, static
 assert "external-evidence-artifact-digest-provenance-fixture" in coverage_ids, static
 assert "external-evidence-review-scope-mapping-fixture" in coverage_ids, static
+assert "external-evidence-expiry-window-fixture" in coverage_ids, static
 gaps = static.get("remainingExternalEvidenceGaps") or []
-assert gaps and gaps[0].get("suggestedFixturePath") == "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window", gaps
+assert gaps == [], gaps
 backlog = static.get("nextGapCandidateBacklog") or []
-assert [item.get("id") for item in backlog[:1]] == ["external-evidence-evidence-expiry-window-candidate"], backlog
-assert "--write-fixture-candidates" in backlog[0].get("qaCommand", ""), backlog
+assert backlog == [], backlog
 static_source_summary = {item.get("evidence"): item for item in static.get("sourceClassPolishSummary") or []}
 assert static_source_summary.get("independent-adoption-evidence", {}).get("requiredRelationshipField") == "actorRelationship", static_source_summary
 assert static_source_summary.get("final-security-review-evidence", {}).get("requiredRelationshipField") == "reviewerRelationship", static_source_summary
@@ -8017,6 +8059,9 @@ static_security_review_scope = static_review_scope_summary.get("final-security-r
 assert "release-proof" in static_security_review_scope.get("requiredScope", []), static_review_scope_summary
 assert "releaseScope" in static_security_review_scope.get("requiredMappingFields", []), static_review_scope_summary
 assert "broad reviewed everything wording" in static_security_review_scope.get("rejectedReviewProof", []), static_review_scope_summary
+static_expiry_window_summary = {item.get("evidence"): item for item in static.get("expiryWindowSummary") or []}
+assert "validUntil or expiresAt" in static_expiry_window_summary.get("independent-adoption-evidence", {}).get("requiredExpiryFields", []), static_expiry_window_summary
+assert "reviewedReleaseVersion" in static_expiry_window_summary.get("final-security-review-evidence", {}).get("requiredExpiryFields", []), static_expiry_window_summary
 PY
 grep -q 'Stable-Publication External Evidence Fixture Index' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'Decision summary' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
@@ -8025,10 +8070,13 @@ grep -q 'Relationship-gate summary' "$tmp_dir/stable-publication-security-fixtur
 grep -q 'Artifact-redaction summary' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'Artifact digest/provenance summary' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'Review-scope mapping summary' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
+grep -q 'Expiry-window summary' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'private-redacted-security-review' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
-grep -q 'Next promotion target: `external-evidence-evidence-expiry-window-candidate`' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
-grep -q 'Next-gap candidate backlog' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
-grep -q 'stable-publication-external-evidence-expiry-window' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
+grep -q 'Next promotion target: `none`' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
+if grep -q 'Next-gap candidate backlog' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"; then
+  echo "unexpected next-gap candidate backlog after expiry-window fixture promotion" >&2
+  exit 1
+fi
 grep -q 'weak adoption signals rejected' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'vague security evidence rejected' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'stale adoption/security evidence rejected' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
@@ -8037,6 +8085,7 @@ grep -q 'wrong actor/reviewer relationships rejected as adoption/security proof'
 grep -q 'unredacted or provenance-free artifacts rejected as adoption/security proof' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'filename-only artifacts rejected as adoption/security proof' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'broad security-review wording rejected as final security proof' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
+grep -q 'open-ended external evidence rejected as stable-publication proof' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'not adoption, final security-review, or stable-v4 publication proof' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 
 stable_publication_missing_intake="$tmp_dir/stable-publication-missing-intake"

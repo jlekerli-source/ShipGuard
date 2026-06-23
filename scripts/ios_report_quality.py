@@ -10027,6 +10027,34 @@ def stable_publication_external_evidence_fixture_index(
             "passBoundary": "Final security-review proof must map each reviewed surface to the stable-v4 release scope and evidence artifact.",
         }
     ]
+    expiry_window_summary = [
+        {
+            "evidence": "independent-adoption-evidence",
+            "requiredExpiryFields": ["generatedAt", "validUntil or expiresAt", "maxEvidenceAgeDays", "releaseManifestGeneratedAt"],
+            "rejectedFreshnessProof": [
+                "generatedAt only",
+                "open-ended adoption record",
+                "stale validUntil",
+                "missing max evidence age",
+                "fixtureSynthetic refresh",
+            ],
+            "blockedSubstitute": "fresh-looking adoption record without an explicit expiry window",
+            "passBoundary": "Adoption proof must state an expiry window or max age in addition to generatedAt freshness.",
+        },
+        {
+            "evidence": "final-security-review-evidence",
+            "requiredExpiryFields": ["generatedAt", "validUntil or expiresAt", "maxEvidenceAgeDays", "reviewedReleaseVersion"],
+            "rejectedFreshnessProof": [
+                "generatedAt only",
+                "open-ended security review",
+                "stale validUntil",
+                "missing reviewed release version",
+                "reused old review packet",
+            ],
+            "blockedSubstitute": "security-review record without explicit expiry or reviewed-release boundary",
+            "passBoundary": "Security proof must state the release version and expiry window for the review packet.",
+        },
+    ]
     expected = [
         {
             "id": "independent-adoption-evidence",
@@ -10140,6 +10168,20 @@ def stable_publication_external_evidence_fixture_index(
                 "Markdown visibility",
             ],
         },
+        {
+            "id": "external-evidence-expiry-window-fixture",
+            "label": "External evidence expiry window",
+            "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window",
+            "rejectionProved": "open-ended external evidence rejected as stable-publication proof",
+            "requiredProof": [
+                "generatedAt",
+                "validUntil or expiresAt",
+                "max evidence age",
+                "release manifest generatedAt",
+                "blocked substitutes",
+                "Markdown visibility",
+            ],
+        },
     ]
     by_path = {
         str(item.get("publicFixturePath") or ""): item
@@ -10161,19 +10203,10 @@ def stable_publication_external_evidence_fixture_index(
             }
         )
     missing = [row for row in rows if row["status"] != "covered"]
-    next_gap_candidates = [
-        {
-            "id": "external-evidence-evidence-expiry-window-candidate",
-            "summary": "Check whether external evidence has an explicit age/expiry boundary beyond generatedAt freshness against the release manifest.",
-            "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window",
-            "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
-            "promotionBoundary": "Promote only public-safe expiry behavior; do not treat the fixture as adoption, security-review, or stable-v4 proof.",
-        },
-    ]
-    next_gap = next_gap_candidates[0]
-    next_target = missing[0] if missing else next_gap
+    next_gap_candidates: list[dict[str, Any]] = []
+    next_target = missing[0] if missing else {}
     covered_classes = [row["id"] for row in rows if row["status"] == "covered"]
-    remaining_questions = [gap["id"] for gap in [next_gap]]
+    remaining_questions = [gap["id"] for gap in next_gap_candidates]
     non_claims = [
         "Fixture coverage proves report-quality behavior only.",
         "Fixture coverage is not independent adoption evidence.",
@@ -10187,12 +10220,12 @@ def stable_publication_external_evidence_fixture_index(
         "coveredCount": len(rows) - len(missing),
         "expectedCount": len(rows),
         "decisionSummary": {
-            "verdict": "Adoption, security-review, freshness, source-class, relationship-gate, artifact-redaction, artifact digest/provenance, and review-scope mapping fixture questions are covered; the next real QA gap remains."
+            "verdict": "Adoption, security-review, freshness, source-class, relationship-gate, artifact-redaction, artifact digest/provenance, review-scope mapping, and expiry-window fixture questions are covered; evaluate the next real QA gap."
             if not missing
             else "Stable-publication external evidence fixture coverage is incomplete.",
             "coveredEvidenceClasses": covered_classes,
             "remainingExternalEvidenceQuestions": remaining_questions,
-            "nextPromotionTarget": next_target.get("id") or next_target.get("candidateId") or "unknown",
+            "nextPromotionTarget": next_target.get("id") or next_target.get("candidateId") or "none",
             "nonClaimSummary": "This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.",
         },
         "sourceClassPolishSummary": source_class_polish_summary,
@@ -10200,9 +10233,10 @@ def stable_publication_external_evidence_fixture_index(
         "artifactRedactionSummary": artifact_redaction_summary,
         "artifactDigestProvenanceSummary": artifact_digest_provenance_summary,
         "reviewScopeMappingSummary": review_scope_mapping_summary,
+        "expiryWindowSummary": expiry_window_summary,
         "rows": rows,
         "coverage": rows,
-        "remainingExternalEvidenceGaps": [next_gap],
+        "remainingExternalEvidenceGaps": next_gap_candidates,
         "nextFixtureToPromote": next_target,
         "nextGapCandidateBacklog": next_gap_candidates,
         "nonClaims": non_claims,
@@ -10545,6 +10579,23 @@ def render_markdown(report: dict[str, Any]) -> str:
                 rejected = ", ".join(str(value) for value in item.get("rejectedReviewProof") or [])
                 lines.append(
                     f"| `{item.get('evidence') or 'unknown'}` | {table_cell(required_scope or '-', 100)} | {table_cell(fields or '-', 90)} | {table_cell(rejected or '-', 120)} | {table_cell(item.get('blockedSubstitute') or '-', 90)} | {table_cell(item.get('passBoundary') or '-', 130)} |"
+                )
+        expiry_summary = external_index.get("expiryWindowSummary") or []
+        if expiry_summary:
+            lines.extend(
+                [
+                    "",
+                    "Expiry-window summary:",
+                    "",
+                    "| Evidence | Required expiry fields | Rejected freshness proof | Blocked substitute | Pass boundary |",
+                    "| --- | --- | --- | --- | --- |",
+                ]
+            )
+            for item in expiry_summary:
+                fields = ", ".join(str(value) for value in item.get("requiredExpiryFields") or [])
+                rejected = ", ".join(str(value) for value in item.get("rejectedFreshnessProof") or [])
+                lines.append(
+                    f"| `{item.get('evidence') or 'unknown'}` | {table_cell(fields or '-', 100)} | {table_cell(rejected or '-', 120)} | {table_cell(item.get('blockedSubstitute') or '-', 90)} | {table_cell(item.get('passBoundary') or '-', 130)} |"
                 )
         next_fixture = external_index.get("nextFixtureToPromote") if isinstance(external_index.get("nextFixtureToPromote"), dict) else {}
         if next_fixture:

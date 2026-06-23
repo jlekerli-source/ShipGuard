@@ -272,6 +272,8 @@ v3.207 promotes the stable-publication external evidence artifact digest/provena
 
 v3.208 promotes the stable-publication external evidence review-scope mapping fixture: the public fixture now proves final security-review evidence must map reviewed surfaces to stable-v4 release scope with methodology and evidence artifacts, blocks broad review wording, and advances the external-evidence index to the expiry-window boundary.
 
+v3.209 promotes the stable-publication external evidence expiry-window fixture: the public fixture now proves external adoption and final security-review evidence need an explicit expiry or max-age boundary beyond `generatedAt`, blocks open-ended evidence records, and closes the current external-evidence fixture index at 9/9 without a fake next-gap backlog.
+
 v3.136 public-release catch-up makes the stable-publication release visibility handoff copy-ready: when the primary decision is `publish-new-github-release`, the action row now points at the generated `gh release create ...` command with the report output draft release notes and required release-proof assets instead of a placeholder.
 
 v3.137 makes that public-release packet fully asset-path aware: when stable-publication has a supplied or downloaded release-assets directory, the generated `gh release create ...` handoff uses those concrete files instead of `<release-proof-assets-dir>` placeholders.

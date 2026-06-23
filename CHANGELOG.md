@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Promoted the stable-publication external evidence expiry-window fixture: report-quality now has a public synthetic fixture proving open-ended adoption and security-review records are blocked substitutes, generatedAt-only freshness is insufficient, and the fixture index reaches 9/9 coverage with no fake next-gap backlog.
 - Promoted the stable-publication external evidence review-scope mapping fixture: report-quality now has a public synthetic fixture proving broad final security-review wording and unmapped scanner output remain blocked substitutes, and the fixture index advances to the expiry-window boundary.
 - Promoted the stable-publication external evidence artifact digest/provenance fixture: report-quality now has a public synthetic fixture proving filename-only artifacts, local-only paths, missing source commands, and digest-free security notes remain blocked substitutes, and the fixture index advances to review-scope mapping.
 - Polished the stable-publication external evidence next-gap index: the fixture index now names a concrete artifact digest/provenance candidate, suggested fixture path, QA command, promotion boundary, and ranked backlog instead of a placeholder path or recycled fixture target.

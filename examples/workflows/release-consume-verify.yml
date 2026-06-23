@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       release-tag:
-        description: Release tag to verify, such as v3.208.0.
+        description: Release tag to verify, such as v3.209.0.
         required: true
-        default: v3.208.0
+        default: v3.209.0
 
 permissions:
   contents: read
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Verify published proof assets
-        uses: jlekerli-source/ShipGuard/actions/release-consume@v3.208.0
+        uses: jlekerli-source/ShipGuard/actions/release-consume@v3.209.0
         with:
           repo: jlekerli-source/ShipGuard
           release-tag: ${{ inputs.release-tag }}

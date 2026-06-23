@@ -84,7 +84,7 @@
   "coverage": [
     {
       "candidateId": "stable-publication-adoption-evidence-checklist",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "independent-adoption-evidence",
       "label": "Independent adoption evidence",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-adoption-evidence-checklist",
@@ -102,7 +102,7 @@
     },
     {
       "candidateId": "stable-publication-security-review-evidence-checklist",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "final-security-review-evidence",
       "label": "Final security-review evidence",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-security-review-evidence-checklist",
@@ -120,7 +120,7 @@
     },
     {
       "candidateId": "stable-publication-external-evidence-freshness",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "external-evidence-freshness-fixture",
       "label": "External evidence freshness",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-freshness",
@@ -137,7 +137,7 @@
     },
     {
       "candidateId": "stable-publication-external-evidence-source-classes",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "external-evidence-source-class-fixture",
       "label": "External evidence source classes",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
@@ -155,7 +155,7 @@
     },
     {
       "candidateId": "stable-publication-external-evidence-relationship-gates",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "external-evidence-relationship-gate-fixture",
       "label": "External evidence relationship gates",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-relationship-gates",
@@ -174,7 +174,7 @@
     },
     {
       "candidateId": "stable-publication-external-evidence-artifact-redaction",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "external-evidence-artifact-redaction-fixture",
       "label": "External evidence artifact redaction",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-redaction",
@@ -192,7 +192,7 @@
     },
     {
       "candidateId": "stable-publication-external-evidence-artifact-digest-provenance",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "external-evidence-artifact-digest-provenance-fixture",
       "label": "External evidence artifact digest provenance",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance",
@@ -210,7 +210,7 @@
     },
     {
       "candidateId": "stable-publication-external-evidence-review-scope-mapping",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "external-evidence-review-scope-mapping-fixture",
       "label": "External evidence review-scope mapping",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping",
@@ -225,9 +225,27 @@
       ],
       "sourceQuestion": "Does stable-publication require final security-review evidence to map reviewed surfaces to the stable-v4 release scope instead of using broad review wording?",
       "status": "covered"
+    },
+    {
+      "candidateId": "stable-publication-external-evidence-expiry-window",
+      "coveredInCurrentRun": true,
+      "id": "external-evidence-expiry-window-fixture",
+      "label": "External evidence expiry window",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window",
+      "rejectionProved": "open-ended external evidence rejected as stable-publication proof",
+      "requiredProof": [
+        "generatedAt",
+        "validUntil or expiresAt",
+        "max evidence age",
+        "release manifest generatedAt",
+        "blocked substitutes",
+        "Markdown visibility"
+      ],
+      "sourceQuestion": "Does stable-publication require external adoption and final security-review evidence to carry an explicit expiry window beyond generatedAt freshness?",
+      "status": "covered"
     }
   ],
-  "coveredCount": 8,
+  "coveredCount": 9,
   "decisionSummary": {
     "coveredEvidenceClasses": [
       "independent-adoption-evidence",
@@ -237,32 +255,55 @@
       "external-evidence-relationship-gate-fixture",
       "external-evidence-artifact-redaction-fixture",
       "external-evidence-artifact-digest-provenance-fixture",
-      "external-evidence-review-scope-mapping-fixture"
+      "external-evidence-review-scope-mapping-fixture",
+      "external-evidence-expiry-window-fixture"
     ],
-    "nextPromotionTarget": "external-evidence-evidence-expiry-window-candidate",
+    "nextPromotionTarget": "none",
     "nonClaimSummary": "This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.",
-    "remainingExternalEvidenceQuestions": [
-      "external-evidence-evidence-expiry-window-candidate"
-    ],
-    "verdict": "Adoption, security-review, freshness, source-class, relationship-gate, artifact-redaction, artifact digest/provenance, and review-scope mapping fixture questions are covered; the next real QA gap remains."
+    "remainingExternalEvidenceQuestions": [],
+    "verdict": "Adoption, security-review, freshness, source-class, relationship-gate, artifact-redaction, artifact digest/provenance, review-scope mapping, and expiry-window fixture questions are covered; evaluate the next real QA gap."
   },
-  "expectedCount": 8,
-  "nextFixtureToPromote": {
-    "id": "external-evidence-evidence-expiry-window-candidate",
-    "promotionBoundary": "Promote only public-safe expiry behavior; do not treat the fixture as adoption, security-review, or stable-v4 proof.",
-    "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
-    "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window",
-    "summary": "Check whether external evidence has an explicit age/expiry boundary beyond generatedAt freshness against the release manifest."
-  },
-  "nextGapCandidateBacklog": [
+  "expectedCount": 9,
+  "expiryWindowSummary": [
     {
-      "id": "external-evidence-evidence-expiry-window-candidate",
-      "promotionBoundary": "Promote only public-safe expiry behavior; do not treat the fixture as adoption, security-review, or stable-v4 proof.",
-      "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
-      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window",
-      "summary": "Check whether external evidence has an explicit age/expiry boundary beyond generatedAt freshness against the release manifest."
+      "blockedSubstitute": "fresh-looking adoption record without an explicit expiry window",
+      "evidence": "independent-adoption-evidence",
+      "passBoundary": "Adoption proof must state an expiry window or max age in addition to generatedAt freshness.",
+      "rejectedFreshnessProof": [
+        "generatedAt only",
+        "open-ended adoption record",
+        "stale validUntil",
+        "missing max evidence age",
+        "fixtureSynthetic refresh"
+      ],
+      "requiredExpiryFields": [
+        "generatedAt",
+        "validUntil or expiresAt",
+        "maxEvidenceAgeDays",
+        "releaseManifestGeneratedAt"
+      ]
+    },
+    {
+      "blockedSubstitute": "security-review record without explicit expiry or reviewed-release boundary",
+      "evidence": "final-security-review-evidence",
+      "passBoundary": "Security proof must state the release version and expiry window for the review packet.",
+      "rejectedFreshnessProof": [
+        "generatedAt only",
+        "open-ended security review",
+        "stale validUntil",
+        "missing reviewed release version",
+        "reused old review packet"
+      ],
+      "requiredExpiryFields": [
+        "generatedAt",
+        "validUntil or expiresAt",
+        "maxEvidenceAgeDays",
+        "reviewedReleaseVersion"
+      ]
     }
   ],
+  "nextFixtureToPromote": {},
+  "nextGapCandidateBacklog": [],
   "nonClaims": [
     "Fixture coverage proves report-quality behavior only.",
     "Fixture coverage is not independent adoption evidence.",
@@ -302,15 +343,7 @@
       "requiredRelationshipField": "reviewerRelationship"
     }
   ],
-  "remainingExternalEvidenceGaps": [
-    {
-      "id": "external-evidence-evidence-expiry-window-candidate",
-      "promotionBoundary": "Promote only public-safe expiry behavior; do not treat the fixture as adoption, security-review, or stable-v4 proof.",
-      "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
-      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window",
-      "summary": "Check whether external evidence has an explicit age/expiry boundary beyond generatedAt freshness against the release manifest."
-    }
-  ],
+  "remainingExternalEvidenceGaps": [],
   "reviewScopeMappingSummary": [
     {
       "blockedSubstitute": "generic final security review notes without stable-v4 surface mapping",
@@ -343,7 +376,7 @@
   "rows": [
     {
       "candidateId": "stable-publication-adoption-evidence-checklist",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "independent-adoption-evidence",
       "label": "Independent adoption evidence",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-adoption-evidence-checklist",
@@ -361,7 +394,7 @@
     },
     {
       "candidateId": "stable-publication-security-review-evidence-checklist",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "final-security-review-evidence",
       "label": "Final security-review evidence",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-security-review-evidence-checklist",
@@ -379,7 +412,7 @@
     },
     {
       "candidateId": "stable-publication-external-evidence-freshness",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "external-evidence-freshness-fixture",
       "label": "External evidence freshness",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-freshness",
@@ -396,7 +429,7 @@
     },
     {
       "candidateId": "stable-publication-external-evidence-source-classes",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "external-evidence-source-class-fixture",
       "label": "External evidence source classes",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
@@ -414,7 +447,7 @@
     },
     {
       "candidateId": "stable-publication-external-evidence-relationship-gates",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "external-evidence-relationship-gate-fixture",
       "label": "External evidence relationship gates",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-relationship-gates",
@@ -433,7 +466,7 @@
     },
     {
       "candidateId": "stable-publication-external-evidence-artifact-redaction",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "external-evidence-artifact-redaction-fixture",
       "label": "External evidence artifact redaction",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-redaction",
@@ -451,7 +484,7 @@
     },
     {
       "candidateId": "stable-publication-external-evidence-artifact-digest-provenance",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "external-evidence-artifact-digest-provenance-fixture",
       "label": "External evidence artifact digest provenance",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance",
@@ -469,7 +502,7 @@
     },
     {
       "candidateId": "stable-publication-external-evidence-review-scope-mapping",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "external-evidence-review-scope-mapping-fixture",
       "label": "External evidence review-scope mapping",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping",
@@ -483,6 +516,24 @@
         "Markdown visibility"
       ],
       "sourceQuestion": "Does stable-publication require final security-review evidence to map reviewed surfaces to the stable-v4 release scope instead of using broad review wording?",
+      "status": "covered"
+    },
+    {
+      "candidateId": "stable-publication-external-evidence-expiry-window",
+      "coveredInCurrentRun": true,
+      "id": "external-evidence-expiry-window-fixture",
+      "label": "External evidence expiry window",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window",
+      "rejectionProved": "open-ended external evidence rejected as stable-publication proof",
+      "requiredProof": [
+        "generatedAt",
+        "validUntil or expiresAt",
+        "max evidence age",
+        "release manifest generatedAt",
+        "blocked substitutes",
+        "Markdown visibility"
+      ],
+      "sourceQuestion": "Does stable-publication require external adoption and final security-review evidence to carry an explicit expiry window beyond generatedAt freshness?",
       "status": "covered"
     }
   ],
