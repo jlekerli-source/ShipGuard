@@ -230,7 +230,7 @@ v3.186 continues that release-notes actionability cleanup by routing the same ed
 
 v3.187 adds ShipGuard ExpoDeck with `shipguard expo readiness`: a read-only Expo/EAS audit for SDK 56 readiness, Expo UI/native-module opportunities, EAS timing-proof gaps, AI-agent scaffolding, and professional design-principle evidence for AI-generated UI. It also cleans the stable-publication release visibility handoff so completed `pass`/not-required rows say `not-needed` instead of leaking fallback commands like test scripts into maintainer-facing next-action tables.
 
-v3.188 extends that cleanup to the blocked `keep-current-public-release-unchanged` row: while earlier gates are still required, it now says `blocked-by-required-actions` instead of duplicating the primary repair command.
+v3.188 deepens Professional Design QA from starter guidance into an example-backed skill with concrete `ios design`, `ios preview`, ExpoDeck, and report-quality command routes, app-genre examples, and explicit preview/screenshot/device proof language. Value Gauntlet now returns stable-v4 publication as the lowest-value surface again after the design skill clears its command-example and validation-density depth checks.
 
 v3.189 humanizes the stable-publication result UX so the top proof source and first action use reader-facing evidence labels instead of leaking internal JSON names like `stablePublicationClosureChecklist` or `releaseNotesProof`.
 

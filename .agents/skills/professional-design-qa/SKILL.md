@@ -20,6 +20,22 @@ shipguard expo readiness --path . --out /tmp/shipguard-expo-readiness --shipguar
 4. For iOS/SwiftUI apps, prefer `shipguard ios design` and `shipguard ios preview` when available.
 5. Read the generated report before proposing UI edits.
 
+## Command Routes
+
+Use the smallest route that gives real visual proof:
+
+```bash
+shipguard ios design --path . --out /tmp/shipguard-ios-design --shipguard-eval --shareable
+shipguard ios preview --out /tmp/shipguard-ios-preview
+```
+
+For Expo apps, pair source critique with ExpoDeck first:
+
+```bash
+shipguard expo readiness --path . --out /tmp/shipguard-expo-readiness --shipguard-eval --shareable
+shipguard ios report-quality --reports /tmp/shipguard-expo-readiness --out /tmp/shipguard-design-quality --shareable
+```
+
 ## Design Vocabulary
 
 Critique the UI with these principles:
@@ -42,6 +58,19 @@ Critique the UI with these principles:
 - Flag one-off colors, gradients, cards, button styles, shadows, fonts, and icons when they do not map to a system.
 - Prefer fewer stronger components over many custom one-off UI fragments.
 - Keep app genre in view: utility and SaaS should be restrained and fast; games, kids, and creative apps can carry more expression; health and finance need calm, trust, and clear confirmation states.
+
+## App-Genre Examples
+
+- Utility/SaaS: validate hierarchy, contrast, and alignment before adding motion. Proof should be a screenshot or preview showing the primary action is obvious.
+- Game/kids/creative: validate unity and balance while allowing stronger color and motion. Proof should include reduced-motion behavior when animation is frequent.
+- Health/finance: validate calm spacing, conservative motion, clear confirmation states, and accessible text. Proof should include preview or device screenshots for risky screens.
+
+## Validation
+
+- Rerun the relevant ShipGuard design report after UI changes.
+- Attach screenshot, simulator preview, browser render, or device proof before claiming rendered quality.
+- Treat missing preview proof as blocked visual proof, not as a pass.
+- Use report-quality when this skill is used as ShipGuard product QA.
 
 ## Output
 
