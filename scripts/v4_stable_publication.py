@@ -86,6 +86,28 @@ STABLE_PUBLICATION_TEMPLATE_DIR = "templates/stable-publication"
 STARTER_KIT_DIRNAME = "stable-publication-evidence-kit"
 RELEASE_NOTES_KIT_DIRNAME = "stable-publication-release-notes"
 LAUNCH_RELAY_DIRNAME = "stable-publication-launch-relay"
+STABLE_PUBLICATION_EVIDENCE_LADDER = [
+    {
+        "id": "public-consumer-proof",
+        "status": "can-be-produced-by-maintainer",
+        "description": "Install and verify ShipGuard from public release assets only; this proves public consumability, not adoption.",
+    },
+    {
+        "id": "private-maintainer-qa",
+        "status": "useful-but-not-adoption",
+        "description": "Ringly, Ilmify, or other maintainer app runs may expose ShipGuard product gaps, but they do not satisfy independent adoption evidence.",
+    },
+    {
+        "id": "independent-adoption-evidence",
+        "status": "requires-external-actor",
+        "description": "A non-maintainer user, repo, issue, PR, or redacted external install report must supply the adoption record.",
+    },
+    {
+        "id": "final-security-review-evidence",
+        "status": "requires-review-record",
+        "description": "A security review record must cover the required ShipGuard surfaces and show no open critical or high findings.",
+    },
+]
 STABLE_PUBLICATION_TEMPLATE_SPECS = [
     {
         "id": "independent-adoption-evidence",
@@ -3140,6 +3162,7 @@ def build_stable_publication_evidence_starter_kit_manifest() -> dict[str, Any]:
                 "purpose": "Draft-only final security-review evidence record. Fill with real review evidence before use.",
             },
         ],
+        "evidenceLadder": STABLE_PUBLICATION_EVIDENCE_LADDER,
         "instructions": [
             "These files are generated as a starter kit only; unchanged starter-kit JSON must not pass stable-publication.",
             "Replace placeholder values with real reviewed evidence, keep private paths and private app details redacted, then pass the completed files back to v4 stable-publication.",
@@ -3907,28 +3930,7 @@ def write_stable_publication_evidence_starter_kit(
         "status": packet.get("status", report.get("status")),
         "releaseVersion": report.get("releaseVersion"),
         "stableV4Release": False,
-        "evidenceLadder": [
-            {
-                "id": "public-consumer-proof",
-                "status": "can-be-produced-by-maintainer",
-                "description": "Install and verify ShipGuard from public release assets only; this proves public consumability, not adoption.",
-            },
-            {
-                "id": "private-maintainer-qa",
-                "status": "useful-but-not-adoption",
-                "description": "Ringly, Ilmify, or other maintainer app runs may expose ShipGuard product gaps, but they do not satisfy independent adoption evidence.",
-            },
-            {
-                "id": "independent-adoption-evidence",
-                "status": "requires-external-actor",
-                "description": "A non-maintainer user, repo, issue, PR, or redacted external install report must supply the adoption record.",
-            },
-            {
-                "id": "final-security-review-evidence",
-                "status": "requires-review-record",
-                "description": "A security review record must cover the required ShipGuard surfaces and show no open critical or high findings.",
-            },
-        ],
+        "evidenceLadder": starter_kit.get("evidenceLadder") or STABLE_PUBLICATION_EVIDENCE_LADDER,
         "firstBlockingGate": packet.get("firstBlockingGate"),
         "closureChecklist": closure_checklist,
         "requiredEvidence": packet.get("requiredEvidence", []),
@@ -5648,6 +5650,14 @@ def render_markdown(report: dict[str, Any]) -> str:
         for item in starter_kit.get("files", []):
             if isinstance(item, dict):
                 lines.append(f"| `{item.get('path')}` | {item.get('purpose')} |")
+        evidence_ladder = starter_kit.get("evidenceLadder")
+        if isinstance(evidence_ladder, list) and evidence_ladder:
+            lines.extend(["", "| Evidence class | Status | What it means |", "| --- | --- | --- |"])
+            for item in evidence_ladder:
+                if isinstance(item, dict):
+                    lines.append(
+                        f"| `{item.get('id')}` | `{item.get('status')}` | {item.get('description')} |"
+                    )
         related = starter_kit.get("relatedAuthoringKits")
         if isinstance(related, list) and related:
             lines.extend(["", "| Related kit | Status | Missing topics |", "| --- | --- | --- |"])

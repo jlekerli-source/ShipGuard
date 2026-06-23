@@ -593,6 +593,28 @@
   "stablePublicationEvidenceStarterKit": {
     "directory": "stable-publication-evidence-kit",
     "draftOnly": true,
+    "evidenceLadder": [
+      {
+        "description": "Install and verify ShipGuard from public release assets only; this proves public consumability, not adoption.",
+        "id": "public-consumer-proof",
+        "status": "can-be-produced-by-maintainer"
+      },
+      {
+        "description": "Ringly, Ilmify, or other maintainer app runs may expose ShipGuard product gaps, but they do not satisfy independent adoption evidence.",
+        "id": "private-maintainer-qa",
+        "status": "useful-but-not-adoption"
+      },
+      {
+        "description": "A non-maintainer user, repo, issue, PR, or redacted external install report must supply the adoption record.",
+        "id": "independent-adoption-evidence",
+        "status": "requires-external-actor"
+      },
+      {
+        "description": "A security review record must cover the required ShipGuard surfaces and show no open critical or high findings.",
+        "id": "final-security-review-evidence",
+        "status": "requires-review-record"
+      }
+    ],
     "files": [
       {
         "id": "checklist",

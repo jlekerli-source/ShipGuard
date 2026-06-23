@@ -388,7 +388,7 @@ This directory is a convenience artifact, not proof. It contains:
 - `external-adoption-evidence.json` copied from the draft-only adoption template
 - `security-review-evidence.json` copied from the draft-only security-review template
 
-The generated README and checklist also include an evidence ladder:
+The generated README, checklist, and main stable-publication Markdown report also include an evidence ladder:
 
 - public consumer proof can be produced by the maintainer from public release assets, but proves consumability rather than adoption
 - private maintainer QA from Ringly, Ilmify, or other maintainer apps can expose ShipGuard product gaps, but does not count as independent adoption

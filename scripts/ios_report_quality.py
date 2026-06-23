@@ -5953,6 +5953,22 @@ def stable_publication_evidence_packet_issues(
                 evidence=f"{path_name} starter kit does not include an attach-ready nextCommandTemplate",
                 recommendation="Include a stable-publication nextCommandTemplate that references the generated adoption and security starter files.",
             )
+        ladder = starter.get("evidenceLadder")
+        ladder_ids = {str(item.get("id") or "") for item in ladder if isinstance(item, dict)} if isinstance(ladder, list) else set()
+        expected_ladder_ids = {
+            "public-consumer-proof",
+            "private-maintainer-qa",
+            "independent-adoption-evidence",
+            "final-security-review-evidence",
+        }
+        if not expected_ladder_ids <= ladder_ids:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-evidence-starter-kit-ladder-missing",
+                evidence=f"{path_name} starter kit does not separate consumer proof, maintainer QA, adoption, and security review evidence",
+                recommendation="Add an evidenceLadder to stablePublicationEvidenceStarterKit so maintainers do not mistake private dogfooding for independent adoption or security proof.",
+            )
         starter_schema = starter.get("schemaVersion")
         if isinstance(starter_schema, int) and starter_schema >= 2:
             report_release_version = str(report.get("releaseVersion") or "")
@@ -5986,6 +6002,14 @@ def stable_publication_evidence_packet_issues(
             rule_id="stable-publication-evidence-starter-kit-markdown-missing",
             evidence=f"{path_name} Markdown does not render the stable-publication evidence starter kit",
             recommendation="Render the generated starter-kit directory and files in Markdown so maintainers can find them immediately.",
+        )
+    if "private-maintainer-qa" not in markdown or "public-consumer-proof" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-evidence-ladder-markdown-missing",
+            evidence=f"{path_name} Markdown does not render the stable-publication evidence ladder",
+            recommendation="Render the evidence ladder in Markdown so public consumer proof, maintainer QA, independent adoption, and security review stay visually separate.",
         )
     notes_kit = report.get("stablePublicationReleaseNotesAuthoringKit")
     if not isinstance(notes_kit, dict):

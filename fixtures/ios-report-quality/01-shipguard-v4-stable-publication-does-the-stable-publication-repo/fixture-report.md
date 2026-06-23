@@ -131,3 +131,10 @@ Rerun after attaching real evidence:
 - Checklist: `stable-publication-release-notes/release-notes-checklist.json`
 - Draft: `stable-publication-release-notes/draft-release-notes.md`
 - Brief: `stable-publication-release-notes/README.md`
+
+| Evidence class | Status | What it means |
+| --- | --- | --- |
+| `public-consumer-proof` | `can-be-produced-by-maintainer` | Install and verify ShipGuard from public release assets only; this proves public consumability, not adoption. |
+| `private-maintainer-qa` | `useful-but-not-adoption` | Ringly, Ilmify, or other maintainer app runs may expose ShipGuard product gaps, but they do not satisfy independent adoption evidence. |
+| `independent-adoption-evidence` | `requires-external-actor` | A non-maintainer user, repo, issue, PR, or redacted external install report must supply the adoption record. |
+| `final-security-review-evidence` | `requires-review-record` | A security review record must cover the required ShipGuard surfaces and show no open critical or high findings. |

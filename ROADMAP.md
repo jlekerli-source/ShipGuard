@@ -222,6 +222,8 @@ v3.180 adds stable-publication evidence starter kit polish: generated evidence-k
 
 v3.181 adds stable-publication evidence ladder polish: generated evidence-kit READMEs and checklist JSON now separate maintainer-producible public consumer proof, private maintainer QA, independent adoption evidence, and final security-review evidence so solo dogfooding cannot be mistaken for external proof.
 
+v3.182 adds stable-publication evidence ladder report polish: the main stable-publication Markdown report now renders that proof-class ladder directly, and report-quality flags reports that hide the distinction.
+
 v3.186 continues that release-notes actionability cleanup by routing the same edit command through `stablePublicationEvidencePacket.firstBlockingGate.nextCommand`, release-notes closure `nextCommand`, and `resultUX.nextCommand`; `rerunCommand` remains the after-edit verifier.
 
 v3.187 cleans the stable-publication release visibility handoff so completed `pass`/not-required rows say `not-needed` instead of leaking fallback commands like test scripts into maintainer-facing next-action tables.

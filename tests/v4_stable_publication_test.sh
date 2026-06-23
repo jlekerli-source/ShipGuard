@@ -471,6 +471,11 @@ assert starter["schemaVersion"] == 2
 assert starter["draftOnly"] is True
 assert starter["directory"] == "stable-publication-evidence-kit"
 assert starter["releaseVersion"] == report["releaseVersion"]
+ladder = {item["id"]: item for item in starter["evidenceLadder"]}
+assert ladder["public-consumer-proof"]["status"] == "can-be-produced-by-maintainer"
+assert ladder["private-maintainer-qa"]["status"] == "useful-but-not-adoption"
+assert ladder["independent-adoption-evidence"]["status"] == "requires-external-actor"
+assert ladder["final-security-review-evidence"]["status"] == "requires-review-record"
 related = {item["id"]: item for item in starter["relatedAuthoringKits"]}
 assert related["release-notes-authoring-kit"]["directory"] == "stable-publication-release-notes"
 assert related["release-notes-authoring-kit"]["status"] == report["stablePublicationReleaseNotesAuthoringKit"]["status"]
@@ -526,6 +531,8 @@ grep -q 'Closure Checklist' "$tmp_dir/blocked/v4-stable-publication.md"
 grep -q 'LaunchKey Candidate Closure Kit' "$tmp_dir/blocked/v4-stable-publication.md"
 grep -q 'candidate-incomplete.json' "$tmp_dir/blocked/v4-stable-publication.md"
 grep -q 'Fixture candidate proof counts as stable-v4 publication proof: `False`' "$tmp_dir/blocked/v4-stable-publication.md"
+grep -q 'public-consumer-proof' "$tmp_dir/blocked/v4-stable-publication.md"
+grep -q 'private-maintainer-qa' "$tmp_dir/blocked/v4-stable-publication.md"
 grep -q 'final-security-review-evidence' "$tmp_dir/blocked/v4-stable-publication.md"
 test -f "$tmp_dir/blocked/stable-publication-launch-relay/README.md"
 test -f "$tmp_dir/blocked/stable-publication-launch-relay/launch-relay-checklist.json"
@@ -1546,6 +1553,10 @@ grep -q 'Security review freshness: `pass`' "$tmp_dir/pass/v4-stable-publication
 grep -q 'independent-adoption-evidence' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Templates' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Evidence Starter Kit' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'public-consumer-proof' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'private-maintainer-qa' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'independent-adoption-evidence' "$tmp_dir/pass/v4-stable-publication.md"
+grep -q 'final-security-review-evidence' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q "Release version: \`$version\`" "$tmp_dir/pass/v4-stable-publication.md" || grep -q "Release version: \`v$version\`" "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'stable-publication-release-notes' "$tmp_dir/pass/v4-stable-publication.md"
 grep -q 'Stable v4 release claim allowed: `True`' "$tmp_dir/pass/v4-stable-publication.md"

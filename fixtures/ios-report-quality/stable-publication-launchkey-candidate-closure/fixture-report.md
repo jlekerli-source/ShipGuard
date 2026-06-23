@@ -180,6 +180,13 @@ Next command template:
 ./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --github-release-repo <owner/repo> --release-version <version> --release-candidate-report <v4-release-candidate-json-or-dir> --download-release-assets --external-adoption-evidence stable-publication-evidence-kit/external-adoption-evidence.json --security-review-evidence stable-publication-evidence-kit/security-review-evidence.json --shipguard-eval --shareable
 ```
 
+| Evidence class | Status | What it means |
+| --- | --- | --- |
+| `public-consumer-proof` | `can-be-produced-by-maintainer` | Install and verify ShipGuard from public release assets only; this proves public consumability, not adoption. |
+| `private-maintainer-qa` | `useful-but-not-adoption` | Ringly, Ilmify, or other maintainer app runs may expose ShipGuard product gaps, but they do not satisfy independent adoption evidence. |
+| `independent-adoption-evidence` | `requires-external-actor` | A non-maintainer user, repo, issue, PR, or redacted external install report must supply the adoption record. |
+| `final-security-review-evidence` | `requires-review-record` | A security review record must cover the required ShipGuard surfaces and show no open critical or high findings. |
+
 ## Launch Relay Drafts
 
 - Directory: `stable-publication-launch-relay`
