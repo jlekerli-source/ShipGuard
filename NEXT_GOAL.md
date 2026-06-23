@@ -1,25 +1,25 @@
 # Next Goal
 
-- Generated: 2026-06-23T15:58:33Z
-- Current toolkit version: 3.187.0
-- Target release: v3.188.0
-- Title: Professional Design QA depth receipts
+- Generated: 2026-06-23T16:23:21Z
+- Current toolkit version: 3.188.0
+- Target release: v3.189.0
+- Title: ExpoDeck runtime evidence adapters
 
 ## Version Lineage Check
 
 - Status: pass
-- VERSION: 3.187.0
-- Expected next release from VERSION: v3.188.0
-- Planned target release: v3.188.0
-- Current checkout package artifact before version bump: dist/shipguard-v3.187.0.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v3.188.0.tar.gz
-- Action: Before publishing v3.188.0, bump VERSION to 3.188.0, rebuild, and verify dist/shipguard-v3.188.0.tar.gz.
+- VERSION: 3.188.0
+- Expected next release from VERSION: v3.189.0
+- Planned target release: v3.189.0
+- Current checkout package artifact before version bump: dist/shipguard-v3.188.0.tar.gz
+- Expected package artifact after release bump: dist/shipguard-v3.189.0.tar.gz
+- Action: Before publishing v3.189.0, bump VERSION to 3.189.0, rebuild, and verify dist/shipguard-v3.189.0.tar.gz.
 
 ## Slash Plan
 
 ```text
-/plan v3.188.0 Professional Design QA depth receipts for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Upgrade the new Professional Design QA skill from starter guidance into a deeper, example-backed ShipGuard surface with concrete command routing, preview proof language, app-genre examples, and report-quality coverage.
+/plan v3.189.0 ExpoDeck runtime evidence adapters for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Add a small read-only runtime evidence hook for ExpoDeck so source-only design and SDK findings can point to concrete preview, screenshot, Expo Doctor, or EAS timing artifacts without pretending those artifacts were already captured.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, bump VERSION before release packaging, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -28,23 +28,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.188.0 Professional Design QA depth receipts for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Upgrade the new Professional Design QA skill from starter guidance into a deeper, example-backed ShipGuard surface with concrete command routing, preview proof language, app-genre examples, and report-quality coverage, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.189.0 ExpoDeck runtime evidence adapters for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Add a small read-only runtime evidence hook for ExpoDeck so source-only design and SDK findings can point to concrete preview, screenshot, Expo Doctor, or EAS timing artifacts without pretending those artifacts were already captured, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Upgrade the new Professional Design QA skill from starter guidance into a deeper, example-backed ShipGuard surface with concrete command routing, preview proof language, app-genre examples, and report-quality coverage.
+Add a small read-only runtime evidence hook for ExpoDeck so source-only design and SDK findings can point to concrete preview, screenshot, Expo Doctor, or EAS timing artifacts without pretending those artifacts were already captured.
 
 ## Completion Receipt
 
-- Completed scope: v3.187.0 shipped ExpoDeck readiness, the Professional Design QA starter skill, Expo SDK 56 demo fixtures, professional design-principle evidence in expo readiness reports, package/docs/test coverage, local CLI refresh, plugin refresh, and stable-publication pass-row fixture cleanup.
-- Evidence: Commit 716e981b pushed to main; GitHub Actions run 28038703981 completed success; local package tarball dist/shipguard-v3.187.0.tar.gz SHA-256 543cba52a7b175b958581682163d2b335356f423ce97fa315690174b2536d80d; ./bin/shipguard codex status --strict passed.
+- Completed scope: v3.188.0 deepened Professional Design QA with concrete ios design, ios preview, ExpoDeck, and report-quality command routes, app-genre examples, and explicit screenshot/preview/device proof language; Value Gauntlet now returns stable-v4 publication as the lowest-value surface again after the design skill clears command-example and validation-density depth checks.
+- Evidence: Commit 0fcdb6f1 pushed to main; GitHub Actions run 28040180670 completed success; local package tarball dist/shipguard-v3.188.0.tar.gz SHA-256 f41797d8c928d6a6e2535b1146fde42ea9139cb103209ac6b4801b3ac48f21dc; ./bin/shipguard codex status --strict passed.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.189.0 ExpoDeck runtime evidence adapters for jlekerli-source/ShipGuard:
+/plan v3.190.0 Stable-publication result UX labels for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -54,13 +54,13 @@ Upgrade the new Professional Design QA skill from starter guidance into a deeper
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.189.0 ExpoDeck runtime evidence adapters for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.190.0 Stable-publication result UX labels for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.189.0 --title "ExpoDeck runtime evidence adapters" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.190.0 --title "Stable-publication result UX labels" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -160,12 +160,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.188.0.
+1. Open or update the tracking issue for v3.189.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Bump VERSION to 3.188.0, build `dist/shipguard-v3.188.0.tar.gz`, create release `v3.188.0`, and upload the rebuilt tarball.
+6. Bump VERSION to 3.189.0, build `dist/shipguard-v3.189.0.tar.gz`, create release `v3.189.0`, and upload the rebuilt tarball.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
