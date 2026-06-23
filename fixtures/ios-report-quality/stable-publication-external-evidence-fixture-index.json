@@ -20,7 +20,7 @@
     },
     {
       "candidateId": "stable-publication-security-review-evidence-checklist",
-      "coveredInCurrentRun": false,
+      "coveredInCurrentRun": true,
       "id": "final-security-review-evidence",
       "label": "Final security-review evidence",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-security-review-evidence-checklist",
@@ -55,7 +55,7 @@
     },
     {
       "candidateId": "stable-publication-external-evidence-source-classes",
-      "coveredInCurrentRun": true,
+      "coveredInCurrentRun": false,
       "id": "external-evidence-source-class-fixture",
       "label": "External evidence source classes",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
@@ -70,28 +70,48 @@
       ],
       "sourceQuestion": "Does stable-publication keep accepted external evidence source classes, actor/reviewer relationships, and rejected substitutes visible so weak substitutes cannot be mistaken for adoption or security proof?",
       "status": "covered"
+    },
+    {
+      "candidateId": "stable-publication-external-evidence-relationship-gates",
+      "coveredInCurrentRun": false,
+      "id": "external-evidence-relationship-gate-fixture",
+      "label": "External evidence relationship gates",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-relationship-gates",
+      "rejectionProved": "wrong actor/reviewer relationships rejected as adoption/security proof",
+      "requiredProof": [
+        "actorRelationship gate",
+        "reviewerRelationship gate",
+        "accepted relationships",
+        "rejected relationships",
+        "blocked substitutes",
+        "pass boundaries",
+        "Markdown visibility"
+      ],
+      "sourceQuestion": "Does stable-publication keep external evidence relationship gates visible so maintainer-only adoption runs and unreviewed security notes cannot satisfy adoption or security proof?",
+      "status": "covered"
     }
   ],
-  "coveredCount": 4,
+  "coveredCount": 5,
   "decisionSummary": {
     "coveredEvidenceClasses": [
       "independent-adoption-evidence",
       "final-security-review-evidence",
       "external-evidence-freshness-fixture",
-      "external-evidence-source-class-fixture"
+      "external-evidence-source-class-fixture",
+      "external-evidence-relationship-gate-fixture"
     ],
-    "nextPromotionTarget": "external-evidence-next-gap-promotion",
+    "nextPromotionTarget": "external-evidence-next-public-fixture",
     "nonClaimSummary": "This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.",
     "remainingExternalEvidenceQuestions": [
-      "external-evidence-next-gap-promotion"
+      "external-evidence-next-public-fixture"
     ],
-    "verdict": "Adoption, security-review, freshness, and source-class fixture questions are covered; source-class summaries are visible and the next gap promotion remains."
+    "verdict": "Adoption, security-review, freshness, source-class, and relationship-gate fixture questions are covered; the next public fixture promotion remains."
   },
-  "expectedCount": 4,
+  "expectedCount": 5,
   "nextFixtureToPromote": {
-    "id": "external-evidence-next-gap-promotion",
-    "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
-    "summary": "Promote the next stable-publication external-evidence gap found by real report QA without treating fixtures as adoption or security proof."
+    "id": "external-evidence-next-public-fixture",
+    "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-relationship-gates",
+    "summary": "Promote the next stable-publication external-evidence public fixture found by real report QA without treating fixture coverage as adoption or security proof."
   },
   "nonClaims": [
     "Fixture coverage proves report-quality behavior only.",
@@ -100,11 +120,43 @@
     "Fixture coverage does not prove stable-v4 publication."
   ],
   "purpose": "Compact index of public stable-publication external-evidence fixture coverage.",
+  "relationshipGateSummary": [
+    {
+      "acceptedRelationships": [
+        "independent"
+      ],
+      "blockedSubstitute": "maintainer-only private app runs",
+      "evidence": "independent-adoption-evidence",
+      "passBoundary": "Adoption proof requires an independent external actor plus commands, artifacts, redaction, outcome, and non-claims.",
+      "rejectedRelationships": [
+        "maintainer",
+        "self",
+        "fixtureSynthetic",
+        "unknown"
+      ],
+      "requiredRelationshipField": "actorRelationship"
+    },
+    {
+      "acceptedRelationships": [
+        "independent",
+        "maintainer-security-review"
+      ],
+      "blockedSubstitute": "vague self-review notes",
+      "evidence": "final-security-review-evidence",
+      "passBoundary": "Security proof requires reviewed stable-v4 surfaces, methodology, findings summary, artifacts, redaction, and no open critical/high findings.",
+      "rejectedRelationships": [
+        "self",
+        "unknown",
+        "fixtureSynthetic"
+      ],
+      "requiredRelationshipField": "reviewerRelationship"
+    }
+  ],
   "remainingExternalEvidenceGaps": [
     {
-      "id": "external-evidence-next-gap-promotion",
-      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
-      "summary": "Promote the next stable-publication external-evidence gap found by real report QA without treating fixtures as adoption or security proof."
+      "id": "external-evidence-next-public-fixture",
+      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-relationship-gates",
+      "summary": "Promote the next stable-publication external-evidence public fixture found by real report QA without treating fixture coverage as adoption or security proof."
     }
   ],
   "schemaVersion": 1,

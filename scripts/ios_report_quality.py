@@ -9930,6 +9930,24 @@ def stable_publication_external_evidence_fixture_index(
             "passBoundary": "Requires reviewed stable-v4 surfaces, methodology, findings summary, artifacts, redaction, and no open critical/high findings.",
         },
     ]
+    relationship_gate_summary = [
+        {
+            "evidence": "independent-adoption-evidence",
+            "requiredRelationshipField": "actorRelationship",
+            "acceptedRelationships": ["independent"],
+            "rejectedRelationships": ["maintainer", "self", "fixtureSynthetic", "unknown"],
+            "blockedSubstitute": "maintainer-only private app runs",
+            "passBoundary": "Adoption proof requires an independent external actor plus commands, artifacts, redaction, outcome, and non-claims.",
+        },
+        {
+            "evidence": "final-security-review-evidence",
+            "requiredRelationshipField": "reviewerRelationship",
+            "acceptedRelationships": ["independent", "maintainer-security-review"],
+            "rejectedRelationships": ["self", "unknown", "fixtureSynthetic"],
+            "blockedSubstitute": "vague self-review notes",
+            "passBoundary": "Security proof requires reviewed stable-v4 surfaces, methodology, findings summary, artifacts, redaction, and no open critical/high findings.",
+        },
+    ]
     expected = [
         {
             "id": "independent-adoption-evidence",
@@ -9986,6 +10004,21 @@ def stable_publication_external_evidence_fixture_index(
                 "Markdown visibility",
             ],
         },
+        {
+            "id": "external-evidence-relationship-gate-fixture",
+            "label": "External evidence relationship gates",
+            "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-relationship-gates",
+            "rejectionProved": "wrong actor/reviewer relationships rejected as adoption/security proof",
+            "requiredProof": [
+                "actorRelationship gate",
+                "reviewerRelationship gate",
+                "accepted relationships",
+                "rejected relationships",
+                "blocked substitutes",
+                "pass boundaries",
+                "Markdown visibility",
+            ],
+        },
     ]
     by_path = {
         str(item.get("publicFixturePath") or ""): item
@@ -10008,9 +10041,9 @@ def stable_publication_external_evidence_fixture_index(
         )
     missing = [row for row in rows if row["status"] != "covered"]
     next_gap = {
-        "id": "external-evidence-next-gap-promotion",
-        "summary": "Promote the next stable-publication external-evidence gap found by real report QA without treating fixtures as adoption or security proof.",
-        "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
+        "id": "external-evidence-next-public-fixture",
+        "summary": "Promote the next stable-publication external-evidence public fixture found by real report QA without treating fixture coverage as adoption or security proof.",
+        "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-relationship-gates",
     }
     next_target = missing[0] if missing else next_gap
     covered_classes = [row["id"] for row in rows if row["status"] == "covered"]
@@ -10028,7 +10061,7 @@ def stable_publication_external_evidence_fixture_index(
         "coveredCount": len(rows) - len(missing),
         "expectedCount": len(rows),
         "decisionSummary": {
-            "verdict": "Adoption, security-review, freshness, and source-class fixture questions are covered; source-class summaries are visible and the next gap promotion remains."
+            "verdict": "Adoption, security-review, freshness, source-class, and relationship-gate fixture questions are covered; the next public fixture promotion remains."
             if not missing
             else "Stable-publication external evidence fixture coverage is incomplete.",
             "coveredEvidenceClasses": covered_classes,
@@ -10037,6 +10070,7 @@ def stable_publication_external_evidence_fixture_index(
             "nonClaimSummary": "This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.",
         },
         "sourceClassPolishSummary": source_class_polish_summary,
+        "relationshipGateSummary": relationship_gate_summary,
         "rows": rows,
         "remainingExternalEvidenceGaps": [next_gap],
         "nextFixtureToPromote": next_target,
@@ -10311,6 +10345,23 @@ def render_markdown(report: dict[str, Any]) -> str:
                 rejected = ", ".join(str(value) for value in item.get("rejectedSubstitutes") or [])
                 lines.append(
                     f"| `{item.get('evidence') or 'unknown'}` | {table_cell(accepted, 90)} | `{item.get('requiredRelationshipField') or '-'}` | {table_cell(relationships or '-', 70)} | {table_cell(rejected, 130)} | {table_cell(item.get('passBoundary') or '-', 130)} |"
+                )
+        relationship_summary = external_index.get("relationshipGateSummary") or []
+        if relationship_summary:
+            lines.extend(
+                [
+                    "",
+                    "Relationship-gate summary:",
+                    "",
+                    "| Evidence | Relationship field | Accepted relationships | Rejected relationships | Blocked substitute | Pass boundary |",
+                    "| --- | --- | --- | --- | --- | --- |",
+                ]
+            )
+            for item in relationship_summary:
+                accepted = ", ".join(str(value) for value in item.get("acceptedRelationships") or [])
+                rejected = ", ".join(str(value) for value in item.get("rejectedRelationships") or [])
+                lines.append(
+                    f"| `{item.get('evidence') or 'unknown'}` | `{item.get('requiredRelationshipField') or '-'}` | {table_cell(accepted or '-', 70)} | {table_cell(rejected or '-', 90)} | {table_cell(item.get('blockedSubstitute') or '-', 80)} | {table_cell(item.get('passBoundary') or '-', 130)} |"
                 )
         next_fixture = external_index.get("nextFixtureToPromote") if isinstance(external_index.get("nextFixtureToPromote"), dict) else {}
         if next_fixture:

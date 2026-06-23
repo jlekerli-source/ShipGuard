@@ -7783,31 +7783,66 @@ assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/stabl
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 
+stable_publication_relationship_gate_fixture="fixtures/ios-report-quality/stable-publication-external-evidence-relationship-gates"
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_relationship_gate_fixture" \
+  --out "$tmp_dir/stable-publication-relationship-gate-fixture-quality" \
+  --shareable >/dev/null
+grep -q '"status": "pass"' "$tmp_dir/stable-publication-relationship-gate-fixture-quality/ios-report-quality.json"
+grep -q '"kind": "review-existing-fixture"' "$tmp_dir/stable-publication-relationship-gate-fixture-quality/ios-report-quality.json"
+grep -q '"publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-relationship-gates"' "$tmp_dir/stable-publication-relationship-gate-fixture-quality/ios-report-quality.json"
+grep -q '"fixtureCandidates": \[\]' "$tmp_dir/stable-publication-relationship-gate-fixture-quality/ios-report-quality.json"
+grep -q 'External Evidence Relationship Gates' "$stable_publication_relationship_gate_fixture/fixture-report.md"
+grep -q 'maintainer-only private app runs' "$stable_publication_relationship_gate_fixture/fixture-report.md"
+grep -q 'vague self-review notes' "$stable_publication_relationship_gate_fixture/fixture-report.md"
+grep -q '"stablePublicationExternalEvidenceRelationshipGateProof":' "$stable_publication_relationship_gate_fixture/fixture-report.json"
+grep -q '"requiredRelationshipField": "actorRelationship"' "$stable_publication_relationship_gate_fixture/fixture-report.json"
+grep -q '"requiredRelationshipField": "reviewerRelationship"' "$stable_publication_relationship_gate_fixture/fixture-report.json"
+python3 - <<'PY' "$tmp_dir/stable-publication-relationship-gate-fixture-quality/ios-report-quality.json"
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+coverage = data.get("fixtureCoverage") or []
+assert len(coverage) == 1, coverage
+item = coverage[0]
+assert item.get("sourceTool") == "shipguard v4 stable-publication", item
+assert item.get("fixtureType") == "shipguard-release-proof-quality-fixture", item
+assert item.get("publicFixturePath") == "fixtures/ios-report-quality/stable-publication-external-evidence-relationship-gates", item
+assert "relationship gates" in item.get("question", ""), item
+priority = data.get("priorityAction") or {}
+assert priority.get("kind") == "review-existing-fixture", priority
+assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/stable-publication-external-evidence-relationship-gates", priority
+assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
+PY
+
 python3 - <<'PY' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.json" fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.json
 import json
 import sys
 
 report = json.load(open(sys.argv[1], encoding="utf-8"))
 index = report.get("stablePublicationExternalEvidenceFixtureIndex") or {}
-assert index.get("coveredCount") == 4, index
-assert index.get("expectedCount") == 4, index
+assert index.get("coveredCount") == 5, index
+assert index.get("expectedCount") == 5, index
 summary = index.get("decisionSummary") or {}
-assert "source-class summaries are visible" in summary.get("verdict", ""), summary
+assert "relationship-gate fixture questions are covered" in summary.get("verdict", ""), summary
 assert summary.get("coveredEvidenceClasses") == [
     "independent-adoption-evidence",
     "final-security-review-evidence",
     "external-evidence-freshness-fixture",
     "external-evidence-source-class-fixture",
+    "external-evidence-relationship-gate-fixture",
 ], summary
-assert summary.get("remainingExternalEvidenceQuestions") == ["external-evidence-next-gap-promotion"], summary
-assert summary.get("nextPromotionTarget") == "external-evidence-next-gap-promotion", summary
+assert summary.get("remainingExternalEvidenceQuestions") == ["external-evidence-next-public-fixture"], summary
+assert summary.get("nextPromotionTarget") == "external-evidence-next-public-fixture", summary
 assert "not adoption" in summary.get("nonClaimSummary", ""), summary
 rows = {item.get("id"): item for item in index.get("rows") or []}
 assert rows.get("independent-adoption-evidence", {}).get("status") == "covered", rows
 assert rows.get("final-security-review-evidence", {}).get("status") == "covered", rows
 assert rows.get("external-evidence-freshness-fixture", {}).get("status") == "covered", rows
 assert rows.get("external-evidence-source-class-fixture", {}).get("status") == "covered", rows
-assert index.get("nextFixtureToPromote", {}).get("id") == "external-evidence-next-gap-promotion", index
+assert rows.get("external-evidence-relationship-gate-fixture", {}).get("status") == "covered", rows
+assert index.get("nextFixtureToPromote", {}).get("id") == "external-evidence-next-public-fixture", index
 source_summary = {item.get("evidence"): item for item in index.get("sourceClassPolishSummary") or []}
 adoption = source_summary.get("independent-adoption-evidence") or {}
 security = source_summary.get("final-security-review-evidence") or {}
@@ -7817,30 +7852,41 @@ assert "maintainer-only private app runs" in adoption.get("rejectedSubstitutes",
 assert "private-redacted-security-review" in security.get("acceptedEvidenceClasses", []), source_summary
 assert security.get("requiredRelationshipField") == "reviewerRelationship", source_summary
 assert "vague self-review notes" in security.get("rejectedSubstitutes", []), source_summary
+relationship_summary = {item.get("evidence"): item for item in index.get("relationshipGateSummary") or []}
+assert relationship_summary.get("independent-adoption-evidence", {}).get("requiredRelationshipField") == "actorRelationship", relationship_summary
+assert "maintainer" in relationship_summary.get("independent-adoption-evidence", {}).get("rejectedRelationships", []), relationship_summary
+assert relationship_summary.get("final-security-review-evidence", {}).get("requiredRelationshipField") == "reviewerRelationship", relationship_summary
+assert "vague self-review notes" in relationship_summary.get("final-security-review-evidence", {}).get("blockedSubstitute", ""), relationship_summary
 
 static = json.load(open(sys.argv[2], encoding="utf-8"))
 static_summary = static.get("decisionSummary") or {}
-assert static_summary.get("nextPromotionTarget") == "external-evidence-next-gap-promotion", static_summary
+assert static_summary.get("nextPromotionTarget") == "external-evidence-next-public-fixture", static_summary
 coverage_ids = {item.get("id") for item in static.get("coverage") or []}
 assert "independent-adoption-evidence" in coverage_ids, static
 assert "final-security-review-evidence" in coverage_ids, static
 assert "external-evidence-freshness-fixture" in coverage_ids, static
 assert "external-evidence-source-class-fixture" in coverage_ids, static
+assert "external-evidence-relationship-gate-fixture" in coverage_ids, static
 gaps = static.get("remainingExternalEvidenceGaps") or []
-assert gaps and gaps[0].get("suggestedFixturePath", "").endswith("stable-publication-external-evidence-source-classes"), gaps
+assert gaps and gaps[0].get("suggestedFixturePath", "").endswith("stable-publication-external-evidence-relationship-gates"), gaps
 static_source_summary = {item.get("evidence"): item for item in static.get("sourceClassPolishSummary") or []}
 assert static_source_summary.get("independent-adoption-evidence", {}).get("requiredRelationshipField") == "actorRelationship", static_source_summary
 assert static_source_summary.get("final-security-review-evidence", {}).get("requiredRelationshipField") == "reviewerRelationship", static_source_summary
+static_relationship_summary = {item.get("evidence"): item for item in static.get("relationshipGateSummary") or []}
+assert static_relationship_summary.get("independent-adoption-evidence", {}).get("requiredRelationshipField") == "actorRelationship", static_relationship_summary
+assert static_relationship_summary.get("final-security-review-evidence", {}).get("requiredRelationshipField") == "reviewerRelationship", static_relationship_summary
 PY
 grep -q 'Stable-Publication External Evidence Fixture Index' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'Decision summary' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'Source-class summary' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
+grep -q 'Relationship-gate summary' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'private-redacted-security-review' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
-grep -q 'Next promotion target: `external-evidence-next-gap-promotion`' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
+grep -q 'Next promotion target: `external-evidence-next-public-fixture`' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'weak adoption signals rejected' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'vague security evidence rejected' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'stale adoption/security evidence rejected' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'weak substitutes rejected as adoption/security proof' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
+grep -q 'wrong actor/reviewer relationships rejected as adoption/security proof' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'not adoption, final security-review, or stable-v4 publication proof' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 
 stable_publication_missing_intake="$tmp_dir/stable-publication-missing-intake"
