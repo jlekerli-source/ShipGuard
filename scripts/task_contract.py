@@ -1607,6 +1607,7 @@ def build_diff_learning_handoff(
             {
                 "command": repair_command,
                 "evidenceCount": evidence_count,
+                "noteTemplate": "--reviewer-note '<short maintainer decision note>'",
                 "acceptedValues": ["accepted", "dismissed", "follow-up", "unknown"],
                 "when": "Run after the maintainer decides whether this proof packet was accepted, dismissed, or needs follow-up.",
                 "boundary": "This records local reviewer outcome only; it is not adoption, benchmark, or security-review evidence.",
@@ -1631,6 +1632,7 @@ def build_diff_learning_handoff(
         "nextStep": reviewer_disposition_receipt["recommendedFollowUp"],
         "repairCommand": (reviewer_disposition_receipt["repairHint"] or {}).get("command"),
         "repairEvidenceCount": (reviewer_disposition_receipt["repairHint"] or {}).get("evidenceCount"),
+        "repairNoteTemplate": (reviewer_disposition_receipt["repairHint"] or {}).get("noteTemplate"),
         "guard": "Do not tune recurring-signal rules from one local reviewer disposition.",
     }
     recurring_signal_tuning = {
@@ -2300,6 +2302,8 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
             )
             if summary.get("repairCommand"):
                 lines.append(f"- Reviewer disposition summary repair: `{summary.get('repairCommand')}`")
+            if summary.get("repairNoteTemplate"):
+                lines.append(f"- Reviewer disposition note option: `{summary.get('repairNoteTemplate')}`")
         disposition = learning.get("reviewerDispositionReceipt") if isinstance(learning.get("reviewerDispositionReceipt"), dict) else {}
         if disposition:
             lines.append(f"- Reviewer disposition: `{disposition.get('disposition')}`")

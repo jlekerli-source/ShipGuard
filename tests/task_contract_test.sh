@@ -375,6 +375,7 @@ repair = disposition["repairHint"]
 assert repair["command"].startswith("shipguard verify --task <task.json>")
 assert "--reviewer-disposition accepted" in repair["command"]
 assert repair["evidenceCount"] == 1
+assert repair["noteTemplate"] == "--reviewer-note '<short maintainer decision note>'"
 assert repair["acceptedValues"] == ["accepted", "dismissed", "follow-up", "unknown"]
 assert "local reviewer outcome" in repair["boundary"]
 assert disposition["trackedSignals"] == [
@@ -418,6 +419,7 @@ assert "does not prove" in replay["proofBoundary"]
 assert "structured proof" in replay["proofBoundary"]
 PY
 grep -q 'Reviewer disposition summary repair: `shipguard verify --task <task.json> --diff <change.diff> --evidence <validation-receipt.json> --reviewer-disposition accepted --out <verdict-dir>`' "$tmp_dir/verify-blocked/shipguard-verdict.md"
+grep -q "Reviewer disposition note option: \`--reviewer-note '<short maintainer decision note>'\`" "$tmp_dir/verify-blocked/shipguard-verdict.md"
 grep -q 'Reviewer repair hint: `shipguard verify --task <task.json> --diff <change.diff> --evidence <validation-receipt.json> --reviewer-disposition accepted --out <verdict-dir>`' "$tmp_dir/verify-blocked/shipguard-verdict.md"
 
 (
@@ -442,7 +444,9 @@ assert command == (
     "--evidence logs/swift-test-receipt.json --reviewer-disposition accepted --out verify-relative-repair"
 )
 assert summary["repairEvidenceCount"] == 1
+assert summary["repairNoteTemplate"] == "--reviewer-note '<short maintainer decision note>'"
 assert repair["evidenceCount"] == 1
+assert repair["noteTemplate"] == summary["repairNoteTemplate"]
 PY
 grep -q 'Reviewer disposition summary repair: `shipguard verify --task prepare/shipguard-task.json --diff good.diff --evidence logs/swift-test-receipt.json --reviewer-disposition accepted --out verify-relative-repair`' "$tmp_dir/verify-relative-repair/shipguard-verdict.md"
 

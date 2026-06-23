@@ -200,6 +200,8 @@ v3.169 adds reviewer outcome repair-command polish: missing reviewer-disposition
 
 v3.170 adds reviewer outcome multi-evidence repair polish: missing reviewer-disposition repair hints now expose the evidence count and focused tests prove copy-ready repair commands preserve multiple `--evidence` receipts.
 
+v3.171 adds reviewer outcome repair-note polish: missing reviewer-disposition repair hints now expose a copyable optional `--reviewer-note` template in JSON and Markdown so maintainers can record why they accepted, dismissed, or routed follow-up.
+
 v3.186 continues that release-notes actionability cleanup by routing the same edit command through `stablePublicationEvidencePacket.firstBlockingGate.nextCommand`, release-notes closure `nextCommand`, and `resultUX.nextCommand`; `rerunCommand` remains the after-edit verifier.
 
 v3.187 cleans the stable-publication release visibility handoff so completed `pass`/not-required rows say `not-needed` instead of leaking fallback commands like test scripts into maintainer-facing next-action tables.
