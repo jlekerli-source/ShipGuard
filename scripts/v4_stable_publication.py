@@ -87,6 +87,7 @@ STARTER_KIT_DIRNAME = "stable-publication-evidence-kit"
 RELEASE_NOTES_KIT_DIRNAME = "stable-publication-release-notes"
 LAUNCH_RELAY_DIRNAME = "stable-publication-launch-relay"
 PUBLIC_PROOF_WALKTHROUGH_FILENAME = "public-proof-walkthrough.md"
+RELEASE_NOTES_EDIT_WALKTHROUGH_FILENAME = "edit-walkthrough.md"
 STABLE_PUBLICATION_EVIDENCE_LADDER = [
     {
         "id": "public-consumer-proof",
@@ -3238,6 +3239,7 @@ def build_stable_publication_release_notes_authoring_kit(
     checklist_path = kit_dir / "release-notes-checklist.json"
     draft_path = kit_dir / "draft-release-notes.md"
     readme_path = kit_dir / "README.md"
+    edit_walkthrough_path = kit_dir / RELEASE_NOTES_EDIT_WALKTHROUGH_FILENAME
     edit_command = public_release_notes_edit_command(
         repo=release_repo,
         tag=release_tag,
@@ -3251,6 +3253,7 @@ def build_stable_publication_release_notes_authoring_kit(
             "checklist": checklist_path.as_posix(),
             "draftReleaseNotes": draft_path.as_posix(),
             "readme": readme_path.as_posix(),
+            "editWalkthrough": edit_walkthrough_path.as_posix(),
         },
         "releaseVersion": release_version,
         "releaseTag": release_tag,
@@ -3285,6 +3288,12 @@ def build_stable_publication_release_notes_authoring_kit(
                 "path": f"{RELEASE_NOTES_KIT_DIRNAME}/README.md",
                 "generatedPath": readme_path.as_posix(),
                 "purpose": "Human instructions for adapting the draft into the public GitHub release body.",
+            },
+            {
+                "id": "edit-walkthrough",
+                "path": f"{RELEASE_NOTES_KIT_DIRNAME}/{RELEASE_NOTES_EDIT_WALKTHROUGH_FILENAME}",
+                "generatedPath": edit_walkthrough_path.as_posix(),
+                "purpose": "Step-by-step manual release-notes edit and rerun proof guide.",
             },
         ],
         "instructions": [
@@ -4143,6 +4152,41 @@ def write_stable_publication_release_notes_authoring_kit(
         )
     (kit_dir / "draft-release-notes.md").write_text("\n".join(draft_lines), encoding="utf-8")
 
+    edit_walkthrough_lines = [
+        "# Release Notes Edit Walkthrough",
+        "",
+        "ShipGuard prepares the command. A maintainer must decide whether to edit the public GitHub release.",
+        "",
+        "## 1. Review The Draft",
+        "",
+        "- Open `draft-release-notes.md`.",
+        "- Replace placeholders with real public release facts.",
+        "- Keep private app names, paths, screenshots, account data, and token-like strings out of public notes.",
+        "",
+        "## 2. Edit The Public Release",
+        "",
+        "```bash",
+        edit_command,
+        "```",
+        "",
+        "## 3. Prove The Edit",
+        "",
+        "```bash",
+        str(kit.get("nextCommandTemplate") or ""),
+        "```",
+        "",
+        "## Not Proof By Itself",
+        "",
+        "- This walkthrough does not publish anything.",
+        "- The generated draft does not prove release-note coverage until the public release is edited and stable-publication is rerun.",
+        "- Stable v4 remains blocked until release metadata, release assets, consumer proof, independent adoption, and security review all pass.",
+        "",
+    ]
+    (kit_dir / RELEASE_NOTES_EDIT_WALKTHROUGH_FILENAME).write_text(
+        "\n".join(edit_walkthrough_lines),
+        encoding="utf-8",
+    )
+
     readme_lines = [
         "# Stable Publication Release Notes Kit",
         "",
@@ -4156,6 +4200,7 @@ def write_stable_publication_release_notes_authoring_kit(
         "",
         "- `release-notes-checklist.json`: machine-readable topic matrix and missing topic list.",
         "- `draft-release-notes.md`: copy-ready draft section that includes every required stable-publication topic.",
+        "- `edit-walkthrough.md`: manual edit and rerun proof steps.",
         "",
         "## Rules",
         "",

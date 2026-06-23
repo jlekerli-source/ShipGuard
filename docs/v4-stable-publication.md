@@ -70,6 +70,7 @@ Outputs:
 - `stable-publication-release-notes/README.md`
 - `stable-publication-release-notes/release-notes-checklist.json`
 - `stable-publication-release-notes/draft-release-notes.md`
+- `stable-publication-release-notes/edit-walkthrough.md`
 - `stable-publication-launch-relay/README.md`
 - `stable-publication-launch-relay/launch-relay-checklist.json`
 - `stable-publication-launch-relay/product-hunt-draft.md`
@@ -153,6 +154,7 @@ This directory is a draft-only authoring aid, not proof that the public GitHub r
 - `README.md` with public-release-body rules, the exact manual `gh release edit ... --notes-file <report-out>/stable-publication-release-notes/draft-release-notes.md` command, and the rerun command
 - `release-notes-checklist.json` with the same topic matrix and missing topic IDs from `releaseNotesProof`
 - `draft-release-notes.md` with a copy-ready stable-publication section covering release assets, post-release consumer proof, independent adoption, final security review, and non-claims
+- `edit-walkthrough.md` with the manual edit step, stable-publication rerun proof command, and non-proof boundaries
 
 The report exposes the same artifact as `stablePublicationReleaseNotesAuthoringKit`, including `generatedPaths` and `files[].generatedPath` for the generated README, checklist, and draft release notes. Markdown renders it under `Release Notes Authoring Kit`. `ios report-quality` flags stable-publication reports that expose release-note gaps but do not give maintainers a draft/checklist path and public GitHub edit command to fix the public release body.
 

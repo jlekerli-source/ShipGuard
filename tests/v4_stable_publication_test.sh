@@ -1012,6 +1012,7 @@ assert {
     "README.md",
     "release-notes-checklist.json",
     "draft-release-notes.md",
+    "edit-walkthrough.md",
 } <= {item["generatedPath"].rsplit("/", 1)[-1] for item in notes_kit["files"]}
 relay = report["stablePublicationLaunchRelayDrafts"]
 assert relay["draftOnly"] is True
@@ -1030,9 +1031,12 @@ grep -q 'stable-publication-release-notes/draft-release-notes.md' "$tmp_dir/weak
 test -f "$tmp_dir/weak-notes/stable-publication-release-notes/README.md"
 test -f "$tmp_dir/weak-notes/stable-publication-release-notes/release-notes-checklist.json"
 test -f "$tmp_dir/weak-notes/stable-publication-release-notes/draft-release-notes.md"
+test -f "$tmp_dir/weak-notes/stable-publication-release-notes/edit-walkthrough.md"
 grep -q 'Post-release consumer proof' "$tmp_dir/weak-notes/stable-publication-release-notes/draft-release-notes.md"
 grep -q 'gh release edit' "$tmp_dir/weak-notes/stable-publication-release-notes/README.md"
 grep -q 'gh release edit' "$tmp_dir/weak-notes/stable-publication-release-notes/draft-release-notes.md"
+grep -q 'gh release edit' "$tmp_dir/weak-notes/stable-publication-release-notes/edit-walkthrough.md"
+grep -q 'Prove The Edit' "$tmp_dir/weak-notes/stable-publication-release-notes/edit-walkthrough.md"
 grep -q '"draftOnly": true' "$tmp_dir/weak-notes/stable-publication-release-notes/release-notes-checklist.json"
 
 python3 - "$release_endpoint_file" "$version" "$tmp_dir/downloaded" "$release_commit" <<'PY'
@@ -1583,6 +1587,7 @@ test -f "$tmp_dir/pass/stable-publication-evidence-kit/security-review-evidence.
 test -f "$tmp_dir/pass/stable-publication-release-notes/README.md"
 test -f "$tmp_dir/pass/stable-publication-release-notes/release-notes-checklist.json"
 test -f "$tmp_dir/pass/stable-publication-release-notes/draft-release-notes.md"
+test -f "$tmp_dir/pass/stable-publication-release-notes/edit-walkthrough.md"
 test -f "$tmp_dir/pass/stable-publication-launch-relay/README.md"
 test -f "$tmp_dir/pass/stable-publication-launch-relay/launch-relay-checklist.json"
 test -f "$tmp_dir/pass/stable-publication-launch-relay/product-hunt-draft.md"
