@@ -64,6 +64,7 @@ Outputs:
 - `release-consume/asset-digests.json` with required release asset rows, SHA-256 values, byte counts, and optional published proof assets
 - `stable-publication-evidence-kit/README.md`
 - `stable-publication-evidence-kit/stable-publication-checklist.json`
+- `stable-publication-evidence-kit/public-proof-walkthrough.md`
 - `stable-publication-evidence-kit/external-adoption-evidence.json`
 - `stable-publication-evidence-kit/security-review-evidence.json`
 - `stable-publication-release-notes/README.md`
@@ -385,6 +386,7 @@ This directory is a convenience artifact, not proof. It contains:
 
 - `README.md` with the collection rules and next command template
 - `stable-publication-checklist.json` with the current ten-gate packet, closure checklist, first blocker, missing evidence IDs, and non-claims
+- `public-proof-walkthrough.md` with the maintainer-facing proof order and proof-class boundaries
 - `external-adoption-evidence.json` copied from the draft-only adoption template
 - `security-review-evidence.json` copied from the draft-only security-review template
 

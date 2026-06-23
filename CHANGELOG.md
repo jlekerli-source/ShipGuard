@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added stable-publication public proof walkthrough: the generated evidence starter kit now includes `public-proof-walkthrough.md`, separating maintainer-producible public consumer proof, private maintainer QA, independent adoption evidence, and final security-review evidence in a copyable order.
 - Added stable-publication evidence ladder report polish: the main stable-publication Markdown report now renders the consumer/maintainer/adoption/security evidence ladder, and report-quality flags reports that hide it.
 - Added stable-publication evidence ladder polish: generated evidence-kit READMEs and checklist JSON now separate maintainer-producible public consumer proof, private maintainer QA, independent adoption evidence, and final security-review evidence.
 - Added stable-publication evidence starter kit polish: generated evidence-kit READMEs now list the exact pass-readiness edits for adoption and security-review records, including accepted evidence classes, required redaction, required security scope, and non-substitute evidence boundaries.

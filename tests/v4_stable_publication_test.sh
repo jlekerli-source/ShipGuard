@@ -482,6 +482,7 @@ assert related["release-notes-authoring-kit"]["status"] == report["stablePublica
 assert {
     "stable-publication-evidence-kit/README.md",
     "stable-publication-evidence-kit/stable-publication-checklist.json",
+    "stable-publication-evidence-kit/public-proof-walkthrough.md",
     "stable-publication-evidence-kit/external-adoption-evidence.json",
     "stable-publication-evidence-kit/security-review-evidence.json",
 } <= {item["path"] for item in starter["files"]}
@@ -507,6 +508,7 @@ assert required_by_id["final-security-review-evidence"]["templatePath"] == "temp
 PY
 test -f "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 test -f "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
+test -f "$tmp_dir/blocked/stable-publication-evidence-kit/public-proof-walkthrough.md"
 test -f "$tmp_dir/blocked/stable-publication-evidence-kit/external-adoption-evidence.json"
 test -f "$tmp_dir/blocked/stable-publication-evidence-kit/security-review-evidence.json"
 grep -q '"draftOnly": true' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
@@ -516,6 +518,11 @@ grep -q 'Stable Publication Evidence Kit' "$tmp_dir/blocked/stable-publication-e
 grep -q "Release version: \`$version\`" "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q 'Release notes kit: `stable-publication-release-notes`' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q 'Evidence Ladder' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
+grep -q 'Public Consumer Proof' "$tmp_dir/blocked/stable-publication-evidence-kit/public-proof-walkthrough.md"
+grep -q 'Private Maintainer QA' "$tmp_dir/blocked/stable-publication-evidence-kit/public-proof-walkthrough.md"
+grep -q 'Independent Adoption Evidence' "$tmp_dir/blocked/stable-publication-evidence-kit/public-proof-walkthrough.md"
+grep -q 'Final Security Review Evidence' "$tmp_dir/blocked/stable-publication-evidence-kit/public-proof-walkthrough.md"
+grep -q 'Private maintainer QA is not adoption' "$tmp_dir/blocked/stable-publication-evidence-kit/public-proof-walkthrough.md"
 grep -q 'Public consumer proof: you can produce this yourself from public release assets' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q 'Ringly, Ilmify, or other maintainer app runs are useful ShipGuard product QA' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q 'requires a non-maintainer user, repo, issue, PR, or redacted external install report' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
@@ -524,6 +531,8 @@ grep -q 'keep `actorRelationship` as `independent`' "$tmp_dir/blocked/stable-pub
 grep -q 'cover `cli`, `plugin`, `github-actions`, `release-proof`, `package-install`, and `redaction-privacy`' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q 'Do not replace missing external evidence with private app runs' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q '"evidenceLadder":' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
+grep -q '"publicProofWalkthrough":' "$tmp_dir/blocked/v4-stable-publication.json"
+grep -q 'public-proof-walkthrough.md' "$tmp_dir/blocked/v4-stable-publication.json"
 grep -q '"id": "private-maintainer-qa"' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q '"status": "requires-external-actor"' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q '"closureChecklist":' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
@@ -1562,10 +1571,13 @@ grep -q 'stable-publication-release-notes' "$tmp_dir/pass/v4-stable-publication.
 grep -q 'Stable v4 release claim allowed: `True`' "$tmp_dir/pass/v4-stable-publication.md"
 test -f "$tmp_dir/pass/stable-publication-evidence-kit/README.md"
 test -f "$tmp_dir/pass/stable-publication-evidence-kit/stable-publication-checklist.json"
+test -f "$tmp_dir/pass/stable-publication-evidence-kit/public-proof-walkthrough.md"
 grep -q '"relatedAuthoringKits":' "$tmp_dir/pass/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q 'Release notes kit: `stable-publication-release-notes`' "$tmp_dir/pass/stable-publication-evidence-kit/README.md"
 grep -q 'Evidence Ladder' "$tmp_dir/pass/stable-publication-evidence-kit/README.md"
 grep -q 'Before These Files Can Pass' "$tmp_dir/pass/stable-publication-evidence-kit/README.md"
+grep -q 'release-consume verify' "$tmp_dir/pass/stable-publication-evidence-kit/public-proof-walkthrough.md"
+grep -q 'Generated starter files are not proof' "$tmp_dir/pass/stable-publication-evidence-kit/public-proof-walkthrough.md"
 test -f "$tmp_dir/pass/stable-publication-evidence-kit/external-adoption-evidence.json"
 test -f "$tmp_dir/pass/stable-publication-evidence-kit/security-review-evidence.json"
 test -f "$tmp_dir/pass/stable-publication-release-notes/README.md"

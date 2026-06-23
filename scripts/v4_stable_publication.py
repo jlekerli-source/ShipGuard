@@ -86,6 +86,7 @@ STABLE_PUBLICATION_TEMPLATE_DIR = "templates/stable-publication"
 STARTER_KIT_DIRNAME = "stable-publication-evidence-kit"
 RELEASE_NOTES_KIT_DIRNAME = "stable-publication-release-notes"
 LAUNCH_RELAY_DIRNAME = "stable-publication-launch-relay"
+PUBLIC_PROOF_WALKTHROUGH_FILENAME = "public-proof-walkthrough.md"
 STABLE_PUBLICATION_EVIDENCE_LADDER = [
     {
         "id": "public-consumer-proof",
@@ -3148,6 +3149,11 @@ def build_stable_publication_evidence_starter_kit_manifest() -> dict[str, Any]:
                 "purpose": "Machine-readable draft checklist with the ten required stable-publication gates.",
             },
             {
+                "id": "public-proof-walkthrough",
+                "path": f"{STARTER_KIT_DIRNAME}/{PUBLIC_PROOF_WALKTHROUGH_FILENAME}",
+                "purpose": "Maintainer-friendly proof ladder walkthrough: what one maintainer can prove now, what needs outside evidence, and what not to claim.",
+            },
+            {
                 "id": "independent-adoption-evidence",
                 "path": f"{STARTER_KIT_DIRNAME}/external-adoption-evidence.json",
                 "sourceTemplate": "templates/stable-publication/external-adoption-evidence.template.json",
@@ -3163,6 +3169,17 @@ def build_stable_publication_evidence_starter_kit_manifest() -> dict[str, Any]:
             },
         ],
         "evidenceLadder": STABLE_PUBLICATION_EVIDENCE_LADDER,
+        "publicProofWalkthrough": {
+            "path": f"{STARTER_KIT_DIRNAME}/{PUBLIC_PROOF_WALKTHROUGH_FILENAME}",
+            "maintainerCanProduce": ["public-consumer-proof", "private-maintainer-qa"],
+            "requiresExternalActor": ["independent-adoption-evidence"],
+            "requiresReviewRecord": ["final-security-review-evidence"],
+            "nonClaims": [
+                "Private maintainer app runs are product QA, not adoption.",
+                "GitHub stars, forks, or downloads are weak signals, not independent adoption evidence.",
+                "Generated starter files are collection aids, not proof.",
+            ],
+        },
         "instructions": [
             "These files are generated as a starter kit only; unchanged starter-kit JSON must not pass stable-publication.",
             "Replace placeholder values with real reviewed evidence, keep private paths and private app details redacted, then pass the completed files back to v4 stable-publication.",
@@ -4010,6 +4027,48 @@ def write_stable_publication_evidence_starter_kit(
         ]
     )
     (kit_dir / "README.md").write_text("\n".join(readme_lines), encoding="utf-8")
+
+    walkthrough_lines = [
+        "# Public Proof Walkthrough",
+        "",
+        "Use this order when preparing stable-publication evidence.",
+        "",
+        "## 1. Public Consumer Proof",
+        "",
+        "You can produce this yourself from public release assets.",
+        "",
+        "```bash",
+        "./bin/shipguard release-consume verify --dir <downloaded-release-assets-dir> --out <consumer-proof-dir> --version <version>",
+        "```",
+        "",
+        "This proves that a normal consumer can verify the public package. It does not prove adoption.",
+        "",
+        "## 2. Private Maintainer QA",
+        "",
+        "You can run ShipGuard read-only against maintainer apps to find ShipGuard product gaps.",
+        "Keep private app names, paths, screenshots, identifiers, and source details out of shareable proof.",
+        "",
+        "This is useful QA. It is not independent adoption evidence.",
+        "",
+        "## 3. Independent Adoption Evidence",
+        "",
+        "This needs a non-maintainer actor: a public user report, issue, PR, external repo run, or redacted external install report.",
+        "Fill `external-adoption-evidence.json` only with real external evidence.",
+        "",
+        "## 4. Final Security Review Evidence",
+        "",
+        "This needs a security review record covering ShipGuard's CLI, plugin, GitHub Actions, release proof, package install, and redaction/privacy surfaces.",
+        "Fill `security-review-evidence.json` only after the review shows no open critical or high findings.",
+        "",
+        "## Do Not Claim",
+        "",
+        "- Private maintainer QA is not adoption.",
+        "- GitHub stars, forks, or downloads are not independent adoption proof.",
+        "- Generated starter files are not proof.",
+        "- Stable v4 is not claimable until `shipguard v4 stable-publication` returns `pass`.",
+        "",
+    ]
+    (kit_dir / PUBLIC_PROOF_WALKTHROUGH_FILENAME).write_text("\n".join(walkthrough_lines), encoding="utf-8")
 
 
 def write_stable_publication_release_notes_authoring_kit(
