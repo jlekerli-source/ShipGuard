@@ -356,6 +356,15 @@ assert create_boundary["requiresPassingPackageProof"] is True
 assert create_boundary["requiresReleaseProofAssets"] is True
 assert create_boundary["sourceOnlyProofCountsAsPublishedRelease"] is False
 assert create_boundary["fixtureApiProofCountsAsPublishedRelease"] is False
+post_handoff = kit["postHandoffProof"]
+assert post_handoff["manualAction"] == "create-github-release"
+assert post_handoff["releaseViewCommand"].startswith(f"gh release view {metadata['tag']} ")
+assert "--json tagName,isDraft,isPrerelease,targetCommitish,publishedAt,assets,url" in post_handoff["releaseViewCommand"]
+assert post_handoff["stablePublicationRerunCommand"] == kit["metadataRerunCommand"]
+assert post_handoff["proofCommands"] == [post_handoff["releaseViewCommand"], kit["metadataRerunCommand"]]
+assert item["postHandoffProof"] == post_handoff
+assert len(post_handoff["successCriteria"]) >= 4
+assert len(post_handoff["nonClaims"]) >= 2
 boundary = kit["metadataProofBoundary"]
 assert boundary["publicGitHubReleaseMetadataRequired"] is True
 assert boundary["ownerRepoSyntaxRequired"] is True
@@ -375,6 +384,9 @@ grep -q 'ShipGuard publishes GitHub release: `False`' "$tmp_dir/metadata-blocked
 grep -q 'Primary decision: `publish-new-github-release`' "$tmp_dir/metadata-blocked/v4-stable-publication.md"
 grep -q 'Create missing GitHub release metadata manually' "$tmp_dir/metadata-blocked/v4-stable-publication.md"
 grep -q 'gh release create' "$tmp_dir/metadata-blocked/v4-stable-publication.md"
+grep -q 'Post-handoff proof' "$tmp_dir/metadata-blocked/v4-stable-publication.md"
+grep -q 'Manual action: `create-github-release`' "$tmp_dir/metadata-blocked/v4-stable-publication.md"
+grep -q 'gh release view' "$tmp_dir/metadata-blocked/v4-stable-publication.md"
 grep -q 'Rerun release metadata proof' "$tmp_dir/metadata-blocked/v4-stable-publication.md"
 
 if ./bin/shipguard v4 stable-publication \
@@ -703,6 +715,13 @@ assert asset_kit["releaseAssetProofBoundary"]["sourceOnlyProofCountsAsReleaseAss
 assert asset_kit["releaseAssetProofBoundary"]["fixtureProofCountsAsStableV4PublicationProof"] is False
 assert "--download-release-assets" in asset_kit["downloadAssetsRerunCommand"]
 assert "stable-publication" in asset_kit["stablePublicationRerunCommand"]
+asset_post_handoff = asset_kit["postHandoffProof"]
+assert asset_post_handoff["manualAction"] == "upload-release-assets"
+assert asset_post_handoff["releaseViewCommand"].startswith("gh release view ")
+assert "assets,url" in asset_post_handoff["releaseViewCommand"]
+assert asset_post_handoff["stablePublicationRerunCommand"] == asset_kit["stablePublicationRerunCommand"]
+assert asset_post_handoff["proofCommands"] == [asset_post_handoff["releaseViewCommand"], asset_kit["stablePublicationRerunCommand"]]
+assert asset_item["postHandoffProof"] == asset_post_handoff
 assert len(asset_kit["repairCriteria"]) >= 3
 assert len(asset_kit["passCriteria"]) >= 3
 assert len(asset_kit["failCriteria"]) >= 3

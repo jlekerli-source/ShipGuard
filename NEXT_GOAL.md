@@ -1,19 +1,19 @@
 # Next Goal
 
-- Generated: 2026-06-23T00:19:57Z
-- Current toolkit version: 3.139.0
+- Generated: 2026-06-23T00:39:07Z
+- Current toolkit version: 3.140.0
 - Target release: v3.140.0
 - Title: Stable Publication Public Release Closure
 
 ## Version Lineage Check
 
 - Status: pass
-- VERSION: 3.139.0
-- Expected next release from VERSION: v3.140.0
+- VERSION: 3.140.0
+- Expected next release from VERSION: v3.141.0
 - Planned target release: v3.140.0
-- Current checkout package artifact before version bump: dist/shipguard-v3.139.0.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v3.140.0.tar.gz
-- Action: Before publishing v3.140.0, bump VERSION to 3.140.0, rebuild, and verify dist/shipguard-v3.140.0.tar.gz.
+- Current checkout package artifact: dist/shipguard-v3.140.0.tar.gz
+- Release package artifact to build: dist/shipguard-v3.140.0.tar.gz
+- Action: VERSION already names v3.140.0; build, verify, publish, and consume dist/shipguard-v3.140.0.tar.gz before generating the next goal.
 
 ## Slash Plan
 
@@ -22,15 +22,42 @@
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
-4. Push main, verify GitHub Actions, bump VERSION before release packaging, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
+4. Push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
 ```
 
 ## Slash Goal
 
 ```text
-/goal Implement v3.140.0 Stable Publication Public Release Closure for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.140.0 Stable Publication Public Release Closure for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
+
+## Completion Receipt
+
+- Completed scope: Stable-publication release-create and release-asset upload handoffs now include post-handoff proof receipts with gh release view verification, stable-publication rerun commands, success criteria, and non-claims.
+- Evidence: python3 -m py_compile scripts/v4_stable_publication.py; git diff --check; ./tests/v4_stable_publication_test.sh; ./tests/next_goal_test.sh; ./tests/release_proof_consumption_test.sh; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3.140; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; env PREFIX="/Users/omarat-turkmani/.local" ./scripts/install.sh; ./bin/shipguard codex status --strict; ./tests/ios_report_quality_test.sh; ./tests/package_release_test.sh
+
+## Following Slash Plan
+
+```text
+/plan v3.141.0 LaunchKey Downloaded-Asset Blocking Proof Detail for jlekerli-source/ShipGuard:
+1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
+2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
+3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
+4. Generate the next completion receipt and following /plan plus /goal after validation passes.
+```
+
+## Following Slash Goal
+
+```text
+/goal Implement v3.141.0 LaunchKey Downloaded-Asset Blocking Proof Detail for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+```
+
+Generate that follow-up file with:
+
+```bash
+./bin/shipguard next-goal --release 3.141.0 --title "LaunchKey Downloaded-Asset Blocking Proof Detail" --out NEXT_GOAL.md
+```
 
 ## Constraints
 
@@ -134,7 +161,7 @@
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Bump VERSION to 3.140.0, build `dist/shipguard-v3.140.0.tar.gz`, create release `v3.140.0`, and upload the rebuilt tarball.
+6. Build `dist/shipguard-v3.140.0.tar.gz`, create release `v3.140.0`, upload the rebuilt tarball, and consume release proof.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

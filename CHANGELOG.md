@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added post-handoff proof receipts to stable-publication public release closure: release-create and release-asset upload handoffs now include the `gh release view ... --json tagName,isDraft,isPrerelease,targetCommitish,publishedAt,assets,url` verification command, the stable-publication rerun command, success criteria, and non-claims so manual GitHub actions do not become unproven release claims.
 - Routed missing public-release metadata to the concrete release-create command in stable-publication result UX: when the first blocker is the missing GitHub release, `resultUX.nextCommand` now matches the manual `gh release create ...` handoff instead of a generic stable-publication rerun.
 - Added stable-publication release-asset upload handoffs: when public release assets or asset coherence need repair and verified local asset files exist, the `update-release-assets` action now gives a concrete manual `gh release upload ... --clobber` command while keeping ShipGuard out of GitHub release mutation.
 - Made stable-publication release-create commands fully asset-path aware: when supplied or downloaded release assets are available, the `publish-new-github-release` handoff now points at the concrete asset files instead of `<release-proof-assets-dir>` placeholders.

@@ -2436,6 +2436,12 @@ def build_github_release_metadata_closure_kit(
             "--security-review-evidence <security-review-json-or-dir> --shipguard-eval --shareable"
         )
     release_create = github_release_create_handoff(diagnostics, notes_file=notes_file, assets_dir=assets_dir)
+    post_handoff_proof = public_release_post_handoff_proof(
+        manual_action="create-github-release",
+        repo=str(release_create["inputs"].get("repo") or diagnostics.get("repo") or "<owner/repo>"),
+        tag=str(release_create["inputs"].get("tag") or diagnostics.get("tag") or "v<version>"),
+        rerun_command=metadata_rerun,
+    )
     return {
         "schemaVersion": 1,
         "title": "GitHub release metadata closure kit",
@@ -2477,6 +2483,7 @@ def build_github_release_metadata_closure_kit(
         "releaseCreateCommand": release_create["command"],
         "releaseCreateInputs": release_create["inputs"],
         "releaseCreateCommandBoundary": release_create["boundary"],
+        "postHandoffProof": post_handoff_proof,
         "metadataProofBoundary": {
             "publicGitHubReleaseMetadataRequired": True,
             "ownerRepoSyntaxRequired": True,
@@ -2611,6 +2618,48 @@ def github_release_upload_handoff(
     }
 
 
+def public_release_post_handoff_proof(
+    *,
+    manual_action: str,
+    repo: str,
+    tag: str,
+    rerun_command: str,
+) -> dict[str, Any]:
+    release_view_command = " ".join(
+        shlex.quote(part)
+        for part in [
+            "gh",
+            "release",
+            "view",
+            tag or "v<version>",
+            "--repo",
+            repo or "<owner/repo>",
+            "--json",
+            "tagName,isDraft,isPrerelease,targetCommitish,publishedAt,assets,url",
+        ]
+    )
+    proof_commands = [release_view_command]
+    if rerun_command:
+        proof_commands.append(rerun_command)
+    return {
+        "schemaVersion": 1,
+        "manualAction": manual_action,
+        "releaseViewCommand": release_view_command,
+        "stablePublicationRerunCommand": rerun_command,
+        "proofCommands": proof_commands,
+        "successCriteria": [
+            "The GitHub release exists for the requested tag.",
+            "The release is not a draft or prerelease.",
+            "Required release-proof assets are visible on the public release.",
+            "A fresh stable-publication run moves past this manual handoff gate or passes.",
+        ],
+        "nonClaims": [
+            "The manual GitHub action does not prove stable v4 by itself.",
+            "GitHub release metadata still does not prove independent adoption or final security review.",
+        ],
+    }
+
+
 def asset_names_from_dir(raw_path: object) -> list[str]:
     if not raw_path:
         return []
@@ -2693,6 +2742,12 @@ def build_release_asset_closure_kit(
     upload_handoff = github_release_upload_handoff(metadata_proof, assets_dir=diagnostics.get("assetsDir") or "")
     upload_inputs = upload_handoff["inputs"]
     upload_ready = bool(upload_inputs.get("concreteAssetCount")) and upload_inputs.get("concreteAssetCount") == len(upload_inputs.get("requiredAssets", []))
+    post_handoff_proof = public_release_post_handoff_proof(
+        manual_action="upload-release-assets",
+        repo=str(upload_inputs.get("repo") or metadata_proof.get("repo") or "<owner/repo>"),
+        tag=str(upload_inputs.get("tag") or metadata_proof.get("tag") or "v<version>"),
+        rerun_command=stable_rerun,
+    )
     return {
         "schemaVersion": 1,
         "title": "Release asset proof closure kit",
@@ -2720,6 +2775,7 @@ def build_release_asset_closure_kit(
         "releaseAssetUploadInputs": upload_inputs,
         "releaseAssetUploadCommandReady": upload_ready,
         "releaseAssetUploadCommandBoundary": upload_handoff["boundary"],
+        "postHandoffProof": post_handoff_proof,
         "stablePublicationRerunCommand": stable_rerun,
         "releaseAssetProofBoundary": {
             "downloadedOrSuppliedAssetsRequired": True,
@@ -3494,6 +3550,7 @@ def build_stable_publication_closure_checklist(
                     "releaseCreateCommand": metadata_kit.get("releaseCreateCommand") or "",
                     "releaseCreateInputs": metadata_kit.get("releaseCreateInputs") if isinstance(metadata_kit.get("releaseCreateInputs"), dict) else {},
                     "releaseCreateCommandBoundary": metadata_kit.get("releaseCreateCommandBoundary") if isinstance(metadata_kit.get("releaseCreateCommandBoundary"), dict) else {},
+                    "postHandoffProof": metadata_kit.get("postHandoffProof") if isinstance(metadata_kit.get("postHandoffProof"), dict) else {},
                     "repairCriteria": metadata_kit.get("repairCriteria") if isinstance(metadata_kit.get("repairCriteria"), list) else [],
                     "passCriteria": metadata_kit.get("passCriteria") if isinstance(metadata_kit.get("passCriteria"), list) else [],
                     "failCriteria": metadata_kit.get("failCriteria") if isinstance(metadata_kit.get("failCriteria"), list) else [],
@@ -3589,6 +3646,7 @@ def build_stable_publication_closure_checklist(
                     "releaseAssetUploadCommand": asset_kit.get("releaseAssetUploadCommand") or "",
                     "releaseAssetUploadCommandReady": asset_kit.get("releaseAssetUploadCommandReady") is True,
                     "releaseAssetUploadCommandBoundary": asset_kit.get("releaseAssetUploadCommandBoundary") if isinstance(asset_kit.get("releaseAssetUploadCommandBoundary"), dict) else {},
+                    "postHandoffProof": asset_kit.get("postHandoffProof") if isinstance(asset_kit.get("postHandoffProof"), dict) else {},
                     "stablePublicationRerunCommand": asset_kit.get("stablePublicationRerunCommand") or rerun_command,
                     "repairCriteria": asset_kit.get("repairCriteria") if isinstance(asset_kit.get("repairCriteria"), list) else [],
                     "passCriteria": asset_kit.get("passCriteria") if isinstance(asset_kit.get("passCriteria"), list) else [],
@@ -3693,6 +3751,12 @@ def build_stable_publication_closure_checklist(
             upload_handoff = github_release_upload_handoff(metadata_proof, assets_dir=release_assets_dir)
             upload_inputs = upload_handoff["inputs"]
             upload_ready = bool(upload_inputs.get("concreteAssetCount")) and upload_inputs.get("concreteAssetCount") == len(upload_inputs.get("requiredAssets", []))
+            post_handoff_proof = public_release_post_handoff_proof(
+                manual_action="upload-release-assets",
+                repo=str(upload_inputs.get("repo") or metadata_proof.get("repo") or "<owner/repo>"),
+                tag=str(upload_inputs.get("tag") or metadata_proof.get("tag") or "v<version>"),
+                rerun_command=rerun_command or item.get("nextCommand") or first_blocking.get("nextCommand") or "",
+            )
             closure_item.update(
                 {
                     "expectedTarballName": diagnostics.get("expectedTarballName") or "",
@@ -3716,6 +3780,7 @@ def build_stable_publication_closure_checklist(
                     "releaseAssetUploadCommand": upload_handoff["command"],
                     "releaseAssetUploadCommandReady": upload_ready,
                     "releaseAssetUploadCommandBoundary": upload_handoff["boundary"],
+                    "postHandoffProof": post_handoff_proof,
                     "assetCoherenceRerunCommand": rerun_command or item.get("nextCommand") or first_blocking.get("nextCommand") or "",
                 }
             )
@@ -4514,6 +4579,34 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     return report
 
 
+def append_post_handoff_proof_markdown(lines: list[str], proof: dict[str, Any]) -> None:
+    if not isinstance(proof, dict) or not proof:
+        return
+    proof_commands = proof.get("proofCommands") if isinstance(proof.get("proofCommands"), list) else []
+    lines.extend(
+        [
+            "",
+            "Post-handoff proof:",
+            "",
+            f"- Manual action: `{proof.get('manualAction') or 'not-provided'}`",
+            "",
+        ]
+    )
+    for command in proof_commands:
+        if command:
+            lines.extend(["```bash", str(command), "```", ""])
+    criteria = proof.get("successCriteria") if isinstance(proof.get("successCriteria"), list) else []
+    if criteria:
+        lines.extend(["Success criteria:", ""])
+        for criterion in criteria:
+            lines.append(f"- {criterion}")
+    non_claims = proof.get("nonClaims") if isinstance(proof.get("nonClaims"), list) else []
+    if non_claims:
+        lines.extend(["", "Non-claims:", ""])
+        for claim in non_claims:
+            lines.append(f"- {claim}")
+
+
 def render_markdown(report: dict[str, Any]) -> str:
     lines = [
         "# ShipGuard V4 Stable Publication Proof",
@@ -4877,6 +4970,10 @@ def render_markdown(report: dict[str, Any]) -> str:
                     "```",
                 ]
             )
+            append_post_handoff_proof_markdown(
+                lines,
+                coherence_closure.get("postHandoffProof") if isinstance(coherence_closure.get("postHandoffProof"), dict) else {},
+            )
     closure_checklist = (
         report.get("stablePublicationClosureChecklist")
         if isinstance(report.get("stablePublicationClosureChecklist"), dict)
@@ -4971,6 +5068,14 @@ def render_markdown(report: dict[str, Any]) -> str:
                     "```bash",
                     str(kit.get("releaseCreateCommand") or ""),
                     "```",
+                ]
+            )
+            append_post_handoff_proof_markdown(
+                lines,
+                kit.get("postHandoffProof") if isinstance(kit.get("postHandoffProof"), dict) else {},
+            )
+            lines.extend(
+                [
                     "",
                     "Rerun release metadata proof:",
                     "",
@@ -5162,6 +5267,14 @@ def render_markdown(report: dict[str, Any]) -> str:
                     "```bash",
                     str(kit.get("releaseAssetUploadCommand") or ""),
                     "```",
+                ]
+            )
+            append_post_handoff_proof_markdown(
+                lines,
+                kit.get("postHandoffProof") if isinstance(kit.get("postHandoffProof"), dict) else {},
+            )
+            lines.extend(
+                [
                     "",
                     "Rerun the full stable-publication gate after release assets pass:",
                     "",
