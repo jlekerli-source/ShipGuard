@@ -210,6 +210,8 @@ v3.174 adds reviewer outcome note-command polish: missing reviewer-disposition r
 
 v3.175 adds reviewer outcome command-label polish: reviewer-disposition repair hints now include explicit command labels in JSON and Markdown so maintainers can distinguish the no-note and with-note repair paths at a glance.
 
+v3.176 adds reviewer outcome label docs polish: `docs/cli.md` and `docs/task-contract.md` now explain the no-note versus with-note reviewer-disposition repair commands and restate that reviewer outcomes are local feedback, not public adoption or security-review proof.
+
 v3.186 continues that release-notes actionability cleanup by routing the same edit command through `stablePublicationEvidencePacket.firstBlockingGate.nextCommand`, release-notes closure `nextCommand`, and `resultUX.nextCommand`; `rerunCommand` remains the after-edit verifier.
 
 v3.187 cleans the stable-publication release visibility handoff so completed `pass`/not-required rows say `not-needed` instead of leaking fallback commands like test scripts into maintainer-facing next-action tables.

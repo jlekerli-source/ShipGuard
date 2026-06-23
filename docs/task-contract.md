@@ -152,6 +152,8 @@ The same data is exposed in JSON as `proofReport` so PR bots, launch docs, and r
 
 Every verdict also includes `quickstartReplay`. It records the replay command shape, fast verdict text, review packet files, next action, and boundary. The Markdown renders this as `Quickstart Replay` directly after `Proof Report`, so a maintainer can rerun or attach the proof packet without reading internal ShipYard process docs.
 
+If a verdict has no reviewer disposition yet, the Markdown and JSON include labeled repair commands. Use `Record reviewer outcome without note` for the normal outcome receipt, or `Record reviewer outcome with note` when the decision needs a short maintainer explanation before being used as local tuning evidence. The reviewer outcome is still local feedback, not public adoption or security-review evidence.
+
 The verdict is:
 
 - `pass` when changed files stay inside scope, required validation is covered by structured receipts, and claims do not overreach.

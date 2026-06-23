@@ -26,6 +26,9 @@ grep -q '# Docs Check' "$tmp_dir/docs-check/docs-check.md"
 grep -q '## Result' "$tmp_dir/docs-check/docs-check.md"
 grep -q '## Scope Boundary' "$tmp_dir/docs-check/docs-check.md"
 grep -q '## Report Quality Questions' "$tmp_dir/docs-check/docs-check.md"
+grep -q 'Record reviewer outcome without note' docs/cli.md
+grep -q 'Record reviewer outcome with note' docs/cli.md
+grep -q 'reviewer outcome is still local feedback' docs/task-contract.md
 
 mkdir -p "$tmp_dir/broken"
 cat > "$tmp_dir/broken/README.md" <<'MD'
