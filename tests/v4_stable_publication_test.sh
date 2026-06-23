@@ -481,6 +481,12 @@ assert set(intake) == {"independent-adoption-evidence", "final-security-review-e
 assert "privateDataRedacted" in intake["independent-adoption-evidence"]["requiredFields"]
 assert intake["independent-adoption-evidence"]["redactionBoundary"]["privateDataRedactedMustBeTrue"] is True
 assert "public-security-review" in intake["final-security-review-evidence"]["acceptedEvidenceClasses"]
+adoption_checklist = starter["adoptionEvidenceChecklist"]
+assert {"public-external", "private-redacted-external"} <= set(adoption_checklist["acceptedEvidenceClasses"])
+assert adoption_checklist["requiredActorRelationship"] == "independent"
+assert {"commands", "artifacts", "outcome", "nonClaims"} <= set(adoption_checklist["requiredProofFields"])
+assert "privateDataRedacted must be true" in adoption_checklist["redactionBoundaries"]
+assert "download counts" in adoption_checklist["weakSignalExclusions"]
 security_checklist = starter["securityReviewChecklist"]
 assert {"cli", "plugin", "github-actions", "release-proof", "package-install", "redaction-privacy"} <= set(security_checklist["requiredReviewSurfaces"])
 assert security_checklist["severityThresholds"]["criticalOpen"] == 0
@@ -528,6 +534,9 @@ grep -q '"relatedAuthoringKits":' "$tmp_dir/blocked/stable-publication-evidence-
 grep -q '"externalEvidenceIntakeChecklist":' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q '"acceptedEvidenceClasses":' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q '"privateDataRedactedMustBeTrue": true' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
+grep -q '"adoptionEvidenceChecklist":' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
+grep -q '"requiredActorRelationship": "independent"' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
+grep -q '"weakSignalExclusions":' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q '"securityReviewChecklist":' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q '"requiredReviewSurfaces":' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q '"criticalOpen": 0' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
@@ -539,6 +548,10 @@ grep -q 'External Evidence Intake Checklist' "$tmp_dir/blocked/stable-publicatio
 grep -q 'public-external, private-redacted-external' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q 'public-security-review, private-redacted-security-review' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q 'privateDataRedacted must be `True`' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
+grep -q 'Adoption Evidence Checklist' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
+grep -q 'Required actor relationship: `independent`' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
+grep -q 'Weak-signal exclusions: GitHub stars, GitHub forks, download counts' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
+grep -q 'Adoption Evidence Checklist' "$tmp_dir/blocked/v4-stable-publication.md"
 grep -q 'Security Review Evidence Checklist' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q 'Required review surfaces: cli, plugin, github-actions, release-proof, package-install, redaction-privacy' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q 'Severity threshold: `criticalOpen=0`, `highOpen=0`' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"

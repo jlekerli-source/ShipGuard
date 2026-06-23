@@ -132,6 +132,16 @@ Rerun after attaching real evidence:
 | `independent-adoption-evidence` | public-external, private-redacted-external | actorRelationship, privateDataRedacted, commands, artifacts, outcome, nonClaims | privateDataRedacted must be `True` |
 | `final-security-review-evidence` | public-security-review, private-redacted-security-review | scope, methodology, findingsSummary, privateDataRedacted, nonClaims | privateDataRedacted must be `True` |
 
+## Adoption Evidence Checklist
+
+- Accepted evidence classes: public-external, private-redacted-external
+- Required actor relationship: `independent`
+- Required proof fields: commands, artifacts, outcome, nonClaims
+- Artifact expectations: install transcript or command log, generated ShipGuard report or validation output, public release asset URL, release tag, issue, PR, post, or redacted external receipt
+- Redaction boundaries: privateDataRedacted must be true, no private app source, no private app identifiers, no local absolute paths, no screenshots with private data, no tokens or account identifiers
+- Weak-signal exclusions: GitHub stars, GitHub forks, download counts, maintainer-only private app runs, generated starter files, vague testimonials without artifacts
+- Pass decision: Pass only when a non-maintainer actor supplies redacted/public command and artifact evidence for real ShipGuard use.
+
 ## Security Review Evidence Checklist
 
 - Required review surfaces: cli, plugin, github-actions, release-proof, package-install, redaction-privacy

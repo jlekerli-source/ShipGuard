@@ -687,6 +687,41 @@
     "status": "pass"
   },
   "stablePublicationEvidenceStarterKit": {
+    "adoptionEvidenceChecklist": {
+      "acceptedEvidenceClasses": [
+        "public-external",
+        "private-redacted-external"
+      ],
+      "artifactExpectations": [
+        "install transcript or command log",
+        "generated ShipGuard report or validation output",
+        "public release asset URL, release tag, issue, PR, post, or redacted external receipt"
+      ],
+      "passDecision": "Pass only when a non-maintainer actor supplies redacted/public command and artifact evidence for real ShipGuard use.",
+      "redactionBoundaries": [
+        "privateDataRedacted must be true",
+        "no private app source",
+        "no private app identifiers",
+        "no local absolute paths",
+        "no screenshots with private data",
+        "no tokens or account identifiers"
+      ],
+      "requiredActorRelationship": "independent",
+      "requiredProofFields": [
+        "commands",
+        "artifacts",
+        "outcome",
+        "nonClaims"
+      ],
+      "weakSignalExclusions": [
+        "GitHub stars",
+        "GitHub forks",
+        "download counts",
+        "maintainer-only private app runs",
+        "generated starter files",
+        "vague testimonials without artifacts"
+      ]
+    },
     "directory": "stable-publication-evidence-kit",
     "draftOnly": true,
     "evidenceLadder": [

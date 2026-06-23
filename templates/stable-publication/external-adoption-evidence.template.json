@@ -17,6 +17,41 @@
     "redacted generated ShipGuard report",
     "public release asset URL or release tag"
   ],
+  "adoptionEvidenceChecklist": {
+    "acceptedEvidenceClasses": [
+      "public-external",
+      "private-redacted-external"
+    ],
+    "requiredActorRelationship": "independent",
+    "requiredProofFields": [
+      "commands",
+      "artifacts",
+      "outcome",
+      "nonClaims"
+    ],
+    "artifactExpectations": [
+      "install transcript or command log",
+      "generated ShipGuard report or validation output",
+      "public release asset URL, release tag, issue, PR, post, or redacted external receipt"
+    ],
+    "redactionBoundaries": [
+      "privateDataRedacted must be true",
+      "no private app source",
+      "no private app identifiers",
+      "no local absolute paths",
+      "no screenshots with private data",
+      "no tokens or account identifiers"
+    ],
+    "weakSignalExclusions": [
+      "GitHub stars",
+      "GitHub forks",
+      "download counts",
+      "maintainer-only private app runs",
+      "generated starter files",
+      "vague testimonials without artifacts"
+    ],
+    "passDecision": "Pass only when a non-maintainer actor supplies redacted/public command and artifact evidence for real ShipGuard use."
+  },
   "outcome": "Describe what the independent actor used ShipGuard for and what passed or failed. Remove private app names, local paths, screenshots, identifiers, tokens, and account data.",
   "nonClaims": [
     "Does not prove OpenAI marketplace acceptance.",

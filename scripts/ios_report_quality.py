@@ -6029,6 +6029,38 @@ def stable_publication_evidence_packet_issues(
                     evidence=f"{path_name} starter kit has incomplete external evidence intake checklist ids: {', '.join(incomplete_intake_ids)}",
                     recommendation="Include accepted evidence classes, required fields, and a strict privateDataRedacted boundary for adoption and security-review starter records.",
                 )
+        adoption_checklist = starter.get("adoptionEvidenceChecklist")
+        if not isinstance(adoption_checklist, dict) or not adoption_checklist:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-adoption-evidence-checklist-missing",
+                evidence=f"{path_name} starter kit has no adoptionEvidenceChecklist",
+                recommendation="Add an adoption evidence checklist with accepted classes, independent actor requirement, proof fields, artifact expectations, redaction boundaries, weak-signal exclusions, and pass decision.",
+            )
+        else:
+            classes = set(adoption_checklist.get("acceptedEvidenceClasses") or [])
+            fields = set(adoption_checklist.get("requiredProofFields") or [])
+            artifacts = adoption_checklist.get("artifactExpectations") if isinstance(adoption_checklist.get("artifactExpectations"), list) else []
+            redaction = adoption_checklist.get("redactionBoundaries") if isinstance(adoption_checklist.get("redactionBoundaries"), list) else []
+            exclusions = set(adoption_checklist.get("weakSignalExclusions") or [])
+            pass_decision = str(adoption_checklist.get("passDecision") or "")
+            if (
+                not {"public-external", "private-redacted-external"} <= classes
+                or adoption_checklist.get("requiredActorRelationship") != "independent"
+                or not {"commands", "artifacts", "outcome", "nonClaims"} <= fields
+                or len(artifacts) < 2
+                or "privateDataRedacted must be true" not in redaction
+                or not {"GitHub stars", "download counts", "maintainer-only private app runs"} <= exclusions
+                or "non-maintainer actor" not in pass_decision
+            ):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-adoption-evidence-checklist-incomplete",
+                    evidence=f"{path_name} adoptionEvidenceChecklist does not fully define independent adoption pass evidence",
+                    recommendation="List accepted evidence classes, independent actor relationship, command/artifact/outcome fields, redaction boundaries, weak-signal exclusions, and the pass decision.",
+                )
         security_checklist = starter.get("securityReviewChecklist")
         expected_security_surfaces = {"cli", "plugin", "github-actions", "release-proof", "package-install", "redaction-privacy"}
         expected_security_fields = {"reviewerRelationship", "scope", "methodology", "commands", "artifacts", "findingsSummary", "nonClaims"}
@@ -6119,6 +6151,14 @@ def stable_publication_evidence_packet_issues(
             rule_id="stable-publication-security-review-checklist-markdown-missing",
             evidence=f"{path_name} Markdown does not render the security review evidence checklist",
             recommendation="Render required review surfaces, severity thresholds, required fields, redaction boundaries, and pass decision in Markdown.",
+        )
+    if "Adoption Evidence Checklist" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-adoption-evidence-checklist-markdown-missing",
+            evidence=f"{path_name} Markdown does not render the adoption evidence checklist",
+            recommendation="Render accepted evidence classes, actor relationship, proof artifacts, redaction boundaries, weak-signal exclusions, and pass decision in Markdown.",
         )
     notes_kit = report.get("stablePublicationReleaseNotesAuthoringKit")
     if not isinstance(notes_kit, dict):
@@ -11521,6 +11561,15 @@ def synthetic_stable_publication_report_fields() -> dict[str, Any]:
                     "redactionBoundary": {"privateDataRedactedMustBeTrue": True},
                 },
             ],
+            "adoptionEvidenceChecklist": {
+                "acceptedEvidenceClasses": ["public-external", "private-redacted-external"],
+                "requiredActorRelationship": "independent",
+                "requiredProofFields": ["commands", "artifacts", "outcome", "nonClaims"],
+                "artifactExpectations": ["install transcript or command log", "generated ShipGuard report or validation output"],
+                "redactionBoundaries": ["privateDataRedacted must be true"],
+                "weakSignalExclusions": ["GitHub stars", "download counts", "maintainer-only private app runs"],
+                "passDecision": "Pass only when a non-maintainer actor supplies redacted/public command and artifact evidence for real ShipGuard use.",
+            },
             "securityReviewChecklist": {
                 "requiredReviewSurfaces": ["cli", "plugin", "github-actions", "release-proof", "package-install", "redaction-privacy"],
                 "severityThresholds": {"criticalOpen": 0, "highOpen": 0},
@@ -12300,6 +12349,16 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "| --- | --- | --- | --- |",
                 "| `independent-adoption-evidence` | public-external, private-redacted-external | actorRelationship, privateDataRedacted, commands, artifacts, outcome, nonClaims | privateDataRedacted must be `True` |",
                 "| `final-security-review-evidence` | public-security-review, private-redacted-security-review | scope, methodology, findingsSummary, privateDataRedacted, nonClaims | privateDataRedacted must be `True` |",
+                "",
+                "## Adoption Evidence Checklist",
+                "",
+                "- Accepted evidence classes: public-external, private-redacted-external",
+                "- Required actor relationship: `independent`",
+                "- Required proof fields: commands, artifacts, outcome, nonClaims",
+                "- Artifact expectations: install transcript or command log, generated ShipGuard report or validation output",
+                "- Redaction boundaries: privateDataRedacted must be true",
+                "- Weak-signal exclusions: GitHub stars, download counts, maintainer-only private app runs",
+                "- Pass decision: Pass only when a non-maintainer actor supplies redacted/public command and artifact evidence for real ShipGuard use.",
                 "",
                 "## Security Review Evidence Checklist",
                 "",

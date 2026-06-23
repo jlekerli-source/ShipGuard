@@ -244,7 +244,7 @@ v3.193 adds a stable-publication external evidence intake guard: generated evide
 
 v3.194 adds a stable-publication security-review evidence checklist: generated evidence templates, starter kits, and reports now name required review surfaces, critical/high severity thresholds, required fields, redaction boundaries, and the pass decision, while report-quality flags missing or incomplete security checklists.
 
-v3.195 keeps that lineage honest for the normal next-release path: a passing next-goal lineage check no longer implies the current checkout already builds the post-bump tarball; it now names the pre-bump artifact and tells maintainers to bump `VERSION` before release packaging.
+v3.195 adds a stable-publication adoption evidence checklist: generated adoption templates, starter kits, and reports now name accepted evidence classes, independent actor requirement, proof fields, artifact expectations, redaction boundaries, weak-signal exclusions, and the pass decision, while report-quality flags missing or incomplete adoption checklists.
 
 v3.136 public-release catch-up makes the stable-publication release visibility handoff copy-ready: when the primary decision is `publish-new-github-release`, the action row now points at the generated `gh release create ...` command with the report output draft release notes and required release-proof assets instead of a placeholder.
 

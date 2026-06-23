@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added a stable-publication adoption evidence checklist: generated adoption templates, starter kits, and reports now name accepted evidence classes, independent actor requirement, proof fields, artifact expectations, redaction boundaries, weak-signal exclusions, and the pass decision; report-quality flags missing or incomplete adoption checklists.
 - Added a stable-publication security-review evidence checklist: generated evidence templates, starter kits, and reports now name required review surfaces, critical/high severity thresholds, required fields, redaction boundaries, and the pass decision; report-quality flags missing or incomplete security checklists.
 - Added a stable-publication external evidence intake guard: generated evidence kits now carry a copy-ready intake checklist for adoption and security-review evidence classes, required fields, and redaction boundaries, and report-quality flags missing or incomplete intake contracts.
 - Added a stable-publication consumer-proof quickstart to the generated evidence kit: `public-proof-walkthrough.md` now shows the public asset download, `release-consume verify`, stable-publication rerun, and the boundary that consumer proof is not adoption or final security review.

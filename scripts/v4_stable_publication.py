@@ -142,6 +142,38 @@ STABLE_PUBLICATION_SECURITY_REVIEW_CHECKLIST = {
     ],
     "passDecision": "Pass only when every required surface is reviewed and criticalOpen plus highOpen are both 0.",
 }
+STABLE_PUBLICATION_ADOPTION_EVIDENCE_CHECKLIST = {
+    "acceptedEvidenceClasses": ["public-external", "private-redacted-external"],
+    "requiredActorRelationship": "independent",
+    "requiredProofFields": [
+        "commands",
+        "artifacts",
+        "outcome",
+        "nonClaims",
+    ],
+    "artifactExpectations": [
+        "install transcript or command log",
+        "generated ShipGuard report or validation output",
+        "public release asset URL, release tag, issue, PR, post, or redacted external receipt",
+    ],
+    "redactionBoundaries": [
+        "privateDataRedacted must be true",
+        "no private app source",
+        "no private app identifiers",
+        "no local absolute paths",
+        "no screenshots with private data",
+        "no tokens or account identifiers",
+    ],
+    "weakSignalExclusions": [
+        "GitHub stars",
+        "GitHub forks",
+        "download counts",
+        "maintainer-only private app runs",
+        "generated starter files",
+        "vague testimonials without artifacts",
+    ],
+    "passDecision": "Pass only when a non-maintainer actor supplies redacted/public command and artifact evidence for real ShipGuard use.",
+}
 STABLE_PUBLICATION_TEMPLATE_SPECS = [
     {
         "id": "independent-adoption-evidence",
@@ -182,6 +214,7 @@ STABLE_PUBLICATION_TEMPLATE_SPECS = [
             "githubDownloadsDoNotCountAsAdoption": True,
             "maintainerOnlyRunsDoNotCountAsIndependentAdoption": True,
         },
+        "adoptionEvidenceChecklist": STABLE_PUBLICATION_ADOPTION_EVIDENCE_CHECKLIST,
         "passCriteria": [
             "At least one JSON record has status=pass.",
             "evidenceType is shipguard-external-adoption.",
@@ -3232,6 +3265,7 @@ def build_stable_publication_evidence_starter_kit_manifest() -> dict[str, Any]:
         ],
         "evidenceLadder": STABLE_PUBLICATION_EVIDENCE_LADDER,
         "externalEvidenceIntakeChecklist": external_intake,
+        "adoptionEvidenceChecklist": STABLE_PUBLICATION_ADOPTION_EVIDENCE_CHECKLIST,
         "securityReviewChecklist": STABLE_PUBLICATION_SECURITY_REVIEW_CHECKLIST,
         "publicProofWalkthrough": {
             "path": f"{STARTER_KIT_DIRNAME}/{PUBLIC_PROOF_WALKTHROUGH_FILENAME}",
@@ -4028,6 +4062,7 @@ def write_stable_publication_evidence_starter_kit(
         "stableV4Release": False,
         "evidenceLadder": starter_kit.get("evidenceLadder") or STABLE_PUBLICATION_EVIDENCE_LADDER,
         "externalEvidenceIntakeChecklist": starter_kit.get("externalEvidenceIntakeChecklist", []),
+        "adoptionEvidenceChecklist": starter_kit.get("adoptionEvidenceChecklist") or STABLE_PUBLICATION_ADOPTION_EVIDENCE_CHECKLIST,
         "securityReviewChecklist": starter_kit.get("securityReviewChecklist") or STABLE_PUBLICATION_SECURITY_REVIEW_CHECKLIST,
         "publicProofWalkthrough": starter_kit.get("publicProofWalkthrough", {}),
         "firstBlockingGate": packet.get("firstBlockingGate"),
@@ -4102,6 +4137,16 @@ def write_stable_publication_evidence_starter_kit(
         )
     readme_lines.extend(
         [
+            "",
+            "## Adoption Evidence Checklist",
+            "",
+            f"- Accepted evidence classes: {', '.join(STABLE_PUBLICATION_ADOPTION_EVIDENCE_CHECKLIST['acceptedEvidenceClasses'])}",
+            f"- Required actor relationship: `{STABLE_PUBLICATION_ADOPTION_EVIDENCE_CHECKLIST['requiredActorRelationship']}`",
+            f"- Required proof fields: {', '.join(STABLE_PUBLICATION_ADOPTION_EVIDENCE_CHECKLIST['requiredProofFields'])}",
+            f"- Artifact expectations: {', '.join(STABLE_PUBLICATION_ADOPTION_EVIDENCE_CHECKLIST['artifactExpectations'])}",
+            f"- Redaction boundaries: {', '.join(STABLE_PUBLICATION_ADOPTION_EVIDENCE_CHECKLIST['redactionBoundaries'])}",
+            f"- Weak-signal exclusions: {', '.join(STABLE_PUBLICATION_ADOPTION_EVIDENCE_CHECKLIST['weakSignalExclusions'])}",
+            f"- Pass decision: {STABLE_PUBLICATION_ADOPTION_EVIDENCE_CHECKLIST['passDecision']}",
             "",
             "## Security Review Evidence Checklist",
             "",
@@ -5898,6 +5943,22 @@ def render_markdown(report: dict[str, Any]) -> str:
                     f"{', '.join(item.get('requiredFields') or [])} | "
                     f"privateDataRedacted must be `{redaction.get('privateDataRedactedMustBeTrue')}` |"
                 )
+        adoption_checklist = starter_kit.get("adoptionEvidenceChecklist")
+        if isinstance(adoption_checklist, dict) and adoption_checklist:
+            lines.extend(
+                [
+                    "",
+                    "### Adoption Evidence Checklist",
+                    "",
+                    f"- Accepted evidence classes: {', '.join(adoption_checklist.get('acceptedEvidenceClasses') or [])}",
+                    f"- Required actor relationship: `{adoption_checklist.get('requiredActorRelationship')}`",
+                    f"- Required proof fields: {', '.join(adoption_checklist.get('requiredProofFields') or [])}",
+                    f"- Artifact expectations: {', '.join(adoption_checklist.get('artifactExpectations') or [])}",
+                    f"- Redaction boundaries: {', '.join(adoption_checklist.get('redactionBoundaries') or [])}",
+                    f"- Weak-signal exclusions: {', '.join(adoption_checklist.get('weakSignalExclusions') or [])}",
+                    f"- Pass decision: {adoption_checklist.get('passDecision')}",
+                ]
+            )
         security_checklist = starter_kit.get("securityReviewChecklist")
         if isinstance(security_checklist, dict) and security_checklist:
             thresholds = security_checklist.get("severityThresholds") if isinstance(security_checklist.get("severityThresholds"), dict) else {}
