@@ -150,14 +150,15 @@ import sys
 data = json.load(open(sys.argv[1], encoding="utf-8"))
 if any(item.get("path") == "NEXT_GOAL.md" for item in data.get("docs", [])):
     raise SystemExit("NEXT_GOAL.md is release-loop state and should not be scored as stable public docs")
-next_command = (data.get("resultUX") or {}).get("nextCommand") or ""
-if not next_command.startswith("./bin/shipguard value-gauntlet "):
-    raise SystemExit(f"value-gauntlet nextCommand should be an executable rerun command, got {next_command!r}")
-if "`" in next_command or next_command.lower().startswith("run "):
-    raise SystemExit(f"value-gauntlet nextCommand should not be prose or Markdown: {next_command!r}")
 probe = data.get("lowestValueSurfaceProbe") or {}
 answer = probe.get("answer") or {}
 stable_priority = data.get("stablePublicationPriority") or {}
+next_command = (data.get("resultUX") or {}).get("nextCommand") or ""
+stable_next = stable_priority.get("nextCommand") or ""
+if next_command != stable_next:
+    raise SystemExit(f"value-gauntlet nextCommand should route to stable-publication priority, got {next_command!r}, expected {stable_next!r}")
+if "`" in next_command or next_command.lower().startswith("run "):
+    raise SystemExit(f"value-gauntlet nextCommand should not be prose or Markdown: {next_command!r}")
 runtime = data.get("runtimeOutputProbe") or {}
 negative = data.get("runtimeOutputNegativeFixtures") or {}
 command_family = data.get("runtimeCommandFamilyCoverage") or {}

@@ -5199,7 +5199,7 @@ def build_report(root: Path, strict: bool) -> dict[str, Any]:
     priority_action_rows = priority_actions(findings, probe)
     stable_priority = stable_publication_priority(probe)
     answer = (probe.get("answer") if isinstance(probe, dict) else {}) or {}
-    next_command = "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet"
+    next_command = stable_priority.get("nextCommand") or "./bin/shipguard value-gauntlet --path . --out /tmp/shipguard-value-gauntlet"
     result_ux = build_result_ux(
         status=status,
         summary=(

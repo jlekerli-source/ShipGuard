@@ -234,7 +234,7 @@ v3.188 deepens Professional Design QA from starter guidance into an example-back
 
 v3.189 adds ExpoDeck runtime evidence adapters: `shipguard expo readiness --runtime-evidence` now reads supplied Expo Doctor, EAS timing, preview, screenshot, simulator/device, or native runtime proof artifacts and labels them separately from source heuristics without running Expo commands.
 
-v3.190 makes stable-publication default asset downloads rerunnable: generated `--out/downloaded-release-assets` state is refreshed before a new download, while explicit custom download directories and supplied release-asset directories remain caller-owned and protected from deletion.
+v3.190 routes Tool Value Gauntlet result UX to the stable-publication priority command: when stable-v4 publication is the lowest-depth surface, `resultUX.nextCommand` points at `shipguard v4 stable-publication` instead of looping back to value-gauntlet.
 
 v3.191 makes release-notes edit commands path-safe: stable-publication now points `gh release edit --notes-file` at the generated draft under the report output directory, so the first blocker command works from a normal repo shell instead of assuming the maintainer has changed into the report directory.
 
