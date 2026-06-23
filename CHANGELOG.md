@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added a stable-publication consumer-proof quickstart to the generated evidence kit: `public-proof-walkthrough.md` now shows the public asset download, `release-consume verify`, stable-publication rerun, and the boundary that consumer proof is not adoption or final security review.
 - Added Value Gauntlet stable-publication public-proof starter routing: `stablePublicationPriority` now names the generated evidence-kit directory, files, creation command, and non-proof boundary so maintainers can start public proof collection without digging through stable-publication internals.
 - Routed Tool Value Gauntlet result UX to the stable-publication priority command: when stable-v4 publication is the lowest-depth surface, `resultUX.nextCommand` now points at `shipguard v4 stable-publication` instead of looping back to value-gauntlet.
 - Added ExpoDeck runtime evidence adapters: `shipguard expo readiness --runtime-evidence` now reads supplied Expo Doctor, EAS timing, preview, screenshot, simulator/device, or native runtime proof artifacts and labels them separately from source heuristics without running Expo commands.

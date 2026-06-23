@@ -238,7 +238,7 @@ v3.190 routes Tool Value Gauntlet result UX to the stable-publication priority c
 
 v3.191 adds Value Gauntlet stable-publication public-proof starter routing: `stablePublicationPriority` now names the generated evidence-kit directory, files, creation command, and non-proof boundary so maintainers can start public proof collection without digging through stable-publication internals.
 
-v3.192 makes the release-notes authoring kit self-locating: stable-publication now emits generated README/checklist/draft paths in `stablePublicationReleaseNotesAuthoringKit.generatedPaths` and `files[].generatedPath`, with shareable reports redacting the local output root.
+v3.192 adds a stable-publication consumer-proof quickstart to the generated evidence kit: `public-proof-walkthrough.md` now shows the public asset download, `release-consume verify`, stable-publication rerun, and the boundary that consumer proof is not adoption or final security review.
 
 v3.193 makes the release-loop bottleneck visible: `tests/package_release_test.sh` now prints coarse phase timings for package build, manifest/privacy checks, packaged CLI smoke proof, full-audit/value-gauntlet proof, v4 proof gates, and install proof so maintainers can tell whether the slow package lane is progressing.
 
