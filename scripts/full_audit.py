@@ -605,6 +605,23 @@ def release_packet_plan(args: argparse.Namespace, ids: list[str], stages: list[d
         "missingMetadataFields": missing,
         "stagePlan": stage_rows,
         "nextCommand": execute_command,
+        "stableV4EvidenceRealityCheck": {
+            "publicAssetConsumerProof": {
+                "currentSource": "planned" if "release-proof" in selected else "not-selected",
+                "countsAsStableV4Proof": False,
+                "nextEvidence": "Publish real GitHub release assets, download them from the public release, then consume and verify those assets.",
+            },
+            "externalAdoptionEvidence": {
+                "currentSource": "not-provided",
+                "countsAsStableV4Proof": False,
+                "nextEvidence": "Attach independent external adoption evidence; maintainer-only runs do not count as independent adoption.",
+            },
+            "finalSecurityReviewEvidence": {
+                "currentSource": "not-provided",
+                "countsAsStableV4Proof": False,
+                "nextEvidence": "Attach redacted security-review evidence scoped to ShipGuard; label maintainer reviews as maintainer security review, not third-party certification.",
+            },
+        },
         "proofBoundary": {
             "planOnlyCountsAsReleaseProof": False,
             "sourceOnlyCountsAsStableV4Proof": False,
@@ -617,6 +634,7 @@ def release_packet_plan(args: argparse.Namespace, ids: list[str], stages: list[d
             "Full Audit release-packet planning does not publish a GitHub release.",
             "Plan-only output proves route shape only, not completed release proof.",
             "Source-only proof does not count as stable-v4 publication proof.",
+            "Maintainer-only runs do not count as independent external adoption evidence.",
         ],
     }
 
@@ -853,6 +871,14 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.extend(["", "| Stage | Status | Boundary |", "| --- | --- | --- |"])
         for row in packet_plan.get("stagePlan", []):
             lines.append(f"| `{row.get('stageId')}` | {row.get('status')} | {row.get('proofBoundary')} |")
+        reality = packet_plan.get("stableV4EvidenceRealityCheck") or {}
+        if reality:
+            lines.extend(["", "Stable v4 evidence reality check:", ""])
+            lines.extend(["| Evidence | Current source | Counts as stable-v4 proof | Next evidence |", "| --- | --- | --- | --- |"])
+            for key, row in reality.items():
+                lines.append(
+                    f"| `{key}` | {row.get('currentSource')} | {str(bool(row.get('countsAsStableV4Proof'))).lower()} | {row.get('nextEvidence')} |"
+                )
         lines.extend(["", "Non-claims:"])
         for item in packet_plan.get("nonClaims", []):
             lines.append(f"- {item}")

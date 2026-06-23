@@ -89,6 +89,23 @@ for key in ["planOnlyCountsAsReleaseProof", "sourceOnlyCountsAsStableV4Proof", "
         raise SystemExit(boundary)
 if "Full Audit release-packet planning does not publish a GitHub release." not in packet.get("nonClaims", []):
     raise SystemExit(packet)
+if "Maintainer-only runs do not count as independent external adoption evidence." not in packet.get("nonClaims", []):
+    raise SystemExit(packet)
+reality = packet.get("stableV4EvidenceRealityCheck") or {}
+expected_reality = {
+    "publicAssetConsumerProof",
+    "externalAdoptionEvidence",
+    "finalSecurityReviewEvidence",
+}
+if set(reality) != expected_reality:
+    raise SystemExit(reality)
+if reality["publicAssetConsumerProof"].get("currentSource") != "planned":
+    raise SystemExit(reality)
+for key, row in reality.items():
+    if row.get("countsAsStableV4Proof") is not False or not row.get("nextEvidence"):
+        raise SystemExit({key: row})
+if "maintainer-only runs do not count as independent adoption" not in reality["externalAdoptionEvidence"]["nextEvidence"]:
+    raise SystemExit(reality["externalAdoptionEvidence"])
 source = data.get("slashHandoffSource") or {}
 if source.get("status") != "loaded" or source.get("sourcePath") != "NEXT_GOAL.md":
     raise SystemExit(source)
@@ -128,6 +145,8 @@ grep -q 'Copy-ready stage commands: 12/14' "$tmp_dir/plan/shipguard-full-audit.m
 grep -q 'Empty/manual stage commands: `ci-proof, release-proof`' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Release Packet Plan' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Missing metadata: `release_url, version, tag, commit, ci_run_url`' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Stable v4 evidence reality check' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Maintainer-only runs do not count as independent external adoption evidence.' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Plan-only output proves route shape only, not completed release proof.' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q '<shipguard-repo>/bin/shipguard version' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'git diff --check' "$tmp_dir/plan/shipguard-full-audit.md"
