@@ -10,9 +10,21 @@ cd "$repo_root"
 
 python3 -m py_compile scripts/expo_readiness.py
 
+mkdir -p "$tmp_dir/runtime-evidence"
+cat > "$tmp_dir/runtime-evidence/expo-doctor.log" <<'EOF'
+npx expo-doctor
+No issues found.
+EOF
+cat > "$tmp_dir/runtime-evidence/eas-build-timing.log" <<'EOF'
+EAS build duration: 4m 12s
+queue: 18s
+EOF
+touch "$tmp_dir/runtime-evidence/preview-screenshot.png"
+
 ./bin/shipguard expo readiness \
   --path fixtures/expo-sdk56-demo \
   --out "$tmp_dir/expo-readiness" \
+  --runtime-evidence "$tmp_dir/runtime-evidence" \
   --shareable \
   --shipguard-eval >/dev/null
 
@@ -28,6 +40,11 @@ grep -q '"ruleId": "expo-ui-migration-opportunity"' "$tmp_dir/expo-readiness/exp
 grep -q '"ruleId": "expo-agent-scaffolding-incomplete"' "$tmp_dir/expo-readiness/expo-readiness.json"
 grep -q '"ruleId": "professional-design-evidence-thin"' "$tmp_dir/expo-readiness/expo-readiness.json"
 grep -q '"professionalDesignPrinciples"' "$tmp_dir/expo-readiness/expo-readiness.json"
+grep -q '"runtimeEvidence"' "$tmp_dir/expo-readiness/expo-readiness.json"
+grep -q '"expoDoctor"' "$tmp_dir/expo-readiness/expo-readiness.json"
+grep -q '"easTiming"' "$tmp_dir/expo-readiness/expo-readiness.json"
+grep -q '"screenshot"' "$tmp_dir/expo-readiness/expo-readiness.json"
+grep -q '"preview"' "$tmp_dir/expo-readiness/expo-readiness.json"
 grep -q '"contrast"' "$tmp_dir/expo-readiness/expo-readiness.json"
 grep -q '"unity"' "$tmp_dir/expo-readiness/expo-readiness.json"
 grep -q 'how-to-apply-professional-design-principles-in-ai-app-development' "$tmp_dir/expo-readiness/expo-readiness.json"
@@ -35,6 +52,7 @@ grep -q '"doesNotRunExpoCommands": true' "$tmp_dir/expo-readiness/expo-readiness
 grep -q '"improveShipGuardNotTargetApp": true' "$tmp_dir/expo-readiness/expo-readiness.json"
 grep -q 'ShipGuard ExpoDeck' "$tmp_dir/expo-readiness/expo-readiness.md"
 grep -q 'Professional Design Principles' "$tmp_dir/expo-readiness/expo-readiness.md"
+grep -q 'Runtime Evidence' "$tmp_dir/expo-readiness/expo-readiness.md"
 grep -q 'npx expo-doctor' "$tmp_dir/expo-readiness/expo-readiness.md"
 grep -q 'EAS build timing' "$tmp_dir/expo-readiness/expo-readiness.json"
 
@@ -56,6 +74,14 @@ assert opportunities["precompiled-builds"] == "requires-sdk56", opportunities
 assert opportunities["ai-agent-scaffolding"] == "incomplete", opportunities
 assert data["shareability"]["localAbsolutePathsIncluded"] is False, data["shareability"]
 assert data["scanScope"]["doesNotRunNpmOrExpo"] is True, data["scanScope"]
+runtime = data["runtimeEvidence"]
+assert runtime["provided"] is True, runtime
+assert runtime["fileCount"] == 3, runtime
+assert "expoDoctor" in runtime["categories"], runtime
+assert "easTiming" in runtime["categories"], runtime
+assert "screenshot" in runtime["categories"], runtime
+assert "preview" in runtime["categories"], runtime
+assert runtime["boundary"].startswith("ShipGuard reads provided artifacts only"), runtime
 design = data["professionalDesignPrinciples"]
 assert design["principles"] == [
     "contrast",

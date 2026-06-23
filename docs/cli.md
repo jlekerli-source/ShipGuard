@@ -122,10 +122,11 @@ Run a read-only Expo SDK 56 readiness audit:
 ./bin/shipguard expo readiness \
   --path ../my-expo-app \
   --out /tmp/shipguard-expo-readiness \
+  --runtime-evidence /tmp/expo-proof \
   --shareable
 ```
 
-ExpoDeck writes `expo-readiness.json` and `expo-readiness.md` with Expo SDK version signals, Expo UI opportunities, EAS timing-proof gaps, Expo Router pairing, AI-agent scaffolding, professional design-principle checks for AI-generated UI, next commands, and source-vs-runtime proof boundaries. It does not run `npx expo`, install packages, prebuild native projects, or claim build-speed wins or rendered visual quality without timing, screenshot, preview, or runtime evidence.
+ExpoDeck writes `expo-readiness.json` and `expo-readiness.md` with Expo SDK version signals, Expo UI opportunities, EAS timing-proof gaps, Expo Router pairing, AI-agent scaffolding, professional design-principle checks for AI-generated UI, optional runtime evidence summaries from `--runtime-evidence`, next commands, and source-vs-runtime proof boundaries. It does not run `npx expo`, install packages, prebuild native projects, or claim build-speed wins or rendered visual quality without timing, screenshot, preview, or runtime evidence.
 
 See `expo-readiness.md`.
 

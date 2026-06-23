@@ -12,6 +12,7 @@ from typing import Any
 
 
 TEXT_SUFFIXES = {".json", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".md", ".yml", ".yaml"}
+EVIDENCE_SUFFIXES = TEXT_SUFFIXES | {".txt", ".log", ".out", ".png", ".jpg", ".jpeg", ".webp"}
 SKIP_DIRS = {".git", "node_modules", ".expo", ".next", "dist", "build", "ios/Pods", "android/.gradle"}
 SDK56_TOPICS = [
     "expo-ui-stable-native-primitives",
@@ -47,6 +48,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--path", default=".", help="Repo to inspect")
     parser.add_argument("--out", required=True, help="Output directory")
     parser.add_argument("--target-sdk", default="56", help="Target Expo SDK major version")
+    parser.add_argument("--runtime-evidence", action="append", default=[], help="Read-only Expo Doctor, EAS timing, preview, screenshot, or runtime evidence file/dir")
     parser.add_argument("--shipguard-eval", action="store_true", help="Add ShipGuard-only report-quality questions")
     parser.add_argument("--shareable", action="store_true", help="Do not include local absolute paths")
     parser.add_argument("--json", action="store_true", help="Print JSON report to stdout")
@@ -69,6 +71,12 @@ def read_text(path: Path, limit: int = 160_000) -> str:
         return path.read_text(encoding="utf-8", errors="ignore")
     except OSError:
         return ""
+
+
+def read_evidence_text(path: Path, limit: int = 24_000) -> str:
+    if path.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}:
+        return ""
+    return read_text(path, limit)
 
 
 def rel(path: Path, root: Path) -> str:
@@ -94,6 +102,47 @@ def iter_files(root: Path, limit: int = 500) -> list[Path]:
         if path.is_file() and (path.suffix in TEXT_SUFFIXES or path.name in {"package.json", "app.json", "eas.json", "AGENTS.md", "CLAUDE.md"}):
             files.append(path)
     return files
+
+
+def iter_evidence_paths(inputs: list[str], limit: int = 40) -> list[Path]:
+    paths: list[Path] = []
+    for raw in inputs:
+        base = Path(raw).expanduser()
+        if base.is_file():
+            paths.append(base)
+        elif base.is_dir():
+            for path in sorted(base.rglob("*")):
+                if path.is_file() and (path.suffix.lower() in EVIDENCE_SUFFIXES or path.name.lower() in {"expo-doctor", "eas-build"}):
+                    paths.append(path)
+                    if len(paths) >= limit:
+                        return paths
+    return paths[:limit]
+
+
+def runtime_evidence(inputs: list[str], *, shareable: bool) -> dict[str, Any]:
+    files = iter_evidence_paths(inputs)
+    categories = {
+        "expoDoctor": ["expo doctor", "expo-doctor", "npx expo-doctor", "expo diagnostics"],
+        "easTiming": ["eas build", "build details", "duration", "queue", "build time", "timing"],
+        "preview": ["preview", "devspace", "localhost", "simulator", "expo go"],
+        "screenshot": ["screenshot", "screen capture", ".png", ".jpg", ".jpeg", ".webp"],
+        "nativeRuntime": ["ios simulator", "android emulator", "device", "xcodebuild", "gradle", "runtime"],
+    }
+    matches: dict[str, list[str]] = {key: [] for key in categories}
+    for path in files:
+        haystack = f"{path.name}\n{read_evidence_text(path)}".lower()
+        rendered = path.name if shareable else str(path)
+        for category, needles in categories.items():
+            if any(needle in haystack for needle in needles):
+                matches[category].append(rendered)
+    found = {key: sorted(set(value))[:6] for key, value in matches.items() if value}
+    return {
+        "provided": bool(inputs),
+        "fileCount": len(files),
+        "categories": found,
+        "summary": "runtime evidence attached" if found else ("no matching runtime evidence found" if inputs else "not provided"),
+        "boundary": "ShipGuard reads provided artifacts only; it does not run Expo Doctor, EAS, simulators, or builds.",
+    }
 
 
 def dependency_map(package_json: dict[str, Any]) -> dict[str, str]:
@@ -170,7 +219,7 @@ def finding(severity: str, category: str, rule_id: str, evidence: str, recommend
     }
 
 
-def build_report(root: Path, target_sdk: str, *, shareable: bool, shipguard_eval: bool) -> dict[str, Any]:
+def build_report(root: Path, target_sdk: str, *, runtime_evidence_inputs: list[str], shareable: bool, shipguard_eval: bool) -> dict[str, Any]:
     package_path = root / "package.json"
     package = read_json(package_path)
     deps = dependency_map(package)
@@ -203,6 +252,7 @@ def build_report(root: Path, target_sdk: str, *, shareable: bool, shipguard_eval
     eas_workflow_hits = contains_any(files, root, ["eas/workflows", "eas workflow", "build:", "submit:", "updates:"])
     agent_hits = contains_any(files, root, ["AGENTS.md", "CLAUDE.md", ".claude/settings.json", "npx skills add expo/skills"])
     design = design_signals(files, root)
+    runtime = runtime_evidence(runtime_evidence_inputs, shareable=shareable)
 
     findings: list[dict[str, str]] = []
     if not is_expo_project:
@@ -291,7 +341,7 @@ def build_report(root: Path, target_sdk: str, *, shareable: bool, shipguard_eval
                 "eas-workflow-proof-thin",
                 "eas.json exists, but no EAS workflow or timing evidence was detected in scanned files.",
                 "Use EAS build/workflow timing output as proof for native build optimization decisions.",
-                "Attach EAS build timing or workflow evidence to shipguard agent trace with --expo-eas-evidence.",
+                "Attach EAS build timing or workflow evidence with --runtime-evidence or shipguard agent trace --expo-eas-evidence.",
             )
         )
     if is_expo_project and not design["styleSystemFiles"] and design["styleDeclarationCount"] == 0:
@@ -302,7 +352,7 @@ def build_report(root: Path, target_sdk: str, *, shareable: bool, shipguard_eval
                 "professional-design-evidence-thin",
                 "No theme, token, design-system, StyleSheet, className, styled-component, Tailwind, or NativeWind signal was found in the bounded scan.",
                 "Add or point ShipGuard at reusable design evidence so AI output can be critiqued for contrast, hierarchy, alignment, proximity, repetition, balance, white space, and unity instead of generic visual taste.",
-                "Run the app through shipguard ios preview/devspace or attach screenshots, then rerun ExpoDeck with the source that defines design tokens/components.",
+                "Run the app through shipguard ios preview/devspace or attach screenshots, then rerun ExpoDeck with --runtime-evidence plus the source that defines design tokens/components.",
             )
         )
     if design["colorLiteralCount"] >= 8 and not design["styleSystemFiles"]:
@@ -324,7 +374,7 @@ def build_report(root: Path, target_sdk: str, *, shareable: bool, shipguard_eval
                 "motion-proof-required",
                 f"Found {design['motionSignalCount']} animation or motion signals.",
                 "Review motion against app genre, reduced-motion behavior, frequency, and whether it supports hierarchy rather than decoration.",
-                "Use simulator/device preview evidence and reduced-motion proof before accepting AI-generated motion changes.",
+                "Use simulator/device preview evidence, --runtime-evidence, and reduced-motion proof before accepting AI-generated motion changes.",
             )
         )
 
@@ -400,10 +450,12 @@ def build_report(root: Path, target_sdk: str, *, shareable: bool, shipguard_eval
         "nativeUISignals": native_ui_hits,
         "inlineModuleSignals": inline_module_hits,
         "agentScaffoldingSignals": agent_hits,
+        "runtimeEvidence": runtime,
         "opportunities": opportunities,
         "findings": findings,
         "nextCommands": [
             "shipguard expo readiness --path . --out /tmp/shipguard-expo-readiness --shareable",
+            "shipguard expo readiness --path . --out /tmp/shipguard-expo-readiness --runtime-evidence <proof-file-or-dir> --shareable",
             "npx expo-doctor",
             "npx expo install --fix",
             "shipguard agent trace --trace <agent-trace> --out <trace-dir> --expo-eas-evidence <eas-evidence-dir>",
@@ -483,6 +535,12 @@ def markdown(report: dict[str, Any]) -> str:
             f"motion signals `{signals.get('motionSignalCount')}`, "
             f"accessibility signals `{signals.get('accessibilitySignalCount')}`"
         )
+    runtime = report.get("runtimeEvidence") or {}
+    lines.extend(["", "## Runtime Evidence", ""])
+    lines.append(f"- Summary: {runtime.get('summary', 'not provided')}")
+    lines.append(f"- Boundary: {runtime.get('boundary', '')}")
+    for category, paths in (runtime.get("categories") or {}).items():
+        lines.append(f"- `{category}`: {', '.join(paths)}")
     lines.extend(["", "## Next Commands", ""])
     for command in report.get("nextCommands") or []:
         lines.append(f"- `{command}`")
@@ -500,7 +558,7 @@ def main() -> int:
         raise SystemExit(f"expo-readiness: path does not exist: {root}")
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    report = build_report(root, args.target_sdk, shareable=args.shareable, shipguard_eval=args.shipguard_eval)
+    report = build_report(root, args.target_sdk, runtime_evidence_inputs=args.runtime_evidence, shareable=args.shareable, shipguard_eval=args.shipguard_eval)
     md = markdown(report)
     (out / "expo-readiness.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (out / "expo-readiness.md").write_text(md, encoding="utf-8")

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added ExpoDeck runtime evidence adapters: `shipguard expo readiness --runtime-evidence` now reads supplied Expo Doctor, EAS timing, preview, screenshot, simulator/device, or native runtime proof artifacts and labels them separately from source heuristics without running Expo commands.
 - Added Professional Design QA depth receipts: the starter skill now includes concrete `shipguard ios design`, `shipguard ios preview`, ExpoDeck, and report-quality command routes, app-genre examples, and explicit preview/screenshot/device proof language.
 - Added ShipGuard ExpoDeck: `shipguard expo readiness` now audits Expo SDK 56 readiness, Expo UI/native-module opportunities, Expo Router pairing, EAS timing-proof gaps, AI-agent scaffolding, and professional design-principle evidence for AI-generated UI without mutating target repos.
 - Added a Professional Design QA starter skill so Codex can critique AI-generated UI with concrete contrast, hierarchy, alignment, proximity, repetition, balance, white-space, and unity language while requiring screenshots, previews, or runtime proof for final visual claims.

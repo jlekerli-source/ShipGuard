@@ -51,7 +51,7 @@ Usage:
   shipguard v4 stable-publication --path <shipguard-repo> --out <dir> [--github-release-repo <owner/repo>] --release-version <version> --release-candidate-report <json-or-dir> [--release-assets <downloaded-assets-dir>|--download-release-assets] --external-adoption-evidence <json-or-dir> --security-review-evidence <json-or-dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard pilot-bench [--trace <trace.json-or-dir> ...] [--out <dir>] [--shareable] [--benchmark-v2] [--min-lift <points>] [--json|--markdown]
   shipguard agent trace --trace <trace.json-or-jsonl-or-dir> --out <dir> [--adapter auto|codex|claude|gemini|cursor|mcp|generic] [--task <shipguard-task.json-or-dir>] [--diff <patch.diff>] [--evidence <file> ...] [--xcodebuildmcp-evidence <file-or-dir> ...] [--expo-eas-evidence <file-or-dir> ...] [--verdict <shipguard-verdict.json-or-dir>] [--run-verify] [--budget-workers <n>] [--max-workers <n>] [--shipguard-eval] [--shareable] [--json|--markdown]
-  shipguard expo readiness --path <repo> --out <dir> [--target-sdk <major>] [--shipguard-eval] [--shareable] [--json|--markdown]
+  shipguard expo readiness --path <repo> --out <dir> [--target-sdk <major>] [--runtime-evidence <file-or-dir> ...] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard web audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard web plan --report <web-audit-json-or-dir> --out <dir> [--target <repo>] [--shipguard-eval] [--shareable] [--json|--markdown]
   shipguard backend audit --path <repo> --out <dir> [--shipguard-eval] [--shareable] [--json|--markdown]

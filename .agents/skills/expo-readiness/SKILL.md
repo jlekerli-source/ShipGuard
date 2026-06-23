@@ -30,11 +30,13 @@ fi
 "$SHIPGUARD_CLI" expo readiness --path . --out /tmp/shipguard-expo-readiness --shareable
 ```
 
-4. Read `/tmp/shipguard-expo-readiness/expo-readiness.md` before proposing edits.
+4. If Expo Doctor, EAS timing, screenshot, preview, simulator/device, or native runtime artifacts already exist, rerun with `--runtime-evidence <proof-file-or-dir>`.
+5. Read `/tmp/shipguard-expo-readiness/expo-readiness.md` before proposing edits.
 
 ## Rules
 
 - Keep `shipguard expo readiness` read-only. It should inspect files and recommend proof commands, not run `npx expo`, mutate dependencies, prebuild native projects, or edit EAS config.
+- Use `--runtime-evidence` only for artifacts that already exist; it reads Expo Doctor, EAS timing, screenshot, preview, simulator/device, or native runtime proof and does not create that proof.
 - Treat Expo SDK 56 features as opportunities until the repo proves them with `npx expo-doctor`, app tests, native builds, EAS timing, or runtime evidence.
 - Treat professional design findings as source-level critique until a screenshot, simulator, device, or browser preview proves the rendered UI.
 - Use concrete design vocabulary for AI-built UI: contrast, hierarchy, alignment, proximity, repetition, balance, white space, and unity.
@@ -48,7 +50,7 @@ fi
 
 - SDK upgrade: `shipguard expo readiness`, then `npx expo install expo@latest`, `npx expo install --fix`, `npx expo-doctor`, and the app validation lane.
 - Build performance: compare clean build or EAS timing before/after SDK 56 and precompiled-module changes.
-- EAS assurance: attach EAS build/update/timing artifacts to `shipguard agent trace --expo-eas-evidence <dir>`.
+- EAS assurance: attach EAS build/update/timing artifacts to ExpoDeck with `--runtime-evidence <dir>` or to `shipguard agent trace --expo-eas-evidence <dir>`.
 - ShipGuard product QA: if a private Expo app is used only to improve ShipGuard, add `--shipguard-eval --shareable`, then feed ExpoDeck into `shipguard ios report-quality`.
 
 ## Output

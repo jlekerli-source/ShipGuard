@@ -232,7 +232,7 @@ v3.187 adds ShipGuard ExpoDeck with `shipguard expo readiness`: a read-only Expo
 
 v3.188 deepens Professional Design QA from starter guidance into an example-backed skill with concrete `ios design`, `ios preview`, ExpoDeck, and report-quality command routes, app-genre examples, and explicit preview/screenshot/device proof language. Value Gauntlet now returns stable-v4 publication as the lowest-value surface again after the design skill clears its command-example and validation-density depth checks.
 
-v3.189 humanizes the stable-publication result UX so the top proof source and first action use reader-facing evidence labels instead of leaking internal JSON names like `stablePublicationClosureChecklist` or `releaseNotesProof`.
+v3.189 adds ExpoDeck runtime evidence adapters: `shipguard expo readiness --runtime-evidence` now reads supplied Expo Doctor, EAS timing, preview, screenshot, simulator/device, or native runtime proof artifacts and labels them separately from source heuristics without running Expo commands.
 
 v3.190 makes stable-publication default asset downloads rerunnable: generated `--out/downloaded-release-assets` state is refreshed before a new download, while explicit custom download directories and supplied release-asset directories remain caller-owned and protected from deletion.
 
