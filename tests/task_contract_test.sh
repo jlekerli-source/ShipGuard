@@ -248,6 +248,14 @@ assert lane_status["denied-state-recovery"] == "proven"
 assert lane_status["simulator-permission-reset"] == "proven"
 assert lane_status["physical-device-prompt"] == "manual-required"
 assert analysis["notificationPermissionWorkflow"]["status"] == workflow["status"]
+learning = data["diffLearningHandoff"]
+assert learning["status"] == "pass"
+assert learning["primaryLesson"].startswith("This exact diff matched")
+assert learning["changedFileSignals"][0]["path"] == "Sources/DemoShipGuardApp/DemoPermissions.swift"
+assert learning["learningSignals"] == ["scope-evidence-claim-match"]
+assert learning["nextTuningAction"]["expectedArtifact"] == "review-ready proof packet"
+assert "not persistent project memory" in learning["proofBoundary"]
+assert analysis["learningHandoff"] == learning
 assert data["nextAction"]["expectedArtifact"] == "review-ready proof packet"
 assert data["nextAction"]["priority"] == 7
 PY
@@ -256,6 +264,8 @@ grep -q 'Status: `pass`' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Validation: `1/1 covered`' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Merge allowed: True' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Behavior Categories' "$tmp_dir/verify-pass/shipguard-verdict.md"
+grep -q 'Diff Learning Handoff' "$tmp_dir/verify-pass/shipguard-verdict.md"
+grep -q 'scope-evidence-claim-match' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Validation Coverage' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Claim Decisions' "$tmp_dir/verify-pass/shipguard-verdict.md"
 grep -q 'Quickstart Replay' "$tmp_dir/verify-pass/shipguard-verdict.md"
@@ -308,6 +318,16 @@ assert analysis["protectedBoundaryCrossings"]["forbiddenTouched"] == [".github/w
 assert analysis["changedFiles"][0]["behaviorCategories"] == ["release-workflow"]
 assert analysis["validationCoverage"]["status"] == "missing"
 assert analysis["claimDecisions"][0]["status"] == "rejected"
+learning = data["diffLearningHandoff"]
+assert learning["status"] == "blocked"
+assert learning["primaryLesson"].startswith("This exact diff exposed")
+assert "protected-boundary-crossing" in learning["learningSignals"]
+assert "out-of-scope-diff" in learning["learningSignals"]
+assert "missing-validation-coverage" in learning["learningSignals"]
+assert "unsupported-completion-claim" in learning["learningSignals"]
+assert learning["changedFileSignals"][0]["forbidden"] is True
+assert "not persistent project memory" in learning["proofBoundary"]
+assert analysis["learningHandoff"] == learning
 assert data["nextAction"]["owner"] == "developer"
 assert "Update the task contract scope" in data["nextAction"]["command"]
 assert data["nextAction"]["priority"] == 1

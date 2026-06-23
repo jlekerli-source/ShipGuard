@@ -1530,6 +1530,72 @@ def build_diff_first_analysis(
     return analysis
 
 
+def build_diff_learning_handoff(
+    *,
+    status: str,
+    diff_first: dict[str, Any],
+    next_action: dict[str, Any],
+) -> dict[str, Any]:
+    scope = diff_first.get("protectedBoundaryCrossings") or {}
+    coverage = diff_first.get("validationCoverage") or {}
+    claims = diff_first.get("claimDecisions") or []
+    deleted_tests = diff_first.get("deletedTests") or []
+    changed_files = diff_first.get("changedFiles") or []
+    changed_categories = diff_first.get("changedBehaviorCategories") or []
+    signals: list[str] = []
+    if scope.get("forbiddenTouched"):
+        signals.append("protected-boundary-crossing")
+    if scope.get("outOfScope"):
+        signals.append("out-of-scope-diff")
+    if deleted_tests:
+        signals.append("deleted-test-coverage-risk")
+    if coverage.get("uncoveredCommands"):
+        signals.append("missing-validation-coverage")
+    if any(item.get("status") == "rejected" for item in claims):
+        signals.append("unsupported-completion-claim")
+    if any(item.get("status") == "needs-manual-proof" for item in claims):
+        signals.append("manual-proof-claim")
+    if not signals and status == "pass":
+        signals.append("scope-evidence-claim-match")
+
+    if status == "pass":
+        lesson = "This exact diff matched the task scope, attached proof, and completion claim."
+    elif status == "blocked":
+        lesson = "This exact diff exposed a merge-blocking scope, receipt, or claim boundary."
+    elif status == "review":
+        lesson = "This exact diff is reviewable only after the missing proof or manual evidence is attached."
+    else:
+        lesson = "This verdict did not include enough diff evidence to learn from safely."
+
+    return {
+        "schemaVersion": 1,
+        "status": status,
+        "primaryLesson": lesson,
+        "changedFileCount": len(changed_files),
+        "changedFileSignals": [
+            {
+                "path": item.get("path"),
+                "changeType": item.get("changeType"),
+                "categories": item.get("behaviorCategories") or [],
+                "authorized": (item.get("scope") or {}).get("authorized"),
+                "forbidden": (item.get("scope") or {}).get("forbidden"),
+            }
+            for item in changed_files[:12]
+        ],
+        "behaviorCategories": [item.get("category") for item in changed_categories],
+        "learningSignals": signals,
+        "nextTuningAction": {
+            "command": next_action.get("command"),
+            "expectedArtifact": next_action.get("expectedArtifact"),
+            "successCondition": next_action.get("successCondition"),
+        },
+        "proofBoundary": (
+            "This handoff summarizes the current verify verdict only. It is not persistent project memory, "
+            "external adoption evidence, or proof that future similar diffs are safe."
+        ),
+    }
+
+
 def build_proof_report(
     *,
     status: str,
@@ -1749,6 +1815,12 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
         effective_domain_workflows,
     )
     diff_first["configurationBaseline"] = baseline_result
+    diff_learning_handoff = build_diff_learning_handoff(
+        status=status,
+        diff_first=diff_first,
+        next_action=next_action,
+    )
+    diff_first["learningHandoff"] = diff_learning_handoff
     proof_report = build_proof_report(
         status=status,
         goal=str(task.get("goal") or ""),
@@ -1794,6 +1866,7 @@ def verify_contract(args: argparse.Namespace) -> dict[str, Any]:
             "requiredProofPhrases": list(CLAIM_REQUIRES_PROOF),
         },
         "diffFirstAnalysis": diff_first,
+        "diffLearningHandoff": diff_learning_handoff,
         "configurationBaseline": baseline_result,
         "contractFindings": baseline_findings,
         "domainWorkflows": effective_domain_workflows,
@@ -2108,6 +2181,16 @@ def render_verify_markdown(verdict: dict[str, Any]) -> str:
             lines.append(f"- {item.get('category')}: {item.get('fileCount')} file(s) - {files}")
     else:
         lines.append("- No behavior categories detected.")
+    learning = verdict.get("diffLearningHandoff") or {}
+    if learning:
+        lines.extend(["", "## Diff Learning Handoff", ""])
+        lines.append(f"- Status: `{learning.get('status')}`")
+        lines.append(f"- Primary lesson: {learning.get('primaryLesson')}")
+        signals = ", ".join(f"`{item}`" for item in learning.get("learningSignals") or [])
+        lines.append(f"- Learning signals: {signals}")
+        next_tuning = learning.get("nextTuningAction") if isinstance(learning.get("nextTuningAction"), dict) else {}
+        lines.append(f"- Next tuning action: `{next_tuning.get('command')}`")
+        lines.append(f"- Boundary: {learning.get('proofBoundary')}")
     deleted_tests = diff_first.get("deletedTests") or []
     if deleted_tests:
         lines.extend(["", "## Deleted Tests", ""])

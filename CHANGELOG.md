@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added a diff-first learning handoff to `shipguard verify`: verdict JSON and Markdown now summarize what the exact diff teaches, including changed-file signals, behavior categories, scope/evidence/claim learning signals, the next tuning action, and a boundary that the handoff is not persistent project memory or future-diff approval.
 - Promoted the public demo/docs quickstart path into the release line: the docs index now routes fresh users to the verify-first quickstart and demo reports separately, generated demo-report README output includes the copyable pass-path command plus review/blocked pointers, and `verify_first_quickstart_test.sh` keeps those public demo links and proof-report expectations from drifting.
 - Promoted the GitHub Action first-run proof path into the release line: `shipguard action verify-pr` now emits a first-run install handoff with a directory-safe workflow copy command, static audit command, runtime artifact audit command, and proof boundary so fresh maintainers can install the transparent PR workflow without guessing.
 - Promoted the one-command installer proof path into the release line: the packaged install proof now installs the extracted release tarball, runs the installed CLI through `validate`, `prepare`, and `verify` against public quickstart fixtures, and checks the resulting proof report so the tarball proves the first useful consumer path. Installed wrappers also disable Python bytecode writes so normal use does not dirty the installed toolkit tree.
