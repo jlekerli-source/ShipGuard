@@ -1,24 +1,24 @@
 # Next Goal
 
-- Generated: 2026-06-23T02:12:26Z
-- Current toolkit version: 3.146.0
-- Target release: v3.146.0
-- Title: Full Audit NEXT_GOAL Handoff Proof Polish
+- Generated: 2026-06-23T02:25:15Z
+- Current toolkit version: 3.147.0
+- Target release: v3.147.0
+- Title: Full Audit Execution Command Receipt Polish
 
 ## Version Lineage Check
 
 - Status: pass
-- VERSION: 3.146.0
-- Expected next release from VERSION: v3.147.0
-- Planned target release: v3.146.0
-- Current checkout package artifact: dist/shipguard-v3.146.0.tar.gz
-- Release package artifact to build: dist/shipguard-v3.146.0.tar.gz
-- Action: VERSION already names v3.146.0; build, verify, publish, and consume dist/shipguard-v3.146.0.tar.gz before generating the next goal.
+- VERSION: 3.147.0
+- Expected next release from VERSION: v3.148.0
+- Planned target release: v3.147.0
+- Current checkout package artifact: dist/shipguard-v3.147.0.tar.gz
+- Release package artifact to build: dist/shipguard-v3.147.0.tar.gz
+- Action: VERSION already names v3.147.0; build, verify, publish, and consume dist/shipguard-v3.147.0.tar.gz before generating the next goal.
 
 ## Slash Plan
 
 ```text
-/plan v3.146.0 Full Audit NEXT_GOAL Handoff Proof Polish for jlekerli-source/ShipGuard:
+/plan v3.147.0 Full Audit Execution Command Receipt Polish for jlekerli-source/ShipGuard:
 1. Pick exactly one high-signal maintainer reliability improvement from ROADMAP.md and write the bounded scope before editing.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
@@ -28,19 +28,19 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.146.0 Full Audit NEXT_GOAL Handoff Proof Polish for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.147.0 Full Audit Execution Command Receipt Polish for jlekerli-source/ShipGuard: follow the /plan above, finish one high-signal maintainer reliability improvement from ROADMAP.md with CLI/docs/tests/package proof, push main, verify GitHub Actions, build and verify the release tarball, publish and consume release proof, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Completion Receipt
 
-- Completed scope: Full Audit slash-handoff proof now reports handoff freshness and a copy-ready NEXT_GOAL regeneration command in JSON and Markdown; report-quality flags Full Audit reports and fixtures that hide those fields.
-- Evidence: python3 -m py_compile scripts/full_audit.py scripts/ios_report_quality.py; ./tests/full_audit_test.sh; ./tests/ios_report_quality_test.sh; ./tests/next_goal_test.sh; git diff --check; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3.146; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; env PREFIX="/Users/omarat-turkmani/.local" ./scripts/install.sh; ./bin/shipguard codex status --strict; ./tests/package_release_test.sh
+- Completed scope: Full Audit execution command receipts now report fallback and manual-required stage counts and IDs in JSON and Markdown; report-quality flags receipts that omit those counts.
+- Evidence: python3 -m py_compile scripts/full_audit.py scripts/ios_report_quality.py; ./tests/full_audit_test.sh; ./tests/ios_report_quality_test.sh; ./tests/next_goal_test.sh; git diff --check; ./bin/shipguard validate; ./bin/shipguard docs-check . --out /tmp/shipguard-docs-check-v3.147; ./tests/cli_smoke_test.sh; ./tests/self_audit_test.sh; env PREFIX="/Users/omarat-turkmani/.local" ./scripts/install.sh; ./bin/shipguard codex status --strict; ./tests/package_release_test.sh
 
 ## Following Slash Plan
 
 ```text
-/plan v3.147.0 Full Audit Execution Command Receipt Polish for jlekerli-source/ShipGuard:
+/plan v3.148.0 Tool Value Gauntlet Stable-Publication Priority Polish for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -50,13 +50,13 @@
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.147.0 Full Audit Execution Command Receipt Polish for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.148.0 Tool Value Gauntlet Stable-Publication Priority Polish for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.147.0 --title "Full Audit Execution Command Receipt Polish" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.148.0 --title "Tool Value Gauntlet Stable-Publication Priority Polish" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -156,12 +156,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.146.0.
+1. Open or update the tracking issue for v3.147.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Build `dist/shipguard-v3.146.0.tar.gz`, create release `v3.146.0`, upload the rebuilt tarball, and consume release proof.
+6. Build `dist/shipguard-v3.147.0.tar.gz`, create release `v3.147.0`, upload the rebuilt tarball, and consume release proof.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 

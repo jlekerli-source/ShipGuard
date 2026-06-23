@@ -2734,6 +2734,10 @@ def full_audit_execution_command_issues(
             missing_receipt_parts.append("stageCommands")
         if not isinstance(empty_ids, list):
             missing_receipt_parts.append("emptyStageCommandIds")
+        if not isinstance(receipt.get("fallbackStageCount"), int):
+            missing_receipt_parts.append("fallbackStageCount")
+        if not isinstance(receipt.get("manualStageCount"), int):
+            missing_receipt_parts.append("manualStageCount")
         for key in ("doesNotExecuteByRendering", "commandsAreLocalRepoScoped", "doesNotPush", "doesNotPublishRelease"):
             if boundary.get(key) is not True:
                 missing_receipt_parts.append(f"proofBoundary.{key}")
@@ -2802,6 +2806,8 @@ def full_audit_execution_command_issues(
         "Execute command:",
         "Resume command:",
         "Copy-ready stage commands:",
+        "Fallback stage commands:",
+        "Manual-required stage commands:",
         "Empty/manual stage commands:",
     ]
     missing_receipt_markdown = [token for token in required_receipt_markdown if token not in markdown]

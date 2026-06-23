@@ -202,7 +202,7 @@ v3.139 routes missing public-release metadata through the top-level result UX: w
 
 v3.140 closes the public-release handoff proof gap: stable-publication release-create and release-asset upload handoffs now include a post-handoff proof receipt with the exact `gh release view ... --json tagName,isDraft,isPrerelease,targetCommitish,publishedAt,assets,url` command, stable-publication rerun command, success criteria, and non-claims so manual GitHub actions are verifiable instead of assumed.
 
-Release-line note: local `VERSION` now advances to `3.146.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
+Release-line note: local `VERSION` now advances to `3.147.0` for the buildable v4-stabilization package path. The latest public GitHub release remains `v3.131.0` until a separate release publication and consumer-proof pass is completed.
 
 v3.135 trims package-release proof duplication: after source CI runs the focused fixture suites, `tests/package_release_test.sh` verifies those packaged test scripts are included, executable, and shell-syntax-valid instead of rerunning the same suites from the extracted tarball.
 
@@ -248,7 +248,7 @@ v3.145 continues Full Audit release-packet plan honesty by adding `stableV4Evide
 
 v3.146 continues Full Audit NEXT_GOAL-backed slash handoff proof by adding handoff freshness and a copy-ready regeneration command to `slashHandoffProof`, so maintainers can see whether Full Audit used the active or fresh following `NEXT_GOAL.md` section and how to repair a stale handoff.
 
-v3.147 continues Full Audit copy-ready execution-command receipts by adding `executionCommandReceipt` so execute/resume commands, per-stage command rows, empty/manual stage fallbacks, and no-push/no-publish boundaries are visible in JSON and Markdown.
+v3.147 continues Full Audit copy-ready execution-command receipts by adding fallback and manual-required stage counts to `executionCommandReceipt`, so maintainers can see how much of a Full Audit plan is directly runnable before opening every row.
 
 v3.148 continues Tool Value Gauntlet stable-publication priority by adding `stablePublicationPriority` so the v4 blocker, proof packet, copy-ready stable-publication command, and source/fixture non-claims are visible without digging through the lowest-value probe internals.
 

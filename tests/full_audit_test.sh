@@ -62,7 +62,11 @@ if "shipguard full-audit" not in receipt.get("resumeCommand", ""):
     raise SystemExit(receipt)
 if receipt.get("stageCount") != 14 or receipt.get("copyReadyStageCount") != 12:
     raise SystemExit(receipt)
+if receipt.get("fallbackStageCount") != 2 or receipt.get("manualStageCount") != 0:
+    raise SystemExit(receipt)
 if receipt.get("emptyStageCommandIds") != ["ci-proof", "release-proof"]:
+    raise SystemExit(receipt)
+if receipt.get("manualStageCommandIds") != []:
     raise SystemExit(receipt)
 rows = {row.get("stageId"): row for row in receipt.get("stageCommands", [])}
 if rows.get("version", {}).get("copyReady") is not True:
@@ -148,6 +152,8 @@ grep -q 'Execution Commands' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q '| Stage | Status | Command |' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Execution Command Receipt' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Copy-ready stage commands: 12/14' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Fallback stage commands: 2' "$tmp_dir/plan/shipguard-full-audit.md"
+grep -q 'Manual-required stage commands: 0' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Empty/manual stage commands: `ci-proof, release-proof`' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Release Packet Plan' "$tmp_dir/plan/shipguard-full-audit.md"
 grep -q 'Missing metadata: `release_url, version, tag, commit, ci_run_url`' "$tmp_dir/plan/shipguard-full-audit.md"
@@ -207,6 +213,8 @@ if data["scopeBoundary"]["targetAppsReadOnly"] is not True:
 receipt = data.get("executionCommandReceipt") or {}
 if receipt.get("status") != "pass" or receipt.get("copyReadyStageCount") != 3 or receipt.get("emptyStageCommandIds") != []:
     raise SystemExit(receipt)
+if receipt.get("fallbackStageCount") != 0 or receipt.get("manualStageCount") != 0:
+    raise SystemExit(receipt)
 stage_ids = [stage["stageId"] for stage in data["stages"]]
 if stage_ids != ["version", "py-compile", "docs-check"]:
     raise SystemExit(stage_ids)
@@ -240,6 +248,8 @@ if stage["stageId"] != "release-proof" or stage["status"] != "manual-required":
 next_command = data["resultUX"]["nextCommand"]
 receipt = data.get("executionCommandReceipt") or {}
 if receipt.get("status") != "review" or receipt.get("emptyStageCommandIds") != ["release-proof"]:
+    raise SystemExit(receipt)
+if receipt.get("fallbackStageCount") != 1 or receipt.get("manualStageCount") != 1:
     raise SystemExit(receipt)
 row = (receipt.get("stageCommands") or [{}])[0]
 if row.get("fallbackCommand") != next_command or row.get("copyReady") is not False:

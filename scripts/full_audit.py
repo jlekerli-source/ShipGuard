@@ -653,12 +653,15 @@ def execution_command_receipt(
 ) -> dict[str, Any]:
     stage_rows = []
     empty_stage_ids = []
+    manual_stage_ids = []
     for stage in stages:
         command = stage.get("command") if isinstance(stage.get("command"), list) else []
         command_text = shell_join([str(part) for part in command]) if command else ""
         copy_ready = bool(command_text)
         if not copy_ready:
             empty_stage_ids.append(str(stage.get("stageId") or "unknown"))
+        if stage.get("status") == "manual-required":
+            manual_stage_ids.append(str(stage.get("stageId") or "unknown"))
         stage_rows.append(
             {
                 "stageId": stage.get("stageId", ""),
@@ -677,7 +680,10 @@ def execution_command_receipt(
         "resumeCommand": resume_command,
         "stageCount": len(stages),
         "copyReadyStageCount": len(stages) - len(empty_stage_ids),
+        "fallbackStageCount": len(empty_stage_ids),
+        "manualStageCount": len(manual_stage_ids),
         "emptyStageCommandIds": empty_stage_ids,
+        "manualStageCommandIds": manual_stage_ids,
         "stageCommands": stage_rows,
         "proofBoundary": {
             "doesNotExecuteByRendering": True,
@@ -855,6 +861,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append(f"- Execute command: `{receipt.get('executeCommand', '')}`")
         lines.append(f"- Resume command: `{receipt.get('resumeCommand', '')}`")
         lines.append(f"- Copy-ready stage commands: {receipt.get('copyReadyStageCount', 0)}/{receipt.get('stageCount', 0)}")
+        lines.append(f"- Fallback stage commands: {receipt.get('fallbackStageCount', 0)}")
+        lines.append(f"- Manual-required stage commands: {receipt.get('manualStageCount', 0)}")
         empty_ids = receipt.get("emptyStageCommandIds") or []
         lines.append(f"- Empty/manual stage commands: `{', '.join(empty_ids) or 'none'}`")
         lines.extend(["", "| Stage | Copy ready | Fallback | Reason | Boundary |", "| --- | --- | --- | --- | --- |"])

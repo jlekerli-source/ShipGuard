@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added Full Audit execution receipt counts: `executionCommandReceipt` now reports fallback and manual-required stage counts/ids, renders the counts in Markdown, and report-quality flags receipts that omit them.
 - Added Full Audit slash-handoff freshness proof: `slashHandoffProof` now exposes whether the handoff came from the active or fresh following `NEXT_GOAL.md` section plus a copy-ready `shipguard next-goal` regeneration command, and report-quality flags Full Audit reports that hide those fields.
 - Added a stable-v4 evidence reality check to Full Audit release-packet plans: release plans now call out public asset consumer proof, external adoption evidence, and final security-review evidence as separate proof gates, and explicitly say maintainer-only runs do not count as independent external adoption.
 - Added stable-v4 ineligible security-review diagnostics to LaunchKey security gate attachments: structurally valid but non-eligible security records now expose an ineligible count plus the first ineligible record path, reason, class, reviewer relationship, missing stable scope, open critical/high counts, and fixture flag in JSON and Markdown.
