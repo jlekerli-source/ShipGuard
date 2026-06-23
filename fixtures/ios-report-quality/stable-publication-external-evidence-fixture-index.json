@@ -20,7 +20,7 @@
     },
     {
       "candidateId": "stable-publication-security-review-evidence-checklist",
-      "coveredInCurrentRun": true,
+      "coveredInCurrentRun": false,
       "id": "final-security-review-evidence",
       "label": "Final security-review evidence",
       "publicFixturePath": "fixtures/ios-report-quality/stable-publication-security-review-evidence-checklist",
@@ -52,27 +52,46 @@
       ],
       "sourceQuestion": "Does stable-publication reject stale adoption and security-review evidence by comparing evidence generatedAt timestamps against the release manifest timestamp?",
       "status": "covered"
+    },
+    {
+      "candidateId": "stable-publication-external-evidence-source-classes",
+      "coveredInCurrentRun": true,
+      "id": "external-evidence-source-class-fixture",
+      "label": "External evidence source classes",
+      "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
+      "rejectionProved": "weak substitutes rejected as adoption/security proof",
+      "requiredProof": [
+        "accepted evidence classes",
+        "actor/reviewer relationship fields",
+        "accepted relationships",
+        "rejected substitutes",
+        "pass boundaries",
+        "Markdown visibility"
+      ],
+      "sourceQuestion": "Does stable-publication keep accepted external evidence source classes, actor/reviewer relationships, and rejected substitutes visible so weak substitutes cannot be mistaken for adoption or security proof?",
+      "status": "covered"
     }
   ],
-  "coveredCount": 3,
+  "coveredCount": 4,
   "decisionSummary": {
     "coveredEvidenceClasses": [
       "independent-adoption-evidence",
       "final-security-review-evidence",
-      "external-evidence-freshness-fixture"
-    ],
-    "nextPromotionTarget": "external-evidence-source-class-fixture",
-    "nonClaimSummary": "This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.",
-    "remainingExternalEvidenceQuestions": [
+      "external-evidence-freshness-fixture",
       "external-evidence-source-class-fixture"
     ],
-    "verdict": "Adoption, security-review, and external evidence freshness fixture questions are covered; source-class clarity remains the next promotion target."
+    "nextPromotionTarget": "external-evidence-source-class-fixture-polish",
+    "nonClaimSummary": "This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.",
+    "remainingExternalEvidenceQuestions": [
+      "external-evidence-source-class-fixture-polish"
+    ],
+    "verdict": "Adoption, security-review, freshness, and source-class fixture questions are covered; source-class polish remains the next promotion target."
   },
-  "expectedCount": 3,
+  "expectedCount": 4,
   "nextFixtureToPromote": {
-    "id": "external-evidence-source-class-fixture",
+    "id": "external-evidence-source-class-fixture-polish",
     "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
-    "summary": "Promote a fixture proving accepted external evidence source classes, actor relationships, and rejected substitutes are visible in the report."
+    "summary": "Polish the source-class fixture and index copy so maintainers can see the next useful evidence-quality refinement."
   },
   "nonClaims": [
     "Fixture coverage proves report-quality behavior only.",
@@ -83,9 +102,9 @@
   "purpose": "Compact index of public stable-publication external-evidence fixture coverage.",
   "remainingExternalEvidenceGaps": [
     {
-      "id": "external-evidence-source-class-fixture",
+      "id": "external-evidence-source-class-fixture-polish",
       "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
-      "summary": "Promote a fixture proving accepted external evidence source classes, actor relationships, and rejected substitutes are visible in the report."
+      "summary": "Polish the source-class fixture and index copy so maintainers can see the next useful evidence-quality refinement."
     }
   ],
   "schemaVersion": 1,

@@ -9939,6 +9939,20 @@ def stable_publication_external_evidence_fixture_index(
                 "non-claims",
             ],
         },
+        {
+            "id": "external-evidence-source-class-fixture",
+            "label": "External evidence source classes",
+            "publicFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
+            "rejectionProved": "weak substitutes rejected as adoption/security proof",
+            "requiredProof": [
+                "accepted evidence classes",
+                "actor/reviewer relationship fields",
+                "accepted relationships",
+                "rejected substitutes",
+                "pass boundaries",
+                "Markdown visibility",
+            ],
+        },
     ]
     by_path = {
         str(item.get("publicFixturePath") or ""): item
@@ -9961,8 +9975,8 @@ def stable_publication_external_evidence_fixture_index(
         )
     missing = [row for row in rows if row["status"] != "covered"]
     next_gap = {
-        "id": "external-evidence-source-class-fixture",
-        "summary": "Promote a fixture proving accepted external evidence source classes, actor relationships, and rejected substitutes are visible in the report.",
+        "id": "external-evidence-source-class-fixture-polish",
+        "summary": "Polish the source-class fixture and index copy so maintainers can see the next useful evidence-quality refinement.",
         "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-source-classes",
     }
     next_target = missing[0] if missing else next_gap
@@ -9981,7 +9995,7 @@ def stable_publication_external_evidence_fixture_index(
         "coveredCount": len(rows) - len(missing),
         "expectedCount": len(rows),
         "decisionSummary": {
-            "verdict": "Adoption, security-review, and external evidence freshness fixture questions are covered; source-class clarity remains the next promotion target."
+            "verdict": "Adoption, security-review, freshness, and source-class fixture questions are covered; source-class polish remains the next promotion target."
             if not missing
             else "Stable-publication external evidence fixture coverage is incomplete.",
             "coveredEvidenceClasses": covered_classes,
