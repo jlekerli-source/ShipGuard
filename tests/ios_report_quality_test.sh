@@ -7656,6 +7656,27 @@ assert priority.get("existingFixturePath") == "fixtures/ios-report-quality/01-sh
 assert data.get("fixtureCandidates") == [], data.get("fixtureCandidates")
 PY
 
+stable_publication_missing_intake="$tmp_dir/stable-publication-missing-intake"
+mkdir -p "$stable_publication_missing_intake"
+python3 - <<'PY' "$stable_publication_launch_relay_fixture/fixture-report.json" "$stable_publication_launch_relay_fixture/fixture-report.md" "$stable_publication_missing_intake"
+import json
+import pathlib
+import sys
+
+source_json = pathlib.Path(sys.argv[1])
+source_md = pathlib.Path(sys.argv[2])
+target = pathlib.Path(sys.argv[3])
+report = json.loads(source_json.read_text(encoding="utf-8"))
+report["stablePublicationEvidenceStarterKit"].pop("externalEvidenceIntakeChecklist", None)
+(target / "v4-stable-publication.json").write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+(target / "v4-stable-publication.md").write_text(source_md.read_text(encoding="utf-8"), encoding="utf-8")
+PY
+./bin/shipguard ios report-quality \
+  --reports "$stable_publication_missing_intake" \
+  --out "$tmp_dir/stable-publication-missing-intake-quality" \
+  --shareable >/dev/null
+grep -q '"ruleId": "stable-publication-evidence-intake-checklist-missing"' "$tmp_dir/stable-publication-missing-intake-quality/ios-report-quality.json"
+
 stable_publication_missing_visibility="$tmp_dir/stable-publication-missing-visibility"
 mkdir -p "$stable_publication_missing_visibility"
 python3 - <<'PY' "$stable_publication_launch_relay_fixture/fixture-report.json" "$stable_publication_launch_relay_fixture/fixture-report.md" "$stable_publication_missing_visibility"

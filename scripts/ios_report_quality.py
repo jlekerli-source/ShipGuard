@@ -5987,6 +5987,48 @@ def stable_publication_evidence_packet_issues(
                 evidence=f"{path_name} starter kit does not separate consumer proof, maintainer QA, adoption, and security review evidence",
                 recommendation="Add an evidenceLadder to stablePublicationEvidenceStarterKit so maintainers do not mistake private dogfooding for independent adoption or security proof.",
             )
+        intake = starter.get("externalEvidenceIntakeChecklist")
+        intake_by_id = {str(item.get("id") or ""): item for item in intake if isinstance(item, dict)} if isinstance(intake, list) else {}
+        expected_intake = {
+            "independent-adoption-evidence": {
+                "classes": {"public-external", "private-redacted-external"},
+                "fields": {"actorRelationship", "privateDataRedacted", "commands", "artifacts", "outcome", "nonClaims"},
+            },
+            "final-security-review-evidence": {
+                "classes": {"public-security-review", "private-redacted-security-review"},
+                "fields": {"scope", "methodology", "findingsSummary", "privateDataRedacted", "nonClaims"},
+            },
+        }
+        missing_intake_ids = sorted(set(expected_intake) - set(intake_by_id))
+        if missing_intake_ids:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="stable-publication-evidence-intake-checklist-missing",
+                evidence=f"{path_name} starter kit missing external evidence intake checklist ids: {', '.join(missing_intake_ids)}",
+                recommendation="Add externalEvidenceIntakeChecklist so draft adoption and security-review records cannot be mistaken for pass-eligible proof.",
+            )
+        else:
+            incomplete_intake_ids = []
+            for intake_id, expected in expected_intake.items():
+                item = intake_by_id[intake_id]
+                classes = set(item.get("acceptedEvidenceClasses") or [])
+                fields = set(item.get("requiredFields") or [])
+                redaction = item.get("redactionBoundary") if isinstance(item.get("redactionBoundary"), dict) else {}
+                if (
+                    not expected["classes"] <= classes
+                    or not expected["fields"] <= fields
+                    or redaction.get("privateDataRedactedMustBeTrue") is not True
+                ):
+                    incomplete_intake_ids.append(intake_id)
+            if incomplete_intake_ids:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="stable-publication-evidence-intake-checklist-incomplete",
+                    evidence=f"{path_name} starter kit has incomplete external evidence intake checklist ids: {', '.join(incomplete_intake_ids)}",
+                    recommendation="Include accepted evidence classes, required fields, and a strict privateDataRedacted boundary for adoption and security-review starter records.",
+                )
         starter_schema = starter.get("schemaVersion")
         if isinstance(starter_schema, int) and starter_schema >= 2:
             report_release_version = str(report.get("releaseVersion") or "")
@@ -6028,6 +6070,14 @@ def stable_publication_evidence_packet_issues(
             rule_id="stable-publication-evidence-ladder-markdown-missing",
             evidence=f"{path_name} Markdown does not render the stable-publication evidence ladder",
             recommendation="Render the evidence ladder in Markdown so public consumer proof, maintainer QA, independent adoption, and security review stay visually separate.",
+        )
+    if "External Evidence Intake Checklist" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="stable-publication-evidence-intake-checklist-markdown-missing",
+            evidence=f"{path_name} Markdown does not render the external evidence intake checklist",
+            recommendation="Render accepted evidence classes, required fields, and redaction boundaries in Markdown before starter records can be used.",
         )
     notes_kit = report.get("stablePublicationReleaseNotesAuthoringKit")
     if not isinstance(notes_kit, dict):
@@ -11416,6 +11466,20 @@ def synthetic_stable_publication_report_fields() -> dict[str, Any]:
                 {"path": "stable-publication-evidence-kit/external-adoption-evidence.json", "purpose": "Synthetic adoption starter."},
                 {"path": "stable-publication-evidence-kit/security-review-evidence.json", "purpose": "Synthetic security starter."},
             ],
+            "externalEvidenceIntakeChecklist": [
+                {
+                    "id": "independent-adoption-evidence",
+                    "acceptedEvidenceClasses": ["public-external", "private-redacted-external"],
+                    "requiredFields": ["actorRelationship", "privateDataRedacted", "commands", "artifacts", "outcome", "nonClaims"],
+                    "redactionBoundary": {"privateDataRedactedMustBeTrue": True},
+                },
+                {
+                    "id": "final-security-review-evidence",
+                    "acceptedEvidenceClasses": ["public-security-review", "private-redacted-security-review"],
+                    "requiredFields": ["scope", "methodology", "findingsSummary", "privateDataRedacted", "nonClaims"],
+                    "redactionBoundary": {"privateDataRedactedMustBeTrue": True},
+                },
+            ],
             "nextCommandTemplate": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --external-adoption-evidence stable-publication-evidence-kit/external-adoption-evidence.json --security-review-evidence stable-publication-evidence-kit/security-review-evidence.json --shipguard-eval --shareable",
         },
         "stablePublicationReleaseNotesAuthoringKit": {
@@ -12181,6 +12245,13 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "",
                 "- Directory: `stable-publication-evidence-kit`",
                 "- Draft-only: `True`",
+                "",
+                "## External Evidence Intake Checklist",
+                "",
+                "| Evidence | Accepted classes | Required fields | Redaction boundary |",
+                "| --- | --- | --- | --- |",
+                "| `independent-adoption-evidence` | public-external, private-redacted-external | actorRelationship, privateDataRedacted, commands, artifacts, outcome, nonClaims | privateDataRedacted must be `True` |",
+                "| `final-security-review-evidence` | public-security-review, private-redacted-security-review | scope, methodology, findingsSummary, privateDataRedacted, nonClaims | privateDataRedacted must be `True` |",
                 "",
                 "## Release Notes Authoring Kit",
                 "",

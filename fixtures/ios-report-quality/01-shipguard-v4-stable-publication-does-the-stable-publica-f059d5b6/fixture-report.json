@@ -729,6 +729,43 @@
         "purpose": "Synthetic security starter."
       }
     ],
+    "externalEvidenceIntakeChecklist": [
+      {
+        "acceptedEvidenceClasses": [
+          "public-external",
+          "private-redacted-external"
+        ],
+        "id": "independent-adoption-evidence",
+        "redactionBoundary": {
+          "privateDataRedactedMustBeTrue": true
+        },
+        "requiredFields": [
+          "actorRelationship",
+          "privateDataRedacted",
+          "commands",
+          "artifacts",
+          "outcome",
+          "nonClaims"
+        ]
+      },
+      {
+        "acceptedEvidenceClasses": [
+          "public-security-review",
+          "private-redacted-security-review"
+        ],
+        "id": "final-security-review-evidence",
+        "redactionBoundary": {
+          "privateDataRedactedMustBeTrue": true
+        },
+        "requiredFields": [
+          "scope",
+          "methodology",
+          "findingsSummary",
+          "privateDataRedacted",
+          "nonClaims"
+        ]
+      }
+    ],
     "nextCommandTemplate": "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> --external-adoption-evidence stable-publication-evidence-kit/external-adoption-evidence.json --security-review-evidence stable-publication-evidence-kit/security-review-evidence.json --shipguard-eval --shareable",
     "schemaVersion": 1
   },

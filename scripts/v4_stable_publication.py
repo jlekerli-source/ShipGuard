@@ -3150,6 +3150,18 @@ def build_stable_publication_evidence_templates(root: Path) -> dict[str, Any]:
 
 
 def build_stable_publication_evidence_starter_kit_manifest() -> dict[str, Any]:
+    external_intake = [
+        {
+            "id": spec["id"],
+            "starterPath": spec["starterPath"],
+            "acceptedEvidenceClasses": spec["acceptedEvidenceClasses"],
+            "requiredFields": spec["requiredFields"],
+            "redactionBoundary": spec["redactionBoundary"],
+            "passCriteria": spec["passCriteria"],
+            "failCriteria": spec["failCriteria"],
+        }
+        for spec in STABLE_PUBLICATION_TEMPLATE_SPECS
+    ]
     return {
         "schemaVersion": 2,
         "draftOnly": True,
@@ -3186,6 +3198,7 @@ def build_stable_publication_evidence_starter_kit_manifest() -> dict[str, Any]:
             },
         ],
         "evidenceLadder": STABLE_PUBLICATION_EVIDENCE_LADDER,
+        "externalEvidenceIntakeChecklist": external_intake,
         "publicProofWalkthrough": {
             "path": f"{STARTER_KIT_DIRNAME}/{PUBLIC_PROOF_WALKTHROUGH_FILENAME}",
             "maintainerCanProduce": ["public-consumer-proof", "private-maintainer-qa"],
@@ -3207,6 +3220,7 @@ def build_stable_publication_evidence_starter_kit_manifest() -> dict[str, Any]:
             "These files are generated as a starter kit only; unchanged starter-kit JSON must not pass stable-publication.",
             "Replace placeholder values with real reviewed evidence, keep private paths and private app details redacted, then pass the completed files back to v4 stable-publication.",
             "Use the report's firstBlockingGate and this checklist together; do not claim stable v4 until v4 stable-publication returns pass.",
+            "Use externalEvidenceIntakeChecklist before changing starter records from draft to pass.",
         ],
         "nextCommandTemplate": (
             "./bin/shipguard v4 stable-publication --path . --out <stable-publication-dir> "
@@ -3979,6 +3993,7 @@ def write_stable_publication_evidence_starter_kit(
         "releaseVersion": report.get("releaseVersion"),
         "stableV4Release": False,
         "evidenceLadder": starter_kit.get("evidenceLadder") or STABLE_PUBLICATION_EVIDENCE_LADDER,
+        "externalEvidenceIntakeChecklist": starter_kit.get("externalEvidenceIntakeChecklist", []),
         "publicProofWalkthrough": starter_kit.get("publicProofWalkthrough", {}),
         "firstBlockingGate": packet.get("firstBlockingGate"),
         "closureChecklist": closure_checklist,
@@ -4035,7 +4050,26 @@ def write_stable_publication_evidence_starter_kit(
         "- `security-review-evidence.json`: set `status` to `pass`, use `evidenceClass` `public-security-review` or `private-redacted-security-review`, set `privateDataRedacted` to `true`, cover `cli`, `plugin`, `github-actions`, `release-proof`, `package-install`, and `redaction-privacy`, and keep `criticalOpen` plus `highOpen` at `0`.",
         "- Do not replace missing external evidence with private app runs, local maintainer reviews, fixture reports, generated starter files, stars, downloads, or vague testimonials.",
         "",
+        "## External Evidence Intake Checklist",
+        "",
+        "| Evidence | Starter | Accepted classes | Required fields | Redaction boundary |",
+        "| --- | --- | --- | --- | --- |",
     ]
+    for item in starter_kit.get("externalEvidenceIntakeChecklist", []):
+        if not isinstance(item, dict):
+            continue
+        redaction = item.get("redactionBoundary") if isinstance(item.get("redactionBoundary"), dict) else {}
+        readme_lines.append(
+            f"| `{item.get('id')}` | `{item.get('starterPath')}` | "
+            f"{', '.join(item.get('acceptedEvidenceClasses') or [])} | "
+            f"{', '.join(item.get('requiredFields') or [])} | "
+            f"privateDataRedacted must be `{redaction.get('privateDataRedactedMustBeTrue')}`; no local paths, private app identifiers, screenshots with private data, tokens, or account data |"
+        )
+    readme_lines.extend(
+        [
+            "",
+    ]
+    )
     if release_notes_kit:
         missing_topics = ", ".join(str(item) for item in release_notes_kit.get("missingTopicIds", [])) or "none"
         readme_lines.extend(
@@ -5801,6 +5835,26 @@ def render_markdown(report: dict[str, Any]) -> str:
                     lines.append(
                         f"| `{item.get('id')}` | `{item.get('status')}` | {item.get('description')} |"
                     )
+        intake = starter_kit.get("externalEvidenceIntakeChecklist")
+        if isinstance(intake, list) and intake:
+            lines.extend(
+                [
+                    "",
+                    "### External Evidence Intake Checklist",
+                    "",
+                    "| Evidence | Accepted classes | Required fields | Redaction boundary |",
+                    "| --- | --- | --- | --- |",
+                ]
+            )
+            for item in intake:
+                if not isinstance(item, dict):
+                    continue
+                redaction = item.get("redactionBoundary") if isinstance(item.get("redactionBoundary"), dict) else {}
+                lines.append(
+                    f"| `{item.get('id')}` | {', '.join(item.get('acceptedEvidenceClasses') or [])} | "
+                    f"{', '.join(item.get('requiredFields') or [])} | "
+                    f"privateDataRedacted must be `{redaction.get('privateDataRedactedMustBeTrue')}` |"
+                )
         related = starter_kit.get("relatedAuthoringKits")
         if isinstance(related, list) and related:
             lines.extend(["", "| Related kit | Status | Missing topics |", "| --- | --- | --- |"])

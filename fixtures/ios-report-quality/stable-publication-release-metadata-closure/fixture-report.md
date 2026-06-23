@@ -150,6 +150,13 @@ Rerun after editing public release notes:
 | `final-security-review-evidence` | `missing` | none |
 | `non-claims-boundary` | `missing` | none |
 
+## External Evidence Intake Checklist
+
+| Evidence | Accepted classes | Required fields | Redaction boundary |
+| --- | --- | --- | --- |
+| `independent-adoption-evidence` | public-external, private-redacted-external | actorRelationship, privateDataRedacted, commands, artifacts, outcome, nonClaims | privateDataRedacted must be `True` |
+| `final-security-review-evidence` | public-security-review, private-redacted-security-review | scope, methodology, findingsSummary, privateDataRedacted, nonClaims | privateDataRedacted must be `True` |
+
 ## Release Notes Authoring Kit
 
 - Directory: `stable-publication-release-notes`

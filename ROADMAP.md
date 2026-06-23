@@ -240,7 +240,7 @@ v3.191 adds Value Gauntlet stable-publication public-proof starter routing: `sta
 
 v3.192 adds a stable-publication consumer-proof quickstart to the generated evidence kit: `public-proof-walkthrough.md` now shows the public asset download, `release-consume verify`, stable-publication rerun, and the boundary that consumer proof is not adoption or final security review.
 
-v3.193 makes the release-loop bottleneck visible: `tests/package_release_test.sh` now prints coarse phase timings for package build, manifest/privacy checks, packaged CLI smoke proof, full-audit/value-gauntlet proof, v4 proof gates, and install proof so maintainers can tell whether the slow package lane is progressing.
+v3.193 adds a stable-publication external evidence intake guard: generated evidence kits now separate draft adoption/security starter records from pass-eligible evidence with accepted classes, required fields, and redaction boundaries, while report-quality flags missing or incomplete intake contracts.
 
 v3.194 makes next-goal release lineage explicit: generated handoffs now compare `VERSION`, the expected next semantic release, the planned target release, the current pre-bump package artifact, and the expected post-bump release artifact, then stop slash plan/goal publishing language at version-lineage resolution when a planning-only stabilization slice skips the next semantic release.
 

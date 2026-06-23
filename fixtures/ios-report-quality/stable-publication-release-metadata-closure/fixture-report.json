@@ -1249,6 +1249,43 @@
         "status": "requires-review-record"
       }
     ],
+    "externalEvidenceIntakeChecklist": [
+      {
+        "acceptedEvidenceClasses": [
+          "public-external",
+          "private-redacted-external"
+        ],
+        "id": "independent-adoption-evidence",
+        "redactionBoundary": {
+          "privateDataRedactedMustBeTrue": true
+        },
+        "requiredFields": [
+          "actorRelationship",
+          "privateDataRedacted",
+          "commands",
+          "artifacts",
+          "outcome",
+          "nonClaims"
+        ]
+      },
+      {
+        "acceptedEvidenceClasses": [
+          "public-security-review",
+          "private-redacted-security-review"
+        ],
+        "id": "final-security-review-evidence",
+        "redactionBoundary": {
+          "privateDataRedactedMustBeTrue": true
+        },
+        "requiredFields": [
+          "scope",
+          "methodology",
+          "findingsSummary",
+          "privateDataRedacted",
+          "nonClaims"
+        ]
+      }
+    ],
     "files": [
       {
         "id": "checklist",

@@ -476,6 +476,11 @@ assert ladder["public-consumer-proof"]["status"] == "can-be-produced-by-maintain
 assert ladder["private-maintainer-qa"]["status"] == "useful-but-not-adoption"
 assert ladder["independent-adoption-evidence"]["status"] == "requires-external-actor"
 assert ladder["final-security-review-evidence"]["status"] == "requires-review-record"
+intake = {item["id"]: item for item in starter["externalEvidenceIntakeChecklist"]}
+assert set(intake) == {"independent-adoption-evidence", "final-security-review-evidence"}
+assert "privateDataRedacted" in intake["independent-adoption-evidence"]["requiredFields"]
+assert intake["independent-adoption-evidence"]["redactionBoundary"]["privateDataRedactedMustBeTrue"] is True
+assert "public-security-review" in intake["final-security-review-evidence"]["acceptedEvidenceClasses"]
 related = {item["id"]: item for item in starter["relatedAuthoringKits"]}
 assert related["release-notes-authoring-kit"]["directory"] == "stable-publication-release-notes"
 assert related["release-notes-authoring-kit"]["status"] == report["stablePublicationReleaseNotesAuthoringKit"]["status"]
@@ -514,10 +519,17 @@ test -f "$tmp_dir/blocked/stable-publication-evidence-kit/security-review-eviden
 grep -q '"draftOnly": true' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q "\"releaseVersion\": \"$version\"" "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q '"relatedAuthoringKits":' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
+grep -q '"externalEvidenceIntakeChecklist":' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
+grep -q '"acceptedEvidenceClasses":' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
+grep -q '"privateDataRedactedMustBeTrue": true' "$tmp_dir/blocked/stable-publication-evidence-kit/stable-publication-checklist.json"
 grep -q 'Stable Publication Evidence Kit' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q "Release version: \`$version\`" "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q 'Release notes kit: `stable-publication-release-notes`' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q 'Evidence Ladder' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
+grep -q 'External Evidence Intake Checklist' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
+grep -q 'public-external, private-redacted-external' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
+grep -q 'public-security-review, private-redacted-security-review' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
+grep -q 'privateDataRedacted must be `True`' "$tmp_dir/blocked/stable-publication-evidence-kit/README.md"
 grep -q 'Public Consumer Proof' "$tmp_dir/blocked/stable-publication-evidence-kit/public-proof-walkthrough.md"
 grep -q 'gh release download v<version> --repo <owner/repo> --dir <downloaded-release-assets-dir>' "$tmp_dir/blocked/stable-publication-evidence-kit/public-proof-walkthrough.md"
 grep -q -- '--release-assets <downloaded-release-assets-dir>' "$tmp_dir/blocked/stable-publication-evidence-kit/public-proof-walkthrough.md"

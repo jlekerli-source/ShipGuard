@@ -17,7 +17,7 @@ jobs:
 
       - name: Build ShipGuard release proof
         id: release-proof
-        uses: jlekerli-source/ShipGuard/actions/release-proof@v3.192.0
+        uses: jlekerli-source/ShipGuard/actions/release-proof@v3.193.0
         with:
           release-url: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
           out: artifacts/shipguard-release-proof
