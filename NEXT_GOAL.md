@@ -39,7 +39,7 @@ Add a compact public fixture index for stable-publication external evidence cove
 ## Completion Receipt
 
 - Completed scope: v3.197.0 promoted the stable-publication security-review evidence checklist into a public report-quality fixture: vague security evidence is rejected, final security proof requires reviewed surfaces, severity thresholds, redaction, methodology, findings summary, and non-claims, and recursive fixture candidates stay suppressed without private app data.
-- Evidence: Commit 9e1eaf3c pushed to main; GitHub Actions run 28050482132 completed success; local package tarball dist/shipguard-v3.197.0.tar.gz SHA-256 f6859d646553a2b25fcb100016fb557dad3606da448401dd09941dd6adeabf7f; ./bin/shipguard codex status --strict passed after local CLI refresh.
+- Evidence: Commit 9e1eaf3c pushed to main; GitHub Actions run 28050482132 completed success; local package tarball dist/shipguard-v3.197.0.tar.gz SHA-256 8114edeafd9b72a96e52e6631e38e312b3ff45e3b9bfced892db53b69472e508; ./bin/shipguard codex status --strict passed after local CLI refresh.
 
 ## Following Slash Plan
 
