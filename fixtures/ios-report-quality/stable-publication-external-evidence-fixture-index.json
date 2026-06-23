@@ -160,19 +160,44 @@
       "external-evidence-relationship-gate-fixture",
       "external-evidence-artifact-redaction-fixture"
     ],
-    "nextPromotionTarget": "external-evidence-next-real-qa-gap",
+    "nextPromotionTarget": "external-evidence-artifact-digest-provenance-candidate",
     "nonClaimSummary": "This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.",
     "remainingExternalEvidenceQuestions": [
-      "external-evidence-next-real-qa-gap"
+      "external-evidence-artifact-digest-provenance-candidate"
     ],
     "verdict": "Adoption, security-review, freshness, source-class, relationship-gate, and artifact-redaction fixture questions are covered; the next real QA gap remains."
   },
   "expectedCount": 6,
   "nextFixtureToPromote": {
-    "id": "external-evidence-next-real-qa-gap",
-    "suggestedFixturePath": "fixtures/ios-report-quality/<next-stable-publication-external-evidence-fixture>",
-    "summary": "Use the next real or synthetic public-safe stable-publication report QA finding to promote a concrete public fixture."
+    "id": "external-evidence-artifact-digest-provenance-candidate",
+    "promotionBoundary": "Promote only a public synthetic fixture; do not copy private app artifacts, paths, screenshots, tokens, or account data.",
+    "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
+    "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance",
+    "summary": "Check whether adoption/security artifact proof shows digest or source provenance instead of only naming artifact files."
   },
+  "nextGapCandidateBacklog": [
+    {
+      "id": "external-evidence-artifact-digest-provenance-candidate",
+      "promotionBoundary": "Promote only a public synthetic fixture; do not copy private app artifacts, paths, screenshots, tokens, or account data.",
+      "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
+      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance",
+      "summary": "Check whether adoption/security artifact proof shows digest or source provenance instead of only naming artifact files."
+    },
+    {
+      "id": "external-evidence-review-scope-mapping-candidate",
+      "promotionBoundary": "Promote only public-safe scope-mapping behavior; do not include private app source or proprietary review text.",
+      "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
+      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping",
+      "summary": "Check whether final security-review evidence maps reviewed surfaces to the stable-v4 release scope instead of using broad review wording."
+    },
+    {
+      "id": "external-evidence-evidence-expiry-window-candidate",
+      "promotionBoundary": "Promote only public-safe expiry behavior; do not treat the fixture as adoption, security-review, or stable-v4 proof.",
+      "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
+      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window",
+      "summary": "Check whether external evidence has an explicit age/expiry boundary beyond generatedAt freshness against the release manifest."
+    }
+  ],
   "nonClaims": [
     "Fixture coverage proves report-quality behavior only.",
     "Fixture coverage is not independent adoption evidence.",
@@ -214,9 +239,11 @@
   ],
   "remainingExternalEvidenceGaps": [
     {
-      "id": "external-evidence-next-real-qa-gap",
-      "suggestedFixturePath": "fixtures/ios-report-quality/<next-stable-publication-external-evidence-fixture>",
-      "summary": "Use the next real or synthetic public-safe stable-publication report QA finding to promote a concrete public fixture."
+      "id": "external-evidence-artifact-digest-provenance-candidate",
+      "promotionBoundary": "Promote only a public synthetic fixture; do not copy private app artifacts, paths, screenshots, tokens, or account data.",
+      "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
+      "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance",
+      "summary": "Check whether adoption/security artifact proof shows digest or source provenance instead of only naming artifact files."
     }
   ],
   "rows": [

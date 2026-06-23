@@ -7867,8 +7867,8 @@ assert summary.get("coveredEvidenceClasses") == [
     "external-evidence-relationship-gate-fixture",
     "external-evidence-artifact-redaction-fixture",
 ], summary
-assert summary.get("remainingExternalEvidenceQuestions") == ["external-evidence-next-real-qa-gap"], summary
-assert summary.get("nextPromotionTarget") == "external-evidence-next-real-qa-gap", summary
+assert summary.get("remainingExternalEvidenceQuestions") == ["external-evidence-artifact-digest-provenance-candidate"], summary
+assert summary.get("nextPromotionTarget") == "external-evidence-artifact-digest-provenance-candidate", summary
 assert "not adoption" in summary.get("nonClaimSummary", ""), summary
 rows = {item.get("id"): item for item in index.get("rows") or []}
 assert rows.get("independent-adoption-evidence", {}).get("status") == "covered", rows
@@ -7877,7 +7877,10 @@ assert rows.get("external-evidence-freshness-fixture", {}).get("status") == "cov
 assert rows.get("external-evidence-source-class-fixture", {}).get("status") == "covered", rows
 assert rows.get("external-evidence-relationship-gate-fixture", {}).get("status") == "covered", rows
 assert rows.get("external-evidence-artifact-redaction-fixture", {}).get("status") == "covered", rows
-assert index.get("nextFixtureToPromote", {}).get("id") == "external-evidence-next-real-qa-gap", index
+next_fixture = index.get("nextFixtureToPromote", {})
+assert next_fixture.get("id") == "external-evidence-artifact-digest-provenance-candidate", next_fixture
+assert next_fixture.get("suggestedFixturePath") == "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance", next_fixture
+assert "--write-fixture-candidates" in next_fixture.get("qaCommand", ""), next_fixture
 source_summary = {item.get("evidence"): item for item in index.get("sourceClassPolishSummary") or []}
 adoption = source_summary.get("independent-adoption-evidence") or {}
 security = source_summary.get("final-security-review-evidence") or {}
@@ -7900,7 +7903,7 @@ assert "unredacted or provenance-free security notes" in artifact_summary.get("f
 
 static = json.load(open(sys.argv[2], encoding="utf-8"))
 static_summary = static.get("decisionSummary") or {}
-assert static_summary.get("nextPromotionTarget") == "external-evidence-next-real-qa-gap", static_summary
+assert static_summary.get("nextPromotionTarget") == "external-evidence-artifact-digest-provenance-candidate", static_summary
 coverage_ids = {item.get("id") for item in static.get("coverage") or []}
 assert "independent-adoption-evidence" in coverage_ids, static
 assert "final-security-review-evidence" in coverage_ids, static
@@ -7909,7 +7912,14 @@ assert "external-evidence-source-class-fixture" in coverage_ids, static
 assert "external-evidence-relationship-gate-fixture" in coverage_ids, static
 assert "external-evidence-artifact-redaction-fixture" in coverage_ids, static
 gaps = static.get("remainingExternalEvidenceGaps") or []
-assert gaps and gaps[0].get("suggestedFixturePath") == "fixtures/ios-report-quality/<next-stable-publication-external-evidence-fixture>", gaps
+assert gaps and gaps[0].get("suggestedFixturePath") == "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance", gaps
+backlog = static.get("nextGapCandidateBacklog") or []
+assert [item.get("id") for item in backlog[:3]] == [
+    "external-evidence-artifact-digest-provenance-candidate",
+    "external-evidence-review-scope-mapping-candidate",
+    "external-evidence-evidence-expiry-window-candidate",
+], backlog
+assert "--write-fixture-candidates" in backlog[0].get("qaCommand", ""), backlog
 static_source_summary = {item.get("evidence"): item for item in static.get("sourceClassPolishSummary") or []}
 assert static_source_summary.get("independent-adoption-evidence", {}).get("requiredRelationshipField") == "actorRelationship", static_source_summary
 assert static_source_summary.get("final-security-review-evidence", {}).get("requiredRelationshipField") == "reviewerRelationship", static_source_summary
@@ -7926,7 +7936,9 @@ grep -q 'Source-class summary' "$tmp_dir/stable-publication-security-fixture-qua
 grep -q 'Relationship-gate summary' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'Artifact-redaction summary' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'private-redacted-security-review' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
-grep -q 'Next promotion target: `external-evidence-next-real-qa-gap`' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
+grep -q 'Next promotion target: `external-evidence-artifact-digest-provenance-candidate`' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
+grep -q 'Next-gap candidate backlog' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
+grep -q 'stable-publication-external-evidence-artifact-digest-provenance' "$tmp_dir/stable-publication-security-fixture-quality/ios-report-quality.md"
 grep -q 'weak adoption signals rejected' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'vague security evidence rejected' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md
 grep -q 'stale adoption/security evidence rejected' fixtures/ios-report-quality/stable-publication-external-evidence-fixture-index.md

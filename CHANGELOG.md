@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Polished the stable-publication external evidence next-gap index: the fixture index now names a concrete artifact digest/provenance candidate, suggested fixture path, QA command, promotion boundary, and ranked backlog instead of a placeholder path or recycled fixture target.
 - Promoted the stable-publication external evidence artifact-redaction fixture: report-quality now has a public synthetic fixture proving artifact/provenance gates stay visible, unredacted paths/screenshots/tokens and provenance-free notes remain blocked substitutes, and the fixture index advances to the next real QA gap instead of looping back to the previous fixture.
 - Promoted the stable-publication external evidence relationship-gate fixture: report-quality now has a public synthetic fixture proving `actorRelationship` and `reviewerRelationship` gates stay visible, rejected relationships and blocked substitutes remain explicit, and fixture coverage is not confused with adoption, final security-review, or stable-v4 publication proof.
 - Polished the stable-publication external evidence source-class fixture index: report-quality now renders a compact source-class summary with accepted evidence classes, actor/reviewer relationship fields, accepted relationships, rejected substitutes, and pass boundaries, then advances the remaining external-evidence target beyond source-class polish.

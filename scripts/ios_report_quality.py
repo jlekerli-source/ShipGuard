@@ -10089,11 +10089,30 @@ def stable_publication_external_evidence_fixture_index(
             }
         )
     missing = [row for row in rows if row["status"] != "covered"]
-    next_gap = {
-        "id": "external-evidence-next-real-qa-gap",
-        "summary": "Use the next real or synthetic public-safe stable-publication report QA finding to promote a concrete public fixture.",
-        "suggestedFixturePath": "fixtures/ios-report-quality/<next-stable-publication-external-evidence-fixture>",
-    }
+    next_gap_candidates = [
+        {
+            "id": "external-evidence-artifact-digest-provenance-candidate",
+            "summary": "Check whether adoption/security artifact proof shows digest or source provenance instead of only naming artifact files.",
+            "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance",
+            "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
+            "promotionBoundary": "Promote only a public synthetic fixture; do not copy private app artifacts, paths, screenshots, tokens, or account data.",
+        },
+        {
+            "id": "external-evidence-review-scope-mapping-candidate",
+            "summary": "Check whether final security-review evidence maps reviewed surfaces to the stable-v4 release scope instead of using broad review wording.",
+            "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-mapping",
+            "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
+            "promotionBoundary": "Promote only public-safe scope-mapping behavior; do not include private app source or proprietary review text.",
+        },
+        {
+            "id": "external-evidence-evidence-expiry-window-candidate",
+            "summary": "Check whether external evidence has an explicit age/expiry boundary beyond generatedAt freshness against the release manifest.",
+            "suggestedFixturePath": "fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window",
+            "qaCommand": "./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>",
+            "promotionBoundary": "Promote only public-safe expiry behavior; do not treat the fixture as adoption, security-review, or stable-v4 proof.",
+        },
+    ]
+    next_gap = next_gap_candidates[0]
     next_target = missing[0] if missing else next_gap
     covered_classes = [row["id"] for row in rows if row["status"] == "covered"]
     remaining_questions = [gap["id"] for gap in [next_gap]]
@@ -10125,6 +10144,7 @@ def stable_publication_external_evidence_fixture_index(
         "coverage": rows,
         "remainingExternalEvidenceGaps": [next_gap],
         "nextFixtureToPromote": next_target,
+        "nextGapCandidateBacklog": next_gap_candidates,
         "nonClaims": non_claims,
     }
 
@@ -10439,6 +10459,25 @@ def render_markdown(report: dict[str, Any]) -> str:
                 lines.append(f"- Suggested path: `{next_fixture['suggestedFixturePath']}`")
             if next_fixture.get("summary"):
                 lines.append(f"- Summary: {next_fixture['summary']}")
+            if next_fixture.get("qaCommand"):
+                lines.append(f"- QA command: `{next_fixture['qaCommand']}`")
+            if next_fixture.get("promotionBoundary"):
+                lines.append(f"- Boundary: {next_fixture['promotionBoundary']}")
+        backlog = external_index.get("nextGapCandidateBacklog") or []
+        if backlog:
+            lines.extend(
+                [
+                    "",
+                    "Next-gap candidate backlog:",
+                    "",
+                    "| Candidate | Suggested fixture | Summary |",
+                    "| --- | --- | --- |",
+                ]
+            )
+            for item in backlog:
+                lines.append(
+                    f"| `{item.get('id') or 'unknown'}` | `{table_cell(item.get('suggestedFixturePath') or '-', 80)}` | {table_cell(item.get('summary') or '-', 140)} |"
+                )
         gaps = external_index.get("remainingExternalEvidenceGaps") or []
         if gaps:
             lines.extend(["", "Remaining external-evidence gaps:"])

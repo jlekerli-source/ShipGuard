@@ -6,8 +6,8 @@
 Decision summary:
 - Verdict: Adoption, security-review, freshness, source-class, relationship-gate, and artifact-redaction fixture questions are covered; the next real QA gap remains.
 - Covered evidence classes: independent-adoption-evidence, final-security-review-evidence, external-evidence-freshness-fixture, external-evidence-source-class-fixture, external-evidence-relationship-gate-fixture, external-evidence-artifact-redaction-fixture
-- Remaining questions: external-evidence-next-real-qa-gap
-- Next promotion target: `external-evidence-next-real-qa-gap`
+- Remaining questions: external-evidence-artifact-digest-provenance-candidate
+- Next promotion target: `external-evidence-artifact-digest-provenance-candidate`
 - Non-claim: This is fixture coverage, not adoption, final security-review, or stable-v4 publication proof.
 
 | Evidence | Status | Fixture | Rejection Proved | Required Proof |
@@ -41,9 +41,19 @@ Artifact-redaction summary:
 | `final-security-review-evidence` | methodology, commands, artifacts, privateDataRedacted, findingsSummary, nonClaims | vague self-review notes, local absolute paths, private screenshots, tokens or account identifiers, missing methodology | unredacted or provenance-free security notes | Security proof requires reviewed stable-v4 surfaces, methodology, redacted artifacts, findings summary, and no open critical/high... |
 
 Next fixture to promote:
-- `external-evidence-next-real-qa-gap`
-- Suggested path: `fixtures/ios-report-quality/<next-stable-publication-external-evidence-fixture>`
-- Summary: Use the next real or synthetic public-safe stable-publication report QA finding to promote a concrete public fixture.
+- `external-evidence-artifact-digest-provenance-candidate`
+- Suggested path: `fixtures/ios-report-quality/stable-publication-external-evidence-artifact-digest-provenance`
+- Summary: Check whether adoption/security artifact proof shows digest or source provenance instead of only naming artifact files.
+- QA command: `./bin/shipguard ios report-quality --reports <stable-publication-report-dir> --out <quality-dir> --shareable --write-fixture-candidates <fixture-output-dir>`
+- Boundary: Promote only a public synthetic fixture; do not copy private app artifacts, paths, screenshots, tokens, or account data.
+
+Next-gap candidate backlog:
+
+| Candidate | Suggested fixture | Summary |
+| --- | --- | --- |
+| `external-evidence-artifact-digest-provenance-candidate` | `fixtures/ios-report-quality/stable-publication-external-evidence-artifact-diges...` | Check whether adoption/security artifact proof shows digest or source provenance instead of only naming artifact files. |
+| `external-evidence-review-scope-mapping-candidate` | `fixtures/ios-report-quality/stable-publication-external-evidence-review-scope-m...` | Check whether final security-review evidence maps reviewed surfaces to the stable-v4 release scope instead of using broad review wording. |
+| `external-evidence-evidence-expiry-window-candidate` | `fixtures/ios-report-quality/stable-publication-external-evidence-expiry-window` | Check whether external evidence has an explicit age/expiry boundary beyond generatedAt freshness against the release manifest. |
 
 Remaining external-evidence gaps:
-- `external-evidence-next-real-qa-gap`: Use the next real or synthetic public-safe stable-publication report QA finding to promote a concrete public fixture.
+- `external-evidence-artifact-digest-provenance-candidate`: Check whether adoption/security artifact proof shows digest or source provenance instead of only naming artifact files.
