@@ -34,6 +34,9 @@ grep -q -- '--reviewer-note "Accepted after reviewing the proof packet."' docs/c
 grep -q 'Private app runs and maintainer reviews prove ShipGuard QA only' README.md
 grep -q 'Independent adoption needs an external user, repo, install, issue, PR, or marketplace signal' docs/cli.md
 grep -q 'Final security-review proof needs review evidence that covers the CLI, plugin, GitHub Action, release proof, package install, and redaction/privacy surfaces' docs/cli.md
+grep -q '## Proof Boundary Quickstart' docs/v4-stable-publication.md
+grep -q 'Do not claim stable v4 until `v4 stable-publication` returns `pass`.' docs/v4-stable-publication.md
+grep -q 'Stable Publication Proof Boundary Quickstart' docs/index.md
 
 mkdir -p "$tmp_dir/broken"
 cat > "$tmp_dir/broken/README.md" <<'MD'

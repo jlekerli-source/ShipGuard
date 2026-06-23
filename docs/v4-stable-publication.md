@@ -4,6 +4,25 @@
 
 It does not publish a GitHub release, change repository rules, edit target apps, or claim marketplace acceptance. It reads public release metadata, release notes, a prior LaunchKey release-candidate report, release assets, release freshness, adoption evidence, and security-review evidence, then blocks stable-v4 claims until the full packet passes.
 
+## Proof Boundary Quickstart
+
+Use this order when you are trying to prove a stable public release:
+
+1. Build the candidate packet with `v4 release-candidate`.
+2. Publish or update the GitHub release manually with the required release-proof assets.
+3. Run `v4 stable-publication --download-release-assets` against that public release.
+4. Fill the generated `stable-publication-evidence-kit/` files with real external adoption and security-review evidence.
+5. Rerun `v4 stable-publication` with those completed evidence files.
+
+What counts:
+
+- Public release assets plus `release-consume` prove consumer replay.
+- Private app runs, local maintainer reviews, fixtures, and generated starter kits prove ShipGuard QA only.
+- Independent adoption needs an external user, repo, install, issue, PR, or marketplace signal.
+- Final security-review proof needs review evidence that covers the CLI, plugin, GitHub Action, release proof, package install, and redaction/privacy surfaces.
+
+Do not claim stable v4 until `v4 stable-publication` returns `pass`.
+
 ## Command
 
 ```bash

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added stable-publication proof boundary quickstart docs: the v4 stable-publication guide now gives the exact proof order and evidence-class boundaries before the full command reference.
 - Added public proof boundary wording polish: README and CLI docs now separate public consumer replay, private-app/maintainer QA, independent adoption, and final security-review evidence so stable-publication claims cannot blur those proof classes.
 - Added reviewer outcome docs example polish: README and CLI examples now show the `--reviewer-note` reviewer-disposition path beside the no-note path so maintainers see the complete local outcome workflow.
 - Added reviewer outcome label docs polish: `docs/cli.md` and `docs/task-contract.md` now explain the no-note versus with-note reviewer-disposition repair commands and restate that reviewer outcomes are local feedback, not public adoption or security-review proof.

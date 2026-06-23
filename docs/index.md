@@ -87,6 +87,7 @@ Open `/tmp/shipguard-verdict/shipguard-verdict.md`. The report shows whether the
 - [Release Package Hygiene](release-package-hygiene.md)
 - [Release Evidence Bundle](release-evidence-bundle.md)
 - [Release Evidence Verification](release-evidence-verify.md)
+- [Stable Publication Proof Boundary Quickstart](v4-stable-publication.md#proof-boundary-quickstart)
 
 ### Product and Maintainer Surfaces
 
