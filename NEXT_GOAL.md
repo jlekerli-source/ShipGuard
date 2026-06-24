@@ -1,25 +1,25 @@
 # Next Goal
 
-- Generated: 2026-06-24T00:02:41Z
-- Current toolkit version: 3.210.0
-- Target release: v3.211.0
+- Generated: 2026-06-24T00:20:26Z
+- Current toolkit version: 3.211.0
+- Target release: v3.212.0
 - Title: Design QA report-quality next-gap closure
 
 ## Version Lineage Check
 
 - Status: pass
-- VERSION: 3.210.0
-- Expected next release from VERSION: v3.211.0
-- Planned target release: v3.211.0
-- Current checkout package artifact before version bump: dist/shipguard-v3.210.0.tar.gz
-- Expected package artifact after release bump: dist/shipguard-v3.211.0.tar.gz
-- Action: Before publishing v3.211.0, bump VERSION to 3.211.0, rebuild, and verify dist/shipguard-v3.211.0.tar.gz.
+- VERSION: 3.211.0
+- Expected next release from VERSION: v3.212.0
+- Planned target release: v3.212.0
+- Current checkout package artifact before version bump: dist/shipguard-v3.211.0.tar.gz
+- Expected package artifact after release bump: dist/shipguard-v3.212.0.tar.gz
+- Action: Before publishing v3.212.0, bump VERSION to 3.212.0, rebuild, and verify dist/shipguard-v3.212.0.tar.gz.
 
 ## Slash Plan
 
 ```text
-/plan v3.211.0 Design QA report-quality next-gap closure for jlekerli-source/ShipGuard:
-1. Implement this bounded improvement: Choose the next bounded ShipGuard-only design QA report-quality gap now that professional design-principle vocabulary is native: improve one public-safe design-report weakness that makes ios design output more specific, less generic, or easier to act on without editing private apps.
+/plan v3.212.0 Design QA report-quality next-gap closure for jlekerli-source/ShipGuard:
+1. Implement this bounded improvement: Choose the next bounded ShipGuard-only design QA report-quality gap after principle-tagged findings: improve one public-safe design-report weakness that makes ios design output more specific, less generic, or easier to act on without editing private apps.
 2. Implement the CLI, docs, tests, and package proof needed for that improvement.
 3. Run the required proof commands, treat blocked or timed-out commands as failures, and record exact blockers.
 4. Push main, verify GitHub Actions, bump VERSION before release packaging, publish and consume release proof, verify asset SHA-256 and clean git status, then generate the following goal.
@@ -28,23 +28,23 @@
 ## Slash Goal
 
 ```text
-/goal Implement v3.211.0 Design QA report-quality next-gap closure for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Choose the next bounded ShipGuard-only design QA report-quality gap now that professional design-principle vocabulary is native: improve one public-safe design-report weakness that makes ios design output more specific, less generic, or easier to act on without editing private apps, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
+/goal Implement v3.212.0 Design QA report-quality next-gap closure for jlekerli-source/ShipGuard: follow the /plan above, deliver this bounded improvement: Choose the next bounded ShipGuard-only design QA report-quality gap after principle-tagged findings: improve one public-safe design-report weakness that makes ios design output more specific, less generic, or easier to act on without editing private apps, push main, verify GitHub Actions, bump VERSION before publishing the release tarball, verify asset SHA-256 and clean git status, then run shipguard next-goal again for the following release.
 ```
 
 
 ## Bounded Scope
 
-Choose the next bounded ShipGuard-only design QA report-quality gap now that professional design-principle vocabulary is native: improve one public-safe design-report weakness that makes ios design output more specific, less generic, or easier to act on without editing private apps.
+Choose the next bounded ShipGuard-only design QA report-quality gap after principle-tagged findings: improve one public-safe design-report weakness that makes ios design output more specific, less generic, or easier to act on without editing private apps.
 
 ## Completion Receipt
 
-- Completed scope: v3.210.0 added native professional design-principle vocabulary to shipguard ios design and report-quality: design reports now expose contrast, hierarchy, alignment, proximity, repetition, balance, white space, unity, motion, haptics, preview proof, and app-type fit checks in JSON/Markdown, public design fixtures carry that vocabulary, and report-quality fails reports that omit it.
-- Evidence: Commit 68f32340 pushed to main; GitHub Actions run 28065391872 completed success; local package tarball dist/shipguard-v3.210.0.tar.gz SHA-256 b745050096ed6cff8ba5fcfc7e99f93bab88a7fee9b1246f20a4458709a67d08; ./bin/shipguard codex status --strict passed after local CLI refresh; ./tests/package_release_test.sh passed.
+- Completed scope: v3.211.0 added design finding principle tags: shipguard ios design findings now map recommendations to professionalDesignPrincipleVocabulary entries, Markdown renders a Principles column, public design fixtures carry principleTags, and report-quality fails design reports whose findings are not tied back to concrete principles.
+- Evidence: Commit 32fe908e pushed to main; GitHub Actions run 28066116069 completed success; local package tarball dist/shipguard-v3.211.0.tar.gz SHA-256 91f35c81c0b6cd8f0c55b0e41f8bbe085a5217d918be65d4a9fe41edb5984224; ./bin/shipguard codex status --strict passed after local CLI refresh; ./tests/package_release_test.sh passed.
 
 ## Following Slash Plan
 
 ```text
-/plan v3.212.0 Design QA report-quality next-gap closure for jlekerli-source/ShipGuard:
+/plan v3.213.0 Design QA report-quality next-gap closure for jlekerli-source/ShipGuard:
 1. Review ROADMAP.md, docs/oss-evaluation.md, and the latest read-only ShipGuard product-QA evidence.
 2. Pick one bounded improvement that makes ShipGuard reports more useful without turning private-app findings into app work.
 3. Implement the CLI, docs, tests, package proof, and plugin-refresh proof needed for that improvement.
@@ -54,13 +54,13 @@ Choose the next bounded ShipGuard-only design QA report-quality gap now that pro
 ## Following Slash Goal
 
 ```text
-/goal Implement v3.212.0 Design QA report-quality next-gap closure for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
+/goal Implement v3.213.0 Design QA report-quality next-gap closure for jlekerli-source/ShipGuard: follow the /plan above, choose one bounded ShipGuard report-quality improvement from ROADMAP.md and docs/oss-evaluation.md, implement it with proof, and generate the next completion receipt plus following /plan and /goal after validation passes.
 ```
 
 Generate that follow-up file with:
 
 ```bash
-./bin/shipguard next-goal --release 3.212.0 --title "Design QA report-quality next-gap closure" --out NEXT_GOAL.md
+./bin/shipguard next-goal --release 3.213.0 --title "Design QA report-quality next-gap closure" --out NEXT_GOAL.md
 ```
 
 ## Constraints
@@ -160,12 +160,12 @@ Generate that follow-up file with:
 
 ## Release Loop
 
-1. Open or update the tracking issue for v3.211.0.
+1. Open or update the tracking issue for v3.212.0.
 2. Implement the smallest complete improvement that makes the toolkit more useful.
 3. Update README, CLI docs, changelog, roadmap, and package verification.
 4. Commit with an issue-closing reference.
 5. Push `main` and verify GitHub Actions success.
-6. Bump VERSION to 3.211.0, build `dist/shipguard-v3.211.0.tar.gz`, create release `v3.211.0`, and upload the rebuilt tarball.
+6. Bump VERSION to 3.212.0, build `dist/shipguard-v3.212.0.tar.gz`, create release `v3.212.0`, and upload the rebuilt tarball.
 7. Verify release asset digest, closed issue, tag target, and clean git status.
 8. Generate the next goal:
 
