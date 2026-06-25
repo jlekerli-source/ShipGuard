@@ -218,6 +218,14 @@
         "app-type fit"
       ],
       "proof": "Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.",
+      "proofAction": {
+        "expectedArtifact": "ios-report-quality.json plus fixture coverage for design coherence boundaries.",
+        "failureMeaning": "ShipGuard design QA can still drift into app-specific remediation instead of product QA.",
+        "kind": "report-quality-proof",
+        "manualProof": "Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.",
+        "owner": "developer",
+        "successCondition": "Report-quality accepts the public fixture while preserving the target-app work boundary."
+      },
       "proofGuidance": "Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.",
       "recommendation": "Improve ShipGuard report-quality rules or public fixtures before using this as target-app implementation guidance.",
       "ruleId": "design-coherence-target-work-boundary",

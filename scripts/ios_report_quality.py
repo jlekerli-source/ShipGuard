@@ -3742,6 +3742,37 @@ def design_principle_vocabulary_issues(
                 break
     if issues:
         return issues
+    if isinstance(findings, list):
+        for item in findings:
+            if not isinstance(item, dict):
+                continue
+            proof_action = item.get("proofAction")
+            if not isinstance(proof_action, dict):
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="design-finding-proof-action-missing",
+                    evidence=f"{path_name} finding {item.get('ruleId')!r} has no proofAction object",
+                    recommendation="Give every design finding a structured proofAction with owner, kind, manualProof, expectedArtifact, successCondition, and failureMeaning.",
+                )
+                break
+            required_fields = ("owner", "kind", "manualProof", "expectedArtifact", "successCondition", "failureMeaning")
+            missing_fields = [
+                field
+                for field in required_fields
+                if not normalized_question_text(proof_action.get(field) or "")
+            ]
+            if missing_fields:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="design-finding-proof-action-incomplete",
+                    evidence=f"{path_name} finding {item.get('ruleId')!r} proofAction is missing: {', '.join(missing_fields)}",
+                    recommendation="Complete design finding proofAction fields so every recommendation has a concrete proof route and failure boundary.",
+                )
+                break
+    if issues:
+        return issues
     if report.get("findings") and "Principles" not in markdown:
         add_issue(
             issues,
@@ -3750,6 +3781,62 @@ def design_principle_vocabulary_issues(
             evidence=f"{path_name} has principle-tagged design findings but Markdown hides the principle column",
             recommendation="Render finding principle tags in Markdown so readers can connect each recommendation to the design vocabulary.",
         )
+    if issues:
+        return issues
+    if report.get("findings") and "Proof action" not in markdown:
+        add_issue(
+            issues,
+            severity="review",
+            rule_id="design-finding-proof-action-markdown-missing",
+            evidence=f"{path_name} has structured design proof actions but Markdown hides the proof-action column",
+            recommendation="Render design finding proof actions in Markdown so readers see the exact artifact and proof route.",
+        )
+    if issues:
+        return issues
+    if report.get("findings"):
+        proof_section = markdown_section_text(markdown, "Finding Proof Actions")
+        if not proof_section:
+            add_issue(
+                issues,
+                severity="review",
+                rule_id="design-finding-proof-action-markdown-missing",
+                evidence=f"{path_name} has structured design proof actions but Markdown does not render a Finding Proof Actions section",
+                recommendation="Render a Finding Proof Actions section with each finding's owner, kind, manual proof, expected artifact, success condition, and failure meaning.",
+            )
+            return issues
+        for item in findings if isinstance(findings, list) else []:
+            if not isinstance(item, dict):
+                continue
+            proof_action = item.get("proofAction") if isinstance(item.get("proofAction"), dict) else {}
+            required_markdown_tokens = [
+                item.get("ruleId"),
+                "Owner",
+                proof_action.get("owner"),
+                "Kind",
+                proof_action.get("kind"),
+                "Manual proof",
+                proof_action.get("manualProof"),
+                "Expected artifact",
+                proof_action.get("expectedArtifact"),
+                "Success condition",
+                proof_action.get("successCondition"),
+                "Failure meaning",
+                proof_action.get("failureMeaning"),
+            ]
+            missing_tokens = [
+                str(token)
+                for token in required_markdown_tokens
+                if normalized_question_text(token or "") and not markdown_contains_token(proof_section, token)
+            ]
+            if missing_tokens:
+                add_issue(
+                    issues,
+                    severity="review",
+                    rule_id="design-finding-proof-action-markdown-incomplete",
+                    evidence=f"{path_name} finding {item.get('ruleId')!r} proof action is hidden or incomplete in Markdown: {', '.join(missing_tokens[:4])}",
+                    recommendation="Render each design proofAction field beside the finding so human readers see the same proof contract as JSON consumers.",
+                )
+                break
     return issues
 
 
@@ -12158,6 +12245,14 @@ def synthetic_design_report_fields() -> dict[str, Any]:
                 "recommendation": "Improve ShipGuard report-quality rules or public fixtures before using this as target-app implementation guidance.",
                 "proof": "Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.",
                 "proofGuidance": "Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.",
+                "proofAction": {
+                    "owner": "developer",
+                    "kind": "report-quality-proof",
+                    "manualProof": "Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.",
+                    "expectedArtifact": "ios-report-quality.json plus fixture coverage for design coherence boundaries.",
+                    "successCondition": "Report-quality accepts the public fixture while preserving the target-app work boundary.",
+                    "failureMeaning": "ShipGuard design QA can still drift into app-specific remediation instead of product QA.",
+                },
                 "principleTags": ["unity", "app-type fit"],
             },
             {
@@ -12169,6 +12264,14 @@ def synthetic_design_report_fields() -> dict[str, Any]:
                 "recommendation": "Run shipguard ios preview for a phone-shaped visual proof loop; use ios devspace when ChatGPT should plan from that widget.",
                 "proof": "Attach preview-events.jsonl, handoff.md, and refreshed screenshot evidence for visual claims.",
                 "proofGuidance": "Attach preview-events.jsonl, handoff.md, and refreshed screenshot evidence for visual claims.",
+                "proofAction": {
+                    "owner": "developer",
+                    "kind": "preview-evidence-proof",
+                    "manualProof": "Attach preview-events.jsonl, handoff.md, and refreshed screenshot evidence for visual claims.",
+                    "expectedArtifact": "preview-events.jsonl, handoff.md or handoff.json, and refreshed screenshot evidence.",
+                    "successCondition": "Visual claims are tied to phone-shaped preview or Devspace evidence.",
+                    "failureMeaning": "The design report stays source-only and should not be treated as visual proof.",
+                },
                 "principleTags": ["preview proof"],
             }
         ],
@@ -13538,9 +13641,20 @@ def synthetic_fixture_markdown(candidate: dict[str, Any]) -> str:
                 "",
                 "## Findings",
                 "",
-                "| Severity | Category | Rule | Principles | Finding | Recommendation | Proof |",
+                "| Severity | Category | Rule | Principles | Finding | Recommendation | Proof action |",
                 "| --- | --- | --- | --- | --- | --- | --- |",
-                "| review | Design DNA | `design-coherence-target-work-boundary` | unity, app-type fit | Design coherence finding must not become target-app work | Improve ShipGuard report-quality rules or public fixtures before using this as target-app implementation guidance. | Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture. |",
+                "| review | Design DNA | `design-coherence-target-work-boundary` | unity, app-type fit | Design coherence finding must not become target-app work | Improve ShipGuard report-quality rules or public fixtures before using this as target-app implementation guidance. | report-quality-proof: ios-report-quality.json plus fixture coverage for design coherence boundaries. |",
+                "",
+                "## Finding Proof Actions",
+                "",
+                "### `design-coherence-target-work-boundary`",
+                "",
+                "- Owner: `developer`",
+                "- Kind: `report-quality-proof`",
+                "- Manual proof: Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.",
+                "- Expected artifact: ios-report-quality.json plus fixture coverage for design coherence boundaries.",
+                "- Success condition: Report-quality accepts the public fixture while preserving the target-app work boundary.",
+                "- Failure meaning: ShipGuard design QA can still drift into app-specific remediation instead of product QA.",
                 "",
                 "## Design Coherence Boundary",
                 "",

@@ -38,6 +38,17 @@ Top signals:
 - Success condition: The report explains why learning-progress is the right profile for education and avoids utility-only advice.
 - Failure meaning: The design report remains an inventory, not an app-type-specific design QA recommendation.
 
+## Finding Proof Actions
+
+### `design-coherence-target-work-boundary`
+
+- Owner: `developer`
+- Kind: `report-quality-proof`
+- Manual proof: Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.
+- Expected artifact: ios-report-quality.json plus fixture coverage for design coherence boundaries.
+- Success condition: Report-quality accepts the public fixture while preserving the target-app work boundary.
+- Failure meaning: ShipGuard design QA can still drift into app-specific remediation instead of product QA.
+
 ## Design Coherence Boundary
 
 - Purpose: Keep design-system coherence findings as ShipGuard product-QA evidence until target-app work is separately authorized.
@@ -87,9 +98,9 @@ Proof boundary:
 
 ## Findings
 
-| Severity | Category | Rule | Principles | Finding | Recommendation | Proof |
+| Severity | Category | Rule | Principles | Finding | Recommendation | Proof action |
 | --- | --- | --- | --- | --- | --- | --- |
-| review | Design DNA | `design-coherence-target-work-boundary` | unity, app-type fit | Design coherence finding must not become target-app work | Improve ShipGuard report-quality rules or public fixtures before using this as target-app implementation guidance. | Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture. |
+| review | Design DNA | `design-coherence-target-work-boundary` | unity, app-type fit | Design coherence finding must not become target-app work | Improve ShipGuard report-quality rules or public fixtures before using this as target-app implementation guidance. | report-quality-proof: ios-report-quality.json plus fixture coverage for design coherence boundaries. |
 
 ## Fixture Intent
 

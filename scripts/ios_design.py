@@ -375,6 +375,75 @@ def finding(
         "preview-proof-not-provided": ["preview proof"],
         "icon-imagegen-brief-available": ["unity", "app-type fit"],
     }
+    proof_action_map = {
+        "motion-reduced-motion-gate": {
+            "kind": "accessibility-preview-proof",
+            "expectedArtifact": "Reduce Motion screenshot or UI-test receipt for the affected animated surface.",
+            "successCondition": "The same interaction remains understandable with Reduce Motion enabled and no required state depends on motion alone.",
+            "failureMeaning": "The motion recommendation is still a source heuristic and cannot support a design-quality claim.",
+        },
+        "motion-continuous-animation-density": {
+            "kind": "motion-frequency-proof",
+            "expectedArtifact": "Repeated-use capture plus Reduce Motion note; add profiler/device proof when animation is always active.",
+            "successCondition": "Looping or timeline motion is justified by app type, pausable or reduced, and not expensive in repeated use.",
+            "failureMeaning": "ShipGuard can flag the risk, but the report has not proved the animation is appropriate or performant.",
+        },
+        "visual-effects-stack-review": {
+            "kind": "preview-comparison-proof",
+            "expectedArtifact": "Before/after iPhone preview screenshots in light and dark appearance.",
+            "successCondition": "Hierarchy, text legibility, and layer meaning improve without relying on stacked blur/shadow decoration.",
+            "failureMeaning": "The visual-effects recommendation remains generic polish advice instead of validated design direction.",
+        },
+        "visible-copy-localization-gate": {
+            "kind": "localization-proof",
+            "expectedArtifact": "Localization or pseudo-localization receipt for the visible strings on the affected surface.",
+            "successCondition": "User-visible copy is routed through localization and still fits in compact-width UI.",
+            "failureMeaning": "The design language may not be reusable across locales and copy claims stay unproved.",
+        },
+        "typography-dynamic-type-gap": {
+            "kind": "dynamic-type-proof",
+            "expectedArtifact": "Compact-width and larger Dynamic Type screenshots for the primary flow.",
+            "successCondition": "The type hierarchy remains legible, unclipped, and correctly prioritized at larger text sizes.",
+            "failureMeaning": "Typography guidance is only inferred from source tokens, not verified as accessible UI.",
+        },
+        "iconography-language-missing": {
+            "kind": "preview-accessibility-proof",
+            "expectedArtifact": "iPhone preview notes plus VoiceOver label check for any proposed icon-assisted controls.",
+            "successCondition": "Icons improve scanning without replacing readable labels or accessibility names.",
+            "failureMeaning": "The report can suggest an icon language, but cannot claim it improves usability.",
+        },
+        "haptics-blueprint-missing": {
+            "kind": "physical-device-proof",
+            "expectedArtifact": "Physical-device haptic test note for selection, impact, and notification feedback patterns used by the app.",
+            "successCondition": "Haptics are sparse, interaction-specific, and verified on device rather than described from source alone.",
+            "failureMeaning": "ShipGuard must avoid claiming haptic quality from simulator or source heuristics.",
+        },
+        "preview-proof-not-provided": {
+            "kind": "preview-evidence-proof",
+            "expectedArtifact": "preview-events.jsonl, handoff.md or handoff.json, and refreshed screenshot evidence from shipguard ios preview/devspace.",
+            "successCondition": "Visual claims are tied to a phone-shaped preview or Devspace widget receipt.",
+            "failureMeaning": "The design audit remains source-only and should not be treated as visual proof.",
+        },
+        "icon-imagegen-brief-available": {
+            "kind": "imagegen-brief-proof",
+            "expectedArtifact": "app-icon-imagegen-brief.md plus bitmap candidates created with ChatGPT ImageGen outside the local CLI.",
+            "successCondition": "Icon direction is expressed as an ImageGen-ready prompt and asset checklist, with no CSS/SVG placeholder art.",
+            "failureMeaning": "App-icon work remains unstarted; ShipGuard should not pretend it generated production icon assets.",
+        },
+    }
+    proof_action = {
+        "owner": "developer",
+        "manualProof": proof,
+        **proof_action_map.get(
+            rule_id,
+            {
+                "kind": "manual-proof",
+                "expectedArtifact": "A reviewer note plus the smallest matching preview, test, or device artifact for this finding.",
+                "successCondition": "The finding is backed by a concrete artifact instead of source inventory alone.",
+                "failureMeaning": "The finding remains a source heuristic and should not be used as completed design proof.",
+            },
+        ),
+    }
     return {
         "ruleId": rule_id,
         "severity": severity,
@@ -384,6 +453,7 @@ def finding(
         "recommendation": recommendation,
         "proof": proof,
         "proofGuidance": proof,
+        "proofAction": proof_action,
         "principleTags": principle_map.get(rule_id, ["app-type fit"]),
     }
 
@@ -1289,13 +1359,34 @@ def render_markdown(report: dict[str, Any]) -> str:
 
     lines.extend(["", "## Findings", ""])
     if report["findings"]:
-        lines.extend(["| Severity | Category | Rule | Principles | Finding | Recommendation | Proof |", "| --- | --- | --- | --- | --- | --- | --- |"])
+        lines.extend(["| Severity | Category | Rule | Principles | Finding | Recommendation | Proof action |", "| --- | --- | --- | --- | --- | --- | --- |"])
         for item in report["findings"]:
+            proof_action = item.get("proofAction") or {}
+            action_label = proof_action.get("kind") or "manual-proof"
+            expected_artifact = proof_action.get("expectedArtifact") or item["proof"]
             lines.append(
-                f"| {item['severity']} | {item['category']} | `{item['ruleId']}` | {', '.join(item.get('principleTags') or [])} | {item['title']} | {item['recommendation']} | {item['proof']} |"
+                f"| {item['severity']} | {item['category']} | `{item['ruleId']}` | {', '.join(item.get('principleTags') or [])} | {item['title']} | {item['recommendation']} | {action_label}: {expected_artifact} |"
             )
     else:
         lines.append("No design QA findings were detected.")
+
+    if report["findings"]:
+        lines.extend(["", "## Finding Proof Actions", ""])
+        for item in report["findings"]:
+            proof_action = item.get("proofAction") or {}
+            lines.extend(
+                [
+                    f"### `{item['ruleId']}`",
+                    "",
+                    f"- Owner: `{proof_action.get('owner') or 'developer'}`",
+                    f"- Kind: `{proof_action.get('kind') or 'manual-proof'}`",
+                    f"- Manual proof: {proof_action.get('manualProof') or item['proof']}",
+                    f"- Expected artifact: {proof_action.get('expectedArtifact') or item['proof']}",
+                    f"- Success condition: {proof_action.get('successCondition') or 'The recommendation is backed by a concrete proof artifact.'}",
+                    f"- Failure meaning: {proof_action.get('failureMeaning') or 'The finding remains source-only guidance.'}",
+                    "",
+                ]
+            )
 
     lines.extend(
         [

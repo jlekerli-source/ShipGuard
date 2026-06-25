@@ -218,6 +218,14 @@
         "app-type fit"
       ],
       "proof": "Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.",
+      "proofAction": {
+        "expectedArtifact": "ios-report-quality.json plus fixture coverage for design coherence boundaries.",
+        "failureMeaning": "ShipGuard design QA can still drift into app-specific remediation instead of product QA.",
+        "kind": "report-quality-proof",
+        "manualProof": "Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.",
+        "owner": "developer",
+        "successCondition": "Report-quality accepts the public fixture while preserving the target-app work boundary."
+      },
       "proofGuidance": "Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.",
       "recommendation": "Improve ShipGuard report-quality rules or public fixtures before using this as target-app implementation guidance.",
       "ruleId": "design-coherence-target-work-boundary",
@@ -231,6 +239,14 @@
         "preview proof"
       ],
       "proof": "Attach preview-events.jsonl, handoff.md, and refreshed screenshot evidence for visual claims.",
+      "proofAction": {
+        "expectedArtifact": "preview-events.jsonl, handoff.md or handoff.json, and refreshed screenshot evidence.",
+        "failureMeaning": "The design report stays source-only and should not be treated as visual proof.",
+        "kind": "preview-evidence-proof",
+        "manualProof": "Attach preview-events.jsonl, handoff.md, and refreshed screenshot evidence for visual claims.",
+        "owner": "developer",
+        "successCondition": "Visual claims are tied to phone-shaped preview or Devspace evidence."
+      },
       "proofGuidance": "Attach preview-events.jsonl, handoff.md, and refreshed screenshot evidence for visual claims.",
       "recommendation": "Run shipguard ios preview for a phone-shaped visual proof loop; use ios devspace when ChatGPT should plan from that widget.",
       "ruleId": "preview-proof-not-provided",

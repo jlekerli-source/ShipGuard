@@ -219,6 +219,14 @@
         "haptics"
       ],
       "proof": "Review the Design Tailoring Contract and attach one preview or screenshot receipt for the synthetic learning flow.",
+      "proofAction": {
+        "expectedArtifact": "A same-flow screenshot or preview receipt plus one note mapping the learning-progress profile to education source signals.",
+        "failureMeaning": "The report remains a generic design inventory instead of app-type-tailored QA.",
+        "kind": "app-type-tailoring-proof",
+        "manualProof": "Review the Design Tailoring Contract and attach one preview or screenshot receipt for the synthetic learning flow.",
+        "owner": "developer",
+        "successCondition": "The design report explains why learning-progress fits education and avoids universal utility-only advice."
+      },
       "proofGuidance": "Review the Design Tailoring Contract and attach one preview or screenshot receipt for the synthetic learning flow.",
       "recommendation": "Use the learning-progress profile for motion, haptics, visual density, and copy guidance.",
       "ruleId": "design-tailoring-app-type-proof",

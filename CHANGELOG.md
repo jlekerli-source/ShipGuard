@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added design finding proof actions: `shipguard ios design` findings now include structured `proofAction` fields with owner, proof type, expected artifact, success condition, and failure meaning; Markdown renders a Proof action column; and report-quality blocks design reports that omit or hide those proof routes.
 - Added design finding principle tags: `shipguard ios design` findings now map recommendations to the professional design-principle vocabulary, Markdown renders a Principles column, and report-quality blocks design reports whose findings are not tied back to concrete principles.
 - Added native professional design-principle vocabulary to `shipguard ios design`: reports now render contrast, hierarchy, alignment, proximity, repetition, balance, white space, unity, motion, haptics, preview proof, and app-type fit checks, and report-quality blocks design reports that regress to generic make-it-prettier advice.
 - Promoted the stable-publication external evidence expiry-window fixture: report-quality now has a public synthetic fixture proving open-ended adoption and security-review records are blocked substitutes, generatedAt-only freshness is insufficient, and the fixture index reaches 9/9 coverage with no fake next-gap backlog.

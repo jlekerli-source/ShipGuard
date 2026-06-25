@@ -62,9 +62,29 @@ Top signals:
 
 ## Findings
 
-| Severity | Category | Rule | Principles | Finding | Recommendation | Proof |
+| Severity | Category | Rule | Principles | Finding | Recommendation | Proof action |
 | --- | --- | --- | --- | --- | --- | --- |
-| review | Design DNA | `design-coherence-target-work-boundary` | unity, app-type fit | Design coherence finding must not become target-app work | Improve ShipGuard report-quality rules or public fixtures before using this as target-app implementation guidance. | Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture. |
+| review | Design DNA | `design-coherence-target-work-boundary` | unity, app-type fit | Design coherence finding must not become target-app work | Improve ShipGuard report-quality rules or public fixtures before using this as target-app implementation guidance. | report-quality-proof: ios-report-quality.json plus fixture coverage for design coherence boundaries. |
+
+## Finding Proof Actions
+
+### `design-coherence-target-work-boundary`
+
+- Owner: `developer`
+- Kind: `report-quality-proof`
+- Manual proof: Review the Design Tailoring Contract and Design Coherence Boundary, then run report-quality on the synthetic fixture.
+- Expected artifact: ios-report-quality.json plus fixture coverage for design coherence boundaries.
+- Success condition: Report-quality accepts the public fixture while preserving the target-app work boundary.
+- Failure meaning: ShipGuard design QA can still drift into app-specific remediation instead of product QA.
+
+### `preview-proof-not-provided`
+
+- Owner: `developer`
+- Kind: `preview-evidence-proof`
+- Manual proof: Attach preview-events.jsonl, handoff.md, and refreshed screenshot evidence for visual claims.
+- Expected artifact: preview-events.jsonl, handoff.md or handoff.json, and refreshed screenshot evidence.
+- Success condition: Visual claims are tied to phone-shaped preview or Devspace evidence.
+- Failure meaning: The design report stays source-only and should not be treated as visual proof.
 
 ## Design Coherence Boundary
 

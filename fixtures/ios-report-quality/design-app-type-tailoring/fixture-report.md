@@ -38,6 +38,17 @@ Top signals:
 - Success condition: The report explains why learning-progress is the right profile for education and avoids utility-only advice.
 - Failure meaning: The design report remains an inventory, not an app-type-specific design QA recommendation.
 
+## Finding Proof Actions
+
+### `design-tailoring-app-type-proof`
+
+- Owner: `developer`
+- Kind: `app-type-tailoring-proof`
+- Manual proof: Review the Design Tailoring Contract and attach one preview or screenshot receipt for the synthetic learning flow.
+- Expected artifact: A same-flow screenshot or preview receipt plus one note mapping the learning-progress profile to education source signals.
+- Success condition: The design report explains why learning-progress fits education and avoids universal utility-only advice.
+- Failure meaning: The report remains a generic design inventory instead of app-type-tailored QA.
+
 ## Design Coherence Boundary
 
 - Purpose: Keep design-system coherence findings as ShipGuard product-QA evidence until target-app work is separately authorized.
@@ -87,9 +98,9 @@ Proof boundary:
 
 ## Findings
 
-| Severity | Category | Rule | Principles | Finding | Recommendation | Proof |
+| Severity | Category | Rule | Principles | Finding | Recommendation | Proof action |
 | --- | --- | --- | --- | --- | --- | --- |
-| review | Design Tailoring | `design-tailoring-app-type-proof` | app-type fit, motion, haptics | Education guidance must be app-type tailored | Use the learning-progress profile for motion, haptics, visual density, and copy guidance. | Review the Design Tailoring Contract and attach one preview or screenshot receipt for the synthetic learning flow. |
+| review | Design Tailoring | `design-tailoring-app-type-proof` | app-type fit, motion, haptics | Education guidance must be app-type tailored | Use the learning-progress profile for motion, haptics, visual density, and copy guidance. | app-type-tailoring-proof: A same-flow screenshot or preview receipt plus one note mapping the learning-progress profile to education source signals. |
 
 ## Fixture Intent
 
